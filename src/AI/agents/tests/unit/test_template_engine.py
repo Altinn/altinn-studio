@@ -7,11 +7,11 @@ Covers:
 - None variable handling
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from agents.prompts.loader import _compile_template, render_template
-
 
 # ---------------------------------------------------------------------------
 # _compile_template — identifier matching
@@ -103,13 +103,15 @@ class TestRenderTemplateLangfuseProtection:
         mock_lf_prompt.prompt = "Goal: {{user_goal}}"  # missing form_spec!
         mock_lf_prompt.compile = Mock(return_value="Goal: Add field")
 
-        with patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=mock_lf_prompt):
-            with patch("agents.prompts.loader.PROMPTS_DIR", tmp_path):
-                result = render_template(
-                    "test_tpl",
-                    user_goal="Add field",
-                    form_spec="FORM SPEC: ...",
-                )
+        with (
+            patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=mock_lf_prompt),
+            patch("agents.prompts.loader.PROMPTS_DIR", tmp_path),
+        ):
+            result = render_template(
+                "test_tpl",
+                user_goal="Add field",
+                form_spec="FORM SPEC: ...",
+            )
 
         # Should have used local template (has both variables)
         assert "Spec: FORM SPEC: ..." in result
@@ -143,9 +145,11 @@ class TestRenderTemplateLangfuseProtection:
         mock_lf_prompt.prompt = "Hello {{name}}"
         mock_lf_prompt.compile = Mock(side_effect=RuntimeError("Langfuse broke"))
 
-        with patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=mock_lf_prompt):
-            with patch("agents.prompts.loader.PROMPTS_DIR", tmp_path):
-                result = render_template("test_tpl", name="World")
+        with (
+            patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=mock_lf_prompt),
+            patch("agents.prompts.loader.PROMPTS_DIR", tmp_path),
+        ):
+            result = render_template("test_tpl", name="World")
 
         assert result == "Hello World"
 
@@ -156,14 +160,18 @@ class TestRenderTemplateLangfuseProtection:
         local_template = templates_dir / "test_tpl.md"
         local_template.write_text("Value: {{x}}")
 
-        with patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=None):
-            with patch("agents.prompts.loader.PROMPTS_DIR", tmp_path):
-                result = render_template("test_tpl", x="42")
+        with (
+            patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=None),
+            patch("agents.prompts.loader.PROMPTS_DIR", tmp_path),
+        ):
+            result = render_template("test_tpl", x="42")
 
         assert result == "Value: 42"
 
     def test_missing_local_template_raises(self, tmp_path):
-        with patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=None):
-            with patch("agents.prompts.loader.PROMPTS_DIR", tmp_path):
-                with pytest.raises(FileNotFoundError):
-                    render_template("nonexistent_template", x="1")
+        with (
+            patch("agents.prompts.loader.get_raw_langfuse_prompt", return_value=None),
+            patch("agents.prompts.loader.PROMPTS_DIR", tmp_path),
+            pytest.raises(FileNotFoundError),
+        ):
+            render_template("nonexistent_template", x="1")

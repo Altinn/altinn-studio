@@ -8,21 +8,23 @@ feature by name).
 """
 
 import json
-from typing import Any, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
-from .llm_client import get_llm_client
 from agents.prompts import get_prompt_with_langfuse
 from shared.utils.logging_utils import get_logger
+
+from .llm_client import get_llm_client
 
 log = get_logger(__name__)
 
 
 class ScopeCheckResult(BaseModel):
     in_scope: bool
-    decline_message: Optional[str] = None
-    reason: Optional[str] = None
+    decline_message: str | None = None
+    reason: str | None = None
 
 
 CONTEXT_TURNS = 4

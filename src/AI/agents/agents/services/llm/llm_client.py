@@ -1,19 +1,28 @@
 """LLM client for Altinity agents"""
 
-import json
 import asyncio
-from langfuse import get_client
-from shared.utils.langfuse_utils import trace_generation
-from typing import Dict, Any, Optional, List, Tuple
+import json
+from typing import Any
+
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import (
     AzureChatOpenAI,
     ChatOpenAI,
+)
+from langchain_openai import (
     AzureOpenAI as LangchainAzureOpenAI,
+)
+from langchain_openai import (
     OpenAI as LangchainOpenAI,
 )
-from openai import AzureOpenAI as AzureResponsesClient, OpenAI as OpenAIResponsesClient
-from langchain_core.messages import SystemMessage, HumanMessage
+from langfuse import get_client
+from openai import AzureOpenAI as AzureResponsesClient
+from openai import OpenAI as OpenAIResponsesClient
+
+from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
+from shared.models import AgentAttachment
+from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
@@ -21,14 +30,12 @@ from shared.utils.spotlight import (
     defang_delimiter,
     open_delimiter,
 )
-from shared.models import AgentAttachment
-from agents.prompts import get_prompt_content, get_prompt_with_langfuse
 
 log = get_logger(__name__)
 config = get_config()
 
 
-def _is_claude_model(model_name: Optional[str]) -> bool:
+def _is_claude_model(model_name: str | None) -> bool:
     """Check if model name indicates a Claude/Anthropic model"""
     if not model_name:
         return False
@@ -36,13 +43,13 @@ def _is_claude_model(model_name: Optional[str]) -> bool:
     return model_lower.startswith("claude") or "anthropic" in model_lower
 
 
-def _is_reasoning_model(model_name: Optional[str]) -> bool:
+def _is_reasoning_model(model_name: str | None) -> bool:
     """Check if model is a reasoning model that uses internal reasoning tokens."""
     if not model_name:
         return False
     m = model_name.lower()
     # o1, o1-mini, o1-preview, o3, o3-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro
-    return m.startswith("o1") or m.startswith("o3") or m.startswith("gpt-5")
+    return m.startswith(("o1", "o3", "gpt-5"))
 
 
 ATTACHMENT_PAYLOAD_FIELDS = frozenset({"data", "file_data", "url"})
@@ -62,20 +69,20 @@ def _defang_attachment_value(value: Any) -> Any:
     return value
 
 
-def _defang_attachment_blocks(blocks: List[dict]) -> List[dict]:
+def _defang_attachment_blocks(blocks: list[dict]) -> list[dict]:
     """Stop an attachment closing the block it sits inside."""
     return [_defang_attachment_value(block) for block in blocks]
 
 
 def _build_anthropic_user_content(
     user_prompt: str,
-    attachments: Optional[List[AgentAttachment]],
+    attachments: list[AgentAttachment] | None,
 ) -> Any:
     """Compose an Anthropic Messages-API `content` value."""
     stripped = user_prompt.strip() if user_prompt else ""
     if not attachments:
         return stripped
-    blocks: List[dict] = [{"type": "text", "text": stripped}] if stripped else []
+    blocks: list[dict] = [{"type": "text", "text": stripped}] if stripped else []
     blocks.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
     for attachment in attachments:
         blocks.extend(_defang_attachment_blocks(attachment.to_anthropic_blocks()))
@@ -86,13 +93,13 @@ def _build_anthropic_user_content(
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
-    def __init__(self, role: str = "default", max_tokens: Optional[int] = None):
+    def __init__(self, role: str = "default", max_tokens: int | None = None):
         """Initialize LLM client with role-specific configuration  Args: role: Agent role (planner, actor, reviewer, verifier, default) max_tokens: Maximum tokens for response."""
         self.role = role
 
         # Select model and temperature based on role
-        model: Optional[str] = None
-        temperature: Optional[float] = None
+        model: str | None = None
+        temperature: float | None = None
         self.use_completions = False
         self.use_responses = False
         self.responses_client = None
@@ -256,12 +263,12 @@ class LLMClient:
             self.use_completions or self.use_responses or self.use_anthropic
         )
 
-    def _init_anthropic_client(self, role: str, model: str, temperature: Optional[float]) -> None:
+    def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
         """Initialize Anthropic/Claude client for Azure AI Foundry or direct Anthropic API"""
         try:
             from anthropic import Anthropic
-        except ImportError:
-            raise ImportError("anthropic package not installed. Install with: pip install anthropic")
+        except ImportError as e:
+            raise ImportError("anthropic package not installed. Install with: pip install anthropic") from e
 
         # Check if we should use Azure AI Foundry or direct Anthropic
         if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
@@ -302,8 +309,8 @@ class LLMClient:
             return f"{system_prompt.strip()}\n\n{user_prompt.strip()}"
         return user_prompt.strip()
 
-    def _build_responses_input(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-        messages: List[Dict[str, str]] = []
+    def _build_responses_input(self, system_prompt: str, user_prompt: str) -> list[dict[str, str]]:
+        messages: list[dict[str, str]] = []
         if system_prompt and system_prompt.strip():
             messages.append({"role": "system", "content": system_prompt.strip()})
         messages.append({"role": "user", "content": user_prompt.strip()})
@@ -359,9 +366,7 @@ class LLMClient:
         # Fallback to string representation
         return str(response)
 
-    def _build_human_message(
-        self, user_prompt: str, attachments: Optional[List[AgentAttachment]] = None
-    ) -> HumanMessage:
+    def _build_human_message(self, user_prompt: str, attachments: list[AgentAttachment] | None = None) -> HumanMessage:
         if attachments and not self.supports_vision:
             log.warning(
                 "Attachments provided but model %s does not support multimodal input; attachments will be ignored.",
@@ -380,7 +385,7 @@ class LLMClient:
         self,
         system_prompt: str,
         user_prompt: str,
-        attachments: Optional[List[AgentAttachment]] = None,
+        attachments: list[AgentAttachment] | None = None,
         timeout: int = 300,
         langfuse_prompt=None,
     ) -> str:
@@ -498,7 +503,7 @@ class LLMClient:
                     log.debug("Failed to update Langfuse span with response: %s", span_e)
                 return response_text
 
-            except asyncio.TimeoutError:
+            except TimeoutError as e:
                 log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
                 try:
                     span.update(metadata={"error": "timeout"})
@@ -506,7 +511,7 @@ class LLMClient:
                     log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
                 raise TimeoutError(
                     f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request."
-                )
+                ) from e
             except Exception as e:
                 log.error(f"LLM call failed: {e}")
                 try:
@@ -542,8 +547,8 @@ class LLMClient:
         self,
         system_message: str,
         user_message: str,
-        attachments: Optional[List[AgentAttachment]] = None,
-        conversation_history: Optional[List] = None,
+        attachments: list[AgentAttachment] | None = None,
+        conversation_history: list | None = None,
         langfuse_prompt=None,
     ) -> str:
         """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models conversation_history: Optional list of prior messages (dicts with 'role' and 'content')  Returns: Response text"""
@@ -717,11 +722,11 @@ class LLMClient:
 
 
 # Global client cache to reuse instances
-_clients: Dict[Tuple[str, ...], LLMClient] = {}
-_client_keys: Dict[str, Tuple[str, ...]] = {}
+_clients: dict[tuple[str, ...], LLMClient] = {}
+_client_keys: dict[str, tuple[str, ...]] = {}
 
 
-def _build_cache_key(role: str) -> Tuple[str, ...]:
+def _build_cache_key(role: str) -> tuple[str, ...]:
     if role == "tool_planner":
         return (
             role,
@@ -773,7 +778,7 @@ def build_intent_parse_message(goal: str, attachment_names: list[str] | None = N
     return message
 
 
-async def parse_intent_with_llm(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
+async def parse_intent_with_llm(goal: str, attachments: list[AgentAttachment] | None = None) -> dict[str, Any]:
     """Parse user intent using LLM."""
     system_prompt, lf_prompt = get_prompt_with_langfuse("intent_check", local_path="intent_security")
     user_prompt = build_intent_parse_message(goal, [a.name for a in attachments] if attachments else None)

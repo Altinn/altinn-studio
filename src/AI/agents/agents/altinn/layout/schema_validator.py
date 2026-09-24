@@ -1,15 +1,16 @@
 """Schema validator tool - validates layout JSON against Altinn schemas."""
 
 import json
-from typing import Dict, Any, List
+from collections import defaultdict
+from typing import Any
+from urllib.parse import urlparse
+
 import requests
 from jsonschema import Draft7Validator, ValidationError
 from jsonschema.exceptions import SchemaError
-from collections import defaultdict
-from urllib.parse import urlparse
 
 
-def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> Dict[str, Any]:
+def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> dict[str, Any]:
     """
     Validates layout JSON against Altinn Studio layout schema using jsonschema library.
     Can handle complete layout files, component snippets, or single components.
@@ -31,7 +32,7 @@ def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> Di
             return {
                 "status": "error",
                 "error_code": "INVALID_JSON",
-                "message": f"JSON_PARSE_ERROR: The json_obj parameter contains invalid JSON. Error: {str(e)}. "
+                "message": f"JSON_PARSE_ERROR: The json_obj parameter contains invalid JSON. Error: {e!s}. "
                 f"Check for: missing quotes, trailing commas, unescaped characters. "
                 f"DO NOT RETRY with the same input - fix the JSON syntax first.",
                 "validation_errors": [],
@@ -45,7 +46,7 @@ def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> Di
         except Exception as e:
             return {
                 "status": "error",
-                "message": f"Error loading schema: {str(e)}",
+                "message": f"Error loading schema: {e!s}",
                 "validation_errors": [],
                 "component_results": [],
             }
@@ -59,13 +60,13 @@ def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> Di
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Unexpected error during validation: {str(e)}",
+            "message": f"Unexpected error during validation: {e!s}",
             "validation_errors": [],
             "component_results": [],
         }
 
 
-def normalize_input_to_layout(parsed_input: Any) -> Dict[str, Any]:
+def normalize_input_to_layout(parsed_input: Any) -> dict[str, Any]:
     """
     Normalize different input types to a full layout structure.
 
@@ -102,7 +103,7 @@ def normalize_input_to_layout(parsed_input: Any) -> Dict[str, Any]:
     raise ValueError("Unsupported input type")
 
 
-def validate_layout_json(layout: Dict[str, Any], schema: Dict[str, Any]) -> Dict[str, Any]:
+def validate_layout_json(layout: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
     """
     Validate an entire json against the schema.
 
@@ -159,7 +160,7 @@ def validate_layout_json(layout: Dict[str, Any], schema: Dict[str, Any]) -> Dict
         validation_errors = _deduplicate_validation_errors(raw_errors)
 
     except Exception as e:
-        return {"status": "error", "message": f"Unexpected error during validation: {str(e)}", "validation_errors": []}
+        return {"status": "error", "message": f"Unexpected error during validation: {e!s}", "validation_errors": []}
 
     # Determine overall status
     if validation_errors:
@@ -172,7 +173,7 @@ def validate_layout_json(layout: Dict[str, Any], schema: Dict[str, Any]) -> Dict
     return {"status": status, "message": message, "validation_errors": validation_errors}
 
 
-def _deduplicate_validation_errors(raw_errors: List[ValidationError]) -> List[Dict[str, Any]]:
+def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[dict[str, Any]]:
     """
     Deduplicate and prioritize validation errors to avoid overwhelming output.
 
@@ -207,7 +208,7 @@ def _deduplicate_validation_errors(raw_errors: List[ValidationError]) -> List[Di
     for json_path, json_errors in errors_by_json.items():
         # Check if this json has structural issues (missing/invalid type)
         has_type_issues = any(
-            error.validator == "required" and "type" in str(error.validator_value) or "type" in error.message.lower()
+            (error.validator == "required" and "type" in str(error.validator_value)) or "type" in error.message.lower()
             for error in json_errors
         )
 
@@ -250,9 +251,9 @@ def _deduplicate_validation_errors(raw_errors: List[ValidationError]) -> List[Di
 
 
 def validate_json_object(
-    object: Dict[str, Any],
-    schema: Dict[str, Any],
-) -> Dict[str, Any]:
+    object: dict[str, Any],
+    schema: dict[str, Any],
+) -> dict[str, Any]:
     """Validate component using jsonschema library and extract detailed information.
 
     Args:
@@ -309,20 +310,20 @@ def validate_json_object(
     except SchemaError as e:
         return {
             "status": "error",
-            "message": f"Invalid schema definition: {str(e)}",
+            "message": f"Invalid schema definition: {e!s}",
             "missing_required_properties": [],
             "validation_errors": [],
         }
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Validation error: {str(e)}",
+            "message": f"Validation error: {e!s}",
             "missing_required_properties": [],
             "validation_errors": [],
         }
 
 
-def load_layout_schema(schema_url: str) -> Dict[str, Any]:
+def load_layout_schema(schema_url: str) -> dict[str, Any]:
     """Load the layout schema from the repository.
 
     Args:
@@ -357,4 +358,4 @@ def load_layout_schema(schema_url: str) -> Dict[str, Any]:
         return schema_path
 
     except Exception as e:
-        raise Exception(f"Failed to load layout schema: {str(e)}")
+        raise Exception(f"Failed to load layout schema: {e!s}") from e

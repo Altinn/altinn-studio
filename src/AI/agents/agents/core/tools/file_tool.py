@@ -18,17 +18,15 @@ modify" rhythm that CC uses to prevent blind retries.
 
 from __future__ import annotations
 
+import asyncio
 import subprocess
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.core.tool import LoopContext, ToolResult
+from agents.core.tool import LoopContext, Tool, ToolResult
 
 from ._write_base import WriteToolMixin
-from agents.core.tool import Tool
-
 
 # Cap on a single read's payload — without this, a 200kB schema file
 # would dominate the model's context budget.  Truncation marker mirrors
@@ -460,7 +458,8 @@ class DiscardFileChangesTool(WriteToolMixin):
         except PathError as exc:
             return ToolResult(content=str(exc), is_error=True)
         try:
-            subprocess.run(
+            await asyncio.to_thread(
+                subprocess.run,
                 ["git", "checkout", "HEAD", "--", args.path],
                 cwd=ctx.repo_path,
                 check=True,

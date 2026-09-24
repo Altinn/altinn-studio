@@ -1,11 +1,11 @@
 """Git operations with safety caps and preview"""
 
-import subprocess
 import json
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 
 class CapsExceededError(Exception):
@@ -52,7 +52,7 @@ def preview(patch: dict) -> dict:
     return {"files": files, "diff_preview": preview_diff, "file_count": len(files)}
 
 
-def apply(patch: dict, repo_path: str = None):
+def apply(patch: dict, repo_path: str | None = None):
     """Write files from patch to disk in the target repository"""
     changes = patch.get("changes", [])
     files = patch.get("files", [])
@@ -68,9 +68,7 @@ def apply(patch: dict, repo_path: str = None):
     # Skip reset for incremental patches (e.g., auto-fix patches that build on existing changes)
     if repo_path and not patch.get("skip_reset", False):
         try:
-            import subprocess
-
-            result = subprocess.run(
+            subprocess.run(
                 ["git", "reset", "--hard", "HEAD"], cwd=repo_path, capture_output=True, text=True, check=True
             )
             print("Reset repository to HEAD before applying changes")
@@ -82,8 +80,6 @@ def apply(patch: dict, repo_path: str = None):
         file_path = Path(repo_path) / change["file"] if repo_path else Path(change["file"])
         operation = change["operation"]
         content = change.get("content", "")
-        old_value = change.get("old_value")
-        new_value = change.get("new_value")
 
         try:
             if operation == "create":
@@ -115,7 +111,7 @@ def apply(patch: dict, repo_path: str = None):
                 try:
                     import json as json_module
 
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         data = json_module.load(f)
 
                     # Navigate to the target object
@@ -202,7 +198,7 @@ def apply(patch: dict, repo_path: str = None):
                 try:
                     import json as json_module
 
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         data = json_module.load(f)
 
                     # Navigate to the target array
@@ -259,7 +255,7 @@ def apply(patch: dict, repo_path: str = None):
                     continue
 
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         content = f.read()
 
                     # Find pattern matches
@@ -304,7 +300,7 @@ def apply(patch: dict, repo_path: str = None):
                     # Format 2: Pattern-based replacement
                     # Extract the replacement from pattern format like: "key": "old" -> "key": "new"
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
 
                         # Use regex replacement for pattern-based
@@ -318,7 +314,6 @@ def apply(patch: dict, repo_path: str = None):
                             f.write(new_content)
 
                         print(f"  Replaced text using pattern in {file_path}")
-                        modified_files.append(str(file_path))
                         continue
 
                     except Exception as e:
@@ -326,11 +321,11 @@ def apply(patch: dict, repo_path: str = None):
                         continue
                 else:
                     print(f"Warning: Missing replacement parameters for replace_text in {file_path}")
-                    print(f"  Need either (old_text, new_text) or (pattern, text)")
+                    print("  Need either (old_text, new_text) or (pattern, text)")
                     continue
 
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         content = f.read()
 
                     if search_text not in content:
@@ -350,7 +345,7 @@ def apply(patch: dict, repo_path: str = None):
             else:
                 print(f"ERROR: Unsupported operation '{operation}' for file {file_path}")
                 print(
-                    f"Supported operations: insert_json_property, insert_json_array_item, insert_text_at_pattern, replace_text"
+                    "Supported operations: insert_json_property, insert_json_array_item, insert_text_at_pattern, replace_text"
                 )
                 print(f"Change data: {change}")
                 raise ValueError(f"Unsupported operation: {operation}")
@@ -361,11 +356,11 @@ def apply(patch: dict, repo_path: str = None):
 
             traceback.print_exc()
             # Continue with other changes instead of failing completely
-            print(f"Continuing with remaining changes...")
+            print("Continuing with remaining changes...")
             continue
 
 
-def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
+def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str:
     """Create branch if missing and commit, return hash"""
     try:
         # Use provided branch name or create feature branch with timestamp
@@ -405,7 +400,7 @@ def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
             return None  # Return None instead of failing
 
         # Commit
-        result = subprocess.run(["git", "commit", "-m", message], capture_output=True, text=True, check=True, cwd=cwd)
+        subprocess.run(["git", "commit", "-m", message], capture_output=True, text=True, check=True, cwd=cwd)
 
         # Get commit hash
         commit_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, cwd=cwd).strip()[:8]
@@ -413,10 +408,10 @@ def commit(message: str, repo_path: str = None, branch_name: str = None) -> str:
         return commit_hash
 
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Git commit failed: {e}")
+        raise Exception(f"Git commit failed: {e}") from e
 
 
-def revert(repo_path: str = None):
+def revert(repo_path: str | None = None):
     """Restore from index or stash"""
     try:
         # Work in the target repository directory
@@ -426,10 +421,10 @@ def revert(repo_path: str = None):
         subprocess.run(["git", "reset", "--hard", "HEAD"], check=True, cwd=cwd)
         print("Successfully reverted changes")
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Git revert failed: {e}")
+        raise Exception(f"Git revert failed: {e}") from e
 
 
-def search_files(repo_path: str, query: str, file_patterns: List[str] = None) -> Dict[str, Any]:
+def search_files(repo_path: str, query: str, file_patterns: list[str] | None = None) -> dict[str, Any]:
     """Search for text in files within the repository"""
     try:
         repo_root = Path(repo_path)
@@ -447,7 +442,7 @@ def search_files(repo_path: str, query: str, file_patterns: List[str] = None) ->
             for file_path in repo_root.rglob(pattern):
                 if file_path.is_file():
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
 
                         # Find all matches with line numbers
@@ -472,7 +467,7 @@ def search_files(repo_path: str, query: str, file_patterns: List[str] = None) ->
         return {"error": f"Search failed: {e}"}
 
 
-def modify_file_content(file_path: str, old_text: str, new_text: str) -> Dict[str, Any]:
+def modify_file_content(file_path: str, old_text: str, new_text: str) -> dict[str, Any]:
     """Replace text in a specific file"""
     try:
         path = Path(file_path)
@@ -480,7 +475,7 @@ def modify_file_content(file_path: str, old_text: str, new_text: str) -> Dict[st
             return {"error": f"File does not exist: {file_path}"}
 
         # Read current content
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             content = f.read()
 
         # Check if old_text exists
@@ -509,7 +504,7 @@ def modify_file_content(file_path: str, old_text: str, new_text: str) -> Dict[st
         return {"error": f"File modification failed: {e}"}
 
 
-def modify_json_field(file_path: str, field_path: str, new_value: str) -> Dict[str, Any]:
+def modify_json_field(file_path: str, field_path: str, new_value: str) -> dict[str, Any]:
     """Modify specific JSON fields (supports nested paths like 'resources[0].value')"""
     try:
         path = Path(file_path)
@@ -517,7 +512,7 @@ def modify_json_field(file_path: str, field_path: str, new_value: str) -> Dict[s
             return {"error": f"File does not exist: {file_path}"}
 
         # Read and parse JSON
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
 
         # Navigate to the field and modify it
@@ -560,7 +555,7 @@ def modify_json_field(file_path: str, field_path: str, new_value: str) -> Dict[s
         return {"error": f"JSON modification failed: {e}"}
 
 
-def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str) -> Dict[str, Any]:
+def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str) -> dict[str, Any]:
     """Find and replace text in Altinn text resource files specifically"""
     try:
         repo_root = Path(repo_path)
@@ -572,7 +567,7 @@ def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str
         for file_path in repo_root.glob(resource_pattern):
             if file_path.is_file():
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         data = json.load(f)
 
                     modified = False
@@ -622,7 +617,7 @@ def find_and_replace_in_resources(repo_path: str, old_value: str, new_value: str
 
 def cleanup_feature_branch(
     repo_path: str, feature_branch: str, base: str = "main", allow_branch_cleanup: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Clean up feature branch on failure or zero-diff scenarios.
 
@@ -682,19 +677,19 @@ def cleanup_feature_branch(
         return {"cleaned_up": False, "error": f"Cleanup failed: {e}"}
 
 
-def deduplicate_resource_ids(repo_path: str, resource_files: List[str]) -> List[str]:
+def deduplicate_resource_ids(repo_path: str, resource_files: list[str]) -> list[str]:
     """Remove duplicate resource IDs from text resource JSON files.
 
     Keeps the *last* occurrence of each ID (most recently inserted).
     Returns a list of files that were modified.
     """
-    modified: List[str] = []
+    modified: list[str] = []
     for rel_path in resource_files:
         file_path = Path(repo_path) / rel_path
         if not file_path.exists():
             continue
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
             resources = data.get("resources") if isinstance(data, dict) else None
             if not isinstance(resources, list):

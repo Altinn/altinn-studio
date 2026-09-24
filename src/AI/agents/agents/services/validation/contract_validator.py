@@ -4,14 +4,11 @@ Enforces plan contracts before any file modifications.
 """
 
 import re
-import json
-from typing import Dict, List, Set, Any
 from pathlib import Path
 
 from agents.schemas.plan_schema import (
-    PlanStep,
-    ContractValidationError,
     ALTINN_FILE_PATTERNS,
+    PlanStep,
     is_numeric_ui_component,
     suggest_identifier_type,
 )
@@ -24,7 +21,7 @@ log = get_logger(__name__)
 class ContractViolation(Exception):
     """Raised when Actor violates plan contracts"""
 
-    def __init__(self, code: str, message: str, details: Dict = None):
+    def __init__(self, code: str, message: str, details: dict | None = None):
         self.code = code
         self.message = message
         self.details = details or {}
@@ -37,7 +34,7 @@ class ContractValidator:
     def __init__(self, repository_path: str):
         self.repo_path = Path(repository_path)
 
-    def validate_patch_against_plan(self, patch: Dict, plan: PlanStep) -> None:
+    def validate_patch_against_plan(self, patch: dict, plan: PlanStep) -> None:
         """
         Main validation: ensure patch follows plan contracts exactly.
         Raises ContractViolation if any violation is found.
@@ -63,7 +60,7 @@ class ContractValidator:
         if plan.anchor:
             self._validate_anchor_resolution(patch, plan)
 
-    def _extract_patch_files(self, patch: Dict) -> Set[str]:
+    def _extract_patch_files(self, patch: dict) -> set[str]:
         """Extract all files touched by patch"""
         files = set()
 
@@ -77,7 +74,7 @@ class ContractValidator:
         # Remove empty strings
         return {f for f in files if f}
 
-    def _validate_file_scope(self, patch_files: Set[str], plan_files: Set[str]) -> None:
+    def _validate_file_scope(self, patch_files: set[str], plan_files: set[str]) -> None:
         """Gate 1: Ensure patch only touches planned files"""
         extra_files = patch_files - plan_files
 
@@ -88,7 +85,7 @@ class ContractValidator:
                 {"extra_files": list(extra_files), "allowed_files": list(plan_files)},
             )
 
-    def _validate_generated_files(self, patch_files: Set[str], plan: PlanStep) -> None:
+    def _validate_generated_files(self, patch_files: set[str], plan: PlanStep) -> None:
         """Gate 2: Source of Truth protection - prevent direct edits to generated artifacts"""
         if not plan.constraints.forbid_generated_edits:
             return
@@ -138,7 +135,7 @@ class ContractValidator:
                 },
             )
 
-    def _validate_task_type_constraints(self, patch_files: Set[str], plan: PlanStep) -> None:
+    def _validate_task_type_constraints(self, patch_files: set[str], plan: PlanStep) -> None:
         """Gate 3: Context-driven task type validation"""
         task_type = plan.task_type
 
@@ -161,7 +158,7 @@ class ContractValidator:
             # Must have all required resource files
             required_locales = plan.context.required_locales or plan.context.available_locales
             for locale in required_locales:
-                pattern = f"App/config/texts/resource\.{locale}\.json$"
+                pattern = rf"App/config/texts/resource\.{locale}\.json$"
                 if not any(re.match(pattern, f) for f in patch_files):
                     required_file_types.append(f"resource.{locale}")
 
@@ -181,7 +178,7 @@ class ContractValidator:
                     {"file_count": len(patch_files), "expected_count": expected_count},
                 )
 
-    def _validate_domain_policies(self, patch: Dict, plan: PlanStep) -> None:
+    def _validate_domain_policies(self, patch: dict, plan: PlanStep) -> None:
         """Gate 4: Context-driven identifier vs quantity validation"""
 
         # Check model field changes for proper type usage
@@ -189,7 +186,7 @@ class ContractValidator:
             if "schema.json" in change.get("file", ""):
                 self._validate_field_type_policy(change, plan)
 
-    def _validate_field_type_policy(self, change: Dict, plan: PlanStep) -> None:
+    def _validate_field_type_policy(self, change: dict, plan: PlanStep) -> None:
         """Validate field type based on UI hints and usage patterns"""
         value = change.get("value", {})
 
@@ -211,22 +208,21 @@ class ContractValidator:
 
             suggested_type = suggest_identifier_type(field_name, plan.ui_hints, arithmetic_usage)
 
-            if field_type != suggested_type:
-                # If numeric UI but no arithmetic usage -> likely identifier
-                if not arithmetic_usage and field_type in ["number", "integer"]:
-                    raise ContractViolation(
-                        "DOMAIN_POLICY_VIOLATION:IDENTIFIER_MUST_BE_STRING",
-                        f"Field {field_name} appears to be identifier (numeric UI, no arithmetic usage) but type is {field_type}",
-                        {
-                            "field": field_name,
-                            "current_type": field_type,
-                            "suggested_type": suggested_type,
-                            "has_numeric_ui": True,
-                            "arithmetic_usage": arithmetic_usage,
-                        },
-                    )
+            # If numeric UI but no arithmetic usage -> likely identifier
+            if field_type != suggested_type and not arithmetic_usage and field_type in ["number", "integer"]:
+                raise ContractViolation(
+                    "DOMAIN_POLICY_VIOLATION:IDENTIFIER_MUST_BE_STRING",
+                    f"Field {field_name} appears to be identifier (numeric UI, no arithmetic usage) but type is {field_type}",
+                    {
+                        "field": field_name,
+                        "current_type": field_type,
+                        "suggested_type": suggested_type,
+                        "has_numeric_ui": True,
+                        "arithmetic_usage": arithmetic_usage,
+                    },
+                )
 
-    def _validate_anchor_resolution(self, patch: Dict, plan: PlanStep) -> None:
+    def _validate_anchor_resolution(self, patch: dict, plan: PlanStep) -> None:
         """Gate 5: Ensure anchor strategy can be resolved deterministically"""
         anchor = plan.anchor
 
@@ -276,7 +272,7 @@ class ContractValidator:
                     "ANCHOR_RESOLUTION_ERROR",
                     f"Cannot read layout file for anchor resolution: {e}",
                     {"file": str(layout_file), "error": str(e)},
-                )
+                ) from e
 
     def _plan_has_sync_step(self, plan: PlanStep) -> bool:
         """Check if plan includes a datamodel sync step"""
@@ -286,14 +282,14 @@ class ContractValidator:
 
         # Check if any operations call datamodel_sync tool
         for op in plan.ops:
-            if hasattr(op, "op") and "sync" in str(op.op).lower():
-                return True
-            elif isinstance(op, dict) and "sync" in str(op.get("op", "")).lower():
+            if (hasattr(op, "op") and "sync" in str(op.op).lower()) or (
+                isinstance(op, dict) and "sync" in str(op.get("op", "")).lower()
+            ):
                 return True
 
         return False
 
-    def _extract_layout_array(self, layout_data: Dict) -> List[Dict]:
+    def _extract_layout_array(self, layout_data: dict) -> list[dict]:
         """Extract layout array from various layout file formats"""
         if "data" in layout_data and "layout" in layout_data["data"]:
             return layout_data["data"]["layout"]
@@ -302,7 +298,7 @@ class ContractValidator:
         else:
             raise ValueError("Unknown layout structure")
 
-    def _resolve_anchor_index(self, layout_array: List[Dict], anchor) -> int:
+    def _resolve_anchor_index(self, layout_array: list[dict], anchor) -> int:
         """Resolve anchor to actual array index"""
         from agents.schemas.plan_schema import AnchorStrategy
 
@@ -328,7 +324,7 @@ class ContractValidator:
         return None  # Could not resolve
 
 
-def validate_patch_contracts(patch: Dict, plan_step: PlanStep, repository_path: str) -> None:
+def validate_patch_contracts(patch: dict, plan_step: PlanStep, repository_path: str) -> None:
     """
     Main contract validation entry point.
     Call this before applying any patch to enforce all contracts.

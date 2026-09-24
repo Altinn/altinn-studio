@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from agents.core import (
     AssistantMessage,
     CompactionConfig,
@@ -35,7 +33,6 @@ from .conftest import (
     SourcedTool,
     tool_use,
 )
-
 
 # ---------------------------------------------------------------------------
 # Termination

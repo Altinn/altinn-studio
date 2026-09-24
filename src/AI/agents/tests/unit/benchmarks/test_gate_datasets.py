@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-import pytest
-
 from pathlib import Path
 
-AGENTS_ROOT = Path(__file__).resolve().parents[3]
+import pytest
 
 from agents.services.llm.intent_parser import _validate_goal_safety_quick
 from agents.services.llm.llm_client import build_intent_parse_message
 from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks.dataset_sync import load_datasets, missing_assets, render_input, validate
+
+AGENTS_ROOT = Path(__file__).resolve().parents[3]
 
 # Gate prompt datasets only; a generation dataset is covered in test_generation.
 DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]

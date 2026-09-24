@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, NamedTuple
+from typing import Any, NamedTuple
 
 from langfuse import get_client
 
@@ -91,12 +92,14 @@ def validate(dataset: Dataset) -> list[str]:
             problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
             continue
         shaped.append(item)
-    if dataset.kind == "prompt" and dataset.prompt not in MESSAGE_BUILDERS:
-        if not all(item["input"].get("user_message") for item in shaped):
-            problems.append(
-                f"{dataset.path.name}: no message builder for '{dataset.prompt}' and "
-                "not every item carries a user_message"
-            )
+    if (
+        dataset.kind == "prompt"
+        and dataset.prompt not in MESSAGE_BUILDERS
+        and not all(item["input"].get("user_message") for item in shaped)
+    ):
+        problems.append(
+            f"{dataset.path.name}: no message builder for '{dataset.prompt}' and not every item carries a user_message"
+        )
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
     seen: set[str] = set()

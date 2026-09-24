@@ -94,9 +94,8 @@ def survey() -> list[Line]:
         remote = _remote_items(lf, entry.name)
         runs = _runs(lf, entry.name)
 
-        if entry.status == "live" and local is not None and remote is not None:
-            if local != remote:
-                problems.append(f"{local} items here, {remote} in Langfuse; run dataset_sync")
+        if entry.status == "live" and local is not None and remote is not None and local != remote:
+            problems.append(f"{local} items here, {remote} in Langfuse; run dataset_sync")
         if entry.status == "live" and not remote:
             problems.append("no active items in Langfuse")
         behaviors = manifest.for_eval(entry.name)

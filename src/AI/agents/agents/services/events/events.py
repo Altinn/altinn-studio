@@ -1,5 +1,6 @@
+from typing import Any, Literal
+
 from pydantic import BaseModel
-from typing import Any, Literal, Optional, Dict, List
 
 
 class AgentEvent(BaseModel):
@@ -18,4 +19,4 @@ class AgentEvent(BaseModel):
         "done",
     ]
     session_id: str
-    data: Dict[str, Any]
+    data: dict[str, Any]

@@ -1,7 +1,8 @@
 import math
 import time
 from collections import defaultdict, deque
-from typing import Callable, NoReturn
+from collections.abc import Callable
+from typing import NoReturn
 
 from fastapi import HTTPException, Request
 

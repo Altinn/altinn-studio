@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from benchmarks import manifest
 from benchmarks.check import _kept_metadata
@@ -19,7 +19,7 @@ PAGE_SIZE = 100
 
 
 def _since() -> str:
-    return (datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return (datetime.now(UTC) - timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _experiments(api: LangfuseApi) -> list[dict]:
@@ -114,7 +114,7 @@ def _comments(api: LangfuseApi, trace_id: str) -> dict[str, str]:
     """The comment each evaluator wrote, which only the scores endpoint returns."""
     try:
         page = api._get("/api/public/v2/scores", traceId=trace_id, limit=PAGE_SIZE)
-    except Exception:  # noqa: BLE001
+    except Exception:
         return {}
     said: dict[str, str] = {}
     for score in page.get("data") or []:

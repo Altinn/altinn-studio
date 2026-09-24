@@ -44,7 +44,7 @@ def _hash_salt() -> str:
 def _write_env(raw_key: str) -> None:
     env_path = Path(__file__).parent / ".env"
     lines = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
-    lines = [l for l in lines if not l.startswith("AGENT_DESIGNER_API_KEY=")]
+    lines = [line for line in lines if not line.startswith("AGENT_DESIGNER_API_KEY=")]
     lines.append(f"AGENT_DESIGNER_API_KEY={raw_key}")
     env_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Wrote AGENT_DESIGNER_API_KEY to {env_path}")

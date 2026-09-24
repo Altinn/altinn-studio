@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -10,7 +10,7 @@ from services.traces.delete_expired_traces import (
 )
 from shared.utils.langfuse_public_api import PAGE_SIZE
 
-CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=timezone.utc)
+CUTOFF = datetime(2026, 4, 2, 12, 0, tzinfo=UTC)
 
 
 class TestDeleteTracesBefore:

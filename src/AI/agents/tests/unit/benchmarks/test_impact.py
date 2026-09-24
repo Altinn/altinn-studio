@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from benchmarks import impact
 
 AGENTS_ROOT = Path(__file__).resolve().parents[3]

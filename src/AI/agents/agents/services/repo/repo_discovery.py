@@ -6,7 +6,6 @@ Scans repository to discover locales, source of truth, available files, etc.
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Literal, Tuple
 
 from agents.schemas.plan_schema import PlanContext
 from shared.utils.logging_utils import get_logger
@@ -45,7 +44,7 @@ class RepositoryDiscovery:
 
         return context
 
-    def _discover_locales(self) -> List[str]:
+    def _discover_locales(self) -> list[str]:
         """Discover available locales from resource files"""
         locales = set()
         resource_dir = self.repo_path / "App" / "config" / "texts"
@@ -64,9 +63,9 @@ class RepositoryDiscovery:
                 locales.add(locale)
                 log.debug(f"Found locale: {locale}")
 
-        return sorted(list(locales))
+        return sorted(locales)
 
-    def _discover_layout_files(self) -> List[str]:
+    def _discover_layout_files(self) -> list[str]:
         """Find all available layout files"""
         ui_dir = self.repo_path / "App" / "ui"
         layout_files = []
@@ -81,7 +80,7 @@ class RepositoryDiscovery:
 
         return sorted(layout_files)
 
-    def _discover_model_files(self) -> List[str]:
+    def _discover_model_files(self) -> list[str]:
         """Find all model-related files"""
         models_dir = self.repo_path / "App" / "models"
         model_files = []
@@ -99,7 +98,7 @@ class RepositoryDiscovery:
 
         return sorted(model_files)
 
-    def _discover_resource_files(self) -> List[str]:
+    def _discover_resource_files(self) -> list[str]:
         """Find all resource files"""
         resource_dir = self.repo_path / "App" / "config" / "texts"
         resource_files = []
@@ -146,7 +145,7 @@ class RepositoryDiscovery:
 
         return False
 
-    def discover_component_anchor_candidates(self, layout_file: str) -> List[Dict]:
+    def discover_component_anchor_candidates(self, layout_file: str) -> list[dict]:
         """
         Discover potential anchor points in a layout file.
         Returns list of components that can serve as anchors.
@@ -157,7 +156,7 @@ class RepositoryDiscovery:
             return []
 
         try:
-            with open(layout_path, "r") as f:
+            with open(layout_path) as f:
                 layout_data = json.load(f)
 
             # Extract layout array
@@ -182,7 +181,7 @@ class RepositoryDiscovery:
             log.error(f"Could not analyze layout {layout_file}: {e}")
             return []
 
-    def _extract_layout_array(self, layout_data: Dict) -> List[Dict]:
+    def _extract_layout_array(self, layout_data: dict) -> list[dict]:
         """Extract layout array from various layout file formats"""
         if "data" in layout_data and "layout" in layout_data["data"]:
             return layout_data["data"]["layout"]

@@ -732,7 +732,7 @@ class TestTheReportCarriesEveryReference:
         return base, mid, now
 
     def test_one_reference_per_other_run(self, tmp_path):
-        base, mid, now = self._runs(tmp_path)
+        base, mid, _now = self._runs(tmp_path)
 
         built = report.build(directory=tmp_path)
 
@@ -907,9 +907,9 @@ def test_a_changed_actor_prompt_refuses_a_comparison():
 
 def test_the_actor_prompt_digest_tracks_what_the_agent_sends():
     """Digesting a copy of the prompt would drift; it digests the function the agent calls."""
-    from agents.core.context import stable_prefix_sections
-
     import hashlib
+
+    from agents.core.context import stable_prefix_sections
 
     expected = hashlib.sha256("\n\n".join(stable_prefix_sections()).encode()).hexdigest()[:12]
     assert provenance.collect().actor_prompt == expected
@@ -1773,7 +1773,7 @@ class TestAStaleBaselineSaysWhatToDoAboutIt:
     def test_every_remedy_offers_the_escape_hatch(self):
         from benchmarks.provenance import MEASUREMENT_AXES, remedy
 
-        for axis in MEASUREMENT_AXES + ("environment", "judge"):
+        for axis in (*MEASUREMENT_AXES, "environment", "judge"):
             lines = remedy((axis,))
             assert any(f"--under-test {axis}" in line for line in lines)
 

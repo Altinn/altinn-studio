@@ -1,8 +1,9 @@
 """Policy summarization tool - parses policy.xml and creates readable summaries."""
 
-import defusedxml.ElementTree as ET
+from typing import Any
 from xml.etree.ElementTree import Element  # For type hints only
-from typing import Dict, Any, List
+
+import defusedxml.ElementTree as ET
 
 from .static import all_roles
 
@@ -42,10 +43,10 @@ def policy_summarization_tool(user_goal: str, xml_content: str) -> dict:
 
         return {"status": "success", "message": "Policy file summarized successfully", "rules": summary_results}
     except Exception as e:
-        return {"status": "error", "message": f"Error summarizing policy file: {str(e)}"}
+        return {"status": "error", "message": f"Error summarizing policy file: {e!s}"}
 
 
-def summarize_policy_content(xml_content: str) -> List[Dict[str, Any]]:
+def summarize_policy_content(xml_content: str) -> list[dict[str, Any]]:
     """
     Summarizes a policy XML content by iterating through its elements and checking for policy rules.
 
@@ -88,10 +89,10 @@ def summarize_policy_content(xml_content: str) -> List[Dict[str, Any]]:
         return results
 
     except ET.ParseError as e:
-        return {"status": "error", "message": f"XML parsing error: {str(e)}"}
+        return {"status": "error", "message": f"XML parsing error: {e!s}"}
 
 
-def summarize_rule(rule: Element, rule_index: int) -> List[Dict[str, Any]]:
+def summarize_rule(rule: Element, rule_index: int) -> list[dict[str, Any]]:
     """
     Summarizes a single rule element in the policy file.
     Decomposes rule into role (subject-category:access-subject),

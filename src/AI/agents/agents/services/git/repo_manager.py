@@ -3,16 +3,15 @@ Repository management service for cloning and managing Altinn app repos.
 Handles cloning from gitea, temporary storage, and cleanup.
 """
 
-import tempfile
-import shutil
-from pathlib import Path
-from typing import Optional, Dict
-import subprocess
 import hashlib
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
 from urllib.parse import urlparse
 
-from shared.utils.logging_utils import get_logger
 from shared.config import get_config
+from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 config = get_config()
@@ -24,8 +23,8 @@ class RepoManager:
     def __init__(self):
         self.temp_dir = Path(tempfile.gettempdir()) / "altinity_repos"
         self.temp_dir.mkdir(exist_ok=True)
-        self.active_repos: Dict[str, Path] = {}  # session_id -> repo_path
-        self.session_api_keys: Dict[str, str] = {}  # session_id -> api key
+        self.active_repos: dict[str, Path] = {}  # session_id -> repo_path
+        self.session_api_keys: dict[str, str] = {}  # session_id -> api key
 
     def _apply_base_url(self, repo_url: str) -> str:
         """Replace the host/port from the incoming URL with GITEA_BASE_URL."""
@@ -34,11 +33,11 @@ class RepoManager:
 
     def _run_git(self, args: list[str], api_key: str, **kwargs) -> subprocess.CompletedProcess:
         """Run a git command authenticated via X-Api-Key header through the Gitea public proxy."""
-        cmd = ["git", "-c", f"http.extraHeader=X-Api-Key: {api_key}"] + args
+        cmd = ["git", "-c", f"http.extraHeader=X-Api-Key: {api_key}", *args]
         return subprocess.run(cmd, capture_output=True, text=True, check=True, **kwargs)
 
     def clone_repo_for_session(
-        self, repo_url: str, session_id: str, branch: Optional[str] = None, api_key: Optional[str] = None
+        self, repo_url: str, session_id: str, branch: str | None = None, api_key: str | None = None
     ) -> Path:
         """
         Clone a repository for a specific session.
@@ -113,15 +112,13 @@ class RepoManager:
                 try:
                     # First try to checkout existing branch
                     checkout_cmd = ["git", "checkout", branch]
-                    result = subprocess.run(checkout_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
+                    subprocess.run(checkout_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
                     log.info(f"Checked out existing branch {branch} for session {session_id}")
                 except subprocess.CalledProcessError:
                     # Branch doesn't exist, create it
                     try:
                         create_branch_cmd = ["git", "checkout", "-b", branch]
-                        result = subprocess.run(
-                            create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True
-                        )
+                        subprocess.run(create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
                         log.info(f"Created and checked out new branch {branch} for session {session_id}")
                     except subprocess.CalledProcessError as e:
                         log.error(f"Failed to create branch {branch}: {e.stderr}")
@@ -135,7 +132,7 @@ class RepoManager:
         except subprocess.CalledProcessError as e:
             error_msg = f"Failed to clone repository {repo_url}: {e.stderr}"
             log.error(error_msg)
-            raise Exception(error_msg)
+            raise Exception(error_msg) from e
 
     def push_branch(self, session_id: str, branch_name: str) -> bool:
         """
@@ -171,7 +168,7 @@ class RepoManager:
         except subprocess.CalledProcessError as e:
             error_msg = f"Failed to push branch {branch_name}: {e.stderr}"
             log.error(error_msg)
-            raise Exception(error_msg)
+            raise Exception(error_msg) from e
 
     def cleanup_session(self, session_id: str):
         """
@@ -200,7 +197,7 @@ class RepoManager:
         except Exception as e:
             log.error(f"Failed to cleanup repository for session {session_id}: {e}")
 
-    def get_session_repo_path(self, session_id: str) -> Optional[Path]:
+    def get_session_repo_path(self, session_id: str) -> Path | None:
         """
         Get the repository path for a session.
 
@@ -214,7 +211,7 @@ class RepoManager:
 
 
 # Global instance
-_repo_manager: Optional[RepoManager] = None
+_repo_manager: RepoManager | None = None
 
 
 def get_repo_manager() -> RepoManager:

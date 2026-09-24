@@ -1,10 +1,10 @@
 """Base validator class for schema-driven validation with business rules"""
 
-import json
-import requests
-from typing import Dict, Any, List, Tuple
 import warnings
 from abc import ABC, abstractmethod
+from typing import Any
+
+import requests
 
 with warnings.catch_warnings():
     # RefResolver is deprecated in jsonschema, but we still rely on it here.
@@ -14,7 +14,7 @@ with warnings.catch_warnings():
         category=DeprecationWarning,
         message="jsonschema.RefResolver is deprecated*",
     )
-    from jsonschema import Draft7Validator, ValidationError, RefResolver
+    from jsonschema import Draft7Validator, RefResolver
 
 
 class BaseValidator(ABC):
@@ -24,16 +24,16 @@ class BaseValidator(ABC):
         self.schema_url = schema_url
         self.schema = None
 
-    def _load_schema(self) -> Dict[str, Any]:
+    def _load_schema(self) -> dict[str, Any]:
         """Load schema from URL"""
         try:
             response = requests.get(self.schema_url, timeout=10)
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            raise Exception(f"Failed to load schema from {self.schema_url}: {e}")
+            raise Exception(f"Failed to load schema from {self.schema_url}: {e}") from e
 
-    def validate_against_schema(self, data: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def validate_against_schema(self, data: dict[str, Any]) -> tuple[bool, list[str]]:
         """
         Validate data against JSON schema
 
@@ -53,21 +53,20 @@ class BaseValidator(ABC):
                 errors.append(f"[{path}] {error.message}")
 
         except Exception as e:
-            errors.append(f"Schema validation error: {str(e)}")
+            errors.append(f"Schema validation error: {e!s}")
 
         return len(errors) == 0, errors
 
     @abstractmethod
-    def validate_business_rules(self, data: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """
         Override in subclass to implement custom business rules
 
         Returns:
             Dict with 'errors', 'warnings', 'suggestions' keys
         """
-        pass
 
-    def validate(self, data: Dict[str, Any], context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any], context: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Full validation: schema + business rules
 
@@ -81,7 +80,7 @@ class BaseValidator(ABC):
         context = context or {}
 
         # Step 1: Schema validation
-        schema_valid, schema_errors = self.validate_against_schema(data)
+        _schema_valid, schema_errors = self.validate_against_schema(data)
 
         # Step 2: Business rules validation
         business_result = self.validate_business_rules(data, context)

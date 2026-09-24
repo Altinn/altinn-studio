@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from agents.core import SessionContext, build_system_prompt
-from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
+from agents.graph.state import FormSpec, FormSpecField, FormSpecPage
 from agents.services.llm.llm_client import _build_anthropic_user_content
 from agents.workflows.spec.pipeline import run_spec_pipeline
 from shared.models.attachments import AgentAttachment
@@ -65,14 +65,14 @@ def _hostile_spec() -> FormSpec:
 
 
 def _ctx(**overrides) -> SessionContext:
-    base = dict(
-        session_id="s1",
-        repo_path="/repo",
-        user_goal="Bygg skjemaet i vedlegget",
-        allow_app_changes=True,
-        today=date(2026, 5, 22),
-        form_spec_summary=_hostile_spec().to_summary(),
-    )
+    base = {
+        "session_id": "s1",
+        "repo_path": "/repo",
+        "user_goal": "Bygg skjemaet i vedlegget",
+        "allow_app_changes": True,
+        "today": date(2026, 5, 22),
+        "form_spec_summary": _hostile_spec().to_summary(),
+    }
     base.update(overrides)
     return SessionContext(**base)
 

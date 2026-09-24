@@ -22,9 +22,12 @@ Reconnection after a page reload simply replays all buffered events.
 """
 
 import asyncio
+import contextlib
 import logging
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
+
 from agents.services.events import sink
 
 logger = logging.getLogger(__name__)
@@ -182,10 +185,8 @@ def register_websocket_routes(app: FastAPI):
         finally:
             if stream_task and not stream_task.done():
                 stream_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError, Exception):
                     await stream_task
-                except (asyncio.CancelledError, Exception):
-                    pass
             logger.info(f"🔌 WebSocket disconnected (developer={developer})")
 
     @app.get("/api/ws/status")

@@ -1,17 +1,13 @@
 """
-Verification and validation services
+Enhanced verification with deterministic checks.
+Adds specific validation for binding existence, anchor positioning, type policies, and generated file policies.
 """
 
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
 
-"""
-Enhanced verification with deterministic checks.
-Adds specific validation for binding existence, anchor positioning, type policies, and generated file policies.
-"""
-from agents.schemas.plan_schema import PlanStep, suggest_identifier_type, is_numeric_ui_component
+from agents.schemas.plan_schema import PlanStep, is_numeric_ui_component, suggest_identifier_type
 from agents.services.repo import collect_text_resource_bindings, load_resource_key_map
 from shared.utils.logging_utils import get_logger
 
@@ -23,9 +19,9 @@ class VerificationResult:
 
     def __init__(self):
         self.passed = True
-        self.errors: List[str] = []
-        self.warnings: List[str] = []
-        self.checks: Dict[str, bool] = {}
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
+        self.checks: dict[str, bool] = {}
 
     def add_error(self, check_name: str, message: str):
         self.passed = False
@@ -45,7 +41,7 @@ class EnhancedVerifier:
     def __init__(self, repository_path: str):
         self.repo_path = Path(repository_path)
 
-    def verify_patch_changes(self, patch: Dict, plan_step: PlanStep) -> VerificationResult:
+    def verify_patch_changes(self, patch: dict, plan_step: PlanStep) -> VerificationResult:
         """
         Main verification method with deterministic checks.
         Returns structured verification result.
@@ -71,7 +67,7 @@ class EnhancedVerifier:
         log.info(f"Enhanced verification: {len(result.errors)} errors, {len(result.warnings)} warnings")
         return result
 
-    def _verify_binding_existence(self, patch: Dict, result: VerificationResult) -> None:
+    def _verify_binding_existence(self, patch: dict, result: VerificationResult) -> None:
         """Check 1: For each changed layout component, ensure dataModelBindings exist in model schema"""
 
         layout_changes = [ch for ch in patch.get("changes", []) if "layout" in ch.get("file", "")]
@@ -110,7 +106,7 @@ class EnhancedVerifier:
         if not result.errors:
             result.add_success("binding_existence")
 
-    def _verify_anchor_positioning(self, patch: Dict, plan_step: PlanStep, result: VerificationResult) -> None:
+    def _verify_anchor_positioning(self, patch: dict, plan_step: PlanStep, result: VerificationResult) -> None:
         """Check 2: Confirm new component index is correct relative to anchor"""
 
         layout_changes = [ch for ch in patch.get("changes", []) if "layout" in ch.get("file", "")]
@@ -121,7 +117,7 @@ class EnhancedVerifier:
 
             try:
                 # Load current layout
-                with open(layout_file, "r") as f:
+                with open(layout_file) as f:
                     original_layout = json.load(f)
 
                 layout_array = self._extract_layout_array(original_layout)
@@ -149,7 +145,7 @@ class EnhancedVerifier:
                                 if text_bindings.get("title") == resolved_key:
                                     anchor_index = i
                                     break
-                    except Exception as e:
+                    except Exception:
                         pass  # Fall back to error reporting below
 
                 if anchor_index is None:
@@ -175,7 +171,7 @@ class EnhancedVerifier:
         if not result.errors:
             result.add_success("anchor_positioning")
 
-    def _verify_type_policies(self, patch: Dict, plan_step: PlanStep, result: VerificationResult) -> None:
+    def _verify_type_policies(self, patch: dict, plan_step: PlanStep, result: VerificationResult) -> None:
         """Check 3: Context-driven field type validation based on UI hints and usage patterns"""
 
         model_changes = [ch for ch in patch.get("changes", []) if "schema.json" in ch.get("file", "")]
@@ -210,20 +206,27 @@ class EnhancedVerifier:
                                 )
 
                     # Validate numeric fields have appropriate constraints
-                    if field_type in ["number", "integer"] and plan_step.model_hints:
-                        if not value.get("minimum") and not value.get("maximum"):
-                            result.add_warning("type_policies", f"Numeric field {field_name} lacks range constraints")
+                    if (
+                        field_type in ["number", "integer"]
+                        and plan_step.model_hints
+                        and not value.get("minimum")
+                        and not value.get("maximum")
+                    ):
+                        result.add_warning("type_policies", f"Numeric field {field_name} lacks range constraints")
 
                     # Validate string identifiers have patterns for validation
-                    if field_type == "string" and is_numeric_ui_component(plan_step.ui_hints):
-                        if not value.get("pattern"):
-                            result.add_warning(
-                                "type_policies", f"String identifier field {field_name} should have validation pattern"
-                            )
+                    if (
+                        field_type == "string"
+                        and is_numeric_ui_component(plan_step.ui_hints)
+                        and not value.get("pattern")
+                    ):
+                        result.add_warning(
+                            "type_policies", f"String identifier field {field_name} should have validation pattern"
+                        )
 
         result.add_success("type_policies")
 
-    def _verify_generated_files_policy(self, patch: Dict, plan_step: PlanStep, result: VerificationResult) -> None:
+    def _verify_generated_files_policy(self, patch: dict, plan_step: PlanStep, result: VerificationResult) -> None:
         """Check 4: Ensure generated files weren't edited without permission"""
 
         if not plan_step.constraints.forbid_generated_edits:
@@ -244,10 +247,9 @@ class EnhancedVerifier:
         for change in patch.get("changes", []):
             file_path = change.get("file", "")
             for pattern in generated_patterns:
-                if re.match(pattern, file_path):
-                    # If source of truth was modified, generated files are expected to be regenerated
-                    if not source_of_truth_modified:
-                        violations.append(file_path)
+                # If source of truth was modified, generated files are expected to be regenerated
+                if re.match(pattern, file_path) and not source_of_truth_modified:
+                    violations.append(file_path)
 
         if violations:
             result.add_error("generated_files_policy", f"Modified generated files without permission: {violations}")
@@ -257,10 +259,10 @@ class EnhancedVerifier:
         else:
             result.add_success("generated_files_policy")
 
-    def _verify_cross_references(self, patch: Dict, plan_step: PlanStep, result: VerificationResult) -> None:
+    def _verify_cross_references(self, patch: dict, plan_step: PlanStep, result: VerificationResult) -> None:
         """Check 5: Verify cross-file references are consistent across all required locales"""
 
-        def _parse_locale(path: str) -> Optional[str]:
+        def _parse_locale(path: str) -> str | None:
             match = re.search(r"resource\.([a-z]{2})\.json$", path)
             return match.group(1) if match else None
 
@@ -272,7 +274,7 @@ class EnhancedVerifier:
         required_locales = plan_step.context.required_locales or plan_step.context.available_locales or []
         locale_key_map = load_resource_key_map(str(self.repo_path))
 
-        pending_keys: Dict[str, Set[str]] = {}
+        pending_keys: dict[str, set[str]] = {}
         for change in patch.get("changes", []):
             file_path = change.get("file", "")
             locale = _parse_locale(file_path)
@@ -288,7 +290,7 @@ class EnhancedVerifier:
                 if isinstance(res_id, str) and res_id:
                     pending_keys.setdefault(locale, set()).add(res_id)
 
-        missing: Dict[str, Set[str]] = {}
+        missing: dict[str, set[str]] = {}
         locales_to_check = required_locales or sorted(set(locale_key_map.keys()) | set(pending_keys.keys()))
 
         for binding in layout_references:
@@ -307,7 +309,7 @@ class EnhancedVerifier:
         else:
             result.add_success("cross_references")
 
-    def _load_model_schema(self, model_changes: List[Dict]) -> Dict:
+    def _load_model_schema(self, model_changes: list[dict]) -> dict:
         """Load model schema from changes or existing file"""
         # First try to build schema from changes
         schema = {}
@@ -325,24 +327,24 @@ class EnhancedVerifier:
             try:
                 schema_files = list(self.repo_path.glob("App/models/*.schema.json"))
                 if schema_files:
-                    with open(schema_files[0], "r") as f:
+                    with open(schema_files[0]) as f:
                         schema = json.load(f)
             except Exception as e:
                 log.warning(f"Could not load existing schema: {e}")
 
         return schema
 
-    def _binding_exists_in_schema(self, binding_path: str, schema: Dict) -> bool:
+    def _binding_exists_in_schema(self, binding_path: str, schema: dict) -> bool:
         """Check if binding path exists in schema"""
         properties = schema.get("properties", {})
         return binding_path in properties
 
-    def _get_property_definition(self, binding_path: str, schema: Dict) -> Dict:
+    def _get_property_definition(self, binding_path: str, schema: dict) -> dict:
         """Get property definition from schema"""
         properties = schema.get("properties", {})
         return properties.get(binding_path, {})
 
-    def _extract_layout_array(self, layout_data: Dict) -> List[Dict]:
+    def _extract_layout_array(self, layout_data: dict) -> list[dict]:
         """Extract layout array from various layout file formats"""
         if "data" in layout_data and "layout" in layout_data["data"]:
             return layout_data["data"]["layout"]
@@ -352,7 +354,7 @@ class EnhancedVerifier:
             raise ValueError("Unknown layout structure")
 
 
-def run_enhanced_verification(patch: Dict, plan_step: PlanStep, repository_path: str) -> VerificationResult:
+def run_enhanced_verification(patch: dict, plan_step: PlanStep, repository_path: str) -> VerificationResult:
     """
     Main entry point for enhanced verification.
     Call this from the verifier node to get detailed verification results.

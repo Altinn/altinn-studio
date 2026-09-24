@@ -1,6 +1,5 @@
 """Type mapping utilities for JSON Schema, XSD, and C# types."""
 
-from typing import Tuple, Optional
 from ..metamodel.enums import BaseValueType, SchemaValueType
 
 
@@ -8,7 +7,7 @@ class TypeMapper:
     """Maps types between JSON Schema, XSD, and C# formats."""
 
     @staticmethod
-    def json_schema_to_xsd_type(json_type: SchemaValueType, format_hint: Optional[str] = None) -> str:
+    def json_schema_to_xsd_type(json_type: SchemaValueType, format_hint: str | None = None) -> str:
         """Convert JSON Schema type to XSD type."""
         if json_type == SchemaValueType.STRING:
             if format_hint:
@@ -37,7 +36,7 @@ class TypeMapper:
             return "xs:string"
 
     @staticmethod
-    def base_value_type_to_csharp(base_type: Optional[BaseValueType]) -> Tuple[str, bool]:
+    def base_value_type_to_csharp(base_type: BaseValueType | None) -> tuple[str, bool]:
         """Convert BaseValueType to C# type.
 
         Returns:
@@ -77,7 +76,7 @@ class TypeMapper:
         return type_map.get(base_type, ("string", False))
 
     @staticmethod
-    def xsd_type_to_csharp(xsd_type: str) -> Tuple[str, bool]:
+    def xsd_type_to_csharp(xsd_type: str) -> tuple[str, bool]:
         """Convert XSD type string to C# type.
 
         Returns:
@@ -105,8 +104,8 @@ class TypeMapper:
 
     @staticmethod
     def map_json_schema_to_base_value_type(
-        json_type: SchemaValueType, format_hint: Optional[str] = None
-    ) -> Optional[BaseValueType]:
+        json_type: SchemaValueType, format_hint: str | None = None
+    ) -> BaseValueType | None:
         """Map JSON Schema type to BaseValueType."""
         if json_type == SchemaValueType.STRING:
             if format_hint:

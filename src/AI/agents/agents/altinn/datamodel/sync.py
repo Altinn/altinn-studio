@@ -4,10 +4,9 @@ This tool generates XSD and C# files from JSON Schema files,
 using the same conversion logic as Altinn Studio Designer.
 """
 
-import json
 import hashlib
-from typing import Dict, Any
-
+import json
+from typing import Any
 
 from .converters import (
     JsonSchemaToMetamodelConverter,
@@ -26,8 +25,8 @@ class DatamodelGenerator:
         self.metamodel_to_xsd = ModelMetadataToXsdConverter()
 
     def generate_from_json_schema(
-        self, schema: Dict[str, Any], generate_xsd: bool = True, generate_csharp: bool = True
-    ) -> Dict[str, str]:
+        self, schema: dict[str, Any], generate_xsd: bool = True, generate_csharp: bool = True
+    ) -> dict[str, str]:
         """Generate XSD and/or C# from JSON Schema.
 
         Args:
@@ -62,7 +61,7 @@ class DatamodelGenerator:
 _generator = DatamodelGenerator()
 
 
-def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) -> Dict[str, Any]:
+def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) -> dict[str, Any]:
     """Generate XSD and C# files from a JSON schema.
 
     Args:
@@ -140,7 +139,7 @@ def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) ->
                 )
 
         except Exception as e:
-            errors.append(f"Generation failed: {str(e)}")
+            errors.append(f"Generation failed: {e!s}")
             import traceback
 
             errors.append(f"Traceback: {traceback.format_exc()}")
@@ -162,7 +161,7 @@ def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) ->
             "error_code": "INVALID_JSON_SCHEMA",
             "generated": [],
             "warnings": [],
-            "errors": [f"JSON_PARSE_ERROR: The schema_content is not valid JSON. Error: {str(e)}"],
+            "errors": [f"JSON_PARSE_ERROR: The schema_content is not valid JSON. Error: {e!s}"],
             "hint": "Check for: missing quotes, trailing commas, unescaped characters in the JSON schema.",
             "retry_allowed": False,
         }
@@ -173,5 +172,5 @@ def datamodel_sync(user_goal: str, schema_content: str, schema_filename: str) ->
             "status": "error",
             "generated": [],
             "warnings": [],
-            "errors": [f"Failed to process schema: {str(e)}", f"Traceback: {traceback.format_exc()}"],
+            "errors": [f"Failed to process schema: {e!s}", f"Traceback: {traceback.format_exc()}"],
         }

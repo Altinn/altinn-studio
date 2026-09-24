@@ -10,5 +10,5 @@ def is_json(text):
     try:
         json.loads(text)
         return True
-    except:
+    except (ValueError, RecursionError):
         return False

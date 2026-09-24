@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from benchmarks import agent_task
-from benchmarks.agent_task import AgentTask, STRUCTURAL_SCORE_NAMES, item_field
+from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, item_field
 from benchmarks.evaluators import Score
 from benchmarks.experiment import SCORES_KEY
 from benchmarks.rubric import RUBRIC_VERSION
@@ -68,7 +68,7 @@ class TestAnUnusableItemFails:
     """`run_experiment` isolates and records a failing item."""
 
     def test_a_missing_goal_raises(self, task):
-        with pytest.raises(ValueError, match="no input.goal"):
+        with pytest.raises(ValueError, match=r"no input\.goal"):
             task(item=_item(input={}))
 
     def test_a_stale_rubric_raises(self, task):

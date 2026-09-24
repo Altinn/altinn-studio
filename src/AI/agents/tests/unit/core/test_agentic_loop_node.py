@@ -6,10 +6,7 @@ without a real LLM.
 
 from __future__ import annotations
 
-import os
 from typing import Any
-
-import pytest
 
 from agents.core import (
     LoopContext,
@@ -30,15 +27,15 @@ from agents.graph.state import AgentState
 
 
 def _state(**overrides: Any) -> AgentState:
-    base = dict(
-        session_id="sess-1",
-        user_goal="add a date field",
-        repo_path="/tmp/repo",
-        app_name="test-app",
-        developer="dev",
-        org="ttd",
-        allow_app_changes=True,
-    )
+    base = {
+        "session_id": "sess-1",
+        "user_goal": "add a date field",
+        "repo_path": "/tmp/repo",
+        "app_name": "test-app",
+        "developer": "dev",
+        "org": "ttd",
+        "allow_app_changes": True,
+    }
     base.update(overrides)
     return AgentState(**base)
 

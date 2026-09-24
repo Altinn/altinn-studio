@@ -1,10 +1,7 @@
-import json
-
 import httpx
-
-from services.token_usage.langfuse_client import _as_trace_payload
 import pytest
 
+from services.token_usage.langfuse_client import _as_trace_payload
 from shared.utils.langfuse_public_api import (
     MAX_PAGES,
     PAGE_SIZE,

@@ -8,7 +8,6 @@ from typing import Any
 
 from shared.utils.spotlight import FORM_SPEC_TAG, wrap_untrusted
 
-
 _IDENTITY = """\
 You are Altinity, an AI assistant for Altinn Studio.  You help developers build and modify Altinn applications by inspecting their repository, reading the official Altinn documentation, proposing patches, verifying the result, and committing — all by calling tools.
 

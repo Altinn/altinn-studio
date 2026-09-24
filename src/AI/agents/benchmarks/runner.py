@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import json
-import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
-from langfuse import get_client
-
-from . import manifest, preview_check, registry, runstore
+from . import manifest, preview_check, runstore
 from .lf_api import LangfuseApi
 from .rubric import build_rubric_from_dir
 

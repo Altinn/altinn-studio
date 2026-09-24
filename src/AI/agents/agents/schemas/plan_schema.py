@@ -3,11 +3,12 @@ Structured schema for planner output with contract validation.
 Enforces atomic operations, file constraints, and anchor strategies.
 """
 
-import re
-from typing import List, Dict, Any, Literal, Optional, Union, Annotated
-from pydantic import BaseModel, Field, validator
-from enum import Enum
 import logging
+import re
+from enum import Enum
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, validator
 
 log = logging.getLogger(__name__)
 
@@ -38,23 +39,24 @@ class Anchor(BaseModel):
     """Anchor specification for precise positioning"""
 
     strategy: AnchorStrategy
-    text_key: Optional[str] = None  # For text_key strategies
-    component_id: Optional[str] = None  # For id strategies
+    text_key: str | None = None  # For text_key strategies
+    component_id: str | None = None  # For id strategies
 
     @validator("text_key")
     def text_key_required_for_text_strategies(cls, v, values):
         strategy = values.get("strategy")
-        if strategy in [AnchorStrategy.AFTER_COMPONENT_WITH_TEXT_KEY, AnchorStrategy.BEFORE_COMPONENT_WITH_TEXT_KEY]:
-            if not v:
-                raise ValueError(f"text_key required for {strategy}")
+        if (
+            strategy in [AnchorStrategy.AFTER_COMPONENT_WITH_TEXT_KEY, AnchorStrategy.BEFORE_COMPONENT_WITH_TEXT_KEY]
+            and not v
+        ):
+            raise ValueError(f"text_key required for {strategy}")
         return v
 
     @validator("component_id")
     def component_id_required_for_id_strategies(cls, v, values):
         strategy = values.get("strategy")
-        if strategy in [AnchorStrategy.AFTER_COMPONENT_WITH_ID, AnchorStrategy.BEFORE_COMPONENT_WITH_ID]:
-            if not v:
-                raise ValueError(f"component_id required for {strategy}")
+        if strategy in [AnchorStrategy.AFTER_COMPONENT_WITH_ID, AnchorStrategy.BEFORE_COMPONENT_WITH_ID] and not v:
+            raise ValueError(f"component_id required for {strategy}")
         return v
 
 
@@ -65,52 +67,52 @@ class Operation(BaseModel):
     file: str  # File to operate on
 
     # Common fields that might appear in any operation
-    path: Optional[List[str]] = None
-    key: Optional[str] = None
-    value: Optional[Any] = None
-    item: Optional[Any] = None
-    text: Optional[str] = None
-    pattern: Optional[str] = None
-    index: Optional[int] = None
-    insert_after_id: Optional[str] = None
-    insert_after_index: Optional[int] = None
-    find_last: Optional[bool] = True
+    path: list[str] | None = None
+    key: str | None = None
+    value: Any | None = None
+    item: Any | None = None
+    text: str | None = None
+    pattern: str | None = None
+    index: int | None = None
+    insert_after_id: str | None = None
+    insert_after_index: int | None = None
+    find_last: bool | None = True
 
 
 class UIHints(BaseModel):
     """UI component hints for validation"""
 
-    input_mode: Optional[str] = None
-    max_length: Optional[int] = None
-    format: Optional[str] = None
-    required: Optional[bool] = None
+    input_mode: str | None = None
+    max_length: int | None = None
+    format: str | None = None
+    required: bool | None = None
 
 
 class ModelHints(BaseModel):
     """Model field hints for type inference"""
 
-    type: Optional[str] = None  # Suggested type
-    pattern: Optional[str] = None
-    min_length: Optional[int] = None
-    max_length: Optional[int] = None
+    type: str | None = None  # Suggested type
+    pattern: str | None = None
+    min_length: int | None = None
+    max_length: int | None = None
 
 
 class PlanContext(BaseModel):
     """Repository context discovered during scanning"""
 
-    available_locales: List[str] = Field(default_factory=list)  # e.g., ["nb", "nn", "en"]
-    required_locales: Optional[List[str]] = None  # Override for required subset
+    available_locales: list[str] = Field(default_factory=list)  # e.g., ["nb", "nn", "en"]
+    required_locales: list[str] | None = None  # Override for required subset
     source_of_truth: Literal["json_schema"] = "json_schema"  # Always JSON schema for Altinn apps
-    layout_pages: List[str] = Field(default_factory=list)  # Available layout files
-    model_files: List[str] = Field(default_factory=list)  # Available model files
-    resource_files: List[str] = Field(default_factory=list)  # All resource files
+    layout_pages: list[str] = Field(default_factory=list)  # Available layout files
+    model_files: list[str] = Field(default_factory=list)  # Available model files
+    resource_files: list[str] = Field(default_factory=list)  # All resource files
 
 
 class Constraints(BaseModel):
     """Context-driven execution constraints"""
 
-    max_files: Optional[int] = Field(default=10)  # From context or user preference
-    max_diff_lines: Optional[int] = Field(default=2000)
+    max_files: int | None = Field(default=10)  # From context or user preference
+    max_diff_lines: int | None = Field(default=2000)
     forbid_generated_edits: bool = True  # Unless explicitly overridden
     allow_cross_domain: bool = False
     allow_extras: bool = False  # For atomic operations
@@ -122,13 +124,13 @@ class PlanStep(BaseModel):
     step_id: str = Field(..., pattern=r"^S\d+$")  # S1, S2, etc.
     task_type: str  # Open-ended, no enum restriction
     description: str = Field(..., min_length=10, max_length=200)
-    files_to_touch: List[str] = Field(..., min_items=1)
-    ops: List[Operation] = Field(..., min_items=1)
-    anchor: Optional[Anchor] = None  # Required for layout operations
+    files_to_touch: list[str] = Field(..., min_items=1)
+    ops: list[Operation] = Field(..., min_items=1)
+    anchor: Anchor | None = None  # Required for layout operations
     constraints: Constraints = Field(default_factory=Constraints)
     context: PlanContext = Field(default_factory=PlanContext)
-    ui_hints: Optional[UIHints] = None
-    model_hints: Optional[ModelHints] = None
+    ui_hints: UIHints | None = None
+    model_hints: ModelHints | None = None
 
     @validator("files_to_touch")
     def validate_file_count(cls, v, values):
@@ -171,7 +173,7 @@ class PlanStep(BaseModel):
             required_locales = context.required_locales or context.available_locales
 
             for locale in required_locales:
-                pattern = f"App/config/texts/resource\.{locale}\.json$"
+                pattern = rf"App/config/texts/resource\.{locale}\.json$"
                 if not any(re.match(pattern, f) for f in v):
                     required_file_types.append(f"resource.{locale}")
 
@@ -225,7 +227,6 @@ class PlanStep(BaseModel):
 
     @validator("anchor")
     def anchor_required_for_layout_ops(cls, v, values):
-        task_type = values.get("task_type")
         ops = values.get("ops", [])
 
         # If we're touching layout files, anchor is required
@@ -239,20 +240,18 @@ class PlanStep(BaseModel):
 class ContractValidationError(Exception):
     """Raised when plan violates contracts"""
 
-    pass
-
 
 def validate_plan_step(plan_data: dict) -> PlanStep:
     """Validate and parse plan step with detailed error messages"""
     try:
         return PlanStep(**plan_data)
     except ValueError as e:
-        raise ContractValidationError(f"Plan validation failed: {e}")
+        raise ContractValidationError(f"Plan validation failed: {e}") from e
 
 
 # TODO: Check if we can remove this
 # Utility functions for identifier vs quantity detection
-def is_numeric_ui_component(ui_hints: Optional[UIHints]) -> bool:
+def is_numeric_ui_component(ui_hints: UIHints | None) -> bool:
     """Check if component has numeric UI indicators"""
     if not ui_hints:
         return False
@@ -261,7 +260,7 @@ def is_numeric_ui_component(ui_hints: Optional[UIHints]) -> bool:
     return any(numeric_indicators)
 
 
-def suggest_identifier_type(field_name: str, ui_hints: Optional[UIHints], arithmetic_usage: bool = False) -> str:
+def suggest_identifier_type(field_name: str, ui_hints: UIHints | None, arithmetic_usage: bool = False) -> str:
     """
     Suggest field type based on UI hints and usage patterns.
     Returns 'string' for identifiers, 'number' for quantities.

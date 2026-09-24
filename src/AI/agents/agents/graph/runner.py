@@ -1,22 +1,36 @@
 """LangGraph runner for agent workflow"""
 
 import asyncio
+import logging as _logging
 
-from langgraph.graph import StateGraph, END
+from langfuse import get_client, propagate_attributes
+from langgraph.graph import END, StateGraph
 from opentelemetry import trace as otel_trace
 
-from .state import AgentState
+from agents.services.events import AgentEvent, EventSink, sink
+from agents.services.llm import (
+    GATE_FAILED_ACTION,
+    MINIMUM_INTENT_CONFIDENCE,
+    check_scope_async,
+    parse_intent_async,
+    suggest_goal_correction,
+)
+from shared.utils.langfuse_utils import (
+    flush_langfuse,
+    get_current_trace_id,
+    init_langfuse,
+    is_langfuse_enabled,
+)
+from shared.utils.logging_utils import get_logger
+
 from .nodes.agentic_loop_node import handle as agentic_loop_node
 from .nodes.intake_node import handle as intake_node
 from .nodes.spec_node import handle as spec_node
-from agents.services.events import AgentEvent, EventSink, sink
-from shared.utils.logging_utils import get_logger
+from .state import AgentState
 
 
 class WorkflowCancelled(Exception):
     """Raised when a workflow is cancelled by the user."""
-
-    pass
 
 
 def _check_cancelled(state: AgentState):
@@ -108,24 +122,6 @@ def build_graph():
 
 
 graph = build_graph()
-
-from langfuse import get_client, propagate_attributes
-from shared.utils.langfuse_utils import (
-    init_langfuse,
-    is_langfuse_enabled,
-    get_langfuse_client,
-    get_current_trace_id,
-    flush_langfuse,
-)
-from agents.services.llm import (
-    GATE_FAILED_ACTION,
-    MINIMUM_INTENT_CONFIDENCE,
-    parse_intent_async,
-    suggest_goal_correction,
-    check_scope_async,
-)
-
-import logging as _logging
 
 _log = _logging.getLogger(__name__)
 
@@ -371,10 +367,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     if success:
         message = "Task completed successfully"
     else:
-        if notes:
-            message = "Task failed: " + "; ".join(str(n) for n in notes)
-        else:
-            message = "Task completed with issues"
+        message = "Task failed: " + "; ".join(str(n) for n in notes) if notes else "Task completed with issues"
     event_sink.send(
         AgentEvent(
             type="status",

@@ -12,8 +12,9 @@ machinery — tools should be testable in isolation.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -64,11 +65,11 @@ class PermissionResult:
     escalatable: bool = False
 
     @classmethod
-    def allow(cls) -> "PermissionResult":
+    def allow(cls) -> PermissionResult:
         return cls(allowed=True)
 
     @classmethod
-    def deny(cls, reason: str, escalatable: bool = False) -> "PermissionResult":
+    def deny(cls, reason: str, escalatable: bool = False) -> PermissionResult:
         return cls(allowed=False, reason=reason, escalatable=escalatable)
 
 

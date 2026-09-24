@@ -83,9 +83,9 @@ class TestCredentialSubjectMatterReachesTheClassifier:
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", return_value=[]),
+            pytest.raises(GoalRejected),
         ):
-            with pytest.raises(GoalRejected):
-                await _validate_intent(_state(goal))
+            await _validate_intent(_state(goal))
 
     async def test_the_blocklist_still_short_circuits_infrastructure_goals(self):
         classifier = _classifier()
@@ -110,9 +110,9 @@ class TestTheConfidenceThreshold:
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", return_value=[]),
+            pytest.raises(GoalRejected) as excinfo,
         ):
-            with pytest.raises(GoalRejected) as excinfo:
-                await _validate_intent(_state("gjør feltet obligatorisk"))
+            await _validate_intent(_state("gjør feltet obligatorisk"))
 
         assert excinfo.value.message == _UNCLEAR_GOAL_MESSAGE
 
@@ -182,9 +182,9 @@ class TestTheGateBeingDownIsNotTheUsersFault:
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", AsyncMock()) as suggest,
+            pytest.raises(GoalRejected) as raised,
         ):
-            with pytest.raises(GoalRejected) as raised:
-                await _validate_intent(_state("g"))
+            await _validate_intent(_state("g"))
 
         assert "får ikke kontakt" in raised.value.message
         assert "utrygg" not in raised.value.message
@@ -195,8 +195,8 @@ class TestTheGateBeingDownIsNotTheUsersFault:
         with (
             patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
             patch("agents.graph.runner.suggest_goal_correction", AsyncMock(return_value=[])),
+            pytest.raises(GoalRejected) as raised,
         ):
-            with pytest.raises(GoalRejected) as raised:
-                await _validate_intent(_state("g"))
+            await _validate_intent(_state("g"))
 
         assert "utrygg" in raised.value.message

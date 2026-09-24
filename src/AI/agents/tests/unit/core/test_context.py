@@ -8,13 +8,13 @@ from agents.core import SessionContext, build_system_prompt
 
 
 def _base_ctx(**overrides) -> SessionContext:
-    base = dict(
-        session_id="s1",
-        repo_path="/repo",
-        user_goal="Add a date field",
-        allow_app_changes=True,
-        today=date(2026, 5, 22),
-    )
+    base = {
+        "session_id": "s1",
+        "repo_path": "/repo",
+        "user_goal": "Add a date field",
+        "allow_app_changes": True,
+        "today": date(2026, 5, 22),
+    }
     base.update(overrides)
     return SessionContext(**base)
 
@@ -99,7 +99,7 @@ class TestStableOrdering:
             "Final response",
         ]
         positions = [prompt.index(landmark) for landmark in order]
-        assert positions == sorted(positions), f"Sections out of order: {list(zip(order, positions))}"
+        assert positions == sorted(positions), f"Sections out of order: {list(zip(order, positions, strict=False))}"
 
 
 class TestDomainKnowledge:

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .app_model import AppModel, NAVIGATION_COMPONENT_TYPES, titles_match
+from .app_model import NAVIGATION_COMPONENT_TYPES, AppModel, titles_match
 
 
 @dataclass(frozen=True)

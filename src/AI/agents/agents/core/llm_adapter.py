@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
 
 from .messages import (
     AssistantMessage,
@@ -25,9 +25,11 @@ from .messages import (
     extract_tool_uses,
 )
 
+log = get_logger(__name__)
+
 
 def _trace_input_summary(
-    messages: list["Message"],
+    messages: list[Message],
     system_prompt: str,
     tool_schemas: list[dict[str, Any]],
 ) -> dict[str, Any]:
@@ -40,7 +42,7 @@ def _trace_input_summary(
     }
 
 
-def _last_user_text_snippet(messages: list["Message"]) -> str:
+def _last_user_text_snippet(messages: list[Message]) -> str:
     """Return a small excerpt of the most recent user/tool_result content
     so traces show what triggered this LLM call."""
     for msg in reversed(messages):
@@ -59,7 +61,7 @@ def _last_user_text_snippet(messages: list["Message"]) -> str:
     return ""
 
 
-def _trace_output_summary(response: "AssistantMessage") -> dict[str, Any]:
+def _trace_output_summary(response: AssistantMessage) -> dict[str, Any]:
     """Compact view of an assistant turn for Langfuse output."""
     return {
         "text": extract_text(response),
@@ -173,15 +175,18 @@ class AnthropicAdapter(LLMAdapter):
                     event_type = getattr(event, "type", None)
                     if event_type == "content_block_start":
                         block = getattr(event, "content_block", None)
-                        if block is not None and getattr(block, "type", None) == "tool_use":
-                            if on_tool_use_start is not None:
-                                try:
-                                    on_tool_use_start(
-                                        getattr(block, "name", "") or "",
-                                        getattr(block, "id", "") or "",
-                                    )
-                                except Exception:  # noqa: BLE001
-                                    log.debug("on_tool_use_start raised", exc_info=True)
+                        if (
+                            block is not None
+                            and getattr(block, "type", None) == "tool_use"
+                            and on_tool_use_start is not None
+                        ):
+                            try:
+                                on_tool_use_start(
+                                    getattr(block, "name", "") or "",
+                                    getattr(block, "id", "") or "",
+                                )
+                            except Exception:
+                                log.debug("on_tool_use_start raised", exc_info=True)
                     elif event_type == "content_block_delta":
                         delta = getattr(event, "delta", None)
                         delta_type = getattr(delta, "type", None) if delta is not None else None
@@ -191,14 +196,14 @@ class AnthropicAdapter(LLMAdapter):
                                 accumulated_text += text
                                 try:
                                     on_text_delta(text, accumulated_text)
-                                except Exception:  # noqa: BLE001
+                                except Exception:
                                     log.debug("on_text_delta raised", exc_info=True)
                         # input_json_delta is intentionally ignored — the
                         # tool_use_start hook already told the UI which
                         # tool is generating, and surfacing partial JSON
                         # would be noisy without parsing it.
                 return await stream.get_final_message()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Only fall back on the transient transport errors the SDK
             # surfaces for dropped chunked SSE bodies.  Real API errors
             # (4xx/5xx with bodies, auth, etc.) are raised by `messages.stream`
@@ -306,7 +311,7 @@ class AnthropicAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(response.stop_reason, usage["output_tokens"], self.max_tokens)
-            try:
+            with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
                     usage_details=_usage_details(
@@ -316,8 +321,6 @@ class AnthropicAdapter(LLMAdapter):
                         cache_creation=usage["cache_creation_input_tokens"],
                     ),
                 )
-            except Exception:  # noqa: BLE001 — never let tracing break the call
-                pass
             return assistant
 
 
@@ -421,7 +424,6 @@ class OpenAIAdapter(LLMAdapter):
     """Talks to OpenAI or Azure OpenAI via the chat-completions API."""
 
     def __init__(self, *, model: str, max_tokens: int | None = None) -> None:
-        import os
 
         config = get_config()
         if config.OPENAI_BASE_URL:
@@ -532,7 +534,7 @@ class OpenAIAdapter(LLMAdapter):
                 usage=usage,
             )
             _warn_if_truncated(assistant.stop_reason, usage["output_tokens"], self.max_tokens)
-            try:
+            with contextlib.suppress(Exception):
                 span.update(
                     output=_trace_output_summary(assistant),
                     usage_details=_usage_details(
@@ -544,8 +546,6 @@ class OpenAIAdapter(LLMAdapter):
                         cache_creation=usage["cache_creation_input_tokens"],
                     ),
                 )
-            except Exception:  # noqa: BLE001
-                pass
             return assistant
 
 
@@ -647,7 +647,7 @@ def _is_reasoning_model(model: str | None) -> bool:
     if not model:
         return False
     m = model.lower()
-    return m.startswith("o1") or m.startswith("o3") or m.startswith("gpt-5")
+    return m.startswith(("o1", "o3", "gpt-5"))
 
 
 def build_adapter(role: str = "actor", max_tokens: int | None = None) -> LLMAdapter:

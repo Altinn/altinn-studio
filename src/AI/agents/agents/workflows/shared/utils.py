@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import subprocess
 
-from shared.utils.logging_utils import get_logger
 from agents.services.git import git_ops
+from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 

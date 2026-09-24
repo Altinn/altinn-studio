@@ -1,8 +1,9 @@
 """Resource validator tool with schema validation and business rules."""
 
 import json
-from typing import Dict, Any, List
 from pathlib import Path
+from typing import Any
+
 from .base_validator import BaseValidator
 
 
@@ -12,7 +13,7 @@ class ResourceValidator(BaseValidator):
     def __init__(self):
         super().__init__("https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json")
 
-    def validate_business_rules(self, data: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_business_rules(self, data: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """
         Validate resource-specific business rules
 
@@ -86,10 +87,10 @@ class ResourceValidator(BaseValidator):
 
         return {"errors": errors, "warnings": warnings, "suggestions": suggestions}
 
-    def _extract_text_refs_from_layout(self, layout_path: str) -> List[str]:
+    def _extract_text_refs_from_layout(self, layout_path: str) -> list[str]:
         """Extract all textResourceBindings references from a layout file"""
         try:
-            with open(layout_path, "r", encoding="utf-8") as f:
+            with open(layout_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Extract components
@@ -103,7 +104,7 @@ class ResourceValidator(BaseValidator):
             refs = []
             for comp in components:
                 text_bindings = comp.get("textResourceBindings", {})
-                for key, value in text_bindings.items():
+                for value in text_bindings.values():
                     if value:
                         refs.append(value)
 
@@ -111,7 +112,7 @@ class ResourceValidator(BaseValidator):
         except Exception:
             return []
 
-    def _get_other_language_resources(self, repo_path: str, current_lang: str) -> Dict[str, List[str]]:
+    def _get_other_language_resources(self, repo_path: str, current_lang: str) -> dict[str, list[str]]:
         """Get resource IDs from other language files"""
         try:
             resource_dir = Path(repo_path) / "App" / "config" / "texts"
@@ -125,7 +126,7 @@ class ResourceValidator(BaseValidator):
 
                 if lang != current_lang:
                     try:
-                        with open(resource_file, "r", encoding="utf-8") as f:
+                        with open(resource_file, encoding="utf-8") as f:
                             data = json.load(f)
                         resources = data.get("resources", [])
                         other_resources[lang] = [r.get("id") for r in resources if r.get("id")]
@@ -136,7 +137,7 @@ class ResourceValidator(BaseValidator):
         except Exception:
             return {}
 
-    def _detect_resource_id_pattern(self, resource_ids: List[str]) -> str:
+    def _detect_resource_id_pattern(self, resource_ids: list[str]) -> str:
         """Detect common resource ID pattern"""
         if not resource_ids:
             return "unknown"
@@ -159,7 +160,7 @@ class ResourceValidator(BaseValidator):
         # Return most common pattern
         return max(patterns, key=patterns.get)
 
-    def _suggest_next_id(self, resource_ids: List[str]) -> str:
+    def _suggest_next_id(self, resource_ids: list[str]) -> str:
         """Suggest next resource ID based on pattern"""
         if not resource_ids:
             return "label.new.field"
@@ -180,8 +181,12 @@ class ResourceValidator(BaseValidator):
 
 
 def resource_validator_tool(
-    user_goal: str, resource_json: str, language: str = "nb", layout_files: List[str] = None, repo_path: str = None
-) -> Dict[str, Any]:
+    user_goal: str,
+    resource_json: str,
+    language: str = "nb",
+    layout_files: list[str] | None = None,
+    repo_path: str | None = None,
+) -> dict[str, Any]:
     """
     Validate text resource JSON with schema and business rules
     """
@@ -193,7 +198,7 @@ def resource_validator_tool(
             return {
                 "valid": False,
                 "error_code": "INVALID_JSON",
-                "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {str(e)}"],
+                "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {e!s}"],
                 "warnings": [],
                 "suggestions": {},
                 "schema_url": None,
@@ -217,7 +222,7 @@ def resource_validator_tool(
     except Exception as e:
         return {
             "valid": False,
-            "errors": [f"Validation error: {str(e)}"],
+            "errors": [f"Validation error: {e!s}"],
             "warnings": [],
             "suggestions": {},
             "schema_url": None,

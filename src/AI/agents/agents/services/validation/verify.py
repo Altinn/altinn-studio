@@ -2,10 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List
 
 
-def run_all(repo_path: str, changed_files: List[str]) -> dict:
+def run_all(repo_path: str, changed_files: list[str]) -> dict:
     """Only fast checks for MVP"""
     notes = []
     ok = True
@@ -51,7 +50,7 @@ def validate_layout(layout_file: Path) -> bool:
         if not layout_file.exists():
             return False
 
-        with open(layout_file, "r") as f:
+        with open(layout_file) as f:
             layout = json.load(f)
 
         # Basic structure checks
@@ -59,12 +58,9 @@ def validate_layout(layout_file: Path) -> bool:
             return False
 
         # Check for required layout properties
-        if "data" not in layout:
-            return False
+        return "data" in layout
 
-        return True
-
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
 
 
@@ -74,14 +70,14 @@ def check_bindings(json_file: Path) -> bool:
         if not json_file.exists():
             return False
 
-        with open(json_file, "r") as f:
-            content = json.load(f)
+        with open(json_file) as f:
+            json.load(f)
 
         # TODO: Implement actual binding validation
         # For MVP, assume bindings are ok if file is valid JSON
         return True
 
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
 
 
@@ -91,16 +87,16 @@ def check_resources(resource_file: Path) -> bool:
         if not resource_file.exists():
             return False
 
-        with open(resource_file, "r") as f:
+        with open(resource_file) as f:
             resources = json.load(f)
 
         # Basic structure check
         return isinstance(resources, dict)
 
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
 
 
-def run_checks(repo_path: str, changed_files: List[str]) -> dict:
+def run_checks(repo_path: str, changed_files: list[str]) -> dict:
     """Alias for run_all to maintain compatibility"""
     return run_all(repo_path, changed_files)

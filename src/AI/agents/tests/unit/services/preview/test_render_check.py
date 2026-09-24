@@ -4,19 +4,19 @@ is the only signal, so it decides whether a page counts as rendered."""
 
 from __future__ import annotations
 
-import pytest
-
 from importlib import import_module
 
-render_check_module = import_module("agents.services.preview.render_check")
+import pytest
 
 from agents.services.preview.render_check import (
     PageRenderResult,
     PreviewCheckUnavailable,
     _check_pages,
-    read_page_order,
     _is_thrown_error,
+    read_page_order,
 )
+
+render_check_module = import_module("agents.services.preview.render_check")
 
 THROWN = [
     "TypeError: Cannot read properties of undefined (reading 'render') "

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from shared.utils.langfuse_utils import trace_span
-from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_with_langfuse, render_template
+from agents.services.llm import LLMClient
+from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)

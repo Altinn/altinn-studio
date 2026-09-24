@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-from typing import Dict, List, Optional, Any
+from typing import Any
 
-from shared.utils.langfuse_utils import trace_span
-
-from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
-from agents.services.llm import LLMClient
+from agents.graph.state import FormSpec, FormSpecField, FormSpecPage
 from agents.prompts import get_prompt_with_langfuse, render_template
+from agents.services.llm import LLMClient
 from shared.models import AgentAttachment
+from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -18,8 +17,8 @@ log = get_logger(__name__)
 
 def run_spec_pipeline(
     user_goal: str,
-    attachments: List[AgentAttachment],
-) -> Optional[FormSpec]:
+    attachments: list[AgentAttachment],
+) -> FormSpec | None:
     """Extract a FormSpec from the provided attachments using vision LLM.
 
     Returns None if extraction fails or no usable spec can be produced.
@@ -107,7 +106,7 @@ def run_spec_pipeline(
     return form_spec
 
 
-def _try_parse_json(text: str) -> Optional[dict]:
+def _try_parse_json(text: str) -> dict | None:
     """Try to parse JSON, with repair strategies for truncated output."""
     # 1. Direct parse
     try:
@@ -169,7 +168,7 @@ def _try_parse_json(text: str) -> Optional[dict]:
                     len(repaired_text),
                 )
                 return data
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         log.debug(f"json_repair fallback failed: {e}")
 
     log.error(f"All JSON parse strategies failed for text of length {len(text)} (starts with: {text[:200]!r})")
@@ -208,16 +207,13 @@ def _normalize_options(options: Any) -> Any:
     return normalized
 
 
-def _parse_spec_response(raw: str) -> Optional[FormSpec]:
+def _parse_spec_response(raw: str) -> FormSpec | None:
     """Parse raw LLM JSON response into a validated FormSpec."""
     # Strip markdown fences if present
     text = raw.strip()
     if text.startswith("```"):
         first_newline = text.find("\n")
-        if first_newline != -1:
-            text = text[first_newline + 1 :]
-        else:
-            text = text[3:]
+        text = text[first_newline + 1 :] if first_newline != -1 else text[3:]
     if text.endswith("```"):
         text = text[:-3]
     text = text.strip()

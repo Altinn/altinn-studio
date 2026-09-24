@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from api.rate_limiting import RateLimiter, WINDOW_SECONDS
+from api.rate_limiting import WINDOW_SECONDS, RateLimiter
 
 
 class FakeClock:

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from agents.graph.state import AgentState
-from agents.services.events import AgentEvent
-from agents.services.events import sink
+from agents.services.events import AgentEvent, sink
 from agents.workflows.intake.pipeline import run_intake_pipeline
 
 
@@ -35,6 +34,7 @@ async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
 
     import time
+
     from shared.utils.logging_utils import get_logger
 
     log = get_logger(__name__)
@@ -53,7 +53,7 @@ async def handle(state: AgentState) -> AgentState:
     )
 
     try:
-        result: Dict[str, Any] = run_intake_pipeline(
+        result: dict[str, Any] = run_intake_pipeline(
             state.repo_path,
             state.user_goal,
             attachments=state.attachments,
@@ -112,6 +112,7 @@ async def scan_repository(state: AgentState) -> AgentState:
     """Scan repository to gather facts if not already available."""
 
     import time
+
     from shared.utils.logging_utils import get_logger
 
     log = get_logger(__name__)

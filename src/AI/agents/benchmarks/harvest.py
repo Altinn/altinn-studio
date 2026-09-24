@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import httpx
 
@@ -161,7 +162,7 @@ def conversation_up_to(harvest: HarvestedTrace, decision: int) -> list[dict[str,
                             "content": result["content"],
                             "is_error": result["is_error"],
                         }
-                        for call, result in zip(turn.calls, turn.results)
+                        for call, result in zip(turn.calls, turn.results, strict=False)
                     ],
                 }
             )

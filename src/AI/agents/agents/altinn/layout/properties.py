@@ -1,11 +1,10 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
 from collections.abc import Iterator
-from typing import Dict, Any, List, Set, Optional, Tuple
-
+from typing import Any
 
 # Pairings the schema marks optional but the renderer requires.
-BINDING_CONSTRAINTS: Dict[str, List[str]] = {
+BINDING_CONSTRAINTS: dict[str, list[str]] = {
     "Datepicker": [
         'A binding to a string with "format": "date" requires "timeStamp": false. '
         "The property defaults to true, which stores a full ISO timestamp against a "
@@ -32,8 +31,8 @@ _BINDING_ADVICE = (
 
 
 def layout_properties_tool(
-    user_goal: str, component_type: str, schema: Dict[str, Any], binding_constraints: Dict[str, List[str]]
-) -> Dict[str, Any]:
+    user_goal: str, component_type: str, schema: dict[str, Any], binding_constraints: dict[str, list[str]]
+) -> dict[str, Any]:
     """
     Retrieves schema information for a specific Altinn Studio component type.
 
@@ -60,22 +59,22 @@ def layout_properties_tool(
                 *binding_constraints.get(component_type, []),
                 _BINDING_ADVICE,
             ],
-            "allowed_properties": sorted(list(allowed_properties)),
-            "required_properties": sorted(list(required_properties)),
+            "allowed_properties": sorted(allowed_properties),
+            "required_properties": sorted(required_properties),
             "property_details": property_details,
         }
 
     except Exception as e:
         return {
             "status": "error",
-            "message": f"Unexpected error retrieving schema: {str(e)}",
+            "message": f"Unexpected error retrieving schema: {e!s}",
             "allowed_properties": [],
             "required_properties": [],
             "property_details": {},
         }
 
 
-def _component_not_found_result(component_type: str, component_types: List[str]) -> Dict[str, Any]:
+def _component_not_found_result(component_type: str, component_types: list[str]) -> dict[str, Any]:
     return {
         "status": "error",
         "error_code": "COMPONENT_NOT_FOUND",
@@ -89,12 +88,12 @@ def _component_not_found_result(component_type: str, component_types: List[str])
     }
 
 
-def list_component_types(schema: Dict[str, Any]) -> List[str]:
+def list_component_types(schema: dict[str, Any]) -> list[str]:
     """List the component types that the schema declares, sorted and without duplicates."""
     return sorted({component_type for component_type, _ in _iterate_component_definitions(schema)})
 
 
-def _iterate_component_definitions(schema: Dict[str, Any]) -> Iterator[Tuple[str, Dict[str, Any]]]:
+def _iterate_component_definitions(schema: dict[str, Any]) -> Iterator[tuple[str, dict[str, Any]]]:
     """Give each (component type, definition) pair that the schema declares.
 
     The pairs come from ``definitions.AnyComponent.allOf`` first and from the
@@ -109,7 +108,7 @@ def _iterate_component_definitions(schema: Dict[str, Any]) -> Iterator[Tuple[str
                 yield component
 
 
-def _read_component_definition(item: Any) -> Optional[Tuple[str, Dict[str, Any]]]:
+def _read_component_definition(item: Any) -> tuple[str, dict[str, Any]] | None:
     if not isinstance(item, dict):
         return None
     condition = item.get("if")
@@ -124,8 +123,8 @@ def _read_component_definition(item: Any) -> Optional[Tuple[str, Dict[str, Any]]
 
 
 def extract_schema_metadata(
-    schema_def: Dict[str, Any], full_schema: Dict[str, Any]
-) -> Tuple[Set[str], Set[str], Dict[str, Any]]:
+    schema_def: dict[str, Any], full_schema: dict[str, Any]
+) -> tuple[set[str], set[str], dict[str, Any]]:
     """Extract allowed properties, required properties, and property details from schema.
 
     Args:
@@ -139,17 +138,14 @@ def extract_schema_metadata(
     required_properties = set()
     property_details = {}
 
-    def is_boolean_only_object(obj: Dict[str, Any]) -> bool:
+    def is_boolean_only_object(obj: dict[str, Any]) -> bool:
         """Check if an object contains only boolean properties (property availability indicators)."""
         if not isinstance(obj, dict):
             return False
 
-        for value in obj.values():
-            if not isinstance(value, bool):
-                return False
-        return True
+        return all(isinstance(value, bool) for value in obj.values())
 
-    def traverse_schema(obj: Dict[str, Any], path_prefix: str = ""):
+    def traverse_schema(obj: dict[str, Any], path_prefix: str = ""):
         """Recursively traverse schema to extract properties."""
         if isinstance(obj, dict):
             # Handle properties
@@ -189,7 +185,7 @@ def extract_schema_metadata(
     return allowed_properties, required_properties, property_details
 
 
-def extract_property_details(prop_def: Any, schema: Dict[str, Any]) -> Dict[str, Any]:
+def extract_property_details(prop_def: Any, schema: dict[str, Any]) -> dict[str, Any]:
     """Extract detailed schema information from a property definition.
 
     Args:
@@ -243,7 +239,7 @@ def extract_property_details(prop_def: Any, schema: Dict[str, Any]) -> Dict[str,
         return {"type": "unknown", "value": prop_def}
 
 
-def resolve_ref(schema: Dict[str, Any], ref_path: str) -> Optional[Dict[str, Any]]:
+def resolve_ref(schema: dict[str, Any], ref_path: str) -> dict[str, Any] | None:
     """Resolve a $ref reference within the schema.
 
     Args:
@@ -268,7 +264,7 @@ def resolve_ref(schema: Dict[str, Any], ref_path: str) -> Optional[Dict[str, Any
     return current if isinstance(current, dict) else None
 
 
-def find_component_definition(schema: Dict[str, Any], component_type: str) -> Optional[Dict[str, Any]]:
+def find_component_definition(schema: dict[str, Any], component_type: str) -> dict[str, Any] | None:
     """Find the component definition in the schema.
 
     Args:

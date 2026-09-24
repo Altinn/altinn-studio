@@ -12,8 +12,8 @@ from langfuse import get_client
 from benchmarks import manifest, provenance, registry, runstore
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models
 from benchmarks.experiment import SCORES_KEY, structural_evaluator
-from benchmarks.generation import ITEM_EVALUATORS, SCORE_NAMES as GENERATION_SCORE_NAMES
-from benchmarks.generation import GenerationTask
+from benchmarks.generation import ITEM_EVALUATORS, GenerationTask
+from benchmarks.generation import SCORE_NAMES as GENERATION_SCORE_NAMES
 from benchmarks.runstore import BehaviorResult, ItemResult, Run
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -421,7 +421,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
     def go(entry: registry.Eval):
         dataset = client.get_dataset(entry.name)
         items = [i for i in dataset.items if getattr(i, "status", "ACTIVE") != "ARCHIVED"]
-        task, evaluators, score_names, model = task_for(args, entry, agent_models)
+        task, evaluators, _score_names, model = task_for(args, entry, agent_models)
         slow = " (builds apps, minutes)" if entry.kind in SLOW_KINDS else ""
         print(f"  {entry.name}: {len(items)} items on {model}{slow}", flush=True)
         _warn_if_stale(entry, len(items))

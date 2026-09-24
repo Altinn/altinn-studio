@@ -3,9 +3,10 @@
 Matches Altinn Studio's JsonSchemaToMetamodelConverter logic.
 """
 
-from typing import Dict, List, Optional, Any, Set
-from ..metamodel import ModelMetadata, ElementMetadata, ElementType, SchemaValueType, BaseValueType, Restriction
-from ..utils import TypeMapper, NamingConverter, RestrictionMapper
+from typing import Any
+
+from ..metamodel import ElementMetadata, ElementType, ModelMetadata, SchemaValueType
+from ..utils import NamingConverter, RestrictionMapper, TypeMapper
 
 
 class JsonSchemaToMetamodelConverter:
@@ -14,12 +15,12 @@ class JsonSchemaToMetamodelConverter:
     MAX_MAX_OCCURS = 99999
 
     def __init__(self):
-        self.model_metadata: Optional[ModelMetadata] = None
-        self.schema: Optional[Dict] = None
-        self.required_properties: Dict[str, List[str]] = {}
+        self.model_metadata: ModelMetadata | None = None
+        self.schema: dict | None = None
+        self.required_properties: dict[str, list[str]] = {}
         self.model_name: str = ""
 
-    def convert(self, schema: Dict[str, Any]) -> ModelMetadata:
+    def convert(self, schema: dict[str, Any]) -> ModelMetadata:
         """Convert JSON Schema to ModelMetadata.
 
         Args:
@@ -44,7 +45,7 @@ class JsonSchemaToMetamodelConverter:
 
         return self.model_metadata
 
-    def _process_schema(self, schema: Dict[str, Any]):
+    def _process_schema(self, schema: dict[str, Any]):
         """Process the root JSON Schema."""
         root_name = NamingConverter.to_csharp_compatible(self.model_name)
 
@@ -72,7 +73,7 @@ class JsonSchemaToMetamodelConverter:
             # Process all properties
             self._process_properties(schema.get("properties", {}), context)
 
-    def _process_properties(self, properties: Dict[str, Any], parent_context: Dict):
+    def _process_properties(self, properties: dict[str, Any], parent_context: dict):
         """Process properties keyword."""
         for prop_name, prop_schema in properties.items():
             current_context = {
@@ -90,7 +91,7 @@ class JsonSchemaToMetamodelConverter:
 
             self._process_sub_schema(prop_schema, current_context)
 
-    def _process_sub_schema(self, schema: Dict[str, Any], context: Dict):
+    def _process_sub_schema(self, schema: dict[str, Any], context: dict):
         """Process a sub-schema (property definition)."""
         # Check if required
         if "required" in schema:
@@ -112,7 +113,7 @@ class JsonSchemaToMetamodelConverter:
         elif "anyOf" in schema:
             self._process_any_of(schema, context)
 
-    def _is_primitive_type(self, schema: Dict) -> bool:
+    def _is_primitive_type(self, schema: dict) -> bool:
         """Check if schema defines a primitive type."""
         if "type" not in schema:
             return False
@@ -127,14 +128,14 @@ class JsonSchemaToMetamodelConverter:
 
         return schema_type in ["string", "number", "integer", "boolean"]
 
-    def _is_array_type(self, schema: Dict) -> bool:
+    def _is_array_type(self, schema: dict) -> bool:
         """Check if schema defines an array type."""
         schema_type = schema.get("type")
         if isinstance(schema_type, list):
             return "array" in schema_type
         return schema_type == "array"
 
-    def _is_object_type(self, schema: Dict) -> bool:
+    def _is_object_type(self, schema: dict) -> bool:
         """Check if schema defines an object type."""
         if "properties" in schema:
             return True
@@ -143,7 +144,7 @@ class JsonSchemaToMetamodelConverter:
             return "object" in schema_type
         return schema_type == "object"
 
-    def _process_primitive_type(self, schema: Dict, context: Dict):
+    def _process_primitive_type(self, schema: dict, context: dict):
         """Process a primitive type field."""
         schema_type = schema["type"]
 
@@ -168,7 +169,7 @@ class JsonSchemaToMetamodelConverter:
 
         self._add_element(schema, context)
 
-    def _process_array_type(self, schema: Dict, context: Dict):
+    def _process_array_type(self, schema: dict, context: dict):
         """Process an array type."""
         context["is_array"] = True
         context["schema_value_type"] = SchemaValueType.ARRAY
@@ -185,7 +186,7 @@ class JsonSchemaToMetamodelConverter:
             # Array of referenced types
             self._add_element(schema, context)
 
-    def _process_object_type(self, schema: Dict, context: Dict):
+    def _process_object_type(self, schema: dict, context: dict):
         """Process an object/complex type."""
         # For arrays, get the items schema
         if context.get("is_array"):
@@ -207,7 +208,7 @@ class JsonSchemaToMetamodelConverter:
         if properties:
             self._process_properties(properties, context)
 
-    def _process_ref_type(self, schema: Dict, context: Dict):
+    def _process_ref_type(self, schema: dict, context: dict):
         """Process a $ref reference."""
         ref_path = schema.get("$ref", "")
 
@@ -225,7 +226,7 @@ class JsonSchemaToMetamodelConverter:
             context["schema_value_type"] = SchemaValueType.OBJECT
             self._add_element(schema, context, element_type=ElementType.GROUP)
 
-    def _resolve_ref(self, ref_path: str) -> Optional[Dict]:
+    def _resolve_ref(self, ref_path: str) -> dict | None:
         """Resolve a JSON Schema $ref pointer.
 
         Args:
@@ -251,7 +252,7 @@ class JsonSchemaToMetamodelConverter:
 
         return current if isinstance(current, dict) else None
 
-    def _process_one_of(self, schema: Dict, context: Dict):
+    def _process_one_of(self, schema: dict, context: dict):
         """Process oneOf keyword (typically for nullable types)."""
         one_of_schemas = schema.get("oneOf", [])
 
@@ -267,7 +268,7 @@ class JsonSchemaToMetamodelConverter:
                 self._process_sub_schema(sub_schema, context)
                 break
 
-    def _process_all_of(self, schema: Dict, context: Dict):
+    def _process_all_of(self, schema: dict, context: dict):
         """Process allOf keyword (typically for restrictions)."""
         all_of_schemas = schema.get("allOf", [])
 
@@ -284,7 +285,7 @@ class JsonSchemaToMetamodelConverter:
                 if "type" in sub_schema:
                     self._process_sub_schema(sub_schema, context)
 
-    def _process_any_of(self, schema: Dict, context: Dict):
+    def _process_any_of(self, schema: dict, context: dict):
         """Process anyOf keyword."""
         any_of_schemas = schema.get("anyOf", [])
 
@@ -294,9 +295,7 @@ class JsonSchemaToMetamodelConverter:
                 self._process_sub_schema(sub_schema, context)
                 break
 
-    def _add_element(
-        self, schema: Dict, context: Dict, element_type: Optional[ElementType] = None, is_root: bool = False
-    ):
+    def _add_element(self, schema: dict, context: dict, element_type: ElementType | None = None, is_root: bool = False):
         """Add an element to the model metadata."""
         element_id = context["id"]
 
@@ -351,7 +350,7 @@ class JsonSchemaToMetamodelConverter:
 
         self.model_metadata.Elements[element_id] = element
 
-    def _get_min_occurs(self, schema: Dict, context: Dict) -> int:
+    def _get_min_occurs(self, schema: dict, context: dict) -> int:
         """Calculate minOccurs for an element."""
         if context.get("is_nillable"):
             return 0
@@ -367,7 +366,7 @@ class JsonSchemaToMetamodelConverter:
 
         return 0
 
-    def _get_max_occurs(self, schema: Dict, context: Dict) -> int:
+    def _get_max_occurs(self, schema: dict, context: dict) -> int:
         """Calculate maxOccurs for an element."""
         if context.get("is_array"):
             if "maxItems" in schema:
@@ -378,7 +377,7 @@ class JsonSchemaToMetamodelConverter:
 
     def _get_data_binding_name(
         self, element_type: ElementType, max_occurs: int, element_id: str, xpath: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Generate data binding name for an element."""
         if element_type != ElementType.GROUP and "." in element_id:
             # Extract data binding path from xpath
@@ -392,7 +391,7 @@ class JsonSchemaToMetamodelConverter:
 
         return None
 
-    def _add_required_properties(self, parent_id: str, required: List[str]):
+    def _add_required_properties(self, parent_id: str, required: list[str]):
         """Track required properties for a parent element."""
         if parent_id not in self.required_properties:
             self.required_properties[parent_id] = []

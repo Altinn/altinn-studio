@@ -79,7 +79,7 @@ class VerifyChangesTool(WriteToolMixin):
         for file_path in changed:
             try:
                 ok, file_notes = _verify_one(ctx, file_path)
-            except Exception as exc:  # noqa: BLE001 — never let one file's crash skip the rest
+            except Exception as exc:
                 ok = False
                 file_notes = [f"{file_path}: verifier crashed — {exc}"]
 
@@ -154,9 +154,7 @@ def _is_layout_file(file_path: str) -> bool:
     name = Path(file_path).name
     # Settings.json and layout-sets.json live near layouts but use
     # different schemas — the layout validator would reject them.
-    if name == "Settings.json" or name == "layout-sets.json":
-        return False
-    return True
+    return not (name == "Settings.json" or name == "layout-sets.json")
 
 
 def _is_layout_settings(file_path: str) -> bool:
@@ -345,7 +343,7 @@ def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
         span.update(input={"file_content": json_content})
         try:
             schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # noqa: BLE001 — CDN fetch can fail
+        except Exception as exc:
             span.update(output={"error": str(exc)})
             return False, [f"{file_path}: could not load layout schema — {exc}"]
 

@@ -1,23 +1,23 @@
 """Agent workflow API routes"""
 
 import re
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
-from agents.graph.state import AgentState
-from agents.graph.runner import run_in_background
-from agents.services.events import permission_broker, sink
 
+from agents.graph.runner import run_in_background
+from agents.graph.state import AgentState
+from agents.services.events import permission_broker, sink
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from api.rate_limiting import RateLimiter
 from shared.config import get_config
+from shared.models import AgentAttachment, AttachmentUpload
+from shared.models.attachments import cleanup_session_attachments, get_session_dir
+from shared.models.experiment import ExperimentContext
 from shared.utils.logging_utils import get_logger
 from shared.utils.path_utils import app_name_from_repo_url
-from pathlib import Path
-from typing import Optional, List
-from shared.models import AttachmentUpload, AgentAttachment
-from shared.models.attachments import get_session_dir, cleanup_session_attachments
-from shared.models.experiment import ExperimentContext
 
 router = APIRouter()
 log = get_logger(__name__)
@@ -43,13 +43,13 @@ class StartReq(BaseModel):
     session_id: str
     goal: str
     repo_url: str  # Git repository URL to clone
-    branch: Optional[str] = None  # Optional branch to checkout (for continuing work)
+    branch: str | None = None  # Optional branch to checkout (for continuing work)
     # Fail closed: write access is opt-in. A caller that omits the flag
     # gets a read-only (chat mode) session, never silent write access.
     allow_app_changes: bool = False
     org: str
-    attachments: List[AttachmentUpload] = Field(default_factory=list)
-    experiment: Optional[ExperimentContext] = None
+    attachments: list[AttachmentUpload] = Field(default_factory=list)
+    experiment: ExperimentContext | None = None
 
     @field_validator("session_id")
     @classmethod
@@ -99,7 +99,7 @@ async def start_agent(
         if not (repo / "App").exists():
             log.warning(f"Repository {repo_path} does not appear to be an Altinn app (missing App/ directory)")
 
-        saved_attachments: List[AgentAttachment] = []
+        saved_attachments: list[AgentAttachment] = []
         if req.attachments:
             try:
                 cleanup_session_attachments(config.ATTACHMENTS_ROOT, req.session_id)
@@ -170,7 +170,7 @@ async def start_agent(
         raise
     except Exception as e:
         log.error(f"Failed to start agent workflow: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 class PermissionResponseReq(BaseModel):

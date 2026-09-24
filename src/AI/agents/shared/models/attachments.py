@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from base64 import b64decode, b64encode
-import shutil
-from pathlib import Path
-from typing import List, Optional
-from uuid import uuid4
 import logging
+import shutil
+from base64 import b64decode, b64encode
+from pathlib import Path
+from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class AttachmentUpload(BaseModel):
         b64decode(payload.encode(), validate=True)
         return value
 
-    def to_agent_attachment(self, base_dir: Path) -> "AgentAttachment":
+    def to_agent_attachment(self, base_dir: Path) -> AgentAttachment:
         base_dir.mkdir(parents=True, exist_ok=True)
         payload = self.data_base64.split(",", 1)[-1]
         data = b64decode(payload.encode())
@@ -53,10 +52,10 @@ class AgentAttachment(BaseModel):
     mime_type: str
     size: int
     path: Path
-    data_base64: Optional[str] = None
-    azure_file_id: Optional[str] = None
+    data_base64: str | None = None
+    azure_file_id: str | None = None
 
-    def _ensure_base64(self) -> Optional[str]:
+    def _ensure_base64(self) -> str | None:
         """Return base64-encoded file data, reading from disk if necessary."""
         if self.data_base64:
             return self.data_base64
@@ -64,7 +63,7 @@ class AgentAttachment(BaseModel):
             return b64encode(self.path.read_bytes()).decode("ascii")
         return None
 
-    def to_content_blocks(self) -> List[dict]:
+    def to_content_blocks(self) -> list[dict]:
         """Convert attachment to LLM content blocks.
 
         Prefers native file passthrough so the model receives the original
@@ -93,12 +92,12 @@ class AgentAttachment(BaseModel):
 
         return [{"type": "text", "text": f"Attachment {self.name} ({self.mime_type}) — file data unavailable"}]
 
-    def to_content_block(self) -> Optional[dict]:
+    def to_content_block(self) -> dict | None:
         """Legacy single-block method. Returns the first content block."""
         blocks = self.to_content_blocks()
         return blocks[0] if blocks else None
 
-    def to_anthropic_blocks(self) -> List[dict]:
+    def to_anthropic_blocks(self) -> list[dict]:
         """Convert to Anthropic Messages-API content blocks.
 
         The Anthropic SDK uses a different shape than the OpenAI/LangChain

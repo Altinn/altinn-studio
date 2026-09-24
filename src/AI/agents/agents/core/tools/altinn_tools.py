@@ -45,7 +45,7 @@ class LayoutPropsTool(Tool):
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
         try:
             schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # noqa: BLE001 — CDN fetch / parse errors
+        except Exception as exc:  # CDN fetch / parse errors
             return ToolResult(content=f"Could not load component schema: {exc}", is_error=True)
         result = layout_properties_tool(
             user_goal="agentic-loop",

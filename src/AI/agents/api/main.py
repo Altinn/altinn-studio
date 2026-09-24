@@ -16,16 +16,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
-from shared.config import get_config
-
-# Get configuration
-config = get_config()
 from api.routes import (
     agent_router,
     register_websocket_routes,
     token_usage_router,
     traces_router,
 )
+from shared.config import get_config
+
+# Get configuration
+config = get_config()
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, config.LOG_LEVEL), format=config.LOG_FORMAT)
@@ -41,9 +41,7 @@ class SuppressLangfuseTimeouts(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
         msg = record.getMessage()
-        if ("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg:
-            return False
-        return True
+        return not (("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg)
 
 
 # Attach filter to root logger handlers so child loggers (e.g.

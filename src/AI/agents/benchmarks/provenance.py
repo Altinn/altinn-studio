@@ -7,7 +7,7 @@ import json
 import os
 import subprocess
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
@@ -164,7 +164,7 @@ def _actor_prompt_digest() -> str | None:
         from agents.core.context import stable_prefix_sections
 
         sections = stable_prefix_sections()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
     payload = "\n\n".join(sections).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
@@ -176,7 +176,7 @@ def _tools_digest() -> str | None:
         from agents.graph.nodes.agentic_loop_node import _build_registry
 
         schema = _build_registry().to_schema()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
     payload = json.dumps(schema, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
@@ -205,7 +205,7 @@ def collect(
     if agent_roles:
         models = {**models, **{r: agent_models[r] for r in agent_roles}}
     provenance = Provenance(
-        recorded_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        recorded_at=datetime.now(UTC).isoformat(timespec="seconds"),
         environment=_environment(),
         code=_code(),
         models=models,

@@ -7,6 +7,7 @@ and it keeps the working copy owned by the user the preview renders for.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 from dataclasses import dataclass
@@ -175,10 +176,8 @@ def _login(context, studio_base: str, username: str) -> None:
     page.get_by_role("button", name=re.compile(re.escape(username))).click()
     # An org picker only appears when Designer requests authorization_details.
     org_picker_next = page.get_by_role("button", name=ORG_PICKER_NEXT_BUTTON)
-    try:
+    with contextlib.suppress(Exception):
         org_picker_next.click(timeout=ORG_PICKER_TIMEOUT_MS)
-    except Exception:
-        pass
     page.wait_for_url(f"{studio_base}/dashboard/**", timeout=LOGIN_STEP_TIMEOUT_MS)
     page.close()
 

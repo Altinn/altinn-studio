@@ -2,11 +2,13 @@
 
 # TODO: Not sure if this is necessary at all
 import asyncio
-from typing import Dict, List, Optional
-from shared.models import AgentAttachment
+
 from pydantic import BaseModel
-from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
+
+from shared.models import AgentAttachment
 from shared.utils.logging_utils import get_logger
+
+from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
 
@@ -22,17 +24,17 @@ class ParsedIntent(BaseModel):
     action: str  # add, remove, update, move
     component: str  # field, layout, validation, etc.
     target: str  # specific target like "layout main", "field totalWeight"
-    details: Dict[str, str] = {}  # additional details like type, binding
+    details: dict[str, str] = {}  # additional details like type, binding
     confidence: float = 0.0  # confidence in parsing (0-1)
     safe: bool = True  # whether this intent is considered safe
-    reason: Optional[str] = None  # reason if not safe or low confidence
+    reason: str | None = None  # reason if not safe or low confidence
 
 
 class IntentParsingError(Exception):
     pass
 
 
-async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
+async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
     """Parse user goal into structured intent using LLM with safety checks"""
 
     # Quick safety check before LLM processing
@@ -79,11 +81,11 @@ async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachme
             target=goal,
             safe=False,
             confidence=0.0,
-            reason=f"Intent parsing failed: {str(e)}",
+            reason=f"Intent parsing failed: {e!s}",
         )
 
 
-def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
+def parse_intent(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
     """Synchronous wrapper for intent parsing - requires working LLM"""
     try:
         # Check if we're already in an async context
@@ -105,7 +107,7 @@ def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None)
         raise
 
 
-def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
+def _validate_goal_safety_quick(goal: str) -> tuple[bool, str | None]:
     """Quick safety check for dangerous keywords before LLM processing"""
     goal_lower = goal.lower().strip()
 
@@ -133,7 +135,7 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
     return True, None
 
 
-async def suggest_goal_correction(goal: str, rejection_reason: Optional[str] = None) -> List[str]:
+async def suggest_goal_correction(goal: str, rejection_reason: str | None = None) -> list[str]:
     """Suggest goals the user could ask for instead of the rejected one.
 
     Never raises: a rejection must not turn into a generic error because the
@@ -147,12 +149,12 @@ async def suggest_goal_correction(goal: str, rejection_reason: Optional[str] = N
     return await _drop_suggestions_the_gate_would_reject(candidates)
 
 
-async def _drop_suggestions_the_gate_would_reject(candidates: List[str]) -> List[str]:
+async def _drop_suggestions_the_gate_would_reject(candidates: list[str]) -> list[str]:
     """Offering a suggestion the gate rejects sends the user round in a circle."""
     if not candidates:
         return []
     verdicts = await asyncio.gather(*(_would_be_accepted(candidate) for candidate in candidates))
-    kept = [candidate for candidate, ok in zip(candidates, verdicts) if ok]
+    kept = [candidate for candidate, ok in zip(candidates, verdicts, strict=False) if ok]
     if len(kept) != len(candidates):
         log.info(f"Dropped {len(candidates) - len(kept)} suggestion(s) the gate would reject")
     return kept

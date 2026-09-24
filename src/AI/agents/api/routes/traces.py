@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
@@ -19,11 +17,11 @@ class FeedbackReq(BaseModel):
     """User feedback (thumbs up/down) on an assistant message, recorded as a Langfuse score."""
 
     thumbs_up: bool
-    comment: Optional[str] = None
+    comment: str | None = None
 
     @field_validator("comment")
     @classmethod
-    def _validate_comment(cls, v: Optional[str]) -> Optional[str]:
+    def _validate_comment(cls, v: str | None) -> str | None:
         if v is None:
             return v
         if len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
@@ -78,7 +76,7 @@ async def clean_up_traces() -> dict[str, int]:
     """
     try:
         deleted_count = await delete_expired_traces()
-    except Exception:
+    except Exception as e:
         log.exception("Scheduled trace cleanup (delete-expired) failed")
-        raise HTTPException(status_code=500, detail="Trace cleanup failed")
+        raise HTTPException(status_code=500, detail="Trace cleanup failed") from e
     return {"deleted": deleted_count}

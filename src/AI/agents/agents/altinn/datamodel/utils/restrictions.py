@@ -1,14 +1,15 @@
 """Utilities for handling JSON Schema restrictions and validation rules."""
 
-from typing import Dict, Any, Optional
-from ..metamodel import Restriction, BaseValueType
+from typing import Any
+
+from ..metamodel import BaseValueType, Restriction
 
 
 class RestrictionMapper:
     """Maps JSON Schema validation keywords to model restrictions."""
 
     @staticmethod
-    def extract_restrictions(schema: Dict[str, Any]) -> Dict[str, Restriction]:
+    def extract_restrictions(schema: dict[str, Any]) -> dict[str, Restriction]:
         """Extract restrictions from JSON Schema validation keywords."""
         restrictions = {}
 
@@ -43,7 +44,7 @@ class RestrictionMapper:
         return restrictions
 
     @staticmethod
-    def get_range_limits(base_type: Optional[BaseValueType]) -> tuple[str, str]:
+    def get_range_limits(base_type: BaseValueType | None) -> tuple[str, str]:
         """Get C# range limits for a given base value type.
 
         Returns:
@@ -67,7 +68,7 @@ class RestrictionMapper:
             return ("Double.MinValue", "Double.MaxValue")
 
     @staticmethod
-    def get_validation_regex(base_type: BaseValueType) -> Optional[str]:
+    def get_validation_regex(base_type: BaseValueType) -> str | None:
         """Get validation regex pattern for special types."""
         regex_map = {
             BaseValueType.G_YEAR: r"^[0-9]{4}$",

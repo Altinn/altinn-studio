@@ -6,7 +6,7 @@ import json
 import re
 import secrets
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from benchmarks.provenance import Provenance
@@ -169,7 +169,7 @@ def _pointer_for(directory: Path | None) -> Path:
 
 def new_name(label: str) -> str:
     """Unique by construction, so two runs cannot merge."""
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-") or "run"
     return f"{stamp}-{slug}-{secrets.token_hex(2)}"
 
@@ -229,7 +229,7 @@ def baseline(*, directory: Path | None = None, pointer: Path | None = None) -> R
         from benchmarks import remote
 
         return remote.fetch(found.check_id)
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 

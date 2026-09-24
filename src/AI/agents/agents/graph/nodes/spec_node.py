@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextvars
 import time
+
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from agents.workflows.spec.pipeline import run_spec_pipeline

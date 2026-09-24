@@ -96,7 +96,7 @@ class LangfuseApi:
         return self._post("/api/public/score-configs", {"name": name, "dataType": data_type, **extra})
 
 
-def assert_run_is_new(lf: "LangfuseApi", dataset: str, run_name: str) -> None:
+def assert_run_is_new(lf: LangfuseApi, dataset: str, run_name: str) -> None:
     """Refuse to write into a run that already exists."""
     encoded = quote(dataset, safe="")
     for page in range(1, MAX_RUN_PAGES + 1):

@@ -11,8 +11,8 @@ from base64 import b64encode
 from pathlib import Path
 
 from agents.services.llm.llm_client import LLMClient, _build_anthropic_user_content
-from shared.utils.spotlight import ATTACHMENT_TAG, close_delimiter, open_delimiter
 from shared.models.attachments import AgentAttachment
+from shared.utils.spotlight import ATTACHMENT_TAG, close_delimiter, open_delimiter
 
 
 def _make_attachment(tmp_path: Path, name: str, mime: str, payload: bytes) -> AgentAttachment:

@@ -3,11 +3,10 @@
 Matches Altinn Studio's XSD generation logic.
 """
 
-from typing import List, Set
-from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
-from ..metamodel import ModelMetadata, ElementMetadata, ElementType, BaseValueType
-from ..utils import TypeMapper
+from xml.etree.ElementTree import Element, SubElement, tostring
+
+from ..metamodel import BaseValueType, ElementMetadata, ElementType, ModelMetadata
 
 
 class ModelMetadataToXsdConverter:
@@ -55,7 +54,7 @@ class ModelMetadataToXsdConverter:
         self._create_root_element(schema, root_element, metadata)
 
         # Create complex type definitions
-        complex_types_added: Set[str] = set()
+        complex_types_added: set[str] = set()
         self._create_complex_types(schema, root_element, metadata, complex_types_added)
 
         # Format and return
@@ -77,7 +76,7 @@ class ModelMetadataToXsdConverter:
             self._add_element_reference(sequence, child, metadata)
 
     def _create_complex_types(
-        self, schema: Element, parent: ElementMetadata, metadata: ModelMetadata, added_types: Set[str]
+        self, schema: Element, parent: ElementMetadata, metadata: ModelMetadata, added_types: set[str]
     ):
         """Recursively create complex type definitions."""
         # Get child group elements (complex types)
@@ -94,7 +93,7 @@ class ModelMetadataToXsdConverter:
                 self._create_complex_types(schema, child, metadata, added_types)
 
     def _create_complex_type_definition(
-        self, schema: Element, element: ElementMetadata, metadata: ModelMetadata, added_types: Set[str]
+        self, schema: Element, element: ElementMetadata, metadata: ModelMetadata, added_types: set[str]
     ):
         """Create a complex type definition."""
         complex_type = SubElement(schema, "xs:complexType")

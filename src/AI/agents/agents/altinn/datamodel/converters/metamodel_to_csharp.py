@@ -3,9 +3,8 @@
 Matches Altinn Studio's JsonMetadataToCsharpConverter logic.
 """
 
-from typing import Dict, Set, List
-from ..metamodel import ModelMetadata, ElementMetadata, ElementType, BaseValueType
-from ..utils import TypeMapper, RestrictionMapper
+from ..metamodel import BaseValueType, ElementMetadata, ElementType, ModelMetadata
+from ..utils import RestrictionMapper, TypeMapper
 
 
 class ModelMetadataToCsharpConverter:
@@ -35,7 +34,7 @@ class ModelMetadataToCsharpConverter:
             namespace = f"{self.namespace}.{root_element.TypeName}"
 
         # Build all classes
-        classes: Dict[str, str] = {}
+        classes: dict[str, str] = {}
         self._create_class_recursive(classes, root_element, metadata, use_nullable_reference_types)
 
         # Build final output
@@ -75,7 +74,7 @@ class ModelMetadataToCsharpConverter:
         return "\n".join(lines)
 
     def _create_class_recursive(
-        self, classes: Dict[str, str], element: ElementMetadata, metadata: ModelMetadata, use_nullable: bool
+        self, classes: dict[str, str], element: ElementMetadata, metadata: ModelMetadata, use_nullable: bool
     ):
         """Recursively create class definitions."""
         if element.TypeName in classes:
@@ -109,7 +108,7 @@ class ModelMetadataToCsharpConverter:
         child_elements.sort(key=lambda e: (e.Type != ElementType.FIELD, e.Name))
 
         element_order = 0
-        referred_types: Set[str] = set()
+        referred_types: set[str] = set()
 
         for child in child_elements:
             if child.Type == ElementType.FIELD:
@@ -135,7 +134,7 @@ class ModelMetadataToCsharpConverter:
             if referred_element:
                 self._create_class_recursive(classes, referred_element, metadata, use_nullable)
 
-    def _parse_field_property(self, lines: List[str], element: ElementMetadata, order: int, use_nullable: bool):
+    def _parse_field_property(self, lines: list[str], element: ElementMetadata, order: int, use_nullable: bool):
         """Generate C# property for a field element."""
         nullable_ref = "?" if use_nullable else ""
         cs_type, is_value_type = TypeMapper.base_value_type_to_csharp(element.XsdValueType)
@@ -179,7 +178,7 @@ class ModelMetadataToCsharpConverter:
 
         lines.append("")
 
-    def _parse_group_property(self, lines: List[str], element: ElementMetadata, order: int, use_nullable: bool):
+    def _parse_group_property(self, lines: list[str], element: ElementMetadata, order: int, use_nullable: bool):
         """Generate C# property for a group element."""
         nullable_ref = "?" if use_nullable else ""
 
@@ -204,7 +203,7 @@ class ModelMetadataToCsharpConverter:
 
         lines.append("")
 
-    def _parse_attribute_property(self, lines: List[str], element: ElementMetadata, use_nullable: bool):
+    def _parse_attribute_property(self, lines: list[str], element: ElementMetadata, use_nullable: bool):
         """Generate C# property for an attribute element."""
         nullable_ref = "?" if use_nullable else ""
         cs_type, is_value_type = TypeMapper.base_value_type_to_csharp(element.XsdValueType)
@@ -234,7 +233,7 @@ class ModelMetadataToCsharpConverter:
 
         lines.append("")
 
-    def _write_restriction_annotations(self, lines: List[str], element: ElementMetadata):
+    def _write_restriction_annotations(self, lines: list[str], element: ElementMetadata):
         """Write validation annotations based on restrictions."""
         if element.IsReadOnly:
             lines.append(f"{self._indent(2)}[BindNever]")
@@ -300,7 +299,7 @@ class ModelMetadataToCsharpConverter:
         # Add if any element with this type has MaxOccurs > 1
         return any(e.TypeName == element.TypeName and e.MaxOccurs > 1 for e in metadata.Elements.values())
 
-    def _write_altinn_row_id(self, lines: List[str]):
+    def _write_altinn_row_id(self, lines: list[str]):
         """Write AltinnRowId property."""
         lines.append(f'{self._indent(2)}[XmlAttribute("altinnRowId")]')
         lines.append(f'{self._indent(2)}[JsonPropertyName("altinnRowId")]')

@@ -4,9 +4,7 @@ Resolves anchor strategies to concrete indices before patch application.
 """
 
 import json
-import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional
 
 from agents.schemas.plan_schema import Anchor, AnchorStrategy
 from shared.utils.logging_utils import get_logger
@@ -50,10 +48,10 @@ class AnchorResolver:
             raise AnchorResolutionError(f"Layout file not found: {layout_path}", anchor, layout_path)
 
         try:
-            with open(full_path, "r", encoding="utf-8") as f:
+            with open(full_path, encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as e:
-            raise AnchorResolutionError(f"Failed to parse layout JSON: {e}", anchor, layout_path)
+            raise AnchorResolutionError(f"Failed to parse layout JSON: {e}", anchor, layout_path) from e
 
         # Extract layout array from various JSON structures
         arr = self._extract_layout_array(data)
@@ -83,7 +81,7 @@ class AnchorResolver:
         else:
             raise AnchorResolutionError(f"Unknown anchor strategy: {anchor.strategy}", anchor, layout_path)
 
-    def _extract_layout_array(self, data: Dict) -> List[Dict]:
+    def _extract_layout_array(self, data: dict) -> list[dict]:
         """Extract layout array from various JSON structures"""
         if isinstance(data, list):
             return data
@@ -98,7 +96,7 @@ class AnchorResolver:
         else:
             raise ValueError(f"Unexpected layout data type: {type(data)}")
 
-    def _resolve_after_text_key(self, arr: List[Dict], text_key: str, anchor: Anchor, layout_path: str) -> int:
+    def _resolve_after_text_key(self, arr: list[dict], text_key: str, anchor: Anchor, layout_path: str) -> int:
         """Find component with matching text key and return index after it"""
         # First try exact match on textResourceBindings.title
         for i, comp in enumerate(arr):
@@ -124,7 +122,7 @@ class AnchorResolver:
             layout_path,
         )
 
-    def _resolve_after_component_id(self, arr: List[Dict], component_id: str, anchor: Anchor, layout_path: str) -> int:
+    def _resolve_after_component_id(self, arr: list[dict], component_id: str, anchor: Anchor, layout_path: str) -> int:
         """Find component with matching ID and return index after it"""
         for i, comp in enumerate(arr):
             if comp.get("id") == component_id:
@@ -135,7 +133,7 @@ class AnchorResolver:
             f"ANCHOR_NOT_FOUND: No component with id = '{component_id}' found in layout", anchor, layout_path
         )
 
-    def _resolve_before_text_key(self, arr: List[Dict], text_key: str, anchor: Anchor, layout_path: str) -> int:
+    def _resolve_before_text_key(self, arr: list[dict], text_key: str, anchor: Anchor, layout_path: str) -> int:
         """Find component with matching text key and return index before it"""
         # First try exact match on textResourceBindings.title
         for i, comp in enumerate(arr):
@@ -161,7 +159,7 @@ class AnchorResolver:
             layout_path,
         )
 
-    def _resolve_before_component_id(self, arr: List[Dict], component_id: str, anchor: Anchor, layout_path: str) -> int:
+    def _resolve_before_component_id(self, arr: list[dict], component_id: str, anchor: Anchor, layout_path: str) -> int:
         """Find component with matching ID and return index before it"""
         for i, comp in enumerate(arr):
             if comp.get("id") == component_id:
@@ -172,7 +170,7 @@ class AnchorResolver:
             f"ANCHOR_NOT_FOUND: No component with id = '{component_id}' found in layout", anchor, layout_path
         )
 
-    def _resolve_semantic_text_key(self, semantic_text: str, layout_path: str) -> Optional[str]:
+    def _resolve_semantic_text_key(self, semantic_text: str, layout_path: str) -> str | None:
         """
         Resolve semantic text like '1.5 Poststed' to actual resource key like '1-5-Input.title'
         by looking up the text in resource files.
@@ -192,7 +190,7 @@ class AnchorResolver:
                 resource_file = resource_dir / f"resource.{locale}.json"
                 if resource_file.exists():
                     try:
-                        with open(resource_file, "r", encoding="utf-8") as f:
+                        with open(resource_file, encoding="utf-8") as f:
                             data = json.load(f)
 
                         # Look through resources for matching value
@@ -246,7 +244,7 @@ def resolve_anchor(layout_path: str, anchor: Anchor, repo_path: str) -> int:
     return resolver.resolve_anchor(layout_path, anchor)
 
 
-def inject_anchor_resolution(operations: List[Dict], anchor: Anchor, repo_path: str) -> List[Dict]:
+def inject_anchor_resolution(operations: list[dict], anchor: Anchor, repo_path: str) -> list[dict]:
     """
     Inject resolved anchor indices into layout operations.
 

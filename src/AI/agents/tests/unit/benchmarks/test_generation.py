@@ -559,8 +559,9 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
     """Item ids are the upsert key, so a rename once left the old id still running."""
 
     def test_sync_archives_remote_items_the_file_dropped(self):
-        from benchmarks.dataset_sync import Dataset, _archive_orphans
         from pathlib import Path
+
+        from benchmarks.dataset_sync import Dataset, _archive_orphans
 
         archived = []
 
@@ -591,8 +592,9 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
 
     def test_an_already_archived_item_is_left_alone(self):
         """Re-archiving on every sync would churn the audit trail."""
-        from benchmarks.dataset_sync import Dataset, _archive_orphans
         from pathlib import Path
+
+        from benchmarks.dataset_sync import Dataset, _archive_orphans
 
         calls = []
 
@@ -690,8 +692,8 @@ class TestHarvestedItemsCarryTheirProvenance:
     def test_a_defective_decision_is_named_rather_than_hidden(self):
         """One trace has a bounded defect. The decision that produced it is usable
         for tool choice and must say so, or somebody later asserts its content."""
-        from benchmarks.harvest import CONTENT_RULE_KEYS
         from benchmarks.generation import rule_of
+        from benchmarks.harvest import CONTENT_RULE_KEYS
 
         defective = [item for dataset in self._harvested() for item in dataset.items if item["metadata"].get("defect")]
 
@@ -702,7 +704,6 @@ class TestHarvestedItemsCarryTheirProvenance:
 
     def test_content_is_never_asserted_on_a_defective_decision(self):
         """Enforced in the harvester too, so a spec edit cannot slip it past."""
-        import httpx
         import pytest
 
         from benchmarks.harvest import HarvestedTrace, Turn, item_from_decision
