@@ -55,6 +55,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         }],
     );
     ready
@@ -258,6 +259,70 @@ fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
         assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
         assert_eq!(reloaded.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
         assert_eq!(reloaded.source_directory, record.source_directory);
+    });
+}
+
+fn ready_false(reason: &str, message: &str, at: Option<time::OffsetDateTime>) -> Condition {
+    Condition {
+        kind: Condition::READY.into(),
+        status: ConditionStatus::False,
+        reason: reason.into(),
+        message: message.into(),
+        last_transition_time: at,
+    }
+}
+
+#[test]
+fn status_updates_stamp_condition_transitions_and_keep_the_failure_class() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let entered = time::OffsetDateTime::from_unix_timestamp(1_600_000_000).expect("timestamp");
+        let mut record = record("worker", 1);
+        record.agent.status = Status::observed(
+            1,
+            None,
+            vec![ready_false("ProviderSelected", "provisioning", Some(entered))],
+        );
+        let changes = store.changes();
+        store.put(record.clone(), 0).await.expect("Agent stored");
+        let written = changes.revision();
+        store.get(record.id).await.expect("Agent read");
+        assert_eq!(
+            changes.revision(),
+            written,
+            "reads do not advance the resource revision"
+        );
+
+        let mut retry = Status::observed(1, None, vec![ready_false("ProviderSelected", "another detail", None)]);
+        retry.failure = Some(agent::FailureKind::Transient);
+        retry.progress = Some(agent::progress::Provisioning {
+            pass: changes.revision(),
+            progress: sandbox::progress::Progress::new(),
+        });
+        let stored = store.update_status(record.id, 1, retry).await.expect("status updated");
+        assert_ne!(
+            changes.revision(),
+            written,
+            "status writes advance the resource revision"
+        );
+        assert_eq!(stored.progress, None, "progress is projected, never stored");
+        assert_eq!(
+            stored.conditions[0].last_transition_time,
+            Some(entered),
+            "a message-only change is not a transition"
+        );
+        assert_eq!(stored.failure, Some(agent::FailureKind::Transient));
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status, stored, "the returned status is what was stored");
+
+        let failed = Status::observed(1, None, vec![ready_false("SandboxReconcileFailed", "boom", None)]);
+        let stored = store.update_status(record.id, 1, failed).await.expect("status updated");
+        assert!(
+            stored.conditions[0].last_transition_time.is_some_and(|at| at > entered),
+            "a reason change is stamped"
+        );
+        assert_eq!(stored.failure, None);
     });
 }
 

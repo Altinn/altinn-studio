@@ -11,9 +11,10 @@ use std::{
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _, Convergence, Observers, WaitPolicy},
+    control_plane::{AgentRecord, AgentStore as _, Convergence, WaitPolicy},
     local::home::ControlPlaneHome,
     persistence,
+    resources::Changes,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{NewSession, Reconcile, SessionId, SessionName, SessionReports as _, SessionRequest, SessionStore as _},
 };
@@ -73,10 +74,12 @@ impl Reconcile<AgentId> for BlockingAgentReady {
                             status: ConditionStatus::True,
                             reason: "SandboxReady".into(),
                             message: String::new(),
+                            last_transition_time: None,
                         }],
                     ),
                 )
                 .await
+                .map(drop)
         })
     }
 }
@@ -113,6 +116,7 @@ impl PlatformAdapter for NoopPlatform {
         _record: &'a AgentRecord,
         _sandbox: &'a SandboxHandle,
         _harnesses: &'a [agent::Harness],
+        _steps: &'a sandbox::SandboxProgress,
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Ok(()) })
     }
@@ -137,7 +141,7 @@ impl Provider for CountingProvider {
         &'a self,
         record: &'a AgentRecord,
         environment: std::collections::BTreeMap<String, String>,
-        _progress: agent::progress::SandboxReporter,
+        _progress: sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             self.ensure_calls.set(self.ensure_calls.get() + 1);
@@ -224,6 +228,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         }],
     );
     AgentRecord {
@@ -634,9 +639,9 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -738,9 +743,9 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         Rc::new(FakeRuntime::default()),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -799,9 +804,9 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -929,9 +934,9 @@ impl ServiceHarness {
         ];
         let service = Rc::new(agent::sessions::Service::new(
             session_store,
-            Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+            Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
             runtime.clone(),
-            Convergence::new(agent_wakeup, Observers::new()),
+            Convergence::new(agent_wakeup, agent_store, Changes::new()),
             session_wakeup,
         ));
         Self {
@@ -1351,9 +1356,9 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, sandboxes)),
+        Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     ));
     let fire_and_forget = {
@@ -1744,9 +1749,12 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     let session_task = tokio::task::spawn_local(session_controller.run());
     let service = agent::sessions::Service::new(
         session_store,
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, unused_sandboxes())),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            agent_store.clone(),
+            unused_sandboxes(),
+        )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     );
 
@@ -1900,6 +1908,7 @@ async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absen
                     status: ConditionStatus::False,
                     reason: "SshAccessFailed".into(),
                     message: "ssh access failed".into(),
+                    last_transition_time: None,
                 }],
             ),
         )
@@ -1916,7 +1925,6 @@ async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absen
                 ..SessionRequest::default()
             },
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("an absent harness is refused even while the Agent is not ready");
@@ -1964,7 +1972,6 @@ async fn a_session_on_an_optional_harness_the_agent_does_not_carry_is_refused_wi
                 ..SessionRequest::default()
             },
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("an uninstalled optional harness is refused");
@@ -2000,7 +2007,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 ..SessionRequest::default()
             },
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("oversized initial prompt");
@@ -2019,7 +2025,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 ..SessionRequest::default()
             },
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect("explicit harness Session");
@@ -2029,7 +2034,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             &SessionName::new("implicit").expect("name"),
             SessionRequest::default(),
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect("implicit default Session");
@@ -2051,7 +2055,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 ..SessionRequest::default()
             },
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("an existing Session keeps its harness");
@@ -2066,7 +2069,7 @@ impl SelectionFixture {
         let name = SessionName::new(name).expect("name");
         let target = self
             .service
-            .ensure("worker", &name, request, WaitPolicy::FirstPass, None)
+            .ensure("worker", &name, request, WaitPolicy::FirstPass)
             .await?;
         Ok(target.session)
     }
@@ -2436,9 +2439,12 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
         .expect("Agent");
     let service = Rc::new(agent::sessions::Service::new(
         session_store,
-        Rc::new(agent::sessions::AgentSandboxes::new(agent_store, unused_sandboxes())),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            agent_store.clone(),
+            unused_sandboxes(),
+        )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, Observers::new()),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
         session_wakeup,
     ));
     let ensure_service = service.clone();
@@ -2449,7 +2455,6 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
                 &SessionName::new("s1").expect("name"),
                 SessionRequest::default(),
                 WaitPolicy::FirstPass,
-                None,
             )
             .await
     });

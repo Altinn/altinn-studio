@@ -80,8 +80,14 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
         format!("Access:     {}", format_access(&agent.spec)),
         format!("Provider:   {provider}"),
         format!("Sandbox:    {sandbox}"),
-        "Conditions:".to_owned(),
     ];
+    if let Some(failure) = agent.status.failure {
+        lines.push(format!("Failure:    {}", failure_kind(failure)));
+    }
+    if let Some(provisioning) = &agent.status.progress {
+        lines.extend(provisioning_lines(&provisioning.progress));
+    }
+    lines.push("Conditions:".to_owned());
     if agent.status.conditions.is_empty() {
         lines.push("  None".to_owned());
         return lines;
@@ -95,12 +101,55 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
                 condition.kind.clone(),
                 condition_status(condition.status).into(),
                 condition.reason.clone(),
+                condition.last_transition_time.map_or_else(|| "-".into(), format_age),
                 condition.message.clone(),
             ]
         })
         .collect::<Vec<_>>();
-    lines.extend(table_lines(&["TYPE", "STATUS", "REASON", "MESSAGE"], &rows));
+    lines.extend(table_lines(&["TYPE", "STATUS", "REASON", "AGE", "MESSAGE"], &rows));
     lines
+}
+
+/// Renders the latest pass: its phases, the step in progress and, when it
+/// failed, the detail and the last output lines.
+fn provisioning_lines(progress: &sandbox::progress::Progress) -> Vec<String> {
+    let mut lines = vec!["Provisioning:".to_owned()];
+    for phase in progress.finished() {
+        let mark = match phase.outcome {
+            sandbox::Outcome::Failed => "✗",
+            _ => "✓",
+        };
+        lines.push(format!(
+            "  {mark} {} ({})",
+            phase.phase.label,
+            crate::progress::duration(phase.elapsed_ms)
+        ));
+    }
+    if let Some(current) = progress.current() {
+        lines.push(format!(
+            "  → {} ({})",
+            current.phase.label,
+            format_age(current.started_at)
+        ));
+        if let Some(step) = progress.current_step() {
+            let amount = step.measurement.map_or_else(String::new, |measurement| {
+                format!(": {}", crate::progress::format_measurement(measurement))
+            });
+            lines.push(format!("    {}{amount}", step.name));
+        }
+    }
+    if let sandbox::progress::OperationStatus::Failed { detail } = progress.status() {
+        lines.push(format!("  Failed: {detail}"));
+        lines.extend(progress.output().lines().map(|line| format!("    {}", line.text)));
+    }
+    lines
+}
+
+const fn failure_kind(kind: agent::FailureKind) -> &'static str {
+    match kind {
+        agent::FailureKind::Invalid => "Invalid (change the Agent to continue)",
+        agent::FailureKind::Transient => "Transient (retrying in the background)",
+    }
 }
 
 pub(crate) const fn condition_status(status: ConditionStatus) -> &'static str {
@@ -189,6 +238,62 @@ fn row_line(values: &[String], widths: &[usize]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn describe_shows_the_failure_class_and_condition_age() {
+        let mut agent: Agent =
+            serde_yaml_ng::from_str(include_str!("../../../examples/minimal/agent.yaml")).expect("example manifest");
+        agent.status.failure = Some(agent::FailureKind::Transient);
+        agent.status.conditions = vec![agent::Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::False,
+            reason: "SandboxReconcileFailed".into(),
+            message: "registry unavailable".into(),
+            last_transition_time: Some(time::OffsetDateTime::now_utc() - time::Duration::minutes(3)),
+        }];
+
+        let mut progress = sandbox::progress::Progress::new();
+        let step = sandbox::StepId::generate();
+        progress.apply(&sandbox::ProgressEvent::PhaseStarted {
+            phase: sandbox::SandboxPhase::ImageResolve.phase(),
+        });
+        progress.apply(&sandbox::ProgressEvent::StepStarted {
+            id: step.clone(),
+            name: "Pull OCI image".into(),
+            unit: None,
+            total: None,
+        });
+        progress.apply(&sandbox::ProgressEvent::StepOutput {
+            id: step,
+            stream: sandbox::OutputStream::Stderr,
+            bytes: b"connection reset\n".to_vec().into(),
+        });
+        progress.fail("registry unavailable");
+        agent.status.progress = Some(agent::progress::Provisioning {
+            pass: agent::resources::Changes::new().revision(),
+            progress,
+        });
+
+        let lines = describe_agent_lines(&agent);
+        assert!(lines.contains(&"Failure:    Transient (retrying in the background)".to_owned()));
+        for expected in [
+            "Provisioning:",
+            "  Failed: registry unavailable",
+            "    connection reset",
+        ] {
+            assert!(
+                lines.iter().any(|line| line == expected),
+                "missing {expected:?} in {lines:#?}"
+            );
+        }
+        assert!(lines.iter().any(|line| line.starts_with("  ✗ Resolve Sandbox Image (")));
+        assert!(lines.iter().any(|line| line.contains(" AGE ")));
+        assert!(
+            lines
+                .iter()
+                .any(|line| line.contains("SandboxReconcileFailed") && line.contains(" 3m "))
+        );
+    }
 
     #[test]
     fn session_state_output_does_not_depend_on_debug_names() {

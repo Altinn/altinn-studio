@@ -617,13 +617,11 @@ async fn attach(
     let agent = resolve_agent_name(client, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_session(
+        .until(
+            client,
             &agent,
-            session,
-            selection.request(None),
-            WaitPolicy::UntilReady,
-            Some(&mut wait.sink()),
-        ))
+            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+        )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
@@ -649,7 +647,7 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -710,7 +708,7 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -762,7 +760,7 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
@@ -805,7 +803,7 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -878,17 +876,29 @@ async fn create_session(
 ) -> CommandResult<()> {
     let resource = target.resource.clone();
     let request = selection.request(read_prompt_arg(input)?);
-    let wait = progress::Wait::start();
-    let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
+    let deadline = tokio::time::Instant::now() + timeout;
+    let timed_out = || {
+        CommandError::Message(format!(
+            "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
+        ))
+    };
+    let (agent, session) = tokio::time::timeout_at(deadline, async {
         ensure_daemon(home, client).await?;
-        let (agent, session) = session_target(client, target).await?;
-        client.ensure_session(
-            &agent, session.clone(), request, WaitPolicy::UntilReady, Some(&mut wait.sink()),
-        ).await?;
-        Ok::<_, CommandError>((agent, session))
-    })).await.map_err(|_| CommandError::Message(format!(
-        "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
-    )))??;
+        session_target(client, target).await
+    })
+    .await
+    .map_err(|_| timed_out())??;
+    let wait = progress::Wait::start();
+    wait.until(
+        client,
+        &agent,
+        tokio::time::timeout_at(
+            deadline,
+            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
+        ),
+    )
+    .await
+    .map_err(|_| timed_out())??;
     println!("session/{agent}/{session} ready");
     Ok(())
 }
@@ -1124,10 +1134,11 @@ fn inference_error(error: Error) -> CommandError {
 async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
     let wait = progress::Wait::start();
     let waited = wait
-        .until(tokio::time::timeout(
-            timeout,
-            client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut wait.sink())),
-        ))
+        .until(
+            client,
+            name,
+            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
+        )
         .await;
     match waited {
         Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
@@ -1859,6 +1870,7 @@ mod tests {
             status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+            last_transition_time: None,
         };
 
         assert_eq!(

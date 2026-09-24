@@ -73,6 +73,13 @@ scans ensure dropped notifications or daemon restarts do not lose work. Provider
 incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
+Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
+value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
+Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
+durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
+with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
+drains.
+
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
 resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving

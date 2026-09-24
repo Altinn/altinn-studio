@@ -14,9 +14,12 @@ mod secrets;
 mod sessions;
 
 /// Persistent Agent store backed by the shared control-plane database owner.
+///
+/// Every successful write to Agents or Sessions advances [`Database::changes`].
 #[derive(Clone)]
 pub struct Database {
     sender: tokio::sync::mpsc::Sender<Command>,
+    changes: crate::resources::Changes,
 }
 
 pub(crate) struct ProviderAccountWrite {
@@ -50,7 +53,16 @@ impl Database {
         ready_receiver
             .recv()
             .map_err(|_| Error::Database("database thread stopped during startup".into()))??;
-        Ok(Self { sender })
+        Ok(Self {
+            sender,
+            changes: crate::resources::Changes::new(),
+        })
+    }
+
+    /// Returns the change history advanced by every Agent and Session write.
+    #[must_use]
+    pub fn changes(&self) -> crate::resources::Changes {
+        self.changes.clone()
     }
 
     /// Applies pending schema migrations without starting a database owner thread.
@@ -68,13 +80,19 @@ impl Database {
 
     async fn request<T>(&self, build: impl FnOnce(oneshot::Sender<Result<T, Error>>) -> Command) -> Result<T, Error> {
         let (response, receiver) = oneshot::channel();
+        let command = build(response);
+        let observable = command.changes_resources();
         self.sender
-            .send(build(response))
+            .send(command)
             .await
             .map_err(|_| Error::Database("database thread stopped".into()))?;
-        receiver
+        let result = receiver
             .await
-            .map_err(|_| Error::Database("database thread dropped a response".into()))?
+            .map_err(|_| Error::Database("database thread dropped a response".into()))?;
+        if observable && result.is_ok() {
+            self.changes.bump();
+        }
+        result
     }
 
     pub(crate) async fn put_provider_account(&self, account: ProviderAccountWrite) -> Result<(), Error> {
@@ -325,12 +343,12 @@ impl crate::control_plane::AgentStore for Database {
         id: AgentId,
         generation: u64,
         status: Status,
-    ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+    ) -> sandbox::LocalFuture<'_, Result<Status, Error>> {
         Box::pin(async move {
             self.request(|response| Command::UpdateStatus {
                 id,
                 generation,
-                status,
+                status: Box::new(status),
                 response,
             })
             .await
@@ -455,8 +473,8 @@ enum Command {
     UpdateStatus {
         id: AgentId,
         generation: u64,
-        status: Status,
-        response: oneshot::Sender<Result<(), Error>>,
+        status: Box<Status>,
+        response: oneshot::Sender<Result<Status, Error>>,
     },
     MarkDeleting {
         name: String,
@@ -570,6 +588,42 @@ enum Command {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<(), Error>>,
     },
+}
+
+impl Command {
+    /// Returns whether a successful execution changes an Agent or Session resource.
+    const fn changes_resources(&self) -> bool {
+        match self {
+            Self::Put { .. }
+            | Self::UpdateStatus { .. }
+            | Self::MarkDeleting { .. }
+            | Self::FinalizeDeletion { .. }
+            | Self::EnsureSession { .. }
+            | Self::UpdateSessionLifecycle { .. }
+            | Self::ActivateSession { .. }
+            | Self::ClearSessionReport { .. }
+            | Self::RecordSessionStartForLaunch { .. }
+            | Self::ApplySessionActivityForLaunch { .. }
+            | Self::RecordSessionLaunch { .. } => true,
+            Self::Get { .. }
+            | Self::GetByName { .. }
+            | Self::List { .. }
+            | Self::SetSecret { .. }
+            | Self::DeleteSecret { .. }
+            | Self::ReplaceAgentSecrets { .. }
+            | Self::ResolveSecret { .. }
+            | Self::PutProviderAccount { .. }
+            | Self::ProviderAccountExists { .. }
+            | Self::ProviderAccountMetadata { .. }
+            | Self::GetSession { .. }
+            | Self::GetSessionByName { .. }
+            | Self::ListAllSessions { .. }
+            | Self::ListSessions { .. }
+            | Self::GetAttachTarget { .. }
+            | Self::GetSessionLaunchState { .. }
+            | Self::ResetSessionLaunchAttempts { .. } => false,
+        }
+    }
 }
 
 fn database_thread(
@@ -690,7 +744,7 @@ fn execute(connection: &mut Connection, command: Command) {
             status,
             response,
         } => {
-            let _ = response.send(agents::update_status(connection, id, generation, &status));
+            let _ = response.send(agents::update_status(connection, id, generation, *status));
         }
         Command::MarkDeleting { name, response } => {
             let _ = response.send(agents::mark_deleting(connection, &name));

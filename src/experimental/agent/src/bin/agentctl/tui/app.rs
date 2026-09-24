@@ -1514,6 +1514,7 @@ mod tests {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         });
         agent
     }

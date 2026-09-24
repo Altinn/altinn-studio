@@ -12,6 +12,20 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
+  whether a failure is being retried, and how long each condition has held its state.
+- Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
+  provisioning progress.
+- Provisioning shows Agent setup and SSH access as phases of their own.
+
+### Changed
+
+- Commands that wait for an Agent, such as `apply --wait`, pick up provisioning already in progress and no longer drop
+  output when they fall behind.
+- Image pulls and imports show downloading, materializing and assembling as separate steps.
+
 ## [0.1.0-preview.6] - 2026-09-23
 
 ### Changed
