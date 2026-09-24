@@ -15,37 +15,9 @@ title: Planlegging av app-endringer
 
 ### Key Patterns
 
-**Service Registration**: Custom services are registered in `RegisterCustomAppServices()` method in Program.cs:
+**Service Registration**: Custom services are registered in `RegisterCustomAppServices()` method in Program.cs.
 
-```csharp
-services.AddTransient<IInstantiationProcessor, InstantiationHandler>();
-services.AddTransient<IFormDataValidator, ValidationHandler>();
-```
-
-**Form data validation** implements `IFormDataValidator`. `DataType` is the data type ID from `applicationmetadata.json`, or `"*"` for all form data:
-
-```csharp
-public class ValidationHandler : IFormDataValidator
-{
-    public string DataType => "model";
-
-    public bool HasRelevantChanges(object current, object previous) => true;
-
-    public Task<List<ValidationIssue>> ValidateFormData(
-        Instance instance,
-        DataElement dataElement,
-        object data,
-        string? language
-    )
-    {
-        var issues = new List<ValidationIssue>();
-        // Add issues such as new ValidationIssue { Severity = ValidationIssueSeverity.Error, Field = "...", CustomTextKey = "..." }
-        return Task.FromResult(issues);
-    }
-}
-```
-
-**Task validation** implements `ITaskValidator` with `string TaskId { get; }` (`"*"` for all tasks) and `Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language)`, registered with `services.AddTransient<ITaskValidator, ...>()`.
+**Custom Validation**: Implement `IFormDataValidator` to validate form data. Implement `ITaskValidator` to validate a full task. Do not use `IInstanceValidator`. It is obsolete in v8. For details, refer to https://docs.altinn.studio/en/altinn-studio/v8/reference/logic/validation/. That page shows `IInstanceValidator` for v7. Do not copy that part.
 
 **Data Model**: All model properties use both `[JsonProperty]` and `[JsonPropertyName]` attributes for compatibility, plus `[XmlElement]` for order-specific XML serialization.
 
