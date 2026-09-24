@@ -47,6 +47,10 @@ into the loaded body via a frontmatter `include:` list (comma-separated
 sibling file names). They must travel inside the body — the loop's
 `read_file` is repo-scoped and cannot reach the skill directory.
 
+Text that applies to one app version only goes in a sibling `v8.md` or
+`v9.md`. The loader adds the file for the app's version right after the
+body, before the included files.
+
 ## External installation
 
 These skills are usable outside the agent: any Claude Code / Cursor /
