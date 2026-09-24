@@ -26,10 +26,12 @@ export const SubformComponentIdField = ({
       multiple={false}
       onBlur={() => setIsTouched(true)}
       onSelectedChange={(item: StudioSuggestionItem | null) => onChange(item?.value ?? '')}
+      required
       // `null` rather than `undefined`, which Suggestion treats as uncontrolled.
       selected={
         subformComponentId ? { value: subformComponentId, label: subformComponentId } : null
       }
+      tagText={t('general.required')}
     >
       {componentIds.map((componentId) => (
         <StudioSuggestion.Option key={componentId} label={componentId} value={componentId}>

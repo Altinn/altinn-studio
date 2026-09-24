@@ -1,6 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { StudioFormGroup, StudioList } from '@studio/components';
+import { StudioList } from '@studio/components';
 import { useSaveSubformPdfComponentMutation } from 'app-shared/hooks/mutations/useSaveSubformPdfComponentMutation';
 import { useSubformComponentsQuery } from 'app-shared/hooks/queries/useSubformComponentsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -19,7 +18,6 @@ import {
 import sharedClasses from '../ConfigServiceTask.module.css';
 
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
-  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { bpmnDetails } = useBpmnContext();
   const { currentLayoutSet } = useCurrentLayoutSet();
@@ -59,12 +57,7 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   return (
     <StudioList.Unordered className={sharedClasses.taskConfigList}>
       <StudioList.Item>
-        <StudioFormGroup
-          className={sharedClasses.group}
-          legend={t('process_editor.configuration_panel_subform_pdf_legend')}
-          required
-          tagText={t('general.required')}
-        >
+        <div className={sharedClasses.group}>
           <SubformComponentIdField
             subformComponentId={subformComponentId}
             componentIds={getSelectableSubformComponentIds(subformComponents ?? [], taskId)}
@@ -87,7 +80,7 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
               onCreateComponentCopy={handleCreateComponentCopy}
             />
           )}
-        </StudioFormGroup>
+        </div>
       </StudioList.Item>
 
       <StudioList.Item>

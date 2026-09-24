@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { StudioAlert, StudioButton, StudioParagraph, StudioRedirectBox } from '@studio/components';
-import { PencilWritingIcon } from '@studio/icons';
-import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
+import { useNavigate } from 'react-router-dom';
+import { StudioAlert, StudioButton, StudioParagraph } from '@studio/components';
+import { PencilIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SubformPdfIssue } from '../subformPdfComponents';
 import classes from './SubformPdfStatus.module.css';
@@ -26,7 +25,7 @@ export const SubformPdfStatus = ({
 }: SubformPdfStatusProps): ReactElement | null => {
   const { t } = useTranslation();
 
-  if (!issue) return pagesLayoutSetId ? <PagesLink layoutSetId={pagesLayoutSetId} /> : null;
+  if (!issue) return pagesLayoutSetId ? <DesignTaskButton layoutSetId={pagesLayoutSetId} /> : null;
 
   switch (issue.kind) {
     case 'componentNotFound':
@@ -105,22 +104,23 @@ const IssueAlert = ({ message, actionText, onAction }: IssueAlertProps): ReactEl
   </StudioAlert>
 );
 
-type PagesLinkProps = {
+type DesignTaskButtonProps = {
   layoutSetId: string;
 };
 
-const PagesLink = ({ layoutSetId }: PagesLinkProps): ReactElement => {
+const DesignTaskButton = ({ layoutSetId }: DesignTaskButtonProps): ReactElement => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { org, app } = useStudioEnvironmentParams();
-  const layoutSetPath = useLayoutSetPath(org, app, layoutSetId);
 
   return (
-    <StudioRedirectBox title={t('process_editor.configuration_panel_subform_pdf_pages_link_title')}>
-      <StudioButton variant='tertiary' icon={<PencilWritingIcon />}>
-        <Link to={layoutSetPath}>
-          {t('process_editor.configuration_panel_subform_pdf_pages_link')}
-        </Link>
+    <div>
+      <StudioButton
+        onClick={() => navigate(`/${org}/${app}/ui-editor/layoutSet/${layoutSetId}`)}
+        icon={<PencilIcon />}
+      >
+        {t('process_editor.configuration_panel_subform_pdf_design_task_button')}
       </StudioButton>
-    </StudioRedirectBox>
+    </div>
   );
 };

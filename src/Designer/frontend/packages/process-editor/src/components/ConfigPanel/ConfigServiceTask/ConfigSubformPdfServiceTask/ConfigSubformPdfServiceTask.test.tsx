@@ -19,6 +19,12 @@ const updateModdleProperties = jest.fn((properties: object, element: object) =>
   Object.assign(element, properties),
 );
 
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => ({
   StudioModeler: jest.fn().mockImplementation(() => ({
     updateModdleProperties: (...args: unknown[]) =>
@@ -247,7 +253,7 @@ describe('ConfigSubformPdfServiceTask', () => {
       });
     });
 
-    it('offers the way to the task pages once the saved copy is in place', async () => {
+    it('offers to design the task once the saved copy is in place', async () => {
       const user = userEvent.setup();
       renderConfigSubformPdfServiceTask({
         subformPdfConfig: { subformComponentId: componentId, subformDataTypeId },
@@ -256,17 +262,17 @@ describe('ConfigSubformPdfServiceTask', () => {
 
       await user.click(getCreateComponentCopyButton());
 
-      expect(await screen.findByRole('link', { name: pagesLinkName })).toHaveAttribute(
-        'href',
-        expect.stringContaining(`/ui-editor/layoutSet/${taskId}`),
-      );
+      expect(await screen.findByRole('button', { name: designTaskButtonName })).toBeInTheDocument();
       expect(screen.queryByText(componentCopyMissingText)).not.toBeInTheDocument();
     });
 
-    it('offers the way to the task pages while the task points at no component', () => {
+    it('opens the task pages in Utforming when the developer designs the task', async () => {
+      const user = userEvent.setup();
       renderConfigSubformPdfServiceTask();
 
-      expect(screen.getByRole('link', { name: pagesLinkName })).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: designTaskButtonName }));
+
+      expect(mockNavigate).toHaveBeenCalledWith(`/${org}/${app}/ui-editor/layoutSet/${taskId}`);
     });
 
     it('writes nothing until the developer asks for it', () => {
@@ -281,7 +287,9 @@ describe('ConfigSubformPdfServiceTask', () => {
   });
 });
 
-const pagesLinkName = textMock('process_editor.configuration_panel_subform_pdf_pages_link');
+const designTaskButtonName = textMock(
+  'process_editor.configuration_panel_subform_pdf_design_task_button',
+);
 const componentCopyMissingText = textMock(
   'process_editor.configuration_panel_subform_pdf_component_copy_missing',
   { componentId },
