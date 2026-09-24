@@ -19,7 +19,7 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (62 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+takes, the total (57 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
 Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
@@ -224,34 +224,32 @@ to close.
 
 ## The deck
 
-Three parts — infrastruktur, frontend, backend — then the ask, in norsk bokmål, authored from
-`CONTENT.md`. Speaker notes live in the `notes` field of each entry in `src/slides/index.ts`, are
-surfaced in the overview (`O`), and are laid out as a run sheet in [`NOTES.md`](NOTES.md). The talk is
-slides 1–16, 16 slides + 47 build steps = **62 presses of `→`**; slides 17–24 are reserve slides for
-questions.
+A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
+bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
+`src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
+[`NOTES.md`](NOTES.md). The talk is slides 1–14, 14 slides + 44 build steps = **57 presses of
+`→`**; slides 15–22 are reserve slides for questions.
 
-| #   | `id`                       | Slide                                                          | Steps |
-| --- | -------------------------- | -------------------------------------------------------------- | ----- |
-| 1   | `ett-klikk`                | Ett klikk, mange ting — one «Send inn» fans out to ten things  | 1     |
-| 2   | `tre-omrader`              | Hva blir bedre med v9? — the three parts                       | 2     |
-| 3   | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                          | 0     |
-| 4   | `infra-for-alle`           | Allerede bedre — også for v8-apper                             | 0     |
-| 5   | `infra-nytt-i-v9`          | Nytt med v9, and what is coming                                | 1     |
-| 6   | `seksjon-frontend`         | Del 2 — Frontend                                               | 0     |
-| 7   | `frontend-folger-appen`    | Frontend følger appen — shipped with the app, one measurement  | 1     |
-| 8   | `frontend-brukerne-merker` | Det brukerne merker                                            | 0     |
-| 9   | `seksjon-backend`          | Del 3 — Backend                                                | 0     |
-| 10  | `arbeidet-skrives-ned`     | Arbeidet skrives ned før det gjøres — the promise              | 3     |
-| 11  | `scenario-feil`            | Scenario 1: a service does not answer for a moment             | 14    |
-| 12  | `scenario-omstart`         | Scenario 2: the server restarts during a deploy                | 14    |
-| 13  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now   | 3     |
-| 14  | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard                 | 3     |
-| 15  | `oppgradering`             | Hva koster oppgraderingen? — same process, one tool            | 2     |
-| 16  | `bli-med`                  | Bli med i pilotene — closed beta and the ask                   | 3     |
-| 17  | `seksjon-reserve`          | Reserve — Under panseret                                       | 0     |
-| 18–24 | `i-dag` … `prosessmotor` | The v8 mechanism and the engine architecture, for questions    | 18    |
+| #     | `id`                       | Slide                                                         | Steps |
+| ----- | -------------------------- | ------------------------------------------------------------- | ----- |
+| 1     | `forside`                  | Hva blir bedre med v9? — the three parts, one per click       | 2     |
+| 2     | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                         | 0     |
+| 3     | `infra-nytt-i-v9`          | Nytt med v9, what is on its way, and what v8 apps already have | 1     |
+| 4     | `seksjon-frontend`         | Del 2 — Frontend                                              | 0     |
+| 5     | `frontend-folger-appen`    | Raskere, og levert med appen — architecture, shipping, speed  | 1     |
+| 6     | `frontend-brukerne-merker` | Det brukerne merker                                           | 0     |
+| 7     | `seksjon-backend`          | Del 3 — Backend                                               | 0     |
+| 8     | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved             | 2     |
+| 9     | `scenario-feil`            | Scenario 1: a service does not answer for a moment            | 14    |
+| 10    | `scenario-omstart`         | Scenario 2: the server restarts during a deploy               | 14    |
+| 11    | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now  | 3     |
+| 12    | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard                | 3     |
+| 13    | `oppgradering`             | Hva koster oppgraderingen? — same process, one tool           | 1     |
+| 14    | `bli-med`                  | Bli med i pilotene — the ask                                  | 3     |
+| 15    | `seksjon-reserve`          | Reserve — Under panseret                                      | 0     |
+| 16–22 | `i-dag` … `prosessmotor`   | The v8 mechanism and the engine architecture, for questions   | 18    |
 
-Slides 11 and 12 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
+Slides 9 and 10 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
 is clicked through, one line per press: the v8 telling, the same accident with v9, then both outcomes
 side by side; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling lives in
 `src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section dividers, the v8
