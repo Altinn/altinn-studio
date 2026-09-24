@@ -953,31 +953,11 @@ fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
 }
 
 fn print_turns(turns: &[agent::sessions::Turn]) {
-    use agent::sessions::{Part, Role};
     if turns.is_empty() {
         eprintln!("No turns yet.");
-        return;
     }
-    for (index, turn) in turns.iter().enumerate() {
-        if index > 0 {
-            println!();
-        }
-        println!("=== turn {} ===", index + 1);
-        for message in &turn.messages {
-            let who = match message.role {
-                Role::User => "user",
-                Role::Assistant => "assistant",
-            };
-            for part in &message.parts {
-                match part {
-                    Part::Text { text } => println!("[{who}] {text}"),
-                    Part::ToolCall { name, failed } => {
-                        let mark = if *failed { " (failed)" } else { "" };
-                        println!("[{who}] -> {name}{mark}");
-                    }
-                }
-            }
-        }
+    for line in format::turn_lines(turns) {
+        println!("{line}");
     }
 }
 

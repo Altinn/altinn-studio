@@ -30,6 +30,13 @@ struct LifecycleRow {
     failure: Option<String>,
     #[serde(default)]
     observed_activation_generation: u64,
+    /// When `state` last changed.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    since: Option<time::OffsetDateTime>,
 }
 
 pub(super) fn ensure(
@@ -154,10 +161,26 @@ pub(super) fn update_lifecycle(
     lifecycle: Lifecycle,
     observed_activation_generation: u64,
 ) -> Result<(), Error> {
+    let current = connection
+        .query_row(
+            "SELECT lifecycle_json FROM sessions WHERE id = ?1",
+            params![id.to_string()],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    let current = serde_json::from_str::<LifecycleRow>(&current)?;
+    let since = if current.state == lifecycle.state {
+        current.since
+    } else {
+        Some(time::OffsetDateTime::now_utc())
+    };
     let row = LifecycleRow {
         state: lifecycle.state,
         failure: lifecycle.failure,
         observed_activation_generation,
+        since,
     };
     let changed = connection
         .execute(
@@ -435,7 +458,8 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
                 harness_transcript_path,
                 activity,
             },
-        ),
+        )
+        .entered(lifecycle.since),
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

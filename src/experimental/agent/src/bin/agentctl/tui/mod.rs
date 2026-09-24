@@ -1,4 +1,5 @@
 mod app;
+mod provisioning;
 mod terminal;
 mod view;
 
@@ -12,7 +13,7 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    sessions::Session, sessions::SessionName, sessions::SessionRequest,
+    resources::Resources, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -25,21 +26,43 @@ use crate::CommandResult;
 use crate::forward::{ForwardSpec, PortForward};
 use crate::progress::Wait;
 use agent::manifest::MANIFEST_FILE;
-use app::{Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, RowTarget};
+use app::{
+    Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
+};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
-const REFRESH_INTERVAL: Duration = Duration::from_secs(2);
+/// Turns of the selected Session shown beside the tree.
+const TRANSCRIPT_TURNS: usize = 3;
+/// Pause before watching again after the daemon could not be reached.
+const RECONNECT_INTERVAL: Duration = Duration::from_secs(1);
+/// How often the screen is redrawn without input, so times keep moving.
+const REDRAW_INTERVAL: Duration = Duration::from_secs(1);
 const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
 /// Deepest directory level below the working directory searched for manifests.
 const DISCOVERY_DEPTH: usize = 8;
 
 enum Input {
     Event(Option<std::io::Result<Event>>),
-    Tick,
+    /// A watch reply, or why the daemon could not be watched.
+    Resources(Result<Resources, String>),
+    /// The lines of an Agent's followed provisioning.
+    Provisioning {
+        agent: String,
+        lines: Vec<String>,
+    },
+    TranscriptLoaded {
+        agent: String,
+        session: SessionName,
+        turns: Result<Vec<Turn>, String>,
+    },
+    PromptSent(PromptForm, Result<(), String>),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
+
+/// Sends the event loop what background work finished.
+type Inputs = tokio::sync::mpsc::UnboundedSender<Input>;
 
 /// Completion of one background forward creation.
 type CreateOutcome = (String, ForwardSpec, Option<u64>, Result<PortForward, Error>);
@@ -51,7 +74,7 @@ struct MouseInput {
 }
 
 impl MouseInput {
-    const fn reset(&mut self) {
+    fn reset(&mut self) {
         self.last_row = None;
     }
 
@@ -59,14 +82,15 @@ impl MouseInput {
         self.position
     }
 
-    fn double_click(&mut self, row: RowTarget, now: Instant) -> bool {
+    fn double_click(&mut self, row: &RowTarget, now: Instant) -> bool {
         let double = self
             .last_row
-            .is_some_and(|(previous, at)| previous == row && now.duration_since(at) <= DOUBLE_CLICK_INTERVAL);
+            .as_ref()
+            .is_some_and(|(previous, at)| previous == row && now.duration_since(*at) <= DOUBLE_CLICK_INTERVAL);
         if double {
             self.reset();
         } else {
-            self.last_row = Some((row, now));
+            self.last_row = Some((row.clone(), now));
         }
         double
     }
@@ -89,7 +113,7 @@ impl MouseInput {
                         app.on_mouse(action)
                     }
                     HitTarget::Row(row) => {
-                        if self.double_click(row, now) {
+                        if self.double_click(&row, now) {
                             app.on_mouse(MouseAction::Primary(row))
                         } else {
                             app.on_mouse(MouseAction::Select(row))
@@ -123,30 +147,52 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     }
     let mut app = App::new();
     let mut forwards = ActiveForwards::default();
-    let (created_tx, mut created_rx) = tokio::sync::mpsc::unbounded_channel::<CreateOutcome>();
-    let (discovered_tx, mut discovered_rx) = tokio::sync::mpsc::unbounded_channel::<Vec<ManifestCandidate>>();
+    let (inputs, mut background) = tokio::sync::mpsc::unbounded_channel();
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
-    let mut tick = tokio::time::interval_at(tokio::time::Instant::now() + REFRESH_INTERVAL, REFRESH_INTERVAL);
-    tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
-    refresh(&mut app, &mut tui, client).await?;
+    let mut follow = Follow::default();
+    let mut redraw = tokio::time::interval(REDRAW_INTERVAL);
+    redraw.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    spawn_watch(home.socket_path(), inputs.clone());
     loop {
         app.open_queued_create();
         app.set_forwards(forwards.entries());
+        follow.sync(app.followed_agent(), home.socket_path(), &inputs);
+        app.side_panel = view::shows_side_panel(tui.width());
+        if let Some((agent, session)) = app.transcript_request() {
+            spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
+        }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
         let input = tokio::select! {
             event = events.next() => Input::Event(event),
-            _ = tick.tick() => Input::Tick,
-            Some(outcome) = created_rx.recv() => Input::ForwardCreated(outcome),
-            Some(candidates) = discovered_rx.recv() => Input::ManifestsDiscovered(candidates),
+            Some(input) = background.recv() => input,
+            // Times in state and elapsed step times move without new input.
+            _ = redraw.tick() => continue,
         };
         let action = match input {
-            Input::Tick => {
-                mouse.reset();
-                if app.idle() {
-                    refresh(&mut app, &mut tui, client).await?;
+            Input::Resources(Ok(resources)) => {
+                app.connection_error = None;
+                app.apply_snapshot(resources.agents, resources.sessions);
+                continue;
+            }
+            Input::Resources(Err(error)) => {
+                app.connection_error = Some(error);
+                continue;
+            }
+            Input::Provisioning { agent, lines } => {
+                app.provisioning_followed(&agent, lines);
+                continue;
+            }
+            Input::TranscriptLoaded { agent, session, turns } => {
+                app.transcript_loaded(&agent, &session, turns);
+                continue;
+            }
+            Input::PromptSent(form, result) => {
+                app.prompting = app.prompting.saturating_sub(1);
+                if let Err(error) = result {
+                    app.prompt_failed(form, error);
                 }
                 continue;
             }
@@ -188,17 +234,15 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
             }
-            Action::Refresh => refresh(&mut app, &mut tui, client).await?,
             Action::Delete { agent } => {
                 if let Err(error) = client.delete(&agent).await {
                     app.error = Some(error.to_string());
                 }
-                refresh(&mut app, &mut tui, client).await?;
             }
             Action::OpenCreate => {
                 if !app.discovering {
                     app.discovering = true;
-                    spawn_discovery(discovered_tx.clone(), app.agents.clone());
+                    spawn_discovery(inputs.clone(), app.agents.clone());
                 }
             }
             Action::CreateAgent {
@@ -206,22 +250,23 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 name,
                 env_file,
                 form,
-            } => {
-                create(&mut app, &mut tui, client, manifest, name, env_file, form).await?;
-            }
+            } => create(&mut app, client, manifest, name, env_file, form).await,
             Action::CreateForward { agent, spec, replace } => {
                 if let Some(id) = replace {
                     forwards.remove(id);
                 }
                 app.creating += 1;
-                spawn_create(home, created_tx.clone(), agent, spec, replace);
+                spawn_create(home, inputs.clone(), agent, spec, replace);
             }
             Action::DeleteForward { id } => forwards.remove(id),
+            Action::Prompt(form) => {
+                app.prompting += 1;
+                spawn_prompt(home.socket_path(), inputs.clone(), form);
+            }
             action => {
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
                 events = EventStream::new();
-                refresh(&mut app, &mut tui, client).await?;
             }
         }
     }
@@ -259,14 +304,112 @@ impl ActiveForwards {
     }
 }
 
+/// Follows every Agent and Session, sending each state the daemon reports.
+///
+/// Each reply is the complete current state, so a reply lost to a reconnect
+/// needs no recovery: the next one supersedes it.
+fn spawn_watch(socket_path: PathBuf, inputs: Inputs) {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let mut after = None;
+        loop {
+            let reply = match client.watch_resources(after).await {
+                Ok(resources) => {
+                    after = Some(resources.revision);
+                    Ok(resources)
+                }
+                // An upgraded daemon may no longer speak this client's protocol,
+                // which explains the failure better than the failed call does.
+                Err(error) => Err(client.require_compatible_daemon().await.err().unwrap_or(error)),
+            };
+            let failed = reply.is_err();
+            if inputs
+                .send(Input::Resources(reply.map_err(|error| error.to_string())))
+                .is_err()
+            {
+                return;
+            }
+            if failed {
+                tokio::time::sleep(RECONNECT_INTERVAL).await;
+            }
+        }
+    });
+}
+
+/// The task following the provisioning an open detail shows, at most one.
+#[derive(Default)]
+struct Follow {
+    task: Option<(String, tokio::task::JoinHandle<()>)>,
+}
+
+impl Follow {
+    /// Follows `agent`, stopping the previous task when the agent changes.
+    fn sync(&mut self, agent: Option<&str>, socket_path: PathBuf, inputs: &Inputs) {
+        if self.task.as_ref().map(|(followed, _)| followed.as_str()) == agent {
+            return;
+        }
+        if let Some((_, task)) = self.task.take() {
+            task.abort();
+        }
+        self.task = agent.map(|agent| {
+            (
+                agent.to_owned(),
+                spawn_follow(socket_path, agent.to_owned(), inputs.clone()),
+            )
+        });
+    }
+}
+
+/// Follows one Agent's provisioning through `agents.v1.progress`, sending the
+/// lines to show after every reply.
+fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::task::JoinHandle<()> {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let mut followed = provisioning::Followed::default();
+        loop {
+            let (after, output) = followed.position();
+            let lines = match client.agent_progress(&agent, after, output).await {
+                Ok(progress) => {
+                    followed.apply(progress);
+                    followed.lines()
+                }
+                Err(error) => {
+                    tokio::time::sleep(RECONNECT_INTERVAL).await;
+                    vec![format!("Cannot follow provisioning: {error}")]
+                }
+            };
+            let agent = agent.clone();
+            if inputs.send(Input::Provisioning { agent, lines }).is_err() {
+                return;
+            }
+        }
+    })
+}
+
+/// Loads the most recent turns of the selected Session.
+fn spawn_transcript(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
+    tokio::task::spawn_local(async move {
+        let turns = Client::for_path(socket_path)
+            .session_turns(&agent, session.clone(), Some(TRANSCRIPT_TURNS))
+            .await
+            .map_err(|error| error.to_string());
+        let _ = inputs.send(Input::TranscriptLoaded { agent, session, turns });
+    });
+}
+
+/// Sends a prompt to a running Session without waiting for its turn to start.
+fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
+    tokio::task::spawn_local(async move {
+        let result = Client::for_path(socket_path)
+            .prompt_session(&form.agent, form.session.clone(), form.input.clone(), false, None)
+            .await
+            .map_err(|error| error.to_string());
+        let _ = inputs.send(Input::PromptSent(form, result));
+    });
+}
+
 /// Creates a forward off the event loop so provisioning never freezes the UI.
-fn spawn_create(
-    home: &ControlPlaneHome,
-    outcomes: tokio::sync::mpsc::UnboundedSender<CreateOutcome>,
-    agent: String,
-    spec: ForwardSpec,
-    replace: Option<u64>,
-) {
+fn spawn_create(home: &ControlPlaneHome, inputs: Inputs, agent: String, spec: ForwardSpec, replace: Option<u64>) {
     let home_path = home.path().to_path_buf();
     let socket_path = home.socket_path();
     tokio::task::spawn_local(async move {
@@ -278,15 +421,15 @@ fn spawn_create(
             PortForward::start(home_path, target.sandbox, spec.clone()).await
         }
         .await;
-        let _ = outcomes.send((agent, spec, replace, result));
+        let _ = inputs.send(Input::ForwardCreated((agent, spec, replace, result)));
     });
 }
 
 /// Discovers create-agent candidates off the event loop so a slow filesystem never freezes the UI.
-fn spawn_discovery(outcomes: tokio::sync::mpsc::UnboundedSender<Vec<ManifestCandidate>>, agents: Vec<Agent>) {
+fn spawn_discovery(inputs: Inputs, agents: Vec<Agent>) {
     tokio::task::spawn_local(async move {
         let candidates = manifest_candidates(std::env::current_dir().ok(), &agents).await;
-        let _ = outcomes.send(candidates);
+        let _ = inputs.send(Input::ManifestsDiscovered(candidates));
     });
 }
 
@@ -386,24 +529,19 @@ fn working_tree_manifests(directory: &Path) -> Vec<PathBuf> {
 /// Applies the manifest under the chosen name; a rejection reopens the form with the error.
 async fn create(
     app: &mut App,
-    tui: &mut Tui,
     client: &Client,
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
     mut form: CreateForm,
-) -> CommandResult<()> {
+) {
     match create_agent(client, manifest, name, env_file).await {
-        Ok(applied) => {
-            refresh(app, tui, client).await?;
-            app.select_agent(&applied);
-        }
+        Ok(applied) => app.agent_applied(applied),
         Err(error) => {
             form.error = Some(error.to_string());
             app.modal = Some(Modal::CreateAgent(form));
         }
     }
-    Ok(())
 }
 
 async fn create_agent(
@@ -411,12 +549,11 @@ async fn create_agent(
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
-) -> Result<String, Error> {
+) -> Result<Agent, Error> {
     let mut request = crate::read_apply_request(manifest, env_file)?;
     request.agent.metadata.name = name;
     request.create_only = true;
-    let applied = client.apply(request).await?;
-    Ok(applied.metadata.name)
+    client.apply(request).await
 }
 
 /// Applies one completed background forward creation to the UI state.
@@ -434,25 +571,6 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
             )));
         }
     }
-}
-
-async fn refresh(app: &mut App, tui: &mut Tui, client: &Client) -> CommandResult<()> {
-    app.loading = true;
-    let _ = tui.draw(app)?;
-    let result = fetch(client).await;
-    app.loading = false;
-    match result {
-        Ok((agents, sessions)) => {
-            app.error = None;
-            app.apply_snapshot(agents, sessions);
-        }
-        Err(error) => app.error = Some(error.to_string()),
-    }
-    Ok(())
-}
-
-async fn fetch(client: &Client) -> Result<(Vec<Agent>, Vec<Session>), Error> {
-    Ok((client.list_agents().await?, client.list_sessions(None).await?))
 }
 
 async fn suspended(
@@ -762,12 +880,13 @@ mod tests {
     fn row_primary_actions_require_two_clicks_on_the_same_row_in_time() {
         let mut mouse = MouseInput::default();
         let start = Instant::now();
+        let row = |name: &str| RowTarget::Tree(app::TreeRowId::Agent(name.into()));
 
-        assert!(!mouse.double_click(RowTarget::Tree(2), start));
-        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(100)));
-        assert!(!mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(700)));
-        assert!(mouse.double_click(RowTarget::Tree(3), start + Duration::from_millis(800)));
-        assert!(!mouse.double_click(RowTarget::Forward(3), start + Duration::from_millis(850)));
+        assert!(!mouse.double_click(&row("first"), start));
+        assert!(!mouse.double_click(&row("second"), start + Duration::from_millis(100)));
+        assert!(!mouse.double_click(&row("second"), start + Duration::from_millis(700)));
+        assert!(mouse.double_click(&row("second"), start + Duration::from_millis(800)));
+        assert!(!mouse.double_click(&RowTarget::Forward(3), start + Duration::from_millis(850)));
     }
 
     #[test]
@@ -817,11 +936,11 @@ mod tests {
         use ratatui::{Terminal, backend::TestBackend};
 
         let mut app = App::new();
-        app.detail = Some(app::Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
-            scroll: 0,
-        });
+        // More lines than the view shows, so there is something to scroll.
+        app.detail = Some(app::Detail::text(
+            "detail".into(),
+            (1..=12).map(|line| format!("line {line}")).collect(),
+        ));
         let mut state = view::ViewState::default();
         let mut hit_map = None;
         let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
