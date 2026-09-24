@@ -237,7 +237,7 @@ bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of 
 | 3     | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have       | 0     |
 | 4     | `seksjon-frontend`         | Del 2 — Frontend                                              | 0     |
 | 5     | `frontend-folger-appen`    | Raskere, og i takt med appen — speed bars, one package        | 1     |
-| 6     | `frontend-brukerne-merker` | Det brukerne merker                                           | 0     |
+| 6     | `frontend-brukerne-merker` | Brukeropplevelsen                                             | 0     |
 | 7     | `seksjon-backend`          | Del 3 — Backend                                               | 0     |
 | 8     | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved             | 2     |
 | 9     | `scenario-feil`            | Scenario 1: a service does not answer for a moment            | 14    |
