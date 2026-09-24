@@ -65,28 +65,19 @@ export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
             </p>
             <p className="s-fe__lead">Frontend ligger i samme pakke som appen</p>
 
-            <div className="s-fe__equation">
-              <span className="s-fe__app">Din app</span>
-              <span className="s-fe__op" aria-hidden>
-                =
-              </span>
-              <div className="s-fe__group">
-                <span className="s-fe__paren" aria-hidden>
-                  (
-                </span>
+            <div className="s-fe__package">
+              <span className="s-fe__package-tag">Din app</span>
+              <div className="s-fe__package-row">
                 <span className="s-fe__item">
-                  <Icon name="server" size={26} />
+                  <Icon name="server" size={30} />
                   Backend
                 </span>
-                <span className="s-fe__op" aria-hidden>
+                <span className="s-fe__plus" aria-hidden>
                   +
                 </span>
                 <span className="s-fe__item">
-                  <Icon name="eye" size={26} />
+                  <Icon name="eye" size={30} />
                   Frontend
-                </span>
-                <span className="s-fe__paren" aria-hidden>
-                  )
                 </span>
               </div>
               <span className="s-fe__version">
