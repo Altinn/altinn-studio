@@ -1,67 +1,65 @@
 apiVersion: 1
 
+prune: true
+
 datasources:
   - name: Metrics
     type: prometheus
-    uid: mimir
+    uid: metrics
     access: proxy
     orgId: 1
-    url: http://monitoring_mimir:9009/prometheus
-    basicAuth: false
-    isDefault: false
-    version: 1
-    editable: true
-    jsonData:
-      httpMethod: GET
-      prometheusType: Mimir
-      prometheusVersion: 2.9.1
-      timeInterval: "10s"
-
-  - name: Logs
-    type: loki
-    uid: loki
-    access: proxy
-    orgId: 1
-    url: http://monitoring_loki:3100
+    url: http://localtest-victoria-metrics:8428
     basicAuth: false
     isDefault: true
     version: 1
     editable: true
     jsonData:
-      derivedFields:
-        - datasourceUid: tempo
-          matcherRegex: trace_id
-          matcherType: label
-          name: 'Trace ID'
-          url: '$${__value.raw}'
-          urlDisplayLabel: 'View Trace'
+      httpMethod: GET
+      prometheusType: Prometheus
+      prometheusVersion: 2.24.0
+      timeInterval: "10s"
 
+  # VictoriaTraces implements the Tempo HTTP API, so the Tempo datasource gives
+  # TraceQL and Traces Drilldown. /select/jaeger is also served, if ever needed.
   - name: Traces
     type: tempo
-    uid: tempo
+    uid: traces
     access: proxy
     orgId: 1
-    url: http://monitoring_tempo:3200
+    url: http://localtest-victoria-traces:10428/select/tempo
     basicAuth: false
     isDefault: false
     version: 1
     editable: true
     apiVersion: 1
     jsonData:
-      lokiSearch:
-        datasourceUid: loki
       nodeGraph:
         enabled: true
-      serviceMap:
-        datasourceUid: mimir
       tracesToLogsV2:
-        datasourceUid: loki
-        filterBySpanID: false
-        filterByTraceID: false
-        spanStartTimeShift: -10m
-        spanEndTimeShift: 10m
-        tags: [{ key: 'service.name', value: 'service_name' }] 
-        customQuery: true
-        query: '{$${__tags}} | trace_id="$${__span.traceId}" | span_id="$${__span.spanId}"'
+        datasourceUid: logs
+        filterByTraceID: true
+        filterBySpanID: true
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        tags: [{ key: "service.name" }]
       tracesToMetrics:
-        datasourceUid: mimir
+        datasourceUid: metrics
+
+  - name: Logs
+    type: victoriametrics-logs-datasource
+    uid: logs
+    access: proxy
+    orgId: 1
+    url: http://localtest-victoria-logs:9428
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: true
+    jsonData:
+      derivedFields:
+        - name: trace_id
+          matcherType: label
+          matcherRegex: trace_id
+          datasourceUid: traces
+          url: "$${__value.raw}"
+          urlDisplayLabel: View trace

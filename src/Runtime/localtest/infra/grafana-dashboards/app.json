@@ -34,7 +34,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -84,10 +84,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -100,7 +100,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -150,10 +150,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -166,7 +166,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -217,23 +217,23 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_started_total{job=\"$app\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Fullførere",
+      "title": "Andel avsluttet",
       "type": "stat"
     },
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -283,10 +283,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{job=\"$app\"}[$__range])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[$__range])) by (le))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -299,7 +299,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -350,10 +350,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_data_patched_total{job=\"$app\", result=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_data_patched{\"service.name\"=\"$app\", result=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -366,7 +366,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -420,10 +420,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(http_server_request_duration_seconds_count{job=\"$app\", http_response_status_code=~\"5..\"}[$__range])",
+          "expr": "increase({\"http.server.request.duration_count\", \"service.name\"=\"$app\", \"http.response.status_code\"=~\"5..\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -436,7 +436,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -516,10 +516,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "rate(altinn_app_lib_processes_started_total{job=\"$app\"}[$__rate_interval]) * 60",
+          "expr": "rate(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__rate_interval]) * 60",
           "hide": false,
           "legendFormat": "Skjemaer startet",
           "range": true,
@@ -528,10 +528,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "rate(altinn_app_lib_processes_ended_total{job=\"$app\"}[$__rate_interval]) * 60",
+          "expr": "rate(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__rate_interval]) * 60",
           "hide": false,
           "instant": false,
           "legendFormat": "Skjemaer fullført",
@@ -545,7 +545,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -609,10 +609,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_duration_bucket{job=\"$app\", le!=\"+Inf\", le!=\"0\"}[$__range])",
+          "expr": "increase(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\", le!=\"+Inf\", le!=\"0\"}[$__range])",
           "format": "heatmap",
           "instant": false,
           "legendFormat": "{{ le }}",
@@ -626,7 +626,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -702,10 +702,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{job=\"$app\"}[10m])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[10m])) by (le))",
           "legendFormat": "Tidsbruk",
           "range": true,
           "refId": "A"
@@ -730,7 +730,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -781,10 +781,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"email\", result=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -797,7 +797,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -852,10 +852,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"email\", result!=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result!=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -868,7 +868,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "description": "",
       "fieldConfig": {
@@ -948,10 +948,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "sum by(type) (rate(altinn_app_lib_notification_orders_total{job=\"$app\"}[10m]) * 60)",
+          "expr": "sum by(type) (rate(altinn_app_lib_notification_orders{\"service.name\"=\"$app\"}[10m]) * 60)",
           "hide": false,
           "legendFormat": "{{ type }}",
           "range": true,
@@ -964,7 +964,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1015,10 +1015,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"sms\", result=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1031,7 +1031,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "mimir"
+        "uid": "metrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -1086,10 +1086,10 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "mimir"
+            "uid": "metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders_total{job=\"$app\", type=\"sms\", result!=\"success\"}[$__range])",
+          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result!=\"success\"}[$__range])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1113,9 +1113,9 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "mimir"
+          "uid": "metrics"
         },
-        "definition": "label_values(process_runtime_dotnet_thread_pool_threads_count,job)",
+        "definition": "label_values({\"http.server.request.duration_count\"}, \"service.name\")",
         "hide": 0,
         "includeAll": false,
         "label": "App",
@@ -1124,7 +1124,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(process_runtime_dotnet_thread_pool_threads_count,job)",
+          "query": "label_values({\"http.server.request.duration_count\"}, \"service.name\")",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,

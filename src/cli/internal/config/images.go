@@ -54,11 +54,11 @@ type CoreImages struct {
 
 // MonitoringImages holds image configuration for monitoring stack containers.
 type MonitoringImages struct {
-	Tempo         ImageSpec
-	Mimir         ImageSpec
-	Loki          ImageSpec
-	OtelCollector ImageSpec
-	Grafana       ImageSpec
+	VictoriaMetrics ImageSpec
+	VictoriaTraces  ImageSpec
+	VictoriaLogs    ImageSpec
+	OtelCollector   ImageSpec
+	Grafana         ImageSpec
 }
 
 // ImagesConfig holds all image configuration grouped by purpose.
@@ -79,11 +79,11 @@ func DefaultImages() ImagesConfig {
 			PgAdmin:          ImageSpec{Image: "dpage/pgadmin4", Tag: "9.14", Floating: false},
 		},
 		Monitoring: MonitoringImages{
-			Tempo:         ImageSpec{Image: "grafana/tempo", Tag: "2.4.1", Floating: false},
-			Mimir:         ImageSpec{Image: "grafana/mimir", Tag: "2.12.0", Floating: false},
-			Loki:          ImageSpec{Image: "grafana/loki", Tag: "3.0.0", Floating: false},
-			OtelCollector: ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "0.98.0", Floating: false},
-			Grafana:       ImageSpec{Image: "grafana/grafana", Tag: "10.4.2", Floating: false},
+			VictoriaMetrics: ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "v1.152.0", Floating: false},
+			VictoriaTraces:  ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "v0.11.1", Floating: false},
+			VictoriaLogs:    ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "v1.52.0", Floating: false},
+			OtelCollector:   ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "0.161.0", Floating: false},
+			Grafana:         ImageSpec{Image: "grafana/grafana", Tag: "13.2.2", Floating: false},
 		},
 	}
 	images.applyEnvOverrides(os.Getenv)
@@ -100,9 +100,9 @@ func (c *ImagesConfig) imageOverrides() map[string]*ImageSpec {
 		"STUDIOCTL_IMAGE_WORKFLOW_ENGINE":    &c.Core.WorkflowEngine,
 		"STUDIOCTL_IMAGE_WORKFLOW_ENGINE_DB": &c.Core.WorkflowEngineDb,
 		"STUDIOCTL_IMAGE_PGADMIN":            &c.Core.PgAdmin,
-		"STUDIOCTL_IMAGE_TEMPO":              &c.Monitoring.Tempo,
-		"STUDIOCTL_IMAGE_MIMIR":              &c.Monitoring.Mimir,
-		"STUDIOCTL_IMAGE_LOKI":               &c.Monitoring.Loki,
+		"STUDIOCTL_IMAGE_VICTORIA_METRICS":   &c.Monitoring.VictoriaMetrics,
+		"STUDIOCTL_IMAGE_VICTORIA_TRACES":    &c.Monitoring.VictoriaTraces,
+		"STUDIOCTL_IMAGE_VICTORIA_LOGS":      &c.Monitoring.VictoriaLogs,
 		"STUDIOCTL_IMAGE_OTEL_COLLECTOR":     &c.Monitoring.OtelCollector,
 		"STUDIOCTL_IMAGE_GRAFANA":            &c.Monitoring.Grafana,
 	}
