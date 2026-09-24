@@ -26,11 +26,4 @@ public class AppProcessTaskTypeInfo
     /// </summary>
     [JsonPropertyName(name: "elementType")]
     public string? ElementType { get; set; }
-
-    /// <summary>
-    /// The data type of the subforms a subform PDF service task generates PDFs for. Only set for subform PDF service tasks.
-    /// </summary>
-    [JsonPropertyName(name: "subformDataTypeId")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? SubformDataTypeId { get; set; }
 }

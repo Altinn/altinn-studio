@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { isStudioPreview } from 'src/utils/isDev';
@@ -24,11 +25,11 @@ function PDFGeneratorPreviewWithTarget() {
     ) ?? [];
   const dataElements = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? [];
 
-  const subformPdfTask = pdfTasks.find(
+  const isSubformPdf = pdfTasks.some(
     (task) => task.elementId === target.taskId && task.altinnTaskType === 'subformPdf',
   );
-  const isSubformPdf = subformPdfTask !== undefined;
-  const subformDataType = subformPdfTask?.subformDataTypeId;
+  // The UI folder of a subform PDF service task uses the subform data type
+  const subformDataType = isSubformPdf ? getDefaultDataTypeFromUiFolder(target.taskId) : undefined;
   const subforms = subformDataType ? dataElements.filter((element) => element.dataType === subformDataType) : [];
 
   return (

@@ -3,7 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
@@ -15,19 +15,10 @@ async function render() {
   instance.process.processTasks = [
     { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
     { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
-    {
-      elementId: 'Task_SubformPdf',
-      elementType: 'ServiceTask',
-      altinnTaskType: 'subformPdf',
-      subformDataTypeId: 'subform',
-    },
+    { elementId: 'Task_SubformPdf', elementType: 'ServiceTask', altinnTaskType: 'subformPdf' },
   ];
   instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData));
-  // The service task's UI folder may use the parent's data type, which is not the one its subforms use
-  window.altinnAppGlobalData.ui.folders.Task_SubformPdf = {
-    defaultDataType: instance.data[0].dataType,
-    pages: { order: ['Pdf'] },
-  };
+  window.altinnAppGlobalData.ui.folders.Task_SubformPdf = { defaultDataType: 'subform', pages: { order: ['Pdf'] } };
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
@@ -56,8 +47,6 @@ describe('PDFGeneratorPreviewSection', () => {
 
     await user.click(await screen.findByText('Task_SubformPdf'));
     expect(screen.getByRole('button', { name: /Generer PDF/i })).toBeDisabled();
-    expect(screen.getByText('aaaaaaaa')).toBeInTheDocument();
-    expect(screen.queryByText(defaultMockDataElementId.slice(0, 8))).not.toBeInTheDocument();
 
     await user.click(screen.getByText('bbbbbbbb'));
     await user.click(screen.getByRole('button', { name: /Generer PDF/i }));
