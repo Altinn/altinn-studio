@@ -1,8 +1,3 @@
-:has(> .container) {
-  /* The app header's minimum width must not stretch the editor beyond the viewport. */
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .container {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(25rem, 32rem);
