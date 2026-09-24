@@ -203,18 +203,19 @@ agentctl vnc --web --open agent/altinn-desktop
 Or with a VNC client of your own:
 
 ```sh
-agentctl vnc agent/altinn-desktop
-vncviewer 127.0.0.1:5900
+agentctl vnc agent/altinn-desktop   # prints vnc://127.0.0.1:<port> for your viewer
 ```
 
-Both hold the forward open until interrupted. `--port` picks a different local port, and
+Both hold the forward open until interrupted on a free local port they print. `--port` picks a
+fixed one, and
 `agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them
 directly. Which viewer the browser gets, and at what URL, is the image's to decide: `--web`
 forwards the port and opens its root, and an image that carries no browser viewer is reported as
 such rather than forwarded to a port that serves nothing. The forward carries an unauthenticated RFB stream, which is safe for the same
 reason the Agent's other loopback ports are: it never leaves the Sandbox except through the
-forward you just opened. You share the Agent's keyboard and pointer, so agree with it about who is
-driving before you start clicking.
+forward you just opened. `access` decides what the platform offers rather than what the Agent may
+do in its own Sandbox: the Agent has `sudo` and could turn the same units on itself. You share the
+Agent's keyboard and pointer, so agree with it about who is driving before you start clicking.
 
 An Agent created from an image older than this feature reports that its image cannot provide VNC
 access; delete it and re-apply to pick up the current image.

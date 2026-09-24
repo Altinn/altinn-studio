@@ -2,9 +2,8 @@
 // Serves noVNC and bridges its WebSocket to the desktop's Unix socket, so a person can open the
 // Agent's screen in a browser with nothing installed.
 //
-// The image provides this program; whether it runs is the platform's decision, because reaching
-// the desktop is an access capability. agentd writes the unit when the Agent declares
-// `access: [{type: vnc}]` and removes it when the Agent stops declaring it.
+// The image ships this program's unit disabled. agentd enables it when the Agent declares
+// `access: [{type: vnc}]` and disables it when the Agent stops declaring it.
 'use strict';
 
 const http = require('node:http');

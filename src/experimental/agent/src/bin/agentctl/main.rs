@@ -262,7 +262,7 @@ enum Command {
         variant: Option<AgentVariantName>,
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
-        /// Local port to listen on; 0 selects an ephemeral port. Defaults to the forwarded guest port.
+        /// Local port to listen on. Defaults to a free port, which is printed.
         #[arg(long)]
         port: Option<u16>,
         /// Forward the browser-based viewer instead of the raw RFB port, so no VNC client is needed.
@@ -817,6 +817,12 @@ async fn port_forward(
         );
         forwards.push(forward);
     }
+    hold_forwards(&forwards).await
+}
+
+/// Holds forwards open until interrupted, reporting each connection failure
+/// once, and fails when every forward has stopped serving.
+async fn hold_forwards(forwards: &[forward::PortForward]) -> CommandResult<ExitCode> {
     let mut reported = vec![None; forwards.len()];
     let mut poll = tokio::time::interval(Duration::from_secs(1));
     loop {
@@ -954,7 +960,7 @@ async fn ssh_info(
 
 /// How one `agentctl vnc` invocation should expose the desktop.
 struct VncOptions {
-    /// Local port to listen on; the forwarded guest port when omitted.
+    /// Local port to listen on; a free port when omitted.
     port: Option<u16>,
     /// Forward the browser-based viewer rather than the raw RFB port.
     web: bool,
@@ -997,7 +1003,9 @@ async fn vnc(
     };
     let spec = forward::ForwardSpec {
         address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
-        local_port: port.unwrap_or(guest_port),
+        // A free port by default: 5900 and 6080 are often taken locally, by a screen-sharing
+        // server or by another `agentctl vnc`, and the address is printed either way.
+        local_port: port.unwrap_or(0),
         guest_port,
     };
     let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
@@ -1018,29 +1026,7 @@ async fn vnc(
     if open {
         open_locally(&url);
     }
-    let mut poll = tokio::time::interval(Duration::from_secs(1));
-    let mut reported = None;
-    loop {
-        tokio::select! {
-            result = tokio::signal::ctrl_c() => {
-                result.map_err(Error::from)?;
-                return Ok(ExitCode::SUCCESS);
-            }
-            _ = poll.tick() => {
-                let status = forward.status();
-                if status != reported {
-                    if let Some(message) = &status {
-                        eprintln!("{address}: {message}");
-                    }
-                    reported = status;
-                }
-                if forward.finished() {
-                    eprintln!("the desktop forward has stopped");
-                    return Ok(ExitCode::FAILURE);
-                }
-            }
-        }
-    }
+    hold_forwards(std::slice::from_ref(&forward)).await
 }
 
 /// Hands the address to whichever local application handles its scheme.
@@ -1958,25 +1944,22 @@ mod tests {
         };
         assert_eq!(resource.as_deref(), Some("agent/worker"));
         assert!(agent.is_none() && variant.is_none());
-        assert!(
-            port.is_none(),
-            "the local port follows whichever guest port is forwarded"
-        );
+        assert!(port.is_none(), "a free local port is chosen unless one is asked for");
         assert!(!web, "the raw RFB port is forwarded unless a browser is asked for");
         assert!(!open, "a viewer is launched only when asked for");
 
-        let chosen = Arguments::try_parse_from(["agentctl", "vnc", "--port", "0", "--open"]).expect("ephemeral vnc");
+        let chosen = Arguments::try_parse_from(["agentctl", "vnc", "--port", "5901", "--open"]).expect("chosen port");
         assert!(
             matches!(
                 chosen.command,
                 Command::Vnc {
-                    port: Some(0),
+                    port: Some(5901),
                     open: true,
                     resource: None,
                     ..
                 }
             ),
-            "the Agent is inferred and an ephemeral local port is accepted"
+            "the Agent is inferred and a chosen local port is kept"
         );
 
         let browser = Arguments::try_parse_from(["agentctl", "vnc", "--web"]).expect("web vnc");
