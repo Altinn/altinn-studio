@@ -112,8 +112,7 @@ pub(super) fn update_status(
     if record.agent.metadata.generation != generation {
         return Err(Error::Conflict);
     }
-    status.progress = None;
-    status.provenance = None;
+    scrub(&mut status);
     status.stamp_transitions(&record.agent.status, time::OffsetDateTime::now_utc());
     let changed = transaction
         .execute(
@@ -178,9 +177,14 @@ fn encode_desired(agent: &Agent) -> Result<String, Error> {
 /// Serializes status for storage, scrubbing API-projected progress and provenance.
 fn encode_status(status: &Status) -> Result<String, Error> {
     let mut status = status.clone();
+    scrub(&mut status);
+    serde_json::to_string(&status).map_err(Error::from)
+}
+
+/// Removes what is projected onto responses and never stored.
+fn scrub(status: &mut Status) {
     status.progress = None;
     status.provenance = None;
-    serde_json::to_string(&status).map_err(Error::from)
 }
 
 /// Source-column payload: current writes store [`crate::Provenance`]; rows
