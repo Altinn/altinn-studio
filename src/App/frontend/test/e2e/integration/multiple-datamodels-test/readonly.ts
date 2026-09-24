@@ -48,7 +48,7 @@ describe('readonly data models', () => {
     cy.findByRole('radio', { name: /kåre/i }).check();
     cy.findByText(errorReportTitle).should('not.exist');
     cy.waitUntilSaved();
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.get('#finishedLoading').should('exist');
 
     cy.intercept('PATCH', '**/data*').as('saveFormData');
@@ -133,7 +133,7 @@ describe('readonly data models', () => {
 
     cy.findByText(errorReportTitle).should('not.exist');
 
-    cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
+    cy.findByRole('button', { name: 'Send inn' }).clickAndWaitForProcessNext();
 
     cy.findByRole('heading', { name: /kvittering/i }).should('be.visible');
     cy.get(appFrontend.multipleDatamodelsTest.textField1Summary).should('contain.text', 'første');
