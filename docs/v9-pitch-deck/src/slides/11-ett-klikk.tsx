@@ -60,7 +60,7 @@ export default function EttKlikkSlide({ step }: SlideProps) {
               transition={{ duration: 0.25, delay: saved ? 0.1 : 0 }}
               aria-hidden={!saved}
             >
-              I v9 blir hver av dem lagret og gjort ferdig — også når noe feiler underveis.
+              I v9 blir hver av dem lagret og gjort ferdig, også når noe feiler underveis.
             </motion.p>
           </div>
         </div>

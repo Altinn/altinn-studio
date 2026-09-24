@@ -45,7 +45,7 @@ export const slides: SlideDef[] = [
     id: 'infra-nytt-i-v9',
     component: InfraNyttIV9,
     notes:
-      'Plattformen tar mer av jobben. Prosessmotoren gjør prosessene robuste: hvert steg lagres og gjøres ferdig, også når noe feiler. Maskinporten-klienten opprettes og forvaltes av plattformen. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.',
+      'Plattformen tar mer av jobben. Prosessmotoren gjør prosessene robuste: hvert steg lagres og gjøres ferdig, også når noe feiler. Plattformen lager Maskinporten-klienten og tar seg av den. Og adminsidene i Studio viser hvilke prosesser som står fast, og lar dere starte dem igjen. Banneret nederst er ærlig ment: utrulling, PDF-tjenesten og varslene har v8-appene også fått. Om noen spør: den plattformstyrte Maskinporten-klienten finnes for v8-apper fra 8.3.0, men i v9 er den den eneste måten.',
   },
   {
     id: 'seksjon-frontend',
@@ -57,18 +57,18 @@ export const slides: SlideDef[] = [
     component: FrontendFolgerAppen,
     steps: 1,
     notes:
-      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene er én måling i et skjema med 32 sider — si det om noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen — appen din er backend, altså Altinn-bibliotekene og deres egen kode, pluss frontend, med samme versjon. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.',
+      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene kommer fra én måling i et skjema med 32 sider. Si det hvis noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. Appen din er backend, altså Altinn-bibliotekene og deres egen kode, pluss frontend, og alt har samme versjon. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.',
   },
   {
     id: 'frontend-brukerne-merker',
     component: FrontendBrukerneMerker,
     notes:
-      'Fire ting brukerne merker. Tydelig venting, med beskjed om at det er trygt å lukke siden etter åtte sekunder. Status som varer: lastes siden på nytt, står den der den stod. Ingen tapte svar. Og en feilliste som vises først når brukeren prøver å gå videre.',
+      'Fire ting brukerne merker. Tydelig venting, med beskjed om at det er trygt å lukke siden etter åtte sekunder. Status som varer: laster brukeren siden på nytt, vises samme status som før. Ingen tapte svar. Og en feilliste som vises først når brukeren prøver å gå videre.',
   },
   {
     id: 'seksjon-backend',
     component: SeksjonBackend,
-    notes: 'Del 3: det appen gjør bak kulissene — prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.',
+    notes: 'Del 3: det appen gjør bak kulissene, altså prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.',
   },
   {
     id: 'prosessmotor',
@@ -102,7 +102,7 @@ export const slides: SlideDef[] = [
     component: ScenarioFeil,
     steps: SIM_STEPS.feil,
     notes:
-      'Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra starten — for eksempel blir PDF-en laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.',
+      'Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra start. PDF-en blir for eksempel laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.',
   },
   {
     id: 'scenario-omstart',
@@ -116,13 +116,13 @@ export const slides: SlideDef[] = [
     component: Oppgradering,
     steps: 1,
     notes:
-      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Verktøyet skriver om navn og navnerom, gjør PDF og forsendelse om til tjenesteoppgaver og legger til tilgangene appen trenger. To ting peker det ut for hånd: egen kode i prosessteg, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
+      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Verktøyet skriver om navn og navnerom, gjør PDF og forsendelse om til tjenesteoppgaver og legger til tilgangene appen trenger. To ting viser det at dere må gjøre for hånd: skrive om egen kode i prosessteg, og fjerne ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
   },
   {
     id: 'bli-med',
     component: BliMed,
     notes:
-      'v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
+      'v9 er i åpen beta, og alle kan oppgradere selv, rett fra Studio eller med studioctl. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
   },
 ];
 

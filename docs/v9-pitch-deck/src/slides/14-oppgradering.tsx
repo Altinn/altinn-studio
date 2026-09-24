@@ -14,8 +14,8 @@ const TERMINAL: { text: string; kind: 'cmd' | 'ok' | 'todo' }[] = [
   { text: 'Navn og navnerom i koden er oppdatert', kind: 'ok' },
   { text: 'PDF og forsendelse er egne tjenesteoppgaver', kind: 'ok' },
   { text: 'Tilgangene appen trenger, er lagt til', kind: 'ok' },
-  { text: 'Egen kode i prosessteg skrives om', kind: 'todo' },
-  { text: 'Ventesteg som ikke lenger trengs', kind: 'todo' },
+  { text: 'Egen kode i prosessteg må skrives om', kind: 'todo' },
+  { text: 'Fjern ventesteg som ikke lenger trengs', kind: 'todo' },
 ];
 
 const PREFIX = { cmd: '$ ', ok: '✔ ', todo: 'TODO ' };
@@ -89,7 +89,7 @@ export default function OppgraderingSlide({ step }: SlideProps) {
             </p>
           ))}
           <p className="s-term__note">
-            Resten skriver verktøyet om selv, og det peker ut det som gjøres for hånd.
+            Verktøyet gjør resten selv og viser hva du må gjøre for hånd.
           </p>
         </div>
       </Reveal>

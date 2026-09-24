@@ -29,7 +29,7 @@ export default function BliMedSlide(_: SlideProps) {
       variant="full"
       kicker="v9 · åpen beta"
       title="Kom i gang med v9"
-      subtitle="v9 er i åpen beta. Alle kan oppgradere selv — og vi hjelper gjerne."
+      subtitle="v9 er i åpen beta. Alle kan oppgradere selv, og vi hjelper gjerne til."
     >
       <Backdrop variant="closing" />
       <BrandMark place="bottom" />

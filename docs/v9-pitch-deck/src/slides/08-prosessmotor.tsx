@@ -52,7 +52,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           <div className="s-db" style={{ left: 1200, top: 96, width: 456 }}>
             <p className="s-db__head">
               <Icon name="database" size={24} />
-              Lagret · hvert steg
+              Lagrede steg
             </p>
             <StepRow label="1 · Avslutt oppgaven" state="Fullført" tone="ok" />
             <StepRow label="2 · Lag PDF" state="Fullført" tone="ok" />
