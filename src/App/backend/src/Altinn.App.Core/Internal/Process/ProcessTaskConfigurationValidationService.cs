@@ -4,8 +4,6 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,11 +12,11 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, task configuration and workflow command registrations at startup.
+/// Validates BPMN task types and task configuration at startup.
 /// </summary>
 /// <remarks>
 /// Resolve dependencies in a startup scope so app implementations can use scoped services without
-/// an HTTP request. Failure to read configuration or construct a registration must not skip validation.
+/// an HTTP request. Failure to read configuration must not skip validation.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
     IServiceScopeFactory scopeFactory,
@@ -36,7 +34,6 @@ internal sealed class ProcessTaskConfigurationValidationService(
         List<IPipelineServiceTask> serviceTasks;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
-        List<IWorkflowEngineCommand> commands;
         try
         {
             bpmnTasks = services.GetRequiredService<IProcessReader>().GetProcessTasks();
@@ -45,15 +42,13 @@ internal sealed class ProcessTaskConfigurationValidationService(
             var factory = new AppImplementationFactory(services);
             serviceTasks = factory.GetServiceTasks().ToList();
             processTasks = factory.GetAll<IProcessTask>().ToList();
-            commands = services.GetServices<IWorkflowEngineCommand>().ToList();
         }
         catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            logger.LogError(e, "Could not load the process configuration or workflow registrations.");
+            logger.LogError(e, "Could not load the process configuration or task registrations.");
             throw new ApplicationConfigException("Could not validate the process configuration: " + e.Message, e);
         }
 
-        WorkflowEngineCommandValidator.Validate(commands, cancellationToken);
         var findings = new List<string>();
         bool listRegisteredTypes = false;
 

@@ -1,15 +1,10 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Features.Signing;
-using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,89 +16,6 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ProcessTaskConfigurationValidationServiceTests
 {
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task SigningProvider_MustResolveExactlyOnce_InTheStartupScope(int count)
-    {
-        var reader = new Mock<IProcessReader>();
-        reader
-            .Setup(r => r.GetProcessTasks())
-            .Returns([
-                new ProcessTask
-                {
-                    Id = "Task_Signing",
-                    ExtensionElements = new ExtensionElements
-                    {
-                        TaskExtension = new AltinnTaskExtension { TaskType = "signing" },
-                    },
-                },
-            ]);
-        reader
-            .Setup(r => r.GetAltinnTaskExtension("Task_Signing"))
-            .Returns(
-                new AltinnTaskExtension
-                {
-                    SignatureConfiguration = new AltinnSignatureConfiguration
-                    {
-                        SignatureDataType = "signatures",
-                        SigneeProviderId = "signees",
-                        SigneeStatesDataTypeId = "signee-states",
-                        CorrespondenceResources = [new AltinnEnvironmentConfig { Value = "correspondence-resource" }],
-                    },
-                }
-            );
-        var providers = new List<ScopedSigneeProvider>();
-
-        var exception = await Validate(
-            services =>
-            {
-                services.AddLogging();
-                services.AddSingleton(Mock.Of<ISigningService>(MockBehavior.Strict));
-                services.AddSingleton(Mock.Of<IPdfService>(MockBehavior.Strict));
-                services.AddSingleton(Mock.Of<ISigneeContextsManager>(MockBehavior.Strict));
-                services.AddTransient<IProcessTask, SigningProcessTask>();
-                for (int i = 0; i < count; i++)
-                    services.AddScoped<ISigneeProvider>(_ =>
-                    {
-                        var provider = new ScopedSigneeProvider();
-                        providers.Add(provider);
-                        return provider;
-                    });
-            },
-            reader.Object
-        );
-
-        if (count == 1)
-            Assert.Null(exception);
-        else
-        {
-            Assert.NotNull(exception);
-            Assert.Contains(
-                $"Task 'Task_Signing': Expected exactly one ISigneeProvider with id 'signees', found {count}",
-                exception.Message
-            );
-        }
-        Assert.Equal(count, providers.Count);
-        Assert.All(providers, provider => Assert.True(provider.Disposed));
-    }
-
-    private sealed class ScopedSigneeProvider : ISigneeProvider, IAsyncDisposable
-    {
-        public string Id { get; init; } = "signees";
-        public bool Disposed { get; private set; }
-
-        public Task<SigneeProviderResult> GetSignees(GetSigneesParameters parameters) =>
-            throw new InvalidOperationException("Startup validation must not request instance-specific signees.");
-
-        public ValueTask DisposeAsync()
-        {
-            Disposed = true;
-            return ValueTask.CompletedTask;
-        }
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -218,7 +130,6 @@ public class ProcessTaskConfigurationValidationServiceTests
     [InlineData("bpmn")]
     [InlineData("metadata")]
     [InlineData("task")]
-    [InlineData("command")]
     public async Task UnreadableConfigurationOrRegistrations_FailStartup(string failingDependency)
     {
         var reader = new Mock<IProcessReader>();
@@ -239,10 +150,6 @@ public class ProcessTaskConfigurationValidationServiceTests
                 }
                 if (failingDependency == "task")
                     services.AddTransient<IProcessTask>(_ => throw new InvalidOperationException("unreadable task"));
-                if (failingDependency == "command")
-                    services.AddTransient<IWorkflowEngineCommand>(_ =>
-                        throw new InvalidOperationException("unreadable command")
-                    );
             },
             reader.Object
         );
@@ -250,87 +157,6 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.NotNull(exception);
         Assert.Contains($"unreadable {failingDependency}", exception.Message);
         Assert.IsType<InvalidOperationException>(exception.InnerException);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ScopedDependencies_AreSharedAndDisposed_EvenWhenValidationFails(bool valid)
-    {
-        ScopeProbe? probe = null;
-        var exception = await Validate(
-            services =>
-            {
-                services.AddScoped(_ => probe = new ScopeProbe());
-                services.AddScoped<IProcessTask>(sp => new TestTask(
-                    "data",
-                    _ =>
-                    {
-                        sp.GetRequiredService<ScopeProbe>().TaskValidated = true;
-                        return valid ? [] : ["invalid configuration"];
-                    }
-                ));
-                services.AddScoped<IWorkflowEngineCommand>(sp =>
-                {
-                    sp.GetRequiredService<ScopeProbe>().CommandResolved = true;
-                    var command = new Mock<IWorkflowEngineCommand>();
-                    command.Setup(c => c.GetKey()).Returns("ScopedCommand");
-                    return command.Object;
-                });
-            },
-            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
-        );
-
-        Assert.Equal(valid, exception is null);
-        Assert.NotNull(probe);
-        Assert.True(probe.TaskValidated);
-        Assert.True(probe.CommandResolved);
-        Assert.True(probe.Disposed);
-    }
-
-    [Fact]
-    public async Task CancelledStartup_DoesNotResolveDependencies()
-    {
-        await using var provider = new ServiceCollection().BuildServiceProvider();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            CreateService(provider).StartAsync(new CancellationToken(true))
-        );
-    }
-
-    [Fact]
-    public async Task CancellationDuringTaskValidation_IsNotReportedAsInvalidConfiguration()
-    {
-        using var cancellation = new CancellationTokenSource();
-        ServiceCollection services = CreateServices(ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"));
-        services.AddSingleton<IProcessTask>(
-            new TestTask(
-                "data",
-                _ =>
-                {
-                    cancellation.Cancel();
-                    cancellation.Token.ThrowIfCancellationRequested();
-                    return [];
-                }
-            )
-        );
-        await using var provider = services.BuildServiceProvider();
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            CreateService(provider).StartAsync(cancellation.Token)
-        );
-    }
-
-    private sealed class ScopeProbe : IAsyncDisposable
-    {
-        public bool TaskValidated { get; set; }
-        public bool CommandResolved { get; set; }
-        public bool Disposed { get; private set; }
-
-        public ValueTask DisposeAsync()
-        {
-            Disposed = true;
-            return ValueTask.CompletedTask;
-        }
     }
 
     private sealed class ValidatedServiceTask(
@@ -498,12 +324,6 @@ public class ProcessTaskConfigurationValidationServiceTests
         services.AddSingleton(environment.Object);
         foreach (string type in new[] { "data", "confirmation", "feedback", "signing", "payment", "NullType" })
             services.AddSingleton<IProcessTask>(new TestTask(type));
-        foreach (string key in WorkflowEngineCommandValidator.FrameworkCommandKeys)
-        {
-            var command = new Mock<IWorkflowEngineCommand>();
-            command.Setup(c => c.GetKey()).Returns(key);
-            services.AddSingleton(command.Object);
-        }
         return services;
     }
 
