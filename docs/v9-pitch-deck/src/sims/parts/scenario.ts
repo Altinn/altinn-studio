@@ -40,8 +40,6 @@ export interface Beat {
    */
   text: string;
   status: RowStatus;
-  /** Small right-aligned note — «to PDF-er», «neste dag». */
-  at?: string;
   /** Overrides the tone the status and the side imply. */
   tone?: SimTone;
   /** New screen from this beat onwards. */
@@ -55,6 +53,8 @@ export interface Run {
   beats: readonly Beat[];
   /** One sentence for the closing comparison. */
   outcome: string;
+  /** Up to three short supporting points under the outcome in the comparison. */
+  details: readonly string[];
 }
 
 export interface Scenario {

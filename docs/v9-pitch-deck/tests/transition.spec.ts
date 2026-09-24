@@ -248,7 +248,7 @@ test('tiles enter with their slide without blinking', async ({ page }) => {
 });
 
 test('build-step content lands without blinking out', async ({ page }) => {
-  await page.goto('/#/8'); // `prosessmotor` — one part of the drawing per build step
+  await page.goto('/#/10'); // `dashbord`: the step drawer slides in on the first build step
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
 

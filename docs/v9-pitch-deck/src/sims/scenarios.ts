@@ -36,8 +36,9 @@ const RECEIPT: Screen = { title: 'Kvittering klar', body: 'Skjemaet er levert.',
  *
  *  - v8 saves the process state only after every hook has run, so the user
  *    never moves: they stay on the same page with the toast. Nothing retries by
- *    itself, and a retry runs every hook of the transition again — a PDF the
- *    first attempt already stored is inserted a second time.
+ *    itself, and a retry runs every hook of the transition again, so a message
+ *    an app hook sent (v8's correspondence client has no idempotency key) can
+ *    go out twice. (A duplicate PDF is cleaned up, so it is not the example.)
  *  - v9 retries the step automatically, and a completed step is not run again.
  *    «Ingenting ble gjort to ganger» is said about this run — never «umulig».
  */
@@ -56,13 +57,17 @@ export const FEIL: Scenario = {
       { id: 'again', text: 'Alt kjøres på nytt fra start', status: 'fail' },
       {
         id: 'twice',
-        text: 'Noe blir gjort to ganger',
+        text: 'Meldinger kan gå ut to ganger',
         status: 'fail',
-        at: 'to PDF-er',
-        screen: { title: 'Kvittering klar', body: 'Men noe ble gjort to ganger.', tone: 'wait' },
+        screen: { title: 'Kvittering klar', body: 'Men noe kan ha skjedd to ganger.', tone: 'wait' },
       },
     ],
-    outcome: 'Kari måtte prøve igjen selv, og noe ble gjort to ganger.',
+    outcome: 'Kari måtte prøve igjen selv, og noe kan ha skjedd to ganger.',
+    details: [
+      'Kari må sende inn på nytt selv',
+      'Alle stegene kjøres igjen fra start',
+      'Ingen kan se hvilke steg som ble fullført',
+    ],
   },
   v9: {
     start: READY,
@@ -75,6 +80,11 @@ export const FEIL: Scenario = {
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
     outcome: 'Kari trengte ikke å gjøre noe, og ingenting ble gjort to ganger.',
+    details: [
+      'Plattformen prøver igjen automatisk',
+      'Fullførte steg kjøres ikke på nytt',
+      'Drift ser hvert steg i dashbordet',
+    ],
   },
   takeaway: 'En kort feil gir litt ventetid, ikke en ny innsending.',
 };
@@ -106,6 +116,11 @@ export const OMSTART: Scenario = {
       { id: 'retry', text: 'Kari må prøve igjen og håpe', status: 'wait' },
     ],
     outcome: 'Halvveis utført, og ingen vet hvor langt det kom.',
+    details: [
+      'Arbeidet stopper midt i',
+      'Kari må prøve igjen og håpe det går',
+      'Noen må finne ut hva som ble gjort',
+    ],
   },
   v9: {
     start: READY,
@@ -118,6 +133,11 @@ export const OMSTART: Scenario = {
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
     outcome: 'Ferdig. Kari merket bare litt venting.',
+    details: [
+      'Hvert steg var lagret før omstarten',
+      'Arbeidet fortsetter når serveren er tilbake',
+      'Kari trenger ikke å gjøre noe',
+    ],
   },
   takeaway: 'Nye versjoner kan rulles ut midt på dagen. Innsendingene fortsetter der de slapp.',
 };

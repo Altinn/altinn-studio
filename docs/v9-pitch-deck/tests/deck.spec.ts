@@ -18,10 +18,10 @@ const FIRST_SLIDE_STEPS = 0;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 0;
 /**
- * 15 slides + 24 build steps = every state a presenter clicks through. Each
+ * 15 slides + 21 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 7: six paired beats, and the comparison.
  */
-const TOTAL_STATES = 39;
+const TOTAL_STATES = 36;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 

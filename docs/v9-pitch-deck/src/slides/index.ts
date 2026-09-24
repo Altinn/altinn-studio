@@ -73,7 +73,6 @@ export const slides: SlideDef[] = [
   {
     id: 'prosessmotor',
     component: Prosessmotor,
-    steps: 3,
     notes:
       'Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».',
   },
@@ -102,7 +101,7 @@ export const slides: SlideDef[] = [
     component: ScenarioFeil,
     steps: SIM_STEPS.feil,
     notes:
-      'Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra start. PDF-en blir for eksempel laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.',
+      'Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra start. En melding appen sender underveis, kan for eksempel gå ut to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.',
   },
   {
     id: 'scenario-omstart',
