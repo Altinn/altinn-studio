@@ -244,8 +244,8 @@ bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of 
 | 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
 | 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 7     |
 | 13 | `scenario-omstart`         | Scenario 2: the server restarts during a deploy              | 7     |
-| 14 | `oppgradering`             | Slik oppgraderer du til v9 — same process, one tool          | 1     |
-| 15 | `bli-med`                  | Bli med i pilotene — the ask                                 | 3     |
+| 14 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
+| 15 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 3     |
 
 Slides 12 and 13 render the scenarios from `src/sims` under the standard slide header. Each one is
 clicked through: every press lands the next line on both sides — v8 left, v9 right — and a last
@@ -254,6 +254,6 @@ lives in `src/styles/slides.css`; shared slide primitives (backdrop, feature car
 dividers, wires) live in `src/slides/_kit.tsx`.
 
 Accuracy rules the copy follows: never «nøyaktig én gang»; the engine is mandatory in v9; v9 is a
-closed beta; the frontend is not a rebuild and has one speed measurement; most platform gains reach
+open beta (re-check before presenting); the frontend is not a rebuild and has one speed measurement; most platform gains reach
 v8 apps too; never name an archive-system vendor. They are on the run sheet as the "do not
 overclaim" guardrails — every claim on a slide traces back to the fact sheet in `CONTENT.md`.

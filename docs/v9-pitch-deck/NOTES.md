@@ -55,8 +55,8 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 1. **Never «nøyaktig én gang».** The engine is at-least-once. Say «det som er fullført, kjøres ikke
    på nytt», or «ingenting ble gjort to ganger» about the run on screen.
 2. **The engine is mandatory in v9, not a feature you switch on.** Do not offer it as opt-in.
-3. **v9 is a closed beta.** The slides say «vi tar inn pilotapper nå»; if asked, it is internal
-   for now and opened to more organisations as needed. Never «oppgrader i dag».
+3. **v9 is in open beta, and the upgrade runs from Studio.** Both are planned before the talk —
+   check that they happened. Never «ferdig» or «oppgrader i produksjon i dag».
 4. **The frontend is not a rebuild,** and the only speed figure is one early measurement in a test
    app. Never «mye raskere».
 5. **Much of the platform work already reaches v8 apps.** The footnote on slide 3 says so.
@@ -69,7 +69,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 1 — Hva blir bedre med v9? · 2 clicks
 
-> Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kan bli med som pilot.
+> Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kommer i gang.
 
 ### 2 — Del 1 — Infrastruktur · 0 clicks
 
@@ -121,11 +121,11 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 14 — Slik oppgraderer du til v9 · 1 click
 
-> Prosessfilen i malen er lik i v8 og v9. Oppgraderingsverktøyet skriver om det det kan, og peker ut tre ting dere gjør selv: tilganger appen bruker selv, arkivoppgaver, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.
+> Prosessfilen i malen er lik i v8 og v9. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Verktøyet skriver om navn og navnerom, gjør PDF og forsendelse om til tjenesteoppgaver og legger til tilgangene appen trenger. To ting peker det ut for hånd: egen kode i prosessteg, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.
 
-### 15 — Bli med i pilotene · 3 clicks
+### 15 — Kom i gang med v9 · 3 clicks
 
-> Vi tar inn pilotapper nå. Om noen spør: v9 er i lukket beta, foreløpig internt, og vi åpner for flere organisasjoner etter hvert som dere melder dere. Vi hjelper med oppgraderingen.
+> v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, med en AI-assistent som hjelper med resten. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.
 
 ---
 

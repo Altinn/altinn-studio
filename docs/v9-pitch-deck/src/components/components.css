@@ -427,3 +427,14 @@
 .brandmark--bottom {
   bottom: 70px;
 }
+
+/* Optical alignment: larger text starts its ink further in (the side bearing
+   scales with size), so the title and subtitle sit inside the small-caps
+   kicker above them. Pull them back to the kicker's ink edge (measured). */
+.slide__title {
+  margin-left: -0.04em;
+}
+
+.slide__subtitle {
+  margin-left: -0.03em;
+}

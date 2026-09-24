@@ -6,30 +6,30 @@ import { Backdrop, BrandMark } from './_kit';
 
 const STEPS: { icon: IconName; title: string; body: string }[] = [
   {
-    icon: 'flag',
-    title: 'Si fra',
-    body: 'Fortell oss hvilken app du vil prøve v9 med.',
-  },
-  {
-    icon: 'terminal',
-    title: 'Oppgrader',
-    body: 'Verktøyet gjør det meste, og vi hjelper med resten.',
+    icon: 'rocket',
+    title: 'Oppgrader i Studio',
+    body: 'Oppgraderingen kjøres rett fra Studio, med en AI-assistent som hjelper med resten.',
   },
   {
     icon: 'server',
-    title: 'Test sammen med oss',
-    body: 'Vi åpner testmiljøet for deg og følger opp underveis.',
+    title: 'Test som vanlig',
+    body: 'Rull ut til testmiljøet og prøv appen slik dere alltid gjør.',
+  },
+  {
+    icon: 'bell',
+    title: 'Si fra',
+    body: 'Fortell oss hva som fungerer, og hva som skurrer.',
   },
 ];
 
-/** The ask. */
+/** The call to action: open beta, self-serve upgrade from Studio. */
 export default function BliMedSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="v9 · pilot"
-      title="Bli med i pilotene"
-      subtitle="Vi tar inn pilotapper nå, og hjelper dere gjennom oppgraderingen."
+      kicker="v9 · åpen beta"
+      title="Kom i gang med v9"
+      subtitle="v9 er i åpen beta. Alle kan oppgradere selv — og vi hjelper gjerne."
     >
       <Backdrop variant="closing" />
       <BrandMark place="bottom" />
@@ -59,7 +59,7 @@ export default function BliMedSlide({ step }: SlideProps) {
         <Reveal show={step >= 3}>
           <p className="s-cta">
             <Icon name="flag" size={34} />
-            Ta kontakt, så hjelper vi med oppgraderingen.
+            Trenger dere hjelp? Ta kontakt.
           </p>
         </Reveal>
       </div>

@@ -26,9 +26,8 @@ import '../styles/slides.css';
  * Copy follows `CONTENT.md` (norsk bokmål); `notes` are the taleranmerkninger.
  * Accuracy rules that hold across the deck: si «ingen dupliserte sideeffekter»
  * eller «det som er fullført, kjøres ikke på nytt», aldri «nøyaktig én gang»;
- * motoren er obligatorisk i v9; v9 er i lukket beta (sies i notatene, ikke på
- * slidene); ingen produktnavn på arkivsystemer; ingen fartsløfter utover
- * målingen som finnes.
+ * motoren er obligatorisk i v9; v9 er i åpen beta; ingen produktnavn på
+ * arkivsystemer; ingen fartsløfter utover målingen som finnes.
  */
 export const slides: SlideDef[] = [
   {
@@ -36,7 +35,7 @@ export const slides: SlideDef[] = [
     component: Forside,
     steps: 2,
     notes:
-      'Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kan bli med som pilot.',
+      'Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kommer i gang.',
   },
   {
     id: 'seksjon-infrastruktur',
@@ -119,14 +118,14 @@ export const slides: SlideDef[] = [
     component: Oppgradering,
     steps: 1,
     notes:
-      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingsverktøyet skriver om det det kan, og peker ut tre ting dere gjør selv: tilganger appen bruker selv, arkivoppgaver, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
+      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Verktøyet skriver om navn og navnerom, gjør PDF og forsendelse om til tjenesteoppgaver og legger til tilgangene appen trenger. To ting peker det ut for hånd: egen kode i prosessteg, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
   },
   {
     id: 'bli-med',
     component: BliMed,
     steps: 3,
     notes:
-      'Vi tar inn pilotapper nå. Om noen spør: v9 er i lukket beta, foreløpig internt, og vi åpner for flere organisasjoner etter hvert som dere melder dere. Vi hjelper med oppgraderingen.',
+      'v9 er i åpen beta, og alle kan oppgradere selv — rett fra Studio, med en AI-assistent som hjelper med resten. Rull ut til test og prøv som vanlig, og si fra hva som skurrer. Trenger dere hjelp, tar vi det gjerne.',
   },
 ];
 

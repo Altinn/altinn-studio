@@ -172,9 +172,18 @@ export function ScenarioStage({ scenario, step }: ScenarioStageProps) {
         transition={{ duration: 0.35, ease: EASE }}
       >
         {phase.kind === 'run' ? (
-          <div className="scn__pair">
-            <RunColumn scenario={scenario} side="v8" cursor={phase.cursor} />
-            <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
+          // Same frame as the comparison: the two columns fill the same box, and an
+          // invisible takeaway holds its line, so the last press swaps the
+          // contents without moving or resizing either box.
+          <div className="scn__summary">
+            <div className="scn__pair">
+              <RunColumn scenario={scenario} side="v8" cursor={phase.cursor} />
+              <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
+            </div>
+            <p className="scn__takeaway is-placeholder" aria-hidden>
+              <span className="scn__takeaway-rule" />
+              {scenario.takeaway}
+            </p>
           </div>
         ) : (
           <SummaryView scenario={scenario} />
