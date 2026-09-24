@@ -27,10 +27,11 @@ import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 's
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { AppQueries } from 'src/queries/types';
+import type * as QueriesModule from 'src/queries/queries';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
 vi.mock('src/queries/queries', async () => {
-  const actual = await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries');
+  const actual = await vi.importActual<typeof QueriesModule>('src/queries/queries');
   return {
     ...actual,
     fetchExternalApi: vi.fn(),
@@ -50,7 +51,6 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
     {
       returnType: ExprVal.Any,
       defaultValue: null,
-      propertyPath: 'expression',
       errorIntroText: 'Invalid test expression',
     },
     { positionalArguments, valueArguments },
