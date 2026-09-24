@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
@@ -12,6 +11,7 @@ import {
   type useGetCachedInitialValidations,
   useIsUpdatingInitialValidations,
 } from 'src/core/queries/backendValidation';
+import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore } from 'src/features/form/FormContext';
@@ -46,6 +46,8 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
+  // Rejects every write, as if all data elements were locked
+  locked: boolean;
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;

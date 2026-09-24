@@ -5,6 +5,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
+import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import {
   InstanceRouter,
@@ -67,5 +68,42 @@ describe('FormProvider', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
+  });
+
+  it('rejects form data that a component writes when a PDF renders a task other than the current one', async () => {
+    window.altinnAppGlobalData.ui.folders.Task_Pdf = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
+    const logError = vi
+      .spyOn(window, 'logError')
+      .mockImplementation(() => {})
+      .mockName('window.logError');
+    const { mutations } = await renderGenericComponentTest({
+      type: 'Address',
+      renderer: (props) => <AddressComponent {...props} />,
+      component: {
+        simplified: true,
+        dataModelBindings: {
+          address: { dataType: defaultDataTypeMock, field: 'address' },
+          zipCode: { dataType: defaultDataTypeMock, field: 'zipCode' },
+          postPlace: { dataType: defaultDataTypeMock, field: 'postPlace' },
+        },
+      },
+      taskId: 'Task_Pdf',
+      query: 'pdf=1',
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { address: 'a', zipCode: '0001', postPlace: 'Feil' };
+          }),
+      },
+    });
+
+    // Longer than the debounce timeout, so a changed value would have been saved
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
+    expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+    expect(screen.getByDisplayValue('Feil')).toBeInTheDocument();
+    expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
+    logError.mockRestore();
   });
 });

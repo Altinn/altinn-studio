@@ -73,7 +73,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
-  const dataSliceProps = useFormDataSliceProps(bootstrap);
+  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
   if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
@@ -178,7 +178,8 @@ function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasP
 
 /**
  * A PDF can render a task other than the current one, such as a preview of a later PDF service task. That task's
- * layouts must not change the current task's form data, so its form is read-only.
+ * layouts must not change the current task's form data, so its form is read-only and its data is locked, as the
+ * current task's data will be when that task runs.
  */
 function useIsPdfOfOtherTask(): boolean {
   const isPdf = useIsPdf();
@@ -281,7 +282,10 @@ function createFormStore({
   );
 }
 
-export function useFormDataSliceProps(bootstrap: FormBootstrapBase | null): FormDataSliceProps | undefined {
+export function useFormDataSliceProps(
+  bootstrap: FormBootstrapBase | null,
+  locked: boolean,
+): FormDataSliceProps | undefined {
   const proxies = useFormDataWriteProxies();
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
@@ -295,6 +299,7 @@ export function useFormDataSliceProps(bootstrap: FormBootstrapBase | null): Form
   return {
     dataModels: bootstrap.dataModels,
     autoSaving: !autoSaveBehavior || autoSaveBehavior === 'onChangeFormData',
+    locked,
     proxies,
     changeInstance,
     selectFromInstance,
