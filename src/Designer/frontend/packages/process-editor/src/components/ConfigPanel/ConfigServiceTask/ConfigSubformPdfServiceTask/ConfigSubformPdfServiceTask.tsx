@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDisplayTile, StudioFormGroup, StudioList } from '@studio/components';
+import { StudioFormGroup, StudioList } from '@studio/components';
 import { useSaveSubformPdfComponentMutation } from 'app-shared/hooks/mutations/useSaveSubformPdfComponentMutation';
 import { useSubformComponentsQuery } from 'app-shared/hooks/queries/useSubformComponentsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -61,7 +61,6 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
       <StudioList.Item>
         <StudioFormGroup
           className={sharedClasses.group}
-          description={t('process_editor.configuration_panel_subform_pdf_description')}
           legend={t('process_editor.configuration_panel_subform_pdf_legend')}
           required
           tagText={t('general.required')}
@@ -70,10 +69,6 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
             subformComponentId={subformComponentId}
             componentIds={getSelectableSubformComponentIds(subformComponents ?? [], taskId)}
             onChange={handleSubformComponentIdChange}
-          />
-          <StudioDisplayTile
-            label={t('process_editor.configuration_panel_subform_pdf_data_type_label')}
-            value={subformDataTypeId}
           />
           {isStatusKnown && (
             <SubformPdfStatus

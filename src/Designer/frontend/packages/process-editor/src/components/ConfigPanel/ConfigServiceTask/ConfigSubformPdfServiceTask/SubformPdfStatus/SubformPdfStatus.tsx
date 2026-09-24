@@ -57,7 +57,7 @@ export const SubformPdfStatus = ({
       return (
         <IssueAlert
           message={t('process_editor.configuration_panel_subform_pdf_data_type_mismatch', {
-            dataTypeId: issue.subformDataTypeId,
+            componentId: subformComponentId,
           })}
           actionText={t('process_editor.configuration_panel_subform_pdf_data_type_fix_button')}
           onAction={() => onFixDataType(issue.subformDataTypeId)}

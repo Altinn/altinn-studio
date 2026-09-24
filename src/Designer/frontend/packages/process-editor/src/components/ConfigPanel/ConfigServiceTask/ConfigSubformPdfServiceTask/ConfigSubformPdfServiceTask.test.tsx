@@ -34,7 +34,6 @@ const subformDataTypeId = 'moped';
 const componentIdLabel = textMock(
   'process_editor.configuration_panel_subform_pdf_component_id_label',
 );
-const dataTypeLabel = textMock('process_editor.configuration_panel_subform_pdf_data_type_label');
 const requiredError = textMock('validation_errors.required');
 
 describe('ConfigSubformPdfServiceTask', () => {
@@ -137,15 +136,6 @@ describe('ConfigSubformPdfServiceTask', () => {
     });
   });
 
-  it('shows the data type the task points at without letting the developer edit it', () => {
-    renderConfigSubformPdfServiceTask({
-      subformPdfConfig: { subformComponentId: componentId, subformDataTypeId },
-    });
-
-    expect(screen.getByLabelText(dataTypeLabel)).toHaveTextContent(subformDataTypeId);
-    expect(screen.queryByRole('textbox', { name: dataTypeLabel })).not.toBeInTheDocument();
-  });
-
   describe('the status', () => {
     // A picker showing an id it does not offer filters out every option after mounting and
     // re-renders, so these tests wait for that instead of asserting right after the render.
@@ -202,7 +192,7 @@ describe('ConfigSubformPdfServiceTask', () => {
       expect(
         screen.getByText(
           textMock('process_editor.configuration_panel_subform_pdf_data_type_mismatch', {
-            dataTypeId: subformDataTypeId,
+            componentId,
           }),
         ),
       ).toBeInTheDocument();
