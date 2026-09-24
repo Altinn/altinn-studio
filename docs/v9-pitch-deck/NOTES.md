@@ -62,7 +62,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 1 — Hva blir bedre med v9? · 2 clicks
 
-> Tre deler: plattformen appene kjører på, det brukerne ser, og det som skjer etter «Send inn». Vi avslutter med hvordan dere kan bli med som pilot.
+> Tre deler: plattformen appene kjører på, det brukerne ser, og det appen gjør bak kulissene. Vi avslutter med hvordan dere kan bli med som pilot.
 
 ### 2 — Del 1 — Infrastruktur · 0 clicks
 
@@ -86,7 +86,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 7 — Del 3 — Backend · 0 clicks
 
-> Del 3: det som skjer etter «Send inn».
+> Del 3: det appen gjør bak kulissene — prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.
 
 ### 8 — Ett klikk, ti ting · 2 clicks
 
@@ -106,7 +106,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 12 — Vi kan se hva som skjer · 3 clicks
 
-> Dashbordet viser innsendinger som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.
+> Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.
 
 ### 13 — Hva koster oppgraderingen? · 1 click
 

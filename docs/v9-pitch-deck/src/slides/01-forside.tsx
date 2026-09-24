@@ -6,7 +6,7 @@ import { Backdrop, BrandMark } from './_kit';
 const PARTS: { icon: IconName; no: string; title: string; body: string }[] = [
   { icon: 'server', no: 'Del 1', title: 'Infrastruktur', body: 'Plattformen appene kjører på' },
   { icon: 'eye', no: 'Del 2', title: 'Frontend', body: 'Det brukerne ser og klikker i' },
-  { icon: 'send', no: 'Del 3', title: 'Backend', body: 'Det som skjer etter «Send inn»' },
+  { icon: 'send', no: 'Del 3', title: 'Backend', body: 'Det appen gjør bak kulissene' },
 ];
 
 /** The cover, and the map of the talk: one part per click. */
@@ -21,7 +21,7 @@ export default function ForsideSlide({ step }: SlideProps) {
           <p className='s-cover__kicker'>Altinn-apper · v9</p>
           <h1 className='s-cover__title'>Hva blir bedre med v9?</h1>
           <p className='s-cover__lead'>
-            Raskere skjema, tryggere innsending og enklere drift — fra plattformen og helt ut til
+            Raskere skjema, tryggere prosesser og enklere drift — fra plattformen og helt ut til
             brukeren.
           </p>
         </div>

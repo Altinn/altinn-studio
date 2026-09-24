@@ -70,12 +70,12 @@ export default function DashbordSlide({ step }: SlideProps) {
       variant="full"
       kicker="Backend · drift"
       title="Vi kan se hva som skjer"
-      subtitle="Hver innsending, hvert steg og hvert nytt forsøk — med tidsbruk og hele feilhistorikken."
+      subtitle="Hver prosess, hvert steg og hvert nytt forsøk — med tidsbruk og hele feilhistorikken."
     >
       <div className="s-dash">
         <div className="s-panel">
           <div className="s-panel__head">
-            <span>Innsendinger som pågår</span>
+            <span>Prosesser som pågår</span>
             <span className="s-live">
               <Dot tone="ok" />
               Sanntid
