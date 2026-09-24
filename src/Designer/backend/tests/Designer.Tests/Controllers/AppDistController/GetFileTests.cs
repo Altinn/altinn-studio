@@ -49,8 +49,48 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
         Assert.Equal(LayoutSchema, responseBody);
-        Assert.True(response.Headers.CacheControl?.Private);
+        Assert.True(response.Headers.CacheControl?.Public);
         Assert.Contains(response.Headers.CacheControl!.Extensions, e => e.Name == "immutable");
+    }
+
+    [Fact]
+    public async Task GetFile_AnonymousCaller_ServesFile()
+    {
+        _appDistProviderMock
+            .Setup(p => p.GetLayer(Version, AppDistLayer.Content, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_contentMock.Object);
+        _contentMock
+            .Setup(c => c.OpenFile(FrontendPaths.AltinnAppFrontendStyles, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes("body{}")));
+        using HttpClient anonymousClient = CreateTestClientWithAuthHandler<UnauthenticatedTestAuthHandler>();
+
+        using HttpResponseMessage response = await anonymousClient.GetAsync(
+            FileUrl(Version, FrontendPaths.AltinnAppFrontendStyles)
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/css", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("body{}", await response.Content.ReadAsStringAsync());
+        Assert.True(response.Headers.CacheControl?.Public);
+    }
+
+    [Fact]
+    public async Task GetFile_ApiKeyCaller_ServesFile()
+    {
+        _appDistProviderMock
+            .Setup(p => p.GetLayer(Version, AppDistLayer.Content, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_contentMock.Object);
+        _contentMock
+            .Setup(c => c.OpenFile(FrontendPaths.AltinnAppFrontendJavascript, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes("console.log(1);")));
+        using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
+
+        using HttpResponseMessage response = await apiKeyClient.GetAsync(
+            FileUrl(Version, FrontendPaths.AltinnAppFrontendJavascript)
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("console.log(1);", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -82,6 +122,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         using HttpResponseMessage response = await HttpClient.GetAsync(FileUrl(Version, LayoutSchemaPath));
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Null(response.Headers.CacheControl);
     }
 
     [Fact]
@@ -99,6 +140,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         );
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Null(response.Headers.CacheControl);
     }
 
     [Theory]
@@ -157,6 +199,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
             ["altinn-app-frontend.js", LayoutSchemaPath],
             JsonSerializer.Deserialize<List<string>>(responseBody)
         );
+        Assert.True(response.Headers.CacheControl?.Public);
     }
 
     [Fact]
@@ -187,6 +230,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         using HttpResponseMessage response = await HttpClient.GetAsync(FileUrl(Version, "nope/"));
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Null(response.Headers.CacheControl);
     }
 
     private static string FileUrl(string version, string filePath) => $"designer/app-dist/{version}/{filePath}";

@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.AppDist;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,12 @@ using Microsoft.Net.Http.Headers;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Serves files from published Altinn app frontend distributions.
+/// Serves files from published Altinn app frontend distributions. The distributions are public, so the
+/// endpoints accept anonymous callers as well as Studio sessions and API keys.
 /// </summary>
 [ApiController]
-[Authorize]
-[AutoValidateAntiforgeryToken]
+[AllowAnonymous]
+[AllowApiKey]
 [Route("designer/app-dist")]
 public partial class AppDistController(IAppDistProvider appDistProvider) : ControllerBase
 {
@@ -29,7 +31,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     private static readonly FileExtensionContentTypeProvider s_contentTypeProvider = new();
     private static readonly CacheControlHeaderValue s_immutableCacheControl = new()
     {
-        Private = true,
+        Public = true,
         MaxAge = TimeSpan.FromDays(365),
         Extensions = { new NameValueHeaderValue("immutable") },
     };
@@ -74,7 +76,6 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
             return NotFound($"App frontend version \"{version}\" has not been published.");
         }
 
-        Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
         return isDirectory
             ? await ListDirectory(content, path, cancellationToken)
             : await ServeFile(content, path, cancellationToken);
@@ -93,6 +94,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
             return NotFound($"App frontend version \"{content.Version}\" has no directory \"{directoryPrefix}\".");
         }
 
+        MarkResponseImmutable();
         return Ok(matches);
     }
 
@@ -115,8 +117,15 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
         string contentType = s_contentTypeProvider.TryGetContentType(filePath, out string? knownContentType)
             ? knownContentType
             : MediaTypeNames.Application.Octet;
+        MarkResponseImmutable();
         return File(fileStream, contentType);
     }
+
+    /// <summary>
+    /// Published versions never change, so successful responses can be cached by browsers and shared caches
+    /// indefinitely. Error responses are left uncached since a later publish or fix may change them.
+    /// </summary>
+    private void MarkResponseImmutable() => Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
 
     private static AppDistLayer LayerFor(string path) =>
         path.StartsWith(SchemasLayerPathPrefix, StringComparison.Ordinal) ? AppDistLayer.Schemas : AppDistLayer.Content;

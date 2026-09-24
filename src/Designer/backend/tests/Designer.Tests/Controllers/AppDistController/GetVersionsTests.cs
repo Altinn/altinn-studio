@@ -46,6 +46,30 @@ public class GetVersionsTests
     }
 
     [Fact]
+    public async Task GetVersions_AnonymousCaller_ReturnsPublishedVersions()
+    {
+        _appDistProviderMock.Setup(p => p.ListVersions(It.IsAny<CancellationToken>())).ReturnsAsync(["9.0.0"]);
+        using HttpClient anonymousClient = CreateTestClientWithAuthHandler<UnauthenticatedTestAuthHandler>();
+
+        using HttpResponseMessage response = await anonymousClient.GetAsync(VersionsUrl);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(["9.0.0"], JsonSerializer.Deserialize<List<string>>(responseBody));
+    }
+
+    [Fact]
+    public async Task GetVersions_ApiKeyCaller_ReturnsPublishedVersions()
+    {
+        _appDistProviderMock.Setup(p => p.ListVersions(It.IsAny<CancellationToken>())).ReturnsAsync(["9.0.0"]);
+        using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
+
+        using HttpResponseMessage response = await apiKeyClient.GetAsync(VersionsUrl);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetVersions_WhenRegistryIsUnavailable_ReturnsBadGateway()
     {
         _appDistProviderMock
