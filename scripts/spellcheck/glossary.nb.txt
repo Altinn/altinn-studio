@@ -29,6 +29,7 @@ applikasjonsfeil
 applikasjonsmetrikker
 applikasjonsnavnet
 appversjon
+arbeidsflytmotoren
 arbeidslagsnavn
 arbeidstidsdata
 autentiseringer

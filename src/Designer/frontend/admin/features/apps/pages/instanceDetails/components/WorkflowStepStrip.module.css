@@ -1,0 +1,63 @@
+/* As tall as a line of the row's text, with the dots centered in it, so they sit on the same
+   line as the status, the name and the date rather than hugging the top of the cell. */
+.dots {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 1.5rem;
+}
+
+.dot {
+  box-sizing: border-box;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--ds-color-neutral-border-default);
+  background: transparent;
+}
+
+.dot[data-tone='success'] {
+  border-color: var(--ds-color-success-base-default);
+  background: var(--ds-color-success-base-default);
+}
+
+.dot[data-tone='danger'] {
+  border-color: var(--ds-color-danger-base-default);
+  background: var(--ds-color-danger-base-default);
+}
+
+.dot[data-tone='info'] {
+  border-color: var(--ds-color-info-base-default);
+  background: var(--ds-color-info-base-default);
+}
+
+.dot[data-tone='warning'] {
+  border-color: var(--ds-color-warning-base-default);
+  background: var(--ds-color-warning-base-default);
+}
+
+.dot[data-tone='neutral'] {
+  border-color: var(--ds-color-neutral-base-default);
+  background: var(--ds-color-neutral-base-default);
+}
+
+/* The step being executed right now breathes, so the eye finds it without reading. */
+.dot[data-live] {
+  animation: pulse 1.2s ease-out infinite;
+}
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-color-info-base-default) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-live] {
+    animation: none;
+  }
+}

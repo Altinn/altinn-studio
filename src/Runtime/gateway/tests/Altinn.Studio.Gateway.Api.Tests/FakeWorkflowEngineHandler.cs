@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Altinn.Studio.Gateway.Api.Tests;
 
-internal sealed record CapturedEngineRequest(HttpMethod Method, Uri Uri);
+internal sealed record CapturedEngineRequest(HttpMethod Method, Uri Uri, string? Body, string? ContentType);
 
 /// <summary>
 /// Stand-in for the upstream workflow engine: captures every request the gateway sends and
@@ -50,21 +50,24 @@ internal sealed class FakeWorkflowEngineHandler : HttpMessageHandler
         return response;
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(
+    protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken
     )
     {
         var requestUri =
             request.RequestUri ?? throw new InvalidOperationException("Engine request has no request URI.");
+        // Read before the gateway disposes the request: the body is what a forwarding test asserts.
+        var body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
+        var contentType = request.Content?.Headers.ContentType?.MediaType;
         lock (_requests)
         {
-            _requests.Add(new CapturedEngineRequest(request.Method, requestUri));
+            _requests.Add(new CapturedEngineRequest(request.Method, requestUri, body, contentType));
         }
 
         if (ExceptionToThrow is not null)
             throw ExceptionToThrow;
 
-        return Task.FromResult(ResponseFactory(request));
+        return ResponseFactory(request);
     }
 }
