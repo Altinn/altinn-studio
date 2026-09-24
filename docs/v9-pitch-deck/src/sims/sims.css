@@ -1,18 +1,16 @@
 /* ---------------------------------------------------------------
-   Live simulations. Every size is ABSOLUTE px on the 1920x1080
-   canvas (see src/styles/tokens.css) — the Stage transform does
-   the rest.
+   Scenarios. Every size is ABSOLUTE px on the 1920x1080 canvas
+   (see src/styles/tokens.css) — the Stage transform does the rest.
 
-   One template, three scenarios: a sentence and an icon on top,
-   two columns holding one person's screen and the short list of
-   what happened to them, and one closing sentence. The list is
-   what the audience reads, so its rows are 25px; the screen above
-   it is a flat mock, not a photograph.
+   One template, one stage: a sentence and an icon on top, the phone
+   Kari is holding on the left, and the list of what happens to her on
+   the right, one line per press. The same accident plays twice — v8,
+   then v9 — and ends on the two outcomes side by side.
 
-   Colours come only from design tokens. Every tone is *mixed
-   against the theme's own ink* (`--text-100`), so one rule set
-   reads correctly on a dark ground and on a light one. No
-   literals, no glows, no shadows.
+   Colours come only from design tokens. Every tone is *mixed against
+   the theme's own ink* (`--text-100`), so one rule set reads correctly
+   on a dark ground and on a light one. No literals, no glows, no
+   shadows.
    --------------------------------------------------------------- */
 
 /* ===== Tone palette =========================================== */
@@ -26,8 +24,8 @@
   --ink-3: var(--text-300);
   --ink-4: var(--text-400);
 
-  /* Height of one row in a column's action list. */
-  --alog-row: 41px;
+  /* Height of one row in the action list. */
+  --alog-row: 66px;
 }
 
 .sim [class*='--neutral'] {
@@ -87,19 +85,14 @@
 .sim {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
   width: 100%;
   height: 100%;
-  min-height: 700px;
   color: var(--ink);
   font-family: var(--font-sans);
 }
 
-.sim.is-live {
-  cursor: pointer;
-}
-
-/* ---- What goes wrong: one sentence, one icon ---- */
+/* ---- What goes wrong: one sentence, one icon, which version ---- */
 
 .scn__head {
   flex: 0 0 auto;
@@ -113,8 +106,8 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
+  width: 80px;
+  height: 80px;
   border-radius: var(--r-md);
   border: 2px solid var(--line);
   background: var(--surface-1);
@@ -122,7 +115,8 @@
 }
 
 .scn__headline {
-  font-size: 42px;
+  flex: 1 1 auto;
+  font-size: 44px;
   font-weight: var(--fw-bold);
   line-height: 1.1;
   letter-spacing: var(--tracking-snug);
@@ -130,95 +124,78 @@
   text-wrap: balance;
 }
 
-/* ---- The two columns ---- */
+/* Which telling the room is watching. Gold for today, blue for v9 — the
+   same colours the rows use, so the pill and the list agree. */
+.scn__phase {
+  flex: 0 0 auto;
+  padding: 10px 28px;
+  border-radius: 999px;
+  border: 3px solid var(--t-line);
+  background: var(--t-bg);
+  color: var(--t);
+  font-size: 32px;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
 
-.scn__cols {
+.scn__phase--v8 {
+  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--warning) 15%, transparent);
+  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
+}
+
+.scn__phase--v9 {
+  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--blue-500) 13%, transparent);
+  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
+}
+
+.scn__body {
   flex: 1 1 auto;
   min-height: 0;
+}
+
+/* ---- One telling: the phone, then the list ---- */
+
+.scn__run {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 480px minmax(0, 1fr);
+  align-items: start;
+  gap: 64px;
+  height: 100%;
 }
 
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 14px 18px 16px;
-  border: 2px solid var(--t-line);
-  border-radius: var(--r-md);
-  /* Lighter than a row's own tint on purpose: the column says which version you
-     are looking at, the rows say what happened. */
-  background: color-mix(in srgb, var(--t) 6%, transparent);
-  overflow: hidden;
-}
-
-.pane__title {
-  flex: 0 0 auto;
-  margin-bottom: 12px;
-  font-size: 30px;
-  font-weight: var(--fw-bold);
-  line-height: 1.15;
-  letter-spacing: var(--tracking-snug);
-  color: var(--ink);
-}
-
-/* ===== The screen mock ======================================== */
+/* ===== The phone ============================================== */
 
 .scr {
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  height: 254px;
-  border: 2px solid var(--line);
-  border-radius: var(--r-md);
+  width: 480px;
+  height: 560px;
+  border: 3px solid var(--line);
+  border-radius: var(--r-xl);
   background: var(--bg);
   overflow: hidden;
-}
-
-/* One phone, centred — the citizen is holding it, not filling a wall with it. */
-.scr--phone {
-  width: 380px;
-  margin: 0 auto;
-  border-radius: var(--r-xl);
 }
 
 .scr__chrome {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 32px;
-  padding: 0 14px;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
   border-bottom: 2px solid var(--line-soft);
   background: var(--surface-2);
   color: var(--ink-4);
-  font-size: 19px;
+  font-size: 21px;
   font-weight: var(--fw-semibold);
 }
 
-.scr--phone .scr__chrome {
-  justify-content: center;
-}
-
-.scr__url,
-.scr__title {
+.scr__url {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.scr__dots {
-  flex: 0 0 auto;
-  display: inline-flex;
-  gap: 6px;
-}
-
-.scr__dots i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--line-strong);
 }
 
 .scr__body {
@@ -226,80 +203,52 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-}
-
-.scr--phone .scr__body {
-  justify-content: center;
-  padding: 14px 20px;
-}
-
-.scr__state {
-  flex: 0 0 auto;
-  display: flex;
   align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.scr--phone .scr__state {
-  flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px 36px;
   text-align: center;
 }
 
 .scr__glyph {
-  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--r-sm);
   border: 2px solid var(--t-line);
   background: var(--t-bg);
   color: var(--t);
 }
 
-.scr__lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
 .scr__head {
-  font-size: 27px;
+  font-size: 38px;
   font-weight: var(--fw-bold);
   line-height: 1.15;
   letter-spacing: var(--tracking-snug);
   color: var(--t);
-}
-
-.scr--phone .scr__head {
-  font-size: 30px;
   text-wrap: balance;
 }
 
 .scr__sub {
-  font-size: 22px;
-  line-height: 1.2;
+  font-size: 27px;
+  line-height: 1.25;
   color: var(--ink-4);
   text-wrap: pretty;
 }
 
 .scr__dot {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: currentcolor;
 }
 
 .scr__spinner {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 3px solid color-mix(in srgb, var(--t) 30%, transparent);
+  border: 4px solid color-mix(in srgb, var(--t) 30%, transparent);
   border-top-color: var(--t);
   animation: sim-spin 0.9s linear infinite;
 }
@@ -310,103 +259,26 @@
   }
 }
 
-/* ---- Rows inside a screen: a status card, a dashboard, a log ---- */
-
-.scr__rows {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  /* A screen that asks for more rows than it has room for loses the bottom of
-     the list rather than drawing it through the button below. */
-  overflow: hidden;
-}
-
-.scr__row {
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  min-height: 28px;
-  max-height: 54px;
-  padding: 0 12px;
-  border-radius: var(--r-sm);
-  border-left: 4px solid var(--t-line);
-  background: var(--t-bg);
-  font-size: 22px;
-}
-
-.scr__row-label {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--ink-3);
-}
-
-.scr__row-value {
-  flex: 0 0 auto;
-  font-weight: var(--fw-bold);
-  color: var(--t);
-}
-
-/* A log wall: no values, mono, quiet — it is meant to be unreadable at a
-   glance, which is the point being made. */
-.scr__rows--mono .scr__row {
-  border-left: 0;
-  padding: 0 8px;
-  background: none;
-  font-family: var(--font-mono);
-  font-size: 19px;
-  color: var(--ink-4);
-}
-
+/* SOLID on purpose: «Send inn» is the one solid blue block on slide 1, and the
+   room has to read this as the button Kari presses, not as a label. */
 .scr__btn {
-  flex: 0 0 auto;
-  align-self: flex-start;
-  padding: 4px 18px;
+  margin-top: 8px;
+  padding: 10px 36px;
   border-radius: var(--r-sm);
-  border: 2px solid color-mix(in srgb, var(--blue-500) 52%, transparent);
-  background: color-mix(in srgb, var(--blue-500) 10%, transparent);
-  color: color-mix(in srgb, var(--blue-500) 78%, var(--ink));
-  font-size: 22px;
+  background: var(--blue-500);
+  color: var(--text-on-dark);
+  font-size: 28px;
   font-weight: var(--fw-bold);
   white-space: nowrap;
-}
-
-/* A phone screen is centred, so its button is too — a primary action pinned to
-   the left edge of a phone is not a phone. It is also SOLID: «Send inn» is the
-   one solid blue block on slide 1, and the room has to read this as the button
-   Kari presses, not as a label. */
-.scr--phone .scr__btn {
-  align-self: center;
-  margin-top: 4px;
-  padding: 6px 26px;
-  border-color: var(--blue-500);
-  background: var(--blue-500);
-  color: var(--text-on-dark);
-}
-
-.scr__btn.is-pressed {
-  border-color: var(--blue-500);
-  background: var(--blue-500);
-  color: var(--text-on-dark);
 }
 
 /* ===== The action list ======================================== */
 
 .alist {
-  flex: 1 1 auto;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin: 12px 0 0;
+  gap: 12px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -414,12 +286,12 @@
 .arow {
   flex: 0 0 var(--alog-row);
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 12px;
-  padding: 0 12px 0 9px;
+  column-gap: 18px;
+  padding: 0 20px 0 16px;
   border-radius: var(--r-sm);
-  border-left: 5px solid var(--t-line);
+  border-left: 6px solid var(--t-line);
   background: var(--t-bg);
 }
 
@@ -431,7 +303,7 @@
 
 .arow__text {
   min-width: 0;
-  font-size: 25px;
+  font-size: 34px;
   font-weight: var(--fw-medium);
   line-height: 1.15;
   color: var(--t);
@@ -446,40 +318,110 @@
 }
 
 .arow__at {
-  font-family: var(--font-mono);
-  font-size: 20px;
+  font-size: 26px;
   font-weight: var(--fw-semibold);
-  font-variant-numeric: tabular-nums;
   color: var(--t-soft);
   white-space: nowrap;
 }
 
 .arow__spinner {
-  width: 19px;
-  height: 19px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  border: 3px solid color-mix(in srgb, var(--t) 30%, transparent);
+  border: 4px solid color-mix(in srgb, var(--t) 30%, transparent);
   border-top-color: var(--t);
   animation: sim-spin 0.9s linear infinite;
 }
 
 /* A row that was running when it landed, once a later beat has moved past it. */
 .arow__past {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--t-soft);
 }
 
-/* ===== The closing sentence =================================== */
+/* ===== The comparison ========================================= */
+
+.scn__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100%;
+}
+
+.scn__cmp {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.scn__card {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 36px;
+  row-gap: 18px;
+  padding: 26px 30px;
+  border-radius: var(--r-md);
+  border: 3px solid var(--t-line);
+  background: color-mix(in srgb, var(--t) 6%, transparent);
+}
+
+.scn__card--v8 {
+  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
+  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
+}
+
+.scn__card--v9 {
+  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
+  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
+}
+
+.scn__card-title {
+  grid-column: 1 / -1;
+  font-size: 34px;
+  font-weight: var(--fw-bold);
+  color: var(--t);
+}
+
+/* The phone again, smaller: the room has already seen it full size. */
+.scn__card .scr {
+  width: 300px;
+  height: 380px;
+}
+
+.scn__card .scr__head {
+  font-size: 28px;
+}
+
+.scn__card .scr__sub {
+  font-size: 21px;
+}
+
+.scn__card .scr__btn {
+  font-size: 22px;
+  padding: 6px 22px;
+}
+
+.scn__card-outcome {
+  align-self: center;
+  font-size: 36px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+  color: var(--ink);
+  text-wrap: pretty;
+}
 
 .scn__takeaway {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 20px;
-  min-height: 58px;
-  font-size: 30px;
+  font-size: 36px;
   font-weight: var(--fw-semibold);
   line-height: 1.2;
   color: var(--ink-2);
@@ -489,132 +431,9 @@
 .scn__takeaway-rule {
   flex: 0 0 auto;
   width: 6px;
-  height: 40px;
+  height: 48px;
   border-radius: var(--r-sm);
   background: var(--blue-500);
-}
-
-/* ===== The rail =============================================== */
-
-.brail {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  min-height: 32px;
-}
-
-.brail__track {
-  flex: 1 1 auto;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  min-width: 0;
-}
-
-.brail__seg {
-  min-width: 0;
-}
-
-.brail__hit {
-  width: 100%;
-  display: block;
-  padding: 8px 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-
-.brail__bar {
-  display: block;
-  width: 100%;
-  height: 7px;
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--ink) 13%, transparent);
-  overflow: hidden;
-}
-
-.brail__fill {
-  display: block;
-  height: 100%;
-  background: color-mix(in srgb, var(--blue-500) 72%, var(--ink));
-  transition: width 120ms linear;
-}
-
-.brail__btn {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 3px 16px;
-  border: 2px solid color-mix(in srgb, var(--ink) 20%, transparent);
-  border-radius: var(--r-sm);
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink-3);
-  font-family: inherit;
-  font-size: 21px;
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.brail__glyph {
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* ===== Harness (dev only, not part of the deck) =============== */
-
-/* The harness renders the scene inside a real 1920x1080 slide box, so what it
-   shows — and what `scripts/sim-shots.mjs` photographs — is what the stage
-   shows, down to the pixel. */
-.simharness {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.simharness .slide {
-  flex: 0 0 auto;
-  width: 1920px;
-  height: 1080px;
-}
-
-.simharness__bar {
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  z-index: 10;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  font-size: 22px;
-  color: var(--text-300);
-}
-
-.simharness__bar button {
-  padding: 8px 18px;
-  border: 2px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  color: var(--text-200);
-  font-family: inherit;
-  font-size: 22px;
-  font-weight: var(--fw-semibold);
-}
-
-.simharness__bar button[aria-pressed='true'] {
-  border-color: var(--blue-500);
-  color: var(--text-100);
 }
 
 @media (prefers-reduced-motion: reduce) {

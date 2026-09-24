@@ -3,16 +3,16 @@
  * Integration QA pass — the combined walkthrough.
  *
  * Drives the built deck exactly as a presenter would (`→` only, never the hash)
- * and photographs every state, but unlike `walkthrough.mjs` it also gives the
- * three autoplaying simulations the time they actually take: a frame on arrival,
- * a frame every 2 s across the whole run, and a restart check (`←` then `→`).
- * Finally it fires six presses inside one second and shoots where the deck lands.
+ * and photographs every state, and unlike `walkthrough.mjs` it measures each
+ * one. Finally it fires six presses inside one second and shoots where the deck
+ * lands.
  *
  *   node scripts/qa-walkthrough.mjs            # build must already exist
  *   node scripts/qa-walkthrough.mjs --out shots/qa2
  *
- * Every shot also records a geometry probe, so clipping inside a simulation is
- * caught by measurement rather than by eye alone.
+ * Every shot also records a geometry probe, so text that overflows the canvas or
+ * is clipped inside its own box (a scenario row, a card) is caught by
+ * measurement rather than by eye alone.
  */
 import { spawn } from 'node:child_process';
 import { mkdir, rm, readdir, writeFile } from 'node:fs/promises';
@@ -24,12 +24,6 @@ import { chromium } from '@playwright/test';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VIEWPORT = { width: 1920, height: 1080 };
 const READY_TIMEOUT_MS = 20_000;
-
-/** Slide ids that host a self-playing simulation. */
-const SIM_SLIDES = new Set(['sim-innbygger', 'sim-ustabil', 'sim-drift']);
-/** Cover the longest scenario (~15.1 s) with headroom. */
-const SIM_SPAN_MS = 16_000;
-const SIM_FRAME_MS = 2_000;
 
 function parseArgs(argv) {
   const args = { url: null, out: 'shots/qa2', port: 4178, dwell: 1400 };
@@ -140,20 +134,10 @@ const probe = (page) =>
 
     const sim = document.querySelector('.deck__slide .sim');
     if (sim) {
-      const stage = document.querySelector('.deck__slide .s-simstage');
-      const sr = sim.getBoundingClientRect();
-      const st = stage?.getBoundingClientRect();
-      const scale = canvas ? canvas.getBoundingClientRect().width / 1920 : 1;
       out.sim = {
         name: sim.getAttribute('data-sim'),
-        cursor: Number(sim.getAttribute('data-cursor')),
-        playing: sim.getAttribute('data-playing'),
-        done: sim.getAttribute('data-done'),
-        heightPx: round(sr.height / scale),
-        stageHeightPx: st ? round(st.height / scale) : null,
-        overflowsStage: st ? round((sr.bottom - st.bottom) / scale) : null,
-        rowsV8: sim.querySelectorAll('.pane--v8 .arow').length,
-        rowsV9: sim.querySelectorAll('.pane--v9 .arow').length,
+        phase: sim.getAttribute('data-phase'),
+        rows: sim.querySelectorAll('.arow').length,
       };
     }
     return out;
@@ -216,42 +200,8 @@ async function main() {
     for (let guard = 0; guard < 200; guard++) {
       const at = await position(page);
 
-      if (SIM_SLIDES.has(at.id) && at.step === 0) {
-        // 1 s after arrival: does the scene start from zero, cleanly?
-        await page.waitForTimeout(1000);
-        await shoot({ ...at, pass: 'sim', note: 'arrive-1s' });
-
-        // The whole autoplay, a frame every 2 s.
-        for (let t = SIM_FRAME_MS; t <= SIM_SPAN_MS; t += SIM_FRAME_MS) {
-          await page.waitForTimeout(SIM_FRAME_MS);
-          await shoot({ ...at, pass: 'sim', note: `t${String(t / 1000).padStart(2, '0')}s` });
-        }
-
-        // Step off and back on: the scene must restart from the beginning.
-        await page.keyboard.press('ArrowLeft');
-        await settled(page);
-        await page.waitForTimeout(900);
-        const off = await position(page);
-        await shoot({ ...off, pass: 'sim', note: `left-off-${at.id}` });
-
-        await page.keyboard.press('ArrowRight');
-        await settled(page);
-        await page.waitForTimeout(1000);
-        const back = await position(page);
-        if (back.id !== at.id) errors.push(`← then → did not return to ${at.id} (landed on ${back.id})`);
-        await shoot({ ...back, pass: 'sim', note: 'restart-1s' });
-
-        await page.waitForTimeout(3000);
-        await shoot({ ...back, pass: 'sim', note: 'restart-4s' });
-
-        const after = await probe(page);
-        if (after.sim && after.sim.cursor > 4) {
-          errors.push(`${at.id}: restart did not reset — cursor ${after.sim.cursor} 4 s in`);
-        }
-      } else {
-        await page.waitForTimeout(args.dwell);
-        await shoot({ ...at, pass: 'forward' });
-      }
+      await page.waitForTimeout(args.dwell);
+      await shoot({ ...at, pass: 'forward' });
 
       await page.keyboard.press('ArrowRight');
       await settled(page);

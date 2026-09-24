@@ -1,4 +1,4 @@
-/** Shared vocabulary for the simulations. */
+/** Shared vocabulary for the scenarios. */
 
 /**
  * Colour role. Every component takes it as a `--<tone>` class suffix, and
@@ -11,13 +11,13 @@ export type SimTone =
   | 'muted'
   | 'accent' // v9: the engine, the path that holds
   | 'success' // an outcome that landed
-  | 'warning' // fragile, waiting, cautionary — not broken
+  | 'warning' // fragile, waiting, left to someone — not broken
   | 'danger'; // broken, lost, nobody is coming
 
-/** The two columns. */
+/** The two tellings. */
 export type Side = 'v8' | 'v9';
 
 export const SIDE_TITLE: Record<Side, string> = {
   v8: 'I dag (v8)',
-  v9: 'Med prosessmotor (v9)',
+  v9: 'Med v9',
 };
