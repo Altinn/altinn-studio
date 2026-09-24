@@ -248,6 +248,43 @@ public class SchemaModelServiceTests
     }
 
     [Fact]
+    public async Task AreModelFilesOutOfDate_WhenTheSavedSchemaCannotBeGenerated_ShouldBeTrue()
+    {
+        // Arrange
+        JsonSchemaKeywords.RegisterXsdKeywords();
+
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        try
+        {
+            await _schemaModelService.UpdateSchema(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json",
+                @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}",
+                saveOnly: true
+            );
+
+            // Act
+            bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+                editingContext,
+                "App/models/HvemErHvem_SERES.schema.json"
+            );
+
+            // Assert
+            Assert.True(isOutOfDate);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
+    [Fact]
     public async Task AreModelFilesOutOfDate_WhenCsharpModelIsMissing_ShouldBeTrue()
     {
         // Arrange

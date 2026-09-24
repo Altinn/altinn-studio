@@ -12,7 +12,9 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
+using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Converter.Xml;
@@ -236,8 +238,22 @@ public class SchemaModelService : ISchemaModelService
             cancellationToken
         );
         var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
-        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
-        string expectedCsharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        string expectedCsharpClasses;
+        try
+        {
+            ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
+            expectedCsharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        }
+        catch (Exception e)
+            when (e
+                    is MetamodelConvertException
+                        or JsonSchemaConvertException
+                        or CsharpGenerationException
+                        or CsharpCompilationException
+            )
+        {
+            return true;
+        }
         string storedCsharpClasses = await altinnAppGitRepository.ReadTextByRelativePathAsync(
             csharpModelPath,
             cancellationToken
