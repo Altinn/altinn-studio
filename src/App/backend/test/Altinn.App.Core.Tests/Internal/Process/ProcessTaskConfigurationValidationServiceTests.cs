@@ -172,27 +172,6 @@ public class ProcessTaskConfigurationValidationServiceTests
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
-    private sealed class PdfLikeTask : IServiceTask
-    {
-        public string Type => "pdf";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
-    }
-
-    private sealed class ShoutyPdfLikeTask : IServiceTask
-    {
-        public string Type => "PDF";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
-    }
-
-    private sealed class ArchiveTask : IServiceTask
-    {
-        public string Type => "archive";
-
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
-    }
-
     // Only <altinn:taskType> is read, as at runtime: a <bpmn:serviceTask> and a <bpmn:task> are checked alike.
     [Theory]
     [InlineData("pdf-service-task.bpmn", "Task_Pdf", "pdf")]
@@ -204,7 +183,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     )
     {
         var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, SimpleTask>(),
+            s => s.AddSingleton<IServiceTask>(new SimpleTask("simple")),
             ProcessTestUtils.SetupProcessReader(bpmn)
         );
 
@@ -221,12 +200,12 @@ public class ProcessTaskConfigurationValidationServiceTests
     }
 
     [Theory]
-    [InlineData("pdf-service-task.bpmn", typeof(PdfLikeTask))]
-    [InlineData("plain-task-custom-type.bpmn", typeof(ArchiveTask))]
-    public async Task ProcessTaskWithARegisteredImplementation_PassesValidation(string bpmn, Type implementation)
+    [InlineData("pdf-service-task.bpmn", "pdf")]
+    [InlineData("plain-task-custom-type.bpmn", "archive")]
+    public async Task ProcessTaskWithARegisteredImplementation_PassesValidation(string bpmn, string taskType)
     {
         var exception = await Validate(
-            s => s.AddSingleton(typeof(IServiceTask), implementation),
+            s => s.AddSingleton<IServiceTask>(new SimpleTask(taskType)),
             ProcessTestUtils.SetupProcessReader(bpmn)
         );
 
@@ -238,7 +217,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         // The shape Studio's generic service task palette entry produces, and the same omission on a <bpmn:task>.
         var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, PdfLikeTask>(),
+            s => s.AddSingleton<IServiceTask>(new SimpleTask("pdf")),
             ProcessTestUtils.SetupProcessReader("service-task-empty-type.bpmn")
         );
 
@@ -260,7 +239,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         // Matched exactly, as dispatch does: 'PDF' never answers for 'pdf'.
         var exception = await Validate(
-            s => s.AddSingleton<IServiceTask, ShoutyPdfLikeTask>(),
+            s => s.AddSingleton<IServiceTask>(new SimpleTask("PDF")),
             ProcessTestUtils.SetupProcessReader("pdf-service-task.bpmn")
         );
 
@@ -288,15 +267,13 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.DoesNotContain("AddTransient", exception.Message, StringComparison.Ordinal);
     }
 
-    private sealed class SimpleTask : IServiceTask
+    private sealed class SimpleTask(string type) : IServiceTask
     {
-        public string Type => "simple";
+        public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            throw new InvalidOperationException("Validation must not execute the task.");
     }
-
-    private static Task<ServiceTaskResult> NoopFinally(ServiceTaskContext context) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     private static async Task<ApplicationConfigException?> Validate(
         Action<IServiceCollection> register,
@@ -308,8 +285,12 @@ public class ProcessTaskConfigurationValidationServiceTests
         await using ServiceProvider provider = services.BuildServiceProvider(
             new ServiceProviderOptions { ValidateScopes = true }
         );
+        var service = new ProcessTaskConfigurationValidationService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<ProcessTaskConfigurationValidationService>.Instance
+        );
         return (ApplicationConfigException?)
-            await Record.ExceptionAsync(() => CreateService(provider).StartAsync(CancellationToken.None));
+            await Record.ExceptionAsync(() => service.StartAsync(CancellationToken.None));
     }
 
     private static ServiceCollection CreateServices(IProcessReader processReader)
@@ -326,12 +307,6 @@ public class ProcessTaskConfigurationValidationServiceTests
             services.AddSingleton<IProcessTask>(new TestTask(type));
         return services;
     }
-
-    private static ProcessTaskConfigurationValidationService CreateService(IServiceProvider provider) =>
-        new(
-            provider.GetRequiredService<IServiceScopeFactory>(),
-            NullLogger<ProcessTaskConfigurationValidationService>.Instance
-        );
 
     private sealed class TestTask(string type, Func<ProcessTaskValidationContext, IEnumerable<string>>? validate = null)
         : IProcessTask
