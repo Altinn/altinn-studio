@@ -12,7 +12,9 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
+using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Converter.Xml;
@@ -208,6 +210,73 @@ public class SchemaModelService : ISchemaModelService
         var jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath, cancellationToken);
         var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
         return GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> AreModelFilesOutOfDate(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        // A data models repository has no generated C# classes to compare against.
+        if (await altinnAppGitRepository.GetRepositoryType() == AltinnRepositoryType.Datamodels)
+        {
+            return false;
+        }
+
+        string schemaFileName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
+        string modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+        string csharpModelPath = Path.Combine(modelFolder, $"{schemaFileName}.cs");
+        string xsdModelPath = Path.Combine(modelFolder, $"{schemaFileName}.xsd");
+        if (
+            !altinnAppGitRepository.FileExistsByRelativePath(csharpModelPath)
+            || !altinnAppGitRepository.FileExistsByRelativePath(xsdModelPath)
+        )
+        {
+            return true;
+        }
+
+        string jsonContent = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            relativeFilePath,
+            cancellationToken
+        );
+        var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
+        string expectedCsharpClasses;
+        try
+        {
+            ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(jsonContent, jsonSchema);
+            expectedCsharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
+        }
+        catch (Exception e)
+            when (e
+                    is MetamodelConvertException
+                        or JsonSchemaConvertException
+                        or CsharpGenerationException
+                        or CsharpCompilationException
+            )
+        {
+            return true;
+        }
+        string storedCsharpClasses = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            csharpModelPath,
+            cancellationToken
+        );
+
+        return !NormalizeLineEndings(expectedCsharpClasses)
+            .Equals(NormalizeLineEndings(storedCsharpClasses), StringComparison.Ordinal);
+    }
+
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.ReplaceLineEndings("\n");
     }
 
     /// <summary>
