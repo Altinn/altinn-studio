@@ -6,7 +6,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 
 export interface ICompactSummaryItem {
   targetBaseComponentId: string;
@@ -15,18 +15,8 @@ export interface ICompactSummaryItem {
 
 export function SummaryItemCompact({ targetBaseComponentId, displayData }: ICompactSummaryItem) {
   const config = useComponentConfig(targetBaseComponentId);
-  const summaryTitle = useEvalOptionalText(
-    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
-      ? config.textResourceBindings.summaryTitle
-      : undefined,
-    CommonExpressions.TRBSummarizable.summaryTitle,
-  );
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
+  const summaryTitle = useEvalOptionalTrb(config, 'summaryTitle', CommonExpressions.TRBSummarizable);
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
   return (
     <div data-testid='summary-item-compact'>

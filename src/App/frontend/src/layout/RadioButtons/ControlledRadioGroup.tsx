@@ -19,7 +19,7 @@ import utilClasses from 'src/styles/utils.module.css';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButtons' | 'LikertItem'>) => {
@@ -38,22 +38,9 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
-  const help = useEvalOptionalText(
-    config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
-    CommonExpressions.TRBLabel.help,
-  );
-  const description = useEvalOptionalText(
-    config.textResourceBindings && 'description' in config.textResourceBindings
-      ? config.textResourceBindings.description
-      : undefined,
-    CommonExpressions.TRBLabel.description,
-  );
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
+  const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const showAsCard = 'showAsCard' in config ? config.showAsCard : false;
   const { selectedValues, handleChange, fetchingOptions, calculatedOptions } = useRadioButtons(props);

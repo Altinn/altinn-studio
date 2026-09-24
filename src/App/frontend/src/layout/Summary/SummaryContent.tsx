@@ -12,7 +12,7 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import classes from 'src/layout/Summary/SummaryContent.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 interface SummaryContentProps extends SummaryRendererProps {
@@ -32,24 +32,13 @@ export function SummaryContent({
     'readOnly' in config ? config.readOnly : undefined,
     CommonExpressions.FormComponentProps.readOnly,
   );
-  const summaryAccessibleTitle = useEvalOptionalText(
-    config.textResourceBindings && 'summaryAccessibleTitle' in config.textResourceBindings
-      ? config.textResourceBindings.summaryAccessibleTitle
-      : undefined,
-    CommonExpressions.TRBSummarizable.summaryAccessibleTitle,
+  const summaryAccessibleTitle = useEvalOptionalTrb(
+    config,
+    'summaryAccessibleTitle',
+    CommonExpressions.TRBSummarizable,
   );
-  const summaryTitle = useEvalOptionalText(
-    config.textResourceBindings && 'summaryTitle' in config.textResourceBindings
-      ? config.textResourceBindings.summaryTitle
-      : undefined,
-    CommonExpressions.TRBSummarizable.summaryTitle,
-  );
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
+  const summaryTitle = useEvalOptionalTrb(config, 'summaryTitle', CommonExpressions.TRBSummarizable);
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
   const display = overrides?.display;
   const readOnlyComponent = 'readOnly' in config && readOnly === true;
