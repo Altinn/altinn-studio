@@ -5,7 +5,8 @@ A skill is a directory containing a `SKILL.md` file:
     agents/skills/
       altinn-policy/
         SKILL.md          <- frontmatter + markdown body
-        references/       <- optional sibling files the body may point to
+        v8.md, v9.md      <- optional text for apps of one version only
+        references/      <- optional sibling files the body may point to
 
 The design follows Claude Code's skill system (progressive disclosure):
 
@@ -58,11 +59,14 @@ class Skill:
     # to the model inventing docs URLs from memory.
     docs_url: str = ""
 
-    def load_body(self) -> str:
+    def load_body(self, version_label: str) -> str:
         """Read the skill body (markdown after the frontmatter).
 
+        A sibling `<version_label>.md`, such as `v9.md`, holds what applies
+        only to apps of that version, and follows the body.
+
         Frontmatter `include: <file>[, <file>…]` inlines sibling files
-        after the body.  The loop's `read_file` is repo-scoped and can
+        after that.  The loop's `read_file` is repo-scoped and can
         NEVER reach the skill directory, so anything the model must see
         (an index, a reference table) has to travel inside the skill
         body itself.
@@ -70,8 +74,21 @@ class Skill:
         raw = self.path.read_text(encoding="utf-8")
         match = _FRONTMATTER_PATTERN.match(raw)
         body = raw[match.end() :] if match else raw
-        sections = [body.strip()]
+        sections = [
+            body.strip(),
+            *self._app_version_sections(version_label),
+            *self._included_sections(raw),
+        ]
+        return "\n\n".join(sections)
 
+    def _app_version_sections(self, version_label: str) -> list[str]:
+        app_version_path = self.path.parent / f"{version_label}.md"
+        if not app_version_path.is_file():
+            return []
+        return [app_version_path.read_text(encoding="utf-8").strip()]
+
+    def _included_sections(self, raw: str) -> list[str]:
+        sections = []
         fields = _parse_frontmatter(raw)
         for file_name in _split_include_list(fields.get("include", "")):
             if "/" in file_name or ".." in file_name:
@@ -84,8 +101,7 @@ class Skill:
                 log.warning("Skill %s: cannot read include %r — %s", self.name, file_name, exc)
                 continue
             sections.append(f"## Included file: {file_name}\n\n{content.strip()}")
-
-        return "\n\n".join(sections)
+        return sections
 
 
 def _split_include_list(value: str) -> list[str]:

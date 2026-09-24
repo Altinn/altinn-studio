@@ -25,7 +25,7 @@ services.AddTransient<ITaskValidator, TaskValidator>();
 
 **Data Model**: All model properties use both `[JsonProperty]` and `[JsonPropertyName]` attributes for compatibility, plus `[XmlElement]` for order-specific XML serialization.
 
-**Form Layouts**: Multi-page forms defined in `ui/form/layouts/*.json` with Norwegian text resource bindings (e.g., `"1.1.1-Input.title"`).
+**Form Layouts**: Multi-page forms defined in `App/ui/<folder>/layouts/*.json` with Norwegian text resource bindings (e.g., `"1.1.1-Input.title"`).
 
 **Validation**: Custom validation, for example regex patterns for Norwegian-specific formats (phone numbers, org numbers), goes in a class that implements one of these interfaces. Both return a list of `ValidationIssue`.
 
@@ -43,7 +43,7 @@ Do not use `IInstanceValidator`. It is obsolete.
 
 ## Form Layout System
 
-Forms use declarative JSON with component types like `Panel`, `Header`, `Input` with:
+Forms use declarative JSON with component types like `Panel`, `Input` with:
 
 - **Data binding**: `dataModelBindings.simpleBinding` to model properties
 - **Text resources**: `textResourceBindings.title` for i18n
@@ -54,9 +54,9 @@ Always reference existing layout files when adding new form components.
 
 ### Important — new pages need TWO things
 
-When adding a new page layout under App/ui/form/layouts:
+When adding a new page layout under `App/ui/<folder>/layouts/`:
 
-1. Add the page ID to the "pages.order" array in App/ui/form/Settings.json — otherwise the page is not part of the form's sequence.
+1. Add the page ID to the "pages.order" array in `App/ui/<folder>/Settings.json` — otherwise the page is not part of the form's sequence.
 2. Give the page a `NavigationButtons` component (typically the last component in the layout) — the order array only defines the sequence; without NavigationButtons the user has nothing to click to move between pages. The final page usually also gets a submit `Button`.
 
 Both are required on every page of a multi-page form. `verify_changes` rejects a page in a multi-page flow that lacks a navigation component.

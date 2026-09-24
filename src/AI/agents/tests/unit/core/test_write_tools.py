@@ -400,8 +400,8 @@ class TestVerifyChangesInAV9App:
         assert result.is_error
 
     async def test_accepts_an_expression_function_only_v9_has(self, tmp_path: Path):
-        format_birth_date = ["formatDate", ["dataModel", "birthDate"], "dd.MM.yyyy"]
-        _write_v9_layout(tmp_path, _heading(hidden=["equals", format_birth_date, "01.01.2000"]))
+        count_children = ["count", ["dataModel", "children"]]
+        _write_v9_layout(tmp_path, _heading(hidden=["equals", count_children, 0]))
 
         result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
 
