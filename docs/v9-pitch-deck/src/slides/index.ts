@@ -1,19 +1,19 @@
 import type { SlideDef } from '../deck';
 
 import EttKlikk from './01-ett-klikk';
-import IDag from './02-i-dag';
-import EnTrad from './03-en-trad';
-import Midtveis from './04-midtveis';
-import Dobbeltinnsending from './05-dobbeltinnsending';
-import Halvveis from './06-halvveis';
-import Driftshverdagen from './07-driftshverdagen';
-import Prosessmotor from './08-prosessmotor';
-import ScenarioFeil from './10-scenario-feil';
-import ScenarioOmstart from './11-scenario-omstart';
+import IDag from './91-i-dag';
+import EnTrad from './92-en-trad';
+import Midtveis from './93-midtveis';
+import Dobbeltinnsending from './94-dobbeltinnsending';
+import Halvveis from './95-halvveis';
+import Driftshverdagen from './96-driftshverdagen';
+import Prosessmotor from './97-prosessmotor';
+import ScenarioFeil from './11-scenario-feil';
+import ScenarioOmstart from './12-scenario-omstart';
 import { SIM_STEPS } from '../sims';
-import Dashbord from './13-dashbord';
-import ForApputviklere from './14-for-apputviklere';
-import BliMed from './15-bli-med';
+import Dashbord from './14-dashbord';
+import ForApputviklere from './15-oppgradering';
+import BliMed from './16-bli-med';
 
 import '../styles/slides.css';
 
