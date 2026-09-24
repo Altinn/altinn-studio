@@ -6,9 +6,9 @@ import { Backdrop, BrandMark } from './_kit';
 
 const STEPS: { icon: IconName; title: string; body: string }[] = [
   {
-    icon: 'rocket',
-    title: 'Oppgrader i Studio',
-    body: 'Oppgraderingen kjøres rett fra Studio, med en AI-assistent som hjelper med resten.',
+    icon: 'terminal',
+    title: 'Oppgrader',
+    body: 'Kjør oppgraderingen rett fra Studio, eller med studioctl.',
   },
   {
     icon: 'server',
@@ -22,7 +22,7 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
   },
 ];
 
-/** The call to action: open beta, self-serve upgrade from Studio. */
+/** The call to action: open beta, self-serve upgrade from Studio or studioctl. */
 export default function BliMedSlide({ step }: SlideProps) {
   return (
     <Slide
