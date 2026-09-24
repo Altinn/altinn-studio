@@ -1,12 +1,16 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioAlert, StudioParagraph } from '@studio/components';
-import { useFiksArkivProcessShape } from './useFiksArkivProcessShape';
+import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { useBpmnDiagramVersion } from '../../../../hooks/useBpmnDiagramVersion';
+import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
 
 /** Warns when the process around a Fiks Arkiv task would stop the app from starting. */
 export const FiksArkivProcessShapeAlert = (): ReactElement | null => {
   const { t } = useTranslation();
-  const issue = useFiksArkivProcessShape();
+  const { bpmnDetails } = useBpmnContext();
+  useBpmnDiagramVersion();
+  const issue = getFiksArkivProcessShapeIssue(bpmnDetails.element);
 
   if (!issue) return null;
 

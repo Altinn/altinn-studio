@@ -7,11 +7,7 @@ type UseCurrentLayoutSetResult = {
   currentLayoutSet: LayoutSetConfig | undefined;
 };
 
-/**
- * The layout set connected to the selected bpmn element, which is also the ui folder the app
- * frontend renders for it. Undefined when the element has none: only some task types get a layout
- * set, and a task that has one got it from the developer rather than from Studio.
- */
+/** The layout set connected to the selected BPMN element, if it has one. */
 export const useCurrentLayoutSet = (): UseCurrentLayoutSetResult => {
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets } = useBpmnApiContext();
