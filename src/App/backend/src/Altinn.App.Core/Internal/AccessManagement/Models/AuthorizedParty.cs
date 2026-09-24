@@ -9,10 +9,10 @@ internal sealed record AuthorizedPartiesResponse(List<AuthorizedParty>? Data);
 /// <summary>
 /// A party the authenticated user has been given some access to act on behalf of.
 /// </summary>
-/// <param name="Type">
-/// <c>Person</c>, <c>Organization</c> or <c>SelfIdentified</c>. Kept as a string so that a new type added by Access
-/// Management does not make the whole party list fail to deserialize.
-/// </param>
+/// <remarks>
+/// <c>Type</c> is <c>Person</c>, <c>Organization</c> or <c>SelfIdentified</c>. It is kept as a string so that a new type
+/// added by Access Management does not make the whole party list fail to deserialize.
+/// </remarks>
 internal sealed record AuthorizedParty(
     Guid? PartyUuid,
     int PartyId,

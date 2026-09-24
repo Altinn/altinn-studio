@@ -10,42 +10,41 @@ namespace Altinn.App.Core.Internal.AccessManagement.Helpers;
 internal static class AuthorizedPartyMapper
 {
     /// <summary>
-    /// Maps authorized parties to <see cref="Party"/>, leaving out parties the user can only reach through
-    /// delegated access to individual instances. Such access lets the user open that instance, but does not let them
-    /// act on behalf of the party anywhere else, so the party must not be offered in party selection.
-    /// Parties of an unknown type are left out as well.
+    /// Maps the parties the user can act for. A party the user cannot act for is kept only as the parent of subunits
+    /// they can act for, and parties of an unknown type are left out.
     /// </summary>
     public static List<Party> ToParties(IEnumerable<AuthorizedParty> authorizedParties) =>
         authorizedParties.Select(ToParty).OfType<Party>().ToList();
 
-    private static Party? ToParty(AuthorizedParty authorizedParty)
+    private static Party? ToParty(AuthorizedParty party)
     {
-        if (ToPartyType(authorizedParty.Type) is not { } partyType)
+        if (ToPartyType(party.Type) is not { } partyType)
             return null;
 
-        List<Party> childParties = ToParties(authorizedParty.Subunits ?? []);
-
-        // A party without access of its own is only worth showing as the parent of subunits the user can act for.
-        bool hasNoAccessOfItsOwn =
-            authorizedParty.OnlyHierarchyElementWithNoAccess || HasOnlyInstanceAccess(authorizedParty);
-        if (hasNoAccessOfItsOwn && childParties.Count == 0)
+        List<Party> subunits = ToParties(party.Subunits ?? []);
+        bool canActFor = CanActFor(party);
+        if (!canActFor && subunits.Count == 0)
             return null;
 
         return new Party
         {
-            PartyId = authorizedParty.PartyId,
-            PartyUuid = authorizedParty.PartyUuid,
+            PartyId = party.PartyId,
+            PartyUuid = party.PartyUuid,
             PartyTypeName = partyType,
-            OrgNumber = partyType == PartyType.Organisation ? authorizedParty.OrganizationNumber : null,
-            SSN = partyType == PartyType.Person ? authorizedParty.PersonId : null,
-            UnitType = authorizedParty.UnitType,
-            Name = authorizedParty.Name,
-            IsDeleted = authorizedParty.IsDeleted,
-            OnlyHierarchyElementWithNoAccess = hasNoAccessOfItsOwn,
-            ChildParties = childParties.Count > 0 ? childParties : null,
+            Name = party.Name,
+            OrgNumber = party.OrganizationNumber,
+            SSN = party.PersonId,
+            UnitType = party.UnitType,
+            IsDeleted = party.IsDeleted,
+            OnlyHierarchyElementWithNoAccess = !canActFor,
+            ChildParties = subunits.Count > 0 ? subunits : null,
         };
     }
 
+    private static bool CanActFor(AuthorizedParty party) =>
+        !party.OnlyHierarchyElementWithNoAccess && !HasOnlyInstanceAccess(party);
+
+    // Delegated access to single instances lets the user open those instances, not act for the party
     private static bool HasOnlyInstanceAccess(AuthorizedParty party) =>
         HasAny(party.AuthorizedInstances)
         && !HasAny(party.AuthorizedRoles)

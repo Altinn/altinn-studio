@@ -15,6 +15,7 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,12 +35,18 @@ public class AuthorizationClient : IAuthorizationClient
     private readonly Telemetry? _telemetry;
     private const string ForwardedForHeaderName = "x-forwarded-for";
 
-    // The access lists are needed to leave out parties the user can only reach through delegated instances.
-    // The party filters are set explicitly, because Access Management otherwise applies the user's profile settings
-    // for what to show, and the list is also used to validate which parties the user can act for.
-    private const string AuthorizedPartiesPathAndQuery =
-        "/enduser/authorizedparties?includeRoles=true&includeAccessPackages=true&includeResources=true&includeInstances=true"
-        + "&includePartiesViaKeyRoles=true&includeSubParties=true&includeInactiveParties=true";
+    private static readonly Dictionary<string, string?> _authorizedPartiesQuery = new()
+    {
+        // The access lists tell parties the user can act for from parties reached only through delegated instances
+        ["includeRoles"] = "true",
+        ["includeAccessPackages"] = "true",
+        ["includeResources"] = "true",
+        ["includeInstances"] = "true",
+        // Set explicitly, as Access Management otherwise narrows the list by the user's profile settings
+        ["includePartiesViaKeyRoles"] = "true",
+        ["includeSubParties"] = "true",
+        ["includeInactiveParties"] = "true",
+    };
     private readonly string _authorizedPartiesUrl;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
@@ -68,8 +75,10 @@ public class AuthorizationClient : IAuthorizationClient
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
-        _authorizedPartiesUrl =
-            platformSettings.ApiAccessManagementEndpoint.TrimEnd('/') + AuthorizedPartiesPathAndQuery;
+        _authorizedPartiesUrl = QueryHelpers.AddQueryString(
+            platformSettings.ApiAccessManagementEndpoint.TrimEnd('/') + "/enduser/authorizedparties",
+            _authorizedPartiesQuery
+        );
     }
 
     /// <inheritdoc />

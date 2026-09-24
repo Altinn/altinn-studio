@@ -49,15 +49,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         int selectedPartyId = 500600;
 
         _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    selectedPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(false);
-        _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
@@ -111,15 +102,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         };
 
         _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
-        _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
@@ -171,15 +153,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         };
 
         _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
-        _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
@@ -228,15 +201,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                 }
             );
 
-        _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
         _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -288,15 +252,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         };
 
         _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
-        _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new List<Party>
@@ -342,15 +297,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
                 }
             );
 
-        _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
         _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -406,15 +352,6 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
             );
         };
 
-        _authorizationClientMock
-            .Setup(a =>
-                a.ValidateSelectedParty(
-                    userPartyId,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(true);
         _authorizationClientMock
             .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
