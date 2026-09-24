@@ -105,6 +105,14 @@ Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWith
   cy.wrap(subject).click().should('not.exist');
 });
 
+Cypress.Commands.add('clickAndWaitForProcessNext', { prevSubject: 'element' }, (subject) => {
+  // PDF generation and other service tasks can outlast the default DOM query timeout.
+  // Wait for the successful transition before asserting on the next task's UI.
+  cy.intercept('PUT', '**/instances/*/*/process/next*').as('clickedProcessNext');
+  cy.wrap(subject).click();
+  return cy.wait('@clickedProcessNext', { responseTimeout: 60_000 }).its('response.statusCode').should('eq', 200);
+});
+
 Cypress.Commands.add('navPage', (page: string) => {
   cy.window().then((win) => {
     if (win.innerWidth < 768) {
