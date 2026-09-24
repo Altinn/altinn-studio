@@ -51,7 +51,8 @@ export function useTaskTypeFromBackend() {
 /**
  * Pure classifier: resolves the ProcessTaskType of a given taskId.
  *
- * Uses the currentTask when it matches the taskId provided, and otherwise looks the taskId up in processTasks.
+ * If the taskId cannot be found in processTasks, it falls back to the currentTask's
+ * type when the currentTask matches the taskId provided.
  *
  * Stateless apps only have data tasks. As soon as they start creating an instance
  * from that stateless step, applicationMetadata.isStatelessApp will return false
@@ -64,9 +65,9 @@ export function getTaskTypeById(
   uiFolders: Record<string, unknown>,
 ): ProcessTaskType {
   const task =
-    processData?.currentTask?.elementId === taskId
+    (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
       ? processData?.currentTask
-      : processData?.processTasks?.find((t) => t.elementId === taskId);
+      : undefined;
 
   if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
     return ProcessTaskType.Data;
