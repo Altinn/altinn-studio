@@ -1,66 +1,94 @@
+import { motion } from 'framer-motion';
 import type { SlideProps } from '../deck';
-import { Slide, Icon, Reveal, StatBig } from '../components';
-import type { IconName } from '../components';
+import { Slide, Icon, Reveal } from '../components';
 
 /**
- * The frontend part's lead slide (CONTENT.md §1.29–31). The architecture row
- * is the routing rewrite (per-page loaders with cached data), settings and texts
- * embedded in the first page load, and less re-rendering. The speed figure is
- * the one measurement there is — page navigation in a 32-page form, #18987;
- * the notes say it is one measurement.
+ * The frontend part's lead slide, as two pictures (CONTENT.md §1.29–31).
+ *
+ * Left: the one speed measurement there is — page navigation in a 32-page
+ * form went from ~280–310 ms to ~150–180 ms (#18987); the bars use the
+ * midpoints, rounded. Right: v9 ships the frontend inside the app's package (#18947),
+ * so the frontend always has the app's version. The v8 contrast (it loads the
+ * newest frontend from a CDN) is in the speaker notes, not on the slide.
  */
-const ROWS: { tone: 'ok' | 'warn'; icon: IconName; title: string; sub: string }[] = [
-  {
-    tone: 'ok',
-    icon: 'layers',
-    title: 'Ny arkitektur under panseret',
-    sub: 'Hver side henter kun det den trenger, og husker det',
-  },
-  {
-    tone: 'warn',
-    icon: 'refresh',
-    title: 'I v8 henter appen alltid nyeste frontend',
-    sub: 'Nye versjoner når brukerne uten at du har testet dem',
-  },
-  {
-    tone: 'ok',
-    icon: 'check',
-    title: 'I v9 ligger frontend i appen',
-    sub: 'Versjonen du tester, er versjonen brukerne får',
-  },
-];
+const BARS = [
+  { label: 'v8', ms: 300, tone: 'old' },
+  { label: 'v9', ms: 165, tone: 'new' },
+] as const;
+const MAX_MS = 300;
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
   return (
     <Slide
-      variant="split"
-      splitRatio="1040px 568px"
+      variant="full"
       kicker="Frontend"
-      title="Raskere, og levert med appen"
-      subtitle="Frontend har fått ny arkitektur, og i v9 kommer den i samme pakke som appen."
+      title="Raskere, og i takt med appen"
+      subtitle="Ny arkitektur under panseret, og frontend som alltid har samme versjon som appen."
     >
-      <div className="s-stack">
-        {ROWS.map((row) => (
-          <div key={row.title} className={`s-outcome s-outcome--${row.tone}`}>
-            <span className="s-outcome__icon">
-              <Icon name={row.icon} size={30} />
-            </span>
-            <span>
-              {row.title}
-              <span className="s-outcome__sub">{row.sub}</span>
-            </span>
-          </div>
-        ))}
-      </div>
+      <div className="s-fe">
+        <section className="s-fe__panel">
+          <p className="s-fe__eyebrow">
+            <Icon name="bolt" size={28} />
+            Raskere
+          </p>
+          <p className="s-fe__lead">Sidebytte i et skjema med 32 sider</p>
 
-      <Reveal show={step >= 1} from="right">
-        <StatBig
-          value="40–50"
-          suffix="%"
-          label="raskere sidebytte"
-          caption="Målt i et skjema med 32 sider"
-        />
-      </Reveal>
+          <div className="s-fe__bars">
+            {BARS.map((bar, i) => (
+              <div key={bar.label} className={`s-fe__bar s-fe__bar--${bar.tone}`}>
+                <span className="s-fe__bar-label">{bar.label}</span>
+                <span className="s-fe__bar-track">
+                  <motion.span
+                    className="s-fe__bar-fill"
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${(bar.ms / MAX_MS) * 100}%` }}
+                    transition={{ duration: 0.7, delay: 0.15 + i * 0.25, ease: EASE }}
+                  />
+                </span>
+                <span className="s-fe__bar-value">ca. {bar.ms} ms</span>
+              </div>
+            ))}
+          </div>
+          <p className="s-fe__result">Nesten halvparten av ventetiden er borte.</p>
+
+          <p className="s-fe__body">
+            Hver side henter bare det den trenger, og husker det til neste gang.
+          </p>
+        </section>
+
+        <Reveal show={step >= 1} from="right">
+          <section className="s-fe__panel">
+            <p className="s-fe__eyebrow">
+              <Icon name="layers" size={28} />I takt med appen
+            </p>
+            <p className="s-fe__lead">Frontend ligger i samme pakke som appen</p>
+
+            <div className="s-fe__package">
+              <span className="s-fe__package-tag">Din app</span>
+              <div className="s-fe__package-row">
+                <span className="s-fe__item">
+                  <Icon name="server" size={30} />
+                  Appen
+                </span>
+                <span className="s-fe__plus" aria-hidden>
+                  +
+                </span>
+                <span className="s-fe__item">
+                  <Icon name="eye" size={30} />
+                  Frontend
+                </span>
+              </div>
+              <span className="s-fe__version">
+                <Icon name="check" size={22} strokeWidth={2.8} />
+                Samme versjon
+              </span>
+            </div>
+
+            <p className="s-fe__body">Det du tester, er det brukerne får.</p>
+          </section>
+        </Reveal>
+      </div>
     </Slide>
   );
 }
