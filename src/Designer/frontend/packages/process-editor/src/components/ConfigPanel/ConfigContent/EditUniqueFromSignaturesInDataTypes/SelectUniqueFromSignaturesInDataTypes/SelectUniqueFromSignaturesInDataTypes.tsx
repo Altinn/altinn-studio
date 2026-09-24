@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -29,16 +28,19 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
     )
     .map((task) => ({
       id: TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType,
-      name: task.businessObject.name,
-    }));
+      name: task.businessObject.name ?? task.id,
+    }))
+    .filter((task) => task.id);
 
-  const [value, setValue] = useState<string[]>(() =>
-    getSelectedDataTypes(bpmnDetails).filter((item) =>
-      signingTasks.some((task) => task.id === item),
-    ),
-  );
+  const value = getSelectedDataTypes(bpmnDetails);
   const { t } = useTranslation();
 
+  const options = [
+    ...signingTasks,
+    ...value
+      .filter((id) => !signingTasks.some((task) => task.id === id))
+      .map((id) => ({ id, name: id })),
+  ];
   const selectedItems: StudioSuggestionItem[] = value.map((dataTypeId) => ({
     value: dataTypeId,
     label: signingTasks.find((task) => task.id === dataTypeId)?.name ?? dataTypeId,
@@ -46,7 +48,6 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
 
   const handleSelectedChange = (items: StudioSuggestionItem[]) => {
     const dataTypes = items.map((item) => item.value);
-    setValue(dataTypes);
     const modelerInstance = modelerRef.current;
     const modeling: Modeling = modelerInstance.get('modeling');
     const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
@@ -64,7 +65,7 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
           className={classes.dataTypeSelect}
           onSelectedChange={handleSelectedChange}
         >
-          {signingTasks?.map((signingTask) => (
+          {options.map((signingTask) => (
             <StudioSuggestion.Option
               key={signingTask.id}
               value={signingTask.id}

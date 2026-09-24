@@ -1,17 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import type { BpmnContextProps } from '../../../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import type { SelectDataTypesToSignProps } from './SelectDataTypesToSign';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
-import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
-import {
-  mockBpmnApiContextValue,
-  mockBpmnContextValue,
-} from '../../../../../../test/mocks/bpmnContextMock';
 import {
   createMock,
   updateModdlePropertiesMock,
@@ -91,7 +85,25 @@ const existingDataTypesProps = {
 };
 
 describe('SelectDataTypesToSign', () => {
+  beforeEach(() => {
+    element.businessObject.extensionElements.values[0].signatureConfig.dataTypesToSign = {
+      dataTypes: [],
+    };
+  });
+
   afterEach(jest.clearAllMocks);
+
+  it('shows the current BPMN selection after an external change', async () => {
+    const { rerender } = renderSelectDataTypesToSign(existingDataTypesProps);
+    const signatureConfig = element.businessObject.extensionElements.values[0].signatureConfig;
+    signatureConfig.dataTypesToSign = { dataTypes: [{ dataType: 'dataType3' }] };
+
+    rerender(<SelectDataTypesToSign {...defaultSelectDataTypeProps} />);
+
+    expect(
+      await screen.findByRole('option', { name: /dataType3/, selected: true }),
+    ).toBeInTheDocument();
+  });
 
   it('saves the new selection', async () => {
     const user = userEvent.setup();
@@ -150,18 +162,8 @@ type RenderProps = {
 const renderSelectDataTypesToSign = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, bpmnContextProps } = props;
 
-  return render(
-    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider
-        value={{
-          ...mockBpmnContextValue,
-          ...bpmnContextProps,
-        }}
-      >
-        <BpmnConfigPanelFormContextProvider>
-          <SelectDataTypesToSign {...defaultSelectDataTypeProps} />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
-  );
+  return renderWithProviders(<SelectDataTypesToSign {...defaultSelectDataTypeProps} />, {
+    bpmnApiContextProps,
+    bpmnContextProps,
+  });
 };

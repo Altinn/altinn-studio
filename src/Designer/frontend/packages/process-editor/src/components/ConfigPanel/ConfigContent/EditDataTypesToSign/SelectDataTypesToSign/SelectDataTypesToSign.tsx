@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -17,14 +16,12 @@ export interface SelectDataTypesToSignProps {
 export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) => {
   const { availableDataTypeIds } = useBpmnApiContext();
   const updateDataTypesToSign = useUpdateDataTypesToSign();
-  const selectedDataTypes = useGetDataTypesToSign();
-  const [value, setValue] = useState<string[]>(() => selectedDataTypes);
+  const value = useGetDataTypesToSign();
 
   const { t } = useTranslation();
 
   const handleSelectedChange = (items: StudioSuggestionItem[]) => {
     const dataTypes = items.map((item) => item.value);
-    setValue(dataTypes);
     updateDataTypesToSign(dataTypes);
   };
 
