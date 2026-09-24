@@ -68,8 +68,9 @@ public class PdfController : ControllerBase
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="taskId">The task to preview, such as a PDF service task the instance has not reached yet. Defaults to the current task.</param>
-    /// <param name="dataElementId">The subform data element to preview, when previewing a subform PDF service task.</param>
+    /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -116,13 +117,22 @@ public class PdfController : ControllerBase
         // Render the task the same way its PDF service task would
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
         List<string>? autoGeneratePdfForTaskIds = taskExtension?.PdfConfiguration?.AutoPdfTaskIds;
-        SubformPdfContext? subformPdfContext =
-            taskExtension?.SubformPdfConfiguration is { } subformPdfConfiguration && dataElementId is not null
-                ? new SubformPdfContext(
-                    subformPdfConfiguration.Validate().SubformComponentId,
-                    dataElementId.Value.ToString()
-                )
-                : null;
+        SubformPdfContext? subformPdfContext = null;
+        if (taskExtension?.SubformPdfConfiguration is { } subformPdfConfiguration)
+        {
+            // Like the service task, only render a subform of the configured data type
+            ValidAltinnSubformPdfConfiguration subformConfig = subformPdfConfiguration.Validate();
+            string? subformId = dataElementId?.ToString();
+            DataElement? subform = instance.Data.Find(element => element.Id == subformId);
+            if (subform is null || subform.DataType != subformConfig.SubformDataTypeId)
+            {
+                return BadRequest(
+                    $"dataElementId must be the id of a data element of type {subformConfig.SubformDataTypeId}"
+                );
+            }
+
+            subformPdfContext = new SubformPdfContext(subformConfig.SubformComponentId, subform.Id);
+        }
 
         Stream previewContent = await _pdfService.GeneratePreviewPdf(
             instance,

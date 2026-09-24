@@ -33,6 +33,8 @@ public class PdfControllerTests
     private readonly Guid _instanceId = new("e11e3e0b-a45c-48fb-a968-8d4ddf868c80");
     private readonly int _partyId = 12345;
     private readonly string _taskId = "Task_1";
+    private const string ModelDataElementId = "7b5a1f0e-6d8c-4a3b-9e2f-1c4d5e6f7a8b";
+    private const string SubformDataElementId = "3c9e2d1f-8a7b-4c6d-9e5f-0a1b2c3d4e5f";
 
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IDataClient> _dataClient = new();
@@ -72,6 +74,11 @@ public class PdfControllerTests
                         AppId = $"{_org}/{_app}",
                         Id = $"{_partyId}/{_instanceId}",
                         Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = _taskId } },
+                        Data =
+                        [
+                            new DataElement() { Id = ModelDataElementId, DataType = "model" },
+                            new DataElement() { Id = SubformDataElementId, DataType = "subform-model" },
+                        ],
                     }
                 )
             );
@@ -271,7 +278,51 @@ public class PdfControllerTests
     [Fact]
     public async Task Request_For_Subform_Pdf_Service_Task_Should_Generate_That_Subform()
     {
-        Guid dataElementId = Guid.NewGuid();
+        SetupSubformPdfTask();
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: "Task_SubformPdf",
+            dataElementId: new Guid(SubformDataElementId)
+        );
+
+        result.Should().BeOfType<FileStreamResult>();
+        requestBody
+            .Should()
+            .Contain(
+                $@"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_SubformPdf/subform/subform-component/{SubformDataElementId}/?pdf=1"
+            );
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(ModelDataElementId)]
+    [InlineData("00000000-0000-0000-0000-000000000001")]
+    public async Task Request_For_Subform_Pdf_Service_Task_Without_A_Subform_Should_Return_BadRequest(
+        string? dataElementId
+    )
+    {
+        SetupSubformPdfTask();
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: "Task_SubformPdf",
+            dataElementId: dataElementId is null ? null : new Guid(dataElementId)
+        );
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        requestBody.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Request_For_Unknown_Task_Should_Return_NotFound()
+    {
+        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: "Task_Unknown");
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+        requestBody.Should().BeNull();
+    }
+
+    private void SetupSubformPdfTask()
+    {
         _processReader
             .Setup(x => x.GetFlowElement("Task_SubformPdf"))
             .Returns(
@@ -292,27 +343,6 @@ public class PdfControllerTests
                     },
                 }
             );
-
-        (ActionResult result, string? requestBody) = await GetPdfPreview(
-            taskId: "Task_SubformPdf",
-            dataElementId: dataElementId
-        );
-
-        result.Should().BeOfType<FileStreamResult>();
-        requestBody
-            .Should()
-            .Contain(
-                $@"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_SubformPdf/subform/subform-component/{dataElementId}/?pdf=1"
-            );
-    }
-
-    [Fact]
-    public async Task Request_For_Unknown_Task_Should_Return_NotFound()
-    {
-        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: "Task_Unknown");
-
-        result.Should().BeOfType<NotFoundObjectResult>();
-        requestBody.Should().BeNull();
     }
 
     private async Task<(ActionResult Result, string? RequestBody)> GetPdfPreview(
