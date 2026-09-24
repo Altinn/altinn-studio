@@ -2,7 +2,7 @@ import { CommonExpressions, Expressions } from '@app/layout-contract/generated/e
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { IApplicationSettings } from 'src/types/shared';
 
 const mockInputs: {
@@ -149,6 +149,17 @@ it('preserves absent optional text without changing generic descriptor defaults'
     empty: useEvalOptionalText('', descriptor),
   }));
   expect(result.current).toEqual({ optional: undefined, generic: 'fallback-title', empty: '' });
+});
+
+it('evaluates a binding only when the component has that text resource key', () => {
+  const { result, rerender } = renderHook(
+    ({ textResourceBindings }: { textResourceBindings: object }) =>
+      useEvalOptionalTrb({ textResourceBindings }, 'title', CommonExpressions.TRBLabel),
+    { initialProps: { textResourceBindings: { title: 'title' } } },
+  );
+  expect(result.current).toBe('title');
+  rerender({ textResourceBindings: { help: 'help' } });
+  expect(result.current).toBeUndefined();
 });
 
 it('uses the descriptor fallback when a configured optional text expression fails', () => {
