@@ -14,7 +14,7 @@ There is exactly **one** stage component, `parts/ScenarioStage.tsx`, and one dat
 and its one-sentence `headline`; the stage fills the body:
 
 ```
-┌ I dag (v8) ─────────────────────┐ ┌ Med v9 ─────────────────────────┐
+┌ Med v8 ─────────────────────────┐ ┌ Med v9 ─────────────────────────┐
 │  phone  │ line 1                │ │  phone  │ line 1                │
 │         │ line 2 …              │ │         │ line 2 …              │
 └─────────────────────────────────┘ └─────────────────────────────────┘

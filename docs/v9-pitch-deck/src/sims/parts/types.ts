@@ -18,6 +18,6 @@ export type SimTone =
 export type Side = 'v8' | 'v9';
 
 export const SIDE_TITLE: Record<Side, string> = {
-  v8: 'I dag (v8)',
+  v8: 'Med v8',
   v9: 'Med v9',
 };
