@@ -201,6 +201,32 @@
       {
         "dataModelBindings": {
           "simpleBinding": {
+            "field": "next",
+            "dataType": "TransitionControl"
+          }
+        },
+        "id": "next",
+        "type": "Dropdown",
+        "preselectedOptionIndex": 0,
+        "hidden": ["notEquals", ["dataModel", "path", "TransitionControl"], "postCommit"],
+        "options": [
+          {
+            "value": "task2",
+            "label": "next.task2"
+          },
+          {
+            "value": "sign",
+            "label": "next.sign"
+          }
+        ],
+        "textResourceBindings": {
+          "title": "next.title",
+          "help": "next.help"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": {
             "field": "deferrals",
             "dataType": "TransitionControl"
           }

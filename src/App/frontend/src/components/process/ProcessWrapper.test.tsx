@@ -5,6 +5,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -438,6 +439,83 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
     } finally {
       window.history.pushState({}, '', originalUrl);
+    }
+  });
+
+  it('converges from a service task url after the process moved on to a signing task', async () => {
+    // Parked on a service task without a layout (a mailbox wait) while the process advances two
+    // tasks on, to signing. The service task's url must keep resolving the service task's own type
+    // until the navigation lands; resolving the *current* task's raw type instead throws
+    // "Unknown task type: signing" and takes the whole app down.
+    vi.useFakeTimers();
+    try {
+      window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+        ui.folders.Sign = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
+      });
+      let committed = false;
+      const routerRef: RouterRef = { current: undefined };
+      await renderWithDefaultProviders({
+        renderer: () => (
+          <InstanceProvider>
+            <ProcessWrapper>
+              <div data-testid='task-content'>Task content</div>
+            </ProcessWrapper>
+          </InstanceProvider>
+        ),
+        router: ({ children }) => (
+          <InstanceRouter
+            routerRef={routerRef}
+            taskId='Approval'
+          >
+            {children}
+          </InstanceRouter>
+        ),
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => {
+              const instance = getInstanceWithProcessMock();
+              instance.process.processTasks = [
+                { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
+                { altinnTaskType: 'externalApproval', elementId: 'Approval', elementType: 'ServiceTask' },
+                { altinnTaskType: 'signing', elementId: 'Sign', elementType: 'Task' },
+              ];
+              if (committed) {
+                instance.process.currentTask = {
+                  ...instance.process.currentTask!,
+                  elementId: 'Sign',
+                  name: 'Sign',
+                  altinnTaskType: 'signing',
+                  elementType: 'Task',
+                };
+                instance.process.workflow = { status: 'idle' };
+              } else {
+                instance.process.currentTask = {
+                  ...instance.process.currentTask!,
+                  elementId: 'Approval',
+                  name: 'Approval',
+                  altinnTaskType: 'externalApproval',
+                  elementType: 'ServiceTask',
+                };
+                instance.process.workflow = { status: 'processing', targetTask: 'Approval' };
+              }
+              return instance;
+            },
+          },
+        },
+      });
+
+      await expectWorkflowLoader();
+
+      committed = true;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(13_000);
+      });
+
+      expect(routerRef.current!.state.location.pathname).toContain('/Sign');
+      expect(screen.queryByText(/ukjent feil/i)).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
     }
   });
 

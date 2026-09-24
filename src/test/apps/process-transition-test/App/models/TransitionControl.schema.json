@@ -49,6 +49,10 @@
       "@xsdType": "int",
       "type": "integer",
       "title": "Tid mellom utsettelser (ms)"
+    },
+    "next": {
+      "type": "string",
+      "title": "Neste steg etter service tasken"
     }
   }
 }
