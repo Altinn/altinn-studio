@@ -3166,6 +3166,9 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppMetadata
     {
+        Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; }
+        string ProcessDefinition { get; }
+        string XacmlPolicy { get; }
         System.Threading.Tasks.Task<string> GetApplicationBPMNProcess();
         System.Threading.Tasks.Task<Altinn.App.Core.Models.ApplicationMetadata> GetApplicationMetadata();
         System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy();

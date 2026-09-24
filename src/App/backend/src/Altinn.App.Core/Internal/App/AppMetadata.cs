@@ -36,54 +36,72 @@ internal sealed class AppMetadata : IAppMetadata
     }
 
     /// <inheritdoc />
-    public Task<ApplicationMetadata> GetApplicationMetadata()
+    public ApplicationMetadata ApplicationMetadata
     {
-        using var activity = _telemetry?.StartGetApplicationMetadataActivity();
-
-        // Cached until the app files are reloaded or the feature flags change. The flags are compared by
-        // reference first and by content when the reference differs, so an IFrontendFeatures that builds a new
-        // dictionary on every read does not force a parse on every read.
-        AppFiles files = _appFiles.Current;
-        IReadOnlyDictionary<string, bool> features = _frontendFeatures.GetDictionary();
-        CachedApplicationMetadata? cached = _cached;
-        if (cached is not null && ReferenceEquals(cached.Source, files))
+        get
         {
-            if (ReferenceEquals(cached.Features, features))
+            using var activity = _telemetry?.StartGetApplicationMetadataActivity();
+
+            // Cached until the app files are reloaded or the feature flags change. The flags are compared by
+            // reference first and by content when the reference differs, so an IFrontendFeatures that builds a new
+            // dictionary on every read does not force a parse on every read.
+            AppFiles files = _appFiles.Current;
+            IReadOnlyDictionary<string, bool> features = _frontendFeatures.GetDictionary();
+            CachedApplicationMetadata? cached = _cached;
+            if (cached is not null && ReferenceEquals(cached.Source, files))
             {
-                return Task.FromResult(cached.Metadata);
+                if (ReferenceEquals(cached.Features, features))
+                {
+                    return cached.Metadata;
+                }
+
+                if (cached.FeaturesHash == HashFeatures(features) && SameFeatures(cached.Metadata.Features, features))
+                {
+                    _cached = cached with { Features = features };
+                    return cached.Metadata;
+                }
             }
 
-            if (cached.FeaturesHash == HashFeatures(features) && SameFeatures(cached.Metadata.Features, features))
-            {
-                _cached = cached with { Features = features };
-                return Task.FromResult(cached.Metadata);
-            }
+            // A copy of its own, since the runtime values are added to it
+            ApplicationMetadata application = ApplicationMetadataParser.Parse(files);
+            application.Features = new Dictionary<string, bool>(features, StringComparer.Ordinal);
+            application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
+            application.OnEntry ??= new OnEntry { Show = "new-instance" };
+            application.OnEntry.Show ??= "new-instance";
+
+            _cached = new CachedApplicationMetadata(files, features, HashFeatures(features), application);
+            return application;
         }
-
-        // A copy of its own, since the runtime values are added to it
-        ApplicationMetadata application = ApplicationMetadataParser.Parse(files);
-        application.Features = new Dictionary<string, bool>(features, StringComparer.Ordinal);
-        application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
-        application.OnEntry ??= new OnEntry { Show = "new-instance" };
-        application.OnEntry.Show ??= "new-instance";
-
-        _cached = new CachedApplicationMetadata(files, features, HashFeatures(features), application);
-        return Task.FromResult(application);
     }
 
     /// <inheritdoc />
-    public Task<string> GetApplicationXACMLPolicy()
+    public string XacmlPolicy
     {
-        using var activity = _telemetry?.StartGetApplicationXACMLPolicyActivity();
-        return Task.FromResult(Encoding.UTF8.GetString(_appFiles.Current.XacmlPolicy.Span));
+        get
+        {
+            using var activity = _telemetry?.StartGetApplicationXACMLPolicyActivity();
+            return Encoding.UTF8.GetString(_appFiles.Current.XacmlPolicy.Span);
+        }
     }
 
     /// <inheritdoc />
-    public Task<string> GetApplicationBPMNProcess()
+    public string ProcessDefinition
     {
-        using var activity = _telemetry?.StartGetApplicationBPMNProcessActivity();
-        return Task.FromResult(Encoding.UTF8.GetString(_appFiles.Current.ProcessDefinition.Span));
+        get
+        {
+            using var activity = _telemetry?.StartGetApplicationBPMNProcessActivity();
+            return Encoding.UTF8.GetString(_appFiles.Current.ProcessDefinition.Span);
+        }
     }
+
+    /// <inheritdoc />
+    public Task<ApplicationMetadata> GetApplicationMetadata() => Task.FromResult(ApplicationMetadata);
+
+    /// <inheritdoc />
+    public Task<string> GetApplicationXACMLPolicy() => Task.FromResult(XacmlPolicy);
+
+    /// <inheritdoc />
+    public Task<string> GetApplicationBPMNProcess() => Task.FromResult(ProcessDefinition);
 
     /// <summary>
     /// A hash of the flags that does not depend on their order.

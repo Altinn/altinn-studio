@@ -18,27 +18,36 @@ namespace Altinn.App.logic.MetaData
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ApplicationMetadata> GetApplicationMetadata()
+        public ApplicationMetadata ApplicationMetadata
         {
-            var result = await _inner.GetApplicationMetadata();
-
-            // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
-            // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
-            // and it seems like process/next will fail if too many PDFs are generated at the same time.
-            var shouldCreatePdf =
-                _httpContextAccessor.HttpContext != null
-                && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
-
-            if (!shouldCreatePdf)
+            get
             {
-                foreach (var dt in result.DataTypes)
-                {
-                    dt.EnablePdfCreation = false;
-                }
-            }
+                var result = _inner.ApplicationMetadata;
 
-            return result;
+                // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
+                // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
+                // and it seems like process/next will fail if too many PDFs are generated at the same time.
+                var shouldCreatePdf =
+                    _httpContextAccessor.HttpContext != null
+                    && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
+
+                if (!shouldCreatePdf)
+                {
+                    foreach (var dt in result.DataTypes)
+                    {
+                        dt.EnablePdfCreation = false;
+                    }
+                }
+
+                return result;
+            }
         }
+
+        public string XacmlPolicy => _inner.XacmlPolicy;
+
+        public string ProcessDefinition => _inner.ProcessDefinition;
+
+        public Task<ApplicationMetadata> GetApplicationMetadata() => Task.FromResult(ApplicationMetadata);
 
         public Task<string> GetApplicationXACMLPolicy() => _inner.GetApplicationXACMLPolicy();
 
