@@ -191,7 +191,12 @@ deck; section 2 says where the copy lives; section 3 is the glossary.
 
 29. **Not a rebuild.** It is the same codebase, imported into the monorepo on 2025-09-23 and
     reworked in about 380 commits since; state management is still described as legacy
-    (`src/App/frontend/AGENTS.md`). Do not say «bygget på nytt».
+    (`src/App/frontend/AGENTS.md`). Do not say «bygget på nytt». What *did* change is the
+    architecture: routing and data loading moved to React Router 7 route loaders that fetch per page
+    and cache the result (`AppPrefetcher` replaced by route loaders, 2026-03; #17703), settings,
+    texts and layout sets are embedded in the first page load so startup needs fewer requests
+    (#17436, #17483, #17589), rendering does less work on navigation (#18987, #19556, #19564), and
+    the build moved to Vite (#19670). Say «ny arkitektur under panseret».
 30. **The frontend ships with the app.** v8 loads frontend 4.x «latest» from the CDN, so new
     frontend versions reach users untested; v9 serves the frontend from inside the app's package, so
     each app version has exactly one frontend (#18947; `IndexPageGenerator.cs`).
