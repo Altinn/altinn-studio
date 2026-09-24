@@ -77,7 +77,7 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 ### 5 — Raskere, og i takt med appen · 1 click
 
-> Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene er én måling i et skjema med 32 sider — si det om noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.
+> Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Tallene er én måling i et skjema med 32 sider — si det om noen spør, og ikke si «bygget på nytt». Andre klikk: i v9 ligger frontend i samme pakke som appen — appen din er backend, altså Altinn-bibliotekene og deres egen kode, pluss frontend, med samme versjon. I v8 henter appen alltid nyeste frontend, så brukerne kan få en versjon du ikke har testet. Nå er det du tester, det brukerne får.
 
 ### 6 — Brukeropplevelsen · 0 clicks
 

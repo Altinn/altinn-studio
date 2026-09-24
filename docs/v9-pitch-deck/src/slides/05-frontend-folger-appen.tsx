@@ -8,7 +8,8 @@ import { Slide, Icon, Reveal } from '../components';
  * Left: the one speed measurement there is — page navigation in a 32-page
  * form went from ~280–310 ms to ~150–180 ms (#18987); the bars use the
  * midpoints, rounded. Right: v9 ships the frontend inside the app's package (#18947),
- * so the frontend always has the app's version. The v8 contrast (it loads the
+ * so the frontend always has the app's version. «Backend» covers both the
+ * app libraries and the app's own logic. The v8 contrast (it loads the
  * newest frontend from a CDN) is in the speaker notes, not on the slide.
  */
 const BARS = [
@@ -64,19 +65,28 @@ export default function FrontendFolgerAppenSlide({ step }: SlideProps) {
             </p>
             <p className="s-fe__lead">Frontend ligger i samme pakke som appen</p>
 
-            <div className="s-fe__package">
-              <span className="s-fe__package-tag">Din app</span>
-              <div className="s-fe__package-row">
-                <span className="s-fe__item">
-                  <Icon name="server" size={30} />
-                  Appen
+            <div className="s-fe__equation">
+              <span className="s-fe__app">Din app</span>
+              <span className="s-fe__op" aria-hidden>
+                =
+              </span>
+              <div className="s-fe__group">
+                <span className="s-fe__paren" aria-hidden>
+                  (
                 </span>
-                <span className="s-fe__plus" aria-hidden>
+                <span className="s-fe__item">
+                  <Icon name="server" size={26} />
+                  Backend
+                </span>
+                <span className="s-fe__op" aria-hidden>
                   +
                 </span>
                 <span className="s-fe__item">
-                  <Icon name="eye" size={30} />
+                  <Icon name="eye" size={26} />
                   Frontend
+                </span>
+                <span className="s-fe__paren" aria-hidden>
+                  )
                 </span>
               </div>
               <span className="s-fe__version">
