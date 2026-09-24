@@ -2,7 +2,7 @@ import { CommonExpressions } from '@app/layout-contract/generated/expressions.ge
 
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -34,22 +34,9 @@ export function useLabelData({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
-  const help = useEvalOptionalText(
-    config.textResourceBindings && 'help' in config.textResourceBindings ? config.textResourceBindings.help : undefined,
-    CommonExpressions.TRBLabel.help,
-  );
-  const description = useEvalOptionalText(
-    config.textResourceBindings && 'description' in config.textResourceBindings
-      ? config.textResourceBindings.description
-      : undefined,
-    CommonExpressions.TRBLabel.description,
-  );
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
+  const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const componentId = useIndexedId(baseComponentId);
   const showOptionalMarking = 'labelSettings' in config && !!config.labelSettings?.optionalIndicator;

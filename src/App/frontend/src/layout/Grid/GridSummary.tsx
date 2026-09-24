@@ -48,7 +48,7 @@ import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -422,12 +422,7 @@ function SummaryCellWithComponent({
     CommonExpressions.FormComponentProps.required,
   );
 
-  const title = useEvalOptionalText(
-    config.textResourceBindings && 'title' in config.textResourceBindings
-      ? config.textResourceBindings.title
-      : undefined,
-    CommonExpressions.TRBLabel.title,
-  );
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const required = 'required' in config ? required2 : false;
   const indexedId = useIndexedId(baseComponentId);
   const content = getComponentCellData(baseComponentId, config.type, displayData, title);
