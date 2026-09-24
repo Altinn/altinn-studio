@@ -3,8 +3,7 @@
 One page for the person holding the clicker. Structure in English, the spoken notes verbatim in
 norsk bokmål (they are the `notes` fields in `src/slides/index.ts`, which is the source of truth).
 
-**The talk is slides 1–14: 43 build steps, 56 presses of `→` from the opening slide to the
-last.** Slides 15–22 are reserve slides for questions, reached with `o`.
+**15 slides, 46 build steps, 60 presses of `→` from the opening slide to the last.**
 
 Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrome, press `f`.
 
@@ -17,18 +16,18 @@ Start: `npm run build && npm run preview`, open <http://localhost:4173> in Chrom
 | `→` / `Space` / `PgDn` | Next build step, then next slide                  |
 | `←` / `PgUp`           | Previous build step, then previous slide          |
 | `↓` / `↑`              | Skip a whole slide, ignoring its build steps      |
-| `Home` / `End`         | First slide / last reserve slide                  |
+| `Home` / `End`         | First / last slide                                |
 | `F`                    | Fullscreen                                        |
 | `O`                    | Overview grid — click a thumbnail to jump         |
 | `?`                    | This cheat sheet, on screen                       |
 | `Esc`                  | Close an overlay                                  |
 
-Going backwards is safe: `←` re-enters a slide fully built. Deep-link during a rehearsal with `#/9`
-(slide 9) or `#/9/7` (slide 9, build step 7).
+Going backwards is safe: `←` re-enters a slide fully built. Deep-link during a rehearsal with `#/12`
+(slide 12) or `#/12/7` (slide 12, build step 7).
 
 ---
 
-## The two scenarios (slides 9 and 10)
+## The two scenarios (slides 12 and 13)
 
 Each one is clicked through, one line per press: **14 presses** per scenario.
 
@@ -88,69 +87,37 @@ Talk over each line; the lines are short on purpose. On press 7, say «samme sit
 
 > Del 3: det appen gjør bak kulissene — prosessene, stegene og logikken. «Send inn» er bare det mest kjente eksempelet.
 
-### 8 — Ett klikk, ti ting · 2 clicks
+### 8 — En motor for prosessene · 3 clicks
 
-> Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle lykkes mens brukeren venter på svar. Andre klikk: i v9 lagrer plattformen hvert av dem og gjør dem ferdig. Feiler noe, prøves det igjen, og det som er fullført, kjøres ikke på nytt. Si aldri «nøyaktig én gang». Vi skal se to eksempler.
+> Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».
 
-### 9 — Scenario 1: Noe feiler under innsending · plays through in 14 presses
-
-> Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra starten — for eksempel blir PDF-en laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.
-
-### 10 — Scenario 2: Serveren startes på nytt · plays through in 14 presses
-
-> Dette skjer hver gang en ny versjon rulles ut. I v8 stopper arbeidet midt i: PDF-en er laget, resten er ikke gjort, og ingen vet hvor langt det kom. I v9 er hvert steg lagret, så arbeidet fortsetter der det stoppet når serveren er tilbake. Kari merker bare litt venting.
-
-### 11 — Nye muligheter for utviklere · 3 clicks
+### 9 — Nye muligheter for utviklere · 3 clicks
 
 > For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.
 
-### 12 — Vi kan se hva som skjer · 3 clicks
+### 10 — Vi kan se hva som skjer · 3 clicks
 
 > Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.
 
-### 13 — Hva koster oppgraderingen? · 1 click
+### 11 — Ett klikk, ti ting · 2 clicks
+
+> Nå et eksempel alle kjenner. Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle lykkes mens brukeren venter på svar. Andre klikk: i v9 lagres hvert av dem og gjøres ferdig. Feiler noe, prøves det igjen, og det som er fullført, kjøres ikke på nytt. Si aldri «nøyaktig én gang». Så to scenarier.
+
+### 12 — Scenario 1: Noe feiler under innsending · plays through in 14 presses
+
+> Samme uhell to ganger. Først v8: Kari blir stående på samme side med en feilmelding, må prøve igjen selv, og da kjøres alt fra starten — for eksempel blir PDF-en laget to ganger. Så v9: Kari ser at arbeidet fortsetter, plattformen prøver igjen selv, og bare steget som feilet kjøres på nytt. Til slutt: de to utfallene side om side.
+
+### 13 — Scenario 2: Serveren startes på nytt · plays through in 14 presses
+
+> Dette skjer hver gang en ny versjon rulles ut. I v8 stopper arbeidet midt i: PDF-en er laget, resten er ikke gjort, og ingen vet hvor langt det kom. I v9 er hvert steg lagret, så arbeidet fortsetter der det stoppet når serveren er tilbake. Kari merker bare litt venting.
+
+### 14 — Slik oppgraderer du til v9 · 1 click
 
 > Prosessfilen i malen er lik i v8 og v9. Oppgraderingsverktøyet skriver om det det kan, og peker ut tre ting dere gjør selv: tilganger appen bruker selv, arkivoppgaver, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.
 
-### 14 — Bli med i pilotene · 3 clicks
+### 15 — Bli med i pilotene · 3 clicks
 
-> Vi tar inn pilotapper nå. Om noen spør: v9 er i lukket beta, foreløpig internt, og vi åpner for flere organisasjoner etter hvert som dere melder dere. Vi hjelper med oppgraderingen. Slutt her — reserveslidene etter denne er for spørsmål.
-
----
-
-## Reserve (for questions)
-
-### 15 — Reserve — Under panseret · 0 clicks
-
-> Reserve. Bruk `o` for å hoppe hit ved spørsmål om hvordan v8 gjør det i dag, eller hvordan motoren er bygget.
-
-### 16 — Reserve: Slik ser det ut i dag · 2 clicks
-
-> Rekkefølgen er en rett linje med «await» etter «await». Det finnes ingen transaksjon rundt den, og ingenting som rydder opp hvis linjen brytes på midten.
-
-### 17 — Reserve: Alt henger i én tråd · 2 clicks
-
-> Dette er kjernen. Det er ikke at koden er dårlig — den er god. Det er at arbeidet bare eksisterer i minnet til én prosess, i den tiden nettleseren holder forbindelsen åpen.
-
-### 18 — Reserve: Når det ryker midtveis · 2 clicks
-
-> Sideeffektene kjørte før prosessteget ble lagret. Det betyr at vi kan sitte igjen med halvt utført arbeid som ingen vet om. Neste forsøk begynner helt forfra.
-
-### 19 — Reserve: Dobbeltinnsending · 3 clicks
-
-> Fra v8.11 kom det en lås mot Storage, og den hjelper mot samtidige klikk. Men den er en leie med fem minutters levetid, og det finnes ingen nøkkel som gjenkjenner at «dette er det samme forsøket én gang til».
-
-### 20 — Reserve: Halvveis utført · 4 clicks
-
-> Registrering mot hendelsestjenesten var pakket inn i en logglinje — feilet den, gikk den tapt uten spor. Og en forsendelse som feiler halvveis, kan allerede ha lastet opp vedlegg på den andre siden. Siste klikk: dobbeltklikk. Låsen fra v8.11 stopper to samtidige klikk, men kjenner ikke igjen det samme forsøket én gang til — det gjør idempotensnøkkelen i v9.
-
-### 21 — Reserve: Driftshverdagen · 2 clicks
-
-> Den lange ventingen på leveransebekreftelse var bygget på at app-en sendte en hendelse til seg selv og lånte en annen tjenestes forsøksrytme som klokke. Gikk tiden ut, måtte noen tømme en kø for hånd.
-
-### 22 — Reserve: En motor for prosessen · 3 clicks
-
-> App-en melder inn hva som skal skje og får svar. Motoren skriver hvert steg til Postgres, kjører dem i rekkefølge, og kaller tilbake til app-en for hvert steg. Databasen er fasit — ingen kø i minnet.
+> Vi tar inn pilotapper nå. Om noen spør: v9 er i lukket beta, foreløpig internt, og vi åpner for flere organisasjoner etter hvert som dere melder dere. Vi hjelper med oppgraderingen.
 
 ---
 

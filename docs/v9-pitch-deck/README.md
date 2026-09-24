@@ -19,7 +19,7 @@ procedure — the deck needs no network once it is built (Inter is self-hosted),
 on a dead conference Wi-Fi.
 
 **[`NOTES.md`](NOTES.md) is the run sheet**: speaker notes per slide, how many clicks each slide
-takes, the total (56 for the talk), the keyboard cheat sheet, and the "do not overclaim" guardrails.
+takes, the total (60), the keyboard cheat sheet, and the "do not overclaim" guardrails.
 Print it or keep it on the second screen.
 
 Rehearsing: `npm run dev` gives you HMR, and a deep link (`#/5/2`) drops you straight onto a build
@@ -227,33 +227,31 @@ to close.
 A cover that maps the talk, three parts — infrastruktur, frontend, backend — then the ask, in norsk
 bokmål, authored from `CONTENT.md`. Speaker notes live in the `notes` field of each entry in
 `src/slides/index.ts`, are surfaced in the overview (`O`), and are laid out as a run sheet in
-[`NOTES.md`](NOTES.md). The talk is slides 1–14, 14 slides + 43 build steps = **56 presses of
-`→`**; slides 15–22 are reserve slides for questions.
+[`NOTES.md`](NOTES.md). 15 slides + 46 build steps = **60 presses of `→`**.
 
-| #     | `id`                       | Slide                                                         | Steps |
-| ----- | -------------------------- | ------------------------------------------------------------- | ----- |
-| 1     | `forside`                  | Hva blir bedre med v9? — the three parts, one per click       | 2     |
-| 2     | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                         | 0     |
-| 3     | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have       | 0     |
-| 4     | `seksjon-frontend`         | Del 2 — Frontend                                              | 0     |
-| 5     | `frontend-folger-appen`    | Raskere, og i takt med appen — speed bars, one package        | 1     |
-| 6     | `frontend-brukerne-merker` | Brukeropplevelsen                                             | 0     |
-| 7     | `seksjon-backend`          | Del 3 — Backend                                               | 0     |
-| 8     | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved             | 2     |
-| 9     | `scenario-feil`            | Scenario 1: a service does not answer for a moment            | 14    |
-| 10    | `scenario-omstart`         | Scenario 2: the server restarts during a deploy               | 14    |
-| 11    | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now  | 3     |
-| 12    | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard                | 3     |
-| 13    | `oppgradering`             | Hva koster oppgraderingen? — same process, one tool           | 1     |
-| 14    | `bli-med`                  | Bli med i pilotene — the ask                                  | 3     |
-| 15    | `seksjon-reserve`          | Reserve — Under panseret                                      | 0     |
-| 16–22 | `i-dag` … `prosessmotor`   | The v8 mechanism and the engine architecture, for questions   | 18    |
+| #  | `id`                       | Slide                                                        | Steps |
+| -- | -------------------------- | ------------------------------------------------------------ | ----- |
+| 1  | `forside`                  | Hva blir bedre med v9? — the three parts, one per click      | 2     |
+| 2  | `seksjon-infrastruktur`    | Del 1 — Infrastruktur                                        | 0     |
+| 3  | `infra-nytt-i-v9`          | Nytt med v9, and a banner for what v8 apps already have      | 0     |
+| 4  | `seksjon-frontend`         | Del 2 — Frontend                                             | 0     |
+| 5  | `frontend-folger-appen`    | Raskere, og i takt med appen — speed bars, one package       | 1     |
+| 6  | `frontend-brukerne-merker` | Brukeropplevelsen                                            | 0     |
+| 7  | `seksjon-backend`          | Del 3 — Backend                                              | 0     |
+| 8  | `prosessmotor`             | En motor for prosessene — app, engine, saved steps           | 3     |
+| 9  | `for-utviklere`            | Nye muligheter for utviklere — what service tasks can do now | 3     |
+| 10 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
+| 11 | `ett-klikk`                | Ett klikk, ti ting — then every one of them saved            | 2     |
+| 12 | `scenario-feil`            | Scenario 1: a service does not answer for a moment           | 14    |
+| 13 | `scenario-omstart`         | Scenario 2: the server restarts during a deploy              | 14    |
+| 14 | `oppgradering`             | Slik oppgraderer du til v9 — same process, one tool          | 1     |
+| 15 | `bli-med`                  | Bli med i pilotene — the ask                                 | 3     |
 
-Slides 9 and 10 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
+Slides 12 and 13 render the scenarios from `src/sims` full-bleed under a small title chip. Each one
 is clicked through, one line per press: the v8 telling, the same accident with v9, then both outcomes
 side by side; see [`src/sims/README.md`](src/sims/README.md). Slide-specific styling lives in
-`src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section dividers, the v8
-chain, wires, the scenario frame) live in `src/slides/_kit.tsx`.
+`src/styles/slides.css`; shared slide primitives (backdrop, feature cards, section dividers, wires,
+the scenario frame) live in `src/slides/_kit.tsx`.
 
 Accuracy rules the copy follows: never «nøyaktig én gang»; the engine is mandatory in v9; v9 is a
 closed beta; the frontend is not a rebuild and has one speed measurement; most platform gains reach

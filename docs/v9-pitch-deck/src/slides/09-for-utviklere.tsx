@@ -40,7 +40,7 @@ export default function ForUtviklereSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Backend · for utviklere"
+      kicker="Backend"
       title="Nye muligheter for utviklere"
       subtitle="Tjenesteoppgaver kan gjøre mer, og tåle mer."
     >

@@ -5,7 +5,7 @@ import type { IconName } from '../components';
 import { Backdrop } from './_kit';
 
 /**
- * The ten things one «Send inn» sets off — the opener of the backend part.
+ * The ten things one «Send inn» sets off — the bridge into the scenarios.
  * Step 1 fans them out; step 2 marks every one of them as saved, which is
  * the whole v9 promise in one picture.
  */
@@ -41,11 +41,28 @@ export default function EttKlikkSlide({ step }: SlideProps) {
             <br />
             ti ting
           </h1>
-          <p className="s-cover__lead">
-            {saved
-              ? 'I v9 blir hver av dem lagret og gjort ferdig — også når noe feiler underveis.'
-              : 'Når en bruker trykker «Send inn», skjer alt dette. I v8 må alt lykkes mens brukeren venter.'}
-          </p>
+          {/* Both leads share one grid cell, so swapping them never moves the title. */}
+          <div className="s-leadswap">
+            <motion.p
+              className="s-cover__lead"
+              initial={false}
+              animate={{ opacity: saved ? 0 : 1 }}
+              transition={{ duration: 0.25 }}
+              aria-hidden={saved}
+            >
+              Når en bruker trykker «Send inn», skjer alt dette. I v8 må alt lykkes mens brukeren
+              venter.
+            </motion.p>
+            <motion.p
+              className="s-cover__lead"
+              initial={false}
+              animate={{ opacity: saved ? 1 : 0 }}
+              transition={{ duration: 0.25, delay: saved ? 0.1 : 0 }}
+              aria-hidden={!saved}
+            >
+              I v9 blir hver av dem lagret og gjort ferdig — også når noe feiler underveis.
+            </motion.p>
+          </div>
         </div>
 
         <div className="s-fan">

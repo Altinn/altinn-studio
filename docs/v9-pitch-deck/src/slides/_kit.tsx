@@ -4,7 +4,6 @@
  * Nothing here is registered — `index.ts` only imports slide components.
  * Everything is sized in absolute px on the 1920x1080 canvas.
  */
-import { Fragment } from 'react';
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import { Icon, Reveal, Slide } from '../components';
@@ -113,104 +112,12 @@ export function BrandMark({
 }
 
 /* ---------------------------------------------------------------
-   The v8 request chain — everything one `process/next` does inline.
-   Slides 2, 3 and 4 all draw the same chain in different states.
-   --------------------------------------------------------------- */
-
-type NodeState = 'idle' | 'done' | 'ghost' | 'failed';
-
-const CHAIN_NODES: { label: string; icon: IconName }[] = [
-  { label: 'Lås instans', icon: 'lock' },
-  { label: 'Avslutt oppgave', icon: 'check' },
-  { label: 'Lås data', icon: 'shield' },
-  { label: 'Lag PDF', icon: 'document' },
-  { label: 'Send forsendelse', icon: 'send' },
-  { label: 'Registrer hendelser', icon: 'bell' },
-  { label: 'Lagre prosessteg', icon: 'database' },
-];
-
-interface ChainProps {
-  /** One state per node in `CHAIN_NODES`. */
-  states?: NodeState[];
-  /** Draw the crash bar after this 1-based node index. */
-  crashAfter?: number;
-  /** Label above the crash bar. */
-  crashLabel?: string;
-}
-
-function connectorClass(a: NodeState, b: NodeState): string {
-  if (a === 'ghost' || b === 'ghost') return 's-conn s-conn--ghost';
-  if (a === 'done' && b === 'done') return 's-conn s-conn--done';
-  return 's-conn';
-}
-
-export function Chain({ states, crashAfter, crashLabel = 'Poden dør' }: ChainProps) {
-  const resolved: NodeState[] = CHAIN_NODES.map((_, i) => states?.[i] ?? 'idle');
-
-  return (
-    <div className="s-flow">
-      {CHAIN_NODES.map((node, i) => {
-        const state = resolved[i];
-        const next = resolved[i + 1];
-        return (
-          <Fragment key={node.label}>
-            <div className={`s-node${state === 'idle' ? '' : ` s-node--${state}`}`}>
-              <span className="s-node__num">{String(i + 1).padStart(2, '0')}</span>
-              <Icon name={node.icon} size={38} />
-              <span className="s-node__label">{node.label}</span>
-              {state === 'done' && (
-                <span className="s-node__mark">
-                  <Icon name="check" size={22} strokeWidth={2.6} />
-                </span>
-              )}
-              {state === 'failed' && (
-                <span className="s-node__mark">
-                  <Icon name="x" size={22} strokeWidth={2.6} />
-                </span>
-              )}
-            </div>
-
-            {i < CHAIN_NODES.length - 1 &&
-              (crashAfter === i + 1 ? (
-                <div className="s-crash">
-                  <span className="s-crash__tag">{crashLabel}</span>
-                  <span className="s-crash__bar" />
-                </div>
-              ) : (
-                <span className={connectorClass(state, next)} />
-              ))}
-          </Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ---------------------------------------------------------------
    Small shared bits
    --------------------------------------------------------------- */
 
-/** The dashed "one HTTP request" bubble the v8 chain lives inside. */
-export function RequestBubble({
-  label,
-  quiet = false,
-  children,
-}: {
-  label: ReactNode;
-  quiet?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <div className={`s-bubble${quiet ? ' s-bubble--quiet' : ''}`}>
-      <p className="s-bubble__label">{label}</p>
-      {children}
-    </div>
-  );
-}
-
 /**
- * Frame for the three simulation slides: a small title chip over an
- * almost-full-bleed stage that the simulation fills on its own.
+ * Frame for the scenario slides: a small title chip over an almost-full-bleed
+ * stage that the scenario fills on its own.
  */
 export function SimFrame({
   no,
@@ -237,7 +144,7 @@ export function Dot({ tone }: { tone: 'ok' | 'run' | 'wait' | 'bad' | 'idle' }) 
   return <span className={`s-dot is-${tone}`} aria-hidden />;
 }
 
-/** A single row in the "steps in Postgres" panel. */
+/** A single row in a list of saved steps. */
 export function StepRow({
   label,
   state,

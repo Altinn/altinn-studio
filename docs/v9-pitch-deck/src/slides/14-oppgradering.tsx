@@ -17,14 +17,14 @@ const TERMINAL: { text: string; kind: 'cmd' | 'ok' | 'todo' }[] = [
 
 const PREFIX = { cmd: '$ ', ok: '✔ ', todo: 'TODO ' };
 
-/** What the upgrade costs an app developer. */
+/** What upgrading takes for an app developer. */
 export default function OppgraderingSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="split"
       splitRatio="820px 788px"
-      kicker="Backend · oppgradering"
-      title="Hva koster oppgraderingen?"
+      kicker="Backend"
+      title="Slik oppgraderer du til v9"
       subtitle="Prosessen din er den samme, og ett verktøy gjør det meste av jobben."
     >
       <div className="s-fill" style={{ justifyContent: 'flex-start', gap: 'var(--sp-4)' }}>

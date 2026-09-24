@@ -12,13 +12,3 @@ export function SeksjonFrontend() {
 export function SeksjonBackend() {
   return <SectionSlide no="Del 3" title="Backend" lead="Det appen gjør bak kulissene." />;
 }
-
-export function SeksjonReserve() {
-  return (
-    <SectionSlide
-      no="Reserve"
-      title="Under panseret"
-      lead="Hvordan v8 gjør det i dag, og hvordan motoren er bygget. For spørsmål."
-    />
-  );
-}
