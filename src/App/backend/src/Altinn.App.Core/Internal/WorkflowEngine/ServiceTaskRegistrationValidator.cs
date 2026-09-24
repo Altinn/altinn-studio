@@ -31,18 +31,18 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         IServiceProvider sp = scope.ServiceProvider;
 
         // Resolved once, in this validator's own scope, so a task needing a scoped dependency can be built.
-        List<IServiceTask>? simpleTasks = Resolve<IServiceTask>(sp);
-        List<IPipelineServiceTask>? pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+        List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
+        List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
 
         var errors = new List<string>();
 
-        foreach (IPipelineServiceTask task in simpleTasks ?? [])
+        foreach (IPipelineServiceTask task in simpleTasks)
         {
             ValidateSealedDefine(task, errors);
             ValidatePipeline(task, errors);
         }
 
-        foreach (IPipelineServiceTask task in pipelineTasks ?? [])
+        foreach (IPipelineServiceTask task in pipelineTasks)
         {
             ValidatePipeline(task, errors);
         }
@@ -108,10 +108,10 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
     }
 
     /// <summary>
-    /// The registered implementations of <typeparamref name="THandler"/>, or <c>null</c> when they could
-    /// not be constructed.
+    /// The registered implementations of <typeparamref name="THandler"/>, or none when they could not be
+    /// constructed.
     /// </summary>
-    private List<THandler>? Resolve<THandler>(IServiceProvider serviceProvider)
+    private List<THandler> Resolve<THandler>(IServiceProvider serviceProvider)
         where THandler : class
     {
         try
@@ -126,7 +126,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
                     + "they will be validated when first used instead.",
                 typeof(THandler).Name
             );
-            return null;
+            return [];
         }
     }
 }
