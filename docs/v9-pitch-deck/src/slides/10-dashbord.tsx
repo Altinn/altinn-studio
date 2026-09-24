@@ -68,7 +68,7 @@ export default function DashbordSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Backend · drift"
+      kicker="Backend"
       title="Vi kan se hva som skjer"
       subtitle="Hver prosess, hvert steg og hvert nytt forsøk — med tidsbruk og hele feilhistorikken."
     >
@@ -117,7 +117,7 @@ export default function DashbordSlide({ step }: SlideProps) {
         <Reveal show={step >= 1} from="right">
           <div className="s-panel">
             <div className="s-panel__head">
-              <span>Steg 3 · Send til mottaker</span>
+              <span>Send til mottaker</span>
               <span className="s-tag s-tag--bad">Nytt forsøk</span>
             </div>
 

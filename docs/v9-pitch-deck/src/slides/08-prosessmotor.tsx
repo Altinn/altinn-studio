@@ -2,14 +2,14 @@ import type { SlideProps } from '../deck';
 import { Slide, Icon, Reveal } from '../components';
 import { ArrowDefs, StepRow, Wire } from './_kit';
 
-/** The engine, drawn: app <-> engine <-> steps in Postgres. */
+/** The backend part's lead slide: the app, the process engine, and the saved steps. */
 export default function ProsessmotorSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="Med prosessmotor · v9"
-      title="En motor for prosessen"
-      subtitle="v9 flytter arbeidet mellom BPMN-oppgavene ut av forespørselen og inn i en egen prosessmotor med database."
+      kicker="Backend"
+      title="En motor for prosessene"
+      subtitle="Appen sier hva som skal skje. Prosessmotoren sørger for at det blir gjort."
     >
       <div className="s-arch">
         <svg className="s-arch__svg" viewBox="0 0 1656 520" width={1656} height={520} aria-hidden>
@@ -22,18 +22,18 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
         <div className="s-unit s-unit--app" style={{ left: 0, top: 160, width: 360, height: 240 }}>
           <Icon name="user" size={44} />
           <span className="s-unit__title">Altinn-app</span>
-          <span className="s-unit__sub">Brukeren klikker «Send inn»</span>
+          <span className="s-unit__sub">Skjema, oppgaver og logikk</span>
         </div>
 
         <Reveal show={step >= 1} keepSpace={false}>
           <span className="s-arrowlabel" style={{ left: 510, top: 186, transform: 'translateX(-50%)' }}>
-            Melder inn
+            Hva som skal skje
           </span>
         </Reveal>
 
         <Reveal show={step >= 2} keepSpace={false}>
           <span className="s-arrowlabel" style={{ left: 510, top: 286, transform: 'translateX(-50%)' }}>
-            Svar per steg
+            Gjør steget
           </span>
         </Reveal>
 
@@ -44,7 +44,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           >
             <Icon name="server" size={44} />
             <span className="s-unit__title">Prosessmotor</span>
-            <span className="s-unit__sub">Kjører stegene i rekkefølge</span>
+            <span className="s-unit__sub">Holder orden på stegene</span>
           </div>
         </Reveal>
 
@@ -52,12 +52,12 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           <div className="s-db" style={{ left: 1200, top: 96, width: 456 }}>
             <p className="s-db__head">
               <Icon name="database" size={24} />
-              Postgres · hvert steg
+              Lagret · hvert steg
             </p>
-            <StepRow label="1 · Avslutt oppgave" state="Fullført" tone="ok" />
+            <StepRow label="1 · Avslutt oppgaven" state="Fullført" tone="ok" />
             <StepRow label="2 · Lag PDF" state="Fullført" tone="ok" />
-            <StepRow label="3 · Send forsendelse" state="Kjører" tone="run" />
-            <StepRow label="4 · Registrer hendelser" state="I kø" tone="idle" />
+            <StepRow label="3 · Send til mottaker" state="Kjører" tone="run" />
+            <StepRow label="4 · Varsle andre systemer" state="I kø" tone="idle" />
           </div>
         </Reveal>
       </div>

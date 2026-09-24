@@ -230,7 +230,7 @@ test('a slide change crossfades without a gap, a ghost or a flash', async ({ pag
 });
 
 test('build-step content lands without blinking out', async ({ page }) => {
-  await page.goto('/#/11'); // `for-utviklere` — one card revealed per build step
+  await page.goto('/#/9'); // `for-utviklere` — one card revealed per build step
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
 
