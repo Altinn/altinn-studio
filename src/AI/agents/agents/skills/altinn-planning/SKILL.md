@@ -7,7 +7,7 @@ title: Planlegging av app-endringer
 
 ### Core Components
 
-- **`App/Program.cs`**: Entry point using Altinn App Framework with custom service registrations for `IInstantiationProcessor` and `IInstanceValidator`
+- **`App/Program.cs`**: Entry point using Altinn App Framework with custom service registrations for `IInstantiationProcessor` and validators: `IFormDataValidator` for form data, `ITaskValidator` for a whole task
 - **`App/models/model.cs`**: Auto-generated data model from XSD schema with dual JSON/XML serialization support
 - **`App/logic/`**: Custom business logic handlers (instantiation, validation)
 - **`App/ui/`**: Frontend layout definitions using Altinn's declarative JSON schema
@@ -19,8 +19,33 @@ title: Planlegging av app-endringer
 
 ```csharp
 services.AddTransient<IInstantiationProcessor, InstantiationHandler>();
-services.AddTransient<IInstanceValidator, ValidationHandler>();
+services.AddTransient<IFormDataValidator, ValidationHandler>();
 ```
+
+**Form data validation** implements `IFormDataValidator`. `DataType` is the data type ID from `applicationmetadata.json`, or `"*"` for all form data:
+
+```csharp
+public class ValidationHandler : IFormDataValidator
+{
+    public string DataType => "model";
+
+    public bool HasRelevantChanges(object current, object previous) => true;
+
+    public Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        object data,
+        string? language
+    )
+    {
+        var issues = new List<ValidationIssue>();
+        // Add issues such as new ValidationIssue { Severity = ValidationIssueSeverity.Error, Field = "...", CustomTextKey = "..." }
+        return Task.FromResult(issues);
+    }
+}
+```
+
+**Task validation** implements `ITaskValidator` with `string TaskId { get; }` (`"*"` for all tasks) and `Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language)`, registered with `services.AddTransient<ITaskValidator, ...>()`.
 
 **Data Model**: All model properties use both `[JsonProperty]` and `[JsonPropertyName]` attributes for compatibility, plus `[XmlElement]` for order-specific XML serialization.
 
