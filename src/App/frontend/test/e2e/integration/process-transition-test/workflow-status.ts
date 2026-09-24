@@ -362,13 +362,14 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
 
     // process/resume holds its request until the workflow settles; the loader takes over from the
-    // retry button meanwhile. Resume keeps the transition's original start, which is well over eight
-    // seconds ago by now, so the still-working notice at the first failed retry (~3s after the resume)
-    // would mean the clock was not restarted by the resume.
+    // retry button meanwhile. Resume keeps the transition's original start, which is long past both
+    // thresholds by now, so either message at the first failed retry (~3s after the resume) would mean
+    // the clock was not restarted by the resume.
     cy.findByRole('button', { name: 'Prøv igjen' }).click();
     workflowLoader().should('be.visible');
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service', failedAttempts: 1 });
     cy.contains('Dette tar uvanlig lang tid').should('not.exist');
+    cy.contains('Vi får ikke behandlet skjemaet ditt').should('not.exist');
     cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
 
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
