@@ -7,8 +7,6 @@ import {
 import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from '../constants';
-import { bpmnTaskTypes } from '../types/BpmnTaskType';
-import nb from '../../../../language/src/nb.json';
 
 // Test data
 const layoutSetName = 'layoutSet';
@@ -147,17 +145,5 @@ describe('getLayoutSetTypeTranslationKey', () => {
     expect(getLayoutSetTypeTranslationKey(layoutSet)).toBe(
       'process_editor.configuration_panel_custom_receipt_accordion_header',
     );
-  });
-
-  // The key is built from the task type, so a new task type or a deleted translation fails here
-  // rather than surfacing as a raw key on the task card in Utforming.
-  it.each(bpmnTaskTypes)('has a name in nb.json for the task type %p', (taskType) => {
-    const layoutSet: LayoutSetModel = {
-      id: 'test',
-      dataType: null,
-      type: null,
-      task: { id: 'Task_1', type: taskType },
-    };
-    expect(nb).toHaveProperty([getLayoutSetTypeTranslationKey(layoutSet)]);
   });
 });

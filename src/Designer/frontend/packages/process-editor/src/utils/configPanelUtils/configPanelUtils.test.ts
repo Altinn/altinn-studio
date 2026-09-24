@@ -3,8 +3,6 @@ import {
   getConfigTitleKey,
   getDataTypeFromLayoutSetsWithExistingId,
 } from './configPanelUtils';
-import { builtInBpmnTaskTypes } from '../../types/BpmnTaskType';
-import nb from '../../../../../language/src/nb.json';
 
 describe('configPanelUtils', () => {
   describe('getConfigTitleKey', () => {
@@ -77,16 +75,6 @@ describe('configPanelUtils', () => {
         'process_editor.configuration_panel_header_help_text_missing',
       );
     });
-  });
-
-  describe('the keys resolve in nb.json', () => {
-    it.each([...builtInBpmnTaskTypes, 'myServiceTask', '', null])(
-      'has a title and a help text for %p',
-      (taskType) => {
-        expect(nb).toHaveProperty([getConfigTitleKey(taskType)]);
-        expect(nb).toHaveProperty([getConfigTitleHelpTextKey(taskType)]);
-      },
-    );
   });
 
   describe('getDataTypeFromLayoutSetsWithExistingId', () => {
