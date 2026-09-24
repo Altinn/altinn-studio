@@ -946,7 +946,7 @@ pub(crate) struct RowView {
     pub(crate) agent: bool,
     /// A Session waits for input, or an Agent has one that does.
     pub(crate) attention: bool,
-    /// An Agent's fold marker or a Session's state glyph, readable without colour.
+    /// An Agent's fold marker or a Session's state glyph, readable without color.
     pub(crate) marker: &'static str,
     pub(crate) name: String,
     pub(crate) state: &'static str,

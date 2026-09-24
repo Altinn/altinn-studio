@@ -13,7 +13,7 @@ use super::app::{
     TreeRowId, View, harness_label,
 };
 
-/// Background of the selected row; without colour it is drawn reversed instead.
+/// Background of the selected row; without color it is drawn reversed instead.
 const SELECTION: Color = Color::Rgb(52, 58, 70);
 /// Narrowest tree that still shows the detail and age columns.
 const WIDE_TREE: u16 = 70;
@@ -54,12 +54,12 @@ pub(crate) struct ViewState {
     /// First tree row below the column header, pinned Agent aside.
     tree_offset: usize,
     forwards: ListState,
-    /// Draw without colour; glyphs and modifiers still tell states apart.
+    /// Draw without color; glyphs and modifiers still tell states apart.
     no_color: bool,
 }
 
 impl ViewState {
-    /// Honours `NO_COLOR` when it is set to anything but an empty string.
+    /// Honors `NO_COLOR` when it is set to anything but an empty string.
     pub(crate) fn for_environment() -> Self {
         Self {
             no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
@@ -443,7 +443,7 @@ fn name_cell(row: &RowView) -> Line<'static> {
 }
 
 /// One tree row, with the detail and age columns when the detail has a
-/// width. Every state has a glyph as well as a colour.
+/// width. Every state has a glyph as well as a color.
 fn tree_row(row: &RowView, detail_width: Option<usize>) -> Row<'static> {
     let tone = Style::new().fg(tone_color(row.tone));
     let mut state = tone;
@@ -748,13 +748,13 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
         .installation()
         .map_or("", |installation| harness_label(installation.kind));
     let target = Form::new(" new session ", Color::Cyan, &NEW_SESSION_HINTS)
-        .row(labelled("Agent", false, text_input(&form.agent, false, "")))
-        .row(labelled(
+        .row(labeled("Agent", false, text_input(&form.agent, false, "")))
+        .row(labeled(
             "Name",
             form.field == SessionField::Name,
             text_input(&form.name, form.field == SessionField::Name, ""),
         ))
-        .row(labelled(
+        .row(labeled(
             "Model",
             form.field == SessionField::Model,
             text_input(
@@ -763,7 +763,7 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
                 &selection_hint(form.model_default()),
             ),
         ))
-        .row(labelled(
+        .row(labeled(
             "Effort",
             form.field == SessionField::Effort,
             text_input(
@@ -772,7 +772,7 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
                 &selection_hint(form.effort_default()),
             ),
         ))
-        .row(labelled(
+        .row(labeled(
             "Harness",
             false,
             picker(harness, false, form.harness, form.harnesses.len(), "", 0),
@@ -831,7 +831,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
         |name| name.to_string_lossy().into_owned(),
     );
     widget = widget
-        .row(labelled(
+        .row(labeled(
             "Agent",
             form.field == CreateField::Agent,
             picker(
@@ -843,7 +843,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 detail_width,
             ),
         ))
-        .row(labelled(
+        .row(labeled(
             "Variant",
             form.field == CreateField::Variant,
             picker(
@@ -855,7 +855,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 detail_width,
             ),
         ))
-        .row(labelled(
+        .row(labeled(
             "Name",
             form.field == CreateField::Name,
             text_input(
@@ -864,7 +864,7 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 form.placeholder().unwrap_or_default(),
             ),
         ))
-        .row(labelled(
+        .row(labeled(
             "Env file",
             form.field == CreateField::EnvironmentFile,
             text_input(
@@ -902,14 +902,14 @@ fn render_port_forward(frame: &mut Frame, area: Rect, form: &super::app::Forward
         " port forward "
     };
     let text = |label, value: &str, field, placeholder| {
-        labelled(
+        labeled(
             label,
             form.field == field,
             text_input(value, form.field == field, placeholder),
         )
     };
     let target = Form::new(title, Color::Cyan, &PORT_FORWARD_HINTS)
-        .row(labelled("Agent", false, text_input(&form.agent, false, "")))
+        .row(labeled("Agent", false, text_input(&form.agent, false, "")))
         .row(text("Address", &form.address, ForwardField::Address, "127.0.0.1"))
         .row(text(
             "Local port",
@@ -985,7 +985,7 @@ impl<'a> Form<'a> {
 }
 
 /// A form row: the label, highlighted while the row has focus, then its value.
-fn labelled(label: &str, focused: bool, value: Vec<Span<'static>>) -> Line<'static> {
+fn labeled(label: &str, focused: bool, value: Vec<Span<'static>>) -> Line<'static> {
     let style = if focused {
         Style::new().fg(Color::Cyan)
     } else {
@@ -1465,7 +1465,7 @@ mod tests {
     }
 
     #[test]
-    fn no_color_draws_without_colour_but_keeps_glyphs_and_the_selection() {
+    fn no_color_draws_without_color_but_keeps_glyphs_and_the_selection() {
         let mut app = triage_app();
         app.select_index(1);
         let mut state = ViewState {

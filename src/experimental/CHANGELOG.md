@@ -32,7 +32,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Image pulls and imports show downloading, materializing and assembling as separate steps.
 - The terminal UI updates as Agents and Sessions change instead of every two seconds, and keeps the last state on screen
   while `agentd` is unreachable.
-- Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off colour while every state keeps its
+- Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off color while every state keeps its
   glyph.
 
 ### Fixed
