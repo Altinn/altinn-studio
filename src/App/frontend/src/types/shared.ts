@@ -319,6 +319,7 @@ interface IProcessTask {
   altinnTaskType: string;
   elementId: string;
   elementType?: ElementType; // Appears in versions after https://github.com/Altinn/app-lib-dotnet/pull/745
+  subformDataTypeId?: string; // Only set for subform PDF service tasks
 }
 
 export interface ITask extends IProcessTask {

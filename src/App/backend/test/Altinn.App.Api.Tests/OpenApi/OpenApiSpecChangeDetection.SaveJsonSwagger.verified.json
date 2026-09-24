@@ -8653,6 +8653,10 @@
           "elementType": {
             "type": "string",
             "nullable": true
+          },
+          "subformDataTypeId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -92,6 +92,11 @@ public sealed class ProcessStateEnricher
                     ElementId = processElement.Id,
                     ElementType = processElement.ElementType(),
                     AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType,
+                    SubformDataTypeId = processElement
+                        .ExtensionElements
+                        ?.TaskExtension
+                        ?.SubformPdfConfiguration
+                        ?.SubformDataTypeId,
                 }
             );
         }

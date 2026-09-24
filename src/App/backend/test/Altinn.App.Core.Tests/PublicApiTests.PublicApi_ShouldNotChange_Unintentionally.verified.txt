@@ -3882,6 +3882,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
         public string? ElementId { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("elementType")]
         public string? ElementType { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("subformDataTypeId")]
+        public string? SubformDataTypeId { get; set; }
     }
     public sealed class AppProcessWorkflowFailure
     {

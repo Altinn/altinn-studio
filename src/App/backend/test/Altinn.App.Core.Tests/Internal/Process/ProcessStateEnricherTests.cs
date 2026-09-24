@@ -224,13 +224,62 @@ public class ProcessStateEnricherTests
         engine.VerifyNoOtherCalls();
     }
 
+    [Fact]
+    public async Task Enrich_SubformPdfTask_IncludesItsSubformDataType()
+    {
+        var engine = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
+        List<ProcessElement> flowElements =
+        [
+            new ProcessTask
+            {
+                Id = "Task_1",
+                ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+            },
+            new ServiceTask
+            {
+                Id = "Task_SubformPdf",
+                ExtensionElements = new()
+                {
+                    TaskExtension = new()
+                    {
+                        TaskType = "subformPdf",
+                        SubformPdfConfiguration = new()
+                        {
+                            SubformComponentId = "subform-component",
+                            SubformDataTypeId = "subform-model",
+                        },
+                    },
+                },
+            },
+        ];
+
+        ProcessStateEnricher enricher = CreateEnricher(engine, flowElements);
+
+        AppProcessState result = await enricher.Enrich(
+            new Instance(),
+            new ProcessState(),
+            CreateUser(),
+            includeWorkflowStatus: false
+        );
+
+        Assert.NotNull(result.ProcessTasks);
+        Assert.Null(result.ProcessTasks.Single(t => t.ElementId == "Task_1").SubformDataTypeId);
+        Assert.Equal(
+            "subform-model",
+            result.ProcessTasks.Single(t => t.ElementId == "Task_SubformPdf").SubformDataTypeId
+        );
+    }
+
     // Isolates the workflow mapping: the flow-element / authorization block is a no-op (no current
     // task flow element, no flow elements), so only the IWorkflowEngineService result is exercised.
-    private static ProcessStateEnricher CreateEnricher(Mock<IWorkflowEngineService> engine)
+    private static ProcessStateEnricher CreateEnricher(
+        Mock<IWorkflowEngineService> engine,
+        List<ProcessElement>? flowElements = null
+    )
     {
         var processReader = new Mock<IProcessReader>(MockBehavior.Strict);
         processReader.Setup(r => r.GetFlowElement(It.IsAny<string?>())).Returns((ProcessElement?)null);
-        processReader.Setup(r => r.GetAllFlowElements()).Returns([]);
+        processReader.Setup(r => r.GetAllFlowElements()).Returns(flowElements ?? []);
 
         var serviceProvider = new ServiceCollection().AddSingleton(engine.Object).BuildServiceProvider();
 
