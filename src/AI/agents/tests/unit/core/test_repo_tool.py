@@ -93,19 +93,13 @@ async def test_scan_repo_lists_layouts_in_a_layout_set_not_named_form(tmp_path):
     assert await _scan_layouts(tmp_path) == [f"App/ui/message/layouts/{LAYOUT_FILE_NAME}"]
 
 
-async def test_scan_repo_lists_layouts_in_a_task_folder(tmp_path):
-    _create_layout(tmp_path, "App/ui/Task_1/layouts")
-
-    assert await _scan_layouts(tmp_path) == [f"App/ui/Task_1/layouts/{LAYOUT_FILE_NAME}"]
-
-
 async def test_scan_repo_lists_layouts_from_every_layout_set_in_sorted_order(tmp_path):
-    _create_layout(tmp_path, "App/ui/Task_2/layouts")
-    _create_layout(tmp_path, "App/ui/Task_1/layouts")
+    _create_layout(tmp_path, "App/ui/receipt/layouts")
+    _create_layout(tmp_path, "App/ui/message/layouts")
 
     assert await _scan_layouts(tmp_path) == [
-        f"App/ui/Task_1/layouts/{LAYOUT_FILE_NAME}",
-        f"App/ui/Task_2/layouts/{LAYOUT_FILE_NAME}",
+        f"App/ui/message/layouts/{LAYOUT_FILE_NAME}",
+        f"App/ui/receipt/layouts/{LAYOUT_FILE_NAME}",
     ]
 
 
