@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Auth;
@@ -22,7 +23,7 @@ FixtureConfigurationService.Instance.Initialize();
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-ConfigureServices(builder.Services, builder.Configuration);
+await ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
@@ -38,12 +39,12 @@ Configure();
 
 app.Run();
 
-void ConfigureServices(IServiceCollection services, IConfiguration config)
+async Task ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
 
     // Register services required to run this as an Altinn application
-    services.AddAltinnAppServices(config, builder.Environment);
+    await services.AddAltinnAppServices(config, builder.Environment);
 
     // Register custom implementations after the default app services so
     // test scenarios can replace built-in registrations when needed.

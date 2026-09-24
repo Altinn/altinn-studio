@@ -1,14 +1,11 @@
-using System.Text;
 using System.Text.Json;
-using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Features.Options;
 
 /// <inheritdoc/>
-public class AppOptionsFileHandler : IAppOptionsFileHandler
+internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {
@@ -16,30 +13,24 @@ public class AppOptionsFileHandler : IAppOptionsFileHandler
         AllowTrailingCommas = true,
     };
 
-    private readonly AppSettings _settings;
+    private readonly AppFilesAccessor _appFiles;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppOptionsFileHandler"/> class.
     /// </summary>
-    public AppOptionsFileHandler(IOptions<AppSettings> settings)
+    public AppOptionsFileHandler(AppFilesAccessor appFiles)
     {
-        _settings = settings.Value;
+        _appFiles = appFiles;
     }
 
     /// <inheritdoc/>
-    public async Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
+    public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
     {
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.OptionsFolder);
-        string filename = legalPath + optionId + ".json";
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        if (File.Exists(filename))
+        if (_appFiles.Current.GetOptions(optionId) is not { } bytes)
         {
-            string fileData = await File.ReadAllTextAsync(filename, Encoding.UTF8);
-            List<AppOption>? options = JsonSerializer.Deserialize<List<AppOption>>(fileData, _jsonSerializerOptions);
-            return options;
+            return Task.FromResult<List<AppOption>?>(null);
         }
 
-        return null;
+        return Task.FromResult(JsonSerializer.Deserialize<List<AppOption>>(bytes.Span, _jsonSerializerOptions));
     }
 }

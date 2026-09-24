@@ -43,7 +43,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                 })
@@ -81,7 +81,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                 })
@@ -104,7 +104,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                     var mockDataType = new DataType();
@@ -137,7 +137,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         {
             services.AddSingleton(prefillValidatorMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                     var mockDataType = new DataType();
@@ -192,7 +192,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         {
             services.AddSingleton(prefillValidatorMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                     var mockDataType = new DataType();
@@ -249,7 +249,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         {
             services.AddSingleton(prefillValidatorMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.OnEntry = new OnEntry() { Show = "stateless" };
                     var mockDataType = new DataType();

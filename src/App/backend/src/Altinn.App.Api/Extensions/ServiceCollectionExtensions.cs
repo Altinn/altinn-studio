@@ -16,6 +16,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Altinn.App.Core.Internal.App;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Studio.Common;
@@ -78,17 +79,20 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds all services to run an Altinn application.
+    /// Adds all services to run an Altinn application. Loads the app resource files (config, models, options and ui folders)
+    /// into memory as the last step, so the returned task must be awaited before the host is built, and a broken
+    /// app fails here instead of on the first request.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> being built.</param>
     /// <param name="config">A reference to the current <see cref="IConfiguration"/> object.</param>
     /// <param name="env">A reference to the current <see cref="IWebHostEnvironment"/> object.</param>
-    public static void AddAltinnAppServices(
+    public static async Task AddAltinnAppServices(
         this IServiceCollection services,
         IConfiguration config,
         IWebHostEnvironment env
     )
     {
+        AppFilesDI.ThrowIfAdded(services);
         services.AddMemoryCache();
         services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
 
@@ -134,11 +138,14 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerFilter();
 
         // Add swagger endpoint for end user system api documentation
-        var appId = StartupHelper.GetApplicationId();
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath);
         services.Configure<SwaggerUIOptions>(c =>
         {
             c.SwaggerEndpoint($"/{appId}/v1/customOpenapi.json", $"End user app API for {appId}");
         });
+
+        // Last, so that everything above is registered even when a Program.cs forgets to await the returned task
+        await services.AddAppFiles(env);
     }
 
     /// <summary>
@@ -181,7 +188,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        var appId = StartupHelper.GetApplicationId().Split("/")[1];
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath).Split("/")[1];
         var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
         var isTest = config.GetSection("GeneralSettings").GetValue<bool>("IsTest");
         if (string.IsNullOrWhiteSpace(appVersion))

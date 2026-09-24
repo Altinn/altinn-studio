@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
@@ -15,7 +14,6 @@ using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
@@ -36,7 +34,7 @@ public class CustomOpenApiController : Controller
     private readonly SchemaRepository _schemaRepository;
     private readonly IProcessReader _processReader;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly AppSettings _settings;
+    private readonly AppFilesAccessor _appFiles;
 
     /// <summary>
     /// Constructor with services from dependency injection
@@ -47,8 +45,7 @@ public class CustomOpenApiController : Controller
         IAppMetadata appMetadata,
         ISerializerDataContractResolver dataContractResolver,
         IProcessReader processReader,
-        IServiceProvider serviceProvider,
-        IOptions<AppSettings> settings
+        IServiceProvider serviceProvider
     )
     {
         _appResources = appResources;
@@ -61,7 +58,7 @@ public class CustomOpenApiController : Controller
         );
         _schemaRepository = new SchemaRepository();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
-        _settings = settings.Value;
+        _appFiles = serviceProvider.GetRequiredService<AppFilesAccessor>();
     }
 
     internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
@@ -1012,17 +1009,8 @@ public class CustomOpenApiController : Controller
         // Get all ids from IAppOptionsProviders:
         optionsIds.AddRange(_appImplementationFactory.GetAll<IAppOptionsProvider>().Select(a => a.Id));
 
-        // Get Json file names:
-        string jsonOptionsFolderPath = Path.Join(_settings.AppBasePath, _settings.OptionsFolder);
-        if (Directory.Exists(jsonOptionsFolderPath))
-        {
-            optionsIds.AddRange(
-                Directory
-                    .GetFiles(jsonOptionsFolderPath)
-                    .Where(x => x.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                    .Select(Path.GetFileNameWithoutExtension)
-            );
-        }
+        // Get ids of the option lists shipped as json files:
+        optionsIds.AddRange(_appFiles.Current.GetOptionIds());
 
         return optionsIds.WhereNotNull().Select(optionsId => (JsonNode)optionsId).ToList();
     }

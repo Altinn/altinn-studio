@@ -23,7 +23,7 @@ public class CorrespondenceClientTests
     public async Task Send_SuccessfulRequest_ReturnsCorrectResponse()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -74,7 +74,7 @@ public class CorrespondenceClientTests
     public async Task GetStatus_SuccessfulRequest_ReturnsCorrectResponse()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -127,7 +127,7 @@ public class CorrespondenceClientTests
     public async Task FailedRequest_ThrowsCorrespondenceRequestException(HttpStatusCode httpStatusCode)
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
         var responseMessage = new HttpResponseMessage(httpStatusCode)
@@ -173,7 +173,7 @@ public class CorrespondenceClientTests
     public async Task KnownCorrespondenceException_IsHandled()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -211,7 +211,7 @@ public class CorrespondenceClientTests
     public async Task UnexpectedException_IsHandled()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -279,7 +279,7 @@ public class CorrespondenceClientTests
     )
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockMaskinportenClient = fixture.MaskinportenClientMock;
         var mockHttpClient = new Mock<HttpClient>();
@@ -343,7 +343,7 @@ public class CorrespondenceClientTests
     public async Task Send_WithAttachments_SuccessfulFlow_CallsAllFourEndpoints()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -392,7 +392,7 @@ public class CorrespondenceClientTests
     public async Task Send_WithAttachments_AttachmentFailed_ThrowsCorrespondenceRequestException()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -434,7 +434,7 @@ public class CorrespondenceClientTests
     public async Task Send_WithAttachments_AttachmentPurged_ThrowsCorrespondenceRequestException()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockHttpClient = new Mock<HttpClient>();
 
@@ -482,7 +482,7 @@ public class CorrespondenceClientTests
 
         public ICorrespondenceClient CorrespondenceClient => App.Services.GetRequiredService<ICorrespondenceClient>();
 
-        public static Fixture Create()
+        public static async Task<Fixture> Create()
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
             var mockMaskinportenClient = new Mock<IMaskinportenClient>(MockBehavior.Strict);
@@ -493,7 +493,7 @@ public class CorrespondenceClientTests
                 .Returns((IEnumerable<string> scopes, CancellationToken _) => TestHelpers.OrgTokenFactory(scopes))
                 .Verifiable();
 
-            var app = AppBuilder.Build(registerCustomAppServices: services =>
+            var app = await AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(mockHttpClientFactory.Object);
                 services.AddSingleton(mockMaskinportenClient.Object);

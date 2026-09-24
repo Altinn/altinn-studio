@@ -37,14 +37,20 @@ using Microsoft.OpenApi;
 // External interfaces like Platform related services, Authentication, Authorization
 // external api's etc. should be mocked.
 
+// WebApplicationFactory passes the content root a test selects with UseContentRoot as a command line argument.
+// Its own guess (the solution folder plus the project name) does not exist, so only an existing folder is used.
+string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
+        ContentRootPath = Directory.Exists(contentRootFromArgs) ? contentRootFromArgs : null,
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",
     }
 );
+
 builder.WebHost.UseDefaultServiceProvider(
     (context, options) =>
     {
@@ -67,9 +73,9 @@ builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
     options.RequestCollectionOptions.InjectResponseHeaders = false
 );
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
-builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
+builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 
 // The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
 // both files the libraries host: the app's one Maskinporten client, and the callback verification codes whose
@@ -80,19 +86,17 @@ foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variab
     builder.Configuration[key] = value;
 }
 
-// AppConfigurationCache.Disable = true;
-
-ConfigureServices(builder.Services, builder.Configuration);
+await ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
 
 WebApplication app = builder.Build();
 Configure();
 app.Run();
 
-void ConfigureServices(IServiceCollection services, IConfiguration config)
+async Task ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
-    services.AddAltinnAppServices(config, builder.Environment);
+    await services.AddAltinnAppServices(config, builder.Environment);
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
     {
@@ -117,7 +121,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<DataClientMock>();
     services.AddTransient<IDataClientWithStorageMetadata>(sp =>

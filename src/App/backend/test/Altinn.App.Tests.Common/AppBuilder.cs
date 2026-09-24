@@ -7,7 +7,7 @@ namespace Altinn.App.Tests.Common;
 
 public static class AppBuilder
 {
-    public static WebApplication Build(
+    public static async Task<WebApplication> Build(
         WebApplicationBuilder? builder = default,
         IEnumerable<KeyValuePair<string, string?>>? configData = default,
         Action<IServiceCollection>? registerCustomAppServices = default,
@@ -42,7 +42,7 @@ public static class AppBuilder
         registerCustomAppServices?.Invoke(builder.Services);
 
         // 3. AddAltinnAppServices
-        Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
+        await Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
             builder.Services,
             builder.Configuration,
             builder.Environment

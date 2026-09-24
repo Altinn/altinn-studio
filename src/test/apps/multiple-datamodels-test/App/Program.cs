@@ -19,7 +19,6 @@ void RegisterCustomAppServices(
     services.AddTransient<IAppOptionsProvider, IndustryOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
-    services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, RandomAction>();
     services.AddTransient<IDataListProvider, PersonListProvider>();
     services.AddTransient<IOnTaskEndingHandler, PrefillSharedPerson>();
@@ -31,7 +30,7 @@ void RegisterCustomAppServices(
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-ConfigureServices(builder.Services, builder.Configuration);
+await ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
@@ -41,7 +40,7 @@ Configure();
 
 app.Run();
 
-void ConfigureServices(IServiceCollection services, IConfiguration config)
+async Task ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
 
@@ -49,7 +48,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     RegisterCustomAppServices(services, config, builder.Environment);
 
     // Register services required to run this as an Altinn application
-    services.AddAltinnAppServices(config, builder.Environment);
+    await services.AddAltinnAppServices(config, builder.Environment);
+
+    // Wrap the built-in IAppMetadata registered above, so that PDF creation can be switched off per request.
+    // The built-in implementation is internal, so it is created from its registration rather than constructed.
+    ServiceDescriptor builtInAppMetadata = services.Single(d => d.ServiceType == typeof(IAppMetadata));
+    services.Remove(builtInAppMetadata);
+    services.AddSingleton<IAppMetadata>(sp => new CustomMetaData(
+        (IAppMetadata)ActivatorUtilities.CreateInstance(sp, builtInAppMetadata.ImplementationType!),
+        sp.GetRequiredService<IHttpContextAccessor>()
+    ));
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

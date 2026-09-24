@@ -6,63 +6,6 @@ namespace Altinn.App.Core.Configuration;
 // TODO: IOptions validation so that we know which of these properties are required
 public class AppSettings
 {
-#pragma warning disable CA1707 // Identifiers should not contain underscores
-    /// <summary>
-    /// Constant for the suffix on json schema file names
-    /// </summary>
-    public const string JSON_SCHEMA_FILENAME = "schema.json";
-
-    /// <summary>
-    /// Constant for the suffix on validation file names
-    /// </summary>
-    public const string VALIDATION_CONFIG_FILENAME = "validation.json";
-
-    /// <summary>
-    /// Constant for the suffix on calculation file names
-    /// </summary>
-    public const string CALCULATION_CONFIG_FILENAME = "calculation.json";
-#pragma warning restore CA1707 // Identifiers should not contain underscores
-
-    /// <summary>
-    /// The app configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string AppBasePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The app configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string ConfigurationFolder { get; set; } = "config/";
-
-    /// <summary>
-    /// The app options base folder where files are stored in the container
-    /// </summary>
-    public string OptionsFolder { get; set; } = "options/";
-
-    /// <summary>
-    /// The ui configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string UiFolder { get; set; } = "ui/";
-
-    /// <summary>
-    /// The models folder
-    /// </summary>
-    public string ModelsFolder { get; set; } = "models/";
-
-    /// <summary>
-    /// The text folder
-    /// </summary>
-    public string TextFolder { get; set; } = "texts/";
-
-    /// <summary>
-    /// The process folder
-    /// </summary>
-    public string ProcessFolder { get; set; } = "process/";
-
-    /// <summary>
-    /// The authorization folder
-    /// </summary>
-    public string AuthorizationFolder { get; set; } = "authorization/";
-
     /// <summary>
     /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
     /// </summary>
@@ -78,46 +21,6 @@ public class AppSettings
     /// Gets or sets The name of the FormLayout json file Name
     /// </summary>
     public string FormLayoutJSONFileName { get; set; } = "FormLayout.json";
-
-    /// <summary>
-    /// Gets or sets the name of the layout setting file name
-    /// </summary>
-    public string FormLayoutSettingsFileName { get; set; } = "Settings.json";
-
-    /// <summary>
-    /// Gets or sets the name of the layout setting file name
-    /// </summary>
-    public string FooterFileName { get; set; } = "footer.json";
-
-    /// <summary>
-    /// Gets or sets the file names suffix for the json schema files
-    /// </summary>
-    public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
-
-    /// <summary>
-    /// Gets or sets the file names suffix for the validation files
-    /// </summary>
-    public string ValidationConfigurationFileName { get; set; } = VALIDATION_CONFIG_FILENAME;
-
-    /// <summary>
-    /// Gets or sets the file names suffix for the calculation files
-    /// </summary>
-    public string CalculationConfigurationFileName { get; set; } = CALCULATION_CONFIG_FILENAME;
-
-    /// <summary>
-    /// Gets or sets the filename for application meta data
-    /// </summary>
-    public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
-
-    /// <summary>
-    /// Gets the location for the XACML Policy file
-    /// </summary>
-    public string ApplicationXACMLPolicyFileName { get; init; } = "policy.xml";
-
-    /// <summary>
-    /// Gets or sets the filename for process file
-    /// </summary>
-    public string ProcessFileName { get; set; } = "process.bpmn";
 
     /// <summary>
     /// Gets or sets React file name

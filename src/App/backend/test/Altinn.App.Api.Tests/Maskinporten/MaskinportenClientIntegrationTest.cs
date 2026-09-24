@@ -17,9 +17,9 @@ public class MaskinportenClientIntegrationTests
     private const string _localtestHostName = "local.altinn.cloud";
 
     [Fact]
-    public void ConfigureAppWebHost_AddsMaskinportenService()
+    public async Task ConfigureAppWebHost_AddsMaskinportenService()
     {
-        var app = AppBuilder.Build();
+        var app = await AppBuilder.Build();
         app.Services.GetServices<IMaskinportenClient>().Should().HaveCount(1);
     }
 
@@ -31,7 +31,9 @@ public class MaskinportenClientIntegrationTests
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
-        var app = AppBuilder.Build(configData: ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path));
+        var app = await AppBuilder.Build(
+            configData: ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path)
+        );
 
         // Assert
         var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
@@ -47,7 +49,7 @@ public class MaskinportenClientIntegrationTests
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
-        var app = AppBuilder.Build(
+        var app = await AppBuilder.Build(
             configData:
             [
                 .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path),
@@ -74,7 +76,9 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
+        await using var app = await AppBuilder.Build(
+            configData: HostConfiguration(secretsDirectory.Path, _platformHostName)
+        );
 
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
         Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
@@ -91,7 +95,7 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = await AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
 
         await app.StartAsync();
         await app.StopAsync();
@@ -109,7 +113,7 @@ public class MaskinportenClientIntegrationTests
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = await AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
 
         await app.StartAsync();
         await app.StopAsync();
@@ -163,7 +167,7 @@ public class MaskinportenClientIntegrationTests
     [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
     [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
     [InlineData(nameof(TokenAuthority.AltinnTokenExchange), "doesntmatter")]
-    public void UseMaskinportenAuthorization_AddsHandler_BindsToSpecifiedClient(
+    public async Task UseMaskinportenAuthorization_AddsHandler_BindsToSpecifiedClient(
         string tokenAuthority,
         string scope,
         params string[] additionalScopes
@@ -171,7 +175,7 @@ public class MaskinportenClientIntegrationTests
     {
         // Arrange
         Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        var app = await AppBuilder.Build(registerCustomAppServices: services =>
         {
             _ = actualTokenAuthority switch
             {
@@ -200,7 +204,7 @@ public class MaskinportenClientIntegrationTests
     [Theory]
     [InlineData(nameof(TokenAuthority.Maskinporten))]
     [InlineData(nameof(TokenAuthority.AltinnTokenExchange))]
-    public void UseMaskinportenAuthorization_WithRequest_BindsRequestToHandler(string tokenAuthority)
+    public async Task UseMaskinportenAuthorization_WithRequest_BindsRequestToHandler(string tokenAuthority)
     {
         // Arrange
         Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
@@ -215,7 +219,7 @@ public class MaskinportenClientIntegrationTests
             },
         };
 
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        var app = await AppBuilder.Build(registerCustomAppServices: services =>
         {
             _ = actualTokenAuthority switch
             {

@@ -49,13 +49,13 @@ public class MaskinportenClientTests
         public MaskinportenClient Client() =>
             (MaskinportenClient)App.Services.GetRequiredService<IMaskinportenClient>();
 
-        public static Fixture Create(bool configureMaskinporten = true, string? authority = null)
+        public static async Task<Fixture> Create(bool configureMaskinporten = true, string? authority = null)
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var fakeTimeProvider = new FakeTime(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero));
             var effectiveAuthority = authority ?? DefaultSettings.Authority;
 
-            var app = AppBuilder.Build(registerCustomAppServices: services =>
+            var app = await AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(mockHttpClientFactory.Object);
                 services.Configure<MemoryCacheOptions>(options => options.Clock = fakeTimeProvider);
@@ -134,7 +134,7 @@ public class MaskinportenClientTests
     public async Task Test_DI_And_Configuration()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         // Act - an app has exactly one Maskinporten client, and it is not keyed
         var client = Assert.Single(fixture.App.Services.GetServices<IMaskinportenClient>());
@@ -175,7 +175,7 @@ public class MaskinportenClientTests
     public async Task GenerateJwtGrant_HasCorrectFormat()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var settings = fixture.Client().Settings;
         var scopes = "scope1 scope2";
         var audience = "https://test.maskinporten.no/";
@@ -200,7 +200,7 @@ public class MaskinportenClientTests
     public async Task GenerateJwtGrant_HandlesMissingSettings()
     {
         // Arrange
-        await using var fixture = Fixture.Create(configureMaskinporten: false);
+        await using var fixture = await Fixture.Create(configureMaskinporten: false);
 
         // Act
         var act = () =>
@@ -218,7 +218,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_ReturnsAToken()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         string[] scopes = ["scope1", "scope2"];
         string formattedScopes = MaskinportenClient.GetFormattedScopes(scopes);
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
@@ -247,7 +247,7 @@ public class MaskinportenClientTests
     public async Task GetAltinnExchangedToken_ReturnsAToken()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         string[] scopes = [TestAuthentication.DefaultServiceOwnerScope, "scope1", "scope2"];
         string formattedScopes = MaskinportenClient.GetFormattedScopes(scopes);
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
@@ -287,7 +287,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_ThrowsExceptionWhenTokenIsExpired()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
             scope: "scope",
             expiry: MaskinportenClient.TokenExpirationMargin - TimeSpan.FromSeconds(1),
@@ -321,7 +321,7 @@ public class MaskinportenClientTests
     public async Task TokenCache_Returns_SameInstanceForIdenticalRequests()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var maskinportenTokenResponse = () =>
             TestAuthentication.GetMaskinportenToken(scope: "scope", expiry: TimeSpan.FromMinutes(2), fixture.FakeTime);
@@ -354,7 +354,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_UsesCachedTokenIfAvailable()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var maskinportenTokenResponse = () =>
             TestAuthentication.GetMaskinportenToken(scope: "scope", expiry: TimeSpan.FromMinutes(2), fixture.FakeTime);
@@ -379,7 +379,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_GeneratesNewTokenIfRequired()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var maskinportenTokenResponse = () =>
             TestAuthentication.GetMaskinportenToken(
@@ -532,7 +532,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_FetchesOnceAndCachesIssuer()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var fetchCount = SetupWellKnownEndpoint(
@@ -554,7 +554,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_IssuerIsCachedForProcessLifetime()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string issuer1 = "https://issuer1.maskinporten.no/";
         const string issuer2 = "https://issuer2.maskinporten.no/";
@@ -580,7 +580,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_FallsBackToAuthorityOnFailure()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         _ = SetupWellKnownEndpoint(fixture, (_, _) => Task.FromResult(WellKnownErrorResponse()));
 
@@ -595,7 +595,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_FailsFastWithinRetryWindow()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var fetchCount = SetupWellKnownEndpoint(fixture, (_, _) => Task.FromResult(WellKnownErrorResponse()));
 
@@ -616,7 +616,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_RetriesAfterWindowAndRecoversImmediately()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var shouldFail = true;
@@ -643,7 +643,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_ProlongedOutageRestampsRetryWindow()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var fetchCount = SetupWellKnownEndpoint(fixture, (_, _) => Task.FromResult(WellKnownErrorResponse()));
 
@@ -664,7 +664,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_SingleFlight_ConcurrentColdCallersShareOneFetch()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var fetchEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -695,7 +695,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_SingleFlight_ConcurrentCallersDuringOutageShareOneFetch()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var fetchEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var fetchGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -726,7 +726,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_CancellationDoesNotStampRetryWindow()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var gated = true;
@@ -764,7 +764,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_PreCancelledTokenThrowsWithoutFetching()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var fetchCount = SetupWellKnownEndpoint(
@@ -793,7 +793,7 @@ public class MaskinportenClientTests
     {
         // Arrange - STJ `required` enforces presence, not non-nullness, so `{"issuer":null}` deserializes
         // fine. It must be treated as a failed fetch, never cached or minted as the `aud` claim.
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
@@ -822,7 +822,7 @@ public class MaskinportenClientTests
     {
         // Arrange - MaskinportenSettings is deliberately hot-reloadable (Kubernetes secret rotation), so a
         // corrected Authority must not keep serving the issuer that was resolved for the old one.
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string authorityA = "https://authority-a.maskinporten.dev/";
         const string authorityB = "https://authority-b.maskinporten.dev/";
         const string issuerA = "https://issuer-a.maskinporten.no/";
@@ -869,7 +869,7 @@ public class MaskinportenClientTests
     {
         // Arrange - guard for the `_lastFailureTicks == 0` sentinel: a time provider whose current time is
         // within the retry interval of DateTimeOffset.MinValue must not read as "recently failed" at startup.
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
@@ -931,7 +931,7 @@ public class MaskinportenClientTests
     public async Task WellKnownRefreshService_PopulatesIssuer()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var fetchCount = SetupWellKnownEndpoint(
@@ -960,7 +960,7 @@ public class MaskinportenClientTests
     public async Task WellKnownRefreshService_PeriodicTickRefreshesIssuer()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string issuer1 = "https://issuer1.maskinporten.no/";
         const string issuer2 = "https://issuer2.maskinporten.no/";
         var currentIssuer = issuer1;
@@ -1012,7 +1012,7 @@ public class MaskinportenClientTests
     public async Task WellKnownRefreshService_FailedRefreshKeepsLastKnownGoodIssuer()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var shouldFail = false;
         var fetches = 0;
@@ -1054,7 +1054,7 @@ public class MaskinportenClientTests
     public async Task RefreshWellKnownIssuer_FailureDoesNotStampRetryWindow()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var shouldFail = true;
@@ -1080,7 +1080,7 @@ public class MaskinportenClientTests
     public async Task RefreshWellKnownIssuer_LogsWarningOnlyWhenIssuerChangesUnderTheSameAuthority()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string authorityA = "https://authority-a.maskinporten.dev/";
         const string authorityB = "https://authority-b.maskinporten.dev/";
         const string issuer1 = "https://issuer1.maskinporten.no/";
@@ -1127,7 +1127,7 @@ public class MaskinportenClientTests
         // Arrange - a deployed app that does not use Maskinporten: the settings read inside the refresh
         // throws OptionsValidationException, which the service must swallow at Debug level. Localtest is
         // covered separately, by the gate.
-        await using var fixture = Fixture.Create(configureMaskinporten: false);
+        await using var fixture = await Fixture.Create(configureMaskinporten: false);
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
             (_, _) => Task.FromResult(WellKnownSuccessResponse("https://issuer.maskinporten.no/"))
@@ -1155,7 +1155,7 @@ public class MaskinportenClientTests
     {
         // Arrange - Maskinporten IS configured here, so the platform is the only thing that can stop
         // the refresh loop, and a skipped refresh cannot be mistaken for a missing configuration
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
@@ -1219,7 +1219,7 @@ public class MaskinportenClientTests
     public async Task WellKnownRefreshService_ShutdownMidFetchEndsTheLoopCleanly()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var fetchEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var fetchCount = SetupWellKnownEndpoint(
             fixture,
@@ -1248,7 +1248,7 @@ public class MaskinportenClientTests
     public async Task WellKnownRefreshService_IsRegisteredAsHostedService()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         // Act
         var hostedServices = fixture.App.Services.GetServices<IHostedService>();
@@ -1298,7 +1298,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_ConstructsCorrectTokenEndpointUrl_RegardlessOfTrailingSlash(string authority)
     {
         // Arrange
-        await using var fixture = Fixture.Create(authority: authority);
+        await using var fixture = await Fixture.Create(authority: authority);
         var client = fixture.Client();
         var capturedUrls = new CapturedUrls();
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
@@ -1333,7 +1333,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_ConstructsCorrectWellKnownUrl_RegardlessOfTrailingSlash(string authority)
     {
         // Arrange
-        await using var fixture = Fixture.Create(authority: authority);
+        await using var fixture = await Fixture.Create(authority: authority);
         var client = fixture.Client();
         var capturedUrls = new CapturedUrls();
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
@@ -1371,7 +1371,7 @@ public class MaskinportenClientTests
     public async Task GetAudienceFromWellKnown_FallbackAlwaysHasTrailingSlash(string authority)
     {
         // Arrange
-        await using var fixture = Fixture.Create(authority: authority);
+        await using var fixture = await Fixture.Create(authority: authority);
         var client = fixture.Client();
 
         fixture
@@ -1401,7 +1401,7 @@ public class MaskinportenClientTests
     public async Task GenerateJwtGrant_IncludesConsumerOrgAndResourceClaims()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
@@ -1423,7 +1423,7 @@ public class MaskinportenClientTests
     public async Task GenerateJwtGrant_IncludesSystemUserAuthorizationDetails()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
@@ -1457,7 +1457,7 @@ public class MaskinportenClientTests
         // system user tokens. That parser was written independently of this client, so round-tripping our
         // outbound grant through it cross-checks the fields both sides share — the `urn:altinn:systemuser`
         // discriminator and the `systemuser_org` authority/ID pair — instead of trusting one hand-written spelling.
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
@@ -1479,7 +1479,7 @@ public class MaskinportenClientTests
     public async Task GenerateJwtGrant_OmitsExternalRefWhenNotSupplied()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var request = new MaskinportenTokenRequest
         {
             Scopes = ["scope1"],
@@ -1603,7 +1603,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_CachesPerRequest_NotPerScope()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         var tokenRequestCount = 0;
         fixture
@@ -1655,7 +1655,7 @@ public class MaskinportenClientTests
     public async Task GetAltinnExchangedToken_ForwardsTheFullRequestToTheMaskinportenGrant()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
         string? capturedAssertion = null;
         var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
@@ -1718,7 +1718,7 @@ public class MaskinportenClientTests
         // masked the same way `JwtToken` masks itself. Every grant carries a fresh `jti`, so this has to assert
         // against the assertion that actually went over the wire — comparing against a separately generated one
         // would pass no matter what we log.
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var request = new MaskinportenTokenRequest { Scopes = ["scope"] };
         var logged = new List<string>();
         string? sentAssertion = null;
@@ -1774,7 +1774,7 @@ public class MaskinportenClientTests
     public async Task GetAccessToken_ThrowsOnNullRequest()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var client = fixture.Client();
 
         // Act & assert

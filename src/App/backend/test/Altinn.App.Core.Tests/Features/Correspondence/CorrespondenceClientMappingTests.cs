@@ -38,7 +38,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithAllOptionalFields_MapsCorrectlyToInitCorrespondenceJson()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
 
         string? capturedJson = null;
@@ -220,7 +220,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithoutOverrideRegisteredContactInformation_SendsFlagAsFalse()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
         string? capturedJson = null;
         var idempotentKey = Guid.NewGuid();
@@ -267,7 +267,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithAttachment_InitializesAttachmentWithCorrectFields()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
 
         string? capturedInitAttachmentJson = null;
@@ -342,7 +342,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithAttachment_AttachmentIdFromInitializeIsUsedInCorrespondenceRequest()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
 
         string? capturedCorrespondenceJson = null;
@@ -414,7 +414,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithExistingAttachments_AreIncludedInCorrespondenceRequest()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
 
         string? capturedCorrespondenceJson = null;
@@ -473,7 +473,7 @@ public class CorrespondenceClientMappingTests
     public async Task Send_WithUploadedAndPreExistingAttachments_BothIncludedInCorrespondenceRequest()
     {
         // Arrange
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
         var mockHttpClient = new Mock<HttpClient>();
 
         string? capturedCorrespondenceJson = null;
@@ -555,7 +555,7 @@ public class CorrespondenceClientMappingTests
 
         public ICorrespondenceClient CorrespondenceClient => App.Services.GetRequiredService<ICorrespondenceClient>();
 
-        public static Fixture Create()
+        public static async Task<Fixture> Create()
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
             var mockMaskinportenClient = new Mock<IMaskinportenClient>(MockBehavior.Strict);
@@ -565,7 +565,7 @@ public class CorrespondenceClientMappingTests
                 .Setup(m => m.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .Returns((IEnumerable<string> scopes, CancellationToken _) => TestHelpers.OrgTokenFactory(scopes));
 
-            var app = AppBuilder.Build(registerCustomAppServices: services =>
+            var app = await AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(mockHttpClientFactory.Object);
                 services.AddSingleton(mockMaskinportenClient.Object);

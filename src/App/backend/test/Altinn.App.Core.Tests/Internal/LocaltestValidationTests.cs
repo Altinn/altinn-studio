@@ -41,7 +41,7 @@ public class LocaltestValidationTests
             }
         }
 
-        public static Fixture Create(
+        public static async Task<Fixture> Create(
             Action<IServiceCollection>? registerCustomAppServices = default,
             Action? onRequest = null
         )
@@ -53,7 +53,7 @@ public class LocaltestValidationTests
                 .Setup(f => f.CreateClient(It.IsAny<string>()))
                 .Returns(() => server.CreateClient(new ReqHandler(onRequest)));
 
-            var app = AppBuilder.Build(registerCustomAppServices: services =>
+            var app = await AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(_ => server);
 
@@ -87,7 +87,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Init()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var service = fixture.Validator;
 
@@ -97,7 +97,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Recent_Version()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var expectedVersion = _okExpectedVersion;
 
@@ -130,7 +130,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Old_Version()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var expectedVersion = _oldExpectedVersion;
 
@@ -163,7 +163,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Api_Not_Found()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var server = fixture.Server;
         server
@@ -187,7 +187,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Invalid_Version()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var server = fixture.Server;
         server
@@ -211,7 +211,7 @@ public class LocaltestValidationTests
     public async Task Test_Timeout()
     {
         var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var fixture = Fixture.Create(onRequest: () => requestStarted.TrySetResult());
+        await using var fixture = await Fixture.Create(onRequest: () => requestStarted.TrySetResult());
 
         var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
@@ -245,7 +245,7 @@ public class LocaltestValidationTests
     public async Task Test_App_Shutdown()
     {
         var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        await using var fixture = Fixture.Create(onRequest: () => requestStarted.TrySetResult());
+        await using var fixture = await Fixture.Create(onRequest: () => requestStarted.TrySetResult());
 
         var expectedVersion = _okExpectedVersion;
         var delay = TimeSpan.FromSeconds(6);
@@ -279,7 +279,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Dns_Failure()
     {
-        await using var fixture = Fixture.Create(registerCustomAppServices: services =>
+        await using var fixture = await Fixture.Create(registerCustomAppServices: services =>
             services.Configure<PlatformSettings>(settings =>
                 settings.ApiStorageEndpoint = ReplaceHost(
                     settings.ApiStorageEndpoint,
@@ -316,7 +316,7 @@ public class LocaltestValidationTests
     [Fact]
     public async Task Test_Unhandled_Status()
     {
-        await using var fixture = Fixture.Create();
+        await using var fixture = await Fixture.Create();
 
         var server = fixture.Server;
         server
@@ -339,7 +339,7 @@ public class LocaltestValidationTests
     public async Task Test_Unhandled_Error()
     {
         var errorMessage = "Unhandled error";
-        await using var fixture = Fixture.Create(onRequest: () =>
+        await using var fixture = await Fixture.Create(onRequest: () =>
         {
             throw new Exception(errorMessage);
         });
@@ -367,7 +367,7 @@ public class LocaltestValidationTests
         var errorMessage = "Unhandled error";
         var failCount = 0;
         var expectedVersion = _okExpectedVersion;
-        await using var fixture = Fixture.Create(onRequest: () =>
+        await using var fixture = await Fixture.Create(onRequest: () =>
         {
             if (failCount++ < 3)
                 throw new Exception(errorMessage);

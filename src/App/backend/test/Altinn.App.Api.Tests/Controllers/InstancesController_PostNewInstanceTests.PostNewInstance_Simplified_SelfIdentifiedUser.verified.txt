@@ -1,6 +1,121 @@
 ﻿{
   Activities: [
     {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: ApplicationMetadata.Service.GetPrefillJson,
       IdFormat: W3C,
       HasParent: true

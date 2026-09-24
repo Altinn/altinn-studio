@@ -1,29 +1,26 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.logic.MetaData
 {
+    /// <summary>
+    /// Wraps the built-in <see cref="IAppMetadata"/> and switches PDF creation off unless the request carries the
+    /// "createPdf" cookie. See Program.cs for how it replaces the built-in registration.
+    /// </summary>
     public class CustomMetaData : IAppMetadata
     {
-        private readonly AppMetadata _internal;
+        private readonly IAppMetadata _inner;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomMetaData(
-            IOptions<AppSettings> settings,
-            IFrontendFeatures frontendFeatures,
-            IServiceProvider serviceProvider,
-            IHttpContextAccessor httpContextAccessor
-        )
+        public CustomMetaData(IAppMetadata inner, IHttpContextAccessor httpContextAccessor)
         {
-            _internal = new AppMetadata(settings, frontendFeatures, serviceProvider);
+            _inner = inner;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApplicationMetadata> GetApplicationMetadata()
         {
-            var result = await _internal.GetApplicationMetadata();
+            var result = await _inner.GetApplicationMetadata();
 
             // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
             // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
@@ -43,14 +40,8 @@ namespace Altinn.App.logic.MetaData
             return result;
         }
 
-        public Task<string> GetApplicationXACMLPolicy()
-        {
-            return _internal.GetApplicationXACMLPolicy();
-        }
+        public Task<string> GetApplicationXACMLPolicy() => _inner.GetApplicationXACMLPolicy();
 
-        public Task<string> GetApplicationBPMNProcess()
-        {
-            return _internal.GetApplicationBPMNProcess();
-        }
+        public Task<string> GetApplicationBPMNProcess() => _inner.GetApplicationBPMNProcess();
     }
 }

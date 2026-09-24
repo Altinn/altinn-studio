@@ -17,7 +17,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-ConfigureServices(builder.Services, builder.Configuration);
+await ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
@@ -27,7 +27,7 @@ Configure();
 
 app.Run();
 
-void ConfigureServices(IServiceCollection services, IConfiguration config)
+async Task ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
 
@@ -35,7 +35,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     RegisterCustomAppServices(services, config, builder.Environment);
 
     // Register services required to run this as an Altinn application
-    services.AddAltinnAppServices(config, builder.Environment);
+    await services.AddAltinnAppServices(config, builder.Environment);
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

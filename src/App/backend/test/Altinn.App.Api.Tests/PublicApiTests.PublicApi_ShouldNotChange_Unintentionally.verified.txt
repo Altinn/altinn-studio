@@ -93,7 +93,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
     public class CustomOpenApiController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings) { }
+        public CustomOpenApiController(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Swashbuckle.AspNetCore.SwaggerGen.ISerializerDataContractResolver dataContractResolver, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider) { }
         public static string InfoDescriptionWarningText { get; }
         [Microsoft.AspNetCore.Mvc.HttpGet("/{org}/{app}/v1/customOpenapi.json")]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Index() { }
@@ -770,7 +770,7 @@ namespace Altinn.App.Api.Extensions
     public static class ServiceCollectionExtensions
     {
         public static void AddAltinnAppControllersWithViews(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
-        public static void AddAltinnAppServices(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) { }
+        public static System.Threading.Tasks.Task AddAltinnAppServices(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) { }
     }
     public static class WebApplicationBuilderExtensions
     {
@@ -834,6 +834,7 @@ namespace Altinn.App.Api.Helpers
     public static class StartupHelper
     {
         public static string GetApplicationId() { }
+        public static string GetApplicationId(string contentRootPath) { }
         public static void IncludeXmlComments(Altinn.App.Api.Helpers.StartupHelper.SwaggerIncludeXmlComments swaggerDelegate) { }
         public delegate void SwaggerIncludeXmlComments(string filepath, bool a);
     }

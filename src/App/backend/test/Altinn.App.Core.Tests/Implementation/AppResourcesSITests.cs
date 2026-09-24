@@ -3,19 +3,37 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Internal.App;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Moq;
 
 namespace Altinn.App.Core.Tests.Implementation;
 
 public class AppResourcesSITests
 {
-    private readonly TelemetrySink _telemetry = new();
+    private const string ApplicationMetadataJson = """
+        {
+            "id": "ttd/app",
+            "org": "ttd",
+            "dataTypes": [
+                { "id": "main", "appLogic": { "classRef": "Model.Main" } }
+            ]
+        }
+        """;
+
+    private async Task<AppResourcesSI> CreateAppResources(DirectoryInfo appDir)
+    {
+        if (!File.Exists(Path.Join(appDir.FullName, "config", "applicationmetadata.json")))
+        {
+            WriteApplicationMetadata(appDir);
+        }
+        var appFiles = await TestAppFiles.Load(appDir.FullName);
+        return new AppResourcesSI(appFiles);
+    }
 
     [Fact]
-    public void GetUiConfiguration_loads_folder_settings_and_global_settings()
+    public async Task GetUiConfiguration_loads_folder_settings_and_global_settings()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-UiConfig-");
         try
@@ -31,30 +49,7 @@ public class AppResourcesSITests
             File.WriteAllText(Path.Join(uiDir, "subform", "Settings.json"), """{ "pages": { "order": ["sub1"] } }""");
             File.WriteAllText(Path.Join(uiDir, "Settings.json"), """{ "showProgress": true }""");
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
 
             UiConfiguration ui =
                 appResources.GetUiConfiguration()
@@ -72,13 +67,13 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetLayoutModelForFolder_returns_null_when_folder_does_not_exist()
+    public async Task GetLayoutModelForFolder_returns_null_when_folder_does_not_exist()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
         try
         {
+            WriteApplicationMetadata(tempDir);
             var uiDir = Path.Join(tempDir.FullName, "ui");
-            Directory.CreateDirectory(Path.Join(uiDir, "Task_1"));
             Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
 
             File.WriteAllText(
@@ -87,30 +82,7 @@ public class AppResourcesSITests
             );
             File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": [] }""");
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
 
             var model = appResources.GetLayoutModelForFolder("Task_PDF_Auto");
 
@@ -123,11 +95,43 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetLayoutModelForFolder_accepts_json_with_bom()
+    public async Task GetLayoutModelForFolder_reads_data_types_from_application_metadata()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
+        try
+        {
+            WriteApplicationMetadata(tempDir);
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "main", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": { "layout": [] } }""");
+
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
+
+            var model = appResources.GetLayoutModelForFolder("Task_1");
+
+            model.Should().NotBeNull();
+            model!.DefaultDataType.Id.Should().Be("main");
+            appResources.GetClassRefForLogicDataType("main").Should().Be("Model.Main");
+            appResources.GetClassRefForLogicDataType("missing").Should().BeEmpty();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetLayoutModelForFolder_accepts_json_with_bom()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
         try
         {
+            WriteApplicationMetadata(tempDir);
             var uiDir = Path.Join(tempDir.FullName, "ui");
             Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
 
@@ -140,30 +144,7 @@ public class AppResourcesSITests
                 """{ "data": { "layout": [] } }"""
             );
 
-            var appSettings = new AppSettings { AppBasePath = tempDir.FullName, UiFolder = "ui" };
-            var appMetadata = new Mock<IAppMetadata>();
-            appMetadata
-                .Setup(m => m.GetApplicationMetadata())
-                .ReturnsAsync(
-                    new ApplicationMetadata("ttd/app")
-                    {
-                        DataTypes =
-                        [
-                            new()
-                            {
-                                Id = "main",
-                                AppLogic = new() { ClassRef = "Model.Main" },
-                            },
-                        ],
-                    }
-                );
-
-            AppResourcesSI appResources = new(
-                Options.Create(appSettings),
-                appMetadata.Object,
-                null!,
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
 
             var model = appResources.GetLayoutModelForFolder("Task_1");
 
@@ -188,12 +169,7 @@ public class AppResourcesSITests
                 """{ "language": "nb", "resources": [{ "id": "some.id", "value": "Bokmål" }] }"""
             );
 
-            AppResourcesSI appResources = new(
-                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
-                Mock.Of<IAppMetadata>(),
-                null!,
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
 
             TextResource? textResource = await appResources.GetTexts("ttd", "app", "nb");
 
@@ -207,7 +183,7 @@ public class AppResourcesSITests
     }
 
     [Fact]
-    public void GetText_strips_bom()
+    public async Task GetText_strips_bom()
     {
         var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-Bom-");
         try
@@ -216,12 +192,7 @@ public class AppResourcesSITests
             Directory.CreateDirectory(textsDir);
             WriteAllTextWithBom(Path.Join(textsDir, "resource.nb.json"), """{ "language": "nb" }""");
 
-            AppResourcesSI appResources = new(
-                Options.Create(new AppSettings { AppBasePath = tempDir.FullName }),
-                Mock.Of<IAppMetadata>(),
-                null!,
-                _telemetry.Object
-            );
+            AppResourcesSI appResources = await CreateAppResources(tempDir);
 
             byte[] text = appResources.GetText("ttd", "app", "resource.nb.json");
 
@@ -232,6 +203,13 @@ public class AppResourcesSITests
         {
             Directory.Delete(tempDir.FullName, true);
         }
+    }
+
+    private static void WriteApplicationMetadata(DirectoryInfo appDir)
+    {
+        var configDir = Path.Join(appDir.FullName, "config");
+        Directory.CreateDirectory(configDir);
+        File.WriteAllText(Path.Join(configDir, "applicationmetadata.json"), ApplicationMetadataJson);
     }
 
     private static void WriteAllTextWithBom(string path, string contents) =>

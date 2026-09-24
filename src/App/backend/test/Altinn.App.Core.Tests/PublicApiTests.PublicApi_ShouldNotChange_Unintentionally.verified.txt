@@ -4,36 +4,20 @@ namespace Altinn.App.Core.Configuration
 {
     public class AppSettings
     {
-        public const string CALCULATION_CONFIG_FILENAME = "calculation.json";
-        public const string JSON_SCHEMA_FILENAME = "schema.json";
-        public const string VALIDATION_CONFIG_FILENAME = "validation.json";
         public AppSettings() { }
-        public string AppBasePath { get; set; }
         public string? AppFrontendAssetBaseUrl { get; set; }
         public string AppOidcProvider { get; set; }
         public string AppVersion { get; set; }
-        public string ApplicationMetadataFileName { get; set; }
-        public string ApplicationXACMLPolicyFileName { get; init; }
-        public string AuthorizationFolder { get; set; }
         [System.Obsolete("This is not used, and will be removed in the next major version")]
         public string BaseResourceFolderContainer { get; set; }
         public int CacheResourceLifeTimeInSeconds { get; set; }
-        public string CalculationConfigurationFileName { get; set; }
-        public string ConfigurationFolder { get; set; }
         public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
         public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
-        public string FooterFileName { get; set; }
         public string FormLayoutJSONFileName { get; set; }
-        public string FormLayoutSettingsFileName { get; set; }
-        public string JsonSchemaFileName { get; set; }
-        public string ModelsFolder { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
-        public string OptionsFolder { get; set; }
-        public string ProcessFileName { get; set; }
-        public string ProcessFolder { get; set; }
         public bool RegisterEventsWithEventsComponent { get; set; }
         public bool RemoveHiddenData { get; set; }
         public bool RequiredValidation { get; set; }
@@ -41,11 +25,8 @@ namespace Altinn.App.Core.Configuration
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
         public string ServiceStylesConfigFileName { get; set; }
-        public string TextFolder { get; set; }
-        public string UiFolder { get; set; }
         public bool UseOpenTelemetry { get; set; }
         public bool UseOpenTelemetryCollector { get; set; }
-        public string ValidationConfigurationFileName { get; set; }
         public bool XsdValidation { get; set; }
     }
     public class CacheSettings
@@ -1990,11 +1971,6 @@ namespace Altinn.App.Core.Features.Options
         public AppOptionsFactory(System.IServiceProvider serviceProvider) { }
         public Altinn.App.Core.Features.IAppOptionsProvider GetOptionsProvider(string optionsId) { }
     }
-    public class AppOptionsFileHandler : Altinn.App.Core.Features.Options.IAppOptionsFileHandler
-    {
-        public AppOptionsFileHandler(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>?> ReadOptionsFromFileAsync(string optionId) { }
-    }
     public class AppOptionsService : Altinn.App.Core.Features.Options.IAppOptionsService
     {
         public AppOptionsService(Altinn.App.Core.Features.Options.AppOptionsFactory appOptionsFactory, Altinn.App.Core.Features.Options.InstanceAppOptionsFactory instanceAppOptionsFactory, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
@@ -3177,13 +3153,6 @@ namespace Altinn.App.Core.Internal.AccessManagement.Models.Shared
 }
 namespace Altinn.App.Core.Internal.App
 {
-    public class AppMetadata : Altinn.App.Core.Internal.App.IAppMetadata
-    {
-        public AppMetadata(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Internal.App.IFrontendFeatures frontendFeatures, System.IServiceProvider? serviceProvider = null, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<string> GetApplicationBPMNProcess() { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.ApplicationMetadata> GetApplicationMetadata() { }
-        public System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy() { }
-    }
     public class ApplicationConfigException : Altinn.App.Core.Exceptions.ConfigurationException
     {
         public ApplicationConfigException() { }
@@ -3574,11 +3543,6 @@ namespace Altinn.App.Core.Internal.Instances
 }
 namespace Altinn.App.Core.Internal.Language
 {
-    public class ApplicationLanguage : Altinn.App.Core.Internal.Language.IApplicationLanguage
-    {
-        public ApplicationLanguage(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage>> GetApplicationLanguages() { }
-    }
     public interface IApplicationLanguage
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage>> GetApplicationLanguages();

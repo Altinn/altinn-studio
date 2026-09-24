@@ -1,6 +1,31 @@
 ﻿{
   Activities: [
     {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: ApplicationMetadata.Service.GetLayoutModel,
       IdFormat: W3C,
       HasParent: true
