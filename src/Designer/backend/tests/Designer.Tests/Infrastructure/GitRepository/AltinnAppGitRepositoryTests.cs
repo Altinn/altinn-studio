@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -231,6 +232,33 @@ public class AltinnAppGitRepositoryTests : IDisposable
         layout.Resume();
         await write;
         Assert.Equal(layoutNamesBeforeWrite, layoutNamesDuringWrite);
+    }
+
+    [Fact]
+    public async Task GetProcessDefinitionFile_StreamKeptDuringSave_ShouldNotBlockSave()
+    {
+        string org = "ttd";
+        string repository = "app-with-layoutsets";
+        string developer = "testUser";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        TargetRepoName = await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
+        AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
+        string processDefinitionBeforeSave = await altinnAppGitRepository.ReadTextByRelativePathAsync(
+            "App/config/process/process.bpmn"
+        );
+
+        await using Stream keptStream = altinnAppGitRepository.GetProcessDefinitionFile();
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(
+            new MemoryStream(Encoding.UTF8.GetBytes("<definitions />"))
+        );
+
+        using var reader = new StreamReader(keptStream);
+        Assert.Equal(processDefinitionBeforeSave, await reader.ReadToEndAsync());
+        Assert.Equal(
+            "<definitions />",
+            await altinnAppGitRepository.ReadTextByRelativePathAsync("App/config/process/process.bpmn")
+        );
     }
 
     [Fact]
