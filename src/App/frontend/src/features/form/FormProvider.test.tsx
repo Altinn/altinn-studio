@@ -1,10 +1,16 @@
 import React from 'react';
 
-import { waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
+import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
+import {
+  InstanceRouter,
+  renderGenericComponentTest,
+  renderWithoutInstanceAndLayout,
+} from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
 describe('FormProvider', () => {
@@ -37,5 +43,29 @@ describe('FormProvider', () => {
         expect.objectContaining({ uiFolder: 'Task_SubformPdf', dataElementId: subformIds[1], pdf: true }),
       ),
     );
+  });
+
+  it('does not change form data when a PDF renders a task other than the current one', async () => {
+    window.altinnAppGlobalData.ui.folders.Task_Pdf = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
+    const { formDataMethods } = await renderGenericComponentTest({
+      type: 'Dropdown',
+      renderer: (props) => <DropdownComponent {...props} />,
+      component: {
+        options: [
+          { label: 'Norway', value: 'norway' },
+          { label: 'Sweden', value: 'sweden' },
+        ],
+        preselectedOptionIndex: 1,
+        dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'myDropdown' } },
+      },
+      taskId: 'Task_Pdf',
+      query: 'pdf=1',
+    });
+
+    await screen.findByRole('combobox');
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 });

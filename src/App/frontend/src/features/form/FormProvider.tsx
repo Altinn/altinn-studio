@@ -40,6 +40,7 @@ import {
   useOptimisticallyUpdateCachedInstance,
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
@@ -68,6 +69,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
+  const isPdfOfOtherTask = useIsPdfOfOtherTask();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
@@ -78,7 +80,12 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     // When the bootstrap query changes, or if it's the first render, we should wipe the store and restart. This usually
     // means we're moved to another task while keeping a similar enough render-tree to cause this to be re-used. The
     // layouts can change without all of this being reset, however.
-    storeRef.current = createFormStore({ parent, readOnly, data: dataSliceProps, bootstrap });
+    storeRef.current = createFormStore({
+      parent,
+      readOnly: readOnly || isPdfOfOtherTask,
+      data: dataSliceProps,
+      bootstrap,
+    });
     previousBootstrap.current = bootstrap;
   }
 
@@ -167,6 +174,17 @@ function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasP
   }
 
   return children;
+}
+
+/**
+ * A PDF can render a task other than the current one, such as a preview of a later PDF service task. That task's
+ * layouts must not change the current task's form data, so its form is read-only.
+ */
+function useIsPdfOfOtherTask(): boolean {
+  const isPdf = useIsPdf();
+  const taskId = useNavigationParam('taskId');
+  const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
+  return isPdf && taskId !== undefined && currentTaskId !== undefined && taskId !== currentTaskId;
 }
 
 /**
