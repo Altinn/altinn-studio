@@ -16,6 +16,11 @@ jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
   useValidateLayoutSetName: jest.fn(),
 }));
 
+const updateLayoutSetIdMock = jest.fn();
+jest.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
+  useUpdateLayoutSetId: () => updateLayoutSetIdMock,
+}));
+
 const removeActionMock = jest.fn();
 const validateLayoutSetNameMock = jest.fn();
 
@@ -35,8 +40,7 @@ describe('RecommendedActionChangeName', () => {
   it('calls validation on name input', async () => {
     const user = userEvent.setup();
     const newLayoutSetName = 'newName';
-    const mutateLayoutSetIdMock = jest.fn();
-    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderRecommendedActionChangeName();
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -46,11 +50,10 @@ describe('RecommendedActionChangeName', () => {
     expect(validateLayoutSetNameMock).toHaveBeenCalledWith(newLayoutSetName, expect.any(Object));
   });
 
-  it('calls mutateLayoutSetId and removeAction when save button is clicked with a valid name', async () => {
+  it('calls updateLayoutSetId and removeAction when save button is clicked with a valid name', async () => {
     const user = userEvent.setup();
     const newLayoutSetName = 'newName';
-    const mutateLayoutSetIdMock = jest.fn();
-    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderRecommendedActionChangeName();
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
@@ -58,40 +61,47 @@ describe('RecommendedActionChangeName', () => {
     const saveButton = screen.getByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: DEFAULT_ID,
-      newLayoutSetId: newLayoutSetName,
-    });
+    expect(updateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(updateLayoutSetIdMock).toHaveBeenCalledWith(DEFAULT_ID, newLayoutSetName);
     expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls mutateLayoutSetId and removeAction when pressing enter in input field', async () => {
+  it('calls updateLayoutSetId and removeAction when pressing enter in input field', async () => {
     const user = userEvent.setup();
     const newLayoutSetName = 'newName';
-    const mutateLayoutSetIdMock = jest.fn();
-    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderRecommendedActionChangeName();
     const newNameInput = screen.getByRole('textbox', {
       name: textMock('process_editor.recommended_action.new_name_label'),
     });
     await user.type(newNameInput, `${newLayoutSetName}{enter}`);
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
-    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: DEFAULT_ID,
-      newLayoutSetId: newLayoutSetName,
-    });
+    expect(updateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(updateLayoutSetIdMock).toHaveBeenCalledWith(DEFAULT_ID, newLayoutSetName);
     expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls removeAction, but not mutateLayoutSetId, when skip button is clicked', async () => {
+  it('does not rename while the new task is still being saved', async () => {
     const user = userEvent.setup();
-    const mutateLayoutSetIdMock = jest.fn();
-    renderRecommendedActionChangeName({ mutateLayoutSetId: mutateLayoutSetIdMock });
+    renderRecommendedActionChangeName({ pendingApiOperations: true });
+    const newNameInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.recommended_action.new_name_label'),
+    });
+    await user.type(newNameInput, 'newName{enter}');
+
+    expect(
+      screen.queryByRole('button', { name: textMock('general.save') }),
+    ).not.toBeInTheDocument();
+    expect(updateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(removeActionMock).not.toHaveBeenCalled();
+  });
+
+  it('calls removeAction, but not updateLayoutSetId, when skip button is clicked', async () => {
+    const user = userEvent.setup();
+    renderRecommendedActionChangeName();
 
     const skipButton = screen.getByRole('button', { name: textMock('general.skip') });
     await user.click(skipButton);
 
-    expect(mutateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(updateLayoutSetIdMock).not.toHaveBeenCalled();
     expect(removeActionMock).toHaveBeenCalledTimes(1);
   });
 

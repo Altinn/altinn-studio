@@ -14,8 +14,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from agents.altinn.datamodel import datamodel_sync
-from agents.altinn.layout import LAYOUT_SCHEMA_URL
-from agents.altinn.layout.properties import layout_properties_tool
+from agents.altinn.layout import LAYOUT_SCHEMA_URL, get_layout_schema
+from agents.altinn.layout.properties import BINDING_CONSTRAINTS, layout_properties_tool
 from agents.core.tool import LoopContext, Tool, ToolResult
 
 
@@ -44,15 +44,17 @@ class LayoutPropsTool(Tool):
 
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
         try:
-            result = layout_properties_tool(
-                user_goal="agentic-loop",
-                component_type=args.component_type,
-                schema_url=LAYOUT_SCHEMA_URL,
-            )
+            schema = get_layout_schema(LAYOUT_SCHEMA_URL)
         except Exception as exc:  # noqa: BLE001 — CDN fetch / parse errors
             return ToolResult(
                 content=f"Could not load component schema: {exc}", is_error=True
             )
+        result = layout_properties_tool(
+            user_goal="agentic-loop",
+            component_type=args.component_type,
+            schema=schema,
+            binding_constraints=BINDING_CONSTRAINTS,
+        )
         is_error = isinstance(result, dict) and result.get("status") == "error"
         return ToolResult(
             content=json.dumps(result, ensure_ascii=False),

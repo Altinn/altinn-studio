@@ -22,6 +22,9 @@ export const useGenerateModelsMutation = (
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        queryClient.invalidateQueries({
+          queryKey: [QueryKey.DataModelGenerationStatus, org, app, modelPath],
+        }),
       ]),
     meta,
   });

@@ -1494,6 +1494,7 @@
   "schema_editor.format_uri-template": "URI-mal",
   "schema_editor.format_uuid": "UUID",
   "schema_editor.generate_model_files": "Generer modell",
+  "schema_editor.generate_model_files_pending": "Du har endringer som ikke er generert",
   "schema_editor.go_to_type": "Gå til type",
   "schema_editor.integer": "Heltall",
   "schema_editor.language": "Språk",

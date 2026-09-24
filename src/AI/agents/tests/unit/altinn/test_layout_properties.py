@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from agents.altinn.layout import properties
-
-SCHEMA_URL = "https://altinncdn.no/layout.schema.json"
 
 SCHEMA = {
     "definitions": {
@@ -32,14 +28,12 @@ SCHEMA = {
 }
 
 
-@pytest.fixture(autouse=True)
-def offline_schema(monkeypatch):
-    monkeypatch.setattr(properties, "load_layout_schema_from_url", lambda url: SCHEMA)
-
-
 def _props(component_type: str) -> dict:
     return properties.layout_properties_tool(
-        user_goal="test", component_type=component_type, schema_url=SCHEMA_URL
+        user_goal="test",
+        component_type=component_type,
+        schema=SCHEMA,
+        binding_constraints=properties.BINDING_CONSTRAINTS,
     )
 
 
@@ -113,3 +107,14 @@ def test_a_repeating_group_states_all_three_of_its_rules():
     assert any("array in the data model" in line for line in stated)
     assert any('requires "deletionStrategy"' in line for line in stated)
     assert any("must start with the group binding" in line for line in stated)
+
+
+def test_only_the_constraints_passed_in_are_reported():
+    result = properties.layout_properties_tool(
+        user_goal="test",
+        component_type="Datepicker",
+        schema=SCHEMA,
+        binding_constraints={},
+    )
+
+    assert result["constraints"] == [properties._BINDING_ADVICE]
