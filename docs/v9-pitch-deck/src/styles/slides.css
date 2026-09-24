@@ -201,9 +201,9 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 380px;
+  width: 420px;
   height: 54px;
-  padding: 0 20px;
+  padding: 0 14px 0 20px;
   border-radius: var(--r-sm);
   background: #fff;
   color: var(--text-100);
@@ -1459,4 +1459,84 @@
   gap: 28px;
   justify-content: center;
   height: 100%;
+}
+
+/* The backend opener's second click: every one of the ten things is saved. */
+.s-fan__saved {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--ok-soft);
+}
+
+.s-fan__saved .icon {
+  color: var(--success);
+}
+
+/* The cover's map of the talk, on the navy field where slide 1 used to fan out. */
+.s-pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 700px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.s-pillar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 26px 32px;
+  border-radius: var(--r-md);
+  background: #fff;
+}
+
+.s-pillar__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: var(--r-sm);
+  background: var(--v9-soft);
+  color: var(--blue-500);
+}
+
+.s-pillar__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.s-pillar__no {
+  font-size: 20px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--blue-500);
+}
+
+.s-pillar__title {
+  font-size: 40px;
+  font-weight: var(--fw-bold);
+  line-height: 1.1;
+  color: var(--text-100);
+}
+
+.s-pillar__body {
+  font-size: 26px;
+  color: var(--text-300);
+}
+
+.s-footnote {
+  margin-top: 28px;
+  font-size: 26px;
+  line-height: 1.35;
+  color: var(--text-300);
+  text-wrap: pretty;
 }

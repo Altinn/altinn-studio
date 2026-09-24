@@ -8,21 +8,22 @@ import { test, expect, type Page } from '@playwright/test';
  * so re-ordering the middle of the deck does not break the suite — but losing
  * a slide or a build step does, which is the failure worth hearing about.
  */
-const FIRST_ID = 'ett-klikk';
-const SECOND_ID = 'tre-omrader';
+const FIRST_ID = 'forside';
+/** A slide deep in the deck, and a build step inside it, for the deep-link test. */
+const DEEP = { hash: '/#/9/7', id: 'scenario-feil', step: '7' };
 /** The last reserve slide — `End` goes past the closing slide to the reserve. */
 const LAST_ID = 'prosessmotor';
-const TOTAL = 24;
+const TOTAL = 22;
 /** Build steps on slide 1 — the first `→` must build, not navigate. */
-const FIRST_SLIDE_STEPS = 1;
+const FIRST_SLIDE_STEPS = 2;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 3;
 /**
- * 24 slides + 65 build steps = every state a presenter clicks through. Each
+ * 22 slides + 62 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 14: six beats per version, the switch, and the
  * comparison.
  */
-const TOTAL_STATES = 89;
+const TOTAL_STATES = 84;
 
 const root = (page: Page) => page.locator('[data-deck-root]');
 
@@ -82,16 +83,17 @@ test('Home and End jump to the ends', async ({ page }) => {
 
 test('the URL hash tracks the current slide and step', async ({ page }) => {
   await page.keyboard.press('ArrowDown');
-  await expect(page).toHaveURL(/#\/2$/);
+  await page.keyboard.press('ArrowDown'); // slide 3 has a build step
+  await expect(page).toHaveURL(/#\/3$/);
   await page.keyboard.press('ArrowRight');
-  await expect(page).toHaveURL(/#\/2\/1$/);
+  await expect(page).toHaveURL(/#\/3\/1$/);
 });
 
 test('a deep link restores the slide and step', async ({ page }) => {
-  await page.goto('/#/2/2');
+  await page.goto(DEEP.hash);
   await settle(page);
-  await expect(root(page)).toHaveAttribute('data-slide-id', SECOND_ID);
-  await expect(root(page)).toHaveAttribute('data-slide-step', '2');
+  await expect(root(page)).toHaveAttribute('data-slide-id', DEEP.id);
+  await expect(root(page)).toHaveAttribute('data-slide-step', DEEP.step);
 });
 
 test('o toggles the overview and a thumbnail navigates', async ({ page }) => {

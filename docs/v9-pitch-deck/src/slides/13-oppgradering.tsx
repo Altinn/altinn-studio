@@ -1,12 +1,5 @@
 import type { SlideProps } from '../deck';
-import { Slide, Icon, Reveal } from '../components';
-import type { IconName } from '../components';
-
-const BULLETS: { icon: IconName; text: string }[] = [
-  { icon: 'terminal', text: 'Ett verktøy skriver om det det kan.' },
-  { icon: 'flag', text: 'Det peker ut det du må gjøre selv.' },
-  { icon: 'user', text: 'Vi hjelper deg med resten.' },
-];
+import { Slide, Reveal } from '../components';
 
 /**
  * What `studioctl app upgrade v9` does, in plain words. The three TODO lines
@@ -32,7 +25,7 @@ export default function OppgraderingSlide({ step }: SlideProps) {
       splitRatio="820px 788px"
       kicker="Backend · oppgradering"
       title="Hva koster oppgraderingen?"
-      subtitle="Prosessen din er den samme. Prosessmotoren følger med plattformen — det er ingenting å skru på."
+      subtitle="Prosessen din er den samme, og ett verktøy gjør det meste av jobben."
     >
       <div className="s-fill" style={{ justifyContent: 'flex-start', gap: 'var(--sp-4)' }}>
         <div className="s-bpmn">
@@ -77,14 +70,6 @@ export default function OppgraderingSlide({ step }: SlideProps) {
           </p>
         </div>
 
-        {BULLETS.map((bullet, i) => (
-          <Reveal key={bullet.text} show={step >= 2} delay={i * 0.07}>
-            <p className="s-bullet">
-              <Icon name={bullet.icon} size={30} />
-              {bullet.text}
-            </p>
-          </Reveal>
-        ))}
       </div>
 
       <Reveal show={step >= 1} from="right">

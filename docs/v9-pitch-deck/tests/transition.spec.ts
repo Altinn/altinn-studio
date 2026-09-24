@@ -230,7 +230,7 @@ test('a slide change crossfades without a gap, a ghost or a flash', async ({ pag
 });
 
 test('build-step content lands without blinking out', async ({ page }) => {
-  await page.goto('/#/13'); // `for-utviklere` — one card revealed per build step
+  await page.goto('/#/11'); // `for-utviklere` — one card revealed per build step
   await settle(page);
   const id = (await root(page).getAttribute('data-slide-id'))!;
 
@@ -263,9 +263,10 @@ test('five presses in one second leave a settled, correct stage', async ({ page 
   ).toBeGreaterThan(MIN_COVERAGE);
 
   await settle(page);
-  // Slide 1 has 1 build step and slide 2 has 2, so five presses land on slide 3.
+  // Slide 1 has 2 build steps and slide 2 has none, so five presses land on
+  // slide 3's build step.
   await expect(root(page)).toHaveAttribute('data-slide-index', '2');
-  await expect(root(page)).toHaveAttribute('data-slide-step', '0');
+  await expect(root(page)).toHaveAttribute('data-slide-step', '1');
 
   // Exactly one layer left, and it is the slide the deck claims to be on.
   const layers = page.locator('.deck__slide');
@@ -288,7 +289,7 @@ test('keyboard repeat never strands the deck on a stale slide', async ({ page })
     'data-slide-layer',
     (await root(page).getAttribute('data-slide-id'))!,
   );
-  // Slides 1-4 hold 1 + 2 + 0 + 0 build steps, so the eighth press lands on
+  // Slides 1-4 hold 2 + 0 + 1 + 0 build steps, so the eighth press lands on
   // slide 5's first build step. Anything short of that means presses were
   // swallowed.
   await expect(root(page)).toHaveAttribute('data-slide-index', '4');
@@ -313,7 +314,7 @@ test('a build step re-renders the slide instead of remounting it', async ({ page
   await expect(root(page)).toHaveAttribute('data-slide-step', '1');
   expect(await stamp(), 'the slide remounted on a build step').toBe(before);
 
-  await page.keyboard.press('ArrowRight'); // now the slide really does change
+  await page.keyboard.press('ArrowDown'); // now the slide really does change
   await settle(page);
   expect(await stamp(), 'the slide did not remount on a slide change').not.toBe(before);
 });

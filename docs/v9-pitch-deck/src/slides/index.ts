@@ -1,12 +1,10 @@
 import type { SlideDef } from '../deck';
 
-import EttKlikk from './08-ett-klikk';
-import TreOmrader from './02-tre-omrader';
-import InfraForAlle from './04-infra-for-alle';
+import Forside from './01-forside';
 import InfraNyttIV9 from './03-infra-nytt-i-v9';
 import FrontendFolgerAppen from './05-frontend-folger-appen';
 import FrontendBrukerneMerker from './06-frontend-brukerne-merker';
-import ArbeidetSkrivesNed from './10-arbeidet-skrives-ned';
+import EttKlikk from './08-ett-klikk';
 import ScenarioFeil from './09-scenario-feil';
 import ScenarioOmstart from './10-scenario-omstart';
 import ForUtviklere from './11-for-utviklere';
@@ -28,30 +26,24 @@ import '../styles/slides.css';
 /**
  * THE SLIDE REGISTRY — the v9 town hall, in stage order.
  *
- * Three parts — infrastruktur, frontend, backend — then the ask. The talk ends
+ * A cover that maps the talk, three parts — infrastruktur, frontend, backend —
+ * then the ask. The talk ends
  * on «bli-med»; the reserve slides after it are for questions and are reached
  * with `o` or `End`.
  *
  * Copy follows `CONTENT.md` (norsk bokmål); `notes` are the taleranmerkninger.
  * Accuracy rules that hold across the deck: si «ingen dupliserte sideeffekter»
  * eller «det som er fullført, kjøres ikke på nytt», aldri «nøyaktig én gang»;
- * motoren er obligatorisk i v9; v9 er i lukket beta; ingen produktnavn på
+ * motoren er obligatorisk i v9; v9 er i lukket beta (sies i notatene, ikke på slidene); ingen produktnavn på
  * arkivsystemer; ingen fartsløfter utover målingen som finnes.
  */
 export const slides: SlideDef[] = [
   {
-    id: 'ett-klikk',
-    component: EttKlikk,
-    steps: 1,
-    notes:
-      'Dette er utgangspunktet. Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle ti lykkes mens brukeren venter på svar. I dag skal vi se hva som blir bedre med v9 — på plattformen, i det brukerne ser, og i det som skjer etter klikket.',
-  },
-  {
-    id: 'tre-omrader',
-    component: TreOmrader,
+    id: 'forside',
+    component: Forside,
     steps: 2,
     notes:
-      'Tre deler. Først plattformen appene kjører på, så frontend — det brukerne ser — og til slutt backend, som er det som skjer etter «Send inn». Vi avslutter med hvordan dere kan bli med.',
+      'Tre deler: plattformen appene kjører på, det brukerne ser, og det som skjer etter «Send inn». Vi avslutter med hvordan dere kan bli med som pilot.',
   },
   {
     id: 'seksjon-infrastruktur',
@@ -59,17 +51,11 @@ export const slides: SlideDef[] = [
     notes: 'Del 1: plattformen.',
   },
   {
-    id: 'infra-for-alle',
-    component: InfraForAlle,
-    notes:
-      'Vær ærlig her: mye av det som er bedre på plattformen, har v8-appene allerede fått. Utrulling følges til den er ferdig, Maskinporten-klienten lages og roteres av plattformen — fra 8.3.0 — alle PDF-er lages av den nye tjenesten, og tjenesteeiere kan få varsler. Det er ikke noe dere må oppgradere for.',
-  },
-  {
     id: 'infra-nytt-i-v9',
     component: InfraNyttIV9,
     steps: 1,
     notes:
-      'Dette krever v9: prosessmotoren, som vi kommer tilbake til, én fast Maskinporten-identitet per app, og myke omstarter der det som pågår får bli ferdig. Siste klikk: det som kommer — status fra prosessmotoren rett i adminsidene i Studio. Si «kommer», ikke «finnes».',
+      'Plattformen tar mer av jobben: prosessmotoren, én fast Maskinporten-identitet per app, og myke omstarter der det som pågår får bli ferdig. Siste klikk: det som er på vei — status fra prosessmotoren rett i adminsidene i Studio. Den er ikke ute ennå; si «på vei». Linja nederst er ærlig ment: utrulling, Maskinporten-klienten (fra 8.3.0), PDF-tjenesten og varslene har v8-appene også fått.',
   },
   {
     id: 'seksjon-frontend',
@@ -81,7 +67,7 @@ export const slides: SlideDef[] = [
     component: FrontendFolgerAppen,
     steps: 1,
     notes:
-      'Den største endringen er ikke hvordan frontend ser ut, men hvordan den kommer ut. I v8 henter appen alltid nyeste versjon, så brukerne kan få noe du ikke har testet. I v9 ligger frontend i appen. Tallet er én tidlig måling i en testapp med 32 sider — si det sånn, ikke «mye raskere».',
+      'Frontend har fått ny arkitektur under panseret: hver side henter dataene sine og husker dem, og det appen trenger for å starte, kommer i første svar. Og i v9 ligger frontend i appen, så det du tester er det brukerne får — i v8 henter appen alltid nyeste versjon. Tallet er én måling i et skjema med 32 sider; si det om noen spør. Ikke si «bygget på nytt».',
   },
   {
     id: 'frontend-brukerne-merker',
@@ -95,11 +81,11 @@ export const slides: SlideDef[] = [
     notes: 'Del 3: det som skjer etter «Send inn».',
   },
   {
-    id: 'arbeidet-skrives-ned',
-    component: ArbeidetSkrivesNed,
-    steps: 3,
+    id: 'ett-klikk',
+    component: EttKlikk,
+    steps: 2,
     notes:
-      'Dette er hele ideen i én setning. Hvert steg etter «Send inn» lagres av plattformen og følges opp til det er ferdig. Feiler noe, prøves det igjen. Det som er fullført, kjøres ikke på nytt. Og alt kan ses. Vi skal se to eksempler.',
+      'Ett klikk på «Send inn» setter i gang ti ting, og i v8 må alle lykkes mens brukeren venter på svar. Andre klikk: i v9 lagrer plattformen hvert av dem og gjør dem ferdig. Feiler noe, prøves det igjen, og det som er fullført, kjøres ikke på nytt. Si aldri «nøyaktig én gang». Vi skal se to eksempler.',
   },
   {
     id: 'scenario-feil',
@@ -132,16 +118,16 @@ export const slides: SlideDef[] = [
   {
     id: 'oppgradering',
     component: Oppgradering,
-    steps: 2,
+    steps: 1,
     notes:
-      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingsverktøyet skriver om det det kan, og peker ut tre ting dere gjør selv: tilganger appen bruker selv, arkivoppgaver, og ventesteg som ikke lenger trengs. Vi hjelper med resten.',
+      'Prosessfilen i malen er lik i v8 og v9. Oppgraderingsverktøyet skriver om det det kan, og peker ut tre ting dere gjør selv: tilganger appen bruker selv, arkivoppgaver, og ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
   },
   {
     id: 'bli-med',
     component: BliMed,
     steps: 3,
     notes:
-      'Vær ærlig her: v9 er i lukket beta, foreløpig internt, og det er nettopp derfor vi spør nå. Vi åpner for flere organisasjoner etter hvert som dere melder dere, og vi hjelper med oppgraderingen. Slutt her — reserveslidene etter denne er for spørsmål.',
+      'Vi tar inn pilotapper nå. Om noen spør: v9 er i lukket beta, foreløpig internt, og vi åpner for flere organisasjoner etter hvert som dere melder dere. Vi hjelper med oppgraderingen. Slutt her — reserveslidene etter denne er for spørsmål.',
   },
   {
     id: 'seksjon-reserve',

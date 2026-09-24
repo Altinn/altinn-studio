@@ -27,9 +27,9 @@ export default function BliMedSlide({ step }: SlideProps) {
   return (
     <Slide
       variant="full"
-      kicker="v9 · lukket beta"
+      kicker="v9 · pilot"
       title="Bli med i pilotene"
-      subtitle="v9 er i lukket beta, foreløpig internt. Vi åpner for flere organisasjoner etter hvert som dere melder dere."
+      subtitle="Vi tar inn pilotapper nå, og hjelper dere gjennom oppgraderingen."
     >
       <Backdrop variant="closing" />
       <BrandMark place="bottom" />
