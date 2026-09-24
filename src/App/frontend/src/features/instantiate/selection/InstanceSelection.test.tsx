@@ -111,7 +111,7 @@ describe('InstanceSelection', () => {
     const { instanceCreateMock, routerRef } = await render();
 
     const row = screen.getByRole('row', {
-      name: /Sist endret: 05\/13\/2021 Endret av: Kåre Nordmannsen/i,
+      name: /Sist endret:\s?05\/13\/2021 Endret av:\s?Kåre Nordmannsen/i,
     });
 
     const button = within(row).getByRole('button', {

@@ -101,7 +101,7 @@
     "http-server": "14.1.1",
     "identity-obj-proxy": "3.0.0",
     "js-levenshtein": "1.1.6",
-    "jsdom": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch",
+    "jsdom": "30.1.1",
     "prettier": "3.9.6",
     "puppeteer": "^25.11.0",
     "resize-observer-polyfill": "1.5.1",

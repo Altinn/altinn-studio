@@ -28,13 +28,13 @@ describe('Caption', () => {
 
   it('provides an optional indicator', async () => {
     await render({ required: false, labelSettings: { optionalIndicator: true } });
-    const title = screen.getByRole('table', { name: /title test \(valgfri\) description test/i });
+    const title = screen.getByRole('table', { name: /title test\s?\(valgfri\) description test/i });
     expect(title).toBeInTheDocument();
   });
 
   it('provides an required indicator', async () => {
     await render({ required: true });
-    const title = screen.getByRole('table', { name: /title test \* description test/i });
+    const title = screen.getByRole('table', { name: /title test\s?\* description test/i });
     expect(title).toBeInTheDocument();
   });
 });

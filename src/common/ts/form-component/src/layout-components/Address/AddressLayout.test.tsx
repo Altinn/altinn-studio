@@ -97,30 +97,30 @@ describe('AddressLayout', () => {
 
   it('shows required indicators when required is true', () => {
     render({ simplified: false, required: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Gateadresse\s?\*/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Postnr\s?\*/ })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' }),
+      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?\*/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer\s?\*/i })).toBeInTheDocument();
   });
 
   it('shows optional indicators when showOptionalMarking is true and not required', () => {
     render({ simplified: false, required: false, showOptionalMarking: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Postnr\s?\(Valgfri\)/ })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
+      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?\(Valgfri\)/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer\s?\(Valgfri\)/i })).toBeInTheDocument();
   });
 
   it('does not show optional indicators when readOnly is true', () => {
     render({ simplified: false, readOnly: true, showOptionalMarking: true });
     expect(
-      screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' }),
+      screen.queryByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Postnr\s?\(Valgfri\)/ })).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 

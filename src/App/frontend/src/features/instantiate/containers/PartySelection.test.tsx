@@ -122,7 +122,7 @@ describe('PartySelection', () => {
     await render();
 
     expect(screen.getAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(4);
-    await user.click(screen.getByRole('button', { name: '1 underenhet' }));
+    await user.click(screen.getByRole('button', { name: /1\s+underenhet/ }));
     expect(screen.getByRole('button', { name: /^Subunit Org/ })).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: /vis underenheter/i }));
     expect(screen.queryByRole('button', { name: /^Subunit Org/ })).not.toBeInTheDocument();
@@ -184,10 +184,11 @@ describe('PartySelection', () => {
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
         if (expandSubunit) {
-          await user.click(screen.getByRole('button', { name: '1 underenhet' }));
+          await user.click(screen.getByRole('button', { name: /1\s+underenhet/ }));
         }
 
-        await user.click(screen.getByRole('button', { name: partyName }));
+        // The party info is separated by &nbsp;, so normalize whitespace before comparing
+        await user.click(screen.getByRole('button', { name: (name) => name.replace(/\s+/g, ' ') === partyName }));
         await waitFor(() => expect(setSelectedPartyMock).toHaveBeenCalled());
         expect(setSelectedPartyMock).toHaveBeenCalledWith({ partyId: expectedPartyId });
         await waitFor(() => expect(screen.getByTestId('current-party')).toHaveTextContent(`${expectedPartyId}`));

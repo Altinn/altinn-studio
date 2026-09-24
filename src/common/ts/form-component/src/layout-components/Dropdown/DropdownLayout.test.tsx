@@ -133,7 +133,8 @@ describe('Dropdown', () => {
     expect(getPopover(container)).not.toHaveTextContent('Are you sure you want to change to');
 
     // The suspended change is dropped, so confirming afterwards does not apply it either.
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    // Cancelling closed the popover, so the Confirm button is still in the DOM but hidden.
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm', hidden: true }));
     expect(onChange).not.toHaveBeenCalled();
   });
 
