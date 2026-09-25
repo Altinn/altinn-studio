@@ -32,14 +32,16 @@ export function useEvalExpression<D extends ExpressionDescriptor>(
 }
 
 /** Evaluates one property at an explicit location for aggregate queries or event handlers. */
-export function useEvalExpressionCallback<V extends ExprVal>(
-  expr: ExprValToActualOrExpr<V> | undefined,
-  descriptor: ExpressionDescriptor<V>,
+export function useEvalExpressionCallback<D extends ExpressionDescriptor>(
+  expr: DescriptorExpression<D> | undefined,
+  descriptor: D,
 ) {
   const dataSources = useExpressionDataSources(expr);
   const componentId = useIndexedId(useCurrentComponentId());
   return useCallback(
-    (currentDataModelPath: IDataModelReference | undefined = dataSources.currentDataModelPath): ExprValToActual<V> =>
+    (
+      currentDataModelPath: IDataModelReference | undefined = dataSources.currentDataModelPath,
+    ): ExprValToActual<D['returnType']> | D['defaultValue'] =>
       evaluateDescriptor(expr, descriptor, { ...dataSources, currentDataModelPath }, componentId),
     [componentId, dataSources, descriptor, expr],
   );
