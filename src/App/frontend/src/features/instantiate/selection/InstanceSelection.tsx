@@ -99,16 +99,12 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
           {paginatedInstances.map((instance) => (
             <Table.Row key={instance.id}>
               <Table.Cell className={classes.mobileTableCell}>
-                <div>
-                  <b>{langAsString('instance_selection.last_changed')}:</b>
-                  <br />
-                  <span>{getDateDisplayString(instance.lastChanged)}</span>
-                </div>
-                <div>
-                  <b>{langAsString('instance_selection.changed_by')}:</b>
-                  <br />
-                  <span>{instance.lastChangedBy}</span>
-                </div>
+                <dl className={classes.instanceDetails}>
+                  <dt>{langAsString('instance_selection.last_changed')}:</dt>
+                  <dd>{getDateDisplayString(instance.lastChanged)}</dd>
+                  <dt>{langAsString('instance_selection.changed_by')}:</dt>
+                  <dd>{instance.lastChangedBy}</dd>
+                </dl>
               </Table.Cell>
               <Table.Cell>
                 <div className={classes.tableButtonWrapper}>

@@ -72,7 +72,7 @@
     "eslint-plugin-sonarjs": "4.2.1",
     "eslint-plugin-storybook": "10.5.10",
     "globals": "17.9.0",
-    "jsdom": "26.1.0",
+    "jsdom": "30.1.1",
     "prettier": "3.9.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",

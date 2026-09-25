@@ -317,7 +317,7 @@ describe('AddressComponent', () => {
     expect(
       screen.queryByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: /iBolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).not.toBeInTheDocument();
   });
 
   it('should not display optional labels when required is true, even when optionalIndicator is true', async () => {
