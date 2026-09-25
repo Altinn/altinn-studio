@@ -189,6 +189,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -809,6 +812,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating FileAnalysis namespace", ex);
+        }
+    }
+
+    /// <summary>
+    /// Renames the model argument of the IAppResources schema and prefill methods to dataTypeId where a call
+    /// passes it by name.
+    /// </summary>
+    static async Task<int> MigrateAppResourcesParameterNames(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppResources parameter names");
+        try
+        {
+            var result = new AppResourcesParameterNameMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppResources calls pass the model parameter by its old name",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppResources parameter names", ex);
         }
     }
 
