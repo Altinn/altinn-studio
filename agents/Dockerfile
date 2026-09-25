@@ -12,6 +12,7 @@ RUN apt-get update \
         fonts-jetbrains-mono \
         fonts-liberation \
         git \
+        hunspell \
         jq \
         libicu-dev \
         libkrb5-dev \
@@ -147,6 +148,27 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
+# The repository spell check (scripts/spellcheck, run by `yarn spell:*` and the pre-commit hook)
+# drives typos for code and English text and hunspell for Norwegian text. The version and x86_64
+# digest match .github/workflows/spellcheck.yaml and must move together with it.
+ARG TYPOS_VERSION=1.49.0
+
+RUN case "${TARGETARCH}" in \
+        amd64) RUST_ARCH=x86_64; \
+            TYPOS_SHA256=48bd2d58e02ce713b8c0f1aa239e68ee4f7d8c551013135806e6aed3938d9e10 ;; \
+        arm64) RUST_ARCH=aarch64; \
+            TYPOS_SHA256=85c8b87b22a0fb1da130cd4d495e0beba7f1225eb580933184509e146ec4c509 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/crate-ci/typos/releases/download/v${TYPOS_VERSION}/typos-v${TYPOS_VERSION}-${RUST_ARCH}-unknown-linux-musl.tar.gz" \
+        -o /tmp/typos.tar.gz \
+    && echo "${TYPOS_SHA256}  /tmp/typos.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/typos.tar.gz -C /tmp ./typos \
+    && install -m 0755 /tmp/typos /usr/local/bin/typos \
+    && rm -f /tmp/typos.tar.gz /tmp/typos \
+    && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
+
 ARG CODEX_VERSION=0.156.0
 ARG CLAUDE_CODE_VERSION=2.1.280
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
@@ -259,6 +281,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && claude --version \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
+    && hunspell -v \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \

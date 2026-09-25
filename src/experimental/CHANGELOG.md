@@ -24,6 +24,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   key.
 - In the terminal UI, a side panel shows the selected Session's recent turns or the selected Agent's status. `p` follows
   an Agent's provisioning, which also opens for an Agent created with `c`, or prompts a Session without attaching.
+- Altinn Agents include `typos` and `hunspell`, so the repository spell check (`yarn spell:quick`, `yarn spell:check`
+  and the pre-commit hook) runs inside an Agent.
 
 ### Changed
 
