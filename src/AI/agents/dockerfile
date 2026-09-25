@@ -1,23 +1,58 @@
+# syntax=docker/dockerfile:1
+
+# Built from the repo root so the image can bundle the v9 layout schemas from
+# src/common. dockerfile.dockerignore limits the context to what the image needs.
 FROM python:3.14-slim-bookworm@sha256:9ab8d9c8514b44f90cf0029dd42fdd7e9e211e639c8b995304cc04568dee900f
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# git: repo operations. curl + ca-certificates: fetch the .NET SDK and studioctl installers.
+# bash: dotnet-install.sh requires it (the slim image only ships dash).
+# libicu + libssl: .NET runtime dependencies on Debian.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl ca-certificates bash libicu72 libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# The v8->v9 upgrade shells out to `dotnet restore`, so the image needs the full
+# .NET SDK at runtime (not just the runtime). `dotnet --version` fails the build
+# early if the SDK can't run (e.g. a missing native dependency).
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+    && bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet \
+    && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && rm /tmp/dotnet-install.sh \
+    && dotnet --version
+
+# studioctl runs the v8->v9 app upgrade (`upgrade_app_to_v9`). The released installer
+# verifies the studioctl binary and its studioctl-server against the release checksums,
+# and the checksum below verifies the installer.
+ARG STUDIOCTL_VERSION=v0.1.0-preview.27
+ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=f7ffb89be68a0e8c73463229303978953822c736df1ebc289d7dfa7caafee50f
+RUN curl -fsSL \
+        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
+        -o /tmp/studioctl-install.sh \
+    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
+    && sh /tmp/studioctl-install.sh --version "${STUDIOCTL_VERSION}" --install-dir /usr/local/bin \
+    && rm /tmp/studioctl-install.sh \
+    && test "$(studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+    && test -x "${HOME}/.config/altinn-studio/bin/studioctl-server/studioctl-server"
 
 RUN git config --system user.name "Altinity Agent" && \
     git config --system user.email "agent@altinn.studio"
 
-COPY requirements.txt ./
+COPY src/AI/agents/requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir "playwright>=1.49.0" && \
     playwright install --with-deps chromium
 
-COPY agents/ ./agents/
-COPY api/ ./api/
-COPY services/ ./services/
-COPY shared/ ./shared/
+COPY src/AI/agents/agents/ ./agents/
+COPY src/AI/agents/api/ ./api/
+COPY src/AI/agents/services/ ./services/
+COPY src/AI/agents/shared/ ./shared/
+# The v9 layout schemas, where BaseConfig.LAYOUT_SCHEMA_V9_DIR points from /app. The CDN
+# serves only the v8 contract.
+COPY src/common/ts/layout-contract/schemas/json/layout/ /common/ts/layout-contract/schemas/json/layout/
 
 EXPOSE 8071
 

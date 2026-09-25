@@ -14,18 +14,19 @@ hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `_write_base.WriteToolMixin`).
 
 Validation runs in-process — no network round-trip except the (cached)
-schema fetch from altinncdn.no.
+v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
 """
 
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import subprocess
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.altinn.layout import LAYOUT_SCHEMA_URL, get_layout_schema
+from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import resource_validator_tool
 from agents.core.tool import LoopContext, ToolResult
@@ -89,15 +90,10 @@ class VerifyChangesTool(WriteToolMixin):
             else:
                 passed = False
 
-        nav_ok, nav_notes = _check_page_navigation(ctx, changed)
-        notes.extend(nav_notes)
-        if not nav_ok:
-            passed = False
-
-        text_ok, text_notes = _check_text_keys(ctx, changed)
-        notes.extend(text_notes)
-        if not text_ok:
-            passed = False
+        for cross_file_check in _CROSS_FILE_CHECKS:
+            check_ok, check_notes = cross_file_check(ctx, changed)
+            notes.extend(check_notes)
+            passed = passed and check_ok
 
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
@@ -127,13 +123,12 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
     """Return `(passed, notes)` for a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # `discard_file_changes` removes the entry from `changed_files`,
-        # so reaching this branch means the file was deleted some other
-        # way — flag it rather than crash.
-        return False, [f"{file_path}: file does not exist on disk"]
+        # Only the v9 upgrade deletes files: the model has no delete tool, and
+        # `discard_file_changes` removes the entry from `changed_files`.
+        return True, [f"{file_path}: deleted, nothing to validate"]
 
     if _is_layout_file(file_path):
-        return _validate_layout(file_path, full_path)
+        return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
     if _is_text_resource(file_path):
         return _validate_resource(ctx, file_path, full_path)
     if _is_layout_settings(file_path):
@@ -318,12 +313,45 @@ def _has_navigation_component(layout_path: Path) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Cross-file check: files the app version does not have
+# ---------------------------------------------------------------------------
+
+
+def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """A file the app version does not have may only change if it is already in the repo.
+
+    An unfinished v9 upgrade keeps `layout-sets.json` and the rule files, and
+    those must still be editable and deletable.
+    """
+    forbidden_patterns = ctx.app_version_profile.forbidden_new_file_patterns
+    notes = [
+        f"{file_path}: {replacement}"
+        for file_path in changed
+        for pattern, replacement in forbidden_patterns.items()
+        if PurePosixPath(file_path).match(pattern) and not _exists_in_head(ctx.repo_path, file_path)
+    ]
+    return not notes, notes
+
+
+def _exists_in_head(repo_path: str, file_path: str) -> bool:
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"HEAD:{file_path}"],
+        cwd=repo_path,
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+_CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden_new_files)
+
+
+# ---------------------------------------------------------------------------
 # Validators (in-process, from agents.altinn)
 # ---------------------------------------------------------------------------
 
 
-def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
-    """Validate a layout JSON in-process against the official schema."""
+def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
+    """Validate a layout JSON in-process against the app version's layout schema."""
     try:
         json_content = full_path.read_text(encoding="utf-8")
     except OSError as exc:
@@ -342,12 +370,13 @@ def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     ) as span:
         span.update(input={"file_content": json_content})
         try:
-            schema = get_layout_schema(LAYOUT_SCHEMA_URL)
+            schema = get_layout_schema(schema_location)
+            referenced_schemas = get_referenced_schemas(schema_location)
         except Exception as exc:
             span.update(output={"error": str(exc)})
             return False, [f"{file_path}: could not load layout schema — {exc}"]
 
-        result = validate_layout_json(_as_full_layout(layout), schema)
+        result = validate_layout_json(_as_full_layout(layout), schema, referenced_schemas)
         span.update(output={"result": {"status": result.get("status")}})
 
     status = result.get("status")

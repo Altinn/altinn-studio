@@ -18,6 +18,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
+
 
 @dataclass
 class LoopContext:
@@ -45,6 +47,9 @@ class LoopContext:
     # True (granted) or False (declined/timeout).  Wired by the loop node
     # in read-only sessions; None means denials are final.
     permission_requester: Callable[[str], Awaitable[bool]] | None = None
+    # Shows a status line in the user's chat while a tool is still running.
+    report_status: Callable[[str], None] = lambda message: None
+    app_version_profile: AppVersionProfile = V8_PROFILE
     extras: dict[str, Any] = field(default_factory=dict)
 
 

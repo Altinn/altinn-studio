@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from agents.altinn.app_version import V8_PROFILE
 from agents.altinn.layout import properties
 
 SCHEMA = {
@@ -33,7 +34,7 @@ def _props(component_type: str) -> dict:
         user_goal="test",
         component_type=component_type,
         schema=SCHEMA,
-        binding_constraints=properties.BINDING_CONSTRAINTS,
+        binding_constraints=V8_PROFILE.binding_constraints,
     )
 
 
@@ -95,14 +96,14 @@ def test_the_list_and_the_lookup_read_the_same_component_types():
 
 
 def test_checkboxes_are_warned_off_the_group_binding():
-    stated = " ".join(properties.BINDING_CONSTRAINTS["Checkboxes"])
+    stated = " ".join(V8_PROFILE.binding_constraints["Checkboxes"])
 
     assert '"group" is a repeating-group binding' in stated
     assert "deletionStrategy" in stated
 
 
 def test_a_repeating_group_states_all_three_of_its_rules():
-    stated = properties.BINDING_CONSTRAINTS["RepeatingGroup"]
+    stated = V8_PROFILE.binding_constraints["RepeatingGroup"]
 
     assert any("array in the data model" in line for line in stated)
     assert any('requires "deletionStrategy"' in line for line in stated)

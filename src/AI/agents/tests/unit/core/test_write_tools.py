@@ -4,23 +4,27 @@
 the CC-style file surface — see `test_file_tools.py`.)
 
 External services (git_ops, repo_manager, the layout-schema CDN fetch)
-are monkeypatched or stubbed — nothing in here touches a real repo or
-the network.
+are monkeypatched or stubbed — nothing in here touches the network.  The
+v9 tests read the in-repo v9 schema and use real git repos in tmp_path.
 """
 
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import (
     CommitSessionBranchTool,
     LoopContext,
     VerifyChangesTool,
 )
+
+from .git_repo import create_committed_repo, write_files
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -98,6 +102,27 @@ class TestVerifyChanges:
         # Successful verify marks the file in verified_files.
         assert "App/ui/form/layouts/Page1.json" in ctx.extras["verified_files"]
 
+    async def test_layout_is_validated_against_the_schema_of_the_app_version(self, tmp_path: Path, monkeypatch):
+        layout_path = tmp_path / "App" / "ui" / "form" / "layouts" / "Page1.json"
+        layout_path.parent.mkdir(parents=True)
+        layout_path.write_text('{"data": {"layout": []}}', encoding="utf-8")
+        requested_locations: list[str] = []
+
+        def load_schema(schema_location: str) -> dict:
+            requested_locations.append(schema_location)
+            return {}
+
+        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", load_schema)
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/form/layouts/Page1.json"},
+        )
+        ctx.app_version_profile = replace(V8_PROFILE, layout_schema_location="other-version/layout.schema.v1.json")
+
+        await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert requested_locations == ["other-version/layout.schema.v1.json"]
+
     async def test_text_resource_validated_in_process(self, tmp_path: Path, monkeypatch):
         resource_path = tmp_path / "App" / "config" / "texts" / "resource.nb.json"
         resource_path.parent.mkdir(parents=True)
@@ -152,6 +177,16 @@ class TestVerifyChanges:
         assert not result.is_error
         body = json.loads(result.content)
         assert any("no automated validator" in note for note in body["notes"])
+
+    async def test_deleted_file_is_noted_but_passes(self, tmp_path: Path):
+        ctx = _write_ctx(
+            repo_path=str(tmp_path),
+            changed={"App/ui/layout-sets.json"},
+        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        assert not result.is_error
+        body = json.loads(result.content)
+        assert any("deleted" in note for note in body["notes"])
 
     async def test_multipage_layout_without_navigation_fails(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
@@ -236,7 +271,7 @@ class TestVerifyChanges:
         monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
             "agents.core.tools.verify_tool.validate_layout_json",
-            lambda layout, schema: {
+            lambda layout, schema, referenced_schemas: {
                 "status": "validation_failed",
                 "message": "Layout validation failed with 1 error(s)",
                 "validation_errors": [{"path": "$.data.layout", "message": "is required"}],
@@ -261,7 +296,7 @@ class TestVerifyChanges:
         monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
             "agents.core.tools.verify_tool.validate_layout_json",
-            lambda layout, schema: {
+            lambda layout, schema, referenced_schemas: {
                 "status": "validation_failed",
                 "message": "Layout validation failed with 1 error(s)",
                 "validation_errors": [
@@ -316,6 +351,85 @@ class TestVerifyChanges:
         result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), _write_ctx())
         assert result.is_error
         assert "No changed files" in result.content
+
+
+# ---------------------------------------------------------------------------
+# verify_changes in a v9 app, against the in-repo v9 schema and a real git repo
+# ---------------------------------------------------------------------------
+
+V9_LAYOUT_PATH = "App/ui/Task_1/layouts/Side1.json"
+
+
+def _v9_ctx(repo: Path, changed: set[str]) -> LoopContext:
+    ctx = _write_ctx(repo_path=str(repo), changed=changed)
+    ctx.app_version_profile = V9_PROFILE
+    return ctx
+
+
+def _write_v9_layout(repo: Path, component: dict[str, Any]) -> None:
+    write_files(repo, {V9_LAYOUT_PATH: json.dumps({"data": {"layout": [component]}})})
+
+
+def _heading(component_type: str = "Heading", **properties: Any) -> dict[str, Any]:
+    return {
+        "id": "title",
+        "type": component_type,
+        "size": "L",
+        "textResourceBindings": {"title": "app.title"},
+        **properties,
+    }
+
+
+async def _verify(ctx: LoopContext):
+    return await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+
+class TestVerifyChangesInAV9App:
+    async def test_accepts_a_heading(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading())
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert not result.is_error
+
+    async def test_rejects_a_header(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading(component_type="Header"))
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert result.is_error
+
+    async def test_accepts_an_expression_function_only_v9_has(self, tmp_path: Path):
+        count_children = ["count", ["dataModel", "children"]]
+        _write_v9_layout(tmp_path, _heading(hidden=["equals", count_children, 0]))
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert not result.is_error
+
+    async def test_rejects_a_new_rule_configuration_file(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, {"App/App.csproj": "v9"})
+        write_files(repo, {"App/ui/Task_1/RuleConfiguration.json": "{}"})
+
+        result = await _verify(_v9_ctx(repo, {"App/ui/Task_1/RuleConfiguration.json"}))
+
+        assert result.is_error
+        assert "`hidden` expression" in result.content
+
+    async def test_accepts_an_edit_to_layout_sets_left_by_an_unfinished_upgrade(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, {"App/ui/layout-sets.json": '{"sets": []}'})
+        write_files(repo, {"App/ui/layout-sets.json": '{"sets": [{"id": "form"}]}'})
+
+        result = await _verify(_v9_ctx(repo, {"App/ui/layout-sets.json"}))
+
+        assert not result.is_error
+
+    async def test_a_v8_app_accepts_a_new_layout_sets_file(self, tmp_path: Path):
+        write_files(tmp_path, {"App/ui/layout-sets.json": '{"sets": []}'})
+
+        result = await _verify(_write_ctx(repo_path=str(tmp_path), changed={"App/ui/layout-sets.json"}))
+
+        assert not result.is_error
 
 
 # ---------------------------------------------------------------------------

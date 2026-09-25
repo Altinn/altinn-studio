@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import SessionContext, build_system_prompt
 
 
@@ -148,6 +150,38 @@ class TestDomainKnowledge:
         assert "different" in text and "same turn" in text, (
             "operating principles should tell the model to batch writes to different files into the same turn"
         )
+
+
+class TestAppVersion:
+    def test_anatomy_describes_the_ui_files_of_the_app_version(self):
+        profile = replace(V8_PROFILE, ui_anatomy_prompt="- **UI files** of this version")
+
+        prompt = build_system_prompt(_base_ctx(app_version_profile=profile))
+
+        assert "- **UI files** of this version\n- **Data models**" in prompt
+
+    def test_critical_rules_end_with_the_rules_of_the_app_version(self):
+        profile = replace(V8_PROFILE, version_rules_prompt="8.  **A rule of this version.**")
+
+        prompt = build_system_prompt(_base_ctx(app_version_profile=profile))
+
+        assert "without one.\n\n8.  **A rule of this version.**" in prompt
+
+    def test_session_states_the_app_version(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "- App version: v9" in prompt
+
+    def test_a_v9_app_edits_layouts_in_the_folder_of_its_process_task(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "App/ui/<taskId>/layouts/" in prompt
+        assert "App/ui/<layoutSetId>/" not in prompt
+
+    def test_a_v9_app_is_told_headings_use_the_heading_component(self):
+        prompt = build_system_prompt(_base_ctx(app_version_profile=V9_PROFILE))
+
+        assert "Headings use the `Heading` component" in prompt
 
 
 class TestFinalAnswerContract:

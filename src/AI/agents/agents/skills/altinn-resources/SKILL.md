@@ -91,7 +91,7 @@ Inputs relevant text from the datamodel
 - Add new resource file with filename resource.[language].json
   - Use ISO 639-1 when assigning the language code
   - Generate all resources from the previous resource files into the new one
-- Important: When using multiple languages, add the field "showLanguageSelector" : true to ui/form/Settings.json, inside the pages property
+- Important: When using multiple languages, show the language selector.
 - in App/config/applicationmetadata.json, add the title in the new language
 
 ### 5. Displaying resource as text from datamodel

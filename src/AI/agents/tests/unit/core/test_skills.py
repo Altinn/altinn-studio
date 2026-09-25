@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core.skills import (
     MAX_LISTING_DESCRIPTION_CHARS,
     Skill,
@@ -24,8 +25,18 @@ def _write_skill(root: Path, name: str, description: str, body: str = "# Content
     return skill_file
 
 
-def _ctx() -> LoopContext:
-    return LoopContext(session_id="s1", repo_path="/tmp/repo", allow_app_changes=True)
+def _write_app_version_texts(skill_file: Path) -> None:
+    (skill_file.parent / "v8.md").write_text("## In v8 apps", encoding="utf-8")
+    (skill_file.parent / "v9.md").write_text("## In v9 apps", encoding="utf-8")
+
+
+def _ctx(app_version_profile: AppVersionProfile = V8_PROFILE) -> LoopContext:
+    return LoopContext(
+        session_id="s1",
+        repo_path="/tmp/repo",
+        allow_app_changes=True,
+        app_version_profile=app_version_profile,
+    )
 
 
 class TestDiscoverSkills:
@@ -115,7 +126,7 @@ class TestLoadBody:
         _write_skill(tmp_path, "my-skill", "Desc.", body="# The Guide\nLine two.")
         skill = discover_skills(tmp_path)[0]
 
-        body = skill.load_body()
+        body = skill.load_body("v8")
 
         assert body.startswith("# The Guide")
         assert "description: Desc." not in body
@@ -129,7 +140,7 @@ class TestLoadBody:
         )
         (skill_dir / "index.txt").write_text("[Page](https://x/y): about y", encoding="utf-8")
 
-        body = discover_skills(tmp_path)[0].load_body()
+        body = discover_skills(tmp_path)[0].load_body("v8")
 
         assert "## Included file: index.txt" in body
         assert "[Page](https://x/y): about y" in body
@@ -142,10 +153,25 @@ class TestLoadBody:
             encoding="utf-8",
         )
 
-        body = discover_skills(tmp_path)[0].load_body()
+        body = discover_skills(tmp_path)[0].load_body("v8")
 
         assert body.startswith("# Docs")
         assert "Included file" not in body
+
+    def test_app_version_text_comes_between_body_and_included_files(self, tmp_path):
+        skill_dir = tmp_path / "docs-skill"
+        skill_dir.mkdir()
+        skill_file = skill_dir / "SKILL.md"
+        skill_file.write_text(
+            "---\ndescription: Docs.\ninclude: index.txt\n---\n\n# Docs\n",
+            encoding="utf-8",
+        )
+        (skill_dir / "index.txt").write_text("[Page](https://x/y): about y", encoding="utf-8")
+        _write_app_version_texts(skill_file)
+
+        body = discover_skills(tmp_path)[0].load_body("v9")
+
+        assert body.index("# Docs") < body.index("## In v9 apps") < body.index("Included file")
 
     def test_body_without_frontmatter_loads_whole_file(self, tmp_path):
         skill_file = tmp_path / "raw" / "SKILL.md"
@@ -153,7 +179,7 @@ class TestLoadBody:
         skill_file.write_text("Just content, no frontmatter.", encoding="utf-8")
         skill = Skill(name="raw", description="d", path=skill_file)
 
-        assert "Just content, no frontmatter." in skill.load_body()
+        assert "Just content, no frontmatter." in skill.load_body("v8")
 
 
 class TestFormatSkillListing:
@@ -183,6 +209,35 @@ class TestSkillTool:
 
         assert not result.is_error
         assert "# Skill body here" in result.content
+
+    @pytest.mark.asyncio
+    async def test_adds_the_v9_text_in_a_v9_app(self, tmp_path):
+        skill_file = _write_skill(tmp_path, "known", "Desc.", body="# Skill body here")
+        _write_app_version_texts(skill_file)
+        tool = SkillTool(discover_skills(tmp_path))
+
+        result = await tool.run(SkillArgs(skill="known"), _ctx(V9_PROFILE))
+
+        assert result.content == "# Skill body here\n\n## In v9 apps"
+
+    @pytest.mark.asyncio
+    async def test_adds_the_v8_text_in_a_v8_app(self, tmp_path):
+        skill_file = _write_skill(tmp_path, "known", "Desc.", body="# Skill body here")
+        _write_app_version_texts(skill_file)
+        tool = SkillTool(discover_skills(tmp_path))
+
+        result = await tool.run(SkillArgs(skill="known"), _ctx(V8_PROFILE))
+
+        assert result.content == "# Skill body here\n\n## In v8 apps"
+
+    @pytest.mark.asyncio
+    async def test_returns_the_shared_body_when_there_is_no_text_for_the_app_version(self, tmp_path):
+        _write_skill(tmp_path, "known", "Desc.", body="# Skill body here")
+        tool = SkillTool(discover_skills(tmp_path))
+
+        result = await tool.run(SkillArgs(skill="known"), _ctx(V9_PROFILE))
+
+        assert result.content == "# Skill body here"
 
     @pytest.mark.asyncio
     async def test_unknown_skill_is_error_listing_available(self, tmp_path):
