@@ -38,6 +38,16 @@ _UPGRADED_MESSAGES = {
 # The upgrade keeps this file when it holds back layout sets that need manual work.
 _LAYOUT_SETS_FILE = "App/ui/layout-sets.json"
 _HELD_BACK_MESSAGE = "The app was not upgraded, and nothing was changed.  These TODOs block the upgrade:"
+_HELD_BACK_ROLLBACK_NOTE = (
+    "The rollback also removed the markers and generated files that these TODOs mention.  "
+    "The legacy rules they name are still in RuleConfiguration.json and RuleHandler.js."
+)
+_TODO_STATUS = "TODO"
+_CREATED_FILES_WITH_TODOS_MESSAGE = "The upgrade created files with these TODOs:"
+_COMMENT_PREFIX = "//"
+
+# studioctl stages its changes, so git status shows a file it created as added to the index.
+_GIT_STATUS_ADDED = "A"
 
 _GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
 _GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
@@ -100,9 +110,11 @@ class UpgradeAppToV9Tool(WriteToolMixin):
         "this before making other edits.\n\n"
         "RESULT: the upgrade either completes or changes nothing.  A completed "
         "upgrade applies the changes on disk and stages them for commit; relay "
-        "any manual follow-up steps to the user.  When the upgrade changes "
-        "nothing, tell the user what blocks it, and offer to fix the blockers "
-        "you can."
+        "any manual follow-up steps to the user.  When it created files with "
+        "TODOs, list those TODOs in the body of the commit message, and tell "
+        "the user what each TODO asks for.  When the upgrade changes nothing, "
+        "tell the user what blocks it.  Do not fix the TODOs or the blockers "
+        "yourself."
     )
     input_schema = UpgradeAppToV9Args
     is_concurrency_safe = False
@@ -136,14 +148,13 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
     summary = _summarize_steps(steps)
 
     if exit_code in _UPGRADED_MESSAGES and not _held_back_layout_sets(ctx.repo_path):
-        _record_changed_files(ctx)
-        sections = [_UPGRADED_MESSAGES[exit_code], summary, _switch_app_version_profile(ctx)]
-        return ToolResult(content="\n\n".join(sections))
+        return _upgraded_result(exit_code, summary, ctx)
 
     _restore_working_tree(ctx.repo_path)
 
     if exit_code in _UPGRADED_MESSAGES:
-        return ToolResult(content=f"{_HELD_BACK_MESSAGE}\n\n{summary}", is_error=True)
+        sections = [_HELD_BACK_MESSAGE, _summarize_todos(steps), _HELD_BACK_ROLLBACK_NOTE]
+        return ToolResult(content="\n\n".join(sections), is_error=True)
 
     if exit_code == _EXIT_UNSUPPORTED_VERSION:
         return ToolResult(
@@ -155,6 +166,16 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
         content=(f"The v9 upgrade failed, and its changes were discarded:\n\n{result.get('error') or summary}"),
         is_error=True,
     )
+
+
+def _upgraded_result(exit_code: int, summary: str, ctx: LoopContext) -> ToolResult:
+    _record_changed_files(ctx)
+    sections = [_UPGRADED_MESSAGES[exit_code], summary]
+    todos = _todos_in_created_files(ctx.repo_path)
+    if todos:
+        sections.append("\n\n".join([_CREATED_FILES_WITH_TODOS_MESSAGE, *todos]))
+    sections.append(_switch_app_version_profile(ctx))
+    return ToolResult(content="\n\n".join(sections))
 
 
 def _held_back_layout_sets(repo_path: str) -> bool:
@@ -176,11 +197,23 @@ def _switch_app_version_profile(ctx: LoopContext) -> str:
 
 
 def _summarize_steps(steps: list[dict]) -> str:
-    summary = "\n".join(
-        f"[{message['status']}] {step['name']}: {message['text']}" for step in steps for message in step["messages"]
-    )
+    summary = "\n".join(_format_message(step, message) for step in steps for message in step["messages"])
     log.info("V9 upgrade steps:\n%s", summary)
     return summary
+
+
+def _summarize_todos(steps: list[dict]) -> str:
+    """The rollback undid the other steps, so only their TODOs still apply."""
+    return "\n".join(
+        _format_message(step, message)
+        for step in steps
+        for message in step["messages"]
+        if message["status"] == _TODO_STATUS
+    )
+
+
+def _format_message(step: dict, message: dict) -> str:
+    return f"[{message['status']}] {step['name']}: {message['text']}"
 
 
 def _restore_working_tree(repo_path: str) -> None:
@@ -199,24 +232,50 @@ def _record_changed_files(ctx: LoopContext) -> None:
     verified.update(paths)  # We trust the upgrade script and bypass VerifyChangesTool
 
 
+def _todos_in_created_files(repo_path: str) -> list[str]:
+    """Each TODO comment in the files the upgrade created, below its `path:line:`."""
+    todos: list[str] = []
+    for path in _get_created_paths(repo_path):
+        lines = (Path(repo_path) / path).read_text(encoding="utf-8").splitlines()
+        todo_indexes = [index for index, line in enumerate(lines) if "TODO" in line]
+        todos.extend(f"{path}:{index + 1}:\n{_todo_comment(lines, index)}" for index in todo_indexes)
+    return todos
+
+
+def _todo_comment(lines: list[str], todo_index: int) -> str:
+    """The TODO line and the comment lines below it, which say what the TODO asks for."""
+    comment = [lines[todo_index].strip()]
+    for line in lines[todo_index + 1 :]:
+        stripped_line = line.strip()
+        if not stripped_line.startswith(_COMMENT_PREFIX) or "TODO" in stripped_line:
+            break
+        comment.append(stripped_line)
+    return "\n".join(comment)
+
+
 def _get_changed_paths(repo_path: str) -> list[str]:
     """Repo-relative paths touched in the working tree"""
+    return [_path_in_status_line(line) for line in _git_status_lines(repo_path)]
+
+
+def _get_created_paths(repo_path: str) -> list[str]:
+    created_lines = [line for line in _git_status_lines(repo_path) if line.startswith(_GIT_STATUS_ADDED)]
+    return [_path_in_status_line(line) for line in created_lines]
+
+
+def _git_status_lines(repo_path: str) -> list[str]:
     result = subprocess.run(
         ["git", "status", "--porcelain"],
         cwd=repo_path,
         capture_output=True,
         text=True,
     )
-    return _parse_git_status(result.stdout)
+    return result.stdout.splitlines()
 
 
-def _parse_git_status(raw_status: str) -> list[str]:
-    paths: list[str] = []
-    for line in raw_status.splitlines():
-        line = _strip_status_prefix(line)
-        line = _parse_rename(line)
-        paths.append(line)
-    return paths
+def _path_in_status_line(line: str) -> str:
+    line = _strip_status_prefix(line)
+    return _parse_rename(line)
 
 
 def _strip_status_prefix(line: str) -> str:

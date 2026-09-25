@@ -42,6 +42,7 @@ _V8_APP_FILES = {"App/App.csproj": _V8_PROJECT_FILE, "App/ui/layout-sets.json": 
 _UNCONVERTED_RULE_TODO = (
     "Layout set 'form', rule 'hideAddress', component 'address': the condition could not be converted."
 )
+_ROLLED_BACK_STEP = "Altinn.App packages set to 9.0.1"
 
 
 @pytest.fixture(autouse=True)
@@ -120,6 +121,31 @@ def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[
     return upgrade
 
 
+_GENERATED_DATA_PROCESSOR = "App/logic/ConvertedLegacyRules/FormDataProcessor.cs"
+_REVIEW_TODO = "// TODO: IMPORTANT - Review all generated code below!"
+_REVIEW_TODO_DETAILS = "// You MUST carefully review each method."
+
+
+def _upgrade_that_generates_a_data_processor(repo: Path) -> Callable[[], None]:
+    """Mimics studioctl converting data processing rules to C#, which it marks with a TODO to review."""
+
+    def upgrade() -> None:
+        write_files(
+            repo,
+            {
+                "App/App.csproj": _V9_PROJECT_FILE,
+                "App/ui/Settings.json": "{}",
+                _GENERATED_DATA_PROCESSOR: (
+                    f"namespace Altinn.App.Logic;\n    {_REVIEW_TODO}\n    {_REVIEW_TODO_DETAILS}\n    var change = 1;\n"
+                ),
+            },
+        )
+        (repo / "App/ui/layout-sets.json").unlink()
+        git(repo, "add", "-A")
+
+    return upgrade
+
+
 def _stub_held_back_upgrade(monkeypatch, repo: Path) -> None:
     """Mimics studioctl holding back a layout set: the project file is on v9,
     but layout-sets.json stays, and a rule is reported as a TODO."""
@@ -133,9 +159,13 @@ def _stub_held_back_upgrade(monkeypatch, repo: Path) -> None:
                 "exitCode": _EXIT_MANUAL_ACTION_REQUIRED,
                 "steps": [
                     {
+                        "name": "Project file",
+                        "messages": [{"text": _ROLLED_BACK_STEP, "status": "OK"}],
+                    },
+                    {
                         "name": "Layout files",
                         "messages": [{"text": _UNCONVERTED_RULE_TODO, "status": "TODO"}],
-                    }
+                    },
                 ],
             }
         )
@@ -265,6 +295,32 @@ class TestUpgradeAppToV9:
 
         assert not verify_result.is_error
 
+    async def test_success_returns_each_todo_comment_in_the_created_files_with_its_location(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_generates_a_data_processor(repo), exit_code=0)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        todo_section = (
+            "The upgrade created files with these TODOs:\n\n"
+            f"{_GENERATED_DATA_PROCESSOR}:2:\n{_REVIEW_TODO}\n{_REVIEW_TODO_DETAILS}\n\n"
+        )
+        assert todo_section in result.content
+
+    async def test_success_leaves_out_the_todo_section_when_no_created_file_has_todos(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
+        )
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "The upgrade created files with these TODOs" not in result.content
+
     async def test_failed_upgrade_discards_its_partial_changes(self, monkeypatch, tmp_path: Path):
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
 
@@ -356,6 +412,24 @@ class TestUpgradeAppToV9:
 
         assert "nothing was changed" in result.content
         assert _UNCONVERTED_RULE_TODO in result.content
+
+    async def test_held_back_upgrade_leaves_out_the_steps_it_rolled_back(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_held_back_upgrade(monkeypatch, repo)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert _ROLLED_BACK_STEP not in result.content
+
+    async def test_held_back_upgrade_points_to_the_legacy_rules_that_are_still_in_the_app(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_held_back_upgrade(monkeypatch, repo)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "still in RuleConfiguration.json and RuleHandler.js" in result.content
 
     async def test_passes_on_the_studioctl_error_when_studioctl_cannot_run_the_upgrade(
         self, monkeypatch, tmp_path: Path
