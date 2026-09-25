@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -46,7 +47,7 @@ public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitReposito
         );
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateTaskNavigation(
