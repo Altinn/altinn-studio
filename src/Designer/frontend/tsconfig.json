@@ -19,6 +19,7 @@
     "skipLibCheck": true,
     "paths": {
       "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],
+      "@altinn/process-editor/*": ["./packages/process-editor/src/*"],
       "@altinn/process-editor-v8/*": ["./packages/process-editor-v8/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
       "@altinn/schema-model/*": ["./packages/schema-model/src/*"],

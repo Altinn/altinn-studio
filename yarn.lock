@@ -54,6 +54,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor":
+  version: 0.0.0-use.local
+  resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
+  dependencies:
+    "@studio/ui-test": "workspace:^"
+    "@types/bpmn-moddle": "npm:9.0.1"
+    bpmn-js: "npm:18.22.1"
+    bpmn-moddle: "npm:9.0.4"
+    jest: "npm:29.7.0"
+  peerDependencies:
+    react: 18.3.1
+    react-dom: 18.3.1
+    typescript: 6.0.3
+  languageName: unknown
+  linkType: soft
+
 "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/schema-editor@workspace:src/Designer/frontend/packages/schema-editor"
