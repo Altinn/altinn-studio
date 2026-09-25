@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "9766b2fc3ce5",
-    "code": "255ed18 clean",
+    "code": "c848f8d clean",
     "dataset": "115 items be00f7b53c3b",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260925T161121Z-remove-dead-validation-modules-rerun-34dd",
-  "label": "remove dead validation modules rerun",
-  "recorded_at": "2026-09-25T16:16:27+00:00",
-  "why": "Removed unreachable validation, telemetry and workflow modules"
+  "check_id": "20260925T180628Z-remove-dead-benchmark-code-ba6b",
+  "label": "remove dead benchmark code",
+  "recorded_at": "2026-09-25T18:10:48+00:00",
+  "why": "Removed unused benchmark code"
 }
