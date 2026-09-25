@@ -37,6 +37,7 @@ import type {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import {
   type IFrontEndSettings,
   type ILayoutSettings,
@@ -199,6 +200,7 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getSubformComponents: jest.fn().mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
   getTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -357,6 +359,9 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
+  saveSubformPdfComponent: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),

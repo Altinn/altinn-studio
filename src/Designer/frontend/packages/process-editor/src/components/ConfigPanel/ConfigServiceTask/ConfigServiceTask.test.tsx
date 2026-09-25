@@ -133,6 +133,17 @@ describe('ConfigServiceTask', () => {
     },
   );
 
+  it('should render subform pdf configuration for a subformPdf task', () => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, taskType: 'subformPdf' } },
+    });
+
+    expect(
+      screen.getByLabelText(
+        textMock('process_editor.configuration_panel_subform_pdf_component_id_label'),
+      ),
+    ).toBeInTheDocument();
+  });
 
   it('should render pdf configuration for pdf service task', () => {
     const pdfBpmnDetails = createPdfBpmnDetails({});

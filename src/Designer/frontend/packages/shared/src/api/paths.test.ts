@@ -1,3 +1,11 @@
+import { processEditorDataTypePath, repoDownloadPath } from './paths';
+import { app, org } from '@studio/testing/testids';
+
+describe('paths', () => {
+  test('Params works as intended', () => {
+    const url = repoDownloadPath(org, app, true);
+    expect(url.endsWith('full=true')).toBeTruthy();
+  });
 
   describe('processEditorDataTypePath', () => {
     // The backend binds a repeated key to its List<string> parameter, so each content type is its own
@@ -13,13 +21,5 @@
       const url = processEditorDataTypePath(org, app, 'signatures-pdf-1234', 'task_1');
       expect(url).toBe(`/designer/api/${org}/${app}/process-modelling/data-type/signatures-pdf-1234?taskId=task_1`);
     });
-  });
-import { processEditorDataTypePath, repoDownloadPath } from './paths';
-import { app, org } from '@studio/testing/testids';
-
-describe('paths', () => {
-  test('Params works as intended', () => {
-    const url = repoDownloadPath(org, app, true);
-    expect(url.endsWith('full=true')).toBeTruthy();
   });
 });
