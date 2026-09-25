@@ -157,8 +157,6 @@ function captureInstanceRoot(): Cypress.Chainable<string> {
 type ExpectedProcessState = {
   workflowStatus: 'processing' | 'failed' | 'idle';
   currentTask: string;
-  /** Minimum failed attempts of the current step, when the test needs a retry to have happened. */
-  failedAttempts?: number;
 };
 
 function waitForProcessState(expected: ExpectedProcessState): Cypress.Chainable<string> {
@@ -174,8 +172,7 @@ function waitForProcessState(expected: ExpectedProcessState): Cypress.Chainable<
               ({ status, body }) =>
                 status === 200 &&
                 body?.workflow?.status === expected.workflowStatus &&
-                body?.currentTask?.elementId === expected.currentTask &&
-                (body?.workflow?.failedAttempts ?? 0) >= (expected.failedAttempts ?? 0),
+                body?.currentTask?.elementId === expected.currentTask,
             ),
         {
           timeout: 30000,
@@ -184,6 +181,19 @@ function waitForProcessState(expected: ExpectedProcessState): Cypress.Chainable<
         },
       )
       .then(() => instanceRoot);
+  });
+}
+
+// Waits until one of the page's own instance reads (aliased '@instanceRead') carries at least
+// `failedAttempts`, so an assertion about what the page shows runs against that state rather than an
+// earlier one the page is still rendering.
+function waitForPageToSeeFailedAttempts(failedAttempts: number, readsLeft = 60) {
+  cy.wait('@instanceRead', { log: false }).then(({ response }) => {
+    if ((response?.body?.process?.workflow?.failedAttempts ?? 0) >= failedAttempts) {
+      return;
+    }
+    expect(readsLeft, `instance reads left while waiting for ${failedAttempts} failed attempts`).to.be.greaterThan(0);
+    waitForPageToSeeFailedAttempts(failedAttempts, readsLeft - 1);
   });
 }
 
@@ -365,9 +375,10 @@ describe('Live workflow status (real engine)', () => {
     // retry button meanwhile. Resume keeps the transition's original start, which is long past both
     // thresholds by now, so either message at the first failed retry (~3s after the resume) would mean
     // the clock was not restarted by the resume.
+    cy.intercept({ method: 'GET', url: '**/instances/*/*/enriched*' }).as('instanceRead');
     cy.findByRole('button', { name: 'Prøv igjen' }).click();
     workflowLoader().should('be.visible');
-    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service', failedAttempts: 1 });
+    waitForPageToSeeFailedAttempts(1);
     // Checked once: retrying would wait out the processing and pass on the failed view that follows.
     cy.contains('Dette tar uvanlig lang tid', { timeout: 0 }).should('not.exist');
     cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 0 }).should('not.exist');
