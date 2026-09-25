@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
-import { useUpdatePdfConfigTaskIds } from '../../../../../hooks/useUpdatePdfConfigTaskIds';
 import { usePdfConfig } from '../usePdfConfig';
 import { filterCurrentTaskIds, getAvailableTasks } from '../utils';
 import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const { t } = useTranslation();
-  const updateTaskIds = useUpdatePdfConfigTaskIds();
-  const { pdfConfig } = usePdfConfig();
+  const { pdfConfig, updateTaskIds } = usePdfConfig();
 
   const studioModeler = new StudioModeler();
   const allTasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const availableTasks = getAvailableTasks(allTasks);
   const availableTaskIds = availableTasks.map((task) => task.id);
 
-  const currentTaskIds = filterCurrentTaskIds(pdfConfig, availableTaskIds);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>(currentTaskIds);
+  const selectedTaskIds = filterCurrentTaskIds(pdfConfig, availableTaskIds);
 
   const taskLabel = (taskId: string): string => {
     const task = availableTasks.find((availableTask) => availableTask.id === taskId);
@@ -32,7 +29,6 @@ export const PdfAutomaticTaskSelection = (): React.ReactElement => {
 
   const handleSelectedChange = (items: StudioSuggestionItem[]): void => {
     const newTaskIds = items.map((item) => item.value);
-    setSelectedTaskIds(newTaskIds);
     updateTaskIds(newTaskIds);
   };
 

@@ -1,45 +1,40 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
-import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
 import { StudioFieldset, StudioProperty, StudioTextResourceAction } from '@studio/components';
 import type { StudioTextResourceActionTexts } from '@studio/components';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
-import { useBpmnContext } from '../../../../../contexts/BpmnContext';
-import { usePdfConfig } from '../usePdfConfig';
-import { generateTextResourceId } from '../utils';
-import classes from './PdfFilenameTextResource.module.css';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
+import classes from './FilenameTextResource.module.css';
 
 type TextResource = { id: string; value: string };
 
-export const PdfFilenameTextResource = (): React.ReactElement => {
+export type FilenameTextResourceProps = {
+  textResourceId: string;
+  onTextResourceIdChange: (textResourceId: string) => void;
+  textResourceIdPrefix: string;
+};
+
+/** The filename of a generated pdf, as a text resource. The owner writes the id to its config node. */
+export const FilenameTextResource = ({
+  textResourceId,
+  onTextResourceIdChange,
+  textResourceIdPrefix,
+}: FilenameTextResourceProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResourcesData } = useTextResourcesQuery(org, app);
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
-  const { bpmnDetails, modelerRef } = useBpmnContext();
-  const { pdfConfig, storedFilenameTextResourceId } = usePdfConfig();
-
   const [isTextResourceEditorOpen, setIsTextResourceEditorOpen] = useState(false);
-  const [currentTextResourceId, setCurrentTextResourceId] = useState<string>(
-    storedFilenameTextResourceId,
-  );
-
-  // Todo: add eslint disable next line when updating eslint-react-hooks to v7
-  // Guard clause; ref is not used for rendering
-  if (!modelerRef?.current || !bpmnDetails) {
-    return null;
-  }
 
   const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
   const displayTextResourceValue =
-    textResources.find((tr) => tr.id === storedFilenameTextResourceId)?.value ?? '';
+    textResources.find((tr) => tr.id === textResourceId)?.value ?? '';
 
   const texts: StudioTextResourceActionTexts = {
     cardLabel: `${t('process_editor.configuration_panel_pdf_filename_label')} (${t('language.' + DEFAULT_LANGUAGE)})`,
@@ -56,38 +51,12 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     tabLabelSearch: t('process_editor.configuration_panel_pdf_filename_tab_search'),
   };
 
-  const updateBpmnFilenameTextResourceKey = (textResourceId: string): void => {
-    if (textResourceId === pdfConfig.filenameTextResourceKey?.value) return;
-
-    const modelerInstance = modelerRef.current;
-    const modeling: Modeling = modelerInstance.get('modeling');
-    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-
-    const filenameElement = textResourceId
-      ? bpmnFactory.create('altinn:FilenameTextResourceKey', { value: textResourceId })
-      : null;
-
-    modeling.updateModdleProperties(bpmnDetails.element, pdfConfig, {
-      filenameTextResourceKey: filenameElement,
-    });
-  };
-
-  const handleTextResourceIdChange = (id: string): void => {
-    updateBpmnFilenameTextResourceKey(id);
-    setCurrentTextResourceId(id);
-  };
-
   const handleValueChange = (id: string, value: string): void => {
     upsertTextResource({
       textId: id,
       language: DEFAULT_LANGUAGE,
       translation: value,
     });
-  };
-
-  const handleDeleteTextResource = (): void => {
-    updateBpmnFilenameTextResourceKey('');
-    setCurrentTextResourceId('');
   };
 
   return (
@@ -99,12 +68,12 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
         <div className={classes.filenameContent}>
           <StudioTextResourceAction
             textResources={textResources}
-            textResourceId={currentTextResourceId}
-            generateId={generateTextResourceId}
+            textResourceId={textResourceId}
+            generateId={() => `${textResourceIdPrefix}-${generateRandomId(8)}`}
             setIsOpen={setIsTextResourceEditorOpen}
-            handleIdChange={handleTextResourceIdChange}
+            handleIdChange={onTextResourceIdChange}
             handleValueChange={handleValueChange}
-            handleRemoveTextResource={handleDeleteTextResource}
+            handleRemoveTextResource={() => onTextResourceIdChange('')}
             texts={texts}
           />
         </div>

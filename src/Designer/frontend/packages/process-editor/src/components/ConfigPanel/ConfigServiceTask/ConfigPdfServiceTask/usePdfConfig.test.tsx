@@ -1,109 +1,82 @@
-import React from 'react';
-import { renderHook } from '@testing-library/react';
+import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler';
+import { act, renderHook } from '@testing-library/react';
 import { usePdfConfig } from './usePdfConfig';
-import { BpmnContext, type BpmnContextProps } from '../../../../contexts/BpmnContext';
-import { mockBpmnContextValue } from '../../../../../test/mocks/bpmnContextMock';
-import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import type { BpmnDetails } from '../../../../types/BpmnDetails';
-
-type RenderHookProps = {
-  bpmnContextProps?: Partial<BpmnContextProps>;
-};
-
-const createWrapper = (props: RenderHookProps = {}) => {
-  const { bpmnContextProps } = props;
-
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
-      {children}
-    </BpmnContext.Provider>
-  );
-
-  return Wrapper;
-};
-
-const createBpmnDetailsWithPdfConfig = (pdfConfig: object): BpmnDetails => ({
-  ...mockBpmnDetails,
-  taskType: 'pdf',
-  element: {
-    ...mockBpmnDetails.element,
-    businessObject: {
-      ...mockBpmnDetails.element.businessObject,
-      extensionElements: {
-        values: [{ pdfConfig }],
-      },
-    },
-  },
-});
 
 describe('usePdfConfig', () => {
-  it('should extract pdfConfig and storedFilenameTextResourceId from bpmnDetails', () => {
-    const expectedPdfConfig = {
-      autoPdfTaskIds: {
-        taskIds: [{ value: 'task_1' }, { value: 'task_2' }],
-      },
-      filenameTextResourceKey: {
-        value: 'my-filename-key',
-      },
-    };
+  afterEach(jest.clearAllMocks);
 
-    const bpmnDetails = createBpmnDetailsWithPdfConfig(expectedPdfConfig);
+  it('persists a filename when the imported task has no PDF config', async () => {
+    const { result, saveXml } = renderPdfConfig();
 
-    const { result } = renderHook(() => usePdfConfig(), {
-      wrapper: createWrapper({
-        bpmnContextProps: { bpmnDetails },
-      }),
-    });
+    act(() => result.current.updateFilenameTextResourceKey('pdf-filename'));
 
-    expect(result.current.pdfConfig).toEqual(expectedPdfConfig);
-    expect(result.current.storedFilenameTextResourceId).toBe('my-filename-key');
+    expect(result.current.storedFilenameTextResourceId).toBe('pdf-filename');
+    expect(await saveXml()).toContain(
+      '<altinn:filenameTextResourceKey>pdf-filename</altinn:filenameTextResourceKey>',
+    );
   });
 
-  it('should return empty object and empty string when pdfConfig is missing', () => {
-    const bpmnDetailsWithoutPdfConfig: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType: 'pdf',
-      element: {
-        ...mockBpmnDetails.element,
-        businessObject: {
-          ...mockBpmnDetails.element.businessObject,
-          extensionElements: {
-            values: [{}],
-          },
-        },
-      },
-    };
+  it('persists task selections immediately when the imported task has no PDF config', async () => {
+    const { result, saveXml } = renderPdfConfig();
 
-    const { result } = renderHook(() => usePdfConfig(), {
-      wrapper: createWrapper({
-        bpmnContextProps: { bpmnDetails: bpmnDetailsWithoutPdfConfig },
-      }),
-    });
+    act(() => result.current.updateTaskIds(['Task_1', 'Task_2']));
 
-    expect(result.current.pdfConfig).toEqual({});
+    const xml = await saveXml();
+    expect(xml).toContain('<altinn:taskId>Task_1</altinn:taskId>');
+    expect(xml).toContain('<altinn:taskId>Task_2</altinn:taskId>');
+    expect(result.current.pdfConfig.autoPdfTaskIds.taskIds.map(({ value }) => value)).toEqual([
+      'Task_1',
+      'Task_2',
+    ]);
+  });
+
+  it('preserves the other settings when writing and clearing a filename', async () => {
+    const { result, saveXml } = renderPdfConfig();
+    act(() => result.current.updateTaskIds(['Task_1']));
+    act(() => result.current.updateFilenameTextResourceKey('pdf-filename'));
+    act(() => result.current.updateFilenameTextResourceKey(''));
+
+    const xml = await saveXml();
+    expect(xml).toContain('<altinn:taskId>Task_1</altinn:taskId>');
+    expect(xml).not.toContain('filenameTextResourceKey');
     expect(result.current.storedFilenameTextResourceId).toBe('');
   });
 
-  it('should return empty object when extensionElements is undefined', () => {
-    const bpmnDetailsWithoutExtension: BpmnDetails = {
-      ...mockBpmnDetails,
-      taskType: 'pdf',
-      element: {
-        ...mockBpmnDetails.element,
-        businessObject: {
-          ...mockBpmnDetails.element.businessObject,
-          extensionElements: undefined,
-        },
-      },
-    };
+  it('clears the task selection without removing the filename', async () => {
+    const { result, saveXml } = renderPdfConfig();
+    act(() => result.current.updateFilenameTextResourceKey('pdf-filename'));
+    act(() => result.current.updateTaskIds(['Task_1']));
+    act(() => result.current.updateTaskIds([]));
 
-    const { result } = renderHook(() => usePdfConfig(), {
-      wrapper: createWrapper({
-        bpmnContextProps: { bpmnDetails: bpmnDetailsWithoutExtension },
-      }),
+    const xml = await saveXml();
+    expect(xml).not.toContain('<altinn:taskId>');
+    expect(xml).toContain(
+      '<altinn:filenameTextResourceKey>pdf-filename</altinn:filenameTextResourceKey>',
+    );
+  });
+
+  it('does not overwrite the config when two fields commit before a render', async () => {
+    const { result, saveXml } = renderPdfConfig();
+    act(() => {
+      result.current.updateFilenameTextResourceKey('pdf-filename');
+      result.current.updateTaskIds(['Task_1']);
     });
 
-    expect(result.current.pdfConfig).toEqual({});
-    expect(result.current.storedFilenameTextResourceId).toBe('');
+    const xml = await saveXml();
+    expect(xml).toContain('<altinn:taskId>Task_1</altinn:taskId>');
+    expect(xml).toContain(
+      '<altinn:filenameTextResourceKey>pdf-filename</altinn:filenameTextResourceKey>',
+    );
   });
 });
+
+function renderPdfConfig() {
+  const modeler = createBpmnTestModeler();
+  modeler.businessObject.extensionElements = modeler.moddle.create('bpmn:ExtensionElements', {
+    values: [modeler.moddle.create('altinn:TaskExtension', { taskType: 'pdf' })],
+  });
+  return {
+    ...renderHook(() => usePdfConfig(), { wrapper: modeler.Wrapper }),
+    saveXml: modeler.saveXml,
+  };
+}
