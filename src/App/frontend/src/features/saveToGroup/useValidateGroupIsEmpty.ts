@@ -1,11 +1,12 @@
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import dot from 'dot-object';
 
-import { evalExpr } from 'src/features/expressions';
-import { ExprVal } from 'src/features/expressions/types';
+import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { getFieldNameKey } from 'src/utils/formComponentUtils';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
 import type { CompTypes, IDataModelBindings } from 'src/layout/layout';
@@ -17,27 +18,32 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
     required?: unknown;
     textResourceBindings?: Record<string, unknown>;
   };
-  const required =
-    'required' in component
-      ? (evalExpr(component.required as never, ctx.expressionDataSources, {
-          returnType: ExprVal.Boolean,
-          defaultValue: false,
-        }) as boolean)
-      : false;
+  const required = evaluateDescriptor(
+    component.required as ExprValToActualOrExpr<ExprVal.Boolean> | undefined,
+    CommonExpressions.FormComponentProps.required,
+    ctx.expressionDataSources,
+  );
   const dataModelBindings = (ctx.component as { dataModelBindings?: IDataModelBindings<T> }).dataModelBindings;
-  const textResourceBindings = (
-    component.textResourceBindings
-      ? Object.fromEntries(
-          Object.entries(component.textResourceBindings).map(([key, value]) => [
-            key,
-            evalExpr(value as never, ctx.expressionDataSources, {
-              returnType: ExprVal.String,
-              defaultValue: '',
-            }) as string,
-          ]),
-        )
-      : undefined
-  ) as Record<string, string | undefined> | undefined;
+  const bindings = component.textResourceBindings;
+  const textResourceBindings = bindings
+    ? {
+        requiredValidation: evaluateDescriptor(
+          bindings.requiredValidation as ExprValToActualOrExpr<ExprVal.String> | undefined,
+          CommonExpressions.TRBFormComp.requiredValidation,
+          ctx.expressionDataSources,
+        ),
+        shortName: evaluateDescriptor(
+          bindings.shortName as ExprValToActualOrExpr<ExprVal.String> | undefined,
+          CommonExpressions.TRBFormComp.shortName,
+          ctx.expressionDataSources,
+        ),
+        title: evaluateDescriptor(
+          bindings.title as ExprValToActualOrExpr<ExprVal.String> | undefined,
+          CommonExpressions.TRBLabel.title,
+          ctx.expressionDataSources,
+        ),
+      }
+    : undefined;
   if (!required || !dataModelBindings) {
     return [];
   }
