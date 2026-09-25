@@ -9,8 +9,8 @@ use ratatui::{
 use super::MANIFEST_FILE;
 use super::app::{
     App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP, HELP_HINTS, HelpSection, Hint,
-    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SessionField, Tone,
-    TreeRowId, View, harness_label,
+    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SELECTION_HINTS,
+    SessionField, Tone, TreeRowId, View, harness_label,
 };
 
 /// Background of the selected row; without color it is drawn reversed instead.
@@ -39,15 +39,12 @@ const ERROR_HINTS: [Hint; 2] = [
     Hint::key("esc", "dismiss", crossterm::event::KeyCode::Esc),
     Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
 ];
-const GLOBAL_HINTS: [Hint; 6] = [
-    // First, so a narrow terminal that cuts the line short still shows where the rest are.
-    Hint::key("?", "help", crossterm::event::KeyCode::Char('?')),
-    Hint::key("tab", "next needing you", crossterm::event::KeyCode::Tab),
-    Hint::key("/", "filter", crossterm::event::KeyCode::Char('/')),
-    Hint::display("j/k", "move"),
-    Hint::key("F", "forwards", crossterm::event::KeyCode::Char('F')),
-    Hint::key("q", "quit", crossterm::event::KeyCode::Char('q')),
-];
+/// Lines the selection's hints may wrap onto before the footer cuts them short.
+const SELECTION_HINT_LINES: usize = 2;
+/// Separates hints on a line.
+const HINT_SEPARATOR: &str = " · ";
+/// Ends a hint line that could not fit every hint.
+const HINT_OVERFLOW: &str = "…";
 
 #[derive(Default)]
 pub(crate) struct ViewState {
@@ -145,8 +142,12 @@ pub(crate) const fn shows_side_panel(width: u16) -> bool {
 
 pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> HitMap {
     let mut hit_map = HitMap::new(frame.area());
-    let [header, body, footer] =
-        Layout::vertical([Constraint::Length(1), Constraint::Min(0), Constraint::Length(2)]).areas(frame.area());
+    let [header, body, footer] = Layout::vertical([
+        Constraint::Length(1),
+        Constraint::Min(0),
+        Constraint::Length(footer_height(app, frame.area().width)),
+    ])
+    .areas(frame.area());
     render_header(frame, header, app, &mut hit_map);
     if let Some(detail) = &app.detail {
         render_detail(frame, body, detail, &mut hit_map);
@@ -227,6 +228,11 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         )),
     );
     spans.push(needs_you);
+    // Before the counts, so a narrow header cuts those rather than the outcome
+    // of a change, which is gone after a few seconds.
+    if let Some((notice, _)) = &app.notice {
+        spans.push(Span::styled(format!(" · {notice}"), Style::new().fg(Color::Cyan)));
+    }
     for (count, label, color) in [
         (counts.working, "working", Color::Green),
         (counts.starting, "starting", Color::Cyan),
@@ -572,12 +578,50 @@ fn render_error(frame: &mut Frame, area: Rect, error: &str, hit_map: &mut HitMap
     let hint_y = last_error_row.saturating_add(2);
     if hint_y < area.bottom() {
         let hints = Rect::new(area.x, hint_y, area.width, 1);
-        render_hint_line(frame, hints, &ERROR_HINTS, Color::Red, Color::Red, hit_map, |_| true);
+        render_hints(frame, hints, &ERROR_HINTS, Color::Red, Color::Red, hit_map, |_| true);
     }
 }
 
+/// Footer rows: the contextual hints on as many lines as they need at this
+/// width, then the global hints. Below the tree that is the widest selection's
+/// hints, so moving the selection or opening a prompt never moves the tree.
+fn footer_height(app: &App, width: u16) -> u16 {
+    let own = [app.hints()];
+    let contextual: &[&[Hint]] = if app.detail.is_some() || app.view == View::Forwards {
+        &own
+    } else {
+        &SELECTION_HINTS
+    };
+    let lines = contextual
+        .iter()
+        .map(|hints| hint_lines(hints, width).len())
+        .max()
+        .unwrap_or(1)
+        .clamp(1, SELECTION_HINT_LINES);
+    u16::try_from(lines + 1).unwrap_or(u16::MAX)
+}
+
+/// Keys that apply wherever the tree is shown, the help first so a line cut
+/// short still shows where the rest are.
+const fn global_hints(app: &App) -> [Hint; 6] {
+    use crossterm::event::KeyCode;
+    let archived = if app.show_archived {
+        "hide archived"
+    } else {
+        "show archived"
+    };
+    [
+        Hint::key("?", "help", KeyCode::Char('?')),
+        Hint::key("tab", "needs you", KeyCode::Tab),
+        Hint::key("/", "filter", KeyCode::Char('/')),
+        Hint::key("A", archived, KeyCode::Char('A')),
+        Hint::key("F", "forwards", KeyCode::Char('F')),
+        Hint::key("q", "quit", KeyCode::Char('q')),
+    ]
+}
+
 fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
-    let [contextual, global] = Layout::vertical([Constraint::Length(1), Constraint::Length(1)]).areas(area);
+    let [contextual, global] = Layout::vertical([Constraint::Min(0), Constraint::Length(1)]).areas(area);
     let input = match &app.modal {
         Some(Modal::Filter) => Some(("/".to_owned(), app.filter.as_str(), None)),
         Some(Modal::Prompt(form)) => Some((
@@ -598,8 +642,11 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
             global,
         );
         match error {
-            Some(error) => frame.render_widget(Span::styled(error.to_owned(), Style::new().fg(Color::Red)), contextual),
-            None => render_hint_line(
+            Some(error) => {
+                let line = Rect::new(contextual.x, contextual.bottom().saturating_sub(1), contextual.width, 1);
+                frame.render_widget(Span::styled(error.to_owned(), Style::new().fg(Color::Red)), line);
+            }
+            None => render_hints(
                 frame,
                 contextual,
                 app.hints(),
@@ -611,7 +658,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         }
         return;
     }
-    render_hint_line(
+    render_hints(
         frame,
         contextual,
         app.hints(),
@@ -624,10 +671,10 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     if app.detail.is_some() {
         return;
     }
-    render_hint_line(
+    render_hints(
         frame,
         global,
-        &GLOBAL_HINTS,
+        &global_hints(app),
         Color::DarkGray,
         Color::DarkGray,
         hit_map,
@@ -643,7 +690,9 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     );
 }
 
-fn render_hint_line(
+/// Draws hints on the bottom lines of `area`, wrapping between hints. Hints
+/// that do not fit give way to an ellipsis, so a cut line reads as cut.
+fn render_hints(
     frame: &mut Frame,
     area: Rect,
     hints: &[Hint],
@@ -652,45 +701,83 @@ fn render_hint_line(
     hit_map: &mut HitMap,
     clickable: impl Fn(&Hint) -> bool,
 ) {
-    let mut spans = Vec::new();
-    let mut x = area.x;
-    for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(description_color)));
-            x = x.saturating_add(3);
-        }
-        spans.push(Span::styled(hint.label, Style::new().fg(key_color)));
-        spans.push(Span::raw(" "));
-        spans.push(Span::styled(hint.description, Style::new().fg(description_color)));
-        let width = hint_width(hint);
-        if clickable(hint)
-            && let Some((code, modifiers)) = hint.key
+    let mut lines = hint_lines(hints, area.width);
+    let overflow = lines.len() > usize::from(area.height);
+    lines.truncate(usize::from(area.height));
+    if overflow && let Some(last) = lines.last_mut() {
+        let reserved = separator_width().saturating_add(text_width(HINT_OVERFLOW));
+        while let [kept @ .., _] = *last
+            && hints_width(last).saturating_add(reserved) > area.width
         {
-            hit_map.click(
-                Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
-                HitTarget::Action(MouseAction::Key(code, modifiers)),
-            );
+            *last = kept;
         }
-        x = x.saturating_add(width);
     }
-    frame.render_widget(Line::from(spans), area);
+    let top = area
+        .bottom()
+        .saturating_sub(u16::try_from(lines.len()).unwrap_or(u16::MAX));
+    let last_line = lines.len().saturating_sub(1);
+    for (row, (line, y)) in lines.iter().zip(top..).enumerate() {
+        let mut spans = Vec::new();
+        let mut x = area.x;
+        for (index, hint) in line.iter().enumerate() {
+            if index > 0 {
+                spans.push(Span::styled(HINT_SEPARATOR, Style::new().fg(description_color)));
+                x = x.saturating_add(separator_width());
+            }
+            spans.push(Span::styled(hint.label, Style::new().fg(key_color)));
+            spans.push(Span::raw(" "));
+            spans.push(Span::styled(hint.description, Style::new().fg(description_color)));
+            let width = hint_width(hint);
+            if clickable(hint)
+                && let Some((code, modifiers)) = hint.key
+            {
+                hit_map.click(
+                    Rect::new(x, y, width.min(area.right().saturating_sub(x)), 1),
+                    HitTarget::Action(MouseAction::Key(code, modifiers)),
+                );
+            }
+            x = x.saturating_add(width);
+        }
+        if overflow && row == last_line {
+            if !line.is_empty() {
+                spans.push(Span::styled(HINT_SEPARATOR, Style::new().fg(description_color)));
+            }
+            spans.push(Span::styled(HINT_OVERFLOW, Style::new().fg(description_color)));
+        }
+        frame.render_widget(Line::from(spans), Rect::new(area.x, y, area.width, 1));
+    }
 }
 
-fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
-    let mut x = area.x;
-    for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            x = x.saturating_add(3);
+/// Splits hints into lines no wider than `width`, keeping each hint whole.
+fn hint_lines(hints: &[Hint], width: u16) -> Vec<&[Hint]> {
+    let mut lines = Vec::new();
+    let mut start = 0;
+    for end in 1..=hints.len() {
+        if end - start > 1 && hints_width(&hints[start..end]) > width {
+            lines.push(&hints[start..end - 1]);
+            start = end - 1;
         }
-        let width = hint_width(hint);
-        if let Some((code, modifiers)) = hint.key {
-            hit_map.click(
-                Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
-                HitTarget::Action(MouseAction::Key(code, modifiers)),
-            );
-        }
-        x = x.saturating_add(width);
     }
+    if start < hints.len() {
+        lines.push(&hints[start..]);
+    }
+    lines
+}
+
+fn hints_width(hints: &[Hint]) -> u16 {
+    let separators = u16::try_from(hints.len().saturating_sub(1)).unwrap_or(u16::MAX);
+    hints
+        .iter()
+        .map(hint_width)
+        .fold(separators.saturating_mul(separator_width()), u16::saturating_add)
+}
+
+fn separator_width() -> u16 {
+    text_width(HINT_SEPARATOR)
+}
+
+fn text_width(text: &str) -> u16 {
+    u16::try_from(Line::from(text).width()).unwrap_or(u16::MAX)
 }
 
 fn hint_width(hint: &Hint) -> u16 {
@@ -979,7 +1066,8 @@ impl<'a> Form<'a> {
     fn render(self, frame: &mut Frame, area: Rect, width: u16, hit_map: &mut HitMap) -> Rect {
         let hint_row = self.rows.len() + 1;
         let mut lines = self.rows;
-        lines.extend([self.error, hint_line(self.hints)]);
+        // The hints are drawn into their line after the block, as the footer's are.
+        lines.extend([self.error, Line::default()]);
         let height = u16::try_from(lines.len()).unwrap_or(u16::MAX).saturating_add(2);
         let target = centered_rect(area, width.min(area.width), height.min(area.height));
         frame.render_widget(Clear, target);
@@ -988,7 +1076,15 @@ impl<'a> Form<'a> {
             .border_style(Style::new().fg(self.border))
             .padding(Padding::horizontal(1));
         frame.render_widget(Paragraph::new(lines).block(block), target);
-        map_hint_targets(line_area(target, hint_row), self.hints, hit_map);
+        render_hints(
+            frame,
+            line_area(target, hint_row),
+            self.hints,
+            Color::Cyan,
+            Color::DarkGray,
+            hit_map,
+            |_| true,
+        );
         target
     }
 }
@@ -1118,19 +1214,6 @@ fn abbreviate(path: &str, home: Option<&str>) -> String {
             (rest.is_empty() || rest.starts_with('/')).then(|| format!("~{rest}"))
         })
         .unwrap_or_else(|| path.to_owned())
-}
-
-fn hint_line(hints: &[Hint]) -> Line<'static> {
-    let mut spans = Vec::new();
-    for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(Color::DarkGray)));
-        }
-        spans.push(Span::styled(hint.label, Style::new().fg(Color::Cyan)));
-        spans.push(Span::raw(" "));
-        spans.push(Span::styled(hint.description, Style::new().fg(Color::DarkGray)));
-    }
-    Line::from(spans)
 }
 
 /// Line `line` of a form's content, inside its border and padding.
@@ -1276,7 +1359,115 @@ mod tests {
         assert!(text.contains("agentctl"));
         assert!(text.contains("agentctl  0 need you"));
         assert!(text.contains("loading…"));
-        assert!(text.contains("j/k move · F forwards · q quit"));
+        assert!(text.contains("A show archived · F forwards · q quit"));
+    }
+
+    #[test]
+    fn the_footer_wraps_every_selection_hint_at_eighty_columns() {
+        let mut app = triage_app();
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        let footer = |terminal: &Terminal<TestBackend>| {
+            let text = buffer_text(terminal);
+            let mut lines = text.lines().rev().take(3).map(str::trim_end).collect::<Vec<_>>();
+            lines.reverse();
+            lines.into_iter().map(str::to_owned).collect::<Vec<_>>()
+        };
+
+        app.selection = Some(TreeRowId::Session {
+            agent: "agent-00".into(),
+            session: agent::sessions::SessionName::new("main").expect("name"),
+        });
+        let hit_map = draw(&mut terminal, &app);
+        assert_eq!(
+            footer(&terminal),
+            [
+                "enter attach · p prompt · a archive · d delete · s describe · y yaml",
+                "n new session · c new agent",
+                "? help · tab needs you · / filter · A show archived · F forwards · q quit",
+            ]
+        );
+        assert_eq!(
+            hit_map.click_at(2, 10),
+            Some(HitTarget::Action(MouseAction::Key(
+                crossterm::event::KeyCode::Char('n'),
+                crossterm::event::KeyModifiers::NONE,
+            ))),
+            "a wrapped hint is clicked where it is drawn"
+        );
+
+        app.selection = Some(TreeRowId::Agent("agent-00".into()));
+        app.show_archived = true;
+        draw(&mut terminal, &app);
+        assert_eq!(
+            footer(&terminal),
+            [
+                "enter fold · n new session · e exec · f forward · d delete · p provisioning",
+                "s describe · y yaml · z all · c new agent",
+                "? help · tab needs you · / filter · A hide archived · F forwards · q quit",
+            ]
+        );
+
+        let mut wide = Terminal::new(TestBackend::new(140, 12)).expect("test terminal");
+        draw(&mut wide, &app);
+        let text = buffer_text(&wide);
+        let lines = text.lines().rev().take(3).collect::<Vec<_>>();
+        assert!(lines[1].starts_with("enter fold"), "two footer lines fit:\n{text}");
+        assert!(!lines[2].contains("enter"), "{text}");
+    }
+
+    #[test]
+    fn a_footer_too_narrow_for_its_hints_ends_in_an_ellipsis() {
+        let mut app = triage_app();
+        app.selection = Some(TreeRowId::Agent("agent-00".into()));
+        let mut terminal = Terminal::new(TestBackend::new(40, 12)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let lines = text.lines().rev().take(3).map(str::trim_end).collect::<Vec<_>>();
+        assert_eq!(lines[2], "enter fold · n new session · e exec");
+        assert_eq!(lines[1], "f forward · d delete · …");
+        assert!(lines.iter().all(|line| line.chars().count() <= 40));
+    }
+
+    #[test]
+    fn the_header_tells_what_an_archive_did_before_its_counts() {
+        let mut app = triage_app();
+        app.notice = Some(("main archived · A to show".into(), std::time::Instant::now()));
+        let mut terminal = Terminal::new(TestBackend::new(50, 10)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        let header = text.lines().next().unwrap_or_default();
+        assert_eq!(
+            header.trim_end(),
+            " agentctl  1 need you · main archived · A to show",
+            "a narrow header cuts the counts, not the notice"
+        );
+    }
+
+    #[test]
+    fn the_footer_keeps_its_height_below_the_tree_and_fits_other_views() {
+        let mut app = triage_app();
+        let mut heights = Vec::new();
+        for selection in [
+            TreeRowId::Agent("agent-00".into()),
+            TreeRowId::Session {
+                agent: "agent-00".into(),
+                session: agent::sessions::SessionName::new("main").expect("name"),
+            },
+        ] {
+            app.selection = Some(selection);
+            heights.push(footer_height(&app, 80));
+        }
+        app.modal = Some(Modal::Filter);
+        heights.push(footer_height(&app, 80));
+        assert_eq!(heights, [3, 3, 3], "the tree keeps its rows");
+        assert_eq!(footer_height(&app, 140), 2, "a wide terminal needs one line per group");
+
+        app.modal = None;
+        app.view = View::Forwards;
+        assert_eq!(footer_height(&app, 80), 2, "the forwards view sizes for its own keys");
+        app.view = View::Tree;
+        app.detail = Some(super::super::app::Detail::text("describe".into(), Vec::new()));
+        assert_eq!(footer_height(&app, 80), 2, "and so does a detail");
     }
 
     fn session(agent: &str, name: &str, state: &str) -> agent::sessions::Session {
@@ -1606,7 +1797,8 @@ mod tests {
         let mut app = tree_app(10);
         app.select_index(9);
         let mut state = ViewState::default();
-        let mut terminal = Terminal::new(TestBackend::new(40, 8)).expect("test terminal");
+        // Three footer lines, as the selection's hints wrap at this width.
+        let mut terminal = Terminal::new(TestBackend::new(40, 9)).expect("test terminal");
         let agent = |name: &str| Some(HitTarget::Row(RowTarget::Tree(TreeRowId::Agent(name.into()))));
 
         let compact = draw_with_state(&mut terminal, &app, &mut state);
@@ -1617,7 +1809,7 @@ mod tests {
         assert_eq!(compact.click_at(10, 6), None, "footer is not a list row");
         assert_eq!(compact.click_at(40, 2), None, "right edge is out of bounds");
 
-        terminal.backend_mut().resize(40, 12);
+        terminal.backend_mut().resize(40, 13);
         let resized = draw_with_state(&mut terminal, &app, &mut state);
         assert_eq!(state.tree_offset, 2, "a taller terminal shows the rows above");
         assert_eq!(resized.click_at(10, 2), agent("agent-02"));
@@ -1641,7 +1833,7 @@ mod tests {
         );
         app.select_index(8);
         let mut state = ViewState::default();
-        let mut terminal = Terminal::new(TestBackend::new(80, 8)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(80, 9)).expect("test terminal");
 
         let hit_map = draw_with_state(&mut terminal, &app, &mut state);
         let text = buffer_text(&terminal);
@@ -1805,6 +1997,21 @@ mod tests {
                     crossterm::event::KeyModifiers::NONE,
                 ))
         }));
+        let text = buffer_text(&terminal);
+        let (row, line) = text
+            .lines()
+            .enumerate()
+            .find(|(_, line)| line.contains("esc cancel"))
+            .expect("form hints");
+        let column = u16::try_from(text_column(line, "esc cancel")).expect("column");
+        assert_eq!(
+            forward.click_at(column, u16::try_from(row).expect("row")),
+            Some(HitTarget::Action(MouseAction::Key(
+                crossterm::event::KeyCode::Esc,
+                crossterm::event::KeyModifiers::NONE,
+            ))),
+            "a form hint is clicked where it is drawn:\n{text}"
+        );
     }
 
     fn modal_border(terminal: &Terminal<TestBackend>) -> Vec<(usize, usize)> {
