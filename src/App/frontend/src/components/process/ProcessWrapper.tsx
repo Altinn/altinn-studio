@@ -317,15 +317,14 @@ function useIsWrongTask(taskId: string | undefined) {
   const isPdfMode = usePdfModeActive();
 
   const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
-  // A PDF can render a task other than the current one, such as a preview of a later PDF service task
   const isCurrentTask =
-    isPdfMode || (currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId);
+    currentTaskId === undefined && taskId === TaskKeys.CustomReceipt ? true : currentTaskId === taskId;
 
   // We intentionally delay this state from being set until after queries/mutations finish, so the navigation error
   // does not show up while we're navigating. Without this, the message will flash over the screen shortly
   // in-between all the <Loader /> components.
   useEffect(() => {
-    if (isCurrentTask) {
+    if (isCurrentTask || isPdfMode) {
       setIsWrongTask(false);
     } else {
       let cancelled = false;
@@ -342,7 +341,7 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries]);
+  }, [isCurrentTask, isPdfMode, waitForQueries]);
 
-  return isWrongTask && !isCurrentTask && !isNavigating;
+  return isWrongTask && !isCurrentTask && !isPdfMode && !isNavigating;
 }
