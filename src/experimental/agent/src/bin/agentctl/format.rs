@@ -227,29 +227,15 @@ pub(crate) fn format_harnesses(spec: &agent::Spec) -> String {
         .join(", ")
 }
 
-const fn session_state(state: agent::sessions::State) -> &'static str {
+pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str {
     match state {
         agent::sessions::State::Starting => "Starting",
         agent::sessions::State::Working => "Working",
         agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
+        agent::sessions::State::Archiving => "Archiving",
         agent::sessions::State::Archived => "Archived",
         agent::sessions::State::Failed => "Failed",
-    }
-}
-
-/// Whether an archived Session's harness has yet to stop.
-pub(crate) const fn is_archiving(session: &agent::sessions::Session) -> bool {
-    session.is_archived() && !matches!(session.status.state, agent::sessions::State::Archived)
-}
-
-/// A Session's state as shown to people: an archived Session whose harness has
-/// not stopped yet reads Archiving rather than the state it is leaving.
-pub(crate) const fn session_status(session: &agent::sessions::Session) -> &'static str {
-    if is_archiving(session) {
-        "Archiving"
-    } else {
-        session_state(session.status.state)
     }
 }
 
@@ -397,28 +383,8 @@ mod tests {
             "WaitingForInput"
         );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
+        assert_eq!(session_state(agent::sessions::State::Archiving), "Archiving");
+        assert_eq!(session_state(agent::sessions::State::Archived), "Archived");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
-    }
-
-    #[test]
-    fn an_archived_session_reads_archiving_until_its_harness_stops() {
-        let session = |state: &str, lifecycle: &str| -> agent::sessions::Session {
-            serde_json::from_value(serde_json::json!({
-                "id": "00000000-0000-0000-0000-000000000001",
-                "agentId": "00000000-0000-0000-0000-000000000002",
-                "agent": "worker",
-                "name": "s1",
-                "harness": "claudeCode",
-                "createdAt": "2026-08-25T00:00:00Z",
-                "archivedAt": "2026-08-26T00:00:00Z",
-                "status": {"state": state, "lifecycle": {"state": lifecycle}}
-            }))
-            .expect("test session should deserialize")
-        };
-        assert_eq!(session_status(&session("working", "running")), "Archiving");
-        assert_eq!(session_status(&session("archived", "archived")), "Archived");
-        let mut unarchived = session("working", "running");
-        unarchived.archived_at = None;
-        assert_eq!(session_status(&unarchived), "Working");
     }
 }

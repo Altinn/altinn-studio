@@ -22,7 +22,7 @@ mod progress;
 mod self_update;
 mod tui;
 
-use format::{condition_status, format_age, format_harnesses, session_status};
+use format::{condition_status, format_age, format_harnesses, session_state};
 use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
@@ -1275,7 +1275,7 @@ fn print_sessions(sessions: &[Session], show_agent: bool) {
                 session.harness.as_str().into(),
                 session.model_selection.model_str().unwrap_or("-").into(),
                 session.model_selection.effort_str().unwrap_or("-").into(),
-                session_status(session).into(),
+                session_state(session.status.state).into(),
                 format_age(session.created_at),
             ]);
             row
