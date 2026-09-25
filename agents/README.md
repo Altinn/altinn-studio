@@ -193,7 +193,8 @@ spec:
 
 The published `desktop` variants declare both. Remove the `vnc` entry and re-apply and the Agent
 keeps its screen with nothing listening: `agentd` disables the units and checks that they stopped,
-and the image's smoke test checks that the desktop opens no port outside them.
+and the image's smoke test checks that the desktop itself opens no VNC port. The browser viewer
+accepts only its own pages, so another website open in the same browser cannot reach the desktop.
 
 In a browser, with nothing to install:
 

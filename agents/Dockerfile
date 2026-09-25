@@ -579,7 +579,7 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
         && openbox --version | head -1 \
         && tint2 --version \
         && xdotool --version \
-        && chromium --version \
+        && AGENT_BROWSER_CA_READY_FILE=/dev/null chromium --version \
         && desktop help >/dev/null' \
     && rm -rf /tmp/image-checks \
     && test -x /usr/local/bin/desktop \

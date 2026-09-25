@@ -373,6 +373,50 @@ async fn a_withdrawal_that_succeeded_is_not_repeated_until_the_incarnation_is_fo
     assert_eq!(disables(), 2, "a forgotten incarnation is withdrawn again");
 }
 
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_failed_grant_forgets_an_earlier_withdrawal() {
+    let fixture = Fixture::new();
+    let withdrawn = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
+    let granted = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&withdrawn, 0).await;
+    let sandbox = fixture.sandbox(&withdrawn).await;
+    let disables = || {
+        fixture
+            .backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_disable(spec))
+            .count()
+    };
+
+    queue_withdrawable_image(&fixture.backend);
+    assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("withdraw"));
+    assert_eq!(disables(), 1);
+
+    // The units are enabled, but the RFB port never listens, so the grant fails partway.
+    queue_desktop_image(&fixture.backend);
+    fixture
+        .access
+        .reconcile(&granted, &sandbox)
+        .await
+        .expect_err("a port that never listens fails the grant");
+    assert!(fixture.backend.execution_specs().iter().any(is_enable));
+
+    queue_withdrawable_image(&fixture.backend);
+    assert!(
+        !fixture
+            .access
+            .reconcile(&withdrawn, &sandbox)
+            .await
+            .expect("withdraw again")
+    );
+    assert_eq!(
+        disables(),
+        2,
+        "the units a failed grant enabled are disabled rather than skipped as already withdrawn"
+    );
+}
+
 #[tokio::test(flavor = "local")]
 async fn a_unit_still_active_after_withdrawal_is_reported() {
     let fixture = Fixture::new();
@@ -508,6 +552,6 @@ async fn describing_an_agent_without_declared_access_names_the_remedy() {
     );
     assert_eq!(
         info.forward_command,
-        format!("{AGENTCTL} port-forward agent/viewer 5900")
+        format!("{AGENTCTL} port-forward agent/viewer :5900")
     );
 }

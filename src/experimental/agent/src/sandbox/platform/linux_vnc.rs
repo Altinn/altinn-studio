@@ -259,7 +259,9 @@ fn valid_unit_name(unit: &str) -> bool {
     let Some(stem) = unit.strip_suffix(".socket").or_else(|| unit.strip_suffix(".service")) else {
         return false;
     };
+    // A leading `-` would reach `systemctl` as an option rather than a unit.
     !stem.is_empty()
+        && !stem.starts_with('-')
         && stem.len() <= 200
         && stem
             .chars()
@@ -353,6 +355,8 @@ mod tests {
         assert!(valid_unit_name("getty@tty1.service"));
         for rejected in [
             "--now",
+            "--now.service",
+            "-H.socket",
             "-f",
             "agent-vnc",
             "agent-vnc.timer",

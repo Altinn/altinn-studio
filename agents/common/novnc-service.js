@@ -54,11 +54,34 @@ function resolve(requestPath) {
     // A malformed escape must not take down the viewer every open browser shares.
     return undefined;
   }
+  // A NUL byte is valid in a URL but not in a file path, and fs throws on it rather than failing.
+  if (decoded.includes('\0')) return undefined;
   const resolved = path.resolve(root, `.${path.posix.normalize(decoded)}`);
   return resolved === root || resolved.startsWith(`${root}${path.sep}`) ? resolved : null;
 }
 
-const server = http.createServer((request, response) => {
+/**
+ * Whether a WebSocket upgrade comes from a page this server served.
+ *
+ * The desktop has no VNC password, so a bridge open to any origin would hand any website the
+ * person has open the screen, keyboard and pointer. The viewer may be reached at an address other
+ * than loopback, such as a tailnet name, so the check is same-origin rather than an allowlist:
+ * the page's origin must name the host and port the request was sent to.
+ */
+function sameOrigin(request) {
+  const { origin, host } = request.headers;
+  if (!origin || !host) return false;
+  try {
+    const url = new URL(origin);
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') && url.host === host.toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}
+
+function serve(request, response) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     response.writeHead(405, { allow: 'GET, HEAD' }).end();
     return;
@@ -95,6 +118,17 @@ const server = http.createServer((request, response) => {
       .on('error', () => response.destroy())
       .pipe(response);
   });
+}
+
+const server = http.createServer((request, response) => {
+  // One bad request must never take down the viewer every open browser shares.
+  try {
+    serve(request, response);
+  } catch (error) {
+    process.stderr.write(`novnc: ${request.method} ${request.url} failed: ${error.message}\n`);
+    if (!response.headersSent) response.writeHead(500);
+    response.end();
+  }
 });
 
 const sockets = new WebSocketServer({
@@ -102,11 +136,14 @@ const sockets = new WebSocketServer({
   path: '/websockify',
   // noVNC offers `binary` for compatibility with older proxies and expects it echoed when it does.
   handleProtocols: (offered) => (offered.has('binary') ? 'binary' : false),
+  verifyClient: ({ req }) => sameOrigin(req),
 });
 
 sockets.on('connection', (socket) => {
   const display = net.connect(socketPath);
+  let drain;
   const close = () => {
+    clearInterval(drain);
     display.destroy();
     if (socket.readyState === socket.OPEN) socket.close();
   };
@@ -115,7 +152,8 @@ sockets.on('connection', (socket) => {
     // Let the display wait while a slow viewer catches up rather than buffering without bound.
     if (socket.bufferedAmount > 1 << 20) {
       display.pause();
-      const drain = setInterval(() => {
+      clearInterval(drain);
+      drain = setInterval(() => {
         if (socket.bufferedAmount <= 1 << 20) {
           clearInterval(drain);
           display.resume();

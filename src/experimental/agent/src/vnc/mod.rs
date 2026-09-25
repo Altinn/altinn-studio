@@ -151,7 +151,8 @@ impl Access {
                 Some(Applied::Granted { web_port }) => *web_port,
                 Some(Applied::Withdrawn) | None => None,
             },
-            forward_command: format!("{} port-forward agent/{name} {GUEST_PORT}", self.agentctl.display()),
+            // `:PORT` binds a free local port, as `agentctl vnc` does: 5900 is often taken locally.
+            forward_command: format!("{} port-forward agent/{name} :{GUEST_PORT}", self.agentctl.display()),
         }
     }
 
@@ -170,22 +171,36 @@ impl Access {
     /// operating system is unsupported, and transient errors when the guest
     /// setup cannot be applied.
     pub async fn reconcile(&self, record: &AgentRecord, sandbox: &SandboxHandle) -> Result<bool, Error> {
+        if !record.agent.spec.vnc_access() && self.applied.borrow().get(&record.id) == Some(&Applied::Withdrawn) {
+            return Ok(false);
+        }
+        match self.apply(record, sandbox).await {
+            Ok(applied) => {
+                self.applied.borrow_mut().insert(record.id, applied);
+                Ok(applied != Applied::Withdrawn)
+            }
+            Err(error) => {
+                // A failed pass may have left the guest anywhere between the two states, for
+                // example with the units enabled but a port not yet listening, so nothing is
+                // known until a pass succeeds again.
+                self.applied.borrow_mut().remove(&record.id);
+                Err(error)
+            }
+        }
+    }
+
+    async fn apply(&self, record: &AgentRecord, sandbox: &SandboxHandle) -> Result<Applied, Error> {
         let os = sandbox.snapshot().image.platform.os.clone();
-        let applied = if record.agent.spec.vnc_access() {
+        if record.agent.spec.vnc_access() {
             let capability = verify_guest_capability(&os, sandbox).await?;
             grant_guest_access(&os, sandbox, &capability).await?;
-            Applied::Granted {
+            Ok(Applied::Granted {
                 web_port: capability.web_port,
-            }
+            })
         } else {
-            if self.applied.borrow().get(&record.id) == Some(&Applied::Withdrawn) {
-                return Ok(false);
-            }
             remove_guest_state(&os, sandbox).await?;
-            Applied::Withdrawn
-        };
-        self.applied.borrow_mut().insert(record.id, applied);
-        Ok(applied != Applied::Withdrawn)
+            Ok(Applied::Withdrawn)
+        }
     }
 
     /// Forgets what was applied to a deleted Agent incarnation.

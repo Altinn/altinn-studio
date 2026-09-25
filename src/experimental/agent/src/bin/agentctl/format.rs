@@ -39,7 +39,7 @@ pub(crate) fn vnc_access_lines(access: &agent::vnc::AccessInfo) -> Vec<String> {
         format!("Agent ID:    {}", access.agent_id),
         format!("Guest port:  {}", access.guest_port),
         access.web_guest_port.map_or_else(
-            || "Web port:    - (this image serves no browser viewer)".to_owned(),
+            || "Web port:    - (none, or unknown until the Agent is next reconciled)".to_owned(),
             |port| format!("Web port:    {port}  (agentctl vnc --web {})", access.agent),
         ),
         format!("Forward:     {}", access.forward_command),
