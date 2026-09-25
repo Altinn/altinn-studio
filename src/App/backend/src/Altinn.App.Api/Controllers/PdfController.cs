@@ -117,6 +117,11 @@ public class PdfController : ControllerBase
 
         // Render the task the same way its PDF service task would
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
+        if (taskExtension?.TaskType is not ("pdf" or "subformPdf"))
+        {
+            return BadRequest("taskId must identify a PDF or subform PDF service task");
+        }
+
         List<string>? autoGeneratePdfForTaskIds = taskExtension?.PdfConfiguration?.AutoPdfTaskIds;
         SubformPdfContext? subformPdfContext = null;
         if (taskExtension?.SubformPdfConfiguration is { } subformPdfConfiguration)
