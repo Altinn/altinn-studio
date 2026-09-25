@@ -5,8 +5,11 @@ import { getRuleEnums, RuleType } from '../utils/ValidateNavigationUtils';
 
 export type ValidateRuleConfigProps = {
   selectedTypes: StudioSuggestionItem[];
-  selectedPageScope: StudioSuggestionItem;
-  onChange: (updates: { types?: StudioSuggestionItem[]; pageScope?: StudioSuggestionItem }) => void;
+  selectedPageScope: StudioSuggestionItem | null;
+  onChange: (updates: {
+    types?: StudioSuggestionItem[];
+    pageScope?: StudioSuggestionItem | null;
+  }) => void;
 };
 
 export const ValidateRuleConfig = ({
@@ -35,7 +38,7 @@ export const ValidateRuleConfig = ({
         ))}
       </StudioSuggestion>
       <StudioSuggestion
-        selected={selectedPageScope}
+        selected={selectedPageScope ?? null}
         label={t('ux_editor.settings.navigation_validation_scope')}
         emptyText={t('ux_editor.settings.navigation_validation_scope_empty')}
         onSelectedChange={(selectedScope) => onChange({ pageScope: selectedScope })}

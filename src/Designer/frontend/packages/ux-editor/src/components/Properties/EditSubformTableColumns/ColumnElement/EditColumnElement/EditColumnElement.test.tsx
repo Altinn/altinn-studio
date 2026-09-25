@@ -80,6 +80,29 @@ describe('EditColumnElementComponentSelect', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('preserves the column settings when the component selector is cleared', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderEditColumnElement({ onChange });
+    const componentSelect = screen.getByLabelText(
+      textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    );
+    await user.click(componentSelect);
+    await user.click(
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component1Id}`),
+        hidden: true,
+      }),
+    );
+    onChange.mockClear();
+
+    await user.clear(componentSelect);
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    expect(componentSelect).toHaveValue('');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('should render just components with labels and data model bindings', async () => {
     const user = userEvent.setup();
     renderEditColumnElement();
@@ -154,6 +177,35 @@ describe('EditColumnElementComponentSelect', () => {
         ),
       ),
     ).toBeInTheDocument();
+  });
+
+  it('clears the column query when the data model binding is cleared', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    const tableColumn = {
+      headerContent: subformLayoutMock.component4.textResourceBindings.title,
+      cellContent: { query: addressDataField },
+    };
+    renderEditColumnElement({ tableColumn, onChange });
+    await user.click(
+      screen.getByLabelText(
+        textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+      ),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component4Id}`),
+        hidden: true,
+      }),
+    );
+    const bindingSelect = await screen.findByRole('combobox', {
+      name: /ux_editor\.properties_panel\.subform_table_columns\.column_multiple_data_model_bindings_label/,
+    });
+
+    await user.clear(bindingSelect);
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
+
+    expect(onChange).toHaveBeenLastCalledWith({ ...tableColumn, cellContent: { query: '' } });
   });
 
   it('should only render data model bindings that have a value', async () => {

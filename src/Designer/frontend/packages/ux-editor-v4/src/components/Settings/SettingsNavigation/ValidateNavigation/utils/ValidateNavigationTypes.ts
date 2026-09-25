@@ -2,10 +2,10 @@ import type { StudioSuggestionItem } from '@studio/components';
 
 export type InternalConfigState = {
   types: StudioSuggestionItem[];
-  pageScope: StudioSuggestionItem;
+  pageScope: StudioSuggestionItem | null;
   pages?: StudioSuggestionItem[];
   tasks?: StudioSuggestionItem[];
-  task?: StudioSuggestionItem;
+  task?: StudioSuggestionItem | null;
 };
 
 export type ExternalConfigState = {

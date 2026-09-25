@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useRef } from 'react';
 import { forwardRef, type Ref, type ReactElement } from 'react';
 import {
   type SuggestionProps,
@@ -10,6 +10,7 @@ import { StudioField } from '../StudioField';
 import { StudioLabel } from '../StudioLabel';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioValidationMessage } from '../StudioValidationMessage';
+import { useSuggestionSelection } from './useSuggestionSelection';
 import classes from './StudioSuggestion.module.css';
 
 export type StudioSuggestionProps = SuggestionProps &
@@ -23,7 +24,10 @@ export type StudioSuggestionProps = SuggestionProps &
   };
 
 function StudioSuggestion(
-  {
+  props: StudioSuggestionProps,
+  ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
+): ReactElement {
+  const {
     required,
     tagText,
     label,
@@ -34,19 +38,21 @@ function StudioSuggestion(
     error,
     placeholder,
     ...rest
-  }: StudioSuggestionProps,
-  ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
-): ReactElement {
+  } = props;
   const inputId = useId();
+  const suggestionRef = useRef<React.ElementRef<typeof Suggestion>>(null);
+  const suggestionProps = useSuggestionSelection(rest, suggestionRef);
   return (
     <StudioField className={className}>
-      <StudioLabelWrapper required={required} tagText={tagText}>
-        <StudioLabel htmlFor={inputId}>{label}</StudioLabel>
-      </StudioLabelWrapper>
+      <StudioLabel htmlFor={inputId}>
+        <StudioLabelWrapper required={required} tagText={tagText}>
+          {label}
+        </StudioLabelWrapper>
+      </StudioLabel>
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
-      <Suggestion {...rest}>
+      <Suggestion {...suggestionProps} ref={suggestionRef}>
         <Suggestion.Input
           aria-label={label}
           id={inputId}

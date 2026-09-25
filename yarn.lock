@@ -17496,6 +17496,7 @@ __metadata:
     "@types/dotenv": "npm:^8.2.0"
     "@types/node": "npm:^24.0.0"
     dotenv: "npm:^17.0.0"
+    esbuild: "npm:^0.25.0"
     ts-node: "npm:^10.9.2"
   languageName: unknown
   linkType: soft
@@ -21365,6 +21366,7 @@ __metadata:
   version: 6.4.3
   resolution: "vite@npm:6.4.3"
   dependencies:
+    esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
     fsevents: "npm:~2.3.3"
     picomatch: "npm:^4.0.2"
