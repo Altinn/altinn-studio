@@ -1,10 +1,5 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Models;
+﻿using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 

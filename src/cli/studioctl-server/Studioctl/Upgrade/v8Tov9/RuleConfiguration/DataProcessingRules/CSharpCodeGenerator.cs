@@ -218,13 +218,10 @@ internal sealed class CSharpCodeGenerator
     private static IEnumerable<string> ConfiguredPaths(DataProcessingRule rule) =>
         (rule.InputParams?.Values.AsEnumerable() ?? []).Concat(rule.OutParams?.Values.AsEnumerable() ?? []);
 
+    // The upgraded project imports the SDK's implicit usings and Altinn.App.Core.Features globally, so
+    // only the namespaces beyond those are spelled out here.
     private void GenerateUsingStatements(IndentedStringBuilder code)
     {
-        code.AppendLine("using System;");
-        code.AppendLine("using System.Collections.Generic;");
-        code.AppendLine("using System.Linq;");
-        code.AppendLine("using System.Threading.Tasks;");
-        code.AppendLine("using Altinn.App.Core.Features;");
         code.AppendLine("using Altinn.App.Core.Models;");
         code.AppendLine("using Altinn.App.Core.Internal.Data;");
 

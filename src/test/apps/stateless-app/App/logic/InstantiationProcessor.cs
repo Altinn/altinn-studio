@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Altinn.App.Models; // Uncomment this line to refer to app model(s)
