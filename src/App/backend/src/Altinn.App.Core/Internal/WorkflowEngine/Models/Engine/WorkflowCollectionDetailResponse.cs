@@ -99,6 +99,14 @@ internal sealed record CollectionHeadStatus
     public DateTimeOffset? CreatedAt { get; init; }
 
     /// <summary>
+    /// Gets when the head workflow was last resumed. Resume reruns the workflow in place and keeps
+    /// <see cref="CreatedAt"/>. Null when it was never resumed or the engine predates the field.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
+
+    /// <summary>
     /// Gets the waiting step's own words for what it is waiting for (its most recent deferral
     /// reason). The engine populates it only while <see cref="Status"/> is
     /// <see cref="PersistentItemStatus.Waiting"/>; also null when no reason was given or the engine
@@ -107,4 +115,13 @@ internal sealed record CollectionHeadStatus
     [JsonPropertyName("waitingReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WaitingReason { get; init; }
+
+    /// <summary>
+    /// Gets how many consecutive attempts of the head's current step have failed and been
+    /// scheduled for retry. Holds steady while a retry attempt executes. Null when the engine
+    /// predates the field.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
 }

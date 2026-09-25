@@ -184,6 +184,19 @@ function waitForProcessState(expected: ExpectedProcessState): Cypress.Chainable<
   });
 }
 
+// Waits until one of the page's own instance reads (aliased '@instanceRead') carries at least
+// `failedAttempts`, so an assertion about what the page shows runs against that state rather than an
+// earlier one the page is still rendering.
+function waitForPageToSeeFailedAttempts(failedAttempts: number, readsLeft = 60) {
+  cy.wait('@instanceRead', { log: false }).then(({ response }) => {
+    if ((response?.body?.process?.workflow?.failedAttempts ?? 0) >= failedAttempts) {
+      return;
+    }
+    expect(readsLeft, `instance reads left while waiting for ${failedAttempts} failed attempts`).to.be.greaterThan(0);
+    waitForPageToSeeFailedAttempts(failedAttempts, readsLeft - 1);
+  });
+}
+
 // Clicks Task_1's advance button and reloads only after the server reports that the transition is
 // processing and the committed task is still Task_1.
 function submitAndReloadDuringTransition() {
@@ -343,6 +356,36 @@ describe('Live workflow status (real engine)', () => {
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('failing (post-commit): repeated failures escalate the loader, and "Prøv igjen" restarts the clock', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // Each attempt takes ~3s; the first two fail retryably and the third fails terminally. A resume
+    // replays all three, since endState "failure" resets the attempt counter.
+    fillLevers({ path: 'postCommit', delayMs: 3000, attempts: 3, endState: 'failure' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The second failed attempt escalates the loader's notice to a warning before the step gives up.
+    workflowLoader().should('be.visible');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+
+    // process/resume holds its request until the workflow settles; the loader takes over from the
+    // retry button meanwhile. Resume keeps the transition's original start, which is long past both
+    // thresholds by now, so either message at the first failed retry (~3s after the resume) would mean
+    // the clock was not restarted by the resume.
+    cy.intercept({ method: 'GET', url: '**/instances/*/*/enriched*' }).as('instanceRead');
+    cy.findByRole('button', { name: 'Prøv igjen' }).click();
+    workflowLoader().should('be.visible');
+    waitForPageToSeeFailedAttempts(1);
+    // Checked once: retrying would wait out the processing and pass on the failed view that follows.
+    cy.contains('Dette tar uvanlig lang tid', { timeout: 0 }).should('not.exist');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 0 }).should('not.exist');
+    cy.contains('Vi får ikke behandlet skjemaet ditt', { timeout: 15000 }).should('be.visible');
+
+    cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
   });
 
   it('deferral (post-commit): the service task yields until ready, then advances on its own', () => {
