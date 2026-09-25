@@ -119,8 +119,7 @@ agentctl attach session/work
 
 Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
 
-Delete one Session when its work is done. The harness is stopped and its conversation is discarded, and the name
-becomes available again:
+Delete a Session when its work is done; its name becomes free again:
 
 ```sh
 agentctl delete session/work

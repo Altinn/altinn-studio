@@ -1360,12 +1360,11 @@ fn a_deleted_session_is_marked_before_it_is_removed_and_frees_its_name() {
                 .any(|session| session.id == created.id)
         );
         // The name stays taken until the harness is gone.
-        assert!(matches!(
-            store
-                .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
-                .await,
-            Err(Error::Conflict)
-        ));
+        let reused = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect_err("the name is still taken");
+        assert!(reused.to_string().contains("is being deleted"), "{reused}");
 
         store
             .finalize_session_deletion(created.id)

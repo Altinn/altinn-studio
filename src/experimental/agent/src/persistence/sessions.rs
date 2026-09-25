@@ -56,7 +56,9 @@ pub(super) fn ensure(
         // harness and removed the row, so recreating it now would revive a
         // Session that is already going away.
         if session.is_deleting() {
-            return Err(Error::Conflict);
+            return Err(Error::Invalid(format!(
+                "Session \"{name}\" is being deleted; its name is free once its harness has stopped"
+            )));
         }
         // Two callers may both find no Session and both resolve one; the first
         // recorded selections bind, so a loser that explicitly chose differently
