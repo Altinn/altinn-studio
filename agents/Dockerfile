@@ -484,9 +484,10 @@ FROM full AS desktop
 USER root
 
 # A minimal X11 desktop: one process that is both X and VNC server, a window manager, a panel, the
-# input and window tools the `desktop` helper uses, and AT-SPI for `desktop tree`. Capture reuses
-# the full image's ffmpeg. wmctrl is left out because its build here segfaults on an empty window
-# list; the helper reads the same properties with xprop and xdotool.
+# input and window tools the `desktop` helper uses, AT-SPI for `desktop tree`, and sakura as the
+# terminal, whose text AT-SPI exposes too. Capture reuses the full image's ffmpeg. wmctrl is left
+# out because its build here segfaults on an empty window list; the helper reads the same
+# properties with xprop and xdotool.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         at-spi2-core \
@@ -495,6 +496,7 @@ RUN apt-get update \
         fonts-noto-core \
         openbox \
         python3-pyatspi \
+        sakura \
         tigervnc-standalone-server \
         tint2 \
         x11-utils \
@@ -549,7 +551,8 @@ COPY --chmod=0755 common/playwright-chromium.sh /usr/local/libexec/agent-playwri
 COPY common/desktop-openbox-rc.xml /etc/xdg/openbox/rc.xml
 COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
 COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
-COPY --chmod=0755 common/bin/chromium common/bin/desktop /usr/local/bin/
+COPY --chmod=0755 common/bin/chromium common/bin/desktop common/bin/desktop-terminal /usr/local/bin/
+COPY common/desktop-terminal.desktop /usr/local/share/applications/desktop-terminal.desktop
 
 # xdotool refuses multi-byte characters such as æ, ø and å under the POSIX locale.
 ENV LANG=C.UTF-8
@@ -574,6 +577,7 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
         && openbox --version | head -1 \
         && tint2 --version \
         && xdotool --version \
+        && command -v sakura >/dev/null \
         && AGENT_BROWSER_CA_READY_FILE=/dev/null chromium --version \
         && /usr/local/libexec/agent-playwright-chromium --headless --version \
         && desktop help >/dev/null' \

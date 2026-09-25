@@ -1,7 +1,7 @@
-# A panel that says what is open and what time it is, and nothing else. Pinned rather than left to
-# the distribution default so the taskbar occupies the same 30 pixels of every screenshot, and
-# passed to tint2 with -c so it is read from here rather than copied into a home directory the
-# platform resynchronizes from the host on every Sandbox setup.
+# A panel with a terminal launcher, what is open and what time it is, and nothing else. Pinned
+# rather than left to the distribution default so the taskbar occupies the same 30 pixels of every
+# screenshot, and passed to tint2 with -c so it is read from here rather than copied into a home
+# directory the platform resynchronizes from the host on every Sandbox setup.
 
 # Every background an item refers to must be defined, in order: tint2 segfaults on a background id
 # it cannot resolve.
@@ -15,7 +15,7 @@ border_width = 0
 background_color = #3a3a3a 100
 border_color = #5a5a5a 100
 
-panel_items = TC
+panel_items = LTC
 panel_size = 100% 30
 panel_position = bottom center horizontal
 panel_background_id = 1
@@ -24,6 +24,12 @@ panel_padding = 4 0 4
 panel_layer = top
 strut_policy = follow_size
 autohide = 0
+
+launcher_padding = 4 3 4
+launcher_background_id = 0
+launcher_icon_size = 22
+launcher_tooltip = 1
+launcher_item_app = /usr/local/share/applications/desktop-terminal.desktop
 
 taskbar_mode = single_desktop
 taskbar_padding = 0 0 4

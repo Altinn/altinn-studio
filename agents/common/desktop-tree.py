@@ -18,7 +18,9 @@ TRANSPARENT = {
     'redundant object', 'invalid', 'label', 'static', 'block quote', 'list item',
 }
 # Roles whose text content is the useful part rather than their name.
-TEXT_VALUED = {'entry', 'text', 'combo box', 'spin button', 'password text', 'editbar'}
+TEXT_VALUED = {'entry', 'text', 'combo box', 'spin button', 'password text', 'editbar', 'terminal'}
+# A terminal's value is its last lines: where the prompt and the latest output are.
+TERMINAL_LINES = 4
 MAX_NODES = 2000
 MAX_TEXT = 80
 
@@ -93,6 +95,14 @@ def selected_option(accessible, depth=0):
 def value_of(accessible, role):
     if role not in TEXT_VALUED:
         return ''
+    if role == 'terminal':
+        try:
+            text = accessible.queryText()
+            start = max(0, text.characterCount - 4000)
+            lines = [line for line in text.getText(start, text.characterCount).splitlines() if line.strip()]
+        except NotImplementedError:
+            return ''
+        return '\n'.join(clean(line) for line in lines[-TERMINAL_LINES:])
     if role == 'combo box':
         try:
             option = selected_option(accessible)
