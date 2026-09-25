@@ -321,6 +321,25 @@ public class PdfControllerTests
         requestBody.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Request_For_Non_Pdf_Task_Should_Return_BadRequest()
+    {
+        _processReader
+            .Setup(x => x.GetFlowElement("Task_Data"))
+            .Returns(
+                new ProcessTask
+                {
+                    Id = "Task_Data",
+                    ExtensionElements = new() { TaskExtension = new() { TaskType = "data" } },
+                }
+            );
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: "Task_Data");
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        requestBody.Should().BeNull();
+    }
+
     private void SetupSubformPdfTask()
     {
         _processReader
