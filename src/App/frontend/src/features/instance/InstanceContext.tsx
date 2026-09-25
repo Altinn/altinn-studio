@@ -15,7 +15,7 @@ import {
 } from 'src/core/queries/instance';
 import { skipToken, useIsMutating, useQuery, useQueryClient } from 'src/core/queries/reactQuery';
 import { FileScanResults } from 'src/features/attachments/types';
-import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
+import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -64,7 +64,8 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const hasPendingScans = useHasPendingScans();
   const workflowStatus = useWorkflowStatus();
   const isProcessNextPending = useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
-  const shouldPollProcess = isProcessNextPending || workflowStatus === 'processing';
+  const isProcessResumePending = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
+  const shouldPollProcess = isProcessNextPending || isProcessResumePending || workflowStatus === 'processing';
   const pollFailureCount = useInstancePollFailureCount();
   const {
     error: instanceDataError,
@@ -83,7 +84,8 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   // A process/next response can take up to the backend's synchronous wait limit. Polling while the
   // mutation is pending lets the submitting tab discover server-side processing without replacing
   // the form during client validation. The same episode continues until processing settles, then
-  // stops. Resume has a separate mutation key and deliberately keeps its task view mounted.
+  // stops. A pending resume polls the same way, so a resumed workflow that keeps failing shows the
+  // transition loader and its warnings instead of a spinning retry button.
   usePollingWithBackoff(pollInstance, shouldPollProcess, { initialIntervalMs: 250, initialAttempts: 20 });
 
   // The full-screen error is reserved for "nothing to render" (initial load failed) and "we've

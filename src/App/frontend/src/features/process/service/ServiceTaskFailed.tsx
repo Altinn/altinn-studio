@@ -4,7 +4,9 @@ import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useIsMutating } from 'src/core/queries/reactQuery';
 import { useAppOwner } from 'src/core/texts/appTexts';
+import { PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useProcessResume } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -67,14 +69,17 @@ const RetryButton = () => {
   // retry affordance.)
   // Use mutate (not mutateAsync): failures are handled by the mutation's own onError (toast +
   // refetch), and an un-awaited mutateAsync would surface them as unhandled promise rejections.
-  const { mutate: processResume, isPending: isResuming } = useProcessResume();
+  // The transition loader replaces this view while a resume is processing, so the button can
+  // remount mid-resume; read the pending state from the mutation cache, not this observer.
+  const { mutate: processResume } = useProcessResume();
+  const isResuming = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
 
   return (
     <Button
       id='service-task-retry-button'
       className={classes.retryButton}
       onClick={() => processResume()}
-      disabled={!canRetry}
+      disabled={!canRetry || isResuming}
       isLoading={isResuming}
       loadingLabel={langAsString('general.loading')}
       color='success'

@@ -8,48 +8,47 @@ use std::{
 
 use futures_util::StreamExt as _;
 use sandbox::{
-    Error, OperationEvent, PendingSandbox, PhaseOutcome, ProgressUnit, SandboxEvent, SandboxHandle, SandboxPhase,
+    Error, OperationEvent, Outcome, PendingSandbox, ProgressUnit, SandboxHandle,
+    progress::{Measurement, Progress, ProgressCursor, Update},
 };
 use tokio::time::{MissedTickBehavior, interval};
 
 const SPINNER_INTERVAL: Duration = Duration::from_millis(80);
 const SPINNER_FRAMES: [&str; 10] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-const FAILURE_OUTPUT_LIMIT: usize = 64 * 1024;
+/// Output lines shown when an operation fails in an interactive terminal.
+const FAILURE_OUTPUT_LINES: usize = 40;
 
 pub(crate) async fn wait_for_sandbox(mut pending: PendingSandbox<'_>) -> Result<SandboxHandle, Box<dyn StdError>> {
     let mut display = ProgressDisplay::stderr();
+    let mut progress = Progress::new();
     let mut ticker = spinner_ticker();
 
     loop {
         tokio::select! {
             event = pending.next() => match event {
-                Some(Ok(OperationEvent::Progress(SandboxEvent::PhaseStarted { phase }))) => display.phase_started(phase)?,
-                Some(Ok(OperationEvent::Progress(SandboxEvent::PhaseCompleted { phase, outcome, elapsed }))) => {
-                    display.phase_completed(phase, outcome, elapsed)?;
-                }
-                Some(Ok(OperationEvent::Progress(SandboxEvent::StepStarted { name, .. }))) => display.step_started(&name)?,
-                Some(Ok(OperationEvent::Progress(SandboxEvent::StepProgress { name, completed, total, unit, .. }))) => {
-                    display.step_progress(&name, completed, total, unit);
-                }
-                Some(Ok(OperationEvent::Progress(SandboxEvent::StepOutput { bytes, .. }))) => display.step_output(&bytes)?,
-                Some(Ok(OperationEvent::Progress(SandboxEvent::StepCompleted { name, elapsed, .. }))) => {
-                    display.step_completed(&name, elapsed)?;
+                Some(Ok(OperationEvent::Progress(event))) => {
+                    progress.apply(&event);
+                    display.show(&progress)?;
                 }
                 Some(Ok(OperationEvent::Ready(sandbox))) => {
+                    progress.succeed();
+                    display.show(&progress)?;
                     display.ready()?;
                     return Ok(sandbox);
                 }
                 Some(Ok(_)) => {}
                 Some(Err(error)) => {
-                    display.failed()?;
+                    progress.fail(error.to_string());
+                    display.failed(&progress)?;
                     return Err(error.into());
                 }
                 None => {
-                    display.failed()?;
+                    progress.fail(Error::OperationStreamEnded.to_string());
+                    display.failed(&progress)?;
                     return Err(Error::OperationStreamEnded.into());
                 }
             },
-            _ = ticker.tick() => display.tick()?,
+            _ = ticker.tick() => display.tick(&progress)?,
         }
     }
 }
@@ -82,7 +81,7 @@ where
                     }
                 };
             }
-            _ = ticker.tick() => display.tick()?,
+            _ = ticker.tick() => display.tick_label(label)?,
         }
     }
 }
@@ -96,17 +95,11 @@ fn spinner_ticker() -> tokio::time::Interval {
 struct ProgressDisplay<W> {
     output: W,
     interactive: bool,
-    active: Option<ActiveStatus>,
+    cursor: ProgressCursor,
+    /// Phase and steps already announced in plain output.
+    announced: Option<(String, Vec<String>)>,
     frame: usize,
     line_visible: bool,
-    raw_line_open: bool,
-}
-
-struct ActiveStatus {
-    label: String,
-    step: Option<String>,
-    progress: Option<String>,
-    failure_output: Vec<u8>,
 }
 
 impl ProgressDisplay<io::Stderr> {
@@ -118,155 +111,155 @@ impl ProgressDisplay<io::Stderr> {
 }
 
 impl<W: io::Write> ProgressDisplay<W> {
-    const fn new(output: W, interactive: bool) -> Self {
+    fn new(output: W, interactive: bool) -> Self {
         Self {
             output,
             interactive,
-            active: None,
+            cursor: ProgressCursor::default(),
+            announced: None,
             frame: 0,
             line_visible: false,
-            raw_line_open: false,
         }
     }
 
-    fn phase_started(&mut self, phase: SandboxPhase) -> io::Result<()> {
-        self.start(&phase.to_string())
-    }
-
-    fn phase_completed(&mut self, phase: SandboxPhase, outcome: PhaseOutcome, elapsed: Duration) -> io::Result<()> {
-        let label = phase.to_string();
-        self.active = None;
-        self.finish_raw_line()?;
-        self.clear_line()?;
-        match outcome {
-            PhaseOutcome::Reused => writeln!(self.output, "✓ Reused {label} ({})", duration(elapsed)),
-            _ => writeln!(self.output, "✓ {label} ({})", duration(elapsed)),
+    /// Prints what finished since the last call, then the activity in progress.
+    fn show(&mut self, progress: &Progress) -> io::Result<()> {
+        let updates = self.cursor.updates(progress);
+        if !updates.is_empty() {
+            self.clear_line()?;
         }
-    }
-
-    fn step_started(&mut self, name: &str) -> io::Result<()> {
-        if let Some(active) = &mut self.active {
-            active.step = Some(name.to_string());
-            active.progress = None;
+        for update in updates {
+            match update {
+                Update::OutputSkipped(count) if !self.interactive => {
+                    writeln!(self.output, "    … {count} lines skipped")?;
+                }
+                Update::Output(line) if !self.interactive => writeln!(self.output, "    {}", line.text)?,
+                Update::StepFinished(step) if !self.interactive => {
+                    let elapsed = Duration::from_millis(step.elapsed_ms);
+                    match (step.outcome, step.measurement) {
+                        (Outcome::Failed, _) => writeln!(self.output, "  ✗ {} ({})", step.name, duration(elapsed))?,
+                        (_, Some(measurement)) => writeln!(
+                            self.output,
+                            "  ✓ {}: {} ({})",
+                            step.name,
+                            format_measurement(measurement),
+                            duration(elapsed)
+                        )?,
+                        _ => writeln!(self.output, "  ✓ {} ({})", step.name, duration(elapsed))?,
+                    }
+                }
+                Update::PhaseFinished(phase) => {
+                    let elapsed = duration(Duration::from_millis(phase.elapsed_ms));
+                    match phase.outcome {
+                        Outcome::Reused => writeln!(self.output, "✓ Reused {} ({elapsed})", phase.phase.label)?,
+                        Outcome::Failed => writeln!(self.output, "✗ {} ({elapsed})", phase.phase.label)?,
+                        _ => writeln!(self.output, "✓ {} ({elapsed})", phase.phase.label)?,
+                    }
+                }
+                Update::OutputSkipped(_) | Update::Output(_) | Update::StepFinished(_) => {}
+            }
         }
         if self.interactive {
-            self.render()
+            self.render(progress)
         } else {
-            self.finish_raw_line()?;
-            writeln!(self.output, "  → {name}")
+            self.announce(progress)
         }
     }
 
-    fn step_progress(&mut self, name: &str, completed: u64, total: Option<u64>, unit: ProgressUnit) {
-        if let Some(active) = &mut self.active {
-            active.step = Some(name.to_string());
-            active.progress = Some(format_progress(completed, total, unit));
-        }
-    }
-
-    fn step_output(&mut self, bytes: &[u8]) -> io::Result<()> {
-        if bytes.is_empty() {
+    /// Names a newly started phase or step in plain output.
+    fn announce(&mut self, progress: &Progress) -> io::Result<()> {
+        let Some(current) = progress.current() else {
             return Ok(());
+        };
+        if self
+            .announced
+            .as_ref()
+            .is_none_or(|(phase, _)| *phase != current.phase.id)
+        {
+            writeln!(self.output, "→ {}", current.phase.label)?;
+            self.announced = Some((current.phase.id.to_string(), Vec::new()));
         }
-        if self.interactive {
-            if let Some(active) = &mut self.active {
-                retain_tail(&mut active.failure_output, bytes);
+        if let Some((_, steps)) = &mut self.announced {
+            for step in &current.steps {
+                let id = step.id.to_string();
+                if !steps.contains(&id) {
+                    writeln!(self.output, "  → {}", step.name)?;
+                    steps.push(id);
+                }
             }
-            return Ok(());
-        }
-        self.output.write_all(bytes)?;
-        self.output.flush()?;
-        self.raw_line_open = bytes.last() != Some(&b'\n');
-        Ok(())
-    }
-
-    fn step_completed(&mut self, name: &str, elapsed: Duration) -> io::Result<()> {
-        let final_progress = self.active.as_ref().and_then(|active| active.progress.clone());
-        if !self.interactive {
-            self.finish_raw_line()?;
-            if let Some(value) = final_progress {
-                writeln!(self.output, "  ✓ {name}: {value} ({})", duration(elapsed))?;
-            } else {
-                writeln!(self.output, "  ✓ {name} ({})", duration(elapsed))?;
-            }
-        }
-        if let Some(active) = &mut self.active {
-            active.step = None;
-            active.progress = None;
         }
         Ok(())
     }
 
     fn ready(&mut self) -> io::Result<()> {
-        self.active = None;
-        self.finish_raw_line()?;
         self.clear_line()?;
         writeln!(self.output, "✓ Sandbox ready")
     }
 
-    fn failed(&mut self) -> io::Result<()> {
-        let Some(active) = self.active.take() else {
-            return Ok(());
-        };
-        self.finish_raw_line()?;
+    fn failed(&mut self, progress: &Progress) -> io::Result<()> {
+        self.show(progress)?;
         self.clear_line()?;
-        writeln!(self.output, "✗ {}", active.label)?;
-        if !active.failure_output.is_empty() {
+        if self.interactive && !progress.output().is_empty() {
             writeln!(self.output, "  Backend output:")?;
-            self.output.write_all(&active.failure_output)?;
-            if active.failure_output.last() != Some(&b'\n') {
-                writeln!(self.output)?;
+            for line in progress.output().tail(FAILURE_OUTPUT_LINES) {
+                writeln!(self.output, "    {}", line.text)?;
             }
         }
         Ok(())
     }
 
     fn operation_completed(&mut self, label: &str, elapsed: Duration) -> io::Result<()> {
-        self.active = None;
         self.clear_line()?;
         writeln!(self.output, "✓ {label} ({})", duration(elapsed))
     }
 
     fn operation_failed(&mut self, label: &str, elapsed: Duration) -> io::Result<()> {
-        self.active = None;
         self.clear_line()?;
         writeln!(self.output, "✗ {label} ({})", duration(elapsed))
     }
 
     fn start(&mut self, label: &str) -> io::Result<()> {
-        self.finish_raw_line()?;
-        self.active = Some(ActiveStatus {
-            label: label.to_string(),
-            step: None,
-            progress: None,
-            failure_output: Vec::new(),
-        });
         if self.interactive {
-            self.render()
+            self.render_line(label)
         } else {
             writeln!(self.output, "→ {label}")
         }
     }
 
-    fn tick(&mut self) -> io::Result<()> {
-        if !self.interactive || self.active.is_none() {
+    fn tick(&mut self, progress: &Progress) -> io::Result<()> {
+        if !self.interactive || progress.current().is_none() {
             return Ok(());
         }
         self.frame = (self.frame + 1) % SPINNER_FRAMES.len();
-        self.render()
+        self.render(progress)
     }
 
-    fn render(&mut self) -> io::Result<()> {
-        let Some(active) = &self.active else {
+    fn tick_label(&mut self, label: &str) -> io::Result<()> {
+        if !self.interactive {
+            return Ok(());
+        }
+        self.frame = (self.frame + 1) % SPINNER_FRAMES.len();
+        self.render_line(label)
+    }
+
+    fn render(&mut self, progress: &Progress) -> io::Result<()> {
+        let Some(current) = progress.current() else {
             return Ok(());
         };
-        write!(self.output, "\r\x1b[2K{} {}", SPINNER_FRAMES[self.frame], active.label)?;
-        if let Some(step) = &active.step {
-            write!(self.output, " · {step}")?;
+        let mut line = current.phase.label.to_string();
+        if let Some(step) = progress.current_step() {
+            line.push_str(" · ");
+            line.push_str(&step.name);
+            if let Some(measurement) = step.measurement {
+                line.push_str(": ");
+                line.push_str(&format_measurement(measurement));
+            }
         }
-        if let Some(progress) = &active.progress {
-            write!(self.output, ": {progress}")?;
-        }
+        self.render_line(&line)
+    }
+
+    fn render_line(&mut self, line: &str) -> io::Result<()> {
+        write!(self.output, "\r\x1b[2K{} {line}", SPINNER_FRAMES[self.frame])?;
         self.output.flush()?;
         self.line_visible = true;
         Ok(())
@@ -280,31 +273,10 @@ impl<W: io::Write> ProgressDisplay<W> {
         }
         Ok(())
     }
-
-    fn finish_raw_line(&mut self) -> io::Result<()> {
-        if self.raw_line_open {
-            writeln!(self.output)?;
-            self.raw_line_open = false;
-        }
-        Ok(())
-    }
 }
 
-fn retain_tail(buffer: &mut Vec<u8>, bytes: &[u8]) {
-    if bytes.len() >= FAILURE_OUTPUT_LIMIT {
-        buffer.clear();
-        buffer.extend_from_slice(&bytes[bytes.len() - FAILURE_OUTPUT_LIMIT..]);
-        return;
-    }
-    let overflow = buffer
-        .len()
-        .saturating_add(bytes.len())
-        .saturating_sub(FAILURE_OUTPUT_LIMIT);
-    if overflow > 0 {
-        buffer.copy_within(overflow.., 0);
-        buffer.truncate(buffer.len() - overflow);
-    }
-    buffer.extend_from_slice(bytes);
+fn format_measurement(measurement: Measurement) -> String {
+    format_progress(measurement.completed, measurement.total, measurement.unit)
 }
 
 fn format_progress(completed: u64, total: Option<u64>, unit: ProgressUnit) -> String {

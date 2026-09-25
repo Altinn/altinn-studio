@@ -72,10 +72,15 @@ impl Tui {
         };
         Ok(Self {
             terminal,
-            view_state: view::ViewState::default(),
+            view_state: view::ViewState::for_environment(),
             pointer_shape: PointerShape::Default,
             active: true,
         })
+    }
+
+    /// Width of the terminal in cells.
+    pub(crate) fn width(&self) -> u16 {
+        self.terminal.size().map_or(0, |size| size.width)
     }
 
     pub(crate) fn draw(&mut self, app: &App) -> Result<view::HitMap, Error> {

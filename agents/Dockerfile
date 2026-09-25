@@ -12,6 +12,7 @@ RUN apt-get update \
         fonts-jetbrains-mono \
         fonts-liberation \
         git \
+        hunspell \
         jq \
         libicu-dev \
         libkrb5-dev \
@@ -147,6 +148,27 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
+# The repository spell check (scripts/spellcheck, run by `yarn spell:*` and the pre-commit hook)
+# drives typos for code and English text and hunspell for Norwegian text. The version and x86_64
+# digest match .github/workflows/spellcheck.yaml and must move together with it.
+ARG TYPOS_VERSION=1.49.0
+
+RUN case "${TARGETARCH}" in \
+        amd64) RUST_ARCH=x86_64; \
+            TYPOS_SHA256=48bd2d58e02ce713b8c0f1aa239e68ee4f7d8c551013135806e6aed3938d9e10 ;; \
+        arm64) RUST_ARCH=aarch64; \
+            TYPOS_SHA256=85c8b87b22a0fb1da130cd4d495e0beba7f1225eb580933184509e146ec4c509 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/crate-ci/typos/releases/download/v${TYPOS_VERSION}/typos-v${TYPOS_VERSION}-${RUST_ARCH}-unknown-linux-musl.tar.gz" \
+        -o /tmp/typos.tar.gz \
+    && echo "${TYPOS_SHA256}  /tmp/typos.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/typos.tar.gz -C /tmp ./typos \
+    && install -m 0755 /tmp/typos /usr/local/bin/typos \
+    && rm -f /tmp/typos.tar.gz /tmp/typos \
+    && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
+
 ARG CODEX_VERSION=0.156.0
 ARG CLAUDE_CODE_VERSION=2.1.280
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
@@ -259,6 +281,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && claude --version \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
+    && hunspell -v \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -321,6 +344,28 @@ RUN apt-get update \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
+
+# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
+# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
+# the version matches the CI workflows that install it and must move together with them.
+ARG CARGO_MACHETE_VERSION=0.9.2
+
+RUN case "${TARGETARCH}" in \
+        amd64) CARGO_MACHETE_TARGET=x86_64-unknown-linux-musl; \
+            CARGO_MACHETE_SHA256=48200087f54c55aabcd4db4af1e25742b49846c02a1b1bfa134711945b35b2e9 ;; \
+        arm64) CARGO_MACHETE_TARGET=aarch64-unknown-linux-gnu; \
+            CARGO_MACHETE_SHA256=6f96c3e6026a5bdd241b6ae600c6fb86c9197c6e189a894f91371baa01fd10f5 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && CARGO_MACHETE_NAME="cargo-machete-v${CARGO_MACHETE_VERSION}-${CARGO_MACHETE_TARGET}" \
+    && curl -fsSL \
+        "https://github.com/bnjbvr/cargo-machete/releases/download/v${CARGO_MACHETE_VERSION}/${CARGO_MACHETE_NAME}.tar.gz" \
+        -o /tmp/cargo-machete.tar.gz \
+    && echo "${CARGO_MACHETE_SHA256}  /tmp/cargo-machete.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/cargo-machete.tar.gz -C /tmp "${CARGO_MACHETE_NAME}/cargo-machete" \
+    && install -m 0755 "/tmp/${CARGO_MACHETE_NAME}/cargo-machete" /usr/local/bin/cargo-machete \
+    && rm -rf /tmp/cargo-machete.tar.gz "/tmp/${CARGO_MACHETE_NAME}" \
+    && test "$(cargo-machete --version)" = "${CARGO_MACHETE_VERSION}"
 
 # Playwright ties every package version to one Chromium build. The browser CLI owns the version:
 # the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
@@ -397,6 +442,7 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -rf /tmp/flux.tar.gz /tmp/helm.tar.gz /tmp/kind /tmp/kubectl /tmp/linux-* \
     && cargo --version \
+    && cargo machete --version \
     && podman --version \
     && podman-compose --version \
     && kind version \

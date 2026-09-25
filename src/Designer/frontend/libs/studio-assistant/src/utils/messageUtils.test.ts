@@ -59,6 +59,20 @@ describe('messageUtils', () => {
       ]);
     });
 
+    it.each([
+      'Dockerfile',
+      '.dockerignore',
+      'deployment/values.yaml',
+      'Directory.Build.props',
+      'NuGet.config',
+    ])('returns the build and deployment file %s as critical', (filePath) => {
+      expect(filterCriticalFileNames([filePath])).toEqual([filePath]);
+    });
+
+    it('does not return values.yaml files outside the deployment folder', () => {
+      expect(filterCriticalFileNames(['App/values.yaml'])).toEqual([]);
+    });
+
     it('returns an empty array when no critical files are changed', () => {
       expect(filterCriticalFileNames([layoutPath])).toEqual([]);
     });

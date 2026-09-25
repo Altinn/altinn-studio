@@ -6,7 +6,15 @@ const fileName = 'layout.json';
 const directory = 'App/ui';
 const filePath = `${directory}/${fileName}`;
 
+const label = 'Changed files';
+
 describe('FilesChangedList', () => {
+  it('renders the label', () => {
+    renderFilesChangedList();
+
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
   it('renders a button with the file name and directory', () => {
     renderFilesChangedList();
 
@@ -23,6 +31,7 @@ describe('FilesChangedList', () => {
 
 const defaultProps: FilesChangedListProps = {
   filePaths: [filePath],
+  label,
 };
 
 const renderFilesChangedList = (props: Partial<FilesChangedListProps> = {}): RenderResult =>

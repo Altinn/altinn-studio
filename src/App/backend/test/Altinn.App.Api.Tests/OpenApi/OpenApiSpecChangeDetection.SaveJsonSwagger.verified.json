@@ -8708,6 +8708,11 @@
             "type": "boolean",
             "nullable": true
           },
+          "failedAttempts": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "waitingReason": {
             "type": "string",
             "nullable": true
@@ -8716,6 +8721,11 @@
             "$ref": "#/components/schemas/AppProcessWorkflowProgress"
           },
           "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resumedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
