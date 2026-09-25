@@ -89,6 +89,8 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+forsendelsestype
+forsendelsestypen
 funksjonsflagg
 gjenopprettingsprosessen
 handlingsknapp
@@ -265,6 +267,8 @@ visningsverdi
 # an entry here: the acronym half is an all-caps token the check skips.
 # A solid APIer/URLer is a writing error and must stay a finding.
 dashboardet
+gatewayen
+gatewayene
 monitorering
 popups
 releasen
