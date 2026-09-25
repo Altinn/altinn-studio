@@ -559,7 +559,7 @@ COPY common/desktop-display.service /etc/systemd/system/agent-desktop-display.se
 COPY common/desktop-session.service /etc/systemd/system/agent-desktop-session.service
 COPY common/desktop-dbus.service /etc/systemd/system/agent-desktop-dbus.service
 COPY --chmod=0755 common/desktop-tree.py /usr/local/libexec/agent-desktop-tree
-COPY common/desktop-playwright-cli.json /etc/agent-playwright-cli.json
+COPY --chmod=0755 common/playwright-chromium.sh /usr/local/libexec/agent-playwright-chromium
 COPY common/desktop-openbox-rc.xml /etc/xdg/openbox/rc.xml
 COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
 COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
@@ -578,10 +578,11 @@ ENV DISPLAY=:1
 # tmux process rather than a login, so agent-desktop-dbus.service provides one at a fixed address.
 ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 # Chromium joins the accessibility bus only when told to, and fills in its tree only with
-# --force-renderer-accessibility: the `chromium` launcher passes it, and this configuration
-# passes it to the browser playwright-cli starts. It costs about 5% memory and 90 ms at startup.
+# --force-renderer-accessibility, which costs about 20 MiB (5%) and 90 ms at startup. The
+# `chromium` launcher passes it, and playwright-cli starts its headed browsers through that
+# launcher; headless ones keep Playwright's headless shell and go without it.
 ENV ACCESSIBILITY_ENABLED=1
-ENV PLAYWRIGHT_MCP_CONFIG=/etc/agent-playwright-cli.json
+ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/usr/local/libexec/agent-playwright-chromium
 
 # HOME is the Agent's home for every later process, but these checks run as root: openbox writes a
 # log under $HOME/.cache the moment it is invoked, and a root-owned file there would deny the Agent
@@ -594,6 +595,7 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
         && tint2 --version \
         && xdotool --version \
         && AGENT_BROWSER_CA_READY_FILE=/dev/null chromium --version \
+        && /usr/local/libexec/agent-playwright-chromium --headless --version \
         && desktop help >/dev/null' \
     && rm -rf /tmp/image-checks \
     && test -x /usr/local/bin/desktop \

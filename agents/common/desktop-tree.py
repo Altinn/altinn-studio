@@ -28,6 +28,25 @@ def fail(message):
     sys.exit(1)
 
 
+def require_accessibility_bus():
+    """Fails cleanly when the accessibility bus cannot be reached.
+
+    The AT-SPI library aborts the whole process when it cannot connect, before any Python error
+    handling runs, so the bus is asked for its address first. Asking also starts it if the
+    session bus has not activated it yet.
+    """
+    try:
+        from gi.repository import Gio, GLib
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        bus.call_sync('org.a11y.Bus', '/org/a11y/bus', 'org.a11y.Bus', 'GetAddress', None,
+                      GLib.VariantType.new('(s)'), Gio.DBusCallFlags.NONE, 3000, None)
+    except Exception as error:
+        message = getattr(error, 'message', None) or str(error)
+        fail(f'cannot reach the accessibility bus: {message}; is DBUS_SESSION_BUS_ADDRESS set, '
+             'and is agent-desktop-dbus.service running?')
+
+
+require_accessibility_bus()
 try:
     import pyatspi
     from pyatspi import (DESKTOP_COORDS, STATE_CHECKED, STATE_FOCUSED, STATE_PRESSED,
@@ -42,6 +61,8 @@ if len(arguments) < 4:
     fail('tree: usage: desktop-tree.py DISPLAY_W DISPLAY_H SENT_W SENT_H [--json] [APPLICATION]')
 display_width, display_height, sent_width, sent_height = (int(value) for value in arguments[:4])
 wanted = ' '.join(arguments[4:]).lower()
+# The image calls its browser `chromium` everywhere else; AT-SPI knows it by its product name.
+ALIASES = {'chromium': 'chrome'}
 
 
 def to_sent(value, sent, actual):
@@ -49,13 +70,36 @@ def to_sent(value, sent, actual):
 
 
 def clean(text):
-    text = ' '.join((text or '').split())
+    # U+FFFC stands in for an embedded object in AT-SPI text; it is never something to read.
+    text = ' '.join((text or '').replace('\ufffc', ' ').split())
     return text if len(text) <= MAX_TEXT else text[:MAX_TEXT - 1] + '…'
+
+
+def selected_option(accessible, depth=0):
+    """The name of the selected option under a combo box, whose own text is a placeholder."""
+    for index in range(accessible.childCount):
+        child = accessible.getChildAtIndex(index)
+        if child is None:
+            continue
+        if child.getState().contains(STATE_SELECTED) and child.name:
+            return clean(child.name)
+        if depth < 2:
+            found = selected_option(child, depth + 1)
+            if found:
+                return found
+    return ''
 
 
 def value_of(accessible, role):
     if role not in TEXT_VALUED:
         return ''
+    if role == 'combo box':
+        try:
+            option = selected_option(accessible)
+        except Exception:
+            option = ''
+        if option:
+            return option
     try:
         text = accessible.queryText()
         return clean(text.getText(0, min(text.characterCount, MAX_TEXT * 2)))
@@ -101,6 +145,10 @@ def walk(accessible, depth, parent_name):
     except Exception:
         # An application can close, or a node disappear, while the tree is being read.
         return
+    # Chromium keeps unnamed top-level frames for popups that are not on screen but report
+    # themselves as showing. A real window has a title, so an unnamed frame at the top is skipped.
+    if depth == 1 and role == 'frame' and not name:
+        return
     # A label or static text that repeats its parent's name adds nothing; an unnamed container
     # adds only a level of indentation.
     elided = role in TRANSPARENT and (not name or name == parent_name)
@@ -141,13 +189,16 @@ try:
 except Exception as error:
     fail(f'cannot reach the accessibility bus ({error}); is DBUS_SESSION_BUS_ADDRESS set?')
 
+names, matched = [], 0
 for application in applications:
     try:
         name = application.name or ''
     except Exception:
         continue
-    if wanted and wanted not in name.lower():
+    names.append(name)
+    if wanted and wanted not in name.lower() and ALIASES.get(wanted, wanted) not in name.lower():
         continue
+    matched += 1
     nodes.append({'depth': 0, 'role': 'application', 'name': clean(name)})
     for index in range(application.childCount):
         walk(application.getChildAtIndex(index), 1, '')
@@ -177,3 +228,6 @@ if truncated:
 if not applications:
     print('desktop: no application on the desktop exposes an accessibility tree yet',
           file=sys.stderr)
+elif wanted and not matched:
+    fail(f"tree: no application matches {wanted!r}; these expose a tree: "
+         + ', '.join(repr(name) for name in names if name))
