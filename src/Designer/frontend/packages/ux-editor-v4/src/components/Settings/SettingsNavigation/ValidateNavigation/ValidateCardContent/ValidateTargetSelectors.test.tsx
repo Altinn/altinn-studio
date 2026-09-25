@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import {
   PagesSelector,
   type PagesSelectorProps,
@@ -54,6 +54,25 @@ describe('TasksSelector and TaskSelector', () => {
     });
   });
 
+  it('uses undefined when the single task selection is cleared', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    renderTaskSelector({
+      selectedTask: { value: layoutSet1NameMock, label: layoutSet1NameMock },
+      onChange,
+    });
+    const input = screen.getByLabelText(
+      textMock('ux_editor.settings.navigation_validation_specific_task_label'),
+    );
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue(layoutSet1NameMock));
+
+    await user.clear(input);
+    await user.tab();
+
+    expect(onChange).toHaveBeenCalledWith(undefined);
+  });
+
   const renderTasksSelector = (props: Partial<TasksSelectorProps> = {}) => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
@@ -72,7 +91,7 @@ describe('TasksSelector and TaskSelector', () => {
     queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
 
     const defaultProps: TaskSelectorProps = {
-      selectedTask: null,
+      selectedTask: undefined,
       onChange: jest.fn(),
     };
     return renderWithProviders(<TaskSelector {...defaultProps} {...props} />, {

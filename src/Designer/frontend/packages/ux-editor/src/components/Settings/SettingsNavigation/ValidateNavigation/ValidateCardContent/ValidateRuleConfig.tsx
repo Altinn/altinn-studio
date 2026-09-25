@@ -37,10 +37,12 @@ export const ValidateRuleConfig = ({
       </StudioSuggestion>
       <StudioSuggestion
         clearButtonLabel={t('general.clear_selection')}
-        selected={selectedPageScope}
+        selected={selectedPageScope ?? null}
         label={t('ux_editor.settings.navigation_validation_scope')}
         emptyText={t('ux_editor.settings.navigation_validation_scope_empty')}
-        onSelectedChange={(selectedScope) => onChange({ pageScope: selectedScope })}
+        onSelectedChange={(selectedScope) =>
+          onChange({ pageScope: selectedScope ?? { value: '', label: '' } })
+        }
         multiple={false}
       >
         {pageScopes.map((scope) => (

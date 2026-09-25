@@ -89,6 +89,17 @@ Suites configured with `mode: 'serial'` share state between tests, so skipping a
 of the chain usually breaks the ones after it. In that case skip at file level, as `tests/text-editor/`
 does today.
 
+## Component regressions
+
+Run the isolated component tests from the repository root with:
+
+```sh
+yarn workspace playwright-studio test:all --project=components
+```
+
+These tests bundle the real Studio components and run them in Chrome. They need the project
+dependencies and Playwright browser installed, but no Studio backend, login, or local `.env`.
+
 ## Setup
 
 To initiate test execution and writing tests, start by running the setup.js script located at the file path `/development/setup.js`.

@@ -22,9 +22,10 @@ export const Summary2ComponentReferenceSelector = ({
   const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
   const errorMessage = invalidMessage || requiredMessage || false;
 
-  const selectedItems: StudioSuggestionItem = value ? { value, label: value } : undefined;
+  const selectedItems: StudioSuggestionItem | null = value ? { value, label: value } : null;
 
-  const handleSelectedChange = (item: StudioSuggestionItem) => onValueChange(item.value || '');
+  const handleSelectedChange = (item: StudioSuggestionItem | null) =>
+    onValueChange(item?.value ?? '');
 
   return (
     <StudioSuggestion

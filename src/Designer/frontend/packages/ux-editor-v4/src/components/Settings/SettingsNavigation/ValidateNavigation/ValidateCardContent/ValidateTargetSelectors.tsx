@@ -26,9 +26,9 @@ const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskO
 };
 
 export type TaskSelectorProps = {
-  selectedTask: StudioSuggestionItem;
+  selectedTask?: StudioSuggestionItem;
   initialSelectedTask?: StudioSuggestionItem;
-  onChange: (value: StudioSuggestionItem) => void;
+  onChange: (value: StudioSuggestionItem | undefined) => void;
 };
 
 export const TaskSelector = ({
@@ -42,10 +42,10 @@ export const TaskSelector = ({
   return (
     <StudioSuggestion
       clearButtonLabel={t('general.clear_selection')}
-      selected={selectedTask}
+      selected={selectedTask ?? null}
       label={t('ux_editor.settings.navigation_validation_specific_task_label')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
-      onSelectedChange={onChange}
+      onSelectedChange={(selected) => onChange(selected ?? undefined)}
       multiple={false}
     >
       <RenderTaskOptions initialSelectedTasks={[initialSelectedTaskValue]} />

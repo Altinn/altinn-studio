@@ -26,9 +26,9 @@ export const DataModelBindingsCombobox = ({
     onDataModelBindingChange(value);
   };
 
-  const selectedItems: StudioSuggestionItem = dataModelBindingKey
+  const selectedItems: StudioSuggestionItem | null = dataModelBindingKey
     ? { value: dataModelBindingKey, label: dataModelBindingKey }
-    : undefined;
+    : null;
 
   const getOptionLabel = (key: string) => {
     return key === 'simpleBinding'

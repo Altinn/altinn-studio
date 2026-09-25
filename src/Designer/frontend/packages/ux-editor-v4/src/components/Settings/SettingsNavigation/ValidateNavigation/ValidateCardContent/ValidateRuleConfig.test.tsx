@@ -1,3 +1,4 @@
+import { screen, waitFor } from '@testing-library/react';
 import { renderAndRunTimers } from '@studio/ui-test';
 import { ValidateRuleConfig, type ValidateRuleConfigProps } from './ValidateRuleConfig';
 import userEvent from '@testing-library/user-event';
@@ -16,12 +17,26 @@ describe('ValidateRuleConfig', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith({ types: [{ label: optionLabel, value: 'Schema' }] });
   });
+  it('uses the existing empty scope value when the selection is cleared', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    const label = textMock('ux_editor.component_properties.enum_current');
+    renderValidateRuleConfig({ selectedPageScope: { value: 'current', label }, onChange });
+    const input = screen.getByLabelText(textMock('ux_editor.settings.navigation_validation_scope'));
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue(label));
+
+    await user.clear(input);
+    await user.tab();
+
+    expect(onChange).toHaveBeenCalledWith({ pageScope: { value: '', label: '' } });
+  });
 });
 
 const renderValidateRuleConfig = (props: Partial<ValidateRuleConfigProps> = {}) => {
   const defaultProps: ValidateRuleConfigProps = {
     selectedTypes: [],
-    selectedPageScope: null,
+    selectedPageScope: { value: '', label: '' },
     onChange: jest.fn(),
   };
   return renderAndRunTimers(<ValidateRuleConfig {...defaultProps} {...props} />);

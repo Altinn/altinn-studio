@@ -1,4 +1,5 @@
 export enum TestNames {
+  COMPONENTS = 'components',
   SETUP = 'setup',
   CREATE_APP_ONLY = 'create-app-only',
   DATA_MODEL = 'data-model',

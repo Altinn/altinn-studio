@@ -47,6 +47,11 @@ export default defineConfig<ExtendedTestOptions>({
   reporter: 'html',
 
   projects: selectProjects([
+    {
+      name: TestNames.COMPONENTS,
+      testDir: './tests/components/',
+      testMatch: '*.spec.ts',
+    },
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
     {
       name: TestNames.CREATE_APP_ONLY,

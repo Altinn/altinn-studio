@@ -53,6 +53,8 @@ export const EditColumnElement = ({
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
 
+    if (!selectedComponent) return;
+
     const bindingKey = Object.keys(selectedComponent.dataModelBindings)[0];
 
     const binding = selectedComponent?.dataModelBindings?.[bindingKey];
@@ -68,7 +70,7 @@ export const EditColumnElement = ({
     dataModelBindings: IDataModelBindingsKeyValueExplicit,
     dataModelBindingKey: string,
   ) => {
-    const { field } = dataModelBindings[dataModelBindingKey];
+    const field = dataModelBindings[dataModelBindingKey]?.field ?? '';
     const updatedTableColumn = {
       ...tableColumn,
       cellContent: { query: field },
@@ -150,13 +152,13 @@ export const EditColumnElementComponentSelect = ({
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
-    onSelectComponent(item.value);
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    onSelectComponent(item?.value ?? '');
   };
 
-  const selectedItem: StudioSuggestionItem = selectedId
+  const selectedItem: StudioSuggestionItem | null = selectedId
     ? { value: selectedId, label: selectedId }
-    : undefined;
+    : null;
 
   return (
     <StudioSuggestion

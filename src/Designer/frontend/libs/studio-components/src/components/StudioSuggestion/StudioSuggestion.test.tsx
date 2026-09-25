@@ -1,7 +1,8 @@
 import type { ForwardedRef } from 'react';
 import React from 'react';
 import { render, screen, type RenderResult } from '@testing-library/react';
-import { StudioSuggestion } from '.';
+import userEvent from '@testing-library/user-event';
+import { StudioSuggestion, type StudioSuggestionItem } from '.';
 import { type StudioSuggestionOptionProps } from './StudioSuggestionOption/StudioSuggestionOption';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
@@ -22,12 +23,13 @@ describe('StudioSuggestion', () => {
     });
   });
 
-  it('should render required label', () => {
+  it('renders the required tag next to the label text, inside the label', () => {
+    // A label inside a field is a block, so a tag placed after it would drop to its own line.
     renderStudioSuggestion({
       suggestionProps: { required: true, tagText: 'required' },
     });
 
-    expect(screen.getByText('required')).toBeInTheDocument();
+    expect(screen.getByText(defaultProps.label)).toContainElement(screen.getByText('required'));
   });
 
   it('renders the placeholder on the input when given', () => {
@@ -55,6 +57,93 @@ describe('StudioSuggestion', () => {
       () => getInput(),
     );
   });
+
+  describe('when Enter is pressed', () => {
+    it('keeps the selection when nothing has been typed', async () => {
+      const user = userEvent.setup();
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({
+        suggestionProps: { defaultSelected: firstItem, multiple: false, onSelectedChange },
+      });
+
+      await user.click(getCombobox());
+      await user.keyboard('{Enter}');
+      await user.tab();
+
+      expect(onSelectedChange).not.toHaveBeenCalled();
+      expect(getCombobox()).toHaveValue(firstItem.label);
+    });
+
+    it('selects the option whose label is typed', async () => {
+      const user = userEvent.setup();
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({ suggestionProps: { multiple: false, onSelectedChange } });
+
+      await user.type(getCombobox(), `${secondItem.label}{Enter}`);
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(1);
+      expect(onSelectedChange).toHaveBeenCalledWith(secondItem);
+    });
+
+    it('leaves text that matches no option uncommitted', async () => {
+      const user = userEvent.setup();
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({
+        suggestionProps: { defaultSelected: firstItem, multiple: false, onSelectedChange },
+      });
+
+      await user.clear(getCombobox());
+      await user.type(getCombobox(), 'Invalid{Enter}');
+
+      expect(onSelectedChange).not.toHaveBeenCalled();
+      expect(getCombobox()).toHaveValue(firstItem.label);
+    });
+
+    it('adds the option whose label is typed to a multiple selection', async () => {
+      const user = userEvent.setup();
+      const onSelectedChange = jest.fn();
+      renderStudioSuggestion({
+        suggestionProps: { defaultSelected: [firstItem], multiple: true, onSelectedChange },
+      });
+
+      await user.type(getCombobox(), `${secondItem.label}{Enter}`);
+
+      expect(onSelectedChange).toHaveBeenCalledTimes(1);
+      expect(onSelectedChange).toHaveBeenCalledWith([firstItem, secondItem]);
+    });
+
+    describe('in a creatable field', () => {
+      // Designsystemet logs that the create hint is missing, which its stylesheet provides outside jsdom.
+      beforeEach(() => jest.spyOn(console, 'log').mockImplementation(() => {}));
+      afterEach(() => jest.restoreAllMocks());
+
+      it('selects the option whose label is typed rather than creating it', async () => {
+        const user = userEvent.setup();
+        const onSelectedChange = jest.fn();
+        renderStudioSuggestion({
+          suggestionProps: { creatable: true, multiple: false, onSelectedChange },
+        });
+
+        await user.type(getCombobox(), `${secondItem.label}{Enter}`);
+
+        expect(onSelectedChange).toHaveBeenCalledTimes(1);
+        expect(onSelectedChange).toHaveBeenCalledWith(secondItem);
+      });
+
+      it('creates typed text that matches no option', async () => {
+        const user = userEvent.setup();
+        const onSelectedChange = jest.fn();
+        renderStudioSuggestion({
+          suggestionProps: { creatable: true, multiple: false, onSelectedChange },
+        });
+
+        await user.type(getCombobox(), 'New value{Enter}');
+
+        expect(onSelectedChange).toHaveBeenCalledTimes(1);
+        expect(onSelectedChange).toHaveBeenCalledWith({ value: 'New value', label: 'New value' });
+      });
+    });
+  });
 });
 
 const defaultOptions: (StudioSuggestionOptionProps & { label: string })[] = [
@@ -67,6 +156,11 @@ const defaultOptions: (StudioSuggestionOptionProps & { label: string })[] = [
     value: '2',
   },
 ];
+
+const [firstItem, secondItem]: StudioSuggestionItem[] = defaultOptions.map(({ label, value }) => ({
+  label,
+  value: String(value),
+}));
 
 const defaultProps: StudioSuggestionProps = {
   emptyText: 'Empty text',
@@ -84,6 +178,10 @@ function getClearButton(): HTMLElement {
 
 function getInput(label: string = defaultProps.label): HTMLInputElement {
   return screen.getByLabelText(label);
+}
+
+function getCombobox(): HTMLInputElement {
+  return screen.getByRole('combobox', { name: defaultProps.label });
 }
 
 function renderStudioSuggestion(

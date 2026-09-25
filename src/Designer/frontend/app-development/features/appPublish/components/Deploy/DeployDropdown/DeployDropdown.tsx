@@ -44,9 +44,8 @@ export const DeployDropdown = ({
   const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
   const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
 
-  const selectedItems: StudioSuggestionItem = selectedImageTag
-    ? imageOptions.filter((option) => option.value === selectedImageTag)[0]
-    : undefined;
+  const selectedItems: StudioSuggestionItem | null =
+    imageOptions.find((option) => option.value === selectedImageTag) ?? null;
 
   const handleSelectedChange = (item: StudioSuggestionItem | null) => {
     if (!disabled) {
