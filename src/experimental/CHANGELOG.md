@@ -40,6 +40,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Fixed
 
 - The terminal UI keeps the selection on the same Agent or Session when rows move or an Agent is folded.
+- A Claude Code Session left Idle for more than 30 days resumes its conversation instead of starting a new one. Claude
+  Code no longer deletes transcripts it considers old.
 - The terminal UI's new-Session form rejects a name the Agent already uses instead of attaching to that Session.
 
 ## [0.1.0-preview.6] - 2026-09-23
