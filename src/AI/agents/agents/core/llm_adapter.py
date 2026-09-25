@@ -146,16 +146,11 @@ class AnthropicAdapter(LLMAdapter):
                 base_url=config.AZURE_ANTHROPIC_ENDPOINT,
                 timeout=600.0,
             )
-        elif config.ANTHROPIC_API_KEY:
-            self._client = AsyncAnthropic(
-                api_key=config.ANTHROPIC_API_KEY,
-                timeout=600.0,
-            )
         else:
             raise ValueError(
                 "AnthropicAdapter requires AZURE_ANTHROPIC_ENDPOINT with "
                 "AZURE_ANTHROPIC_API_KEY (or AZURE_API_KEY when the Anthropic "
-                "endpoint is on the same resource), or ANTHROPIC_API_KEY."
+                "endpoint is on the same resource)."
             )
         self.model = model
         self.max_tokens = max_tokens
