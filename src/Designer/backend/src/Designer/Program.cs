@@ -299,7 +299,6 @@ void Configure(IConfiguration configuration)
     app.UseAuthentication();
     app.UseMiddleware<DeveloperContextMiddleware>();
     app.UseAuthorization();
-    app.UseRateLimiter();
 
     app.UseResponseCompression();
     app.UseRequestLocalization();
