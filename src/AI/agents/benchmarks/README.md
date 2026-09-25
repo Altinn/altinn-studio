@@ -40,11 +40,11 @@ no agent run and posts nothing to Langfuse.
 ## How it works
 
 Orchestration is `langfuse.run_experiment`. It runs the items, traces each task,
-isolates a failing item, records item and run level scores, and links the dataset
-run. Ours is the task and the scorers.
+isolates a failing item, records item scores, and links the dataset run. Ours
+is the task and the scorers.
 
 ```
-langfuse.run_experiment(dataset items, task=AgentTask, evaluators, run_evaluators)
+langfuse.run_experiment(dataset items, task=AgentTask, evaluators)
         │
         │  per item, one at a time
         ▼
