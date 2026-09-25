@@ -64,6 +64,7 @@ Observe
   screenshot [--out PATH]        capture the display, settled, within the screenshot budget
   zoom X Y W H [--out PATH]      capture one region at native resolution
   windows                        list mapped windows with geometry, class and title
+  tree [APPLICATION]             what is showing, as an accessibility tree with click boxes
   cursor                         print the pointer position
   display                        print display geometry and the screenshot budget
 
@@ -243,6 +244,16 @@ window_ids() {
 
 window_class() {
     xprop -id "$1" WM_CLASS 2>/dev/null | sed 's/.*, "//; s/".*//'
+}
+
+# The accessibility tree is read through AT-SPI, which has no shell binding; a small Python program
+# walks it. It is given the geometry so that its boxes are in the same pixels as a screenshot.
+command_tree() {
+    local actual_width actual_height sent_width sent_height
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    local arguments=("$actual_width" "$actual_height" "$sent_width" "$sent_height")
+    $json && arguments+=(--json)
+    "${DESKTOP_TREE:-/usr/local/libexec/agent-desktop-tree}" "${arguments[@]}" "$@"
 }
 
 command_windows() {
@@ -501,6 +512,7 @@ dispatch() {
         screenshot) command_screenshot "$@" ;;
         zoom) [ $# -ge 4 ] || fail "zoom takes X Y W H"; command_zoom "$@" ;;
         windows) command_windows ;;
+        tree) command_tree "$@" ;;
         cursor) command_cursor ;;
         display) command_display ;;
         move) command_move "$@" ;;
