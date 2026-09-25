@@ -161,6 +161,7 @@ LLM_MODEL_ACTOR=gpt-5.6-terra
 # Optional: Langfuse observability
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
 LANGFUSE_ENABLED=true
 ```
 
