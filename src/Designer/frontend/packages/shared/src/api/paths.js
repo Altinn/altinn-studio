@@ -83,6 +83,8 @@ export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
 export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
+export const subformPdfComponentPath = (org, app, layoutSetId) => `${uiFoldersLayoutSetPath(org, app, layoutSetId)}/subform-pdf-component`; // Post
+export const subformComponentsPath = (org, app) => `${uiFoldersPath(org, app)}/subform-components`; // Get
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
 export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
 
