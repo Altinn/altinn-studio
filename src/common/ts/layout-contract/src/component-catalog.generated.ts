@@ -181,7 +181,6 @@ const TRBSummarizable = {
         en: 'Title used in the summary view (overrides the default title)',
         nb: 'Tittelen som vises i oppsummeringen. Overstyrer den vanlige tittelen.',
       },
-      default: '',
       required: false,
     },
     summaryAccessibleTitle: {
@@ -192,7 +191,6 @@ const TRBSummarizable = {
         en: 'Title used for aria-label on the edit button in the summary view (overrides the default and summary title)',
         nb: 'Tittelen som brukes i aria-label på redigeringsknappen i oppsummeringen. Overstyrer både den vanlige tittelen og oppsummeringstittelen.',
       },
-      default: '',
       required: false,
     },
   },
@@ -320,7 +318,6 @@ const TRBFormComp = {
         en: 'Title used in the table view (overrides the default title)',
         nb: 'Tittelen som vises i tabellvisningen. Overstyrer den vanlige tittelen.',
       },
-      default: '',
       required: false,
     },
     shortName: {
@@ -331,7 +328,6 @@ const TRBFormComp = {
         en: 'Alternative name used for required validation messages (overrides the default title)',
         nb: 'Alternativt navn i valideringsmeldinger for påkrevde felt. Overstyrer den vanlige tittelen.',
       },
-      default: '',
       required: false,
     },
     requiredValidation: {
@@ -342,7 +338,6 @@ const TRBFormComp = {
         en: 'Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)',
         nb: 'Hele valideringsmeldingen som vises når komponenten er påkrevd og mangler verdi. Overstyrer både standardmeldingen og kortnavnet.',
       },
-      default: '',
       required: false,
     },
   },
@@ -606,7 +601,6 @@ const TRBLabel = {
         en: 'Label text/title shown above the component',
         nb: 'Ledeteksten eller tittelen som vises over komponenten.',
       },
-      default: '',
       required: false,
     },
     description: {
@@ -617,7 +611,6 @@ const TRBLabel = {
         en: 'Label description shown above the component, below the title',
         nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
       },
-      default: '',
       required: false,
     },
     help: {
@@ -628,7 +621,6 @@ const TRBLabel = {
         en: 'Help text shown in a tooltip when clicking the help button',
         nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
       },
-      default: '',
       required: false,
     },
   },
@@ -813,7 +805,6 @@ const IOptionSource = {
         en: 'A description of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
         nb: 'Beskrivelse av alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk.',
       },
-      default: '',
       examples: ['some.text.key', 'My Description'],
       required: false,
     },
@@ -825,7 +816,6 @@ const IOptionSource = {
         en: 'A help text for the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
         nb: 'Hjelpetekst for alternativet som vises i grupper med radioknapper og avkrysningsbokser. Kan være ren tekst, en tekstressursbinding eller et dynamisk uttrykk.',
       },
-      default: '',
       examples: ['some.text.key', 'My Help Text'],
       required: false,
     },
@@ -921,7 +911,6 @@ const ISelectionComponent = {
         en: 'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
         nb: 'Filtrerer listen med alternativer ved hjelp av et uttrykk. Uttrykket skal returnere true for å beholde alternativet og false for å fjerne det. Bruk ["value"] for verdien og ["value", "label"] for tekstressurs-ID-en. Tilsvarende gjelder «description» og «helpText».',
       },
-      default: true,
       required: false,
     },
   },
@@ -1331,7 +1320,6 @@ const IGridColumnProperties = {
         en: 'Number of columns this cell should span. Defaults to 1 if not set.',
         nb: 'Antall kolonner cellen skal spenne over. Standardverdien er 1.',
       },
-      default: 1,
       required: false,
     },
   },
@@ -1733,10 +1721,9 @@ const NumberFormatProps = {
         { type: 'boolean', expression: true },
         { type: 'string', expression: true },
       ],
-      default: false,
       required: false,
     },
-    decimalSeparator: { type: 'string', expression: true, default: '.', required: false },
+    decimalSeparator: { type: 'string', expression: true, required: false },
     allowedDecimalSeparators: {
       type: 'array',
       items: { type: 'string' },
@@ -1753,8 +1740,8 @@ const NumberFormatProps = {
     fixedDecimalScale: { type: 'boolean', required: false },
     allowNegative: { type: 'boolean', required: false },
     allowLeadingZeros: { type: 'boolean', required: false },
-    suffix: { type: 'string', expression: true, default: '', required: false },
-    prefix: { type: 'string', expression: true, default: '', required: false },
+    suffix: { type: 'string', expression: true, required: false },
+    prefix: { type: 'string', expression: true, required: false },
   },
   additionalProperties: false,
   title: { en: 'Number formatting options', nb: 'Innstillinger for tallformat' },
@@ -4582,7 +4569,6 @@ const generatedContract = {
                 en: 'The title of the accordion',
                 nb: 'Ledeteksten til trekkspillelementet.',
               },
-              default: '',
               required: false,
             },
           },
@@ -4676,7 +4662,6 @@ const generatedContract = {
                 en: 'The title of the accordion group',
                 nb: 'Ledeteksten til trekkspillgruppen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -4750,7 +4735,6 @@ const generatedContract = {
                 en: 'The text to display on the button.',
                 nb: 'Teksten som vises på knappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -4834,7 +4818,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'Title of the component', nb: 'Ledeteksten til komponenten.' },
-              default: '',
               required: false,
             },
             careOfTitle: {
@@ -4842,7 +4825,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Care Of Title', nb: 'Ledetekst for c/o' },
               description: { en: 'Title for care-of', nb: 'Ledetekst for c/o.' },
-              default: '',
               required: false,
             },
             zipCodeTitle: {
@@ -4850,7 +4832,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Zip Code Title', nb: 'Ledetekst for postnummer' },
               description: { en: 'Title for the zip code', nb: 'Ledetekst for postnummer.' },
-              default: '',
               required: false,
             },
             postPlaceTitle: {
@@ -4858,7 +4839,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Post place Title', nb: 'Ledetekst for poststed' },
               description: { en: 'Title for post place', nb: 'Ledetekst for poststed.' },
-              default: '',
               required: false,
             },
             houseNumberTitle: {
@@ -4866,7 +4846,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'House number Title', nb: 'Ledetekst for husnummer' },
               description: { en: 'Title for house number', nb: 'Ledetekst for husnummer.' },
-              default: '',
               required: false,
             },
           },
@@ -4889,7 +4868,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -4987,7 +4965,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -5058,7 +5035,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title of the alert', nb: 'Ledeteksten til varselet.' },
-              default: '',
               required: false,
             },
             body: {
@@ -5066,7 +5042,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Body', nb: 'Brødtekst' },
               description: { en: 'The body text of the alert', nb: 'Brødteksten i varselet.' },
-              default: '',
               required: false,
             },
           },
@@ -5135,7 +5110,6 @@ const generatedContract = {
                 en: 'Title shown above the attachment list',
                 nb: 'Ledeteksten som vises over vedleggslisten.',
               },
-              default: '',
               required: false,
             },
           },
@@ -5234,7 +5208,6 @@ const generatedContract = {
                 en: 'Alternative text for the audio (for screen readers).',
                 nb: 'Alternativ tekst for lydinnholdet, beregnet på skjermlesere.',
               },
-              default: '',
               required: false,
             },
           },
@@ -5302,7 +5275,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
-              default: '',
               required: false,
             },
           },
@@ -5566,7 +5538,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -5666,7 +5637,6 @@ const generatedContract = {
                 en: 'Title (passed on as the "text" property to the component)',
                 nb: 'Ledeteksten, sendt til komponentens «text»-egenskap.',
               },
-              default: '',
               required: false,
             },
           },
@@ -5689,7 +5659,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -5790,7 +5759,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
-              default: '',
               required: false,
             },
             tableTitle: {
@@ -5801,7 +5769,6 @@ const generatedContract = {
                 en: 'The title/text for the button when rendered in a table',
                 nb: 'Knappeteksten når knappen vises i en tabell.',
               },
-              default: '',
               required: false,
             },
           },
@@ -5974,7 +5941,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -6190,7 +6156,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -6272,7 +6237,6 @@ const generatedContract = {
                 en: 'The title to show when selecting a tag for each uploaded file',
                 nb: 'Ledeteksten som vises når brukeren velger en tagg for hver opplastede fil.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6295,7 +6259,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -6506,7 +6469,6 @@ const generatedContract = {
                 en: 'The title of the group (shown above the group)',
                 nb: 'Ledeteksten som vises over gruppen.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -6517,7 +6479,6 @@ const generatedContract = {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -6528,7 +6489,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6623,7 +6583,6 @@ const generatedContract = {
                 en: 'The text to display in the heading',
                 nb: 'Teksten som vises i overskriften.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -6634,7 +6593,6 @@ const generatedContract = {
                 en: 'The text to display in the help tooltip/popup',
                 nb: 'Teksten som vises i hjelpetekstvinduet.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6700,7 +6658,6 @@ const generatedContract = {
                 en: 'The content of the IFrame. Can for example be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model',
                 nb: 'Innholdet i IFrame-komponenten. Kan være en streng med HTML, en tekstressursnøkkel eller et uttrykk som henter en verdi fra datamodellen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6765,7 +6722,6 @@ const generatedContract = {
                 en: 'Alternative text for the image (for screen readers).',
                 nb: 'Alternativ tekst for bildet, beregnet på skjermlesere.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -6776,7 +6732,6 @@ const generatedContract = {
                 en: 'Help text for the image (shown in help text tooltip/popup)',
                 nb: 'Hjelpetekst for bildet, vist i et hjelpetekstvindu.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6880,7 +6835,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -6958,7 +6912,6 @@ const generatedContract = {
                 en: 'Prefix shown before the input field',
                 nb: 'Prefiks som vises foran inndatafeltet.',
               },
-              default: '',
               required: false,
             },
             suffix: {
@@ -6969,7 +6922,6 @@ const generatedContract = {
                 en: 'Suffix shown after the input field',
                 nb: 'Suffiks som vises etter inndatafeltet.',
               },
-              default: '',
               required: false,
             },
           },
@@ -6992,7 +6944,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -7225,7 +7176,6 @@ const generatedContract = {
                 en: 'The title/text to display on the button',
                 nb: 'Teksten som vises på knappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -7307,7 +7257,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title of the group', nb: 'Ledeteksten til gruppen.' },
-              default: '',
               required: false,
             },
             description: {
@@ -7318,7 +7267,6 @@ const generatedContract = {
                 en: 'The description text for the Likert table.',
                 nb: 'Beskrivelsen av Likert-tabellen.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -7329,7 +7277,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
             leftColumnHeader: {
@@ -7340,7 +7287,6 @@ const generatedContract = {
                 en: 'The header text for the left column in the Likert table',
                 nb: 'Overskriften for venstre kolonne i Likert-tabellen.',
               },
-              default: '',
               required: false,
             },
             questions: {
@@ -7351,7 +7297,6 @@ const generatedContract = {
                 en: 'The questions to be displayed in each row (use a dynamic text resource)',
                 nb: 'Spørsmålene som vises i hver rad. Bruk en dynamisk tekstressurs.',
               },
-              default: '',
               required: false,
             },
             questionDescriptions: {
@@ -7362,7 +7307,6 @@ const generatedContract = {
                 en: 'The descriptions to be displayed in each row (use a dynamic text resource)',
                 nb: 'Beskrivelsene som vises i hver rad. Bruk en dynamisk tekstressurs.',
               },
-              default: '',
               required: false,
             },
             questionHelpTexts: {
@@ -7373,7 +7317,6 @@ const generatedContract = {
                 en: 'The help texts to be displayed in each row (use a dynamic text resource)',
                 nb: 'Hjelpetekstene som vises i hver rad. Bruk en dynamisk tekstressurs.',
               },
-              default: '',
               required: false,
             },
           },
@@ -7396,7 +7339,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -7467,7 +7409,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Target', nb: 'Mål' },
               description: { en: 'The target of the link', nb: 'Målet for lenken.' },
-              default: '',
               required: false,
             },
             title: {
@@ -7475,7 +7416,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title/text of the link', nb: 'Teksten på lenken.' },
-              default: '',
               required: false,
             },
             download: {
@@ -7486,7 +7426,6 @@ const generatedContract = {
                 en: 'Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.',
                 nb: 'Laster ned målet i stedet for å navigere til det. En verdi brukes som filnavn for den nedlastede filen. En tom verdi bruker standardfilnavnet.',
               },
-              default: '',
               required: false,
             },
           },
@@ -7584,7 +7523,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -7752,7 +7690,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -7888,7 +7825,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -8010,7 +7946,6 @@ const generatedContract = {
                 en: 'Text on the back/previous page button',
                 nb: 'Teksten på knappen for å gå tilbake til forrige side.',
               },
-              default: '',
               required: false,
             },
             next: {
@@ -8021,7 +7956,6 @@ const generatedContract = {
                 en: 'Text on the next page button',
                 nb: 'Teksten på knappen for å gå til neste side.',
               },
-              default: '',
               required: false,
             },
             backToPage: {
@@ -8032,7 +7966,6 @@ const generatedContract = {
                 en: 'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
                 nb: 'Teksten på knappen «Tilbake til side» når uttrykket linkToPage eller linkToComponent brukes.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8296,7 +8229,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title of the component', nb: 'Ledeteksten til komponenten.' },
-              default: '',
               required: false,
             },
             description: {
@@ -8307,7 +8239,6 @@ const generatedContract = {
                 en: 'Description, optionally shown below the title',
                 nb: 'Valgfri beskrivelse som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -8318,7 +8249,6 @@ const generatedContract = {
                 en: 'Help text, optionally shown next to the title',
                 nb: 'Valgfri hjelpetekst som vises ved ledeteksten.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8341,7 +8271,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -8436,7 +8365,6 @@ const generatedContract = {
                 en: 'Header/title of the panel',
                 nb: 'Overskriften eller tittelen i panelet.',
               },
-              default: '',
               required: false,
             },
             body: {
@@ -8444,7 +8372,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Body', nb: 'Brødtekst' },
               description: { en: 'Body of the panel', nb: 'Brødteksten i panelet.' },
-              default: '',
               required: false,
             },
           },
@@ -8521,7 +8448,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title of the paragraph', nb: 'Ledeteksten til avsnittet.' },
-              default: '',
               required: false,
             },
             help: {
@@ -8532,7 +8458,6 @@ const generatedContract = {
                 en: 'Help text, optionally shown in a tooltip',
                 nb: 'Valgfri hjelpetekst som vises i et hjelpetekstvindu.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8595,7 +8520,6 @@ const generatedContract = {
                 en: 'The title of the payment component',
                 nb: 'Ledeteksten til betalingskomponenten.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -8606,7 +8530,6 @@ const generatedContract = {
                 en: 'Description, optionally shown below the title',
                 nb: 'Valgfri beskrivelse som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -8617,7 +8540,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8679,7 +8601,6 @@ const generatedContract = {
                 en: 'The title of the payment details',
                 nb: 'Ledeteksten til betalingsdetaljene.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -8690,7 +8611,6 @@ const generatedContract = {
                 en: 'Description, optionally shown below the title',
                 nb: 'Valgfri beskrivelse som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -8701,7 +8621,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8774,7 +8693,6 @@ const generatedContract = {
                 en: 'The text to display on the button.',
                 nb: 'Teksten som vises på knappen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8850,7 +8768,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title of the component', nb: 'Ledeteksten til komponenten.' },
-              default: '',
               required: false,
             },
             description: {
@@ -8861,7 +8778,6 @@ const generatedContract = {
                 en: 'Description, optionally shown below the title',
                 nb: 'Valgfri beskrivelse som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -8872,7 +8788,6 @@ const generatedContract = {
                 en: 'Help text, optionally shown next to the title',
                 nb: 'Valgfri hjelpetekst som vises ved ledeteksten.',
               },
-              default: '',
               required: false,
             },
           },
@@ -8895,7 +8810,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -8953,7 +8867,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Title', nb: 'Ledetekst' },
               description: { en: 'The title/text on the button', nb: 'Teksten på knappen.' },
-              default: '',
               required: false,
             },
           },
@@ -9049,7 +8962,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -9157,7 +9069,6 @@ const generatedContract = {
                 en: 'The title of the group (shown above each instance in a Summary)',
                 nb: 'Ledeteksten til gruppen, vist over hver forekomst i en oppsummering.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -9168,7 +9079,6 @@ const generatedContract = {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -9179,7 +9089,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
             addButtonFull: {
@@ -9193,7 +9102,6 @@ const generatedContract = {
                 en: 'The text for the "Add" button (overrides "addButton", and sets the full text for the button)',
                 nb: 'Teksten på «Legg til»-knappen. Overstyrer «addButton» og angir hele knappeteksten.',
               },
-              default: '',
               required: false,
             },
             addButton: {
@@ -9207,7 +9115,6 @@ const generatedContract = {
                 en: 'The text for the "Add" button (used as a suffix after the default button text)',
                 nb: 'Teksten som legges til etter standardteksten på «Legg til»-knappen.',
               },
-              default: '',
               required: false,
             },
             saveButton: {
@@ -9221,7 +9128,6 @@ const generatedContract = {
                 en: 'The text for the "Save" button when the repeating group item is in edit mode',
                 nb: 'Teksten på «Lagre»-knappen når raden i den repeterende gruppen redigeres.',
               },
-              default: '',
               required: false,
             },
             saveAndNextButton: {
@@ -9235,7 +9141,6 @@ const generatedContract = {
                 en: 'The text for the "Save and next" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)',
                 nb: 'Teksten på «Lagre og neste»-knappen når raden redigeres. Vises bare når edit.saveAndNextButton er true.',
               },
-              default: '',
               required: false,
             },
             editButtonClose: {
@@ -9249,7 +9154,6 @@ const generatedContract = {
                 en: 'The text for the "Edit" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)',
                 nb: 'Teksten på «Rediger»-knappen når raden redigeres og brukeren kan lukke redigeringsvisningen.',
               },
-              default: '',
               required: false,
             },
             editButtonOpen: {
@@ -9263,7 +9167,6 @@ const generatedContract = {
                 en: 'The text for the "Edit" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)',
                 nb: 'Teksten på «Rediger»-knappen når raden i den repeterende gruppen ikke redigeres.',
               },
-              default: '',
               required: false,
             },
             paginationNextButton: {
@@ -9274,7 +9177,6 @@ const generatedContract = {
                 en: 'The text for the "Next" button in pagination',
                 nb: 'Teksten på «Neste»-knappen i paginering.',
               },
-              default: '',
               required: false,
             },
             paginationBackButton: {
@@ -9285,7 +9187,6 @@ const generatedContract = {
                 en: 'The text for the "Back" button in pagination',
                 nb: 'Teksten på «Tilbake»-knappen i paginering.',
               },
-              default: '',
               required: false,
             },
             multipageBackButton: {
@@ -9299,7 +9200,6 @@ const generatedContract = {
                 en: 'The text for the "Back" button in multipage navigation',
                 nb: 'Teksten på «Tilbake»-knappen i flersidenavigasjon.',
               },
-              default: '',
               required: false,
             },
             multipageNextButton: {
@@ -9313,7 +9213,6 @@ const generatedContract = {
                 en: 'The text for the "Next" button in multipage navigation',
                 nb: 'Teksten på «Neste»-knappen i flersidenavigasjon.',
               },
-              default: '',
               required: false,
             },
           },
@@ -9356,7 +9255,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -9541,7 +9439,6 @@ const generatedContract = {
                 en: 'Header/title of the list',
                 nb: 'Overskriften eller ledeteksten til listen.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -9549,7 +9446,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Description', nb: 'Beskrivelse' },
               description: { en: 'Description of the list', nb: 'Beskrivelse av listen.' },
-              default: '',
               required: false,
             },
             help: {
@@ -9557,7 +9453,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Help', nb: 'Hjelp' },
               description: { en: 'Help text of the list', nb: 'Hjelpetekst for listen.' },
-              default: '',
               required: false,
             },
             summaryTitle: {
@@ -9565,7 +9460,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'SummaryTitle', nb: 'Tittel i oppsummering' },
               description: { en: 'Title of the summary', nb: 'Ledeteksten til oppsummeringen.' },
-              default: '',
               required: false,
             },
           },
@@ -9627,7 +9521,6 @@ const generatedContract = {
                 en: 'The title of the panel that is displayed when the user should sign',
                 nb: 'Tittelen på panelet som vises når brukeren skal signere.',
               },
-              default: '',
               required: false,
             },
             checkboxLabel: {
@@ -9638,7 +9531,6 @@ const generatedContract = {
                 en: 'The text to display when a user is asked to confirm what they are signing',
                 nb: 'Teksten som vises når brukeren skal bekrefte hva de signerer.',
               },
-              default: '',
               required: false,
             },
             checkboxDescription: {
@@ -9649,7 +9541,6 @@ const generatedContract = {
                 en: 'A text that describes the checkbox label in more detail if needed',
                 nb: 'En utfyllende beskrivelse av ledeteksten til avkrysningsboksen.',
               },
-              default: '',
               required: false,
             },
             signingButton: {
@@ -9660,7 +9551,6 @@ const generatedContract = {
                 en: 'The text to display in the button that the user clicks in order to sign',
                 nb: 'Teksten på knappen brukeren velger for å signere.',
               },
-              default: '',
               required: false,
             },
             noActionRequiredPanelTitleHasSigned: {
@@ -9674,7 +9564,6 @@ const generatedContract = {
                 en: 'The title of the panel that is displayed when the user has signed and no further action is required',
                 nb: 'Tittelen på panelet som vises når brukeren har signert og ikke trenger å gjøre mer.',
               },
-              default: '',
               required: false,
             },
             noActionRequiredPanelTitleNotSigned: {
@@ -9688,7 +9577,6 @@ const generatedContract = {
                 en: 'The title of the panel that is displayed when the user has not signed and no further action is required',
                 nb: 'Tittelen på panelet som vises når brukeren ikke har signert og ikke trenger å gjøre mer.',
               },
-              default: '',
               required: false,
             },
             noActionRequiredPanelDescriptionHasSigned: {
@@ -9702,7 +9590,6 @@ const generatedContract = {
                 en: 'The description of the panel that is displayed when the user has signed and no further action is required',
                 nb: 'Beskrivelsen av panelet som vises når brukeren har signert og ikke trenger å gjøre mer.',
               },
-              default: '',
               required: false,
             },
             noActionRequiredPanelDescriptionNotSigned: {
@@ -9716,7 +9603,6 @@ const generatedContract = {
                 en: 'The description of the panel that is displayed when the user has not signed and no further action is required',
                 nb: 'Beskrivelsen av panelet som vises når brukeren ikke har signert og ikke trenger å gjøre mer.',
               },
-              default: '',
               required: false,
             },
             noActionRequiredButton: {
@@ -9727,7 +9613,6 @@ const generatedContract = {
                 en: 'The text to display in the button that the user clicks in order to go to the inbox and no further action is required',
                 nb: 'Teksten på knappen som går til innboksen når brukeren ikke trenger å gjøre mer.',
               },
-              default: '',
               required: false,
             },
             awaitingOtherSignaturesPanelTitle: {
@@ -9741,7 +9626,6 @@ const generatedContract = {
                 en: 'The title for the panel when the signing task is not ready for submit',
                 nb: 'Tittelen på panelet når signeringsoppgaven ikke kan sendes inn.',
               },
-              default: '',
               required: false,
             },
             awaitingOtherSignaturesPanelDescriptionNotSigning: {
@@ -9755,7 +9639,6 @@ const generatedContract = {
                 en: 'The description for the panel when the current user is not signing',
                 nb: 'Beskrivelsen av panelet når den gjeldende brukeren ikke skal signere.',
               },
-              default: '',
               required: false,
             },
             awaitingOtherSignaturesPanelDescriptionSigned: {
@@ -9766,7 +9649,6 @@ const generatedContract = {
                 en: 'The description for the panel when the current user has signed',
                 nb: 'Beskrivelsen av panelet når den gjeldende brukeren har signert.',
               },
-              default: '',
               required: false,
             },
             submitPanelTitle: {
@@ -9777,7 +9659,6 @@ const generatedContract = {
                 en: 'The title for the panel when the signing task is ready for submit',
                 nb: 'Tittelen på panelet når signeringsoppgaven kan sendes inn.',
               },
-              default: '',
               required: false,
             },
             submitPanelDescription: {
@@ -9791,7 +9672,6 @@ const generatedContract = {
                 en: 'The description for the panel when the signing task is ready for submit',
                 nb: 'Beskrivelsen av panelet når signeringsoppgaven kan sendes inn.',
               },
-              default: '',
               required: false,
             },
             submitButton: {
@@ -9802,7 +9682,6 @@ const generatedContract = {
                 en: 'The text to display in the button that the user clicks in order to submit the signing task',
                 nb: 'Teksten på knappen som sender inn signeringsoppgaven.',
               },
-              default: '',
               required: false,
             },
             errorPanelTitle: {
@@ -9813,7 +9692,6 @@ const generatedContract = {
                 en: 'The title of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
                 nb: 'Tittelen på panelet som vises når minst én signatar er ugyldig og ikke har fått tilgang til skjemaet.',
               },
-              default: '',
               required: false,
             },
             errorPanelDescription: {
@@ -9824,7 +9702,6 @@ const generatedContract = {
                 en: 'The description of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form',
                 nb: 'Beskrivelsen av panelet som vises når minst én signatar er ugyldig og ikke har fått tilgang til skjemaet.',
               },
-              default: '',
               required: false,
             },
             rejectModalTitle: {
@@ -9835,7 +9712,6 @@ const generatedContract = {
                 en: 'The title of the modal that is displayed when the use clicked on the reject button',
                 nb: 'Tittelen på dialogen som vises når brukeren velger avvisningsknappen.',
               },
-              default: '',
               required: false,
             },
             rejectModalDescription: {
@@ -9846,7 +9722,6 @@ const generatedContract = {
                 en: 'The description of the modal that is displayed when the use clicked on the reject button',
                 nb: 'Beskrivelsen av dialogen som vises når brukeren velger avvisningsknappen.',
               },
-              default: '',
               required: false,
             },
             rejectModalButton: {
@@ -9857,7 +9732,6 @@ const generatedContract = {
                 en: 'The text to display in the button that the user clicks in the modal in order to confirm reject of the signing task',
                 nb: 'Teksten på knappen som bekrefter avvisning av signeringsoppgaven.',
               },
-              default: '',
               required: false,
             },
             rejectModalCloseButton: {
@@ -9868,7 +9742,6 @@ const generatedContract = {
                 en: 'The text to display in the button that closes the modal without rejecting the signing task, i.e. continuing the signing',
                 nb: 'Teksten på knappen som lukker dialogen uten å avvise signeringsoppgaven.',
               },
-              default: '',
               required: false,
             },
             rejectModalTriggerButton: {
@@ -9882,7 +9755,6 @@ const generatedContract = {
                 en: 'The text to display in the button that triggers the reject modal',
                 nb: 'Teksten på knappen som åpner avvisningsdialogen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -9944,7 +9816,6 @@ const generatedContract = {
                 en: 'Header/title of the list',
                 nb: 'Overskriften eller ledeteksten til listen.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -9952,7 +9823,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Description', nb: 'Beskrivelse' },
               description: { en: 'Description of the list', nb: 'Beskrivelse av listen.' },
-              default: '',
               required: false,
             },
             help: {
@@ -9960,7 +9830,6 @@ const generatedContract = {
               expression: true,
               title: { en: 'Help', nb: 'Hjelp' },
               description: { en: 'Help text of the list', nb: 'Hjelpetekst for listen.' },
-              default: '',
               required: false,
             },
             summaryTitle: {
@@ -9971,7 +9840,6 @@ const generatedContract = {
                 en: 'Header/title of the summary',
                 nb: 'Overskriften eller ledeteksten til oppsummeringen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -10057,7 +9925,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -10175,7 +10042,6 @@ const generatedContract = {
                 en: 'The title of the subform component',
                 nb: 'Ledeteksten til underskjemakomponenten.',
               },
-              default: '',
               required: false,
             },
             description: {
@@ -10186,7 +10052,6 @@ const generatedContract = {
                 en: 'The description text shown underneath the title',
                 nb: 'Beskrivelsen som vises under ledeteksten.',
               },
-              default: '',
               required: false,
             },
             help: {
@@ -10197,7 +10062,6 @@ const generatedContract = {
                 en: 'Help text shown in a tooltip when clicking the help button',
                 nb: 'Hjelpetekst som vises når brukeren klikker på hjelpeknappen.',
               },
-              default: '',
               required: false,
             },
             addButton: {
@@ -10208,7 +10072,6 @@ const generatedContract = {
                 en: 'The text for the "Add" button (used as a suffix after the default button text)',
                 nb: 'Teksten som legges til etter standardteksten på «Legg til»-knappen.',
               },
-              default: '',
               required: false,
             },
             tableEditButton: {
@@ -10219,7 +10082,6 @@ const generatedContract = {
                 en: 'The text for the "Edit" button in the table rows',
                 nb: 'Teksten på «Rediger»-knappen i tabellradene.',
               },
-              default: 'general.edit',
               required: false,
             },
           },
@@ -10242,7 +10104,7 @@ const generatedContract = {
         },
         showAddButton: { type: 'boolean', default: true, required: false },
         showDeleteButton: { type: 'boolean', default: true, required: false },
-        entryDisplayName: { type: 'string', expression: true, default: '', required: false },
+        entryDisplayName: { type: 'string', expression: true, required: false },
         tableColumns: {
           type: 'array',
           items: {
@@ -10366,7 +10228,6 @@ const generatedContract = {
                 en: 'Used to specify the text on the NavigationButtons component that should be used after clicking "Change" on the summary component',
                 nb: 'Angir teksten i NavigationButtons-komponenten etter at brukeren har valgt «Endre» i oppsummeringen.',
               },
-              default: '',
               required: false,
             },
           },
@@ -10656,7 +10517,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -10766,7 +10626,6 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
-          default: false,
           required: false,
         },
         dataModelBindings: {
@@ -10806,7 +10665,6 @@ const generatedContract = {
             en: 'Sets the earliest allowed time in HH:mm format.',
             nb: 'Angir tidligste tillatte klokkeslett i formatet HH:mm.',
           },
-          default: '',
           examples: ['08:00', '09:30'],
           required: false,
         },
@@ -10818,7 +10676,6 @@ const generatedContract = {
             en: 'Sets the latest allowed time in HH:mm format.',
             nb: 'Angir seneste tillatte klokkeslett i formatet HH:mm.',
           },
-          default: '',
           examples: ['17:00', '23:30'],
           required: false,
         },
@@ -10869,7 +10726,6 @@ const generatedContract = {
                 en: 'Alternative text for the video (for screen readers).',
                 nb: 'Alternativ tekst for videoen, beregnet på skjermlesere.',
               },
-              default: '',
               required: false,
             },
           },

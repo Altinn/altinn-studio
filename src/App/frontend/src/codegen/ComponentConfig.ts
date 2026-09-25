@@ -171,6 +171,7 @@ export class ComponentConfig {
         new CG.prop(
           'removeWhenHidden',
           new CG.expr(ExprVal.Boolean)
+            .setFallback(false)
             .setTitle(
               'Remove fields from component dataModelBindings when hidden expression is true',
               'Behold datamodellfelter når komponenten skjules',
@@ -180,7 +181,7 @@ export class ComponentConfig {
                 'referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
               'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
             )
-            .optional({ default: false }),
+            .optional(),
         ),
       );
     }

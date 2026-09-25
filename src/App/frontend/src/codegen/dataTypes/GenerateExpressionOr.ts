@@ -37,7 +37,10 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
 
   private expressionFallback?: ExprValToActual<Val>;
 
-  /** Required expressions need a value to return when evaluation fails. */
+  /**
+   * Sets the value returned when expression evaluation fails. If omitted, the default passed to
+   * `.optional()` is used. Properties without that default need an explicit fallback.
+   */
   setFallback(value: ExprValToActual<Val>): this {
     this.ensureMutable();
     this.expressionFallback = value;
@@ -45,20 +48,22 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
   }
 
   getExpressionFallback(): ExprValToActual<Val> {
-    if (this.internal.optional && this.expressionFallback !== undefined) {
-      throw new Error(`Optional expression ${this.getName() ?? this.valueType} cannot have an explicit fallback`);
-    }
-    const fallback = this.internal.optional ? this.internal.optional.default : this.expressionFallback;
+    const fallback =
+      this.expressionFallback !== undefined
+        ? this.expressionFallback
+        : this.internal.optional
+          ? this.internal.optional.default
+          : undefined;
     if (fallback === undefined) {
       throw new Error(`Expression ${this.getName() ?? this.valueType} needs an explicit fallback in its declaration`);
     }
     return fallback;
   }
 
-  toDescriptor(componentType: string, propertyPath: string, fallback?: unknown): string {
+  toDescriptor(componentType: string, propertyPath: string): string {
     return GenerateExpressionOr.renderDescriptor(
       this.valueType,
-      fallback === undefined ? this.getExpressionFallback() : fallback,
+      this.getExpressionFallback(),
       componentType,
       propertyPath,
     );

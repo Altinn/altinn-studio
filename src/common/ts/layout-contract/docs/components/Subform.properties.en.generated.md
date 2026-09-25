@@ -202,7 +202,6 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="textResourceBindings.tableEditButton">textResourceBindings.tableEditButton</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
-            <span class="component-property-default">Default: <span class="component-property-value">&quot;general.edit&quot;</span></span>
             <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
           </span>
         </summary>

@@ -860,12 +860,12 @@ export const Expressions = {
     } satisfies ExpressionDescriptor<ExprVal.Boolean>,
     minDate: {
       returnType: ExprVal.String,
-      defaultValue: '1900-01-01T12:00:00.000Z',
+      defaultValue: '',
       errorIntroText: 'Invalid expression for Datepicker, property minDate',
     } satisfies ExpressionDescriptor<ExprVal.String>,
     maxDate: {
       returnType: ExprVal.String,
-      defaultValue: '2100-01-01T12:00:00.000Z',
+      defaultValue: '',
       errorIntroText: 'Invalid expression for Datepicker, property maxDate',
     } satisfies ExpressionDescriptor<ExprVal.String>,
   },
@@ -4593,4 +4593,4 @@ export const CommonExpressions = {
   },
 } as const;
 
-// Source hash: 97bda398fdcec34c08ac073709cbab9d48f2762f806403d162d8e489ecc700f8
+// Source hash: a1c5ed5550414c96f29c6998f372d84dff60bab60c142bb042375db2e8db4c04
