@@ -5,6 +5,7 @@ resources.
 External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
 `studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
 host-mediated API key.
+`typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
 
 Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 

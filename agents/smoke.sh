@@ -30,6 +30,8 @@ gh stack --version
 asciinema --version
 agg --version
 nvim --version | head -1
+typos --version
+hunspell -v | head -1
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
