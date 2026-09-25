@@ -36,7 +36,7 @@ export const Config = new CG.component({
   )
   .addProperty(new CG.prop('showAddButton', new CG.bool().optional({ default: true })))
   .addProperty(new CG.prop('showDeleteButton', new CG.bool().optional({ default: true })))
-  .addProperty(new CG.prop('entryDisplayName', new CG.expr(ExprVal.String).optional({ default: '' })))
+  .addProperty(new CG.prop('entryDisplayName', new CG.expr(ExprVal.String).setFallback('').optional()))
   .addProperty(
     new CG.prop(
       'tableColumns',
@@ -163,7 +163,7 @@ export const Config = new CG.component({
         en: 'The text for the "Edit" button in the table rows',
         nb: 'Teksten på «Rediger»-knappen i tabellradene.',
       },
-    }).setDefault('general.edit'),
+    }).setFallback('general.edit'),
   )
   .addSummaryOverrides((obj) => {
     obj.addProperty(

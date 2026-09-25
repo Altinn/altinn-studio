@@ -68,7 +68,6 @@
         "navigationTitle": {
           "title": "Navigation title",
           "description": "Overrides the default \"Skjemasider\" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.",
-          "default": "navigation.form_pages",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "taskNavigation": {

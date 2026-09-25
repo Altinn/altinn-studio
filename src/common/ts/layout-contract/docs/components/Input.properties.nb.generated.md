@@ -242,7 +242,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="removeWhenHidden">removeWhenHidden</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
-      <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
       <span class="component-property-type" title="boolean | expression&lt;boolean&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt;</span></span>
     </span>
   </summary>
@@ -391,7 +390,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="formatting.number.thousandSeparator">formatting.number.thousandSeparator</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">false</span></span>
             <span class="component-property-type" title="boolean | expression&lt;boolean&gt; | string | expression&lt;string&gt;">Type: <span class="component-property-value">boolean | expression&lt;boolean&gt; | string | expression&lt;string&gt;</span></span>
           </span>
         </div>
@@ -402,7 +400,6 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="formatting.number.decimalSeparator">formatting.number.decimalSeparator</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
-            <span class="component-property-default">Standardverdi: <span class="component-property-value">&quot;.&quot;</span></span>
             <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
           </span>
         </div>

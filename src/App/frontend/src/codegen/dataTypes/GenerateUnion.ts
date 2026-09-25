@@ -19,12 +19,20 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
     this.types = types;
   }
 
+  private expressionFallback?: Extract<U[number]>;
+
+  /** Runtime fallback for a union accepting multiple expression return types. */
+  setExpressionFallback(value: Extract<U[number]>): this {
+    this.ensureMutable();
+    this.expressionFallback = value;
+    return this;
+  }
+
   getExpressionFallback(): Extract<U[number]> {
-    const fallback = this.internal.optional ? this.internal.optional.default : undefined;
-    if (fallback === undefined) {
-      throw new Error('An expression union needs an optional default');
+    if (this.expressionFallback === undefined) {
+      throw new Error('A union of expression return types needs an explicit runtime fallback');
     }
-    return fallback;
+    return this.expressionFallback;
   }
 
   getTypes(): readonly CodeGenerator<unknown>[] {

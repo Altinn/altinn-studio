@@ -42,8 +42,8 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'minTime',
-      new CG.union(new CG.expr(ExprVal.String), new CG.str())
-        .optional({ default: '' })
+      new CG.union(new CG.expr(ExprVal.String).setFallback(''), new CG.str())
+        .optional()
         .setTitle('Earliest time', 'Tidligste klokkeslett')
         .setDescription(
           'Sets the earliest allowed time in HH:mm format.',
@@ -55,8 +55,8 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'maxTime',
-      new CG.union(new CG.expr(ExprVal.String), new CG.str())
-        .optional({ default: '' })
+      new CG.union(new CG.expr(ExprVal.String).setFallback(''), new CG.str())
+        .optional()
         .setTitle('Latest time', 'Seneste klokkeslett')
         .setDescription(
           'Sets the latest allowed time in HH:mm format.',
