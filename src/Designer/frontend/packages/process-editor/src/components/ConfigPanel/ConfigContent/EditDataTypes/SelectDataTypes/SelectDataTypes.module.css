@@ -1,0 +1,23 @@
+.buttons {
+  display: flex;
+  gap: var(--ds-size-3);
+  padding-top: var(--ds-size-3);
+}
+
+.dataTypeSelect {
+  flex: 1;
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.dataTypeSelectAndButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: var(--ds-size-4);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-3);
+}

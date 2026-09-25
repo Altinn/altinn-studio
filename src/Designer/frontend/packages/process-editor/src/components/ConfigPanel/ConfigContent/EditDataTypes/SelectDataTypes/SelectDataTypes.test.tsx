@@ -1,0 +1,231 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import userEvent from '@testing-library/user-event';
+import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
+import { BpmnApiContext } from '../../../../../contexts/BpmnApiContext';
+import { BpmnContext } from '../../../../../contexts/BpmnContext';
+import type { SelectDataTypesProps } from './SelectDataTypes';
+import { SelectDataTypes } from './SelectDataTypes';
+import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
+import {
+  mockBpmnApiContextValue,
+  mockBpmnContextValue,
+} from '../../../../../../test/mocks/bpmnContextMock';
+
+const connectedTaskId = mockBpmnApiContextValue.layoutSets[0].taskId;
+const mockOnClose = jest.fn();
+
+const defaultSelectDataTypeProps: SelectDataTypesProps = {
+  connectedTaskId,
+  dataModelIds: [],
+  existingDataType: undefined,
+  onClose: mockOnClose,
+};
+
+describe('SelectDataTypes', () => {
+  afterEach(jest.clearAllMocks);
+
+  it('should call updateDataTypes with new data type when new option is clicked', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypesMock = jest.fn();
+    const dataTypeToConnect = 'dataModel0';
+    const dataModelIds = [dataTypeToConnect, 'dataModel1', 'dataModel2'];
+
+    renderSelectDataTypes(
+      { dataModelIds },
+      {
+        mutateDataTypes: mutateDataTypesMock,
+      },
+    );
+    const suggestionInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+    await user.click(suggestionInput);
+    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+
+    await waitFor(() =>
+      expect(mutateDataTypesMock).toHaveBeenCalledWith({
+        connectedTaskId,
+        newDataTypes: [dataTypeToConnect],
+      }),
+    );
+  });
+
+  it('should add existing data type to combobox options', async () => {
+    const user = userEvent.setup();
+    const existingDataType = 'dataModel0';
+    const dataModelIds = ['dataModel1', 'dataModel2'];
+    renderSelectDataTypes({ dataModelIds, existingDataType });
+
+    const suggestionInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(suggestionInput);
+    const addedOption = await screen.findByRole('option', {
+      name: 'dataModel0',
+      hidden: true,
+    });
+    expect(addedOption).toBeInTheDocument();
+  });
+
+  it('should call updateDataTypes with new data type when data type is changed', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypesMock = jest.fn();
+    const existingDataType = 'dataModel0';
+    const dataTypeToConnect = 'dataModel1';
+    const dataModelIds = [existingDataType, dataTypeToConnect, 'dataModel2'];
+    renderSelectDataTypes(
+      { dataModelIds, existingDataType },
+      {
+        mutateDataTypes: mutateDataTypesMock,
+      },
+    );
+    const suggestionInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+    await user.click(suggestionInput);
+    await user.clear(suggestionInput);
+    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+
+    await waitFor(() =>
+      expect(mutateDataTypesMock).toHaveBeenCalledWith({
+        connectedTaskId,
+        newDataTypes: [dataTypeToConnect],
+      }),
+    );
+    await waitFor(() => expect(mockOnClose).toHaveBeenCalled());
+  });
+
+  it('should call updateDataTypes with no data type when data type is deleted', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypesMock = jest.fn();
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes(
+      { dataModelIds, existingDataType },
+      {
+        mutateDataTypes: mutateDataTypesMock,
+      },
+    );
+    const deleteDataTypeButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteDataTypeButton);
+    expect(mutateDataTypesMock).toHaveBeenCalledWith({
+      connectedTaskId,
+      newDataTypes: [undefined],
+    });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('removes the binding when the selected model is cleared and the field is left', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'] },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).toHaveBeenCalledWith({ connectedTaskId, newDataTypes: [undefined] });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('preserves the binding when clearing is not allowed', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypes = jest.fn();
+    renderSelectDataTypes(
+      { existingDataType: 'model', dataModelIds: ['model'], hideDeleteButton: true },
+      { mutateDataTypes },
+    );
+    const input = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+
+    await user.click(input);
+    await waitFor(() => expect(input).toHaveValue('model'));
+    await user.clear(input);
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+
+    expect(mutateDataTypes).not.toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it('should not call updateDataTypes when data type is set to existing', async () => {
+    const user = userEvent.setup();
+    const mutateDataTypesMock = jest.fn();
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes(
+      { dataModelIds, existingDataType },
+      {
+        mutateDataTypes: mutateDataTypesMock,
+      },
+    );
+    const suggestionInput = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+    await user.click(suggestionInput);
+    await user.clear(suggestionInput);
+    await user.type(suggestionInput, `${existingDataType}{Enter}`);
+
+    expect(mutateDataTypesMock).not.toHaveBeenCalled();
+  });
+
+  it('should show selected value in combobox when data type is selected', () => {
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes({
+      existingDataType,
+      dataModelIds,
+    });
+    const selectedChip = screen.getByText(existingDataType, { selector: 'data' });
+    expect(selectedChip).toBeInTheDocument();
+  });
+
+  it('should show default description text when no data type is selected', () => {
+    renderSelectDataTypes();
+    const description = screen.getByText(
+      textMock('process_editor.configuration_panel_data_model_selection_description'),
+    );
+    expect(description).toBeInTheDocument();
+  });
+
+  it('should show extended description text when data type is already selected', () => {
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes({
+      existingDataType: 'dataModel0',
+      dataModelIds,
+    });
+    const description = screen.getByText(
+      textMock(
+        'process_editor.configuration_panel_data_model_selection_description_existing_model',
+      ),
+    );
+    expect(description).toBeInTheDocument();
+  });
+});
+
+const renderSelectDataTypes = (
+  props: Partial<SelectDataTypesProps> = {},
+  bpmnApiContextProps: Partial<BpmnApiContextProps> = {},
+) => {
+  return render(
+    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
+      <BpmnContext.Provider value={{ ...mockBpmnContextValue }}>
+        <BpmnConfigPanelFormContextProvider>
+          <SelectDataTypes {...defaultSelectDataTypeProps} {...props} />
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnContext.Provider>
+    </BpmnApiContext.Provider>,
+  );
+};
