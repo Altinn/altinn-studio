@@ -87,7 +87,7 @@ fn self_development_variants_are_local_independent_builds() {
 
 #[test]
 fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
-    for (agent, target) in [("full", "full"), ("minimal", "minimal")] {
+    for (agent, target) in [("full", "full"), ("minimal", "minimal"), ("desktop", "desktop")] {
         let directory = repository_root().join("agents").join(agent);
         let default = resolved(&directory.join("agent.yaml"));
         let nested = resolved(&directory.join("agent.nested.yaml"));
@@ -109,7 +109,7 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
             }
         );
         assert_inputs_exist(&nested_build, &directory);
-        assert_published_skills(&default);
+        assert_published_skills(&default, agent);
         // The image owns the harness version, here as much as in the examples: a published
         // manifest that named one would have to be edited for every image bump.
         for variant in [&default, &nested, &worktree, &nested_build] {
@@ -183,6 +183,7 @@ fn altinn_variants_inherit_agent_policy_and_select_expected_images() {
     assert!(!dockerfile.contains("agentctl --version"));
     assert!(dockerfile.contains("FROM base AS minimal"));
     assert!(dockerfile.contains("FROM base AS full"));
+    assert!(dockerfile.contains("FROM full AS desktop"));
     assert!(!dockerfile.contains("cargo build"));
 }
 
@@ -213,12 +214,27 @@ fn agent_images_install_the_pinned_gh_stack_extension() {
     }
 }
 
+/// The desktop Agent is the full Agent plus a screen, so its environment notes are the full
+/// Agent's followed by its own section. A note added to one and not the other is the drift this
+/// guards.
+#[test]
+fn the_desktop_environment_extends_the_full_environment() {
+    let agents = repository_root().join("agents");
+    let full = std::fs::read_to_string(agents.join("full/environment.md")).expect("full environment");
+    let desktop = std::fs::read_to_string(agents.join("desktop/environment.md")).expect("desktop environment");
+    let own = desktop
+        .strip_prefix(full.as_str())
+        .expect("desktop/environment.md starts with full/environment.md");
+    assert!(own.trim_start().starts_with("## The desktop"), "{own}");
+}
+
 #[test]
 fn every_agent_ignores_local_variants() {
     let root = repository_root();
     for directory in [
         root.join("agents/full"),
         root.join("agents/minimal"),
+        root.join("agents/desktop"),
         root.join("src/experimental/agent/examples/self-dev"),
     ] {
         let ignore = std::fs::read_to_string(directory.join(".gitignore")).expect("Agent .gitignore");
@@ -243,12 +259,18 @@ fn assert_published_harnesses(agent: &Agent) {
     assert!(!codex.default);
 }
 
-/// Every repository-wide Skill is installed for both published variants, and for every harness.
+/// Every repository-wide Skill is installed for every published Agent, and for every harness.
 ///
 /// They live in `.claude/skills/`, where Claude Code discovers them in a plain checkout, and the
 /// manifests reach across so an Agent installs them for every harness as well. A Skill added there
-/// and not added here reaches a local checkout only, which is the failure this guards.
-fn assert_published_skills(agent: &Agent) {
+/// and not added here reaches a local checkout only, which is the failure this guards. The desktop
+/// Agent adds the Skill for driving its screen.
+fn assert_published_skills(agent: &Agent, directory: &str) {
+    let mut expected = vec!["altinn-studio-app-development", "pr-evidence"];
+    if directory == "desktop" {
+        expected.push("computer-use");
+    }
+    expected.extend(["tekstforfatter-docs", "text-content-review"]);
     assert_eq!(
         agent
             .spec
@@ -256,11 +278,6 @@ fn assert_published_skills(agent: &Agent) {
             .iter()
             .filter_map(|skill| skill.name())
             .collect::<Vec<_>>(),
-        [
-            "altinn-studio-app-development",
-            "pr-evidence",
-            "tekstforfatter-docs",
-            "text-content-review"
-        ]
+        expected
     );
 }

@@ -209,6 +209,10 @@ fn published_manifests_explicitly_select_git_identity() {
         manifests.join("full/agent.nested.yaml"),
         manifests.join("full/agent.nested-build.yaml"),
         manifests.join("full/agent.worktree.yaml"),
+        manifests.join("desktop/agent.yaml"),
+        manifests.join("desktop/agent.nested.yaml"),
+        manifests.join("desktop/agent.nested-build.yaml"),
+        manifests.join("desktop/agent.worktree.yaml"),
     ] {
         let agent = manifest::resolve(&path)
             .expect("published Agent manifest should resolve")
