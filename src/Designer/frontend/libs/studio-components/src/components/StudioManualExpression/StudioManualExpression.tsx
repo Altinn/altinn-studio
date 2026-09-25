@@ -19,10 +19,21 @@ export const StudioManualExpression = ({
   onValidityChange,
   texts,
 }: StudioManualExpressionProps): React.ReactElement => {
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
+  const givenExpressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
+  const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const [lastGivenExpressionString, setLastGivenExpressionString] =
+    useState<string>(givenExpressionString);
+
+  // An expression changed from outside, as by an undo, replaces the text. Text that already means
+  // the same keeps the user's formatting, and an invalid draft is kept while the user types.
+  if (givenExpressionString !== lastGivenExpressionString) {
+    setLastGivenExpressionString(givenExpressionString);
+    if (isValid && formatExpressionString(expressionString) !== givenExpressionString) {
+      setExpressionString(givenExpressionString);
+    }
+  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
@@ -39,7 +50,7 @@ export const StudioManualExpression = ({
 
   const handleBlur = (): void => {
     if (isValid) {
-      setExpressionString(expressionToString(stringToExpression(expressionString)));
+      setExpressionString(formatExpressionString(expressionString));
     }
   };
 
@@ -57,3 +68,6 @@ export const StudioManualExpression = ({
     />
   );
 };
+
+const formatExpressionString = (value: string): string =>
+  expressionToString(stringToExpression(value));

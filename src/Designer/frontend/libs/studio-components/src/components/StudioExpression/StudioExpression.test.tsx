@@ -238,6 +238,42 @@ describe('StudioExpression', () => {
     expect(input).toHaveValue(expressionToString([GeneralRelationOperator.Equals, 1, 1]));
   });
 
+  it('Replaces the text in the manual editor when the expression changes from outside', () => {
+    const { rerender } = renderExpression(tooComplexExpression);
+    const changedExpression: Expression = [
+      LogicalTupleOperator.Or,
+      generalOperatorRelation,
+      tooComplexExpression,
+    ];
+    rerender(
+      <StudioExpression
+        expression={changedExpression}
+        onChange={onChange}
+        dataLookupOptions={dataLookupOptions}
+        texts={texts}
+      />,
+    );
+    expect(screen.getByRole('textbox')).toHaveValue(expressionToString(changedExpression));
+  });
+
+  it('Keeps an invalid draft in the manual editor when the expression changes from outside', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'tru');
+    rerender(
+      <StudioExpression
+        expression={generalOperatorRelation}
+        onChange={onChange}
+        dataLookupOptions={dataLookupOptions}
+        texts={texts}
+      />,
+    );
+    expect(input).toHaveValue('tru');
+    expect(screen.getByText(texts.cannotSaveSinceInvalid)).toBeInTheDocument();
+  });
+
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(false);
