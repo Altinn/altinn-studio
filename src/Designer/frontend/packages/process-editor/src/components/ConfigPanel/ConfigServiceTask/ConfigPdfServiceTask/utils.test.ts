@@ -1,5 +1,5 @@
 import type { Element } from 'bpmn-js/lib/model/Types';
-import { getAvailableTasks, filterCurrentTaskIds, generateTextResourceId } from './utils';
+import { getAvailableTasks, filterCurrentTaskIds } from './utils';
 
 describe('ConfigPdfServiceTask utils', () => {
   describe('getAvailableTasks', () => {
@@ -110,21 +110,6 @@ describe('ConfigPdfServiceTask utils', () => {
       const result = filterCurrentTaskIds(pdfConfig, []);
 
       expect(result).toEqual([]);
-    });
-  });
-
-  describe('generateTextResourceId', () => {
-    it('should return id with pdf-filename prefix', () => {
-      const result = generateTextResourceId();
-
-      expect(result).toMatch(/^pdf-filename-/);
-    });
-
-    it('should return unique ids on each call', () => {
-      const result1 = generateTextResourceId();
-      const result2 = generateTextResourceId();
-
-      expect(result1).not.toBe(result2);
     });
   });
 });

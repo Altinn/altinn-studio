@@ -2,7 +2,8 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PdfAutomaticTaskSelection } from './PdfAutomaticTaskSelection';
-import { createPdfBpmnDetails, renderWithProviders } from '../testUtils';
+import { createPdfBpmnDetails } from '../testUtils';
+import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 
 let mockTasks: any[] = [];
 
@@ -12,7 +13,7 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 1',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
@@ -21,25 +22,22 @@ const defaultMockTasks = [
     businessObject: {
       name: 'Task 2',
       extensionElements: {
-        values: [{ taskType: 'data' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
       },
     },
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
-  return {
-    StudioModeler: jest.fn().mockImplementation(() => {
-      return {
-        getAllTasksByType: jest.fn(() => mockTasks),
-      };
-    }),
-  };
-});
-
 const mockUpdateTaskIds = jest.fn();
-jest.mock('../../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => mockUpdateTaskIds,
+jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => ({
+  StudioModeler: jest.fn().mockImplementation(() => ({
+    getElementsByType: () => mockTasks,
+    createElement: (type: string, properties: object) => ({ $type: type, ...properties }),
+    updateModdleProperties: (properties: object, element: object) => {
+      Object.assign(element, properties);
+      mockUpdateTaskIds(properties['autoPdfTaskIds'].taskIds.map(({ value }) => value));
+    },
+  })),
 }));
 
 describe('PdfAutomaticTaskSelection', () => {
@@ -125,7 +123,7 @@ describe('PdfAutomaticTaskSelection', () => {
           businessObject: {
             name: '',
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },
@@ -146,7 +144,7 @@ describe('PdfAutomaticTaskSelection', () => {
           id: 'task_1',
           businessObject: {
             extensionElements: {
-              values: [{ taskType: 'data' }],
+              values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
             },
           },
         },

@@ -1,5 +1,4 @@
 import type { Element } from 'bpmn-js/lib/model/Types';
-import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 type AvailableTask = {
   id: string;
@@ -25,5 +24,3 @@ export const filterCurrentTaskIds = (pdfConfig: PdfConfig, availableTaskIds: str
   pdfConfig.autoPdfTaskIds?.taskIds
     ?.filter((taskId) => availableTaskIds.includes(taskId.value))
     .map((taskId) => taskId.value) ?? [];
-
-export const generateTextResourceId = (): string => `pdf-filename-${generateRandomId(8)}`;
