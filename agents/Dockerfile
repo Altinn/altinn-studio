@@ -495,10 +495,12 @@ USER root
 # window list is empty; the helper reads the same EWMH properties with xprop and xdotool.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
+        at-spi2-core \
         dbus-x11 \
         fonts-noto-color-emoji \
         fonts-noto-core \
         openbox \
+        python3-pyatspi \
         tigervnc-standalone-server \
         tint2 \
         x11-utils \
@@ -555,6 +557,9 @@ COPY common/access-vnc.conf /etc/agent-access.d/vnc.conf
 COPY common/desktop.conf /etc/agent-desktop.conf
 COPY common/desktop-display.service /etc/systemd/system/agent-desktop-display.service
 COPY common/desktop-session.service /etc/systemd/system/agent-desktop-session.service
+COPY common/desktop-dbus.service /etc/systemd/system/agent-desktop-dbus.service
+COPY --chmod=0755 common/desktop-tree.py /usr/local/libexec/agent-desktop-tree
+COPY common/desktop-playwright-cli.json /etc/agent-playwright-cli.json
 COPY common/desktop-openbox-rc.xml /etc/xdg/openbox/rc.xml
 COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
 COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
@@ -568,12 +573,21 @@ ENV LANG=C.UTF-8
 # can watch. The desktop units read the same number from /etc/agent-desktop.conf; the build below
 # fails if the two ever disagree.
 ENV DISPLAY=:1
+# `desktop tree` reads what applications expose to assistive technology over AT-SPI, which needs a
+# D-Bus session bus that every Session and every program on the desktop shares. A Session is a
+# tmux process rather than a login, so agent-desktop-dbus.service provides one at a fixed address.
+ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+# Chromium joins the accessibility bus only when told to, and fills in its tree only with
+# --force-renderer-accessibility: the `chromium` launcher passes it, and this configuration
+# passes it to the browser playwright-cli starts. It costs about 5% memory and 90 ms at startup.
+ENV ACCESSIBILITY_ENABLED=1
+ENV PLAYWRIGHT_MCP_CONFIG=/etc/agent-playwright-cli.json
 
 # HOME is the Agent's home for every later process, but these checks run as root: openbox writes a
 # log under $HOME/.cache the moment it is invoked, and a root-owned file there would deny the Agent
 # its own cache directory later. The home directory invariant the other stages assert is asserted
 # here too, so a future check that writes into it fails the build rather than the Agent.
-RUN systemctl enable agent-desktop-display.service agent-desktop-session.service \
+RUN systemctl enable agent-desktop-display.service agent-desktop-session.service agent-desktop-dbus.service \
     && HOME=/tmp/image-checks sh -c ' \
         Xtigervnc -version 2>&1 | head -1 \
         && openbox --version | head -1 \
@@ -583,6 +597,9 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
         && desktop help >/dev/null' \
     && rm -rf /tmp/image-checks \
     && test -x /usr/local/bin/desktop \
+    && python3 -c 'import pyatspi' \
+    && test -f /usr/share/dbus-1/services/org.a11y.Bus.service \
+    && test "${DBUS_SESSION_BUS_ADDRESS}" = "unix:path=${XDG_RUNTIME_DIR}/bus" \
     && . /etc/agent-desktop.conf \
     && test "${DISPLAY}" = "${AGENT_DESKTOP_DISPLAY}" \
     && vnc_port="$(sed -n 's/^port=//p' /etc/agent-access.d/vnc.conf)" \

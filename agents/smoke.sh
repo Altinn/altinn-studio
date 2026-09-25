@@ -291,9 +291,18 @@ Xtigervnc "$AGENT_DESKTOP_DISPLAY" -geometry "$AGENT_DESKTOP_GEOMETRY" -depth 24
     -rfbport -1 -rfbunixpath "$AGENT_DESKTOP_SOCKET" -rfbunixmode 0600 \
     -SecurityTypes None -AlwaysShared -desktop Altinn-Agent >xvnc.log 2>&1 &
 display_server=$!
-trap 'kill "$server" "$display_server" ${session:-} 2>/dev/null' EXIT
+trap 'kill "$server" "$display_server" ${session:-} ${bus:-} 2>/dev/null' EXIT
 for _ in $(seq 1 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.1; done
 xdpyinfo >/dev/null 2>&1 || fail "the X and VNC server never came up"
+# The session bus the accessibility tree is read over, started with the unit's own command at the
+# address the image points every Session to.
+systemctl is-enabled agent-desktop-dbus.service >/dev/null || fail "the desktop session bus is not enabled"
+bus_command="$(sed -n 's/^ExecStart=//p' /etc/systemd/system/agent-desktop-dbus.service)"
+test "$DBUS_SESSION_BUS_ADDRESS" = "$(sed -n 's/.*--address=\([^ ]*\).*/\1/p' <<<"$bus_command")" \
+    || fail "DBUS_SESSION_BUS_ADDRESS does not name the bus agent-desktop-dbus.service starts"
+$bus_command >bus.log 2>&1 &
+bus=$!
+for _ in $(seq 1 50); do test -S "${DBUS_SESSION_BUS_ADDRESS#unix:path=}" && break; sleep 0.1; done
 /usr/local/libexec/agent-desktop-session >session.log 2>&1 &
 session=$!
 for _ in $(seq 1 150); do desktop windows 2>/dev/null | grep -qi tint2 && break; sleep 0.1; done
@@ -319,6 +328,12 @@ desktop display
 chromium --user-data-dir="$work/browser" https://localhost:8321/ >chromium.log 2>&1 &
 for _ in $(seq 1 300); do desktop windows | grep -qi chromium && break; sleep 0.1; done
 desktop windows | grep -qi chromium || fail "the desktop browser never opened a window"
+# The desktop browser exposes its page and its own controls to `desktop tree`, with click boxes.
+for _ in $(seq 1 50); do desktop tree chrom 2>/dev/null | grep -q '^ *document web "smoke" @' && break; sleep 0.2; done
+desktop tree chrom >tree.txt
+grep -q '^ *document web "smoke" @' tree.txt || fail "desktop tree does not show the page"$'\n'"$(cat tree.txt)"
+grep -q '^ *entry ".*" value=".*localhost:8321' tree.txt \
+    || fail "desktop tree does not show the browser's address bar"
 shot="$(desktop --json screenshot)"
 echo "$shot"
 path="$(jq -r .path <<<"$shot")"
@@ -387,7 +402,7 @@ env -u NODE_PATH -u AGENT_NOVNC_HOST -u AGENT_NOVNC_PORT \
     AGENT_DESKTOP_SOCKET="$AGENT_DESKTOP_SOCKET" $viewer_environment \
     $viewer_command >novnc.log 2>&1 &
 viewer=$!
-trap 'kill "$server" "$display_server" ${session:-} ${viewer:-} 2>/dev/null' EXIT
+trap 'kill "$server" "$display_server" ${session:-} ${bus:-} ${viewer:-} 2>/dev/null' EXIT
 for _ in $(seq 1 100); do
     curl -s --noproxy '*' -o /dev/null "http://127.0.0.1:6080/vnc.html" && break
     sleep 0.1

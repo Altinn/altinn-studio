@@ -7,6 +7,8 @@
 # latency against software rendering here, and each is one more way for the browser to differ
 # from the one Playwright drives. --disable-dev-shm-usage keeps Chromium's shared memory in /tmp,
 # which the desktop Agent sizes, rather than in a /dev/shm whose size the Sandbox owns.
+# --force-renderer-accessibility fills in the page's accessibility tree, which `desktop tree`
+# reads; without it Chromium exposes only its window frames.
 set -eu
 
 # The Agent's CA bundle is imported into Chromium in the background after boot, and a browser
@@ -30,6 +32,7 @@ for candidate in /opt/ms-playwright/chromium-*/chrome-linux*/chrome; do
         --password-store=basic \
         --disable-infobars \
         --disable-dev-shm-usage \
+        --force-renderer-accessibility \
         "$@"
 done
 echo "chromium: no Playwright Chromium build found under /opt/ms-playwright" >&2
