@@ -55,6 +55,11 @@ describe('StudioIconTextfield', () => {
     expect(icons).toHaveLength(2);
   });
 
+  it('should focus the textfield on mount when autoFocus is set', () => {
+    renderStudioIconTextfield({ autoFocus: true });
+    expect(screen.getByRole('textbox', { name: label })).toHaveFocus();
+  });
+
   it('should execute onChange callback when input value changes', async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
