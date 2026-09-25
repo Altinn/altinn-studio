@@ -119,13 +119,6 @@ enumeration), so naming style doesn't matter but missing fields do.
 | `bench_render_fix_rounds`      | numeric | fix rounds sent back to the agent (only when a fix ran)  |
 | `bench_pages_render_after_fix` | 0–1     | render fraction after the fix loop (only when a fix ran) |
 
-Run-level scores are computed across the items of one run rather than per item:
-
-| Score              | Type | Meaning                                        |
-| ------------------ | ---- | ---------------------------------------------- |
-| `run_items_scored` | 0–1  | fraction of items that produced a scored app   |
-| `run_mean_<score>` | 0–1  | that structural score, averaged over the items |
-
 ## Prerequisites
 
 Work through these once; the run fails fast and unhelpfully if any are
@@ -190,14 +183,9 @@ regression shows up as a column that got worse.
 
 ### Reading the results
 
-The run prints each score as it is computed, then a summary of the item averages
-and the run-level scores. For comparison across versions go to _Datasets → the
-dataset → Runs_ in Langfuse; each run is a column and each score a row.
-
-Start with the run-level scores, which is what the SDK port added. `run_items_scored`
-is the fraction of items that produced an app at all: a run where that is below 1
-is not comparable with one where it is 1, however good the surviving scores look.
-`run_mean_<score>` is the number to compare between two model sets.
+The run prints each score as it is computed, then a summary of the item averages.
+For comparison across versions go to _Datasets → the dataset → Runs_ in Langfuse;
+each run is a column and each score a row.
 
 Read the boolean scores first. `bench_completed`, `bench_pages`,
 `bench_order_integrity`, `bench_navigation` are pass/fail statements

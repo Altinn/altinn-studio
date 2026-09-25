@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import os
 from typing import Any
-from urllib.parse import quote
 
 import httpx
-
-RUN_PAGE_SIZE = 50
-MAX_RUN_PAGES = 200
 
 
 class LangfuseApi:
@@ -83,34 +79,9 @@ class LangfuseApi:
 
     # -- scores -----------------------------------------------------------
 
-    def models_by_connection(self) -> dict[str, list[str]]:
-        """The models each LLM connection offers."""
-        data = self._get("/api/public/llm-connections", limit=50)
-        return {row["provider"]: sorted(row.get("customModels") or []) for row in data.get("data") or []}
-
     def score_configs_by_name(self) -> dict[str, dict]:
         data = self._get("/api/public/score-configs", limit=100)
         return {sc["name"]: sc for sc in data.get("data") or []}
 
     def create_score_config(self, name: str, data_type: str, **extra: Any) -> dict:
         return self._post("/api/public/score-configs", {"name": name, "dataType": data_type, **extra})
-
-
-def assert_run_is_new(lf: LangfuseApi, dataset: str, run_name: str) -> None:
-    """Refuse to write into a run that already exists."""
-    encoded = quote(dataset, safe="")
-    for page in range(1, MAX_RUN_PAGES + 1):
-        existing = lf._get(f"/api/public/datasets/{encoded}/runs", page=page, limit=RUN_PAGE_SIZE).get("data") or []
-        if not existing:
-            return
-        if any((run.get("name") or "") == run_name for run in existing):
-            raise SystemExit(
-                f"A run named {run_name!r} already exists on {dataset!r}. Re-using the "
-                "name merges the results rather than replacing them. Pick another name, "
-                "or delete the run first."
-            )
-    raise SystemExit(
-        f"Stopped after {MAX_RUN_PAGES} pages of runs on {dataset!r} without reaching the "
-        f"end, so {run_name!r} could not be shown to be new. Delete some runs, or raise "
-        "MAX_RUN_PAGES."
-    )

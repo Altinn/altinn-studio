@@ -1056,25 +1056,21 @@ BEHAVIORS = (
         blind=(
             "An e2e run pushes branches to whatever BENCH_REPO_URL points at, so the "
             "starting state is one developer's repo and the result is not reproducible on "
-            "another machine. The replacement is written but not wired: base_app.py "
-            "materializes the app template from this repository, using git ls-files so no "
-            "build artifact can leak in, and fixtures/ holds overlays expressed as diffs "
-            "from that template. agent_task.py still clones the remote repo instead."
+            "another machine. agent_task.py clones the remote repo to get the starting state."
         ),
         fix=Fix(
             kind="gap",
-            title="Wire base_app into the e2e task so a run does not depend on one developer's repo",
+            title="Start the e2e task from the in-repo app template so a run does not depend on one developer's repo",
             task=(
-                "1. Replace the clone of BENCH_REPO_URL as the starting state with "
-                "base_app.materialize_base_app, which copies the in-repo app template.\n"
+                "1. Replace the clone of BENCH_REPO_URL as the starting state with a copy of "
+                "the app template in this repository. Copy only the files that git ls-files "
+                "lists, so no build artifact can leak in.\n"
                 "2. Keep the remote push, because the render check needs a real Gitea branch. "
                 "What changes is where the starting state comes from, not where the result "
                 "goes.\n"
-                "3. Once wired, record the app template version as a run axis in "
+                "3. Then record the app template version as a run axis in "
                 "provenance.py, and delete BENCH_REPO_URL from the axes a comparison has to "
-                "trust.\n"
-                "4. base_app.py and fixtures/ exist and are tested. If this is not going to "
-                "be wired, delete both rather than leaving a module nothing imports."
+                "trust."
             ),
             acceptance=(
                 "An e2e run reproducible on a machine that has only this repository, and the "
