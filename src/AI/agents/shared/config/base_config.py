@@ -43,6 +43,9 @@ class BaseConfig:
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
+    # The direct Anthropic API. Used only when the Azure Anthropic endpoint or its key is not set.
+    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
     LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")
@@ -54,18 +57,10 @@ class BaseConfig:
     LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
-    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-5.6-sol")
-    LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
-    LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
-    LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
-
     LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.6-terra")
 
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
-    LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.0"))
-
     LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
-    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # None → model default
 
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
@@ -95,7 +90,6 @@ def get_config() -> BaseConfig:
 ROLE_MODEL_CONFIG_KEYS = {
     "actor": "LLM_MODEL_ACTOR",
     "planner": "LLM_MODEL_PLANNER",
-    "tool_planner": "LLM_MODEL_TOOL_PLANNER",
     "reviewer": "LLM_MODEL_REVIEWER",
     "assistant": "LLM_MODEL_ASSISTANT",
 }

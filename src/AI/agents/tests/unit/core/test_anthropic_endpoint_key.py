@@ -55,6 +55,17 @@ class TestTheConfigResolvesTheKey:
 
         assert self._fresh().AZURE_ANTHROPIC_API_KEY == "dedicated"
 
+    def test_the_direct_anthropic_key_is_read(self, monkeypatch):
+        """The fakes in this file define the key, so a missing attribute on the real config was not seen."""
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "direct-key")
+
+        assert self._fresh().ANTHROPIC_API_KEY == "direct-key"
+
+    def test_the_direct_anthropic_key_is_optional(self, monkeypatch):
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+        assert self._fresh().ANTHROPIC_API_KEY is None
+
 
 class TestTheKeyMatchesTheEndpoint:
     def test_the_anthropic_key_is_used_when_set(self, config):
@@ -68,6 +79,15 @@ class TestTheKeyMatchesTheEndpoint:
 
     def test_the_endpoint_is_the_anthropic_one(self, config):
         assert "anthropic" in str(_client_for(config).base_url)
+
+    def test_the_direct_anthropic_api_is_used_without_an_azure_key(self, config):
+        config.AZURE_ANTHROPIC_API_KEY = None
+        config.ANTHROPIC_API_KEY = "direct-key"
+
+        client = _client_for(config)
+
+        assert client.api_key == "direct-key"
+        assert "azure" not in str(client.base_url)
 
     def test_a_missing_key_says_which_variable_to_set(self, config):
         config.AZURE_ANTHROPIC_API_KEY = None
@@ -98,6 +118,18 @@ class TestBothAnthropicClientsUseTheSameKey:
         client._init_anthropic_client("planner", "claude-opus-4-8", None)
 
         assert client.anthropic_client.api_key == "openai-resource-key"
+
+    def test_it_uses_the_direct_anthropic_api_without_an_azure_key(self, config, monkeypatch):
+        from agents.services.llm import llm_client
+
+        config.AZURE_ANTHROPIC_API_KEY = None
+        config.ANTHROPIC_API_KEY = "direct-key"
+        monkeypatch.setattr(llm_client, "config", config)
+        client = llm_client.LLMClient.__new__(llm_client.LLMClient)
+        client._init_anthropic_client("planner", "claude-opus-4-8", None)
+
+        assert client.anthropic_client.api_key == "direct-key"
+        assert "azure" not in str(client.anthropic_client.base_url)
 
     def test_a_missing_key_names_the_variable(self, config, monkeypatch):
         from agents.services.llm import llm_client
