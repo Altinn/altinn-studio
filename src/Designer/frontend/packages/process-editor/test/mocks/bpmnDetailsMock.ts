@@ -150,3 +150,45 @@ export const paymentActions = {
     ],
   },
 };
+
+export const mockSigneeStatesDataTypeId: string = 'signees-states-1234';
+export const mockSigningPdfDataTypeId: string = 'signatures-pdf-1234';
+
+export const mockBpmnElementForUserControlledSigningTask: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          $type: taskExtensionType,
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signeeStatesDataTypeId: mockSigneeStatesDataTypeId,
+            signeeProviderId: '',
+            signingPdfDataType: mockSigningPdfDataTypeId,
+          },
+        },
+      ],
+    },
+  },
+};
+
+/** A signing task that generates a PDF without delegated signing. */
+export const mockBpmnElementForSigningTaskWithPdf: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [
+        {
+          $type: taskExtensionType,
+          actions: signingActions,
+          signatureConfig: {
+            signatureDataType: 'signatureInformation-1234',
+            dataTypesToSign: [],
+            signingPdfDataType: mockSigningPdfDataTypeId,
+          },
+        },
+      ],
+    },
+  },
+};

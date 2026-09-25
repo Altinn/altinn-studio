@@ -4,16 +4,15 @@ import { EditTaskId } from './EditTaskId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
-import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
+import { commandStackExecuteMock, mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const task1IdMock = 'task_1';
-const setBpmnDetailsMock = jest.fn();
+const startEventIdMock = 'StartEvent_1';
 let mockLayoutSets: LayoutSets = [];
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: mockModelerRef,
-    setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: mockBpmnDetails,
   }),
 }));
@@ -34,9 +33,9 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest
+        getAllElementIds: jest
           .fn()
-          .mockReturnValue([{ id: task1IdMock }, { id: 'task_2' }, { id: 'task_3' }]),
+          .mockReturnValue([task1IdMock, 'task_2', 'task_3', startEventIdMock]),
       };
     }),
   };
@@ -71,7 +70,7 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('should update metadataFromRef and updateId (implicitly calling setBpmnDetails) when changing task id', async () => {
+  it('updates task ID metadata and runs the rename command', async () => {
     const user = userEvent.setup();
     const newId = 'newId';
     const metadataFormRefMock = { current: undefined };
@@ -97,7 +96,10 @@ describe('EditTaskId', () => {
     expect(metadataFormRefMock.current).toEqual(
       expect.objectContaining({ taskIdChange: { newId: newId, oldId: mockBpmnDetails.id } }),
     );
-    expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+    expect(commandStackExecuteMock).toHaveBeenCalledWith('updateTaskId', {
+      element: mockBpmnDetails.element,
+      newId,
+    });
   });
 
   describe('validation', () => {
@@ -115,6 +117,11 @@ describe('EditTaskId', () => {
       {
         description: 'is not unique (case-insensitive)',
         inputValue: task1IdMock.toUpperCase(),
+        expectedError: 'process_editor.validation_error.id_not_unique',
+      },
+      {
+        description: 'collides with a non-task element, since bpmn ids are unique per document',
+        inputValue: startEventIdMock,
         expectedError: 'process_editor.validation_error.id_not_unique',
       },
       {
@@ -166,6 +173,7 @@ describe('EditTaskId', () => {
 
         const errorMessage = await screen.findByText(textMock(expectedError, textArgs));
         expect(errorMessage).toBeInTheDocument();
+        expect(commandStackExecuteMock).not.toHaveBeenCalled();
       });
     });
   });
@@ -205,7 +213,7 @@ describe('EditTaskId', () => {
         await changeTaskId(user, inputValue);
 
         expect(await screen.findByText(textMock(expectedError))).toBeInTheDocument();
-        expect(setBpmnDetailsMock).not.toHaveBeenCalled();
+        expect(commandStackExecuteMock).not.toHaveBeenCalled();
       });
     });
 
@@ -215,8 +223,10 @@ describe('EditTaskId', () => {
       render(<EditTaskId />);
 
       await changeTaskId(user, idLongerThanLayoutSetNameLimit);
-
-      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
+      expect(commandStackExecuteMock).toHaveBeenCalledWith('updateTaskId', {
+        element: mockBpmnDetails.element,
+        newId: idLongerThanLayoutSetNameLimit,
+      });
     });
   });
 
@@ -243,7 +253,7 @@ describe('EditTaskId', () => {
     await user.tab();
 
     expect(metadataFormRefMock.current).toBeUndefined();
-    expect(setBpmnDetailsMock).not.toHaveBeenCalled();
+    expect(commandStackExecuteMock).not.toHaveBeenCalled();
   });
 });
 

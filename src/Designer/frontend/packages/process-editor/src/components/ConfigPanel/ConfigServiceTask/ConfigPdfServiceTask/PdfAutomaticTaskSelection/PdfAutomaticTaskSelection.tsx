@@ -5,6 +5,7 @@ import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
 import { useUpdatePdfConfigTaskIds } from '../../../../../hooks/useUpdatePdfConfigTaskIds';
 import { usePdfConfig } from '../usePdfConfig';
 import { filterCurrentTaskIds, getAvailableTasks } from '../utils';
+import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ export const PdfAutomaticTaskSelection = (): React.ReactElement => {
   const { pdfConfig } = usePdfConfig();
 
   const studioModeler = new StudioModeler();
-  const allTasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const allTasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const availableTasks = getAvailableTasks(allTasks);
   const availableTaskIds = availableTasks.map((task) => task.id);
 
