@@ -1,0 +1,11 @@
+.helpTextWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.helpTextContent {
+  white-space: pre-line;
+  word-wrap: break-word;
+}

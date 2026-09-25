@@ -1,0 +1,4 @@
+.djs-container svg.new-parent {
+  background: var(--canvas-background-image) var(--canvas-background-size)
+    var(--canvas-background-position) !important;
+}
