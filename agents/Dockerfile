@@ -483,16 +483,10 @@ FROM full AS desktop
 # The full stage ends as the unprivileged Agent user; installing packages needs root again.
 USER root
 
-# A minimal X11 desktop the Agent drives and a person can watch: one process that is both X server
-# and VNC server, a window manager that does not animate, a panel, and the input and window tools
-# the `desktop` helper is built on. Screen capture reuses the ffmpeg the full image already carries
-# for pull request evidence, so the image gains no imaging stack: `ffmpeg -f x11grab` grabs the
-# screen, crops a region and encodes JPEG at the quality the helper asks for.
-#
-# Deliberately absent: a desktop environment (hundreds of megabytes and animations), a second
-# browser (the Playwright Chromium is exposed through a shim instead), scrot, maim and ImageMagick
-# (ffmpeg covers capture, crop and encode), and wmctrl, whose build here segfaults whenever the
-# window list is empty; the helper reads the same EWMH properties with xprop and xdotool.
+# A minimal X11 desktop: one process that is both X and VNC server, a window manager, a panel, the
+# input and window tools the `desktop` helper uses, and AT-SPI for `desktop tree`. Capture reuses
+# the full image's ffmpeg. wmctrl is left out because its build here segfaults on an empty window
+# list; the helper reads the same properties with xprop and xdotool.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         at-spi2-core \
@@ -512,15 +506,9 @@ ARG NOVNC_VERSION=1.7.0
 ARG NOVNC_SHA256=b1003a11b6e6e8d8f7f5e5586daae7f8ca651d8aee0aa155ff9ac841c48f52c6
 ARG WS_VERSION=8.21.3
 
-# Browser access to the desktop, for a person who should not have to install a VNC client. noVNC is
-# static ES modules with no build step, and `ws` gives the bridge a WebSocket implementation worth
-# trusting instead of a hand-rolled one. Neither is packaged for Ubuntu, so the release tarball is
-# pinned by digest the way the other vendored tools here are. Only the files the viewer loads are
-# installed: the tests, docs and helper scripts in the tarball are not served.
-#
-# The image provides the program and ships its unit disabled; agentd enables it when an Agent
-# declares VNC access.
-# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+# The browser viewer: noVNC, pinned by digest and trimmed to the files it serves, and `ws` for its
+# WebSocket bridge. Neither is packaged for Ubuntu. Agent Sandboxes mount their CA bundle at the
+# path below, so this step's Node downloads trust it.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
     fi; \
@@ -545,10 +533,8 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 
 COPY --chmod=0755 common/novnc-service.js /usr/local/libexec/agent-novnc
 
-# What this image offers for `access: [{type: vnc}]`. The units stay disabled: the platform turns
-# them on when an Agent declares the capability and off when it stops, and everything they do —
-# the display socket, the viewer, its URL — is the image's own business and is never named on the
-# platform side.
+# What this image offers for `access: [{type: vnc}]`: units shipped disabled, which agentd enables
+# when an Agent declares the capability.
 COPY common/vnc.socket /etc/systemd/system/agent-vnc.socket
 COPY common/vnc.service /etc/systemd/system/agent-vnc.service
 COPY common/vnc-web.service /etc/systemd/system/agent-vnc-web.service
@@ -565,29 +551,23 @@ COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
 COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
 COPY --chmod=0755 common/bin/chromium common/bin/desktop /usr/local/bin/
 
-# xdotool refuses to type a multi-byte character under the POSIX locale, which is every Norwegian
-# word with æ, ø or å in it. C.UTF-8 needs no locale package and is generated in the base image.
+# xdotool refuses multi-byte characters such as æ, ø and å under the POSIX locale.
 ENV LANG=C.UTF-8
-# Every Session, and every process a harness starts, inherits the Agent's own display, so
-# playwright-cli --headed, the `desktop` helper and any GUI command land on the screen a person
-# can watch. The desktop units read the same number from /etc/agent-desktop.conf; the build below
-# fails if the two ever disagree.
+# Every Session uses the Agent's own display. The desktop units read the same value from
+# /etc/agent-desktop.conf, and the build below fails if the two disagree.
 ENV DISPLAY=:1
-# `desktop tree` reads what applications expose to assistive technology over AT-SPI, which needs a
-# D-Bus session bus that every Session and every program on the desktop shares. A Session is a
-# tmux process rather than a login, so agent-desktop-dbus.service provides one at a fixed address.
+# AT-SPI needs a session bus shared by Sessions and desktop programs. A Session is a tmux process
+# rather than a login, so agent-desktop-dbus.service provides one at this fixed address.
 ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-# Chromium joins the accessibility bus only when told to, and fills in its tree only with
-# --force-renderer-accessibility, which costs about 20 MiB (5%) and 90 ms at startup. The
-# `chromium` launcher passes it, and playwright-cli starts its headed browsers through that
-# launcher; headless ones keep Playwright's headless shell and go without it.
+# Chromium joins the accessibility bus only with ACCESSIBILITY_ENABLED, and fills in its tree only
+# with --force-renderer-accessibility (about 20 MiB and 90 ms at startup). The `chromium` launcher
+# passes the switch; playwright-cli starts headed browsers through it and headless ones as before.
 ENV ACCESSIBILITY_ENABLED=1
 ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/usr/local/libexec/agent-playwright-chromium
 
-# HOME is the Agent's home for every later process, but these checks run as root: openbox writes a
-# log under $HOME/.cache the moment it is invoked, and a root-owned file there would deny the Agent
-# its own cache directory later. The home directory invariant the other stages assert is asserted
-# here too, so a future check that writes into it fails the build rather than the Agent.
+# These checks run as root with a scratch HOME: openbox writes under $HOME/.cache when invoked,
+# and a root-owned file there would lock the Agent out of its own cache. The home ownership check
+# below catches a future check that writes there anyway.
 RUN systemctl enable agent-desktop-display.service agent-desktop-session.service agent-desktop-dbus.service \
     && HOME=/tmp/image-checks sh -c ' \
         Xtigervnc -version 2>&1 | head -1 \

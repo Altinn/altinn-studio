@@ -88,7 +88,6 @@ Type
 Windows and session
   focus WINDOW                   raise and focus a window by id or title substring
   resize WIDTH HEIGHT            resize the display with RandR
-  open URL                       open a URL in the desktop browser
   wait SECONDS                   pause
 
 Batch
@@ -441,18 +440,6 @@ command_resize() {
     command_display
 }
 
-command_open() {
-    [ $# -eq 1 ] || fail "open takes one URL"
-    case $1 in
-        http://* | https://* | file://* | about:*) ;;
-        *) fail "open takes an http, https, file or about URL" ;;
-    esac
-    command -v chromium >/dev/null || fail "no desktop browser is installed"
-    setsid chromium --user-data-dir="${HOME}/.config/desktop-browser" "$1" >/dev/null 2>&1 &
-    sync_x
-    echo "opening $1 in the desktop browser"
-}
-
 command_wait() {
     [ $# -eq 1 ] || fail "wait takes a number of seconds"
     case $1 in '' | *[!0-9.]*) fail "wait takes a number of seconds, got '$1'" ;; esac
@@ -530,7 +517,6 @@ dispatch() {
         hold-key) [ $# -ge 2 ] || fail "hold-key takes a keysym and a command"; command_hold_key "$@" ;;
         focus) command_focus "$@" ;;
         resize) command_resize "$@" ;;
-        open) command_open "$@" ;;
         wait) command_wait "$@" ;;
         batch) command_batch "$@" ;;
         help | --help | -h) usage ;;
