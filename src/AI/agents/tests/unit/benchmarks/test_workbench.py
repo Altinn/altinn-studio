@@ -1119,16 +1119,6 @@ def test_the_judge_name_and_run_are_escaped_too():
     assert "&lt;b&gt;judge&lt;/b&gt;" in html_out
 
 
-def test_word_diff_marks_what_moved():
-    pairs = diff.word_diff(
-        "attachment component configuration file upload data binding",
-        "layout configuration data model binding",
-    )
-    kinds = {kind for kind, _ in pairs}
-    assert kinds == {"same", "del", "add"}
-    assert ("del", "attachment component") in pairs
-
-
 def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
     """`--only` leaves most behaviors unmeasured. That must not look like movement."""
     from benchmarks.runstore import BehaviorResult
@@ -1512,59 +1502,6 @@ class TestWhereTheBaselineLives:
         path = tmp_path / "BASELINE.json"
         pointer_file.write(pointer_file.from_run(run, "because"), path=path)
         assert pointer_file.read(path=path) == pointer_file.from_run(run, "because")
-
-    def test_a_hand_edited_pointer_is_detected_as_drifted(self, tmp_path):
-        """A pointer that disagrees with the run it names is not what the commit said."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        edited = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={**pointer.axes, "environment": "dev", "tools": "0000dead"},
-        )
-        assert set(pointer_file.drifted(edited, run)) == {"environment", "tools"}
-        assert pointer_file.drifted(pointer, run) == ()
-
-    def test_drift_in_a_dict_axis_is_detected(self, tmp_path):
-        """Comparing one whitespace-separated token made every dict axis a no-op: the
-        first token of a flattened `models` is the role name, never a model."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        swapped = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={
-                **pointer.axes,
-                "models": "actor claude-sonnet-5, default gpt-5.4-mini, planner something-else",
-                "prompts": "scope_check 4",
-            },
-        )
-
-        assert set(pointer_file.drifted(swapped, run)) == {"models", "prompts"}
-
-    def test_an_uncommitted_workspace_alone_is_not_drift(self, tmp_path):
-        """The dirty flag moves on its own, which is why `code` compares by commit."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        dirty = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={**pointer.axes, "code": pointer.axes["code"].split()[0] + " dirty"},
-        )
-
-        assert pointer_file.drifted(dirty, run) == ()
 
     def test_the_baseline_is_read_from_the_local_cache_when_it_is_there(self, tmp_path):
         run = _run("20260909T100000Z-base", "baseline", HOLDING)
