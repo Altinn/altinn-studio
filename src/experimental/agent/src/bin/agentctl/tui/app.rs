@@ -179,6 +179,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "prompt without attaching"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session on its Agent"),
+                ("d", "delete"),
             ],
         ),
     ],
