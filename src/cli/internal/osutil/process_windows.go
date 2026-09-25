@@ -71,3 +71,26 @@ func windowsProcessID(pid int) (uint32, error) {
 	}
 	return uint32(pid), nil
 }
+
+func processExecutable(pid int) (path string, err error) {
+	processID, err := windowsProcessID(pid)
+	if err != nil {
+		return "", err
+	}
+	handle, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, processID)
+	if err != nil {
+		return "", fmt.Errorf("open process: %w", err)
+	}
+	defer func() {
+		if closeErr := windows.CloseHandle(handle); closeErr != nil {
+			err = errors.Join(err, fmt.Errorf("close process handle: %w", closeErr))
+		}
+	}()
+
+	buf := make([]uint16, windows.MAX_LONG_PATH)
+	size := uint32(len(buf))
+	if err := windows.QueryFullProcessImageName(handle, 0, &buf[0], &size); err != nil {
+		return "", fmt.Errorf("query process image name: %w", err)
+	}
+	return windows.UTF16ToString(buf[:size]), nil
+}
