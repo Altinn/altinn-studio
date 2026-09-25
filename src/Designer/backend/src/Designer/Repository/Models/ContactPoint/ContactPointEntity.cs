@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Altinn.Studio.Designer.Models.ContactPoints;
 
 namespace Altinn.Studio.Designer.Repository.Models.ContactPoint;
 
@@ -17,4 +18,5 @@ public class ContactPointEntity
     public Guid? UpdatedByUserAccountId { get; init; }
     public string? UpdatedByUsername { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
+    public ReportFrequency ReportFrequency { get; set; }
 }

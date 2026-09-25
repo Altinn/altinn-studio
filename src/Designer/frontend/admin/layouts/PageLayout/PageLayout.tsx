@@ -7,7 +7,7 @@ import { PageHeader } from 'app-shared/components/PageHeader/PageHeader';
 import { RoutePaths } from 'admin/routes/RoutePaths';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
-import { StudioPageError } from 'app-shared/components';
+import { StudioPageError, ConsentBanner } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 
 export const PageLayout = () => {
@@ -39,6 +39,7 @@ export const PageLayout = () => {
 
   return (
     <div className={classes.container}>
+      <ConsentBanner />
       <div data-testid={appContentWrapperId} className={classes.appContainer}>
         <PageHeader
           owner={owner}

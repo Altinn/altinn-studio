@@ -5,3 +5,4 @@ export const phonePlaceholder = '+4712345678';
 export const nameMaxLength = 100;
 export const emailMaxLength = 254;
 export const phoneMaxLength = 32;
+export const emptyCellPlaceholder = '–';

@@ -15,4 +15,5 @@ public class ContactPoint
     public DateTimeOffset UpdatedAt { get; init; }
     public List<string> Environments { get; init; } = [];
     public List<ContactMethod> Methods { get; init; } = [];
+    public ReportFrequency ReportFrequency { get; init; }
 }

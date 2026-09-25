@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -72,6 +73,7 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
         existing.Environments = entity.Environments;
         existing.UpdatedByUserAccountId = entity.UpdatedByUserAccountId;
         existing.UpdatedAt = entity.UpdatedAt;
+        existing.ReportFrequency = (int)entity.ReportFrequency;
 
         dbContext.ContactMethods.RemoveRange(existing.Methods);
         existing.Methods = entity
@@ -104,5 +106,25 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
     {
         cancellationToken.ThrowIfCancellationRequested();
         await dbContext.ContactPoints.Where(p => p.Org == org && p.Id == id).ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ContactPointEntity>> GetActiveReportContactPointsAsync(
+        string org,
+        string environment,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var dbModels = await dbContext
+            .ContactPoints.AsNoTracking()
+            .Include(p => p.Methods)
+            .Where(p =>
+                p.Org == org
+                && p.IsActive
+                && p.Environments.Contains(environment)
+                && p.ReportFrequency != (int)ReportFrequency.None
+            )
+            .ToListAsync(cancellationToken);
+        return dbModels.Select(ContactPointMapper.MapToEntity).ToList();
     }
 }
