@@ -11,7 +11,6 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
 const mockOnCloseForm = jest.fn();
@@ -27,25 +26,17 @@ const createButtonName = textMock(
   'process_editor.configuration_panel_custom_receipt_create_button',
 );
 
-const legacyVersion: AppVersion = { backendVersion: '8.9.0', frontendVersion: '4.25.2' };
-const v9Version: AppVersion = { backendVersion: '9.0.0', frontendVersion: '4.25.2' };
-
 describe('CreateCustomReceipt', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the editable name field for apps older than v9', () => {
-    renderCreateCustomReceipt({ appVersion: legacyVersion });
-    expect(screen.getByLabelText(nameFieldLabel)).toBeInTheDocument();
-  });
-
-  it('does not render the name field from v9, where the name is fixed to the task name', () => {
-    renderCreateCustomReceipt({ appVersion: v9Version });
+  it('does not render a name field, because the name is fixed to the task name', () => {
+    renderCreateCustomReceipt();
     expect(screen.queryByLabelText(nameFieldLabel)).not.toBeInTheDocument();
   });
 
   it('creates a custom receipt with the fixed name from v9 when a data model is selected', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceipt({ appVersion: v9Version });
+    renderCreateCustomReceipt();
 
     await selectDataModel(user, mockAllDataModelIds[0]);
     await user.click(screen.getByRole('button', { name: createButtonName }));
@@ -65,7 +56,7 @@ describe('CreateCustomReceipt', () => {
 
   it('displays a data model error from v9 when no data model is selected', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceipt({ appVersion: v9Version });
+    renderCreateCustomReceipt();
 
     await user.click(screen.getByRole('button', { name: createButtonName }));
 
@@ -79,7 +70,7 @@ describe('CreateCustomReceipt', () => {
 
   it('calls "onCloseForm" when the cancel button is clicked', async () => {
     const user = userEvent.setup();
-    renderCreateCustomReceipt({ appVersion: v9Version });
+    renderCreateCustomReceipt();
 
     await user.click(
       screen.getByRole('button', {
@@ -103,22 +94,13 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 type RenderProps = {
-  appVersion: AppVersion;
   bpmnApiContextProps: Partial<BpmnApiContextProps>;
 };
 
-const renderCreateCustomReceipt = ({
-  appVersion,
-  bpmnApiContextProps,
-}: Partial<RenderProps> = {}) => {
+const renderCreateCustomReceipt = ({ bpmnApiContextProps }: Partial<RenderProps> = {}) => {
   return render(
     <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider
-        value={{
-          ...mockBpmnContextValue,
-          appVersion: appVersion ?? mockBpmnContextValue.appVersion,
-        }}
-      >
+      <BpmnContext.Provider value={mockBpmnContextValue}>
         <BpmnConfigPanelFormContextProvider>
           <CreateCustomReceipt onCloseForm={mockOnCloseForm} />
         </BpmnConfigPanelFormContextProvider>
