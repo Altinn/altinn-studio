@@ -9,7 +9,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// the task it returns in v9, which loads the app's resource files before the host is built. The call sits in the
 /// template's <c>void ConfigureServices(..)</c> local function, so that function becomes <c>async Task</c> and its
 /// call in the top-level statements is awaited too. A call already awaited is left alone, and a call in a shape the
-/// rewrite does not understand - a method that returns something, a lambda - is reported instead of guessed at.
+/// rewrite does not understand - a method that returns something, a lambda, a method nothing in the file calls -
+/// is reported instead of guessed at. The last one matters for <c>Startup.ConfigureServices</c>: the host calls
+/// it by name and takes no notice of a <c>Task</c> it returns, so making it async would silently register nothing.
 /// </summary>
 /// <remarks>
 /// Without the await the container is built while the files may still be loading, and the first request fails
@@ -128,6 +130,17 @@ internal sealed class AddAltinnAppServicesAwaitMigration
             }
 
             var callSites = CallSitesOf(file, function).ToList();
+            if (function is MethodDeclarationSyntax && callSites.Count == 0)
+            {
+                plan.Unresolved.Add(
+                    $"{location}: nothing in the file calls {FunctionName(function)}, so its callers cannot be "
+                        + "updated to await it. A method the host calls, such as Startup.ConfigureServices, cannot "
+                        + "become async: move the registration to the top-level statements of Program.cs, or "
+                        + "block on the returned Task with .GetAwaiter().GetResult()"
+                );
+                continue;
+            }
+
             var blockedCallSite = callSites.FirstOrDefault(callSite => !CanAwait(callSite, function));
             if (blockedCallSite is not null)
             {

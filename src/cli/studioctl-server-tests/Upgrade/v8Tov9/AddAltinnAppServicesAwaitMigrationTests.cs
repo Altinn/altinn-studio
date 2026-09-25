@@ -167,5 +167,34 @@ public sealed class AddAltinnAppServicesAwaitMigrationTests : IDisposable
         Assert.True(result.RequiresManualFollowUp);
     }
 
+    [Fact]
+    public void Reports_a_Startup_ConfigureServices_that_the_host_calls()
+    {
+        var (migrated, result) = Migrate(
+            """
+            using Altinn.App.Api.Extensions;
+            using Microsoft.Extensions.Configuration;
+            using Microsoft.Extensions.DependencyInjection;
+
+            public class Startup
+            {
+                public Startup(IConfiguration configuration) => Configuration = configuration;
+
+                public IConfiguration Configuration { get; }
+
+                public void ConfigureServices(IServiceCollection services)
+                {
+                    services.AddAltinnAppServices(Configuration, _env);
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("await", migrated);
+        Assert.DoesNotContain("async", migrated);
+        Assert.True(result.RequiresManualFollowUp);
+        Assert.Contains(result.Warnings, w => w.Contains("Startup.ConfigureServices", StringComparison.Ordinal));
+    }
+
     private static int CountOf(string text, string value) => text.Split(value).Length - 1;
 }
