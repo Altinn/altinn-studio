@@ -39,8 +39,9 @@ function PDFGeneratorPreviewWithTarget() {
           <Fieldset.Legend>Oppgave</Fieldset.Legend>
           <Chip.Radio
             name='pdf-preview-task'
+            value='current'
             checked={!target.taskId}
-            onClick={() => setTarget({})}
+            onChange={() => setTarget({})}
           >
             Nåværende oppgave
           </Chip.Radio>
@@ -48,8 +49,9 @@ function PDFGeneratorPreviewWithTarget() {
             <Chip.Radio
               key={task.elementId}
               name='pdf-preview-task'
+              value={task.elementId}
               checked={target.taskId === task.elementId}
-              onClick={() => setTarget({ taskId: task.elementId })}
+              onChange={() => setTarget({ taskId: task.elementId })}
             >
               {task.elementId}
             </Chip.Radio>
@@ -60,14 +62,15 @@ function PDFGeneratorPreviewWithTarget() {
         <Fieldset data-size='sm'>
           <Fieldset.Legend>Underskjema</Fieldset.Legend>
           {subforms.length === 0 && <span>Ingen underskjema å forhåndsvise</span>}
-          {subforms.map((element) => (
+          {subforms.map((element, index) => (
             <Chip.Radio
               key={element.id}
               name='pdf-preview-subform'
+              value={element.id}
               checked={target.dataElementId === element.id}
-              onClick={() => setTarget({ ...target, dataElementId: element.id })}
+              onChange={() => setTarget({ ...target, dataElementId: element.id })}
             >
-              {element.id.slice(0, 8)}
+              Underskjema {index + 1} (ID: {element.id})
             </Chip.Radio>
           ))}
         </Fieldset>
