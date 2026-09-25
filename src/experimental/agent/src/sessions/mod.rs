@@ -365,6 +365,14 @@ pub struct Session {
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    /// When release was requested. A marked Session is no longer listed or
+    /// resolvable by name; the reconciler stops its harness and then removes it.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub deletion_timestamp: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -377,6 +385,12 @@ pub struct Session {
 }
 
 impl Session {
+    /// Whether release of this Session has been requested.
+    #[must_use]
+    pub const fn is_deleting(&self) -> bool {
+        self.deletion_timestamp.is_some()
+    }
+
     /// Describes why an operation cannot use this Session's running harness.
     pub(crate) fn not_running_error(&self) -> Error {
         let detail = self
@@ -511,6 +525,18 @@ pub trait SessionStore: SessionReports {
 
     /// Requests that an Idle Session become active and returns the new desired revision.
     fn activate_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<u64, Error>>;
+
+    /// Atomically records the first release request for one named Session of an
+    /// active Agent incarnation, and returns it as marked.
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Removes a marked Session once its harness has been released. Everything
+    /// keyed to the Session, including its activity reports, goes with it.
+    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Resolves a ready Session into a terminal attachment target.
     fn session_attach_target(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<AttachTarget, Error>>;

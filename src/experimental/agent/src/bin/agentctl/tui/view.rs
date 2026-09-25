@@ -704,6 +704,12 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
                 .row(note_line(&format!("{sessions} session(s) will be deleted with it.")))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
+        Modal::ConfirmDeleteSession { agent, session } => {
+            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+                .row(Line::from(format!("Delete session {agent}/{session}?")))
+                .row(note_line("Its harness is stopped and the Session is removed."))
+                .render(frame, area, FORM_WIDTH, hit_map);
+        }
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),

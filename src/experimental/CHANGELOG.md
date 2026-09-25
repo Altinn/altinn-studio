@@ -28,6 +28,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   and the pre-commit hook) runs inside an Agent.
 - The full Altinn Agent includes `cargo-machete`, so `make deps-check` and `make check` in the Rust workspaces run
   inside an Agent.
+- `agentctl delete session/<name>` and `d` in the terminal UI delete one Session: its harness is stopped and its name
+  becomes free. The harness's own conversation files stay in the Sandbox.
 
 ### Changed
 

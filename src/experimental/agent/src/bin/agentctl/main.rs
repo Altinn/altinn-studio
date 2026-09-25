@@ -142,6 +142,12 @@ enum Command {
         resource: String,
         /// Optional resource name when it is not part of `resource`.
         name: Option<String>,
+        /// Owning Agent for Session resources; inferred from the current directory when omitted.
+        #[arg(long, conflicts_with = "variant")]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
@@ -470,14 +476,24 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             output,
         } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
-        Command::Delete { resource, name } => {
+        Command::Delete {
+            resource,
+            name,
+            agent,
+            variant,
+        } => {
             let (resource, name) = resource_reference(&resource, name)?;
-            if resource != Resource::Agent {
-                return Err(Error::Invalid("Session deletion is not supported".into()).into());
+            if resource == Resource::Agent {
+                reject_session_scope(agent.as_deref(), variant.as_ref(), false)?;
+                let name = require_name(name, "Agent")?;
+                client.delete(&name).await?;
+                println!("agent/{name} deleted");
+            } else {
+                let name = SessionName::new(require_name(name, "Session")?)?;
+                let agent = resolve_agent_name(client, agent, variant).await?;
+                client.delete_session(&agent, name.clone()).await?;
+                println!("session/{agent}/{name} deleted");
             }
-            let name = require_name(name, "Agent")?;
-            client.delete(&name).await?;
-            println!("agent/{name} deleted");
         }
         Command::Attach {
             resource,

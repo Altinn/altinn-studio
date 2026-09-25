@@ -60,6 +60,7 @@ struct UpgradeGates {
 struct FakeSessions {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -173,6 +174,21 @@ impl SessionApi for FakeSessions {
         })
     }
 
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.deleted.borrow_mut().push((agent.to_owned(), name.clone()));
+        Box::pin(async move {
+            if agent == "worker" {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+    }
+
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<agent::sessions::UpgradeReadiness, Error>> {
         let blockers = self.upgrade_blockers.borrow().clone();
         let warnings = self.upgrade_warnings.borrow().clone();
@@ -226,6 +242,7 @@ struct ApiFixture {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     changes: Changes,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -267,6 +284,7 @@ fn api() -> ApiFixture {
     ));
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
+    let deleted = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let changes = Changes::new();
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
@@ -279,6 +297,7 @@ fn api() -> ApiFixture {
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
+            deleted: deleted.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
@@ -294,6 +313,7 @@ fn api() -> ApiFixture {
         ensured,
         sent,
         changes,
+        deleted,
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
@@ -385,6 +405,32 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
     let missing = fixture
         .client
         .prompt_session("ghost", name, "hello".into(), false, None)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_deletion_round_trips_and_reports_a_missing_session() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    fixture
+        .client
+        .delete_session("worker", name.clone())
+        .await
+        .expect("delete Session");
+    assert_eq!(
+        fixture.deleted.borrow().as_slice(),
+        [("worker".to_owned(), name.clone())]
+    );
+
+    let missing = fixture
+        .client
+        .delete_session("ghost", name)
         .await
         .expect_err("unknown Agent");
     match missing {

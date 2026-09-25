@@ -57,6 +57,8 @@ enum Input {
         turns: Result<Vec<Turn>, String>,
     },
     PromptSent(PromptForm, Result<(), String>),
+    /// A background Session change failed; its success shows through the watch.
+    SessionChangeFailed(String),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
@@ -196,6 +198,10 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 }
                 continue;
             }
+            Input::SessionChangeFailed(error) => {
+                app.error = Some(error);
+                continue;
+            }
             Input::ForwardCreated(outcome) => {
                 mouse.reset();
                 forward_created(&mut app, &mut forwards, outcome);
@@ -257,6 +263,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 }
                 app.creating += 1;
                 spawn_create(home, inputs.clone(), agent, spec, replace);
+            }
+            Action::DeleteSession { agent, session } => {
+                spawn_session_delete(home.socket_path(), inputs.clone(), agent, session);
             }
             Action::DeleteForward { id } => forwards.remove(id),
             Action::Prompt(form) => {
@@ -405,6 +414,16 @@ fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
             .await
             .map_err(|error| error.to_string());
         let _ = inputs.send(Input::PromptSent(form, result));
+    });
+}
+
+/// Deletes a Session off the event loop: the call returns only once its harness
+/// is stopped, and the watch removes the row.
+fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
+    tokio::task::spawn_local(async move {
+        if let Err(error) = Client::for_path(socket_path).delete_session(&agent, session).await {
+            let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
+        }
     });
 }
 

@@ -83,6 +83,10 @@ fn pane_target(session: &Session) -> String {
 // the harness creates its conversation; its contents are not needed here.
 const OBSERVE_SCRIPT: &str = include_str!("observe.sh");
 
+// Stopping is repeated after an interrupted release, so a Session that is
+// already gone counts as stopped.
+const STOP_SCRIPT: &str = include_str!("stop.sh");
+
 /// Observes attachment and the freshest terminal or transcript activity.
 async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observation, Error> {
     let inspected = run_lifecycle_execution(
@@ -142,13 +146,18 @@ fn parse_observation(output: &str) -> Result<Observation, Error> {
     })
 }
 
-/// Stops a deliberately idle tmux Session.
+/// Stops a tmux Session, succeeding when it is already gone.
 async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
     let stopped = run_lifecycle_execution(
         sandbox,
         ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/tmux"),
-            ["kill-session".into(), "-t".into(), exact_target(session)],
+            SandboxPath::new("/bin/sh"),
+            [
+                "-c".into(),
+                STOP_SCRIPT.into(),
+                "agent-session-stop".into(),
+                exact_target(session),
+            ],
         ),
         "tmux stop",
     )
@@ -157,7 +166,7 @@ async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
         Ok(())
     } else {
         Err(Error::Session(format!(
-            "tmux failed to stop idle Session {} with exit code {}",
+            "tmux failed to stop Session {} with exit code {}",
             session.id, stopped.status.code
         )))
     }
@@ -639,6 +648,7 @@ mod tests {
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_delivery.mjs"))
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/deliver.sh"))
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/observe.sh"))
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/stop.sh"))
             .output()
             .expect("Node.js");
         assert!(
@@ -727,6 +737,7 @@ mod tests {
             harness: crate::harness::test_harness(),
             model_selection,
             created_at: OffsetDateTime::UNIX_EPOCH,
+            deletion_timestamp: None,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
