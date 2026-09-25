@@ -157,7 +157,6 @@ GITEA_BASE_URL=http://localhost:3000
 # Optional: Multi-model setup
 LLM_MODEL_PLANNER=gpt-4o
 LLM_MODEL_ACTOR=claude-sonnet-4-5
-LLM_MODEL_REVIEWER=gpt-4o-mini
 
 # Optional: Langfuse observability
 LANGFUSE_SECRET_KEY=sk-lf-...
