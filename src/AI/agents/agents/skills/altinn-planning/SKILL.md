@@ -7,7 +7,7 @@ title: Planlegging av app-endringer
 
 ### Core Components
 
-- **`App/Program.cs`**: Entry point using Altinn App Framework with custom service registrations for `IInstantiationProcessor` and `IInstanceValidator`
+- **`App/Program.cs`**: Entry point using Altinn App Framework with custom service registrations for `IInstantiationProcessor` and validators (`IFormDataValidator`, `ITaskValidator`)
 - **`App/models/model.cs`**: Auto-generated data model from XSD schema with dual JSON/XML serialization support
 - **`App/logic/`**: Custom business logic handlers (instantiation, validation)
 - **`App/ui/`**: Frontend layout definitions using Altinn's declarative JSON schema
@@ -19,14 +19,20 @@ title: Planlegging av app-endringer
 
 ```csharp
 services.AddTransient<IInstantiationProcessor, InstantiationHandler>();
-services.AddTransient<IInstanceValidator, ValidationHandler>();
+services.AddTransient<IFormDataValidator, FormDataValidator>();
+services.AddTransient<ITaskValidator, TaskValidator>();
 ```
 
 **Data Model**: All model properties use both `[JsonProperty]` and `[JsonPropertyName]` attributes for compatibility, plus `[XmlElement]` for order-specific XML serialization.
 
 **Form Layouts**: Multi-page forms defined in `ui/form/layouts/*.json` with Norwegian text resource bindings (e.g., `"1.1.1-Input.title"`).
 
-**Validation**: Custom validation in `ValidationHandler.cs` using regex patterns for Norwegian-specific formats (phone numbers, org numbers).
+**Validation**: Custom validation, for example regex patterns for Norwegian-specific formats (phone numbers, org numbers), goes in a class that implements one of these interfaces. Both return a list of `ValidationIssue`.
+
+- `IFormDataValidator` validates form data. Implement `DataType`, `HasRelevantChanges` and `ValidateFormData`.
+- `ITaskValidator` validates a whole process task. Implement `TaskId` and `ValidateTask`.
+
+Do not use `IInstanceValidator`. It is obsolete.
 
 ## Critical Conventions
 
@@ -42,7 +48,7 @@ Forms use declarative JSON with component types like `Panel`, `Header`, `Input` 
 - **Data binding**: `dataModelBindings.simpleBinding` to model properties
 - **Text resources**: `textResourceBindings.title` for i18n
 - **Grid system**: Bootstrap-style responsive grid (`labelGrid`, `innerGrid`)
-- **Validation**: `required` field with custom validation in ValidationHandler
+- **Validation**: `required` field, with custom validation in an `IFormDataValidator`
 
 Always reference existing layout files when adding new form components.
 
