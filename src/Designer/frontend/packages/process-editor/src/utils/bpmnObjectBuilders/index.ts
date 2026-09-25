@@ -1,4 +1,1 @@
-export {
-  getBpmnViewerDetailsFromBusinessObject,
-  getBpmnEditorDetailsFromBusinessObject,
-} from './bpmnObjectBuilders';
+export { getBpmnEditorDetailsFromBusinessObject } from './bpmnObjectBuilders';

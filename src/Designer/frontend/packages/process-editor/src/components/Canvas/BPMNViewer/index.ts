@@ -1,1 +1,0 @@
-export { BPMNViewer } from './BPMNViewer';
