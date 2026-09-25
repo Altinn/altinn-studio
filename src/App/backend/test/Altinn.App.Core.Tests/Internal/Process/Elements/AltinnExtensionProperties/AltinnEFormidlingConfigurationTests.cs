@@ -122,6 +122,49 @@ public class AltinnEFormidlingConfigurationTests
     }
 
     [Fact]
+    public void Validate_WithBlankDisabled_DefaultsToFalse()
+    {
+        // Arrange
+        var config = new AltinnEFormidlingConfiguration
+        {
+            Disabled = [new AltinnEnvironmentConfig { Value = "  " }],
+            Process = [new AltinnEnvironmentConfig { Value = "process-value" }],
+            Standard = [new AltinnEnvironmentConfig { Value = "standard-value" }],
+            TypeVersion = [new AltinnEnvironmentConfig { Value = "1.0" }],
+            Type = [new AltinnEnvironmentConfig { Value = "type-value" }],
+            SecurityLevel = [new AltinnEnvironmentConfig { Value = "3" }],
+        };
+
+        // Act
+        ValidAltinnEFormidlingConfiguration result = config.Validate(HostingEnvironment.Production);
+
+        // Assert
+        Assert.False(result.Disabled);
+    }
+
+    [Fact]
+    public void Validate_WithUnparseableDisabled_ThrowsExceptionWithAllErrors()
+    {
+        // Arrange - a value that is neither true nor false is a configuration error like any other,
+        // and must be reported alongside the rest rather than escaping as a parse failure.
+        var config = new AltinnEFormidlingConfiguration
+        {
+            Disabled = [new AltinnEnvironmentConfig { Value = "yes" }],
+            Process = [new AltinnEnvironmentConfig { Value = "process-value" }],
+            Standard = [new AltinnEnvironmentConfig { Value = "standard-value" }],
+            TypeVersion = [new AltinnEnvironmentConfig { Value = "1.0" }],
+            Type = [new AltinnEnvironmentConfig { Value = "type-value" }],
+            SecurityLevel = [new AltinnEnvironmentConfig { Value = "invalid" }],
+        };
+
+        // Act & Assert
+        var exception = Assert.Throws<ApplicationConfigException>(() => config.Validate(HostingEnvironment.Production));
+
+        Assert.Contains("Disabled must be a valid boolean for environment Production", exception.Message);
+        Assert.Contains("SecurityLevel must be a valid integer", exception.Message);
+    }
+
+    [Fact]
     public void Validate_WithMissingRequiredFields_ThrowsExceptionWithAllErrors()
     {
         // Arrange - all required fields are missing
