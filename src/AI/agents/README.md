@@ -228,7 +228,7 @@ altinity-agents/
 │   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
 │   ├── skills/           # Domain-knowledge skills, loaded on demand
 │   ├── prompts/          # System + user prompts (+ loader; Langfuse overrides these)
-│   ├── services/         # git, llm, events, validation, repo, patching, telemetry
+│   ├── services/         # git, llm, events, preview, repo
 │   └── workflows/        # Up-front pipeline stages (intake, spec)
 └── shared/               # Config, models, utilities
 ```
