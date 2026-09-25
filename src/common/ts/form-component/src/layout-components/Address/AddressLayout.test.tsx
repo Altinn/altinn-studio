@@ -97,32 +97,30 @@ describe('AddressLayout', () => {
 
   it('shows required indicators when required is true', () => {
     render({ simplified: false, required: true });
-    expect(screen.getByRole('textbox', { name: /Gateadresse\s?Obligatorisk/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Postnr\s?Obligatorisk/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Obligatorisk' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Obligatorisk' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?Obligatorisk/ }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Obligatorisk' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('textbox', { name: /Bolignummer\s?Obligatorisk/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Obligatorisk/i })).toBeInTheDocument();
   });
 
   it('shows optional indicators when showOptionalMarking is true and not required', () => {
     render({ simplified: false, required: false, showOptionalMarking: true });
-    expect(screen.getByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Postnr\s?\(Valgfri\)/ })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse (Valgfri)' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr (Valgfri)' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: /C\/O eller annen tilleggsadresse\s?\(Valgfri\)/ }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse (Valgfri)' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer\s?\(Valgfri\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer \(Valgfri\)/i })).toBeInTheDocument();
   });
 
   it('does not show optional indicators when readOnly is true', () => {
     render({ simplified: false, readOnly: true, showOptionalMarking: true });
     expect(
-      screen.queryByRole('textbox', { name: /Gateadresse\s?\(Valgfri\)/ }),
+      screen.queryByRole('textbox', { name: 'Gateadresse (Valgfri)' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox', { name: /Postnr\s?\(Valgfri\)/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Postnr (Valgfri)' })).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
   });
 

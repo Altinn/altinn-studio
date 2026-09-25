@@ -1,0 +1,96 @@
+diff --git a/dist/accessible-name-and-description.js b/dist/accessible-name-and-description.js
+index 94a27b7b49d10844ef0d3f44aaf1cb2c39aa8fae..c5c05dbd4e1f3aec3cd8fe017708d58709647a71 100644
+--- a/dist/accessible-name-and-description.js
++++ b/dist/accessible-name-and-description.js
+@@ -243,7 +243,10 @@ function computeTextAlternative(root) {
+     if ((0, _util.isElement)(node) && computedStyleSupportsPseudoElements) {
+       var pseudoBefore = getComputedStyle(node, "::before");
+       var beforeContent = getTextualContent(pseudoBefore);
+-      accumulatedText = "".concat(beforeContent, " ").concat(accumulatedText);
++      // Patched (https://github.com/eps1lon/dom-accessibility-api/issues/1087): pad only for real pseudo content, so no trim is needed
++      if (beforeContent !== "") {
++        accumulatedText = "".concat(beforeContent, " ").concat(accumulatedText);
++      }
+     }
+ 
+     // FIXME: Including aria-owns is not defined in the spec
+@@ -265,9 +268,11 @@ function computeTextAlternative(root) {
+     if ((0, _util.isElement)(node) && computedStyleSupportsPseudoElements) {
+       var pseudoAfter = getComputedStyle(node, "::after");
+       var afterContent = getTextualContent(pseudoAfter);
+-      accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
++      if (afterContent !== "") {
++        accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
++      }
+     }
+-    return accumulatedText.trim();
++    return accumulatedText;
+   }
+ 
+   /**
+@@ -399,7 +404,7 @@ function computeTextAlternative(root) {
+         isEmbeddedInLabel: false,
+         isReferenced: false
+       });
+-      if (nameFromSubTree !== "") {
++      if (nameFromSubTree.trim() !== "") {
+         return nameFromSubTree;
+       }
+     }
+@@ -506,7 +511,7 @@ function computeTextAlternative(root) {
+         isEmbeddedInLabel: context.isEmbeddedInLabel,
+         isReferenced: false
+       });
+-      if (accumulatedText2F !== "") {
++      if (accumulatedText2F.trim() !== "") {
+         consultedNodes.add(current);
+         return accumulatedText2F;
+       }
+diff --git a/dist/accessible-name-and-description.mjs b/dist/accessible-name-and-description.mjs
+index 05f9ca6732a0da18a948267e6cef5b3794d42773..c474619306fa70e5bedf083b9b3b8b2048d89a21 100644
+--- a/dist/accessible-name-and-description.mjs
++++ b/dist/accessible-name-and-description.mjs
+@@ -238,7 +238,10 @@ export function computeTextAlternative(root) {
+     if (isElement(node) && computedStyleSupportsPseudoElements) {
+       var pseudoBefore = getComputedStyle(node, "::before");
+       var beforeContent = getTextualContent(pseudoBefore);
+-      accumulatedText = "".concat(beforeContent, " ").concat(accumulatedText);
++      // Patched (https://github.com/eps1lon/dom-accessibility-api/issues/1087): pad only for real pseudo content, so no trim is needed
++      if (beforeContent !== "") {
++        accumulatedText = "".concat(beforeContent, " ").concat(accumulatedText);
++      }
+     }
+ 
+     // FIXME: Including aria-owns is not defined in the spec
+@@ -260,9 +263,11 @@ export function computeTextAlternative(root) {
+     if (isElement(node) && computedStyleSupportsPseudoElements) {
+       var pseudoAfter = getComputedStyle(node, "::after");
+       var afterContent = getTextualContent(pseudoAfter);
+-      accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
++      if (afterContent !== "") {
++        accumulatedText = "".concat(accumulatedText, " ").concat(afterContent);
++      }
+     }
+-    return accumulatedText.trim();
++    return accumulatedText;
+   }
+ 
+   /**
+@@ -394,7 +399,7 @@ export function computeTextAlternative(root) {
+         isEmbeddedInLabel: false,
+         isReferenced: false
+       });
+-      if (nameFromSubTree !== "") {
++      if (nameFromSubTree.trim() !== "") {
+         return nameFromSubTree;
+       }
+     }
+@@ -501,7 +506,7 @@ export function computeTextAlternative(root) {
+         isEmbeddedInLabel: context.isEmbeddedInLabel,
+         isReferenced: false
+       });
+-      if (accumulatedText2F !== "") {
++      if (accumulatedText2F.trim() !== "") {
+         consultedNodes.add(current);
+         return accumulatedText2F;
+       }

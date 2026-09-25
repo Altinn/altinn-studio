@@ -62,6 +62,8 @@
     "src/common/ts/**"
   ],
   "resolutions": {
+    "dom-accessibility-api@npm:^0.5.9": "patch:dom-accessibility-api@npm%3A0.5.16#~/.yarn/patches/dom-accessibility-api-npm-0.5.16-d3e2310666.patch",
+    "dom-accessibility-api@npm:^0.6.3": "patch:dom-accessibility-api@npm%3A0.6.3#~/.yarn/patches/dom-accessibility-api-npm-0.6.3-0345e4dede.patch",
     "jsdom@npm:30.1.1": "patch:jsdom@npm%3A30.1.1#~/.yarn/patches/jsdom-npm-30.1.1-6cc9c69fd4.patch",
     "qs": "6.16.0"
   }

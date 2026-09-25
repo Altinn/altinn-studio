@@ -9901,17 +9901,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dom-accessibility-api@npm:^0.5.9":
+"dom-accessibility-api@npm:0.5.16":
   version: 0.5.16
   resolution: "dom-accessibility-api@npm:0.5.16"
   checksum: 10/377b4a7f9eae0a5d72e1068c369c99e0e4ca17fdfd5219f3abd32a73a590749a267475a59d7b03a891f9b673c27429133a818c44b2e47e32fec024b34274e2ca
   languageName: node
   linkType: hard
 
-"dom-accessibility-api@npm:^0.6.3":
+"dom-accessibility-api@npm:0.6.3":
   version: 0.6.3
   resolution: "dom-accessibility-api@npm:0.6.3"
   checksum: 10/83d3371f8226487fbad36e160d44f1d9017fb26d46faba6a06fcad15f34633fc827b8c3e99d49f71d5f3253d866e2131826866fd0a3c86626f8eccfc361881ff
+  languageName: node
+  linkType: hard
+
+"dom-accessibility-api@patch:dom-accessibility-api@npm%3A0.5.16#~/.yarn/patches/dom-accessibility-api-npm-0.5.16-d3e2310666.patch":
+  version: 0.5.16
+  resolution: "dom-accessibility-api@patch:dom-accessibility-api@npm%3A0.5.16#~/.yarn/patches/dom-accessibility-api-npm-0.5.16-d3e2310666.patch::version=0.5.16&hash=6dcf08"
+  checksum: 10/572c1423a9da91b8be472863614144b84e64d57106460ff752f4640ce1df1dd225795da4674bd89508c92ddf21d862fb15bbbe1e5ef114666702bbad89bf1a00
+  languageName: node
+  linkType: hard
+
+"dom-accessibility-api@patch:dom-accessibility-api@npm%3A0.6.3#~/.yarn/patches/dom-accessibility-api-npm-0.6.3-0345e4dede.patch":
+  version: 0.6.3
+  resolution: "dom-accessibility-api@patch:dom-accessibility-api@npm%3A0.6.3#~/.yarn/patches/dom-accessibility-api-npm-0.6.3-0345e4dede.patch::version=0.6.3&hash=bdd837"
+  checksum: 10/2d79e6afa81d90eadf49cdd1140f47345b55b23e3013faf4a3cbaa6e031fbbd1a971a6a7d6e53ffefe9bb75ec62578d6af93f882cc3b8d7fb248758054bb1d7d
   languageName: node
   linkType: hard
 

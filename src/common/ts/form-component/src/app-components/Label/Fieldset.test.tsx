@@ -18,15 +18,19 @@ describe('Fieldset', () => {
 
   it('provides an optional indicator', () => {
     render(
-      <Fieldset legend='legend test' required={false} optionalIndicator={<span>(valgfri)</span>} />,
+      <Fieldset
+        legend='legend test'
+        required={false}
+        optionalIndicator={<span> (valgfri)</span>}
+      />,
     );
-    const fieldset = screen.getByRole('group', { name: /legend test\s?\(valgfri\)/i });
+    const fieldset = screen.getByRole('group', { name: /legend test \(valgfri\)/i });
     expect(fieldset).toBeInTheDocument();
   });
 
   it('provides a required indicator', () => {
-    render(<Fieldset legend='legend test' required={true} requiredIndicator={<span>*</span>} />);
-    const fieldset = screen.getByRole('group', { name: /legend test\s?\*/i });
+    render(<Fieldset legend='legend test' required={true} requiredIndicator={<span> *</span>} />);
+    const fieldset = screen.getByRole('group', { name: /legend test \*/i });
     expect(fieldset).toBeInTheDocument();
   });
 });
