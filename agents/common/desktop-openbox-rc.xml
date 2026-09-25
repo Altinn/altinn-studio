@@ -34,6 +34,12 @@
     <drawContents>yes</drawContents>
     <popupShow>Never</popupShow>
   </resize>
+  <keyboard>
+    <!-- The usual shortcut for a terminal, for a person who takes over the desktop. -->
+    <keybind key="C-A-t">
+      <action name="Execute"><command>desktop-terminal</command></action>
+    </keybind>
+  </keyboard>
   <applications>
     <application class="*">
       <maximized>yes</maximized>

@@ -402,6 +402,30 @@ wait 0.2
 BATCH
 grep -qE '\.jpg \(1456x819' trailing.txt || fail "a batch did not end with a screenshot"
 
+echo "## desktop terminal"
+# The terminal a person opens with Ctrl+Alt+T or the panel launcher.
+grep -qxF 'launcher_item_app = /usr/local/share/applications/desktop-terminal.desktop' /etc/xdg/tint2/tint2rc \
+    || fail "the panel has no terminal launcher"
+desktop key ctrl+alt+t >/dev/null
+for _ in $(seq 1 50); do desktop windows | grep -qi sakura && break; sleep 0.1; done
+desktop windows | grep -qi sakura || fail "Ctrl+Alt+T did not open a terminal"
+pkill -x sakura || true
+# Started from a Session, as the Agent does, the terminal has to reach a shell prompt: a Session
+# does not export SHELL, and without it sakura opens a window with no shell in it.
+env -u SHELL setsid desktop-terminal >terminal-plain.log 2>&1 &
+for _ in $(seq 1 50); do desktop tree sakura 2>/dev/null | grep -q '\$" @' && break; sleep 0.2; done
+desktop tree sakura 2>/dev/null | grep -q '^ *terminal ".*\$" @' \
+    || fail "a terminal started without SHELL shows no shell prompt"
+pkill -x sakura || true
+# It loads the Session environment SSH access writes, and desktop tree reads what it shows.
+printf 'SMOKE_MARKER=from-session\n' >session.env
+AGENT_DESKTOP_ENVIRONMENT="$work/session.env" setsid desktop-terminal \
+    -x "bash -c 'echo marker=\$SMOKE_MARKER; exec bash'" >terminal.log 2>&1 &
+for _ in $(seq 1 50); do desktop tree sakura 2>/dev/null | grep -q 'marker=from-session' && break; sleep 0.2; done
+desktop tree sakura 2>/dev/null | grep -q '^ *terminal ".*value=".*marker=from-session' \
+    || fail "the desktop terminal did not load the Session environment, or desktop tree cannot read it"
+pkill -x sakura || true
+
 echo "## desktop in a browser"
 # Started the way the image's own unit starts it, since there is no systemd here to do it: the
 # unit's command with the unit's environment and nothing else. A service inherits none of the

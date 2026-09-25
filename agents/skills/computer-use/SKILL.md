@@ -121,6 +121,7 @@ desktop key KEYSYM [--repeat N]
 desktop hold-key KEYSYM COMMAND...   # e.g. desktop hold-key shift click 400 300
 
 desktop focus WINDOW                 # window id, or a substring of its title
+desktop-terminal [-x COMMAND]        # a terminal on the desktop, with the Session environment
 desktop resize WIDTH HEIGHT          # RandR; the screenshot budget does not change
 desktop wait SECONDS
 desktop batch [--no-screenshot]      # one command per line on stdin
@@ -134,4 +135,5 @@ Add `--json` before the command for machine-readable output from `screenshot`, `
 A person opens this desktop with `agentctl vnc --web`, in their browser, or with a VNC client of
 their own; `agents/README.md` has the commands. They see exactly what you see and share the same
 keyboard and pointer, so say what you are about to do before you do it, and stop when they take
-over.
+over. They can open a terminal with `Ctrl+Alt+T` or the panel's launcher; `desktop tree sakura`
+shows you its last lines.
