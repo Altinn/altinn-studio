@@ -12,13 +12,12 @@ import {
   renderGenericComponentTest,
   renderWithoutInstanceAndLayout,
 } from 'src/test/renderWithProviders';
-import type { IData } from 'src/types/shared';
 
 describe('FormProvider', () => {
   it('loads the UI folder of a subform PDF service task with the subform being rendered', async () => {
     const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
     const instance = getInstanceWithProcessMock();
-    instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData));
+    instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' })));
     window.altinnAppGlobalData.ui.folders.Task_SubformPdf = { defaultDataType: 'subform', pages: { order: ['Pdf'] } };
     const fetchFormBootstrapForInstance = vi.fn(async () => getFormBootstrapMock());
 
