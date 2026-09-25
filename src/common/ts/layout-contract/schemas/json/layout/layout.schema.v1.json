@@ -1847,7 +1847,6 @@
               "$ref": "#/definitions/IDataModelBindingsForAddress"
             },
             "saveWhileTyping": {
-              "default": true,
               "$ref": "#/definitions/SaveWhileTyping"
             },
             "simplified": {
@@ -3894,7 +3893,6 @@
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "saveWhileTyping": {
-              "default": true,
               "$ref": "#/definitions/SaveWhileTyping"
             },
             "formatting": {
@@ -6964,7 +6962,6 @@
               "$ref": "#/definitions/IDataModelBindingsSimple"
             },
             "saveWhileTyping": {
-              "default": true,
               "$ref": "#/definitions/SaveWhileTyping"
             },
             "autocomplete": {

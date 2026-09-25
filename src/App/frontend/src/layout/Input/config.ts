@@ -38,7 +38,7 @@ export const Config = new CG.component({
     }),
   )
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
-  .addProperty(new CG.prop('saveWhileTyping', CG.common('SaveWhileTyping').optional({ default: true })))
+  .addProperty(new CG.prop('saveWhileTyping', CG.common('SaveWhileTyping').optional()))
   .addProperty(new CG.prop('formatting', CG.common('IFormatting').optional()))
   .addProperty(
     new CG.prop(
