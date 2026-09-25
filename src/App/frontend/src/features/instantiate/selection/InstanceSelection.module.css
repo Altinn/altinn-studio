@@ -72,6 +72,18 @@ Altinn, and making sure they are consistent. */
   padding-bottom: 12px;
 }
 
+.instanceDetails {
+  margin: 0;
+}
+
+.instanceDetails dt {
+  font-weight: bold;
+}
+
+.instanceDetails dd {
+  margin: 0;
+}
+
 .leftOffHeading {
   padding-top: 12px;
   padding-bottom: 12px;
