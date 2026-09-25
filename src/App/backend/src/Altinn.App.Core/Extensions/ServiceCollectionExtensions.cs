@@ -144,12 +144,17 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationContext();
     }
 
-    private static void AddApplicationIdentifier(IServiceCollection services)
+    /// <summary>
+    /// Registers the app's <see cref="Models.AppIdentifier"/> from the loaded <c>config/applicationmetadata.json</c>. It is
+    /// read from the file rather than through <see cref="IAppMetadata"/>, whose application metadata is enriched with
+    /// the ids of the app's <c>IExternalApiClient</c> implementations: constructing those to ask for their ids would
+    /// resolve the <see cref="Models.AppIdentifier"/> they may inject, which is this registration, without end.
+    /// </summary>
+    internal static void AddApplicationIdentifier(IServiceCollection services)
     {
         services.AddSingleton(sp =>
-        {
-            return sp.GetRequiredService<IAppMetadata>().ApplicationMetadata.AppIdentifier;
-        });
+            ApplicationMetadataParser.Parse(sp.GetRequiredService<AppFilesAccessor>().Current).AppIdentifier
+        );
     }
 
     /// <summary>
