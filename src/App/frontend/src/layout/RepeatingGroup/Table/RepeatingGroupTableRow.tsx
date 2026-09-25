@@ -53,8 +53,8 @@ export interface IRepeatingGroupTableRowProps {
 function getEditButtonText(
   isEditing: boolean,
   langTools: IUseLanguage,
-  editButtonOpen: string,
-  editButtonClose: string,
+  editButtonOpen: string | undefined,
+  editButtonClose: string | undefined,
 ) {
   const buttonTextKey = isEditing ? editButtonClose || 'general.save_and_close' : editButtonOpen || 'general.edit_alt';
   return langTools.langAsString(buttonTextKey);
