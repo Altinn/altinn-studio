@@ -75,4 +75,5 @@ export const mockTexts: AssistantTexts = {
   securityNoticeAlert: securityNoticeAlertTexts,
   permissionPrompt: permissionPromptTexts,
   sourcesLabel: 'sourcesLabel',
+  filesChangedLabel: 'filesChangedLabel',
 };
