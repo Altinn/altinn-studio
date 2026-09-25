@@ -2,11 +2,16 @@ import React from 'react';
 import classes from './ConfigIcon.module.css';
 import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 import {
+  ArchiveIcon,
   ArrowRightIcon,
+  BranchingIcon,
+  CogIcon,
   ConfirmationTaskIcon,
   DataTaskIcon,
   FeedbackTaskIcon,
   EndEventIcon,
+  FilesIcon,
+  PaperplaneIcon,
   PaymentTaskIcon,
   PdfTaskIcon,
   SignTaskIcon,
@@ -33,9 +38,20 @@ export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElem
       return <PaymentTaskIcon className={classes.icon} />;
     case 'pdf':
       return <PdfTaskIcon className={classes.icon} />;
+    case 'eFormidling':
+      return <PaperplaneIcon className={classes.icon} />;
+    case 'subformPdf':
+      return <FilesIcon className={classes.icon} />;
+    case 'fiksArkiv':
+      return <ArchiveIcon className={classes.icon} />;
     case BpmnTypeEnum.EndEvent.toString():
       return <EndEventIcon className={classes.icon} />;
     case BpmnTypeEnum.SequenceFlow.toString():
       return <ArrowRightIcon className={classes.icon} />;
+    case BpmnTypeEnum.ExclusiveGateway.toString():
+      return <BranchingIcon className={classes.icon} />;
   }
+
+  // Any other task type is a service task the app implements itself.
+  return typeof taskType === 'string' ? <CogIcon className={classes.icon} /> : null;
 };

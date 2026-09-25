@@ -59,10 +59,6 @@ export class StudioModeler {
     this.modeling.updateModdleProperties(this.getElement(), element, { ...properties });
   }
 
-  public getAllTasksByType(elementType: string): Element[] {
-    return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
-  }
-
   public getElementsByType(elementType: BpmnTypeEnum): Element[] {
     return this.elementRegistry.filter((element) => element.type === elementType) as Element[];
   }
