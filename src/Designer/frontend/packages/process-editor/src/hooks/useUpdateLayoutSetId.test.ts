@@ -25,14 +25,14 @@ describe('useUpdateLayoutSetId', () => {
   });
 
   it('renames the layout set only when its turn among the process changes comes', () => {
-    renderUseUpdateLayoutSetId(v9AppVersion)(oldId, newId);
+    setupUpdateLayoutSetId(v9AppVersion)(oldId, newId);
 
     expect(enqueueProcessChange).toHaveBeenCalledTimes(1);
     expect(mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
   it('renames the layout set and then reloads the process with the renamed task selected in a v9 app', async () => {
-    renderUseUpdateLayoutSetId(v9AppVersion)(oldId, newId);
+    setupUpdateLayoutSetId(v9AppVersion)(oldId, newId);
     await runEnqueuedChange();
 
     expect(mutateLayoutSetId).toHaveBeenCalledWith({
@@ -43,7 +43,7 @@ describe('useUpdateLayoutSetId', () => {
   });
 
   it('renames the layout set without reloading the process in an app before v9', async () => {
-    renderUseUpdateLayoutSetId(v8AppVersion)(oldId, newId);
+    setupUpdateLayoutSetId(v8AppVersion)(oldId, newId);
     await runEnqueuedChange();
 
     expect(mutateLayoutSetId).toHaveBeenCalledWith({
@@ -56,14 +56,14 @@ describe('useUpdateLayoutSetId', () => {
   it('does not reload the process when the rename fails', async () => {
     mutateLayoutSetId.mockRejectedValue(new Error('Conflict'));
 
-    renderUseUpdateLayoutSetId(v9AppVersion)(oldId, newId);
+    setupUpdateLayoutSetId(v9AppVersion)(oldId, newId);
     await runEnqueuedChange();
 
     expect(reloadSavedProcess).not.toHaveBeenCalled();
   });
 
   it('reloads the process after each of two renames in quick succession', async () => {
-    const updateLayoutSetId = renderUseUpdateLayoutSetId(v9AppVersion);
+    const updateLayoutSetId = setupUpdateLayoutSetId(v9AppVersion);
     updateLayoutSetId(oldId, 'FirstName');
     updateLayoutSetId('FirstName', newId);
     for (const [change] of enqueueProcessChange.mock.calls) await change();
@@ -73,7 +73,7 @@ describe('useUpdateLayoutSetId', () => {
   });
 });
 
-const renderUseUpdateLayoutSetId = (appVersion: AppVersion) => {
+const setupUpdateLayoutSetId = (appVersion: AppVersion) => {
   (useBpmnContext as jest.Mock).mockReturnValue({ appVersion, enqueueProcessChange });
   return renderHook(() => useUpdateLayoutSetId()).result.current;
 };

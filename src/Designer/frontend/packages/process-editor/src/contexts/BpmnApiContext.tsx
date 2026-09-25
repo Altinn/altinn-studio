@@ -25,7 +25,10 @@ export type BpmnApiContextProps = {
   ) => void;
   deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void;
   /** Renames a layout set, and rejects when the rename fails. */
-  mutateLayoutSetId: (data: { layoutSetIdToUpdate: string; newLayoutSetId: string }) => Promise<unknown>;
+  mutateLayoutSetId: (data: {
+    layoutSetIdToUpdate: string;
+    newLayoutSetId: string;
+  }) => Promise<unknown>;
   mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
   /** Saves the process definition, and rejects when the save fails. */
   saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => Promise<void>;
