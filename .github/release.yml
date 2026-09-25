@@ -9,36 +9,18 @@ changelog:
     - title: Forms editor 🛠
       labels:
         - area/ui-editor
-      exclude:
-        labels:
-          - kind/bug
     - title: Dashboard 🖥
       labels:
         - area/dashboard
-      exclude:
-        labels:
-          - kind/bug
     - title: Text editor 💬
       labels:
         - area/text-editor
-      exclude:
-        labels:
-          - kind/bug
     - title: Process editor ⏺→◻️→⏺
       labels:
         - area/process
-      exclude:
-        labels:
-          - kind/bug
     - title: Data modeling 📈
       labels:
         - area/data-modeling
-      exclude:
-        labels:
-          - kind/bug
-    - title: Bugfixes 🐞
-      labels:
-        - kind/bug
     - title: Dependency Upgrades 📦
       labels:
         - kind/dependencies

@@ -19,7 +19,7 @@ const gitHubIssueType: Record<MappableGithubTypes, GitHubChannelConfig> = {
     template: 'feature_request.yml',
   },
   bugReport: {
-    labels: ['kind/bug', 'status/triage'],
+    labels: ['status/triage'],
     template: 'bug_report.yml',
   },
 };
