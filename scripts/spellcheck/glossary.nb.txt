@@ -89,6 +89,8 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+forsendelsestype
+forsendelsestypen
 funksjonsflagg
 gjenopprettingsprosessen
 handlingsknapp

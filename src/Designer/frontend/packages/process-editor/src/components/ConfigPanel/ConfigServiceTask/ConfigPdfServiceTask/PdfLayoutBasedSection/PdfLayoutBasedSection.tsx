@@ -5,29 +5,25 @@ import {
   StudioButton,
   StudioCard,
   StudioSuggestion,
-  StudioTextfield,
   type StudioSuggestionItem,
 } from '@studio/components';
 import { PencilIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { useCurrentLayoutSet } from '../useCurrentLayoutSet';
+import { useCurrentLayoutSet } from '../../../../../hooks/useCurrentLayoutSet';
 import classes from './PdfLayoutBasedSection.module.css';
 
+/** The layout set must use the task ID because the app frontend uses that ID to find the UI folder. */
 export const PdfLayoutBasedSection = (): React.ReactElement => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const { org, app } = useStudioEnvironmentParams();
   const { bpmnDetails } = useBpmnContext();
-  const { addLayoutSet, layoutSets, allDataModelIds = [] } = useBpmnApiContext();
-  const { validateLayoutSetName } = useValidateLayoutSetName();
+  const { addLayoutSet, allDataModelIds = [] } = useBpmnApiContext();
   const { currentLayoutSet } = useCurrentLayoutSet();
 
-  const [newLayoutSetName, setNewLayoutSetName] = useState('');
-  const [newLayoutSetNameError, setNewLayoutSetNameError] = useState('');
   const [selectedDataModelId, setSelectedDataModelId] = useState<string>('');
 
   if (currentLayoutSet) {
@@ -48,35 +44,20 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
   };
 
   const handleCreateLayoutSet = (): void => {
-    if (!newLayoutSetName || !selectedDataModelId || newLayoutSetNameError) return;
+    if (!selectedDataModelId) return;
 
     addLayoutSet({
       taskType: 'pdf',
       layoutSetConfig: {
-        id: newLayoutSetName,
+        id: bpmnDetails.id,
         dataType: selectedDataModelId,
         taskId: bpmnDetails.id,
       },
     });
   };
 
-  const handleLayoutSetNameChange = (value: string): void => {
-    setNewLayoutSetName(value);
-    setNewLayoutSetNameError(validateLayoutSetName(value, layoutSets));
-  };
-
   return (
     <StudioCard className={classes.createLayoutSet}>
-      <StudioTextfield
-        label={t('process_editor.configuration_panel_pdf_layout_set_name_label')}
-        description={t('process_editor.configuration_panel_pdf_layout_set_name_description')}
-        value={newLayoutSetName}
-        error={newLayoutSetNameError}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          handleLayoutSetNameChange(e.target.value)
-        }
-      />
-
       <StudioSuggestion
         clearButtonLabel={t('general.clear_selection')}
         multiple={false}
@@ -96,7 +77,7 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
       <StudioButton
         onClick={handleCreateLayoutSet}
         variant='primary'
-        disabled={!newLayoutSetName || !selectedDataModelId || !!newLayoutSetNameError}
+        disabled={!selectedDataModelId}
       >
         {t('process_editor.configuration_panel_pdf_create_button')}
       </StudioButton>

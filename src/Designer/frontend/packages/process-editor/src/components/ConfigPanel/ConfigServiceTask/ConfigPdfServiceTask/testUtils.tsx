@@ -1,12 +1,3 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { BpmnContext, type BpmnContextProps } from '../../../../contexts/BpmnContext';
-import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
-import {
-  mockBpmnContextValue,
-  mockBpmnApiContextValue,
-} from '../../../../../test/mocks/bpmnContextMock';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import type { BpmnDetails } from '../../../../types/BpmnDetails';
 
@@ -27,6 +18,7 @@ export const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDet
         extensionElements: {
           values: [
             {
+              $type: 'altinn:TaskExtension',
               pdfConfig: {
                 filenameTextResourceKey: filenameTextResourceKey
                   ? { value: filenameTextResourceKey }
@@ -41,29 +33,4 @@ export const createPdfBpmnDetails = (config: PdfBpmnDetailsConfig = {}): BpmnDet
       },
     },
   };
-};
-
-export type RenderProps = {
-  bpmnContextProps?: Partial<BpmnContextProps>;
-  bpmnApiContextProps?: Partial<BpmnApiContextProps>;
-};
-
-const createRenderWrapper = (props: RenderProps = {}) => {
-  const { bpmnContextProps, bpmnApiContextProps } = props;
-
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <MemoryRouter>
-      <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-        <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
-          {children}
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
-    </MemoryRouter>
-  );
-
-  return Wrapper;
-};
-
-export const renderWithProviders = (component: React.ReactElement, props: RenderProps = {}) => {
-  return render(component, { wrapper: createRenderWrapper(props) });
 };
