@@ -1038,6 +1038,27 @@ async fn upgrade_preflight_reports_work_and_terminal_attachments() {
         ["session/worker/s1 (working)"]
     );
 
+    harness
+        .database
+        .set_session_archived("worker", &harness.session.name, true)
+        .await
+        .expect("archive");
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("archiving blockers")
+            .blockers,
+        ["session/worker/s1 (working)"],
+        "an archive waiting for the turn does not let an upgrade cut it short"
+    );
+    harness
+        .database
+        .set_session_archived("worker", &harness.session.name, false)
+        .await
+        .expect("unarchive");
+
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     assert!(
         harness
@@ -2917,7 +2938,11 @@ async fn archiving_waits_for_the_turn_and_keeps_the_harness_stopped_until_attach
         .expect("archive");
     reconciler.reconcile(session.id).await.expect("archive pass");
     assert_eq!(runtime.stop_calls.get(), 0, "a turn in progress is not cut short");
-    assert_eq!(state().await, agent::sessions::State::Working);
+    assert_eq!(
+        state().await,
+        agent::sessions::State::Archiving,
+        "archived, with its harness still finishing the turn"
+    );
 
     turn_completed(&database, &session, TOKEN).await;
     reconciler.reconcile(session.id).await.expect("archive pass");
@@ -2930,6 +2955,11 @@ async fn archiving_waits_for_the_turn_and_keeps_the_harness_stopped_until_attach
         .set_session_archived("worker", &name, false)
         .await
         .expect("unarchive");
+    assert_eq!(
+        state().await,
+        agent::sessions::State::Idle,
+        "Idle at once, before the reconciler settles its lifecycle"
+    );
     reconciler.reconcile(session.id).await.expect("unarchive pass");
     assert_eq!(state().await, agent::sessions::State::Idle);
     assert!(runtime.launches.borrow().is_empty(), "unarchiving launches nothing");
@@ -2974,7 +3004,11 @@ async fn unarchiving_after_a_failed_archive_does_not_relaunch_the_harness() {
         .await
         .expect_err("a harness that cannot be stopped fails the pass");
     let failed = database.get_session(session.id).await.expect("Session");
-    assert_eq!(failed.status.state, agent::sessions::State::Archived);
+    assert_eq!(
+        failed.status.state,
+        agent::sessions::State::Archiving,
+        "archived, with a harness that may still run"
+    );
     assert!(failed.status.lifecycle.failure.is_some());
 
     database

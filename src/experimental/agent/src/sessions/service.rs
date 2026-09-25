@@ -202,19 +202,19 @@ impl Service {
                         "Session \"{name}\" was stopped while waiting for turn completion"
                     )));
                 }
-                State::Archived if current.status.lifecycle.failure.is_none() => {
+                State::Archived => {
                     return Err(Error::Session(format!(
                         "Session \"{name}\" was archived while waiting for turn completion"
                     )));
                 }
-                State::Starting | State::Working | State::WaitingForInput | State::Archived => {}
+                State::Starting | State::Working | State::WaitingForInput | State::Archiving => {}
             }
             let activity = &current.status.reported.activity;
             let waiting = match current.status.state {
                 State::WaitingForInput => true,
                 // An archive that has not stopped the harness yet leaves the turn to its own report.
-                State::Archived => activity.phase == super::Phase::WaitingForInput,
-                State::Starting | State::Working | State::Idle | State::Failed => false,
+                State::Archiving => activity.phase == super::Phase::WaitingForInput,
+                State::Starting | State::Working | State::Idle | State::Archived | State::Failed => false,
             };
             if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
@@ -245,7 +245,7 @@ impl Service {
                 let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
-                    State::Idle | State::Archived | State::Failed => {
+                    State::Idle | State::Archiving | State::Archived | State::Failed => {
                         return Err(session.not_running_error());
                     }
                     State::Starting => {
@@ -477,16 +477,19 @@ impl Service {
         let mut readiness = UpgradeReadiness::default();
         for session in self.live_sessions().await? {
             let label = format!("session/{}/{}", session.agent, session.name);
-            if session.status.state == State::Working {
+            // The harness's own state, so an archive waiting for a turn to end
+            // still holds the upgrade back until it has.
+            let state = session.status.harness_state();
+            if state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
                 continue;
             }
-            if session.status.state == State::Starting && session.status.reported.harness_session_id.is_some() {
+            if state == State::Starting && session.status.reported.harness_session_id.is_some() {
                 readiness.blockers.push(format!("{label} (starting)"));
                 continue;
             }
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
-                if session.status.state == State::Starting {
+                if state == State::Starting {
                     readiness
                         .warnings
                         .push(format!("{label} will start a new conversation"));
@@ -504,7 +507,7 @@ impl Service {
                         .warnings
                         .push(format!("{label} will start a new conversation"));
                 }
-                super::runtime::Observation::Missing if session.status.state == State::Starting => {
+                super::runtime::Observation::Missing if state == State::Starting => {
                     readiness
                         .warnings
                         .push(format!("{label} will start a new conversation"));

@@ -543,7 +543,8 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
                 activity,
             },
         )
-        .entered(lifecycle.since),
+        .entered(lifecycle.since)
+        .archived(archived_at),
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

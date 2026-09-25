@@ -137,6 +137,9 @@ pub enum State {
     WaitingForInput,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The Session was archived, but its harness has not stopped yet: a turn
+    /// in progress is finishing, or stopping it failed and is retried.
+    Archiving,
     /// The Session was archived: its harness is stopped until it is unarchived.
     Archived,
     /// Reconciliation most recently failed.
@@ -174,7 +177,16 @@ impl Status {
     /// Combines the two halves and derives the Session state.
     #[must_use]
     pub const fn new(lifecycle: Lifecycle, reported: Reported) -> Self {
-        let state = match lifecycle.state {
+        Self {
+            state: Self::new_state(&lifecycle, &reported),
+            state_since: None,
+            lifecycle,
+            reported,
+        }
+    }
+
+    const fn new_state(lifecycle: &Lifecycle, reported: &Reported) -> State {
+        match lifecycle.state {
             LifecycleState::Failed => State::Failed,
             LifecycleState::Idle => State::Idle,
             LifecycleState::Archived => State::Archived,
@@ -188,12 +200,6 @@ impl Status {
                 Phase::WaitingForInput => State::WaitingForInput,
                 Phase::Working => State::Working,
             },
-        };
-        Self {
-            state,
-            state_since: None,
-            lifecycle,
-            reported,
         }
     }
 
@@ -204,9 +210,36 @@ impl Status {
     pub const fn entered(mut self, lifecycle_since: Option<time::OffsetDateTime>) -> Self {
         self.state_since = match self.state {
             State::Working | State::WaitingForInput => self.reported.activity.phase_since,
-            State::Starting | State::Idle | State::Archived | State::Failed => lifecycle_since,
+            State::Starting | State::Idle | State::Archiving | State::Archived | State::Failed => lifecycle_since,
         };
         self
+    }
+
+    /// Applies whether the Session is archived, and since when, after
+    /// [`Status::entered`]. An archived Session is Archived once its harness
+    /// has stopped and Archiving until then. An unarchived Session whose
+    /// lifecycle still reads Archived is Idle: unarchiving never launches its
+    /// harness, and the reconciler settles it there.
+    #[must_use]
+    pub const fn archived(mut self, archived_at: Option<time::OffsetDateTime>) -> Self {
+        let stopped = matches!(self.lifecycle.state, LifecycleState::Archived) && self.lifecycle.failure.is_none();
+        match archived_at {
+            Some(_) if stopped => {}
+            Some(since) => {
+                self.state = State::Archiving;
+                self.state_since = Some(since);
+            }
+            None if matches!(self.lifecycle.state, LifecycleState::Archived) => self.state = State::Idle,
+            None => {}
+        }
+        self
+    }
+
+    /// The state the harness itself is in, whether or not the Session is
+    /// archived: what an upgrade must not interrupt.
+    #[must_use]
+    pub const fn harness_state(&self) -> State {
+        Self::new_state(&self.lifecycle, &self.reported)
     }
 }
 
@@ -660,6 +693,43 @@ pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
+
+    #[test]
+    fn an_archive_decides_the_state_over_the_harness() {
+        let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+        let working = Reported {
+            harness_session_id: Some("native".into()),
+            harness_transcript_path: None,
+            activity: Activity {
+                phase: Phase::Working,
+                phase_since: Some(at(1)),
+                ..Activity::default()
+            },
+        };
+        let status = |lifecycle: Lifecycle, archived_at| {
+            Status::new(lifecycle, working.clone())
+                .entered(Some(at(2)))
+                .archived(archived_at)
+        };
+
+        let archiving = status(Lifecycle::running(), Some(at(3)));
+        assert_eq!(archiving.state, State::Archiving, "the turn is finishing");
+        assert_eq!(archiving.state_since, Some(at(3)), "since the archive was requested");
+        assert_eq!(archiving.harness_state(), State::Working, "the harness still works");
+        assert_eq!(
+            status(Lifecycle::archived_with("unreachable"), Some(at(3))).state,
+            State::Archiving,
+            "a stop that failed is retried"
+        );
+        let archived = status(Lifecycle::archived(), Some(at(3)));
+        assert_eq!((archived.state, archived.state_since), (State::Archived, Some(at(2))));
+        assert_eq!(
+            status(Lifecycle::archived(), None).state,
+            State::Idle,
+            "unarchived before the reconciler settles it"
+        );
+        assert_eq!(status(Lifecycle::running(), None).state, State::Working);
+    }
 
     #[test]
     fn a_session_entered_its_state_when_the_half_that_decides_it_changed() {
