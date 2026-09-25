@@ -83,8 +83,8 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: RedisCacheSettings__UseRedisCache
-      value: "true"
+    - name: DistributedCacheSettings__Type
+      value: "Redis"
     - name: RedisCacheSettings__InstanceName
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
@@ -179,8 +179,8 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.test.samarbeid.digdir.no"
-    - name: RedisCacheSettings__UseRedisCache
-      value: "true"
+    - name: DistributedCacheSettings__Type
+      value: "Redis"
     - name: RedisCacheSettings__InstanceName
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
@@ -273,8 +273,8 @@ environmentVariables:
       value: "false"
     - name: MaskinPortenHttpClientSettings__BaseUrl
       value: "https://api.samarbeid.digdir.no"
-    - name: RedisCacheSettings__UseRedisCache
-      value: "true"
+    - name: DistributedCacheSettings__Type
+      value: "Redis"
     - name: RedisCacheSettings__InstanceName
       value: "designer"
     - name: SchedulingSettings__UsePersistentScheduling
