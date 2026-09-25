@@ -157,6 +157,28 @@ const DesignViewLoadedContent = ({
       );
     });
 
+  const displayPage = (pageModel: PageModel) => {
+    const layout = layouts?.[pageModel.id];
+
+    // If the layout does not exist, return null
+    if (layout === undefined) return null;
+
+    // Check if the layout has unique component IDs
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout);
+
+    return (
+      <>
+        {pageModel.id === selectedFormLayoutName && (
+          <FormLayout
+            layout={layout}
+            isInvalid={isInvalidLayout}
+            duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
+          />
+        )}
+      </>
+    );
+  };
+
   const hasGroups = isPagesModelWithGroups(pagesModel);
 
   const handleAddGroup = () => addGroupMutation();
@@ -164,19 +186,8 @@ const DesignViewLoadedContent = ({
   return (
     <div className={classes.root}>
       <div className={classes.wrapper}>
-        <DesignViewNavigation />
         <div className={classes.accordionWrapper}>
-          {hasGroups ? (
-            <PageGroupAccordion
-              pages={pagesModel}
-              layouts={layouts}
-              selectedFormLayoutName={selectedFormLayoutName}
-              onAccordionClick={handleClickAccordion}
-              isAddPagePending={isAddPageMutationPending}
-            />
-          ) : (
-            pagesModel?.pages?.length > 0 && displayPageAccordions(pagesModel)
-          )}
+          {displayPage(pagesModel?.pages?.find((page) => page.id === selectedFormLayoutName))}
         </div>
       </div>
       <div className={classes.buttonContainer}>

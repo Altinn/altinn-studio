@@ -5,3 +5,8 @@
   border-bottom: 1px solid #c9c9c9;
   justify-content: space-between;
 }
+
+.pages {
+  justify-content: start;
+  gap: 12px;
+}

@@ -2,7 +2,12 @@ import type { ReactElement } from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
-import { StudioDragAndDropTree } from '@studio/components';
+import {
+  StudioButton,
+  StudioDragAndDrop,
+  StudioDragAndDropTree,
+  StudioTextfield,
+} from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +17,7 @@ import { useComponentTitle } from '@altinn/ux-editor/hooks';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
+import { StudioDragAndDropList } from '@studio/components/src/components/StudioDragAndDrop/StudioDragAndDropList';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -81,17 +87,18 @@ const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
   const shouldDisplayAddButton =
     isContainer(layout, id) && !getChildIds(layout, id).length && isAddComponentModalEnabled;
   return (
-    <StudioDragAndDropTree.Item
-      icon={Icon && <Icon />}
-      emptyMessage={t('ux_editor.container_empty')}
-      expandable={isContainer(layout, id)}
-      label={componentTitle(formItem)}
-      labelWrapper={labelWrapper}
-      nodeId={id}
-    >
-      {shouldDisplayAddButton
-        ? renderItemListWithAddItemButton(layout, duplicateComponents, id)
-        : renderItemList(layout, duplicateComponents, id, false)}
-    </StudioDragAndDropTree.Item>
+    <StudioDragAndDrop.ListItem
+      itemId={id}
+      renderItem={(dragHandleRef) => (
+        <div style={{ margin: '0px 24px' }}>
+          {formItem.type === 'Input' && (
+            <StudioTextfield label={componentTitle(formItem)} id={`textfield-${id}`} />
+          )}
+          {formItem.type === 'NavigationButtons' && (
+            <StudioButton id={`navigationbutton-${id}`}>{componentTitle(formItem)}</StudioButton>
+          )}
+        </div>
+      )}
+    />
   );
 };
