@@ -1102,14 +1102,8 @@ impl App {
                 let Some(agent) = self.agents.get(group.agent) else {
                     return Vec::new();
                 };
-                let agent_matches = self.matches(&agent.metadata.name) || self.matches(agent_state(agent).label);
-                let sessions = (0..group.sessions.len())
-                    .filter(|position| {
-                        self.sessions.get(group.sessions[*position]).is_some_and(|session| {
-                            self.lists(session) && (agent_matches || self.session_matches(session))
-                        })
-                    })
-                    .collect::<Vec<_>>();
+                let agent_matches = self.agent_matches(agent);
+                let sessions = self.listed_positions(group);
                 if !agent_matches && sessions.is_empty() {
                     return Vec::new();
                 }
@@ -1145,6 +1139,26 @@ impl App {
             .filter_map(|index| self.tree_id_at(index))
             .find(|id| matches!(id, TreeRowId::Session { agent: owner, .. } if owner == agent))
             .or_else(|| Some(TreeRowId::Agent(agent.to_owned())).filter(|id| self.tree_index(id).is_some()))
+    }
+
+    fn agent_matches(&self, agent: &Agent) -> bool {
+        self.matches(&agent.metadata.name) || self.matches(agent_state(agent).label)
+    }
+
+    /// Positions of the group's Sessions the tree lists, folded or not: the
+    /// shown ones, and while filtered, those matching or of a matching Agent.
+    fn listed_positions(&self, group: &Group) -> Vec<usize> {
+        let agent_matches = self
+            .agents
+            .get(group.agent)
+            .is_some_and(|agent| self.agent_matches(agent));
+        (0..group.sessions.len())
+            .filter(|position| {
+                self.sessions
+                    .get(group.sessions[*position])
+                    .is_some_and(|session| self.lists(session) && (agent_matches || self.session_matches(session)))
+            })
+            .collect()
     }
 
     /// Whether the tree lists this Session when nothing is filtered or folded.
@@ -1928,11 +1942,13 @@ impl App {
             .filter_map(|row| match *row {
                 Row::Agent(group) => {
                     let agent = self.group_agent(group)?;
-                    let sessions = &self.groups.get(group)?.sessions;
-                    let attention = sessions
+                    let attention = self
+                        .groups
+                        .get(group)?
+                        .sessions
                         .iter()
                         .filter_map(|index| self.sessions.get(*index))
-                        .any(|session| session.status.state == State::WaitingForInput);
+                        .any(needs_you);
                     let marker = if self.collapsed.contains(&agent.metadata.name) {
                         "▸"
                     } else {
@@ -1945,7 +1961,8 @@ impl App {
                         failure,
                         since,
                     } = agent_state(agent);
-                    let count = match sessions.len() {
+                    // The Sessions listed under it, as unfolding would show them.
+                    let count = match self.listed_positions(self.groups.get(group)?).len() {
                         0 => String::new(),
                         1 => "1 session".to_owned(),
                         count => format!("{count} sessions"),
@@ -2710,6 +2727,34 @@ mod tests {
             agent: agent.into(),
             session: SessionName::new(name).expect("name"),
         }
+    }
+
+    #[test]
+    fn an_agent_counts_the_sessions_listed_under_it() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("worker")],
+            vec![
+                archived(session("worker", "old", "waitingForInput")),
+                session("worker", "main", "working"),
+                session("worker", "review", "idle"),
+            ],
+        );
+        let detail = |app: &App| app.render_rows()[0].detail.clone();
+        assert_eq!(detail(&app), "2 sessions", "a hidden archived Session is not counted");
+        assert!(!app.render_rows()[0].attention, "nor does it ask for attention");
+
+        app.on_key(key(KeyCode::Char('A')));
+        assert_eq!(detail(&app), "3 sessions");
+
+        app.filter = "main".into();
+        app.rebuild();
+        assert_eq!(detail(&app), "1 session", "the filter narrows the count");
+
+        app.filter.clear();
+        app.collapsed.insert("worker".into());
+        app.rebuild();
+        assert_eq!(detail(&app), "3 sessions", "a folded Agent tells what unfolding shows");
     }
 
     #[test]

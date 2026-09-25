@@ -32,8 +32,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
   becomes free. The harness's own conversation files stay in the Sandbox.
 - `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
   progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
-  A Session reads Archiving until its harness has stopped, the terminal UI confirms each archive in its header, and
-  `tab` never jumps to an archived Session.
 
 ### Changed
 
@@ -46,10 +44,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
   glyph.
 - New full Altinn Agents finish setup faster. Chromium's trust in the certificate bundle is imported faster and in the
   background, so Sessions no longer wait for it.
-- The terminal UI footer wraps the selection's keys onto a second line instead of cutting them off, most used first,
-  and ends a line that still does not fit with `…`. Its `A show archived` or `A hide archived` hint tells whether
-  archived Sessions are shown.
-- After archiving or deleting a Session, the terminal UI selects the Session that takes its place instead of its Agent.
 
 ### Fixed
 
