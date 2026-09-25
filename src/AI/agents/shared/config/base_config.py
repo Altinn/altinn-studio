@@ -43,9 +43,6 @@ class BaseConfig:
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
-    # The direct Anthropic API. Used only when the Azure Anthropic endpoint or its key is not set.
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
     LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")

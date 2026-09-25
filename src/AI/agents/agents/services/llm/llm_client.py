@@ -184,42 +184,29 @@ class LLMClient:
         self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not self.use_anthropic
 
     def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
-        """Initialize Anthropic/Claude client for Azure AI Foundry or direct Anthropic API"""
+        """Initialize the Anthropic/Claude client for Azure AI Foundry"""
         try:
             from anthropic import Anthropic
         except ImportError as e:
             raise ImportError("anthropic package not installed. Install with: pip install anthropic") from e
 
-        # Check if we should use Azure AI Foundry or direct Anthropic
-        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
-            # Azure AI Foundry - use Anthropic client with custom base_url
-            log.info(
-                f"Using Anthropic via Azure AI Foundry for LLM operations "
-                f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
-                f"temperature={temperature if temperature is not None else 'default'})"
-            )
-            self.anthropic_client = Anthropic(
-                api_key=config.AZURE_ANTHROPIC_API_KEY,
-                base_url=config.AZURE_ANTHROPIC_ENDPOINT,
-                timeout=600.0,  # 10 minutes for large patch synthesis tasks
-            )
-        elif config.ANTHROPIC_API_KEY:
-            # Direct Anthropic API
-            log.info(
-                f"Using direct Anthropic API for LLM operations "
-                f"(role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
-            )
-            self.anthropic_client = Anthropic(
-                api_key=config.ANTHROPIC_API_KEY,
-                timeout=600.0,  # 10 minutes for large patch synthesis tasks
-            )
-        else:
+        if not (config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY):
             raise ValueError(
                 "No API key configured for Anthropic/Claude. "
                 "Set AZURE_ANTHROPIC_ENDPOINT with AZURE_ANTHROPIC_API_KEY, which "
-                "falls back to AZURE_API_KEY when both endpoints are on one resource, "
-                "or ANTHROPIC_API_KEY for the direct Anthropic API."
+                "falls back to AZURE_API_KEY when both endpoints are on one resource."
             )
+
+        log.info(
+            f"Using Anthropic via Azure AI Foundry for LLM operations "
+            f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
+            f"temperature={temperature if temperature is not None else 'default'})"
+        )
+        self.anthropic_client = Anthropic(
+            api_key=config.AZURE_ANTHROPIC_API_KEY,
+            base_url=config.AZURE_ANTHROPIC_ENDPOINT,
+            timeout=600.0,  # 10 minutes for large patch synthesis tasks
+        )
 
         self.use_anthropic = True
         self.llm = None  # Not using LangChain for Anthropic
