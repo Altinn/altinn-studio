@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import json
-import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
-from langfuse import get_client
-
-from . import manifest, preview_check, registry, runstore
+from . import manifest, preview_check, runstore
 from .lf_api import LangfuseApi
 from .rubric import build_rubric_from_dir
 
@@ -98,19 +95,14 @@ def _print_summary(report) -> None:
     ]
     print("\n" + ", ".join(part for part in tally if part))
     short = report.short_of_full_marks()
-    is_the_baseline = bool(
-        report.baseline and report.baseline.name == report.current.name
-    )
+    is_the_baseline = bool(report.baseline and report.baseline.name == report.current.name)
     if short and is_the_baseline:
         print(
             f"\n  This run is the baseline. {len(short)} behavior(s) are below full "
             "marks, and these are the scores everything later is held to:"
         )
         for view in short:
-            print(
-                f"    {view.current:.3f}  {view.behavior.id:34} "
-                f"{view.reading(view.current, view.scored_count)}"
-            )
+            print(f"    {view.current:.3f}  {view.behavior.id:34} {view.reading(view.current, view.scored_count)}")
     elif short:
         moved = report.moved_in_this_run()
         fresh = [v for v in short if v.behavior.id in moved]
@@ -118,21 +110,12 @@ def _print_summary(report) -> None:
         if fresh:
             print(f"\n  {len(fresh)} of these moved in this run:")
             for view in fresh:
-                print(
-                    f"    {view.current:.3f}  {view.behavior.id:34} "
-                    f"{view.reading(view.current, view.scored_count)}"
-                )
+                print(f"    {view.current:.3f}  {view.behavior.id:34} {view.reading(view.current, view.scored_count)}")
         if standing:
             was = "was" if len(standing) == 1 else "were"
-            print(
-                f"\n  {len(standing)} {was} already like this before this run, so not a "
-                "finding about this change:"
-            )
+            print(f"\n  {len(standing)} {was} already like this before this run, so not a finding about this change:")
             for view in standing:
-                print(
-                    f"    {view.current:.3f}  {view.behavior.id:34} "
-                    f"{view.reading(view.current, view.scored_count)}"
-                )
+                print(f"    {view.current:.3f}  {view.behavior.id:34} {view.reading(view.current, view.scored_count)}")
     if counts["no_score"]:
         print(
             f"  WARNING: {counts['no_score']} behavior(s) ran and scored nothing. "
@@ -195,10 +178,7 @@ def cmd_check(args: argparse.Namespace) -> None:
     planned = checker.evals_to_run(include_slow=args.include_e2e, only=only)
     if not planned:
         sys.exit("Nothing to run. Every claimed eval was filtered out.")
-    print(
-        f"Running {len(planned)} eval(s) for {len(manifest.pinned())} pinned behaviors, "
-        f"as {label!r}\n"
-    )
+    print(f"Running {len(planned)} eval(s) for {len(manifest.pinned())} pinned behaviors, as {label!r}\n")
 
     name = runstore.new_name(label)
     agent_models = checker.agent_models_for(planned)
@@ -209,9 +189,7 @@ def cmd_check(args: argparse.Namespace) -> None:
         include_slow=args.include_e2e,
         only=only,
         agent_models=agent_models,
-        run_eval=checker.langfuse_runner(
-            args, check_id=name, label=label, agent_models=agent_models
-        ),
+        run_eval=checker.langfuse_runner(args, check_id=name, label=label, agent_models=agent_models),
     )
     path = runstore.save(run)
     print(f"\nsaved {path}")
@@ -238,10 +216,7 @@ def cmd_report(args: argparse.Namespace) -> None:
 
     report = build(baseline_run=args.baseline)
     _print_summary(report)
-    print(
-        f"\nReport: file://"
-        f"{_write_report(report, report.current.judge_note, args.out).resolve()}"
-    )
+    print(f"\nReport: file://{_write_report(report, report.current.judge_note, args.out).resolve()}")
 
 
 def cmd_runs(_: argparse.Namespace) -> None:
@@ -308,9 +283,7 @@ def cmd_rubric(args: argparse.Namespace) -> None:
     rubric = build_rubric_from_dir(Path(args.from_app))
     print(json.dumps(rubric, ensure_ascii=False, indent=2))
     if args.update_item:
-        LangfuseApi().upsert_dataset_item(
-            dataset_name=args.dataset, item_id=args.update_item, expected_output=rubric
-        )
+        LangfuseApi().upsert_dataset_item(dataset_name=args.dataset, item_id=args.update_item, expected_output=rubric)
         print(f"\nUpdated expectedOutput of item {args.update_item!r} in {args.dataset!r}")
 
 
@@ -363,9 +336,7 @@ def cmd_impact(args: argparse.Namespace) -> None:
             sys.exit(f"git diff against {args.against!r} failed: {diff.stderr.strip()}")
         changed = [line for line in diff.stdout.splitlines() if line.strip()]
         if not changed:
-            status = subprocess.run(
-                ("git", "status", "--porcelain"), capture_output=True, text=True, check=False
-            )
+            status = subprocess.run(("git", "status", "--porcelain"), capture_output=True, text=True, check=False)
             changed = [line[3:] for line in status.stdout.splitlines() if line.strip()]
     sys.exit(impact.report(changed, strict=args.strict))
 
@@ -523,7 +494,6 @@ def _ask_for(entry: Entry) -> list[str] | None:
     if not entry.needs_input:
         return []
     if entry.name == "baseline":
-
         runs = runstore.all_runs()
         if not runs:
             print("  No runs on this machine yet. Run `check` first.")
@@ -533,11 +503,7 @@ def _ask_for(entry: Entry) -> list[str] | None:
         picked = input("  Which run: ").strip()
         if not picked:
             return None
-        name = (
-            runs[int(picked) - 1].name
-            if picked.isdigit() and 1 <= int(picked) <= len(runs)
-            else picked
-        )
+        name = runs[int(picked) - 1].name if picked.isdigit() and 1 <= int(picked) <= len(runs) else picked
         why = input("  Why is this the baseline: ").strip()
         if not why:
             print("  A baseline records why it was adopted, so that is required.")
@@ -586,23 +552,20 @@ def _parser() -> argparse.ArgumentParser:
     fetch_parser = sub.add_parser("fetch", help=_describe("fetch"))
     fetch_parser.add_argument("check_id", nargs="?", help="a check id from Langfuse")
     fetch_parser.add_argument("--list", action="store_true", help="what Langfuse holds")
-    fetch_parser.add_argument(
-        "--overwrite", action="store_true", help="replace a run already in the local cache"
-    )
+    fetch_parser.add_argument("--overwrite", action="store_true", help="replace a run already in the local cache")
     fetch_parser.set_defaults(func=cmd_fetch)
 
     impact_parser = sub.add_parser("impact", help=_describe("impact"))
     impact_parser.add_argument("paths", nargs="*", help="changed paths, default a git diff")
     impact_parser.add_argument("--against", default="origin/main", help="the base ref")
-    impact_parser.add_argument(
-        "--strict", action="store_true", help="exit non-zero when a re-baseline is missing"
-    )
+    impact_parser.add_argument("--strict", action="store_true", help="exit non-zero when a re-baseline is missing")
     impact_parser.set_defaults(func=cmd_impact)
 
     check_parser = sub.add_parser("check", help=_describe("check"))
     check_parser.add_argument("--label", help="what this run is, e.g. 'new loop prompt'")
     check_parser.add_argument(
-        "--under-test", action="append",
+        "--under-test",
+        action="append",
         help="an axis you meant to change, so a difference on it does not refuse the comparison",
     )
     check_parser.add_argument("--only", action="append", help="limit to one eval, repeatable")
@@ -618,9 +581,7 @@ def _parser() -> argparse.ArgumentParser:
     check_parser.add_argument("--role", default="actor")
     check_parser.add_argument("--model", default=None)
     check_parser.add_argument("--max-tokens", type=int, default=None)
-    check_parser.add_argument(
-        "--assets-dir", help="where the e2e PDFs live, default benchmarks/assets"
-    )
+    check_parser.add_argument("--assets-dir", help="where the e2e PDFs live, default benchmarks/assets")
     check_parser.add_argument("--run-name", help="the Langfuse run name for an e2e build")
     check_parser.set_defaults(func=cmd_check)
 
@@ -637,12 +598,8 @@ def _parser() -> argparse.ArgumentParser:
     baseline_parser = sub.add_parser("baseline", help=_describe("baseline"))
     baseline_parser.add_argument("run", nargs="?", help="a check id, local or in Langfuse")
     baseline_parser.add_argument("--list", action="store_true", help="what Langfuse holds")
-    baseline_parser.add_argument(
-        "--why", default="", help="why this run is the baseline, kept in the commit"
-    )
-    baseline_parser.add_argument(
-        "--force", action="store_true", help="adopt a run that did not score everything"
-    )
+    baseline_parser.add_argument("--why", default="", help="why this run is the baseline, kept in the commit")
+    baseline_parser.add_argument("--force", action="store_true", help="adopt a run that did not score everything")
     baseline_parser.set_defaults(func=cmd_baseline)
 
     return parser

@@ -17,7 +17,7 @@ use super::{agents, database_error};
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
     sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
-    sessions.model, sessions.effort";
+    sessions.model, sessions.effort, sessions.deletion_timestamp, sessions.archived_at";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
 /// activation revision it was observed at.
@@ -30,6 +30,13 @@ struct LifecycleRow {
     failure: Option<String>,
     #[serde(default)]
     observed_activation_generation: u64,
+    /// When `state` last changed.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    since: Option<time::OffsetDateTime>,
 }
 
 pub(super) fn ensure(
@@ -45,6 +52,14 @@ pub(super) fn ensure(
     }
     let agent_id = owner.id;
     if let Some(session) = query_named(&transaction, agent_id, name)? {
+        // The name is free again only once the reconciler has released the
+        // harness and removed the row, so recreating it now would revive a
+        // Session that is already going away.
+        if session.is_deleting() {
+            return Err(Error::Invalid(format!(
+                "Session \"{name}\" is being deleted; its name is free once its harness has stopped"
+            )));
+        }
         // Two callers may both find no Session and both resolve one; the first
         // recorded selections bind, so a loser that explicitly chose differently
         // learns about it, while one that chose nothing gets the Session as is.
@@ -148,16 +163,96 @@ pub(super) fn activate(connection: &Connection, id: SessionId) -> Result<u64, Er
         .map_err(database_error)
 }
 
+/// Records the first release request for one named Session; repeating it
+/// returns the Session already marked.
+pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let owner = agents::get_by_name(&transaction, agent)?;
+    let mut session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    if !session.is_deleting() {
+        let changed = transaction
+            .execute(
+                "UPDATE sessions SET deletion_timestamp = ?1 WHERE id = ?2 AND deletion_timestamp IS NULL",
+                params![time::OffsetDateTime::now_utc().unix_timestamp(), session.id.to_string()],
+            )
+            .map_err(database_error)?;
+        if changed != 1 {
+            return Err(Error::Conflict);
+        }
+        // Read the marker back so callers see the stored second, not a
+        // higher-precision value this Session would never report again.
+        session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    }
+    transaction.commit().map_err(database_error)?;
+    Ok(session)
+}
+
+/// Records whether one named Session is archived. Archiving an archived
+/// Session keeps its original time; unarchiving clears it.
+pub(super) fn set_archived(
+    connection: &mut Connection,
+    agent: &str,
+    name: &SessionName,
+    archived: bool,
+) -> Result<Session, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let owner = agents::get_by_name(&transaction, agent)?;
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    if session.is_deleting() {
+        return Err(Error::NotFound);
+    }
+    if session.is_archived() != archived {
+        let archived_at = archived.then(|| time::OffsetDateTime::now_utc().unix_timestamp());
+        transaction
+            .execute(
+                "UPDATE sessions SET archived_at = ?1 WHERE id = ?2",
+                params![archived_at, session.id.to_string()],
+            )
+            .map_err(database_error)?;
+    }
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    transaction.commit().map_err(database_error)?;
+    Ok(session)
+}
+
+/// Removes a released Session. Rows keyed to it, such as its activity reports,
+/// cascade with it.
+pub(super) fn finalize_deletion(connection: &Connection, id: SessionId) -> Result<(), Error> {
+    let changed = connection
+        .execute(
+            "DELETE FROM sessions WHERE id = ?1 AND deletion_timestamp IS NOT NULL",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    if changed == 1 { Ok(()) } else { Err(Error::Conflict) }
+}
+
 pub(super) fn update_lifecycle(
     connection: &Connection,
     id: SessionId,
     lifecycle: Lifecycle,
     observed_activation_generation: u64,
 ) -> Result<(), Error> {
+    let current = connection
+        .query_row(
+            "SELECT lifecycle_json FROM sessions WHERE id = ?1",
+            params![id.to_string()],
+            |row| row.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(database_error)?
+        .ok_or(Error::NotFound)?;
+    let current = serde_json::from_str::<LifecycleRow>(&current)?;
+    let since = if current.state == lifecycle.state {
+        current.since
+    } else {
+        Some(time::OffsetDateTime::now_utc())
+    };
     let row = LifecycleRow {
         state: lifecycle.state,
         failure: lifecycle.failure,
         observed_activation_generation,
+        since,
     };
     let changed = connection
         .execute(
@@ -417,6 +512,16 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         .map(crate::Effort::new)
         .transpose()
         .map_err(conversion_error)?;
+    let deletion_timestamp = row
+        .get::<_, Option<i64>>(13)?
+        .map(time::OffsetDateTime::from_unix_timestamp)
+        .transpose()
+        .map_err(conversion_error)?;
+    let archived_at = row
+        .get::<_, Option<i64>>(14)?
+        .map(time::OffsetDateTime::from_unix_timestamp)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
@@ -425,6 +530,8 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         harness,
         model_selection: crate::ModelSelection { model, effort },
         created_at,
+        deletion_timestamp,
+        archived_at,
         status: Status::new(
             Lifecycle {
                 state: lifecycle.state,
@@ -435,7 +542,8 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
                 harness_transcript_path,
                 activity,
             },
-        ),
+        )
+        .entered(lifecycle.since),
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

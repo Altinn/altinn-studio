@@ -55,6 +55,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         }],
     );
     ready
@@ -258,6 +259,70 @@ fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
         assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
         assert_eq!(reloaded.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
         assert_eq!(reloaded.source_directory, record.source_directory);
+    });
+}
+
+fn ready_false(reason: &str, message: &str, at: Option<time::OffsetDateTime>) -> Condition {
+    Condition {
+        kind: Condition::READY.into(),
+        status: ConditionStatus::False,
+        reason: reason.into(),
+        message: message.into(),
+        last_transition_time: at,
+    }
+}
+
+#[test]
+fn status_updates_stamp_condition_transitions_and_keep_the_failure_class() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let entered = time::OffsetDateTime::from_unix_timestamp(1_600_000_000).expect("timestamp");
+        let mut record = record("worker", 1);
+        record.agent.status = Status::observed(
+            1,
+            None,
+            vec![ready_false("ProviderSelected", "provisioning", Some(entered))],
+        );
+        let changes = store.changes();
+        store.put(record.clone(), 0).await.expect("Agent stored");
+        let written = changes.revision();
+        store.get(record.id).await.expect("Agent read");
+        assert_eq!(
+            changes.revision(),
+            written,
+            "reads do not advance the resource revision"
+        );
+
+        let mut retry = Status::observed(1, None, vec![ready_false("ProviderSelected", "another detail", None)]);
+        retry.failure = Some(agent::FailureKind::Transient);
+        retry.progress = Some(agent::progress::Provisioning {
+            pass: changes.revision(),
+            progress: sandbox::progress::Progress::new(),
+        });
+        let stored = store.update_status(record.id, 1, retry).await.expect("status updated");
+        assert_ne!(
+            changes.revision(),
+            written,
+            "status writes advance the resource revision"
+        );
+        assert_eq!(stored.progress, None, "progress is projected, never stored");
+        assert_eq!(
+            stored.conditions[0].last_transition_time,
+            Some(entered),
+            "a message-only change is not a transition"
+        );
+        assert_eq!(stored.failure, Some(agent::FailureKind::Transient));
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status, stored, "the returned status is what was stored");
+
+        let failed = Status::observed(1, None, vec![ready_false("SandboxReconcileFailed", "boom", None)]);
+        let stored = store.update_status(record.id, 1, failed).await.expect("status updated");
+        assert!(
+            stored.conditions[0].last_transition_time.is_some_and(|at| at > entered),
+            "a reason change is stamped"
+        );
+        assert_eq!(stored.failure, None);
     });
 }
 
@@ -564,7 +629,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        3
+        5
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -669,7 +734,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -726,7 +791,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
@@ -767,7 +832,7 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 3);
+    assert_eq!(after.0, 5);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()
@@ -1081,6 +1146,101 @@ async fn initial_prompt_consumption_and_launch_record_commit_together() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn a_session_records_when_it_entered_its_state() {
+    use agent::sessions::{ActivityEvent, LaunchRecord, State};
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let failed = Lifecycle::failed("harness exited");
+    database
+        .update_session_lifecycle(session.id, failed.clone(), 0)
+        .await
+        .expect("failed");
+    let entered = database
+        .get_session(session.id)
+        .await
+        .expect("Session")
+        .status
+        .state_since;
+    assert!(entered.is_some(), "a lifecycle change is stamped");
+    database
+        .update_session_lifecycle(session.id, failed, 0)
+        .await
+        .expect("still failed");
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .state_since,
+        entered,
+        "the same lifecycle state keeps its time"
+    );
+
+    database
+        .update_session_lifecycle(session.id, Lifecycle::running(), 0)
+        .await
+        .expect("running");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+    database
+        .record_session_start_for_launch(session.id, &token, uuid::Uuid::new_v4(), "native", None, at(100))
+        .await
+        .expect("start");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::TurnCompleted,
+            at(110),
+        )
+        .await
+        .expect("turn");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::WaitingForInput,
+            at(170),
+        )
+        .await
+        .expect("idle notification");
+    let status = database.get_session(session.id).await.expect("Session").status;
+    assert_eq!(status.state, State::WaitingForInput);
+    assert_eq!(
+        status.state_since,
+        Some(at(110)),
+        "waiting since the turn ended, not since the notification"
+    );
+}
+
+#[tokio::test(flavor = "local")]
 async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
     use agent::sessions::{ActivityEvent, LaunchRecord};
     let directory = TempDir::new().expect("temporary directory");
@@ -1151,6 +1311,94 @@ async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
 }
 
 #[test]
+fn a_deleted_session_is_marked_before_it_is_removed_and_frees_its_name() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let name = SessionName::new("s1").expect("session name");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+
+        let marked = store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert_eq!(marked.id, created.id);
+        let timestamp = marked.deletion_timestamp.expect("deletion timestamp");
+        assert_eq!(
+            store
+                .mark_session_deleting("worker", &name)
+                .await
+                .expect("repeated deletion is safe")
+                .deletion_timestamp,
+            Some(timestamp),
+            "the first request owns the deletion timestamp"
+        );
+
+        // Reconciliation still sees the Session it has to release, so a daemon
+        // restart between the request and the release cannot strand a harness.
+        assert!(
+            store
+                .get_session(created.id)
+                .await
+                .expect("marked Session")
+                .is_deleting()
+        );
+        assert!(
+            store
+                .list_all_sessions()
+                .await
+                .expect("sessions")
+                .iter()
+                .any(|session| session.id == created.id)
+        );
+        // The name stays taken until the harness is gone.
+        let reused = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect_err("the name is still taken");
+        assert!(reused.to_string().contains("is being deleted"), "{reused}");
+
+        store
+            .finalize_session_deletion(created.id)
+            .await
+            .expect("finalize deletion");
+        assert!(matches!(store.get_session(created.id).await, Err(Error::NotFound)));
+        assert!(matches!(
+            store.finalize_session_deletion(created.id).await,
+            Err(Error::Conflict)
+        ));
+        assert!(matches!(
+            store.mark_session_deleting("worker", &name).await,
+            Err(Error::NotFound)
+        ));
+
+        let replacement = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("the freed name is available again");
+        assert_ne!(replacement.id, created.id);
+    });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get::<_, i64>(0))
+            .expect("session count"),
+        1,
+        "the released Session leaves no row behind"
+    );
+}
+
+#[test]
 fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
     use agent::ssh::HostKeyStore as _;
 
@@ -1186,5 +1434,61 @@ fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
         store.delete_host_key(id).await.expect("delete");
         store.delete_host_key(id).await.expect("deleting twice is fine");
         assert!(store.load_host_key(id).await.expect("load").is_none());
+    });
+}
+
+#[test]
+fn archiving_a_session_is_recorded_once_and_survives_reopening() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    let name = SessionName::new("s1").expect("session name");
+    let (id, archived_at) = LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+        assert!(!created.is_archived());
+
+        let archived = store
+            .set_session_archived("worker", &name, true)
+            .await
+            .expect("archive");
+        let archived_at = archived.archived_at.expect("archive time");
+        assert_eq!(
+            store
+                .set_session_archived("worker", &name, true)
+                .await
+                .expect("archiving again is safe")
+                .archived_at,
+            Some(archived_at),
+            "the first request owns the archive time"
+        );
+        (created.id, archived_at)
+    });
+    drop(store);
+
+    let store = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let session = store.get_session(id).await.expect("archived Session");
+        assert_eq!(session.archived_at, Some(archived_at));
+        let unarchived = store
+            .set_session_archived("worker", &name, false)
+            .await
+            .expect("unarchive");
+        assert!(!unarchived.is_archived());
+
+        store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert!(matches!(
+            store.set_session_archived("worker", &name, true).await,
+            Err(Error::NotFound)
+        ));
     });
 }

@@ -1,11 +1,11 @@
 """Utility modules for datamodel conversion."""
 
-from .type_mapping import TypeMapper
 from .naming import NamingConverter
 from .restrictions import RestrictionMapper
+from .type_mapping import TypeMapper
 
 __all__ = [
-    'TypeMapper',
-    'NamingConverter',
-    'RestrictionMapper',
+    "NamingConverter",
+    "RestrictionMapper",
+    "TypeMapper",
 ]

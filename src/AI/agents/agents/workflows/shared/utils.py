@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import subprocess
 
-from shared.utils.logging_utils import get_logger
 from agents.services.git import git_ops
+from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
@@ -37,9 +37,7 @@ def cleanup_feature_branch(repo_path: str, *, base_branch: str = "master") -> No
         if cleanup_result.get("cleaned_up"):
             log.info("Successfully cleaned up feature branch: %s", current_branch)
         else:
-            log.warning(
-                "Cleanup reported no action for branch %s: %s", current_branch, cleanup_result
-            )
+            log.warning("Cleanup reported no action for branch %s: %s", current_branch, cleanup_result)
     except Exception as exc:
         log.error("Failed to cleanup feature branch: %s", exc)
 

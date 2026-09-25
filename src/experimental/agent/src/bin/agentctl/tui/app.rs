@@ -1,15 +1,21 @@
 use std::{
+    cell::Cell,
     collections::HashSet,
     path::{Path, PathBuf},
 };
 
 use agent::{
-    Agent, ConditionStatus, Effort, Harness, HarnessSpec, Model, ModelSelection,
-    sessions::{LifecycleState, Session, SessionName, State},
+    Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
+    sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use sandbox::progress::{OperationStatus, Progress};
+use time::OffsetDateTime;
 
 use crate::{format, forward::ForwardSpec};
+
+/// Output lines of a failed pass the Agent side panel shows.
+const AGENT_PANEL_OUTPUT_LINES: usize = 10;
 
 /// A displayed key hint and, when unambiguous, the key emitted by a click.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -71,6 +77,18 @@ pub(crate) const CONFIRM_DELETE_HINTS: [Hint; 2] = [
     Hint::key("n", "cancel", KeyCode::Char('n')),
 ];
 
+/// Key hints while a prompt is typed in the footer.
+pub(crate) const PROMPT_HINTS: [Hint; 2] = [
+    Hint::key("enter", "send", KeyCode::Enter),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
+/// Key hints while the filter is edited in the footer.
+pub(crate) const FILTER_HINTS: [Hint; 2] = [
+    Hint::key("enter", "keep", KeyCode::Enter),
+    Hint::key("esc", "clear", KeyCode::Esc),
+];
+
 pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("enter", "forward", KeyCode::Enter),
     Hint::key("tab", "field", KeyCode::Tab),
@@ -88,8 +106,9 @@ const FORWARD_VIEW_HINTS: [Hint; 3] = [
     Hint::key("q", "back", KeyCode::Char('q')),
 ];
 
-const AGENT_HINTS: [Hint; 9] = [
+const AGENT_HINTS: [Hint; 10] = [
     Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
@@ -100,25 +119,104 @@ const AGENT_HINTS: [Hint; 9] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
-const SESSION_HINTS: [Hint; 5] = [
+const SESSION_HINTS: [Hint; 8] = [
     Hint::key("enter", "attach", KeyCode::Enter),
+    Hint::key("p", "prompt", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
     Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("a", "archive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+];
+
+const ARCHIVED_SESSION_HINTS: [Hint; 6] = [
+    Hint::key("a", "unarchive", KeyCode::Char('a')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
 ];
 
 const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
 
+pub(crate) const HELP_HINTS: [Hint; 1] = [Hint::key("esc", "close", KeyCode::Esc)];
+
+/// A titled group of keys in the help overlay.
+pub(crate) type HelpSection = (&'static str, &'static [(&'static str, &'static str)]);
+
+/// Every key the terminal UI accepts, in the help overlay's two columns.
+pub(crate) const HELP: [&[HelpSection]; 2] = [
+    &[
+        (
+            "Fleet",
+            &[
+                ("tab", "next Session needing you"),
+                ("j / k", "move"),
+                ("enter", "fold, or attach a Session"),
+                ("z", "fold or unfold all"),
+                ("A", "show or hide archived Sessions"),
+                ("/", "filter by name or state"),
+                ("c", "create an Agent"),
+                ("F", "port forwards"),
+                ("q", "quit"),
+            ],
+        ),
+        (
+            "Views and forms",
+            &[
+                ("j / k", "scroll a detail view"),
+                ("q / esc", "back, or close a form"),
+                ("ctrl-b d", "detach from a Session"),
+            ],
+        ),
+    ],
+    &[
+        (
+            "Selected Agent",
+            &[
+                ("p", "follow provisioning"),
+                ("s / y", "describe, or show YAML"),
+                ("n", "new Session"),
+                ("e", "shell in its Sandbox"),
+                ("f", "forward a port"),
+                ("d", "delete"),
+            ],
+        ),
+        (
+            "Selected Session",
+            &[
+                ("p", "prompt without attaching"),
+                ("s / y", "describe, or show YAML"),
+                ("n", "new Session on its Agent"),
+                ("a", "archive, or unarchive"),
+                ("d", "delete"),
+            ],
+        ),
+    ],
+];
+
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "independent display switches of one screen, not a state machine"
+)]
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
     pub(crate) sessions: Vec<Session>,
     pub(crate) groups: Vec<Group>,
     pub(crate) rows: Vec<Row>,
     pub(crate) collapsed: HashSet<String>,
-    pub(crate) selected: usize,
-    pub(crate) loading: bool,
+    /// Shows only Agents and Sessions whose name, state, harness or model
+    /// contains it, ignoring case; an Agent that matches keeps all its Sessions.
+    pub(crate) filter: String,
+    /// Selected tree row, kept by identity so a snapshot that reorders or
+    /// reshapes the tree leaves it on the same Agent or Session.
+    pub(crate) selection: Option<TreeRowId>,
     pub(crate) loaded: bool,
+    /// Why the daemon cannot be watched; the last state it reported stays shown.
+    pub(crate) connection_error: Option<String>,
+    /// A failed action, shown until dismissed.
     pub(crate) error: Option<String>,
     pub(crate) detail: Option<Detail>,
     pub(crate) modal: Option<Modal>,
@@ -126,6 +224,17 @@ pub(crate) struct App {
     pub(crate) view: View,
     pub(crate) forward_selected: usize,
     pub(crate) creating: usize,
+    /// Prompts being sent.
+    pub(crate) prompting: usize,
+    pub(crate) transcript: Option<Transcript>,
+    /// The Session whose turns are being loaded and its turn count when they
+    /// were requested; one load runs at a time.
+    turns_loading: Option<(String, SessionName, u64)>,
+    /// The terminal is wide enough for the panel beside the tree, which shows
+    /// the selected Session's turns or the selected Agent's status.
+    pub(crate) side_panel: bool,
+    /// Lists archived Sessions, which are hidden otherwise.
+    pub(crate) show_archived: bool,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
 }
@@ -169,13 +278,100 @@ pub(crate) struct Detail {
     pub(crate) title: String,
     pub(crate) lines: Vec<String>,
     pub(crate) scroll: usize,
+    /// Agent whose provisioning the detail follows; its lines are replaced as
+    /// progress arrives.
+    pub(crate) follows: Option<String>,
+    /// Furthest scroll that still fills the view, recorded by the last draw,
+    /// which wraps long lines into more rows than `lines` has.
+    pub(crate) scroll_limit: Cell<Option<usize>>,
+}
+
+impl Detail {
+    /// Moves the scroll by `delta` rows within what the last draw can show.
+    /// Before the first draw, every line may start the view.
+    fn scroll_by(&mut self, delta: isize) {
+        let limit = self
+            .scroll_limit
+            .get()
+            .unwrap_or_else(|| self.lines.len().saturating_sub(1));
+        self.scroll = offset_clamped(self.scroll.min(limit), limit, delta);
+    }
+
+    pub(crate) const fn text(title: String, lines: Vec<String>) -> Self {
+        Self {
+            title,
+            lines,
+            scroll: 0,
+            follows: None,
+            scroll_limit: Cell::new(None),
+        }
+    }
+
+    fn provisioning(agent: String) -> Self {
+        Self {
+            title: format!("agent/{agent} provisioning"),
+            lines: vec!["Waiting for agentd…".to_owned()],
+            scroll: 0,
+            follows: Some(agent),
+            scroll_limit: Cell::new(None),
+        }
+    }
 }
 
 pub(crate) enum Modal {
     ConfirmDelete { agent: String, sessions: usize },
+    ConfirmDeleteSession { agent: String, session: SessionName },
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
+    Filter,
+    Prompt(PromptForm),
+    Help,
+}
+
+/// A prompt for a running Session, sent without attaching to it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct PromptForm {
+    pub(crate) agent: String,
+    pub(crate) session: SessionName,
+    pub(crate) input: String,
+    /// Why the last attempt to send the input failed.
+    pub(crate) error: Option<String>,
+}
+
+impl PromptForm {
+    /// Applies one key press; a submitted or cancelled form returns its Action.
+    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+        match key.code {
+            KeyCode::Esc => return Some(Action::None),
+            KeyCode::Enter if self.input.trim().is_empty() => self.error = Some("type a prompt to send".into()),
+            KeyCode::Enter => return Some(Action::Prompt(self.clone())),
+            KeyCode::Backspace => {
+                self.input.pop();
+                self.error = None;
+            }
+            KeyCode::Char(character)
+                if key.modifiers.difference(KeyModifiers::SHIFT).is_empty() && !character.is_control() =>
+            {
+                self.input.push(character);
+                self.error = None;
+            }
+            _ => {}
+        }
+        None
+    }
+}
+
+/// The selected Session's most recent turns, shown beside the tree.
+pub(crate) struct Transcript {
+    pub(crate) agent: String,
+    pub(crate) session: SessionName,
+    /// The Session's turn count when the turns were last requested, if they
+    /// were; a change reloads them.
+    requested_at: Option<u64>,
+    pub(crate) turns: Vec<Turn>,
+    pub(crate) loading: bool,
+    pub(crate) error: Option<String>,
 }
 
 /// Text field of the new Session form that typing edits.
@@ -235,12 +431,12 @@ impl SessionForm {
     }
 
     /// Applies one key; `Some` closes the form with the returned action.
-    fn key(&mut self, key: KeyEvent) -> Option<Action> {
+    fn key(&mut self, key: KeyEvent, sessions: &[Session]) -> Option<Action> {
         match key.code {
             KeyCode::Esc => return Some(Action::None),
-            KeyCode::Enter => match self.submit() {
+            KeyCode::Enter => match self.submit(sessions) {
                 Ok(action) => return Some(action),
-                Err(invalid) => self.error = Some(invalid.to_string()),
+                Err(invalid) => self.error = Some(invalid),
             },
             KeyCode::Tab | KeyCode::Down => self.field = self.field.next(),
             KeyCode::BackTab | KeyCode::Up => self.field = self.field.previous(),
@@ -266,17 +462,27 @@ impl SessionForm {
         None
     }
 
-    fn submit(&self) -> Result<Action, agent::Error> {
-        let session = SessionName::new(self.name.clone())?;
+    /// Validates the form. An existing name is rejected, because ensuring it
+    /// would attach to that Session instead of creating one.
+    fn submit(&self, sessions: &[Session]) -> Result<Action, String> {
+        let session = SessionName::new(self.name.clone()).map_err(|invalid| invalid.to_string())?;
+        if sessions
+            .iter()
+            .any(|existing| existing.agent == self.agent && existing.name == session)
+        {
+            return Err(format!("session {:?} already exists", session.as_str()));
+        }
         let Some(installation) = self.installation() else {
             return Ok(Action::None);
         };
         let model = (!self.model.is_empty())
             .then(|| Model::new(self.model.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         let effort = (!self.effort.is_empty())
             .then(|| Effort::new(self.effort.clone()))
-            .transpose()?;
+            .transpose()
+            .map_err(|invalid| invalid.to_string())?;
         Ok(Action::CreateSession {
             agent: self.agent.clone(),
             session,
@@ -673,12 +879,12 @@ pub(crate) enum ForwardField {
 /// Mouse input uses these instead of terminal coordinates so layout remains
 /// entirely owned by the renderer. Keyboard-shaped controls deliberately flow
 /// back through `on_key` to keep both input methods equivalent.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum MouseAction {
     Key(KeyCode, KeyModifiers),
     Select(RowTarget),
     Primary(RowTarget),
-    FoldTree(usize),
+    FoldTree(String),
     MoveTree(isize),
     MoveForward(isize),
     ScrollDetail(isize),
@@ -690,10 +896,21 @@ pub(crate) enum MouseAction {
 }
 
 /// A rendered row whose selection is owned by the application.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+///
+/// Targets name the resource rather than its position, so a click acts on the
+/// row that was drawn even when a newer snapshot has moved it since.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum RowTarget {
-    Tree(usize),
-    Forward(usize),
+    Tree(TreeRowId),
+    /// A port forward by its stable ID.
+    Forward(u64),
+}
+
+/// Identity of one tree row.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) enum TreeRowId {
+    Agent(String),
+    Session { agent: String, session: SessionName },
 }
 
 impl ForwardField {
@@ -718,7 +935,6 @@ impl ForwardField {
 pub(crate) enum Action {
     None,
     Quit,
-    Refresh,
     Attach {
         agent: String,
         session: SessionName,
@@ -739,8 +955,18 @@ pub(crate) enum Action {
     Exec {
         agent: String,
     },
+    Prompt(PromptForm),
     Delete {
         agent: String,
+    },
+    DeleteSession {
+        agent: String,
+        session: SessionName,
+    },
+    SetArchived {
+        agent: String,
+        session: SessionName,
+        archived: bool,
     },
     CreateForward {
         agent: String,
@@ -756,17 +982,40 @@ pub(crate) enum Action {
 pub(crate) enum Tone {
     Green,
     Yellow,
+    Cyan,
     Gray,
     Red,
 }
 
+/// One tree row as the renderer draws it.
 pub(crate) struct RowView {
-    pub(crate) marker: &'static str,
-    pub(crate) dot: Option<&'static str>,
-    pub(crate) label: String,
-    pub(crate) badge: String,
-    pub(crate) tone: Tone,
     pub(crate) agent: bool,
+    /// A Session waits for input, or an Agent has one that does.
+    pub(crate) attention: bool,
+    /// An Agent's fold marker or a Session's state glyph, readable without color.
+    pub(crate) marker: &'static str,
+    pub(crate) name: String,
+    pub(crate) state: &'static str,
+    pub(crate) tone: Tone,
+    /// How long the row has been in its state, when known.
+    pub(crate) since: String,
+    pub(crate) detail: String,
+    /// The detail is a failure message; when it does not fit, its end, where
+    /// the cause is, is kept.
+    pub(crate) detail_keeps_end: bool,
+    pub(crate) age: String,
+}
+
+/// Sessions by state and Agents provisioning, for the header.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) struct TriageCounts {
+    pub(crate) needs_you: usize,
+    pub(crate) working: usize,
+    pub(crate) starting: usize,
+    pub(crate) idle: usize,
+    pub(crate) failed: usize,
+    pub(crate) provisioning: usize,
+    pub(crate) archived: usize,
 }
 
 impl App {
@@ -777,9 +1026,10 @@ impl App {
             groups: Vec::new(),
             rows: Vec::new(),
             collapsed: HashSet::new(),
-            selected: 0,
-            loading: false,
+            filter: String::new(),
+            selection: None,
             loaded: false,
+            connection_error: None,
             error: None,
             detail: None,
             modal: None,
@@ -787,6 +1037,11 @@ impl App {
             view: View::Tree,
             forward_selected: 0,
             creating: 0,
+            prompting: 0,
+            transcript: None,
+            turns_loading: None,
+            side_panel: false,
+            show_archived: false,
             discovering: false,
             queued_candidates: None,
         }
@@ -795,13 +1050,22 @@ impl App {
     pub(crate) fn apply_snapshot(&mut self, mut agents: Vec<Agent>, mut sessions: Vec<Session>) {
         agents.sort_by(|left, right| left.metadata.name.cmp(&right.metadata.name));
         sessions.sort_by(|left, right| left.agent.cmp(&right.agent).then_with(|| left.name.cmp(&right.name)));
+        // The selection's position is read before the rows it indexes are replaced.
+        let fallback = self.selected_index().unwrap_or_default();
         self.agents = agents;
         self.sessions = sessions;
         self.loaded = true;
-        self.rebuild();
+        self.rebuild_from(fallback);
     }
 
+    /// Rebuilds the tree. A selected Session hidden by folding its Agent leaves
+    /// the selection on that Agent; any other selection whose row disappeared
+    /// falls back to the row now at its former position.
     pub(crate) fn rebuild(&mut self) {
+        self.rebuild_from(self.selected_index().unwrap_or_default());
+    }
+
+    fn rebuild_from(&mut self, fallback: usize) {
         self.groups = self
             .agents
             .iter()
@@ -822,36 +1086,165 @@ impl App {
             .iter()
             .enumerate()
             .flat_map(|(group_index, group)| {
-                let mut rows = vec![Row::Agent(group_index)];
-                if let Some(agent) = self.agents.get(group.agent)
-                    && !self.collapsed.contains(&agent.metadata.name)
-                {
-                    rows.extend((0..group.sessions.len()).map(|position| Row::Session {
-                        group: group_index,
-                        position,
-                    }));
+                let Some(agent) = self.agents.get(group.agent) else {
+                    return Vec::new();
+                };
+                let agent_matches = self.matches(&agent.metadata.name) || self.matches(agent_state(agent).label);
+                let sessions = (0..group.sessions.len())
+                    .filter(|position| {
+                        self.sessions.get(group.sessions[*position]).is_some_and(|session| {
+                            (self.show_archived || !session.is_archived())
+                                && (agent_matches || self.session_matches(session))
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                if !agent_matches && sessions.is_empty() {
+                    return Vec::new();
                 }
+                let mut rows = vec![Row::Agent(group_index)];
+                // Folding hides Sessions only while nothing is filtered, so a match is never hidden.
+                if self.filter.is_empty() && self.collapsed.contains(&agent.metadata.name) {
+                    return rows;
+                }
+                rows.extend(sessions.into_iter().map(|position| Row::Session {
+                    group: group_index,
+                    position,
+                }));
                 rows
             })
             .collect();
-        self.selected = self.selected.min(self.rows.len().saturating_sub(1));
+        if self.selected_index().is_none() {
+            let agent = match &self.selection {
+                Some(TreeRowId::Session { agent, .. }) => {
+                    Some(TreeRowId::Agent(agent.clone())).filter(|agent| self.tree_index(agent).is_some())
+                }
+                _ => None,
+            };
+            self.selection = agent.or_else(|| self.tree_id_at(fallback.min(self.rows.len().saturating_sub(1))));
+        }
+    }
+
+    fn matches(&self, value: &str) -> bool {
+        value.to_lowercase().contains(&self.filter.to_lowercase())
+    }
+
+    fn session_matches(&self, session: &Session) -> bool {
+        let (_, _, state) = session_state(session.status.state);
+        [
+            session.name.as_str(),
+            state,
+            harness_label(session.harness),
+            session.model_selection.model_str().unwrap_or_default(),
+        ]
+        .into_iter()
+        .any(|value| self.matches(value))
+    }
+
+    /// Selects the next Session waiting for input in tree order, after the
+    /// selection and wrapping around. The header counts every such Session, so
+    /// one in a folded Agent is unfolded and one the filter hides clears it.
+    fn select_next_needing_input(&mut self) {
+        let order = self
+            .groups
+            .iter()
+            .filter_map(|group| {
+                let agent = self.agents.get(group.agent)?;
+                let sessions = group.sessions.iter().filter_map(|index| self.sessions.get(*index));
+                Some(
+                    std::iter::once((TreeRowId::Agent(agent.metadata.name.clone()), None)).chain(sessions.map(
+                        |session| {
+                            (
+                                TreeRowId::Session {
+                                    agent: session.agent.clone(),
+                                    session: session.name.clone(),
+                                },
+                                Some(session),
+                            )
+                        },
+                    )),
+                )
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+        let start = self
+            .selection
+            .as_ref()
+            .and_then(|selection| order.iter().position(|(id, _)| id == selection))
+            .map_or(0, |index| index + 1);
+        let Some((target, session)) = (0..order.len())
+            .map(|step| &order[(start + step) % order.len()])
+            .find(|(_, session)| session.is_some_and(|session| session.status.state == State::WaitingForInput))
+        else {
+            return;
+        };
+        if let Some(session) = session {
+            if !self.session_matches(session) && !self.matches(&session.agent) {
+                self.filter.clear();
+            }
+            self.collapsed.remove(&session.agent);
+        }
+        self.selection = Some(target.clone());
+        self.rebuild();
     }
 
     pub(crate) fn selected_row(&self) -> Option<Row> {
-        self.rows.get(self.selected).copied()
+        self.rows.get(self.selected_index()?).copied()
     }
 
-    pub(crate) fn counts(&self) -> (usize, usize, usize) {
-        let running = self
-            .sessions
-            .iter()
-            .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-            .count();
-        (self.agents.len(), self.sessions.len(), running)
+    pub(crate) fn selected_index(&self) -> Option<usize> {
+        self.tree_index(self.selection.as_ref()?)
+    }
+
+    /// Identity of the row at `index`.
+    pub(crate) fn tree_id_at(&self, index: usize) -> Option<TreeRowId> {
+        match *self.rows.get(index)? {
+            Row::Agent(group) => Some(TreeRowId::Agent(self.group_agent(group)?.metadata.name.clone())),
+            Row::Session { group, position } => {
+                let session = self.group_session(group, position)?;
+                Some(TreeRowId::Session {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                })
+            }
+        }
+    }
+
+    fn tree_index(&self, target: &TreeRowId) -> Option<usize> {
+        (0..self.rows.len()).find(|index| self.tree_id_at(*index).as_ref() == Some(target))
+    }
+
+    pub(crate) fn select_index(&mut self, index: usize) {
+        if let Some(target) = self.tree_id_at(index) {
+            self.selection = Some(target);
+        }
+    }
+
+    pub(crate) fn triage_counts(&self) -> TriageCounts {
+        let mut counts = TriageCounts {
+            provisioning: self
+                .agents
+                .iter()
+                .filter(|agent| agent_state(agent).label == "Provisioning")
+                .count(),
+            ..TriageCounts::default()
+        };
+        for session in &self.sessions {
+            let count = match session.status.state {
+                _ if session.is_archived() => &mut counts.archived,
+                State::WaitingForInput => &mut counts.needs_you,
+                State::Working => &mut counts.working,
+                State::Starting => &mut counts.starting,
+                State::Idle => &mut counts.idle,
+                State::Failed => &mut counts.failed,
+                State::Archived => &mut counts.archived,
+            };
+            *count += 1;
+        }
+        counts
     }
 
     pub(crate) const fn idle(&self) -> bool {
-        !self.loading && self.modal.is_none() && self.detail.is_none()
+        self.modal.is_none() && self.detail.is_none()
     }
 
     pub(crate) fn on_key(&mut self, key: KeyEvent) -> Action {
@@ -862,23 +1255,34 @@ impl App {
             self.detail_key(key);
             return Action::None;
         }
-        // The error screen renders over the forwards view, so its keys must
-        // win over forwards_key while an error is shown.
-        if self.view == View::Forwards && self.error.is_none() {
+        if self.error.is_some() {
+            return self.error_key(key);
+        }
+        if self.view == View::Forwards {
             return self.forwards_key(key);
         }
         self.main_key(key)
+    }
+
+    /// The error screen renders over the tree or forwards view until dismissed.
+    fn error_key(&mut self, key: KeyEvent) -> Action {
+        match key.code {
+            KeyCode::Esc | KeyCode::Enter => self.error = None,
+            KeyCode::Char('q') => return Action::Quit,
+            _ => {}
+        }
+        Action::None
     }
 
     pub(crate) fn on_mouse(&mut self, action: MouseAction) -> Action {
         match action {
             MouseAction::Key(code, modifiers) => self.on_key(KeyEvent::new(code, modifiers)),
             MouseAction::Select(target) => {
-                self.select_row(target);
+                self.select_row(&target);
                 Action::None
             }
             MouseAction::Primary(target) => {
-                if !self.select_row(target) {
+                if !self.select_row(&target) {
                     return Action::None;
                 }
                 let code = match target {
@@ -887,11 +1291,10 @@ impl App {
                 };
                 self.on_key(KeyEvent::new(code, KeyModifiers::NONE))
             }
-            MouseAction::FoldTree(index) => {
-                if index >= self.rows.len() || !matches!(self.rows[index], Row::Agent(_)) {
+            MouseAction::FoldTree(agent) => {
+                if !self.select_row(&RowTarget::Tree(TreeRowId::Agent(agent))) {
                     return Action::None;
                 }
-                self.selected = index;
                 self.on_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE))
             }
             MouseAction::MoveTree(delta) => {
@@ -906,8 +1309,7 @@ impl App {
                 let Some(detail) = self.detail.as_mut() else {
                     return Action::None;
                 };
-                let limit = detail.lines.len().saturating_sub(1);
-                detail.scroll = offset_clamped(detail.scroll, limit, delta);
+                detail.scroll_by(delta);
                 Action::None
             }
             MouseAction::FocusSessionField(field) => {
@@ -947,22 +1349,42 @@ impl App {
         }
     }
 
-    const fn select_row(&mut self, target: RowTarget) -> bool {
+    /// Selects the targeted row; `false` when it no longer exists.
+    fn select_row(&mut self, target: &RowTarget) -> bool {
         match target {
-            RowTarget::Tree(index) if index < self.rows.len() => self.selected = index,
-            RowTarget::Forward(index) if index < self.forwards.len() => self.forward_selected = index,
-            RowTarget::Tree(_) | RowTarget::Forward(_) => return false,
+            RowTarget::Tree(target) => {
+                if self.tree_index(target).is_none() {
+                    return false;
+                }
+                self.selection = Some(target.clone());
+            }
+            RowTarget::Forward(id) => {
+                let Some(index) = self.forwards.iter().position(|entry| entry.id == *id) else {
+                    return false;
+                };
+                self.forward_selected = index;
+            }
         }
         true
     }
 
     fn main_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
+            KeyCode::Esc if !self.filter.is_empty() => {
+                self.filter.clear();
+                self.rebuild();
+            }
             KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Char('/') => self.modal = Some(Modal::Filter),
+            KeyCode::Char('?') => self.modal = Some(Modal::Help),
+            KeyCode::Tab => self.select_next_needing_input(),
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
-            KeyCode::Char('r') => return Action::Refresh,
             KeyCode::Char('z') => self.toggle_all(),
+            KeyCode::Char('A') => {
+                self.show_archived = !self.show_archived;
+                self.rebuild();
+            }
             KeyCode::Char('F') => self.view = View::Forwards,
             KeyCode::Char('c') => return Action::OpenCreate,
             _ => {
@@ -979,6 +1401,7 @@ impl App {
     fn forwards_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
             KeyCode::Esc | KeyCode::Char('q' | 'F') => self.view = View::Tree,
+            KeyCode::Char('?') => self.modal = Some(Modal::Help),
             KeyCode::Down | KeyCode::Char('j') => self.move_forward_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_forward_selection(-1),
             KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -1027,20 +1450,14 @@ impl App {
                     self.rebuild();
                 }
             }
+            KeyCode::Char('p') => self.detail = Some(Detail::provisioning(name)),
             KeyCode::Char('s') => {
-                self.detail = Some(Detail {
-                    title: format!("agent/{name}"),
-                    lines: format::describe_agent_lines(agent),
-                    scroll: 0,
-                });
+                self.detail = Some(Detail::text(
+                    format!("agent/{name}"),
+                    format::describe_agent_lines(agent),
+                ));
             }
-            KeyCode::Char('y') => {
-                self.detail = Some(Detail {
-                    title: format!("agent/{name} yaml"),
-                    lines: yaml_lines(agent),
-                    scroll: 0,
-                });
-            }
+            KeyCode::Char('y') => self.detail = Some(Detail::text(format!("agent/{name} yaml"), yaml_lines(agent))),
             KeyCode::Char('d') => {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
@@ -1067,6 +1484,10 @@ impl App {
         let Some(session) = self.group_session(group, position) else {
             return Action::None;
         };
+        // An archived Session cannot be attached or prompted until it is unarchived.
+        if session.is_archived() && matches!(key.code, KeyCode::Enter | KeyCode::Char('p')) {
+            return Action::None;
+        }
         match key.code {
             KeyCode::Enter => {
                 return Action::Attach {
@@ -1076,21 +1497,39 @@ impl App {
             }
             KeyCode::Left => {
                 let agent = session.agent.clone();
-                self.collapsed.insert(agent);
+                self.collapsed.insert(agent.clone());
+                self.selection = Some(TreeRowId::Agent(agent));
                 self.rebuild();
-                if let Some(index) = self.rows.iter().position(|row| *row == Row::Agent(group)) {
-                    self.selected = index;
-                }
             }
             KeyCode::Char('s') => self.detail = Some(session_detail(session)),
             KeyCode::Char('y') => {
-                self.detail = Some(Detail {
-                    title: format!("session/{}/{} yaml", session.agent, session.name.as_str()),
-                    lines: yaml_lines(session),
-                    scroll: 0,
+                self.detail = Some(Detail::text(
+                    format!("session/{}/{} yaml", session.agent, session.name.as_str()),
+                    yaml_lines(session),
+                ));
+            }
+            KeyCode::Char('a') => {
+                return Action::SetArchived {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                    archived: !session.is_archived(),
+                };
+            }
+            KeyCode::Char('d') => {
+                self.modal = Some(Modal::ConfirmDeleteSession {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
                 });
             }
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('p') => {
+                self.modal = Some(Modal::Prompt(PromptForm {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                    input: String::new(),
+                    error: None,
+                }));
+            }
             _ => {}
         }
         Action::None
@@ -1100,19 +1539,24 @@ impl App {
         let Some(detail) = self.detail.as_mut() else {
             return;
         };
-        let limit = detail.lines.len().saturating_sub(1);
         match key.code {
             KeyCode::Esc | KeyCode::Char('q') => self.detail = None,
-            KeyCode::Down | KeyCode::Char('j') => detail.scroll = (detail.scroll + 1).min(limit),
-            KeyCode::Up | KeyCode::Char('k') => detail.scroll = detail.scroll.saturating_sub(1),
-            KeyCode::PageDown => detail.scroll = (detail.scroll + 10).min(limit),
-            KeyCode::PageUp => detail.scroll = detail.scroll.saturating_sub(10),
+            KeyCode::Down | KeyCode::Char('j') => detail.scroll_by(1),
+            KeyCode::Up | KeyCode::Char('k') => detail.scroll_by(-1),
+            KeyCode::PageDown => detail.scroll_by(10),
+            KeyCode::PageUp => detail.scroll_by(-10),
             _ => {}
         }
     }
 
     fn modal_key(&mut self, key: KeyEvent) -> Action {
         match self.modal.take() {
+            Some(Modal::Help) => {
+                if !matches!(key.code, KeyCode::Esc | KeyCode::Char('q' | '?')) {
+                    self.modal = Some(Modal::Help);
+                }
+                Action::None
+            }
             Some(Modal::ConfirmDelete { agent, sessions }) => match key.code {
                 KeyCode::Char('y') => Action::Delete { agent },
                 KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
@@ -1121,8 +1565,16 @@ impl App {
                     Action::None
                 }
             },
+            Some(Modal::ConfirmDeleteSession { agent, session }) => match key.code {
+                KeyCode::Char('y') => Action::DeleteSession { agent, session },
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmDeleteSession { agent, session });
+                    Action::None
+                }
+            },
             Some(Modal::NewSession(mut form)) => {
-                if let Some(action) = form.key(key) {
+                if let Some(action) = form.key(key, &self.sessions) {
                     return action;
                 }
                 self.modal = Some(Modal::NewSession(form));
@@ -1140,6 +1592,36 @@ impl App {
                     return action;
                 }
                 self.modal = Some(Modal::PortForward(form));
+                Action::None
+            }
+            Some(Modal::Prompt(mut form)) => {
+                if let Some(action) = form.key(key) {
+                    return action;
+                }
+                self.modal = Some(Modal::Prompt(form));
+                Action::None
+            }
+            Some(Modal::Filter) => {
+                match key.code {
+                    KeyCode::Enter => return Action::None,
+                    KeyCode::Esc => {
+                        self.filter.clear();
+                        self.rebuild();
+                        return Action::None;
+                    }
+                    KeyCode::Backspace => {
+                        self.filter.pop();
+                        self.rebuild();
+                    }
+                    KeyCode::Char(character)
+                        if key.modifiers.difference(KeyModifiers::SHIFT).is_empty() && !character.is_control() =>
+                    {
+                        self.filter.push(character);
+                        self.rebuild();
+                    }
+                    _ => {}
+                }
+                self.modal = Some(Modal::Filter);
                 Action::None
             }
             None => Action::None,
@@ -1180,13 +1662,123 @@ impl App {
         self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
     }
 
-    pub(crate) fn select_agent(&mut self, name: &str) {
-        let position = self.rows.iter().position(|row| {
-            matches!(row, Row::Agent(group)
-                if self.group_agent(*group).is_some_and(|agent| agent.metadata.name == name))
-        });
-        if let Some(position) = position {
-            self.selected = position;
+    /// Shows an Agent this TUI just created, ahead of the watch reply that will
+    /// report it, selects it and follows its provisioning.
+    pub(crate) fn agent_applied(&mut self, agent: Agent) {
+        let name = agent.metadata.name.clone();
+        let mut agents = std::mem::take(&mut self.agents);
+        agents.retain(|existing| existing.metadata.name != name);
+        agents.push(agent);
+        let sessions = std::mem::take(&mut self.sessions);
+        self.apply_snapshot(agents, sessions);
+        self.selection = Some(TreeRowId::Agent(name.clone()));
+        self.detail = Some(Detail::provisioning(name));
+    }
+
+    /// The selected Session whose turns need loading: newly selected, or with
+    /// more turns than when they were last requested.
+    /// The selected Session whose turns the side panel needs loaded, if any.
+    ///
+    /// Turns are read from the Session's Sandbox, so they load only while the
+    /// panel is shown, one load at a time: moving through Sessions loads the one
+    /// the selection rests on. They reload when the Session finishes a turn.
+    pub(crate) fn transcript_request(&mut self) -> Option<(String, SessionName)> {
+        let Some(TreeRowId::Session { agent, session }) = self.selection.as_ref().filter(|_| self.side_panel) else {
+            self.transcript = None;
+            return None;
+        };
+        let turns = self
+            .sessions
+            .iter()
+            .find(|candidate| candidate.agent == *agent && candidate.name == *session)
+            .map_or(0, |session| session.status.reported.activity.turns);
+        let transcript = match &mut self.transcript {
+            Some(transcript) if transcript.agent == *agent && transcript.session == *session => transcript,
+            _ => self.transcript.insert(Transcript {
+                agent: agent.clone(),
+                session: session.clone(),
+                requested_at: None,
+                turns: Vec::new(),
+                loading: true,
+                error: None,
+            }),
+        };
+        if self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
+            return None;
+        }
+        transcript.requested_at = Some(turns);
+        self.turns_loading = Some((agent.clone(), session.clone(), turns));
+        Some((agent.clone(), session.clone()))
+    }
+
+    pub(crate) fn transcript_loaded(&mut self, agent: &str, session: &SessionName, turns: Result<Vec<Turn>, String>) {
+        let requested_at = self.turns_loading.take().map(|(_, _, turns)| turns);
+        let Some(transcript) = self
+            .transcript
+            .as_mut()
+            .filter(|transcript| transcript.agent == agent && transcript.session == *session)
+        else {
+            return;
+        };
+        // The selection may have left the Session and come back while it loaded.
+        transcript.requested_at = requested_at;
+        transcript.loading = false;
+        match turns {
+            Ok(turns) => {
+                transcript.turns = turns;
+                transcript.error = None;
+            }
+            Err(error) => transcript.error = Some(error),
+        }
+    }
+
+    /// Reopens a prompt that could not be sent with its input and the reason,
+    /// unless another form is open by now.
+    pub(crate) fn prompt_failed(&mut self, mut form: PromptForm, error: String) {
+        if self.modal.is_some() {
+            self.error = Some(error);
+        } else {
+            form.error = Some(error);
+            self.modal = Some(Modal::Prompt(form));
+        }
+    }
+
+    /// The selected Agent's status for the side panel: readiness, and the pass
+    /// in progress or the one that failed with its last output.
+    pub(crate) fn agent_panel_lines(&self, name: &str) -> Vec<String> {
+        let Some(agent) = self.agents.iter().find(|agent| agent.metadata.name == name) else {
+            return Vec::new();
+        };
+        let mut lines = format::readiness_lines(&agent.status);
+        if let Some(provisioning) = &agent.status.progress {
+            let progress = &provisioning.progress;
+            lines.extend(format::provisioning_lines(
+                progress,
+                progress
+                    .output()
+                    .tail(AGENT_PANEL_OUTPUT_LINES)
+                    .map(|line| line.text.as_str()),
+            ));
+        }
+        lines
+    }
+
+    /// The Agent whose provisioning the open detail follows.
+    pub(crate) fn followed_agent(&self) -> Option<&str> {
+        self.detail.as_ref()?.follows.as_deref()
+    }
+
+    /// Replaces the lines of the detail following `agent`'s provisioning.
+    pub(crate) fn provisioning_followed(&mut self, agent: &str, lines: Vec<String>) {
+        if let Some(detail) = self
+            .detail
+            .as_mut()
+            .filter(|detail| detail.follows.as_deref() == Some(agent))
+        {
+            detail.scroll = detail.scroll.min(lines.len().saturating_sub(1));
+            detail.lines = lines;
+            // The next draw measures the new lines.
+            detail.scroll_limit.set(None);
         }
     }
 
@@ -1243,10 +1835,14 @@ impl App {
         }
     }
 
-    /// Replaces the forward display list, keeping the selection in range.
+    /// Replaces the forward display list, keeping the selected forward by its ID.
     pub(crate) fn set_forwards(&mut self, forwards: Vec<ForwardEntry>) {
+        let selected = self.forwards.get(self.forward_selected).map(|entry| entry.id);
         self.forwards = forwards;
-        self.forward_selected = self.forward_selected.min(self.forwards.len().saturating_sub(1));
+        self.forward_selected = selected
+            .and_then(|id| self.forwards.iter().position(|entry| entry.id == id))
+            .unwrap_or(self.forward_selected)
+            .min(self.forwards.len().saturating_sub(1));
     }
 
     fn move_selection(&mut self, delta: isize) {
@@ -1254,14 +1850,15 @@ impl App {
             return;
         }
         let length = self.rows.len();
-        let current = isize::try_from(self.selected).unwrap_or_default();
+        let current = isize::try_from(self.selected_index().unwrap_or_default()).unwrap_or_default();
         let next = (current + delta).rem_euclid(isize::try_from(length).unwrap_or(1));
-        self.selected = usize::try_from(next).unwrap_or_default();
+        self.select_index(usize::try_from(next).unwrap_or_default());
     }
 
     fn move_selection_clamped(&mut self, delta: isize) {
         if !self.rows.is_empty() {
-            self.selected = offset_clamped(self.selected, self.rows.len() - 1, delta);
+            let current = self.selected_index().unwrap_or_default();
+            self.select_index(offset_clamped(current, self.rows.len() - 1, delta));
         }
     }
 
@@ -1280,65 +1877,74 @@ impl App {
                 Row::Agent(group) => {
                     let agent = self.group_agent(group)?;
                     let sessions = &self.groups.get(group)?.sessions;
-                    let running = sessions
+                    let attention = sessions
                         .iter()
                         .filter_map(|index| self.sessions.get(*index))
-                        .filter(|session| session.status.lifecycle.state == LifecycleState::Running)
-                        .count();
+                        .any(|session| session.status.state == State::WaitingForInput);
                     let marker = if self.collapsed.contains(&agent.metadata.name) {
-                        "▸ "
+                        "▸"
                     } else {
-                        "▾ "
+                        "▾"
                     };
-                    let (tone, status) = agent_tone(agent);
+                    let AgentState {
+                        tone,
+                        label: state,
+                        detail: status,
+                        failure,
+                        since,
+                    } = agent_state(agent);
+                    let count = match sessions.len() {
+                        0 => String::new(),
+                        1 => "1 session".to_owned(),
+                        count => format!("{count} sessions"),
+                    };
                     let forwards = self
                         .forwards
                         .iter()
                         .filter(|entry| entry.agent == agent.metadata.name)
                         .map(ForwardEntry::mapping)
                         .collect::<Vec<_>>();
-                    let forward_badge = if forwards.is_empty() {
+                    let ports = if forwards.is_empty() {
                         String::new()
                     } else {
-                        format!(" · ports: {}", forwards.join(" "))
+                        format!("ports: {}", forwards.join(" "))
                     };
-                    let badge = format!("{running}/{} · {status}{forward_badge}", sessions.len());
+                    let detail = [status, count, ports]
+                        .into_iter()
+                        .filter(|part| !part.is_empty())
+                        .collect::<Vec<_>>()
+                        .join(" · ");
                     Some(RowView {
-                        marker,
-                        dot: None,
-                        label: agent.metadata.name.clone(),
-                        badge,
-                        tone,
                         agent: true,
+                        attention,
+                        marker,
+                        name: agent.metadata.name.clone(),
+                        state,
+                        tone,
+                        since: since.map_or_else(String::new, format::format_age),
+                        detail,
+                        detail_keeps_end: failure,
+                        age: String::new(),
                     })
                 }
                 Row::Session { group, position } => {
                     let session = self.group_session(group, position)?;
-                    let last = position + 1 == self.groups.get(group)?.sessions.len();
-                    let marker = if last { "  └─ " } else { "  ├─ " };
-                    let tone = session_tone(session.status.state);
-                    let dot = if session.status.state == State::Idle {
-                        "○"
-                    } else {
-                        "●"
-                    };
+                    let (tone, marker, state) = session_state(session.status.state);
+                    let harness = harness_label(session.harness);
                     Some(RowView {
-                        marker,
-                        dot: Some(dot),
-                        label: session.name.as_str().to_owned(),
-                        badge: format!(
-                            "{} · {}{} · {}",
-                            format::session_state(session.status.state),
-                            session.harness.as_str(),
-                            session
-                                .model_selection
-                                .model_str()
-                                .map(|model| format!(" · {model}"))
-                                .unwrap_or_default(),
-                            format::format_age(session.created_at)
-                        ),
-                        tone,
                         agent: false,
+                        attention: session.status.state == State::WaitingForInput,
+                        marker,
+                        name: session.name.as_str().to_owned(),
+                        state,
+                        tone,
+                        since: session.status.state_since.map_or_else(String::new, format::format_age),
+                        detail: session
+                            .model_selection
+                            .model_str()
+                            .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}")),
+                        detail_keeps_end: false,
+                        age: format::format_age(session.created_at),
                     })
                 }
             })
@@ -1348,10 +1954,13 @@ impl App {
     pub(crate) fn hints(&self) -> &'static [Hint] {
         if let Some(modal) = &self.modal {
             return match modal {
-                Modal::ConfirmDelete { .. } => &CONFIRM_DELETE_HINTS,
+                Modal::ConfirmDelete { .. } | Modal::ConfirmDeleteSession { .. } => &CONFIRM_DELETE_HINTS,
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
+                Modal::Filter => &FILTER_HINTS,
+                Modal::Prompt(_) => &PROMPT_HINTS,
+                Modal::Help => &HELP_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -1362,7 +1971,13 @@ impl App {
         }
         match self.selected_row() {
             Some(Row::Agent(_)) => &AGENT_HINTS,
-            Some(Row::Session { .. }) => &SESSION_HINTS,
+            Some(Row::Session { group, position }) => {
+                if self.group_session(group, position).is_some_and(Session::is_archived) {
+                    &ARCHIVED_SESSION_HINTS
+                } else {
+                    &SESSION_HINTS
+                }
+            }
             None => &EMPTY_HINTS,
         }
     }
@@ -1376,35 +1991,114 @@ fn offset_clamped(current: usize, limit: usize, delta: isize) -> usize {
     }
 }
 
-fn agent_tone(agent: &Agent) -> (Tone, String) {
-    if agent.metadata.deletion_timestamp.is_some() {
-        return (Tone::Red, "Terminating".to_owned());
-    }
-    let ready = agent.status.ready_condition();
-    ready.map_or_else(
-        || (Tone::Gray, "Pending".to_owned()),
-        |condition| {
-            let tone = if condition.status == ConditionStatus::True {
-                Tone::Green
-            } else {
-                Tone::Yellow
-            };
-            let reason = if condition.reason.is_empty() {
-                format::condition_status(condition.status).to_owned()
-            } else {
-                condition.reason.clone()
-            };
-            (tone, reason)
-        },
-    )
+/// An Agent row's state, the detail beside it and when it entered the state.
+struct AgentState {
+    tone: Tone,
+    label: &'static str,
+    detail: String,
+    /// The detail is a failure, whose cause is at its end.
+    failure: bool,
+    since: Option<OffsetDateTime>,
 }
 
-const fn session_tone(state: State) -> Tone {
+/// Reads an Agent's state from its typed status: deletion first, then the
+/// class of the last failure, the pass in progress and readiness.
+///
+/// A failure holds while its generation is current, so an Agent that is
+/// retrying stays Retrying through each retry, and time in state is how long
+/// `Ready` has been in its current state. A pass for a newer generation is
+/// provisioning the change, and its time in state is the pass's own.
+fn agent_state(agent: &Agent) -> AgentState {
+    let state = |tone, label, detail, since| AgentState {
+        tone,
+        label,
+        detail,
+        failure: false,
+        since,
+    };
+    let failed = |tone, label, detail, since| AgentState {
+        failure: true,
+        ..state(tone, label, detail, since)
+    };
+    if let Some(deleted) = agent.metadata.deletion_timestamp {
+        return state(Tone::Red, "Terminating", String::new(), Some(deleted));
+    }
+    let ready = agent.status.ready_condition();
+    let entered = ready.and_then(|ready| ready.last_transition_time);
+    let message = || ready.map_or_else(String::new, |ready| ready.detail().trim_end().to_owned());
+    let failure = agent
+        .status
+        .failure
+        .filter(|_| agent.status.observed_generation == agent.metadata.generation);
+    match (failure, provisioning(agent)) {
+        (Some(FailureKind::Invalid), _) => failed(Tone::Red, "Failed", message(), entered),
+        (Some(FailureKind::Transient), Some(progress)) => {
+            state(Tone::Yellow, "Retrying", progress_summary(progress), entered)
+        }
+        (Some(FailureKind::Transient), None) => failed(Tone::Yellow, "Retrying", message(), entered),
+        (None, Some(progress)) => state(
+            Tone::Cyan,
+            "Provisioning",
+            progress_summary(progress),
+            Some(pass_started(progress)),
+        ),
+        (None, None) => match ready.map(|ready| ready.status) {
+            None => state(Tone::Gray, "Pending", String::new(), None),
+            Some(ConditionStatus::True) => state(Tone::Green, "Ready", String::new(), entered),
+            Some(_) => failed(Tone::Cyan, "Starting", message(), entered),
+        },
+    }
+}
+
+/// When a pass started: before the phase in progress by the time its
+/// finished phases took.
+fn pass_started(progress: &Progress) -> OffsetDateTime {
+    let finished = progress.finished().iter().map(|phase| phase.elapsed_ms).sum::<u64>();
+    let end = progress
+        .current()
+        .map_or_else(OffsetDateTime::now_utc, |phase| phase.started_at);
+    end - time::Duration::milliseconds(i64::try_from(finished).unwrap_or(i64::MAX))
+}
+
+/// The Agent's pass while it is running.
+fn provisioning(agent: &Agent) -> Option<&Progress> {
+    let progress = &agent.status.progress.as_ref()?.progress;
+    (*progress.status() == OperationStatus::Running).then_some(progress)
+}
+
+/// The phase in progress and its current step, with the step's measurement.
+fn progress_summary(progress: &Progress) -> String {
+    let Some(phase) = progress.current() else {
+        return String::new();
+    };
+    let mut summary = phase.phase.label.to_string();
+    if let Some(step) = progress.current_step() {
+        summary.push_str(" · ");
+        summary.push_str(&step.name);
+        if let Some(measurement) = step.measurement {
+            summary.push_str(": ");
+            summary.push_str(&crate::progress::format_measurement(measurement));
+        }
+    }
+    summary
+}
+
+/// A Session state's tone, glyph and label.
+const fn session_state(state: State) -> (Tone, &'static str, &'static str) {
     match state {
-        State::Working | State::WaitingForInput => Tone::Green,
-        State::Starting => Tone::Yellow,
-        State::Idle => Tone::Gray,
-        State::Failed => Tone::Red,
+        State::WaitingForInput => (Tone::Yellow, "!", "Needs you"),
+        State::Working => (Tone::Green, "*", "Working"),
+        State::Starting => (Tone::Cyan, "~", "Starting"),
+        State::Idle => (Tone::Gray, "-", "Idle"),
+        State::Archived => (Tone::Gray, "_", "Archived"),
+        State::Failed => (Tone::Red, "x", "Failed"),
+    }
+}
+
+pub(crate) const fn harness_label(harness: Harness) -> &'static str {
+    match harness {
+        Harness::ClaudeCode => "Claude Code",
+        Harness::Codex => "Codex",
     }
 }
 
@@ -1451,11 +2145,7 @@ fn session_detail(session: &Session) -> Detail {
         ),
         format!("ID:         {}", session.id),
     ];
-    Detail {
-        title: format!("session/{}/{}", session.agent, session.name.as_str()),
-        lines,
-        scroll: 0,
-    }
+    Detail::text(format!("session/{}/{}", session.agent, session.name.as_str()), lines)
 }
 
 #[cfg(test)]
@@ -1514,6 +2204,7 @@ mod tests {
             status: ConditionStatus::True,
             reason: "SandboxReady".into(),
             message: String::new(),
+            last_transition_time: None,
         });
         agent
     }
@@ -1562,12 +2253,151 @@ mod tests {
             ]
         );
         let views = app.render_rows();
-        assert_eq!(views[0].label, "builder");
-        assert_eq!(views[1].label, "b1");
-        assert_eq!(views[2].label, "worker");
-        assert_eq!(views[3].label, "s1");
-        assert_eq!(views[4].label, "s2");
-        assert_eq!(app.counts(), (2, 3, 1));
+        assert_eq!(views[0].name, "builder");
+        assert_eq!(views[1].name, "b1");
+        assert_eq!(views[2].name, "worker");
+        assert_eq!(views[3].name, "s1");
+        assert_eq!(views[4].name, "s2");
+        assert_eq!(
+            app.triage_counts(),
+            TriageCounts {
+                working: 1,
+                starting: 1,
+                idle: 1,
+                ..TriageCounts::default()
+            }
+        );
+    }
+
+    fn type_text(app: &mut App, text: &str) {
+        for character in text.chars() {
+            app.on_key(key(KeyCode::Char(character)));
+        }
+    }
+
+    #[test]
+    fn the_filter_matches_an_agents_state() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![ready_agent("alive"), failed_agent("broken", FailureKind::Transient)],
+            Vec::new(),
+        );
+        app.on_key(key(KeyCode::Char('/')));
+        type_text(&mut app, "retry");
+        assert_eq!(
+            app.render_rows()
+                .iter()
+                .map(|row| row.name.as_str())
+                .collect::<Vec<_>>(),
+            ["broken"]
+        );
+    }
+
+    #[test]
+    fn the_filter_matches_names_states_harnesses_and_models_and_shows_folded_matches() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Enter));
+        assert_eq!(app.rows.len(), 4, "builder is folded");
+        app.on_key(key(KeyCode::Char('/')));
+
+        type_text(&mut app, "B1");
+        assert_eq!(app.rows, [Row::Agent(0), Row::Session { group: 0, position: 0 }]);
+        app.on_key(key(KeyCode::Backspace));
+        app.on_key(key(KeyCode::Backspace));
+        type_text(&mut app, "idle");
+        assert_eq!(
+            app.render_rows()
+                .iter()
+                .map(|row| row.name.as_str())
+                .collect::<Vec<_>>(),
+            ["worker", "s1"]
+        );
+        app.filter.clear();
+        type_text(&mut app, "work");
+        assert_eq!(app.rows.len(), 3, "an Agent that matches keeps all its Sessions");
+
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert!(app.modal.is_none());
+        assert_eq!(app.filter, "work", "enter keeps the filter");
+        assert_eq!(
+            app.on_key(key(KeyCode::Esc)),
+            Action::None,
+            "esc clears the filter first"
+        );
+        assert!(app.filter.is_empty());
+        assert_eq!(app.rows.len(), 4, "folding applies again");
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::Quit);
+    }
+
+    #[test]
+    fn tab_selects_the_next_session_needing_input_and_wraps() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("first"), agent("second")],
+            vec![
+                session("first", "a", "waitingForInput"),
+                session("first", "b", "working"),
+                session("second", "c", "waitingForInput"),
+            ],
+        );
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(1));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(4));
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(app.selected_index(), Some(1), "the jump wraps around");
+    }
+
+    #[test]
+    fn tab_unfolds_and_clears_the_filter_to_reach_every_session_the_header_counts() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("first"), agent("second")],
+            vec![
+                session("first", "a", "working"),
+                session("second", "c", "waitingForInput"),
+            ],
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(app.rows.len(), 2, "both Agents are folded");
+        app.on_key(key(KeyCode::Tab));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "second".into(),
+                session: SessionName::new("c").expect("name"),
+            })
+        );
+        assert!(!app.collapsed.contains("second"), "the Agent holding it unfolds");
+
+        app.filter = "first".into();
+        app.select_index(0);
+        app.rebuild();
+        app.on_key(key(KeyCode::Tab));
+        assert!(app.filter.is_empty(), "a filter hiding it is cleared");
+        assert_eq!(app.selected_row(), Some(Row::Session { group: 1, position: 0 }));
+    }
+
+    #[test]
+    fn a_removed_row_leaves_the_selection_on_its_neighbour() {
+        let mut app = App::new();
+        app.apply_snapshot(vec![agent("a"), agent("b"), agent("c")], Vec::new());
+        app.select_index(2);
+        app.apply_snapshot(vec![agent("a"), agent("b")], Vec::new());
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("b".into())),
+            "the last row falls back to the one above"
+        );
+
+        app.apply_snapshot(vec![agent("a"), agent("b"), agent("c")], Vec::new());
+        app.select_index(1);
+        app.apply_snapshot(vec![agent("a"), agent("c")], Vec::new());
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("c".into())),
+            "a middle row falls back to the one now in its place"
+        );
     }
 
     #[test]
@@ -1582,21 +2412,69 @@ mod tests {
     }
 
     #[test]
+    fn folding_moves_the_selection_from_a_hidden_session_to_its_agent() {
+        let mut app = populated();
+        app.select_index(1);
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Session {
+                agent: "builder".into(),
+                session: SessionName::new("b1").expect("name"),
+            })
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("builder".into())),
+            "not worker, which folding moved to the Session's former position"
+        );
+        app.on_key(key(KeyCode::Char('z')));
+        assert_eq!(
+            app.selection,
+            Some(TreeRowId::Agent("builder".into())),
+            "unfolding keeps it on the Agent"
+        );
+    }
+
+    #[test]
+    fn question_mark_opens_help_over_the_tree_and_the_forwards() {
+        let mut app = populated();
+        app.on_key(key(KeyCode::Char('?')));
+        assert!(matches!(app.modal, Some(Modal::Help)));
+        assert_eq!(app.hints(), &HELP_HINTS);
+        app.on_key(key(KeyCode::Char('j')));
+        assert!(matches!(app.modal, Some(Modal::Help)), "other keys leave it open");
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('q'))),
+            Action::None,
+            "q closes help instead of quitting"
+        );
+        assert!(app.modal.is_none());
+
+        app.on_key(key(KeyCode::Char('F')));
+        app.on_key(key(KeyCode::Char('?')));
+        assert!(matches!(app.modal, Some(Modal::Help)));
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none());
+        assert_eq!(app.view, View::Forwards);
+    }
+
+    #[test]
     fn selection_wraps_and_clamps_after_shrink() {
         let mut app = populated();
         app.on_key(key(KeyCode::Up));
-        assert_eq!(app.selected, 4);
+        assert_eq!(app.selected_index(), Some(4));
         app.on_key(key(KeyCode::Down));
-        assert_eq!(app.selected, 0);
-        app.selected = 4;
+        assert_eq!(app.selected_index(), Some(0));
+        app.select_index(4);
         app.apply_snapshot(vec![agent("worker")], Vec::new());
-        assert_eq!(app.selected, 0);
+        assert_eq!(app.selected_index(), Some(0));
     }
 
     #[test]
     fn enter_on_a_session_attaches_to_it() {
         let mut app = populated();
-        app.selected = 1;
+        app.select_index(1);
         let action = app.on_key(key(KeyCode::Enter));
         assert_eq!(
             action,
@@ -1607,14 +2485,24 @@ mod tests {
         );
     }
 
+    fn session_target(agent: &str, session: &str) -> RowTarget {
+        RowTarget::Tree(TreeRowId::Session {
+            agent: agent.into(),
+            session: SessionName::new(session).expect("valid Session name"),
+        })
+    }
+
     #[test]
     fn mouse_row_selection_is_separate_from_primary_actions() {
         let mut app = populated();
 
-        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Tree(4))), Action::None);
-        assert_eq!(app.selected, 4);
         assert_eq!(
-            app.on_mouse(MouseAction::Primary(RowTarget::Tree(4))),
+            app.on_mouse(MouseAction::Select(session_target("worker", "s2"))),
+            Action::None
+        );
+        assert_eq!(app.selected_index(), Some(4));
+        assert_eq!(
+            app.on_mouse(MouseAction::Primary(session_target("worker", "s2"))),
             Action::Attach {
                 agent: "worker".into(),
                 session: SessionName::new("s2").expect("valid Session name"),
@@ -1622,25 +2510,59 @@ mod tests {
         );
 
         assert_eq!(app.rows.len(), 5);
-        assert_eq!(app.on_mouse(MouseAction::FoldTree(0)), Action::None);
+        assert_eq!(app.on_mouse(MouseAction::FoldTree("builder".into())), Action::None);
         assert_eq!(app.rows.len(), 4);
+    }
+
+    #[test]
+    fn selection_and_mouse_targets_follow_the_resource_when_rows_move() {
+        let mut app = populated();
+        let rendered = session_target("worker", "s1");
+        app.on_mouse(MouseAction::Select(rendered.clone()));
+        assert_eq!(app.selected_index(), Some(3));
+
+        app.apply_snapshot(
+            vec![agent("worker"), agent("builder"), agent("analyst")],
+            vec![
+                session("worker", "s2", "working"),
+                session("worker", "s1", "idle"),
+                session("analyst", "a1", "working"),
+                session("builder", "b1", "starting"),
+            ],
+        );
+        assert_eq!(app.selected_index(), Some(5), "the new Agent moved the Session down");
+        assert_eq!(
+            app.on_mouse(MouseAction::Primary(rendered)),
+            Action::Attach {
+                agent: "worker".into(),
+                session: SessionName::new("s1").expect("valid Session name"),
+            }
+        );
+        assert_eq!(
+            app.on_mouse(MouseAction::Select(session_target("worker", "gone"))),
+            Action::None
+        );
+        assert_eq!(
+            app.selected_index(),
+            Some(5),
+            "a vanished target leaves the selection alone"
+        );
     }
 
     #[test]
     fn mouse_wheel_selection_and_detail_scrolling_clamp_at_the_ends() {
         let mut app = populated();
-        app.selected = app.rows.len() - 1;
+        app.select_index(app.rows.len() - 1);
 
         app.on_mouse(MouseAction::MoveTree(1));
-        assert_eq!(app.selected, app.rows.len() - 1);
+        assert_eq!(app.selected_index(), Some(app.rows.len() - 1));
         app.on_mouse(MouseAction::MoveTree(-100));
-        assert_eq!(app.selected, 0);
+        assert_eq!(app.selected_index(), Some(0));
 
-        app.detail = Some(Detail {
-            title: "detail".into(),
-            lines: vec!["one".into(), "two".into(), "three".into()],
-            scroll: 0,
-        });
+        app.detail = Some(Detail::text(
+            "detail".into(),
+            vec!["one".into(), "two".into(), "three".into()],
+        ));
         app.on_mouse(MouseAction::ScrollDetail(100));
         assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(2));
         app.on_mouse(MouseAction::ScrollDetail(-100));
@@ -1671,6 +2593,80 @@ mod tests {
     }
 
     #[test]
+    fn archived_sessions_are_hidden_until_shown_and_toggle_from_their_row() {
+        let mut app = populated();
+        let b1 = SessionName::new("b1").expect("name");
+        let archived = app.sessions.iter_mut().find(|session| session.name == b1).expect("b1");
+        archived.archived_at = Some(time::OffsetDateTime::UNIX_EPOCH);
+        app.rebuild();
+        let b1_row = TreeRowId::Session {
+            agent: "builder".into(),
+            session: b1.clone(),
+        };
+        assert_eq!(app.tree_index(&b1_row), None, "archived Sessions are hidden");
+        assert_eq!(app.triage_counts().archived, 1, "but counted");
+        assert_eq!(app.triage_counts().starting, 0);
+
+        assert_eq!(app.on_key(key(KeyCode::Char('A'))), Action::None);
+        assert!(app.tree_index(&b1_row).is_some(), "A shows them");
+        app.selection = Some(b1_row);
+        assert_eq!(app.hints().first().map(|hint| hint.description), Some("unarchive"));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::None,
+            "an archived Session is not attached"
+        );
+        assert!(app.modal.is_none(), "nor prompted");
+        assert_eq!(app.on_key(key(KeyCode::Char('p'))), Action::None);
+        assert!(app.modal.is_none());
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived {
+                agent: "builder".into(),
+                session: b1,
+                archived: false,
+            },
+            "a unarchives an archived Session"
+        );
+
+        app.selection = Some(TreeRowId::Session {
+            agent: "worker".into(),
+            session: SessionName::new("s1").expect("name"),
+        });
+        assert!(matches!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived { archived: true, .. }
+        ));
+    }
+
+    #[test]
+    fn deleting_a_session_row_confirms_first_and_leaves_the_agent_alone() {
+        let mut app = populated();
+        app.selection = Some(TreeRowId::Session {
+            agent: "builder".into(),
+            session: SessionName::new("b1").expect("name"),
+        });
+
+        assert_eq!(app.on_key(key(KeyCode::Char('d'))), Action::None);
+        let Some(Modal::ConfirmDeleteSession { agent, session }) = &app.modal else {
+            panic!("deleting a Session must ask for confirmation");
+        };
+        assert_eq!((agent.as_str(), session.as_str()), ("builder", "b1"));
+
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None);
+        assert!(app.modal.is_none(), "cancelling must not delete anything");
+
+        app.on_key(key(KeyCode::Char('d')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::DeleteSession {
+                agent: "builder".into(),
+                session: SessionName::new("b1").expect("name"),
+            }
+        );
+    }
+
+    #[test]
     fn mouse_forward_actions_select_edit_and_delete_the_target() {
         let mut app = App::new();
         app.view = View::Forwards;
@@ -1691,9 +2687,9 @@ mod tests {
             },
         ]);
 
-        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Forward(1))), Action::None);
+        assert_eq!(app.on_mouse(MouseAction::Select(RowTarget::Forward(20))), Action::None);
         assert_eq!(app.forward_selected, 1);
-        assert_eq!(app.on_mouse(MouseAction::Primary(RowTarget::Forward(1))), Action::None);
+        assert_eq!(app.on_mouse(MouseAction::Primary(RowTarget::Forward(20))), Action::None);
         assert!(matches!(
             app.modal,
             Some(Modal::PortForward(ForwardForm { replace: Some(20), .. }))
@@ -1744,6 +2740,19 @@ mod tests {
             }
         );
         assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn new_session_modal_rejects_an_existing_name_instead_of_attaching() {
+        let mut app = populated();
+        app.select_index(2);
+        app.on_key(key(KeyCode::Char('n')));
+        type_text(&mut app, "s1");
+        assert_eq!(app.on_key(key(KeyCode::Enter)), Action::None);
+        assert!(matches!(
+            &app.modal,
+            Some(Modal::NewSession(form)) if form.error.as_deref() == Some("session \"s1\" already exists")
+        ));
     }
 
     #[test]
@@ -1874,7 +2883,7 @@ mod tests {
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
         let mut app = populated();
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
-        app.selected = 1;
+        app.select_index(1);
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::OpenCreate);
     }
 
@@ -1915,7 +2924,7 @@ mod tests {
                 });
             }
         }
-        app.selected = 3;
+        app.select_index(3);
         let mut discovered = candidates(&[("/sources/builder", "builder"), ("/sources/worker", "worker")]);
         discovered.push(ManifestCandidate::new(
             PathBuf::from("/sources/worker/agent.nested.yaml"),
@@ -2102,37 +3111,172 @@ mod tests {
     }
 
     #[test]
-    fn select_agent_moves_the_selection_to_that_row() {
+    fn a_created_agent_is_shown_and_selected_before_the_watch_reports_it() {
         let mut app = populated();
-        app.select_agent("worker");
-        assert_eq!(app.selected, 2);
-        app.select_agent("missing");
-        assert_eq!(app.selected, 2);
+        app.agent_applied(agent("analyst"));
+        assert_eq!(app.selected_index(), Some(0));
+        assert_eq!(app.agents.len(), 3);
+
+        app.apply_snapshot(vec![agent("worker"), agent("builder"), agent("analyst")], Vec::new());
+        assert_eq!(app.selected_index(), Some(0), "the watch reply keeps the selection");
+    }
+
+    fn failed_agent(name: &str, failure: FailureKind) -> Agent {
+        let mut agent = agent(name);
+        agent.status.conditions.push(agent::Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::False,
+            reason: "ImageBuildFailed".into(),
+            message: "Dockerfile not found".into(),
+            last_transition_time: None,
+        });
+        agent.status.failure = Some(failure);
+        agent
+    }
+
+    fn provisioning_agent(name: &str, failure: Option<FailureKind>) -> Agent {
+        let phase = sandbox::SandboxPhase::ImageResolve.phase();
+        let step = sandbox::StepId::generate();
+        let mut progress = Progress::new();
+        for event in [
+            sandbox::ProgressEvent::PhaseStarted { phase },
+            sandbox::ProgressEvent::StepStarted {
+                id: step.clone(),
+                name: "Pull OCI image".into(),
+                unit: Some(sandbox::ProgressUnit::Bytes),
+                total: Some(2048),
+            },
+            sandbox::ProgressEvent::StepProgress {
+                id: step,
+                completed: 1024,
+                total: None,
+            },
+        ] {
+            progress.apply(&event);
+        }
+        let mut agent = failed_agent(name, FailureKind::Transient);
+        agent.status.failure = failure;
+        agent.status.progress = Some(agent::progress::Provisioning {
+            pass: agent::resources::Changes::new().revision(),
+            progress,
+        });
+        agent
     }
 
     #[test]
-    fn tones_reflect_agent_conditions_and_session_states() {
+    fn agent_state_comes_from_typed_status_and_the_pass_in_progress() {
         let mut terminating = ready_agent("done");
         terminating.metadata.deletion_timestamp = Some(time::OffsetDateTime::now_utc());
+        let mut updating = provisioning_agent("updating", Some(FailureKind::Invalid));
+        updating.metadata.generation = 2;
+        updating.status.observed_generation = 1;
         let mut app = App::new();
         app.apply_snapshot(
-            vec![ready_agent("alive"), terminating, agent("fresh")],
             vec![
-                session("alive", "up", "waitingForInput"),
-                session("alive", "down", "failed"),
+                ready_agent("alive"),
+                terminating,
+                agent("fresh"),
+                failed_agent("broken", FailureKind::Invalid),
+                failed_agent("flaky", FailureKind::Transient),
+                provisioning_agent("pulling", None),
+                provisioning_agent("retrying", Some(FailureKind::Transient)),
+                updating,
             ],
+            Vec::new(),
         );
-        let views = app.render_rows();
-        assert_eq!(views[0].tone, Tone::Green);
-        assert!(views[0].badge.contains("SandboxReady"));
-        assert_eq!(views[1].tone, Tone::Red);
-        assert_eq!(views[2].tone, Tone::Green);
-        assert!(views[3].badge.contains("Terminating"));
-        assert_eq!(views[3].tone, Tone::Red);
-        assert_eq!(views[4].tone, Tone::Gray);
-        assert!(views[4].badge.contains("Pending"));
-        assert_eq!(views[1].dot, Some("●"));
-        assert!(views[1].badge.contains("Failed"));
+        let states = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.state, row.tone, row.detail))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            states,
+            [
+                ("alive".into(), "Ready", Tone::Green, String::new()),
+                ("broken".into(), "Failed", Tone::Red, "Dockerfile not found".into()),
+                ("done".into(), "Terminating", Tone::Red, String::new()),
+                ("flaky".into(), "Retrying", Tone::Yellow, "Dockerfile not found".into()),
+                ("fresh".into(), "Pending", Tone::Gray, String::new()),
+                (
+                    "pulling".into(),
+                    "Provisioning",
+                    Tone::Cyan,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
+                (
+                    "retrying".into(),
+                    "Retrying",
+                    Tone::Yellow,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
+                (
+                    "updating".into(),
+                    "Provisioning",
+                    Tone::Cyan,
+                    "Resolve Sandbox Image · Pull OCI image: 1.0 KiB / 2.0 KiB".into()
+                ),
+            ]
+        );
+        assert_eq!(
+            app.triage_counts().provisioning,
+            2,
+            "the header counts the rows shown as Provisioning"
+        );
+    }
+
+    #[test]
+    fn time_in_state_is_readys_for_failures_and_the_passs_while_provisioning() {
+        let entered = OffsetDateTime::now_utc() - time::Duration::minutes(5);
+        let mut retrying = provisioning_agent("retrying", Some(FailureKind::Transient));
+        retrying.status.conditions[0].last_transition_time = Some(entered);
+        let mut updating = provisioning_agent("updating", None);
+        updating.status.conditions[0].last_transition_time = Some(entered);
+        let mut app = App::new();
+        app.apply_snapshot(vec![retrying, updating], Vec::new());
+        let since = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.since))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            since,
+            [("retrying".into(), "5m".into()), ("updating".into(), "0s".into())],
+            "a retry keeps the time the Agent started failing, and a pass shows its own"
+        );
+    }
+
+    #[test]
+    fn every_session_state_has_its_own_glyph_and_input_needs_attention() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![ready_agent("fleet")],
+            ["waitingForInput", "working", "starting", "idle", "failed"]
+                .iter()
+                .enumerate()
+                .map(|(index, state)| session("fleet", &format!("s{index}"), state))
+                .collect(),
+        );
+        let rows = app.render_rows();
+        assert!(
+            rows[0].attention,
+            "the Agent shows that one of its Sessions needs input"
+        );
+        assert_eq!(rows[0].detail, "5 sessions");
+        let sessions = rows[1..]
+            .iter()
+            .map(|row| (row.marker, row.state, row.attention))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            sessions,
+            [
+                ("!", "Needs you", true),
+                ("*", "Working", false),
+                ("~", "Starting", false),
+                ("-", "Idle", false),
+                ("x", "Failed", false),
+            ]
+        );
+        assert_eq!(rows[1].detail, "Claude Code");
     }
 
     #[test]
@@ -2226,10 +3370,10 @@ mod tests {
         let mut app = populated();
         app.on_key(key(KeyCode::Char('F')));
         app.error = Some("control plane unreachable".into());
-        assert_eq!(app.on_key(key(KeyCode::Char('r'))), Action::Refresh);
         assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit);
-        assert_eq!(app.view, View::Forwards);
-        app.error = None;
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.error.is_none());
+        assert_eq!(app.view, View::Forwards, "dismissing the error returns to the forwards");
         app.on_key(key(KeyCode::Char('q')));
         assert_eq!(app.view, View::Tree);
     }
@@ -2296,8 +3440,93 @@ mod tests {
             },
         ]);
         let views = app.render_rows();
-        assert!(!views[0].badge.contains("ports:"));
-        assert!(views[2].badge.contains("ports: 9090:80 0.0.0.0:80:80"));
+        assert!(!views[0].detail.contains("ports:"));
+        assert!(views[2].detail.contains("ports: 9090:80 0.0.0.0:80:80"));
+    }
+
+    #[test]
+    fn a_created_agents_provisioning_is_followed_until_its_detail_closes() {
+        let mut app = populated();
+        app.agent_applied(agent("analyst"));
+        assert_eq!(app.followed_agent(), Some("analyst"));
+
+        app.provisioning_followed("worker", vec!["stale".into()]);
+        app.provisioning_followed("analyst", vec!["Ready:      True".into()]);
+        assert_eq!(
+            app.detail.as_ref().map(|detail| detail.lines.clone()),
+            Some(vec!["Ready:      True".into()])
+        );
+
+        app.on_key(key(KeyCode::Char('q')));
+        assert_eq!(app.followed_agent(), None);
+        app.select_index(1);
+        app.on_key(key(KeyCode::Char('p')));
+        assert_eq!(app.followed_agent(), Some("builder"), "p follows the selected Agent");
+    }
+
+    #[test]
+    fn a_prompt_is_sent_in_place_and_a_failure_brings_its_input_back() {
+        let mut app = populated();
+        app.select_index(1);
+        app.on_key(key(KeyCode::Char('p')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::None,
+            "an empty prompt is not sent"
+        );
+        assert!(matches!(&app.modal, Some(Modal::Prompt(form)) if form.error.is_some()));
+        type_text(&mut app, "go on");
+        let Action::Prompt(form) = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected the prompt to be sent");
+        };
+        assert_eq!(
+            (form.agent.as_str(), form.session.as_str(), form.input.as_str()),
+            ("builder", "b1", "go on")
+        );
+        assert!(app.modal.is_none());
+
+        app.prompt_failed(form, "session is not running".into());
+        assert!(matches!(
+            &app.modal,
+            Some(Modal::Prompt(form)) if form.input == "go on" && form.error.as_deref() == Some("session is not running")
+        ));
+    }
+
+    #[test]
+    fn turns_load_for_the_selected_session_and_again_when_it_finishes_a_turn() {
+        let mut app = populated();
+        app.select_index(1);
+        assert_eq!(
+            app.transcript_request(),
+            None,
+            "no turns load while the panel is hidden"
+        );
+        app.side_panel = true;
+        app.select_index(0);
+        assert_eq!(app.transcript_request(), None, "an Agent row has no turns");
+        app.select_index(1);
+        let target = app.transcript_request().expect("the selected Session's turns");
+        assert_eq!(app.transcript_request(), None, "one request at a time");
+        app.select_index(3);
+        assert_eq!(
+            app.transcript_request(),
+            None,
+            "another Session waits for the load in flight"
+        );
+        app.select_index(1);
+        assert_eq!(app.transcript_request(), None, "coming back waits for the same load");
+        app.transcript_loaded(&target.0, &target.1, Ok(Vec::new()));
+        assert_eq!(app.transcript_request(), None, "nothing changed");
+
+        let mut sessions = app.sessions.clone();
+        sessions[0].status.reported.activity.turns += 1;
+        let agents = app.agents.clone();
+        app.apply_snapshot(agents, sessions);
+        assert_eq!(app.transcript_request(), Some(target));
+
+        app.select_index(0);
+        assert_eq!(app.transcript_request(), None);
+        assert!(app.transcript.is_none());
     }
 
     #[test]
@@ -2310,7 +3539,7 @@ mod tests {
         assert_eq!(app.detail.as_ref().expect("agent detail").scroll, 1);
         app.on_key(key(KeyCode::Char('q')));
         assert!(app.detail.is_none());
-        app.selected = 1;
+        app.select_index(1);
         app.on_key(key(KeyCode::Char('s')));
         assert_eq!(app.detail.as_ref().expect("session detail").title, "session/builder/b1");
     }
@@ -2325,7 +3554,7 @@ mod tests {
         assert!(detail.lines.iter().any(|line| line.contains("apiVersion:")));
         assert!(detail.lines.iter().any(|line| line.contains("harnesses:")));
         app.on_key(key(KeyCode::Char('q')));
-        app.selected = 1;
+        app.select_index(1);
         app.on_key(key(KeyCode::Char('y')));
         let detail = app.detail.as_ref().expect("session yaml");
         assert_eq!(detail.title, "session/builder/b1 yaml");

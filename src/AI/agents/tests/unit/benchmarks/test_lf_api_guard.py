@@ -17,7 +17,7 @@ class _Api:
         self.pages_read += 1
         page = params.get("page", 1)
         start = (page - 1) * self._per_page
-        return {"data": [{"name": name} for name in self._names[start:start + self._per_page]]}
+        return {"data": [{"name": name} for name in self._names[start : start + self._per_page]]}
 
 
 def test_an_existing_name_is_refused():

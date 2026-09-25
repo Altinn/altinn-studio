@@ -16,9 +16,7 @@ MAX_PAGES = 1000
 
 def create_public_api_client() -> httpx.AsyncClient:
     config = get_config()
-    auth_header = _basic_auth_header(
-        config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY
-    )
+    auth_header = _basic_auth_header(config.LANGFUSE_PUBLIC_KEY, config.LANGFUSE_SECRET_KEY)
     return httpx.AsyncClient(
         base_url=config.LANGFUSE_HOST,
         headers={"Authorization": auth_header},
@@ -35,24 +33,18 @@ def _basic_auth_header(public_key: str | None, secret_key: str | None) -> str:
 
 def root_span_filter() -> str:
     """One row per trace: the root span carries its id, user and metadata."""
-    return json.dumps(
-        [{"column": "isRootObservation", "operator": "=", "value": True, "type": "boolean"}]
-    )
+    return json.dumps([{"column": "isRootObservation", "operator": "=", "value": True, "type": "boolean"}])
 
 
 def type_filter(observation_type: str) -> str:
-    return json.dumps(
-        [{"column": "type", "operator": "=", "value": observation_type, "type": "string"}]
-    )
+    return json.dumps([{"column": "type", "operator": "=", "value": observation_type, "type": "string"}])
 
 
 class ObservationsTruncated(RuntimeError):
     """The window holds more rows than the page cap allows."""
 
 
-async def fetch_observations(
-    client: httpx.AsyncClient, params: dict[str, Any]
-) -> list[dict[str, Any]]:
+async def fetch_observations(client: httpx.AsyncClient, params: dict[str, Any]) -> list[dict[str, Any]]:
     """Page the observations API, which is cursor-based.
 
     Raises `ObservationsTruncated` rather than returning a partial list: a
@@ -74,6 +66,5 @@ async def fetch_observations(
         if not cursor or not page_items:
             return items
     raise ObservationsTruncated(
-        f"more than {MAX_PAGES * PAGE_SIZE} observations in the requested window; "
-        "narrow the time range"
+        f"more than {MAX_PAGES * PAGE_SIZE} observations in the requested window; narrow the time range"
     )

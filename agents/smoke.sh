@@ -30,6 +30,8 @@ gh stack --version
 asciinema --version
 agg --version
 nvim --version | head -1
+typos --version
+hunspell -v | head -1
 studioctl version
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 foreign="$(find /home/agent ! -user agent)"
@@ -168,6 +170,10 @@ test "${frames:-0}" -ge 4 || fail "cast has $frames timed events; the fixture sh
 echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 
 [ "$variant" = full ] || finish
+
+echo "## rust"
+cargo --version
+cargo machete --version
 
 echo "## local development hosts"
 systemctl is-enabled agent-full-hosts-init.service >/dev/null \

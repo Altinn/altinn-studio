@@ -37,6 +37,14 @@ pub struct Activity {
         with = "time::serde::rfc3339::option"
     )]
     pub last_event_at: Option<OffsetDateTime>,
+    /// When `phase` last changed. A repeated signal of the same phase, such as
+    /// an idle notification while waiting for input, does not move it.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub phase_since: Option<OffsetDateTime>,
 }
 
 /// One activity signal a harness reports, before it is folded into [`Activity`].
@@ -56,7 +64,8 @@ pub enum ActivityEvent {
 impl Activity {
     /// Folds one activity event into the accumulated activity, at `at`.
     #[must_use]
-    pub const fn folded(mut self, event: ActivityEvent, at: OffsetDateTime) -> Self {
+    pub fn folded(mut self, event: ActivityEvent, at: OffsetDateTime) -> Self {
+        let previous = self.phase;
         match event {
             // A delayed or duplicate start report must not move a Session back
             // from a later activity state.
@@ -69,6 +78,9 @@ impl Activity {
                 self.turns = self.turns.saturating_add(1);
             }
             ActivityEvent::WaitingForInput => self.phase = Phase::WaitingForInput,
+        }
+        if self.phase != previous || self.phase_since.is_none() {
+            self.phase_since = Some(at);
         }
         self.last_event_at = Some(at);
         self
@@ -83,6 +95,26 @@ mod tests {
 
     fn at(seconds: i64) -> OffsetDateTime {
         OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp")
+    }
+
+    #[test]
+    fn the_phase_keeps_its_start_time_through_repeated_signals() {
+        let at = |seconds| OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+        let waiting = Activity::default()
+            .folded(ActivityEvent::TurnStarted, at(1))
+            .folded(ActivityEvent::TurnCompleted, at(10));
+        assert_eq!(waiting.phase_since, Some(at(10)));
+        let notified = waiting.folded(ActivityEvent::WaitingForInput, at(70));
+        assert_eq!(
+            notified.phase_since,
+            Some(at(10)),
+            "an idle notification does not restart the wait"
+        );
+        assert_eq!(notified.last_event_at, Some(at(70)));
+        assert_eq!(
+            notified.folded(ActivityEvent::TurnStarted, at(80)).phase_since,
+            Some(at(80))
+        );
     }
 
     #[test]

@@ -31,6 +31,11 @@ internal sealed class WorkflowEntity
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }
 
+    /// <summary>
+    /// When the workflow was last resumed, directly or by a cascade. Null until the first resume.
+    /// </summary>
+    public DateTimeOffset? ResumedAt { get; set; }
+
     public DateTimeOffset? BackoffUntil { get; set; }
 
     public DateTimeOffset? ThrottledUntil { get; set; }

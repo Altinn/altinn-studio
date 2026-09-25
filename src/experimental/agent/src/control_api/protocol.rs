@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v3";
+pub const PROTOCOL_VERSION: &str = "v4";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
@@ -10,6 +10,8 @@ pub(crate) const METHOD_HEALTH: &str = "control.v1.health";
 pub(crate) const METHOD_SHUTDOWN: &str = "control.v1.shutdown";
 pub(crate) const METHOD_GET: &str = "agents.v1.get";
 pub(crate) const METHOD_LIST: &str = "agents.v1.list";
+pub(crate) const METHOD_PROGRESS: &str = "agents.v1.progress";
+pub(crate) const METHOD_RESOURCES_WATCH: &str = "resources.v1.watch";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
@@ -20,7 +22,9 @@ pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
-pub(crate) const METHOD_PROGRESS_EVENT: &str = "progress.v1.event";
+pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
+pub(crate) const METHOD_SESSION_ARCHIVE: &str = "sessions.v1.archive";
+pub(crate) const METHOD_SESSION_UNARCHIVE: &str = "sessions.v1.unarchive";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -59,15 +63,6 @@ pub(crate) struct Response {
     pub error: Option<ResponseError>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct Notification {
-    pub jsonrpc: String,
-    pub method: String,
-    #[serde(default)]
-    pub params: serde_json::Value,
-}
-
 /// JSON-RPC error returned by the local control plane.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, thiserror::Error)]
 #[error("{message}")]
@@ -103,9 +98,27 @@ pub(crate) struct NameParams {
 pub(crate) struct ExecutionEnsureParams {
     pub name: String,
     #[serde(default, skip_serializing_if = "is_false")]
-    pub progress: bool,
-    #[serde(default, skip_serializing_if = "is_false")]
     pub follow: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ResourcesWatchParams {
+    /// Revision of the previous reply; absent requests the current state now.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<crate::resources::Revision>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ProgressParams {
+    pub name: String,
+    /// Revision of the previous reply; absent requests the current state now.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<crate::resources::Revision>,
+    /// Output the caller already has, so the reply carries only later lines.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<crate::progress::OutputPosition>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -129,8 +142,6 @@ pub(crate) struct SessionEnsureParams {
     pub model_selection: crate::ModelSelection,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub progress: bool,
     #[serde(default, skip_serializing_if = "is_false")]
     pub follow: bool,
 }

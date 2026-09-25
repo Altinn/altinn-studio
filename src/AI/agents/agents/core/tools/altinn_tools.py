@@ -45,10 +45,8 @@ class LayoutPropsTool(Tool):
     async def run(self, args: LayoutPropsArgs, ctx: LoopContext) -> ToolResult:
         try:
             schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # noqa: BLE001 — CDN fetch / parse errors
-            return ToolResult(
-                content=f"Could not load component schema: {exc}", is_error=True
-            )
+        except Exception as exc:  # CDN fetch / parse errors
+            return ToolResult(content=f"Could not load component schema: {exc}", is_error=True)
         result = layout_properties_tool(
             user_goal="agentic-loop",
             component_type=args.component_type,
@@ -93,9 +91,7 @@ class DatamodelSyncTool(Tool):
     async def run(self, args: DatamodelSyncArgs, ctx: LoopContext) -> ToolResult:
         schema_file = Path(ctx.repo_path) / args.schema_path
         if not schema_file.is_file():
-            return ToolResult(
-                content=f"Schema file not found: {args.schema_path}", is_error=True
-            )
+            return ToolResult(content=f"Schema file not found: {args.schema_path}", is_error=True)
         try:
             schema_content = schema_file.read_text(encoding="utf-8")
         except OSError as exc:
@@ -121,9 +117,7 @@ class DatamodelSyncTool(Tool):
             try:
                 out_path.write_text(entry["content"], encoding="utf-8")
             except OSError as exc:
-                return ToolResult(
-                    content=f"Could not write {entry['path']}: {exc}", is_error=True
-                )
+                return ToolResult(content=f"Could not write {entry['path']}: {exc}", is_error=True)
             rel = str(out_path.relative_to(ctx.repo_path))
             written.append(rel)
             changed.add(rel)

@@ -555,7 +555,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
 }
 
 #[test]
-fn status_tolerates_unknown_fields_inside_provenance() {
+fn status_tolerates_unknown_fields_inside_provenance_and_conditions() {
     let status: agent::Status = serde_json::from_value(serde_json::json!({
         "observedGeneration": 1,
         "futureField": true,
@@ -563,9 +563,11 @@ fn status_tolerates_unknown_fields_inside_provenance() {
             "sourceDirectory": "/source",
             "manifestPath": "/source/worker.yml",
             "futureField": "ignored"
-        }
+        },
+        "conditions": [{ "type": "Ready", "status": "True", "futureField": "ignored" }]
     }))
     .expect("newer status should decode");
+    assert!(status.is_ready());
     let provenance = status.provenance.expect("provenance");
     assert_eq!(provenance.source_directory, std::path::Path::new("/source"));
     assert_eq!(

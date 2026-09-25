@@ -20,10 +20,14 @@ developer. The session_id on each event lets the frontend route it correctly.
 No callbacks are used — the WebSocket handler *pulls* from the buffer.
 Reconnection after a page reload simply replays all buffered events.
 """
+
 import asyncio
+import contextlib
 import logging
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
+
 from agents.services.events import sink
 
 logger = logging.getLogger(__name__)
@@ -53,21 +57,16 @@ async def _stream_developer_events(ws: WebSocket, developer: str):
     while True:
         new_events = sink.get_developer_events_since(developer, cursor)
         if new_events:
-            logger.info(
-                f"📦 Found {len(new_events)} new events (cursor={cursor}) for developer {developer}"
-            )
+            logger.info(f"📦 Found {len(new_events)} new events (cursor={cursor}) for developer {developer}")
 
         for event in new_events:
             ok = await _safe_send_json(ws, event.model_dump())
             if not ok:
                 logger.info(
-                    f"🔌 WS closed while streaming event {event.type} "
-                    f"session={event.session_id} developer={developer}"
+                    f"🔌 WS closed while streaming event {event.type} session={event.session_id} developer={developer}"
                 )
                 return
-            logger.info(
-                f"✅ WS sent: type={event.type}, session={event.session_id}, developer={developer}"
-            )
+            logger.info(f"✅ WS sent: type={event.type}, session={event.session_id}, developer={developer}")
             cursor += 1
 
         try:
@@ -90,10 +89,13 @@ async def _receive_initial_registration(ws: WebSocket):
             msg_type = data.get("type")
 
             if msg_type == "ping":
-                await _safe_send_json(ws, {
-                    "type": "pong",
-                    "timestamp": data.get("timestamp"),
-                })
+                await _safe_send_json(
+                    ws,
+                    {
+                        "type": "pong",
+                        "timestamp": data.get("timestamp"),
+                    },
+                )
             elif msg_type == "session":
                 return data.get("session_id"), data.get("developer")
     except (WebSocketDisconnect, Exception):
@@ -112,11 +114,14 @@ def register_websocket_routes(app: FastAPI):
             await websocket.accept()
             logger.info("🔗 WebSocket connected")
 
-            await _safe_send_json(websocket, {
-                "type": "connection",
-                "status": "connected",
-                "message": "WebSocket connection established",
-            })
+            await _safe_send_json(
+                websocket,
+                {
+                    "type": "connection",
+                    "status": "connected",
+                    "message": "WebSocket connection established",
+                },
+            )
 
             # --- Phase 1: wait for initial registration -----------------------
             session_id, developer = await _receive_initial_registration(websocket)
@@ -126,12 +131,15 @@ def register_websocket_routes(app: FastAPI):
 
             sink.register_developer_session(developer, session_id or "")
             logger.info(f"📋 Developer registered: {developer}, initial session: {session_id}")
-            await _safe_send_json(websocket, {
-                "type": "session",
-                "status": "registered",
-                "session_id": session_id,
-                "developer": developer,
-            })
+            await _safe_send_json(
+                websocket,
+                {
+                    "type": "session",
+                    "status": "registered",
+                    "session_id": session_id,
+                    "developer": developer,
+                },
+            )
 
             # --- Phase 2: stream ALL developer events + keep reading ----------
             # The stream never restarts on new session registrations — it delivers
@@ -144,25 +152,30 @@ def register_websocket_routes(app: FastAPI):
                     msg_type = data.get("type")
 
                     if msg_type == "ping":
-                        await _safe_send_json(websocket, {
-                            "type": "pong",
-                            "timestamp": data.get("timestamp"),
-                        })
+                        await _safe_send_json(
+                            websocket,
+                            {
+                                "type": "pong",
+                                "timestamp": data.get("timestamp"),
+                            },
+                        )
                     elif msg_type == "session":
                         new_session_id = data.get("session_id")
                         new_developer = data.get("developer") or developer
                         if new_session_id:
                             sink.register_developer_session(new_developer, new_session_id)
                             logger.info(
-                                f"� Additional session registered: {new_session_id} "
-                                f"-> developer {new_developer}"
+                                f"� Additional session registered: {new_session_id} -> developer {new_developer}"
                             )
-                            await _safe_send_json(websocket, {
-                                "type": "session",
-                                "status": "registered",
-                                "session_id": new_session_id,
-                                "developer": new_developer,
-                            })
+                            await _safe_send_json(
+                                websocket,
+                                {
+                                    "type": "session",
+                                    "status": "registered",
+                                    "session_id": new_session_id,
+                                    "developer": new_developer,
+                                },
+                            )
             except (WebSocketDisconnect, Exception):
                 pass
 
@@ -172,10 +185,8 @@ def register_websocket_routes(app: FastAPI):
         finally:
             if stream_task and not stream_task.done():
                 stream_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError, Exception):
                     await stream_task
-                except (asyncio.CancelledError, Exception):
-                    pass
             logger.info(f"🔌 WebSocket disconnected (developer={developer})")
 
     @app.get("/api/ws/status")

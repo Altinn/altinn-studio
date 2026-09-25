@@ -231,6 +231,10 @@ Per-step, configurable:
 | Linear      | `base × iteration`       | 1s, 2s, 3s...                          |
 | Exponential | `base × 2^(iteration-1)` | 1s, 2s, 4s, 8s... (capped at MaxDelay) |
 
+A collection head reports `failedAttempts`: how many consecutive attempts of its current step have
+failed and been scheduled for retry. It holds steady while a retry attempt runs, so a consumer can
+tell a failing head from a slow one without a per-workflow lookup.
+
 ### Failure Outcomes
 
 When a workflow fails:

@@ -5,7 +5,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Error, control_plane, control_plane::WaitPolicy};
 
 use super::{
     AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
@@ -120,10 +120,9 @@ impl Service {
         name: &SessionName,
         request: SessionRequest,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
+        self.convergence.converge(owner.id, wait).await?;
         // On a brand-new Agent this is the first moment the answer exists.
         let converged = self.sandboxes.agent_by_name(agent).await?;
         Self::reject_omitted_optional_harness(&converged, session.harness)?;
@@ -203,10 +202,21 @@ impl Service {
                         "Session \"{name}\" was stopped while waiting for turn completion"
                     )));
                 }
-                State::Starting | State::Working | State::WaitingForInput => {}
+                State::Archived if current.status.lifecycle.failure.is_none() => {
+                    return Err(Error::Session(format!(
+                        "Session \"{name}\" was archived while waiting for turn completion"
+                    )));
+                }
+                State::Starting | State::Working | State::WaitingForInput | State::Archived => {}
             }
             let activity = &current.status.reported.activity;
-            if activity.turns > completed_before && current.status.state == State::WaitingForInput {
+            let waiting = match current.status.state {
+                State::WaitingForInput => true,
+                // An archive that has not stopped the harness yet leaves the turn to its own report.
+                State::Archived => activity.phase == super::Phase::WaitingForInput,
+                State::Starting | State::Working | State::Idle | State::Failed => false,
+            };
+            if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
                     return Ok(());
                 }
@@ -235,7 +245,7 @@ impl Service {
                 let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
-                    State::Idle | State::Failed => {
+                    State::Idle | State::Archived | State::Failed => {
                         return Err(session.not_running_error());
                     }
                     State::Starting => {
@@ -258,7 +268,7 @@ impl Service {
     /// Returns an error when the Session or its Sandbox is unavailable or the
     /// conversation cannot be read.
     pub async fn turns(&self, agent: &str, name: &SessionName, last: Option<usize>) -> Result<Vec<Turn>, Error> {
-        let session = self.store.get_agent_session(agent, name).await?;
+        let session = self.visible(agent, name).await?;
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
@@ -266,7 +276,10 @@ impl Service {
     }
 
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
-        let session = self.store.get_agent_session(agent, name).await?;
+        let session = self.visible(agent, name).await?;
+        if session.is_archived() {
+            return Err(Error::Invalid(format!("Session \"{name}\" is archived")));
+        }
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
         }
@@ -318,8 +331,13 @@ impl Service {
                 harness.as_str()
             )));
         }
-        let existing = match self.store.get_agent_session(agent, name).await {
+        let existing = match self.visible(agent, name).await {
             Ok(session) => {
+                if session.is_archived() {
+                    return Err(Error::Invalid(format!(
+                        "Session \"{name}\" is archived; unarchive it before attaching or prompting"
+                    )));
+                }
                 reject_conflicting_selections(name, &session, &request)?;
                 Some(session)
             }
@@ -339,7 +357,7 @@ impl Service {
             }
         };
         // Validated before the Session is persisted: a Session name is bound to its harness for the
-        // life of the Agent, so a refused attempt must not leave the name claimed.
+        // life of the Session, so a refused attempt must not leave the name claimed.
         Self::reject_omitted_optional_harness(&owner, harness)?;
         let session = if let Some(session) = existing {
             session
@@ -372,7 +390,7 @@ impl Service {
     ///
     /// Returns an error when either resource is missing or persistent state cannot be read.
     pub async fn get(&self, agent: &str, name: &SessionName) -> Result<Session, Error> {
-        self.store.get_agent_session(agent, name).await
+        self.visible(agent, name).await
     }
 
     /// Lists durable Sessions, optionally scoped to one active Agent incarnation.
@@ -381,12 +399,67 @@ impl Service {
     ///
     /// Returns an error when the scoped Agent is missing or persistent state cannot be read.
     pub async fn list(&self, agent: Option<&str>) -> Result<Vec<Session>, Error> {
-        if let Some(agent) = agent {
-            self.sandboxes.agent_by_name(agent).await?;
-            self.store.list_agent_sessions(agent).await
-        } else {
-            self.store.list_all_sessions().await
+        let Some(agent) = agent else {
+            return self.live_sessions().await;
+        };
+        self.sandboxes.agent_by_name(agent).await?;
+        Ok(live(self.store.list_agent_sessions(agent).await?))
+    }
+
+    /// Releases one Session: its harness is stopped and the Session is removed.
+    ///
+    /// The request is recorded first, so a Session that cannot be released yet
+    /// stays marked and is retried by the Session controller instead of leaving
+    /// a harness running with nothing tracking it. The Session is no longer
+    /// listed or resolvable by name from the moment it is marked, and its name
+    /// becomes available again once the harness is gone. Repeating the request
+    /// while the release is still pending is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session is missing, the request
+    /// cannot be recorded, or the release pass fails; the marker survives a
+    /// failed pass.
+    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
+        let session = self.store.mark_session_deleting(agent, name).await?;
+        self.wakeup.reconcile(session.id).await.map_err(|error| {
+            Error::Session(format!(
+                "Session \"{name}\" is marked for deletion and will be retried; stopping its harness failed: {error}"
+            ))
+        })
+    }
+
+    /// Archives or unarchives one Session and returns it as recorded.
+    ///
+    /// Archiving stops the harness and keeps it stopped, once any turn in
+    /// progress has ended; the Session keeps its name and conversation.
+    /// Unarchiving leaves it Idle, so the next attach resumes it. Repeating
+    /// either is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session is missing, the request
+    /// cannot be recorded, or the pass fails; the request survives a failed pass.
+    pub async fn set_archived(&self, agent: &str, name: &SessionName, archived: bool) -> Result<Session, Error> {
+        let session = self.store.set_session_archived(agent, name, archived).await?;
+        self.wakeup.reconcile(session.id).await?;
+        self.store.get_session(session.id).await
+    }
+
+    /// Every Session that is not being deleted. One already on its way out
+    /// is gone as far as listings and upgrades are concerned.
+    async fn live_sessions(&self) -> Result<Vec<Session>, Error> {
+        Ok(live(self.store.list_all_sessions().await?))
+    }
+
+    /// Resolves a Session a caller may still act on. A Session marked for
+    /// release is already gone as far as its name is concerned.
+    async fn visible(&self, agent: &str, name: &SessionName) -> Result<Session, Error> {
+        let session = self.store.get_agent_session(agent, name).await?;
+        if session.is_deleting() {
+            return Err(Error::NotFound);
         }
+        Ok(session)
     }
 
     /// Lists active work and terminal attachments that must finish before an upgrade.
@@ -402,7 +475,7 @@ impl Service {
 
     async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
         let mut readiness = UpgradeReadiness::default();
-        for session in self.store.list_all_sessions().await? {
+        for session in self.live_sessions().await? {
             let label = format!("session/{}/{}", session.agent, session.name);
             if session.status.state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
@@ -456,7 +529,13 @@ impl Service {
     }
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
-        for session in self.store.list_all_sessions().await? {
+        // An archived Session stays stopped, even one still finishing its last turn.
+        for session in self
+            .live_sessions()
+            .await?
+            .into_iter()
+            .filter(|session| !session.is_archived())
+        {
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;
@@ -508,6 +587,11 @@ impl Service {
         }
         Ok(Some(sandbox))
     }
+}
+
+/// Leaves out Sessions that are being deleted.
+fn live(sessions: Vec<Session>) -> Vec<Session> {
+    sessions.into_iter().filter(|session| !session.is_deleting()).collect()
 }
 
 /// An existing Session keeps its recorded harness, model and effort; only an

@@ -2,11 +2,7 @@
 
 mod support;
 
-use std::{
-    cell::{Cell, RefCell},
-    rc::Rc,
-    time::Duration,
-};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
@@ -14,7 +10,7 @@ use agent::{
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
-    progress::Reporter,
+    resources::Changes,
 };
 use sandbox::LocalFuture;
 use tokio::{
@@ -49,9 +45,7 @@ impl SshAccessApi for FakeSshAccess {
         })
     }
 }
-struct FakeExecutions {
-    progress_ensures: Rc<Cell<usize>>,
-}
+struct FakeExecutions;
 /// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
 type SentMessage = (String, bool, Option<std::time::Duration>);
 
@@ -66,6 +60,8 @@ struct UpgradeGates {
 struct FakeSessions {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
+    archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -119,7 +115,6 @@ impl SessionApi for FakeSessions {
         _name: &'a agent::sessions::SessionName,
         request: agent::sessions::SessionRequest,
         _wait: WaitPolicy,
-        _progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
         self.ensured.borrow_mut().push(request);
         Box::pin(async { Err(Error::NotFound) })
@@ -180,6 +175,47 @@ impl SessionApi for FakeSessions {
         })
     }
 
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<agent::sessions::Session, Error>> {
+        self.archived
+            .borrow_mut()
+            .push((agent.to_owned(), name.clone(), archived));
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            let session = serde_json::json!({
+                "id": "00000000-0000-4000-8000-000000000001",
+                "agentId": "00000000-0000-4000-8000-000000000002",
+                "agent": agent,
+                "name": name,
+                "harness": "claudeCode",
+                "createdAt": "2026-09-25T00:00:00Z",
+                "archivedAt": archived.then_some("2026-09-25T00:00:01Z"),
+            });
+            Ok(serde_json::from_value(session).expect("archived Session"))
+        })
+    }
+
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.deleted.borrow_mut().push((agent.to_owned(), name.clone()));
+        Box::pin(async move {
+            if agent == "worker" {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+    }
+
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<agent::sessions::UpgradeReadiness, Error>> {
         let blockers = self.upgrade_blockers.borrow().clone();
         let warnings = self.upgrade_warnings.borrow().clone();
@@ -200,15 +236,7 @@ impl ExecutionApi for FakeExecutions {
         &'a self,
         name: &'a str,
         _wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        if let Some(progress) = progress {
-            self.progress_ensures.set(self.progress_ensures.get() + 1);
-            progress(agent::progress::Event::PhaseStarted {
-                phase: agent::progress::Phase::ImagePrepare,
-                message: "Prepare Sandbox Image".into(),
-            });
-        }
         Box::pin(async move {
             if name != "worker" {
                 return Err(Error::NotFound);
@@ -240,7 +268,9 @@ struct ApiFixture {
     client: Client,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
-    progress_ensures: Rc<Cell<usize>>,
+    changes: Changes,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
+    archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -282,25 +312,28 @@ fn api() -> ApiFixture {
     ));
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
+    let deleted = Rc::new(RefCell::new(Vec::new()));
+    let archived = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
-    let progress_ensures = Rc::new(Cell::new(0));
+    let changes = Changes::new();
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions {
-            progress_ensures: progress_ensures.clone(),
-        }),
+        Rc::new(FakeExecutions),
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
+            deleted: deleted.clone(),
+            archived: archived.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(FakeSshAccess),
+        changes.clone(),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
     let client = Client::new(Rc::new(InProcessConnector { server: server.clone() }));
@@ -309,7 +342,9 @@ fn api() -> ApiFixture {
         client,
         ensured,
         sent,
-        progress_ensures,
+        changes,
+        deleted,
+        archived,
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
@@ -410,6 +445,68 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn session_archive_and_unarchive_round_trip_and_report_a_missing_session() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    let archived = fixture
+        .client
+        .set_session_archived("worker", name.clone(), true)
+        .await
+        .expect("archive Session");
+    assert!(archived.is_archived());
+    let unarchived = fixture
+        .client
+        .set_session_archived("worker", name.clone(), false)
+        .await
+        .expect("unarchive Session");
+    assert!(!unarchived.is_archived());
+    assert_eq!(
+        fixture.archived.borrow().as_slice(),
+        [
+            ("worker".to_owned(), name.clone(), true),
+            ("worker".to_owned(), name.clone(), false)
+        ]
+    );
+
+    let missing = fixture
+        .client
+        .set_session_archived("ghost", name, true)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_deletion_round_trips_and_reports_a_missing_session() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    fixture
+        .client
+        .delete_session("worker", name.clone())
+        .await
+        .expect("delete Session");
+    assert_eq!(
+        fixture.deleted.borrow().as_slice(),
+        [("worker".to_owned(), name.clone())]
+    );
+
+    let missing = fixture
+        .client
+        .delete_session("ghost", name)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test(flavor = "local")]
 async fn login_returns_only_non_secret_readiness() {
     let fixture = api();
     let imported = fixture
@@ -425,14 +522,14 @@ async fn login_returns_only_non_secret_readiness() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
-    assert_eq!(daemon.protocol_version.as_deref(), Some("v3"));
+    assert_eq!(daemon.protocol_version.as_deref(), Some("v4"));
     assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
 }
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
     let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
-        "protocolVersion": "v3",
+        "protocolVersion": "v4",
         "buildVersion": agent::build_version(),
         "futureCapability": true
     }))
@@ -445,7 +542,7 @@ fn daemon_identity_rejects_preview_1_and_mixed_builds() {
             build_version: None,
         },
         agent::control_api::DaemonInfo {
-            protocol_version: Some("v3".into()),
+            protocol_version: Some("v4".into()),
             build_version: Some("another-build".into()),
         },
     ] {
@@ -651,10 +748,9 @@ async fn client_and_server_exchange_versioned_agent_operations() {
         applied
     );
     let execution = client
-        .ensure_execution("worker", WaitPolicy::FirstPass, None)
+        .ensure_execution("worker", WaitPolicy::FirstPass)
         .await
         .expect("execution target");
-    assert_eq!(fixture.progress_ensures.get(), 0);
     assert_eq!(execution.operating_system, "linux");
     assert_eq!(execution.sandbox.provider().as_str(), "memory");
     assert!(client.list_sessions(None).await.expect("list all Sessions").is_empty());
@@ -672,7 +768,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             agent::sessions::SessionName::new("s1").expect("Session name"),
             request.clone(),
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -683,7 +778,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             agent::sessions::SessionName::new("s2").expect("Session name"),
             agent::sessions::SessionRequest::default(),
             WaitPolicy::FirstPass,
-            None,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -705,60 +799,101 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn opted_in_ensure_routes_notifications_before_the_matching_response() {
+async fn resource_watch_returns_current_state_then_waits_for_the_next_change() {
     let fixture = api();
-    let events = Rc::new(RefCell::new(Vec::new()));
-    let observed = events.clone();
-    let target = fixture
-        .client
-        .ensure_execution(
-            "worker",
-            WaitPolicy::UntilReady,
-            Some(&mut |event| observed.borrow_mut().push(event)),
-        )
-        .await
-        .expect("streaming execution target");
+    let initial = fixture.client.watch_resources(None).await.expect("initial state");
+    assert!(initial.agents.is_empty());
+    assert!(initial.sessions.is_empty());
 
-    assert_eq!(target.operating_system, "linux");
-    assert_eq!(fixture.progress_ensures.get(), 1);
-    assert_eq!(
-        events.borrow().as_slice(),
-        &[agent::progress::Event::PhaseStarted {
-            phase: agent::progress::Phase::ImagePrepare,
-            message: "Prepare Sandbox Image".into(),
-        }]
-    );
+    let watcher = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let revision = initial.revision;
+    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(revision)).await });
+    tokio::task::yield_now().await;
+    assert!(!watch.is_finished(), "a current revision waits for a change");
+
+    let applied = fixture.client.apply(request("worker")).await.expect("apply");
+    fixture.changes.bump();
+    let changed = watch.await.expect("watch task").expect("changed state");
+    assert_ne!(changed.revision, revision);
+    assert_eq!(changed.agents, vec![applied]);
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn resource_watch_replies_unchanged_after_the_keepalive() {
+    let fixture = api();
+    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let started = tokio::time::Instant::now();
+    let unchanged = fixture
+        .client
+        .watch_resources(Some(current.revision))
+        .await
+        .expect("keepalive state");
+    assert_eq!(unchanged, current);
+    assert_eq!(started.elapsed(), Duration::from_secs(30));
 }
 
 #[tokio::test(flavor = "local")]
-async fn unknown_notifications_are_skipped_but_malformed_frames_fail_the_call() {
-    let unknown = ScriptedConnector {
-        frames: concat!(
-            r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"type":"fromTheFuture"}}"#,
-            "\n",
-            r#"{"jsonrpc":"2.0","method":"telemetry.v2.sample","params":{}}"#,
-            "\n",
-            r#"{"jsonrpc":"2.0","id":1,"result":{"sandbox":{"state":"materialized","provider":"memory","id":"ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"},"operatingSystem":"linux"}}"#,
-            "\n",
-        ),
-    };
-    let client = Client::new(Rc::new(unknown));
-    let mut event_count = 0;
-    let target = client
-        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| event_count += 1))
-        .await
-        .expect("response after unknown notifications");
-    assert_eq!(event_count, 0);
-    assert_eq!(target.operating_system, "linux");
+async fn resource_watch_neither_holds_nor_outlives_an_upgrade_drain() {
+    let fixture = api();
+    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let watcher = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(current.revision)).await });
+    tokio::task::yield_now().await;
 
-    let malformed = ScriptedConnector {
-        frames: concat!(r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{"#, "\n"),
-    };
-    let client = Client::new(Rc::new(malformed));
-    let error = client
-        .ensure_execution("worker", WaitPolicy::UntilReady, Some(&mut |_| {}))
+    fixture
+        .client
+        .shutdown_for_upgrade()
         .await
-        .expect_err("corrupted frame is a protocol error");
+        .expect("a pending watch is not an admitted mutation");
+    let released = watch.await.expect("watch task").expect("state on drain");
+    assert_eq!(released.revision, current.revision);
+}
+
+#[tokio::test(flavor = "local")]
+async fn agent_progress_returns_the_status_then_waits_for_the_next_change() {
+    let fixture = api();
+    fixture.client.apply(request("worker")).await.expect("apply");
+    let current = fixture
+        .client
+        .agent_progress("worker", None, None)
+        .await
+        .expect("current progress");
+    assert!(current.provisioning.is_none(), "no pass has run");
+    assert!(current.status.conditions.is_empty());
+
+    let follower = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let revision = current.revision;
+    let follow = tokio::task::spawn_local(async move { follower.agent_progress("worker", Some(revision), None).await });
+    tokio::task::yield_now().await;
+    assert!(!follow.is_finished(), "a current revision waits for a change");
+    fixture.changes.bump();
+    let changed = follow.await.expect("follow task").expect("changed progress");
+    assert_ne!(changed.revision, revision);
+
+    let missing = fixture
+        .client
+        .agent_progress("missing", None, None)
+        .await
+        .expect_err("unknown Agent");
+    assert!(matches!(missing, Error::Rpc(error) if error.is_not_found()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_frame_that_is_not_the_response_fails_the_call() {
+    let notification = ScriptedConnector {
+        frames: concat!(r#"{"jsonrpc":"2.0","method":"progress.v1.event","params":{}}"#, "\n"),
+    };
+    let client = Client::new(Rc::new(notification));
+    let error = client
+        .ensure_execution("worker", WaitPolicy::UntilReady)
+        .await
+        .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
 }
 

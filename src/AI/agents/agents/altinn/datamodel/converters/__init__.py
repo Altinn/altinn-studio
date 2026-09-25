@@ -5,7 +5,7 @@ from .metamodel_to_csharp import ModelMetadataToCsharpConverter
 from .metamodel_to_xsd import ModelMetadataToXsdConverter
 
 __all__ = [
-    'JsonSchemaToMetamodelConverter',
-    'ModelMetadataToCsharpConverter',
-    'ModelMetadataToXsdConverter',
+    "JsonSchemaToMetamodelConverter",
+    "ModelMetadataToCsharpConverter",
+    "ModelMetadataToXsdConverter",
 ]

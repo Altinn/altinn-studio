@@ -29,14 +29,14 @@ from agents.services.llm.scope_checker import (
 
 
 def _state(**overrides) -> AgentState:
-    base = dict(
-        session_id="sess-1",
-        user_goal="hjelp meg planlegge min japanreise",
-        repo_path="/tmp/repo",
-        app_name="test-app",
-        developer="dev",
-        org="ttd",
-    )
+    base = {
+        "session_id": "sess-1",
+        "user_goal": "hjelp meg planlegge min japanreise",
+        "repo_path": "/tmp/repo",
+        "app_name": "test-app",
+        "developer": "dev",
+        "org": "ttd",
+    }
     base.update(overrides)
     return AgentState(**base)
 
@@ -136,12 +136,14 @@ class TestGateGoal:
 
     async def test_write_mode_rejects_out_of_scope_goals(self):
         state = _state(allow_app_changes=True)
-        with patch(
-            "agents.graph.runner.check_scope_async",
-            new=AsyncMock(return_value=self._out_of_scope()),
+        with (
+            patch(
+                "agents.graph.runner.check_scope_async",
+                new=AsyncMock(return_value=self._out_of_scope()),
+            ),
+            pytest.raises(GoalRejected, match="Altinn-apputvikling"),
         ):
-            with pytest.raises(GoalRejected, match="Altinn-apputvikling"):
-                await _gate_goal(state, event_sink=_sink())
+            await _gate_goal(state, event_sink=_sink())
 
     async def test_write_mode_keeps_the_decline_text_intact(self):
         """Suggestions travel as their own field, so punctuation in the decline
@@ -152,16 +154,17 @@ class TestGateGoal:
             decline_message="Jeg kan bare hjelpe med Altinn | ikke reiseplanlegging.",
             reason="travel planning",
         )
-        with patch(
-            "agents.graph.runner.check_scope_async",
-            new=AsyncMock(return_value=piped),
+        with (
+            patch(
+                "agents.graph.runner.check_scope_async",
+                new=AsyncMock(return_value=piped),
+            ),
+            pytest.raises(GoalRejected) as excinfo,
         ):
-            with pytest.raises(GoalRejected) as excinfo:
-                await _gate_goal(state, event_sink=_sink())
+            await _gate_goal(state, event_sink=_sink())
 
         assert excinfo.value.message == piped.decline_message
         assert excinfo.value.suggestions == []
-
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
@@ -190,9 +193,7 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch(
-                "agents.graph.runner._validate_intent", new=AsyncMock()
-            ) as validate_intent,
+            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
@@ -207,9 +208,7 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch(
-                "agents.graph.runner._validate_intent", new=AsyncMock()
-            ) as validate_intent,
+            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
@@ -232,11 +231,11 @@ class TestGateGoal:
             event_sink.is_cancelled.return_value = True
             release.set()
 
-        with patch("agents.graph.runner.check_scope_async", new=slow_scope_check):
-            with pytest.raises(WorkflowCancelled):
-                await asyncio.gather(
-                    _gate_goal(state, event_sink=event_sink), cancel_once_started()
-                )
+        with (
+            patch("agents.graph.runner.check_scope_async", new=slow_scope_check),
+            pytest.raises(WorkflowCancelled),
+        ):
+            await asyncio.gather(_gate_goal(state, event_sink=event_sink), cancel_once_started())
 
         assert started.is_set()
         event_sink.send.assert_not_called()
@@ -244,11 +243,11 @@ class TestGateGoal:
 
     async def test_a_cancelled_session_never_calls_the_scope_check(self):
         state = _state(allow_app_changes=False)
-        with patch(
-            "agents.graph.runner.check_scope_async", new=AsyncMock()
-        ) as check_scope:
-            with pytest.raises(WorkflowCancelled):
-                await _gate_goal(state, event_sink=_sink(cancelled=True))
+        with (
+            patch("agents.graph.runner.check_scope_async", new=AsyncMock()) as check_scope,
+            pytest.raises(WorkflowCancelled),
+        ):
+            await _gate_goal(state, event_sink=_sink(cancelled=True))
 
         check_scope.assert_not_awaited()
 
@@ -266,9 +265,7 @@ class TestGateGoal:
                 cancelling.wait(timeout=2)
             return original_send(event)
 
-        cancel_thread = threading.Thread(
-            target=lambda: (cancelling.set(), event_sink.cancel_session("sess-1"))
-        )
+        cancel_thread = threading.Thread(target=lambda: (cancelling.set(), event_sink.cancel_session("sess-1")))
         event_sink.send = send_and_let_the_cancel_race
 
         with patch(
@@ -293,12 +290,14 @@ class TestGateGoal:
         event_sink.cancel_session("sess-1")
         before = len(event_sink.get_events_since("sess-1", 0))
 
-        with patch(
-            "agents.graph.runner.check_scope_async",
-            new=AsyncMock(return_value=self._out_of_scope()),
+        with (
+            patch(
+                "agents.graph.runner.check_scope_async",
+                new=AsyncMock(return_value=self._out_of_scope()),
+            ),
+            pytest.raises(WorkflowCancelled),
         ):
-            with pytest.raises(WorkflowCancelled):
-                await _gate_goal(state, event_sink=event_sink)
+            await _gate_goal(state, event_sink=event_sink)
 
         after = event_sink.get_events_since("sess-1", 0)
         assert len(after) == before
@@ -320,9 +319,9 @@ class TestValidateIntentRejectionCopy:
                 "agents.graph.runner.suggest_goal_correction",
                 return_value=[REJECTION_SUGGESTION],
             ),
+            pytest.raises(GoalRejected) as excinfo,
         ):
-            with pytest.raises(GoalRejected) as excinfo:
-                await _validate_intent(_state(allow_app_changes=True))
+            await _validate_intent(_state(allow_app_changes=True))
         return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):

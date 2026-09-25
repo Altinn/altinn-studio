@@ -53,7 +53,7 @@ describe('validating multiple data models', () => {
     cy.gotoNavPage('Side6');
     cy.findByRole('radio', { name: /kåre/i }).check();
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.findByRole('heading', { name: /fra forrige steg/i }).should('be.visible');
   });
 
