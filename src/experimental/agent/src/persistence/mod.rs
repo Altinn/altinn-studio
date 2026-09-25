@@ -270,6 +270,23 @@ impl crate::sessions::SessionStore for Database {
         })
     }
 
+    fn set_session_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+        archived: bool,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::SetSessionArchived {
+                agent: agent.into(),
+                name: name.clone(),
+                archived,
+                response,
+            })
+            .await
+        })
+    }
+
     fn finalize_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
             self.request(|response| Command::FinalizeSessionDeletion { id, response })
@@ -578,6 +595,12 @@ enum Command {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<(), Error>>,
     },
+    SetSessionArchived {
+        agent: String,
+        name: crate::sessions::SessionName,
+        archived: bool,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
+    },
     GetAttachTarget {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<crate::sessions::AttachTarget, Error>>,
@@ -634,6 +657,7 @@ impl Command {
             | Self::ActivateSession { .. }
             | Self::MarkSessionDeleting { .. }
             | Self::FinalizeSessionDeletion { .. }
+            | Self::SetSessionArchived { .. }
             | Self::ClearSessionReport { .. }
             | Self::RecordSessionStartForLaunch { .. }
             | Self::ApplySessionActivityForLaunch { .. }
@@ -857,6 +881,14 @@ fn execute_session(connection: &mut Connection, command: Command) {
         }
         Command::FinalizeSessionDeletion { id, response } => {
             let _ = response.send(sessions::finalize_deletion(connection, id));
+        }
+        Command::SetSessionArchived {
+            agent,
+            name,
+            archived,
+            response,
+        } => {
+            let _ = response.send(sessions::set_archived(connection, &agent, &name, archived));
         }
         Command::GetAttachTarget { id, response } => {
             let _ = response.send(sessions::attach_target(connection, id));

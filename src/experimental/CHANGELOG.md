@@ -30,6 +30,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   inside an Agent.
 - `agentctl delete session/<name>` and `d` in the terminal UI delete one Session: its harness is stopped and its name
   becomes free. The harness's own conversation files stay in the Sandbox.
+- `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
+  progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
 
 ### Changed
 

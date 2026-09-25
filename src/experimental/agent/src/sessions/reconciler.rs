@@ -21,6 +21,10 @@ const MAX_BACKOFF_SECONDS: i64 = 600;
 /// transcript writes or reported activity.
 const IDLE_AFTER_SECONDS: u64 = 30 * 60;
 
+/// A turn whose terminal and transcript stay quiet this long is not waited for
+/// when archiving: the harness is stuck, gone, or was never prompted.
+const ARCHIVE_TURN_QUIET_SECONDS: u64 = 60;
+
 /// Maximum time for a resumed harness to reach its empty input prompt.
 const RESUME_READY_TIMEOUT: Duration = Duration::from_secs(15);
 const RESUME_READY_POLL: Duration = Duration::from_millis(100);
@@ -91,11 +95,66 @@ impl Reconciler {
         Ok(Some(sandbox))
     }
 
-    async fn converge(&self, session: &Session) -> Result<Lifecycle, Error> {
-        if session.status.lifecycle.state == LifecycleState::Idle
-            && session.activation_generation == session.observed_activation_generation
+    /// Stops the harness of an archived Session and keeps it stopped.
+    ///
+    /// A turn in progress is waited for, so archiving never cuts one short; a
+    /// later pass retries. A turn waiting for approval is not waited for, as
+    /// nobody answers an archived Session. A Sandbox that is gone, stopped or
+    /// unmaterialized has no harness left to stop.
+    async fn converge_archive(&self, session: &Session) -> Result<Lifecycle, Error> {
+        if session.status.lifecycle.state == LifecycleState::Archived && session.status.lifecycle.failure.is_none() {
+            return Ok(Lifecycle::archived());
+        }
+        if let Some(sandbox) = self.release_sandbox(session).await? {
+            if self.mid_turn(session, &sandbox).await? {
+                return Ok(session.status.lifecycle.clone());
+            }
+            self.runtime.stop(session, &sandbox).await?;
+        }
+        self.sessions.reset_session_launch_attempts(session.id).await?;
+        Ok(Lifecycle::archived())
+    }
+
+    /// Whether the harness is visibly working on a turn: it reports working, or
+    /// has not reported yet, is still running, and its terminal or transcript
+    /// moved recently. The report alone can be stale, for example after a crash.
+    ///
+    /// The harness's own report decides, not the derived state, which reads
+    /// Archived once an earlier archive pass has failed.
+    async fn mid_turn(&self, session: &Session, sandbox: &::sandbox::SandboxHandle) -> Result<bool, Error> {
+        if !matches!(session.status.reported.activity.phase, Phase::Working | Phase::Unknown) {
+            return Ok(false);
+        }
+        let Observation::Alive { idle_seconds, .. } = self.runtime.observe(session, sandbox).await? else {
+            return Ok(false);
+        };
+        let now = time::OffsetDateTime::now_utc().unix_timestamp();
+        Ok(effective_idle_seconds(&session.status.reported.activity, idle_seconds, now) < ARCHIVE_TURN_QUIET_SECONDS)
+    }
+
+    /// Settles a Session unarchived before its archive could stop the harness:
+    /// a harness still running is adopted, otherwise the Session is Idle.
+    /// Nothing is launched until the next attach.
+    async fn settle_unarchived(&self, session: &Session) -> Result<Lifecycle, Error> {
+        if let Some(sandbox) = self.release_sandbox(session).await?
+            && matches!(
+                self.runtime.observe(session, &sandbox).await?,
+                Observation::Alive { .. }
+            )
         {
-            return Ok(Lifecycle::idle());
+            return Ok(Lifecycle::running());
+        }
+        Ok(Lifecycle::idle())
+    }
+
+    async fn converge(&self, session: &Session) -> Result<Lifecycle, Error> {
+        if session.activation_generation == session.observed_activation_generation {
+            // An unarchived Session stays stopped, like an Idle one, until it is attached.
+            match (&session.status.lifecycle.state, &session.status.lifecycle.failure) {
+                (LifecycleState::Idle, _) | (LifecycleState::Archived, None) => return Ok(Lifecycle::idle()),
+                (LifecycleState::Archived, Some(_)) => return self.settle_unarchived(session).await,
+                _ => {}
+            }
         }
         let agent = self.sandboxes.agent(session.agent_id).await?;
         if let Some(held) = launch_blocked(&agent, session) {
@@ -269,7 +328,12 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
             if session.is_deleting() {
                 return self.release(&session).await;
             }
-            match self.converge(&session).await {
+            let converged = if session.is_archived() {
+                self.converge_archive(&session).await
+            } else {
+                self.converge(&session).await
+            };
+            match converged {
                 Ok(lifecycle) => {
                     self.sessions
                         .update_session_lifecycle(session.id, lifecycle, session.activation_generation)
@@ -277,7 +341,10 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 }
                 Err(error) => {
                     let current = self.sessions.get_session(session.id).await?;
-                    let lifecycle = if current.status.lifecycle.state == LifecycleState::Resuming {
+                    let lifecycle = if current.is_archived() {
+                        // A failed archive stays archived, so unarchiving never relaunches the harness.
+                        Lifecycle::archived_with(error.to_string())
+                    } else if current.status.lifecycle.state == LifecycleState::Resuming {
                         Lifecycle::resuming_with(error.to_string())
                     } else {
                         Lifecycle::failed(error.to_string())

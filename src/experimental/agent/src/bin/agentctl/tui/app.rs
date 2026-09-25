@@ -119,9 +119,19 @@ const AGENT_HINTS: [Hint; 10] = [
     Hint::key("z", "all", KeyCode::Char('z')),
 ];
 
-const SESSION_HINTS: [Hint; 7] = [
+const SESSION_HINTS: [Hint; 8] = [
     Hint::key("enter", "attach", KeyCode::Enter),
     Hint::key("p", "prompt", KeyCode::Char('p')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+    Hint::key("a", "archive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+];
+
+const ARCHIVED_SESSION_HINTS: [Hint; 6] = [
+    Hint::key("a", "unarchive", KeyCode::Char('a')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
     Hint::key("n", "new session", KeyCode::Char('n')),
@@ -146,6 +156,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("j / k", "move"),
                 ("enter", "fold, or attach a Session"),
                 ("z", "fold or unfold all"),
+                ("A", "show or hide archived Sessions"),
                 ("/", "filter by name or state"),
                 ("c", "create an Agent"),
                 ("F", "port forwards"),
@@ -179,12 +190,17 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "prompt without attaching"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session on its Agent"),
+                ("a", "archive, or unarchive"),
                 ("d", "delete"),
             ],
         ),
     ],
 ];
 
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "independent display switches of one screen, not a state machine"
+)]
 pub(crate) struct App {
     pub(crate) agents: Vec<Agent>,
     pub(crate) sessions: Vec<Session>,
@@ -217,6 +233,8 @@ pub(crate) struct App {
     /// The terminal is wide enough for the panel beside the tree, which shows
     /// the selected Session's turns or the selected Agent's status.
     pub(crate) side_panel: bool,
+    /// Lists archived Sessions, which are hidden otherwise.
+    pub(crate) show_archived: bool,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
 }
@@ -945,6 +963,11 @@ pub(crate) enum Action {
         agent: String,
         session: SessionName,
     },
+    SetArchived {
+        agent: String,
+        session: SessionName,
+        archived: bool,
+    },
     CreateForward {
         agent: String,
         spec: ForwardSpec,
@@ -992,6 +1015,7 @@ pub(crate) struct TriageCounts {
     pub(crate) idle: usize,
     pub(crate) failed: usize,
     pub(crate) provisioning: usize,
+    pub(crate) archived: usize,
 }
 
 impl App {
@@ -1017,6 +1041,7 @@ impl App {
             transcript: None,
             turns_loading: None,
             side_panel: false,
+            show_archived: false,
             discovering: false,
             queued_candidates: None,
         }
@@ -1067,11 +1092,10 @@ impl App {
                 let agent_matches = self.matches(&agent.metadata.name) || self.matches(agent_state(agent).label);
                 let sessions = (0..group.sessions.len())
                     .filter(|position| {
-                        agent_matches
-                            || self
-                                .sessions
-                                .get(group.sessions[*position])
-                                .is_some_and(|session| self.session_matches(session))
+                        self.sessions.get(group.sessions[*position]).is_some_and(|session| {
+                            (self.show_archived || !session.is_archived())
+                                && (agent_matches || self.session_matches(session))
+                        })
                     })
                     .collect::<Vec<_>>();
                 if !agent_matches && sessions.is_empty() {
@@ -1206,11 +1230,13 @@ impl App {
         };
         for session in &self.sessions {
             let count = match session.status.state {
+                _ if session.is_archived() => &mut counts.archived,
                 State::WaitingForInput => &mut counts.needs_you,
                 State::Working => &mut counts.working,
                 State::Starting => &mut counts.starting,
                 State::Idle => &mut counts.idle,
                 State::Failed => &mut counts.failed,
+                State::Archived => &mut counts.archived,
             };
             *count += 1;
         }
@@ -1355,6 +1381,10 @@ impl App {
             KeyCode::Down | KeyCode::Char('j') => self.move_selection(1),
             KeyCode::Up | KeyCode::Char('k') => self.move_selection(-1),
             KeyCode::Char('z') => self.toggle_all(),
+            KeyCode::Char('A') => {
+                self.show_archived = !self.show_archived;
+                self.rebuild();
+            }
             KeyCode::Char('F') => self.view = View::Forwards,
             KeyCode::Char('c') => return Action::OpenCreate,
             _ => {
@@ -1454,6 +1484,10 @@ impl App {
         let Some(session) = self.group_session(group, position) else {
             return Action::None;
         };
+        // An archived Session cannot be attached or prompted until it is unarchived.
+        if session.is_archived() && matches!(key.code, KeyCode::Enter | KeyCode::Char('p')) {
+            return Action::None;
+        }
         match key.code {
             KeyCode::Enter => {
                 return Action::Attach {
@@ -1473,6 +1507,13 @@ impl App {
                     format!("session/{}/{} yaml", session.agent, session.name.as_str()),
                     yaml_lines(session),
                 ));
+            }
+            KeyCode::Char('a') => {
+                return Action::SetArchived {
+                    agent: session.agent.clone(),
+                    session: session.name.clone(),
+                    archived: !session.is_archived(),
+                };
             }
             KeyCode::Char('d') => {
                 self.modal = Some(Modal::ConfirmDeleteSession {
@@ -1930,7 +1971,13 @@ impl App {
         }
         match self.selected_row() {
             Some(Row::Agent(_)) => &AGENT_HINTS,
-            Some(Row::Session { .. }) => &SESSION_HINTS,
+            Some(Row::Session { group, position }) => {
+                if self.group_session(group, position).is_some_and(Session::is_archived) {
+                    &ARCHIVED_SESSION_HINTS
+                } else {
+                    &SESSION_HINTS
+                }
+            }
             None => &EMPTY_HINTS,
         }
     }
@@ -2043,6 +2090,7 @@ const fn session_state(state: State) -> (Tone, &'static str, &'static str) {
         State::Working => (Tone::Green, "*", "Working"),
         State::Starting => (Tone::Cyan, "~", "Starting"),
         State::Idle => (Tone::Gray, "-", "Idle"),
+        State::Archived => (Tone::Gray, "_", "Archived"),
         State::Failed => (Tone::Red, "x", "Failed"),
     }
 }
@@ -2542,6 +2590,53 @@ mod tests {
                 agent: "builder".into()
             }
         );
+    }
+
+    #[test]
+    fn archived_sessions_are_hidden_until_shown_and_toggle_from_their_row() {
+        let mut app = populated();
+        let b1 = SessionName::new("b1").expect("name");
+        let archived = app.sessions.iter_mut().find(|session| session.name == b1).expect("b1");
+        archived.archived_at = Some(time::OffsetDateTime::UNIX_EPOCH);
+        app.rebuild();
+        let b1_row = TreeRowId::Session {
+            agent: "builder".into(),
+            session: b1.clone(),
+        };
+        assert_eq!(app.tree_index(&b1_row), None, "archived Sessions are hidden");
+        assert_eq!(app.triage_counts().archived, 1, "but counted");
+        assert_eq!(app.triage_counts().starting, 0);
+
+        assert_eq!(app.on_key(key(KeyCode::Char('A'))), Action::None);
+        assert!(app.tree_index(&b1_row).is_some(), "A shows them");
+        app.selection = Some(b1_row);
+        assert_eq!(app.hints().first().map(|hint| hint.description), Some("unarchive"));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::None,
+            "an archived Session is not attached"
+        );
+        assert!(app.modal.is_none(), "nor prompted");
+        assert_eq!(app.on_key(key(KeyCode::Char('p'))), Action::None);
+        assert!(app.modal.is_none());
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived {
+                agent: "builder".into(),
+                session: b1,
+                archived: false,
+            },
+            "a unarchives an archived Session"
+        );
+
+        app.selection = Some(TreeRowId::Session {
+            agent: "worker".into(),
+            session: SessionName::new("s1").expect("name"),
+        });
+        assert!(matches!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived { archived: true, .. }
+        ));
     }
 
     #[test]

@@ -233,6 +233,7 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         (counts.idle, "idle", Color::DarkGray),
         (counts.failed, "failed", Color::Red),
         (counts.provisioning, "provisioning", Color::Cyan),
+        (counts.archived, "archived", Color::DarkGray),
     ] {
         if count > 0 {
             spans.push(Span::styled(format!(" · {count} {label}"), Style::new().fg(color)));

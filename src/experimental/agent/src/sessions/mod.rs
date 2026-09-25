@@ -115,6 +115,8 @@ pub enum LifecycleState {
     Running,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The harness is stopped and stays stopped until the Session is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -135,6 +137,8 @@ pub enum State {
     WaitingForInput,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The Session was archived: its harness is stopped until it is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -173,6 +177,7 @@ impl Status {
         let state = match lifecycle.state {
             LifecycleState::Failed => State::Failed,
             LifecycleState::Idle => State::Idle,
+            LifecycleState::Archived => State::Archived,
             LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
             // A start report always folds to `Working`, so an `Unknown` phase means
             // the current launch has not reported yet, even when an earlier launch
@@ -199,7 +204,7 @@ impl Status {
     pub const fn entered(mut self, lifecycle_since: Option<time::OffsetDateTime>) -> Self {
         self.state_since = match self.state {
             State::Working | State::WaitingForInput => self.reported.activity.phase_since,
-            State::Starting | State::Idle | State::Failed => lifecycle_since,
+            State::Starting | State::Idle | State::Archived | State::Failed => lifecycle_since,
         };
         self
     }
@@ -233,6 +238,23 @@ impl Lifecycle {
         Self {
             state: LifecycleState::Idle,
             failure: None,
+        }
+    }
+
+    /// A stopped harness of an archived Session.
+    #[must_use]
+    pub const fn archived() -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: None,
+        }
+    }
+
+    /// An archived Session whose harness could not be stopped yet.
+    pub fn archived_with(failure: impl Into<String>) -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: Some(failure.into()),
         }
     }
 
@@ -373,6 +395,14 @@ pub struct Session {
         skip_serializing_if = "Option::is_none"
     )]
     pub deletion_timestamp: Option<OffsetDateTime>,
+    /// When archiving was requested. The reconciler stops the harness of an
+    /// archived Session and never relaunches it until it is unarchived.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub archived_at: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -391,6 +421,12 @@ impl Session {
         self.deletion_timestamp.is_some()
     }
 
+    /// Whether archiving this Session has been requested.
+    #[must_use]
+    pub const fn is_archived(&self) -> bool {
+        self.archived_at.is_some()
+    }
+
     /// Describes why an operation cannot use this Session's running harness.
     pub(crate) fn not_running_error(&self) -> Error {
         let detail = self
@@ -402,6 +438,7 @@ impl Session {
                 LifecycleState::Starting => "its lifecycle is starting",
                 LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
+                LifecycleState::Archived => "it is archived",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
             });
@@ -532,6 +569,15 @@ pub trait SessionStore: SessionReports {
         &'a self,
         agent: &'a str,
         name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Records whether one named Session of an active Agent incarnation should be
+    /// archived, keeping the first archive time, and returns it as recorded.
+    fn set_session_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+        archived: bool,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
     /// Removes a marked Session once its harness has been released. Everything

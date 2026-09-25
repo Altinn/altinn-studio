@@ -122,6 +122,9 @@ enum Command {
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with_all = ["agent", "variant"])]
         all_agents: bool,
+        /// Include archived Sessions in a Session listing.
+        #[arg(long)]
+        archived: bool,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
@@ -148,6 +151,16 @@ enum Command {
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
         variant: Option<AgentVariantName>,
+    },
+    /// Archive a Session: stop its harness and hide it from listings, keeping its name and conversation.
+    Archive {
+        #[command(flatten)]
+        target: SessionTarget,
+    },
+    /// Unarchive a Session; the next attach resumes its conversation.
+    Unarchive {
+        #[command(flatten)]
+        target: SessionTarget,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
@@ -473,8 +486,9 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             variant,
             all_agents,
+            archived,
             output,
-        } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
+        } => get_resources(client, &resource, name, agent, variant, all_agents, archived, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
         Command::Delete {
             resource,
@@ -495,6 +509,8 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
                 println!("session/{agent}/{name} deleted");
             }
         }
+        Command::Archive { target } => set_archived(client, target, true).await?,
+        Command::Unarchive { target } => set_archived(client, target, false).await?,
         Command::Attach {
             resource,
             name,
@@ -556,6 +572,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
     Ok(ExitCode::SUCCESS)
 }
 
+#[allow(clippy::too_many_arguments, reason = "mirrors the get command's flags")]
 async fn get_resources(
     client: &Client,
     resource: &str,
@@ -563,6 +580,7 @@ async fn get_resources(
     agent: Option<String>,
     variant: Option<AgentVariantName>,
     all_agents: bool,
+    archived: bool,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
@@ -593,11 +611,17 @@ async fn get_resources(
                         .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
                         .await?,
                 ]
-            } else if all_agents {
-                client.list_sessions(None).await?
             } else {
-                let agent = resolve_agent_name(client, agent, variant).await?;
-                client.list_sessions(Some(&agent)).await?
+                let sessions = if all_agents {
+                    client.list_sessions(None).await?
+                } else {
+                    let agent = resolve_agent_name(client, agent, variant).await?;
+                    client.list_sessions(Some(&agent)).await?
+                };
+                sessions
+                    .into_iter()
+                    .filter(|session| archived || !session.is_archived())
+                    .collect()
             };
             match output {
                 OutputFormat::Json => print_json(&sessions)?,
@@ -939,6 +963,19 @@ async fn prompt_session(
         )
         .await?;
     println!("session/{agent}/{session} prompted");
+    Ok(())
+}
+
+async fn set_archived(client: &Client, target: SessionTarget, archived: bool) -> CommandResult<()> {
+    let (agent, name) = session_target(client, target).await?;
+    let session = client.set_session_archived(&agent, name.clone(), archived).await?;
+    if !archived {
+        println!("session/{agent}/{name} unarchived");
+    } else if session.status.state == agent::sessions::State::Archived {
+        println!("session/{agent}/{name} archived");
+    } else {
+        println!("session/{agent}/{name} archived; its harness stops once it is idle");
+    }
     Ok(())
 }
 

@@ -202,10 +202,21 @@ impl Service {
                         "Session \"{name}\" was stopped while waiting for turn completion"
                     )));
                 }
-                State::Starting | State::Working | State::WaitingForInput => {}
+                State::Archived if current.status.lifecycle.failure.is_none() => {
+                    return Err(Error::Session(format!(
+                        "Session \"{name}\" was archived while waiting for turn completion"
+                    )));
+                }
+                State::Starting | State::Working | State::WaitingForInput | State::Archived => {}
             }
             let activity = &current.status.reported.activity;
-            if activity.turns > completed_before && current.status.state == State::WaitingForInput {
+            let waiting = match current.status.state {
+                State::WaitingForInput => true,
+                // An archive that has not stopped the harness yet leaves the turn to its own report.
+                State::Archived => activity.phase == super::Phase::WaitingForInput,
+                State::Starting | State::Working | State::Idle | State::Failed => false,
+            };
+            if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
                     return Ok(());
                 }
@@ -234,7 +245,7 @@ impl Service {
                 let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
-                    State::Idle | State::Failed => {
+                    State::Idle | State::Archived | State::Failed => {
                         return Err(session.not_running_error());
                     }
                     State::Starting => {
@@ -266,6 +277,9 @@ impl Service {
 
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
         let session = self.visible(agent, name).await?;
+        if session.is_archived() {
+            return Err(Error::Invalid(format!("Session \"{name}\" is archived")));
+        }
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
         }
@@ -319,6 +333,11 @@ impl Service {
         }
         let existing = match self.visible(agent, name).await {
             Ok(session) => {
+                if session.is_archived() {
+                    return Err(Error::Invalid(format!(
+                        "Session \"{name}\" is archived; unarchive it before attaching or prompting"
+                    )));
+                }
                 reject_conflicting_selections(name, &session, &request)?;
                 Some(session)
             }
@@ -410,6 +429,23 @@ impl Service {
         })
     }
 
+    /// Archives or unarchives one Session and returns it as recorded.
+    ///
+    /// Archiving stops the harness and keeps it stopped, once any turn in
+    /// progress has ended; the Session keeps its name and conversation.
+    /// Unarchiving leaves it Idle, so the next attach resumes it. Repeating
+    /// either is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session is missing, the request
+    /// cannot be recorded, or the pass fails; the request survives a failed pass.
+    pub async fn set_archived(&self, agent: &str, name: &SessionName, archived: bool) -> Result<Session, Error> {
+        let session = self.store.set_session_archived(agent, name, archived).await?;
+        self.wakeup.reconcile(session.id).await?;
+        self.store.get_session(session.id).await
+    }
+
     /// Every Session that is not being deleted. One already on its way out
     /// is gone as far as listings and upgrades are concerned.
     async fn live_sessions(&self) -> Result<Vec<Session>, Error> {
@@ -493,7 +529,13 @@ impl Service {
     }
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
-        for session in self.live_sessions().await? {
+        // An archived Session stays stopped, even one still finishing its last turn.
+        for session in self
+            .live_sessions()
+            .await?
+            .into_iter()
+            .filter(|session| !session.is_archived())
+        {
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;
