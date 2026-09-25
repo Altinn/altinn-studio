@@ -40,7 +40,7 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
     } else if (source instanceof GenerateUnion || source instanceof GenerateIntersection) {
       const expressions = source.getTypes().filter((type) => type instanceof GenerateExpressionOr);
       if (source instanceof GenerateUnion && expressions.length > 1) {
-        // The existing evaluator accepts either scalar type and uses one fallback for both.
+        // The existing evaluator accepts either scalar type and uses one default for both.
         addDescriptor(
           GenerateExpressionOr.renderDescriptor(
             ExprVal.Any,
@@ -50,9 +50,11 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
           ),
           path,
         );
+      } else if (source instanceof GenerateUnion && expressions.length === 1 && source.internal.optional) {
+        addDescriptor(expressions[0].toDescriptor(componentType, path.join('.'), source.getExpressionFallback()), path);
       }
       for (const type of source.getTypes()) {
-        if (source instanceof GenerateUnion && expressions.length > 1 && type instanceof GenerateExpressionOr) {
+        if (source instanceof GenerateUnion && source.internal.optional && type instanceof GenerateExpressionOr) {
           continue;
         }
         visit(type, path, nextAncestors);

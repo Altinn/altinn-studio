@@ -18,14 +18,13 @@ export interface TextResourceConfig {
 export class GenerateTextResourceBinding extends GenerateProperty<GenerateExpressionOr<ExprVal.String>> {
   constructor(config: TextResourceConfig) {
     const actualProp = new CG.expr(ExprVal.String)
-      .setFallback('')
-      .optional()
+      .optional({ default: '' })
       .setTitle(config.title.en, config.title.nb)
       .setDescription(config.description.en, config.description.nb);
     super(config.name, actualProp);
   }
-  setFallback(value: string): this {
-    this.type.setFallback(value);
+  setDefault(value: string): this {
+    this.type.optional({ default: value });
     return this;
   }
 }

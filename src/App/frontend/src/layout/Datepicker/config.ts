@@ -29,7 +29,7 @@ export const Config = new CG.component({
     new CG.prop(
       'minDate',
       new CG.union(
-        new CG.expr(ExprVal.String).setFallback(''),
+        new CG.expr(ExprVal.String),
         new CG.const('today'),
         new CG.const('yesterday'),
         new CG.const('tomorrow'),
@@ -49,7 +49,7 @@ export const Config = new CG.component({
     new CG.prop(
       'maxDate',
       new CG.union(
-        new CG.expr(ExprVal.String).setFallback(''),
+        new CG.expr(ExprVal.String),
         new CG.const('today'),
         new CG.const('yesterday'),
         new CG.const('tomorrow'),

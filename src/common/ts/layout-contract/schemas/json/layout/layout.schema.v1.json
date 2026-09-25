@@ -1545,6 +1545,7 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the accordion",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -1637,6 +1638,7 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the accordion group",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -1710,6 +1712,7 @@
                 "title": {
                   "title": "Button title/text",
                   "description": "The text to display on the button.",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -1796,26 +1799,31 @@
                     "title": {
                       "title": "Title",
                       "description": "Title of the component",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "careOfTitle": {
                       "title": "Care Of Title",
                       "description": "Title for care-of",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "zipCodeTitle": {
                       "title": "Zip Code Title",
                       "description": "Title for the zip code",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "postPlaceTitle": {
                       "title": "Post place Title",
                       "description": "Title for post place",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "houseNumberTitle": {
                       "title": "House number Title",
                       "description": "Title for house number",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -1841,6 +1849,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -1938,6 +1947,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2011,11 +2021,13 @@
                 "title": {
                   "title": "Title",
                   "description": "The title of the alert",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "body": {
                   "title": "Body",
                   "description": "The body text of the alert",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -2072,6 +2084,7 @@
                 "title": {
                   "title": "Title",
                   "description": "Title shown above the attachment list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -2150,6 +2163,7 @@
                 "altText": {
                   "title": "Alt text",
                   "description": "Alternative text for the audio (for screen readers).",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -2207,6 +2221,7 @@
                 "title": {
                   "title": "Title",
                   "description": "The title/text on the button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -2463,6 +2478,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2573,11 +2589,13 @@
                 "title": {
                   "title": "Title",
                   "description": "The title/text on the button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "tableTitle": {
                   "title": "Table title",
                   "description": "The title/text for the button when rendered in a table",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -2648,6 +2666,7 @@
                     "title": {
                       "title": "Title",
                       "description": "Title (passed on as the \"text\" property to the component)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -2669,6 +2688,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -2862,6 +2882,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3084,6 +3105,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3178,6 +3200,7 @@
                     "tagTitle": {
                       "title": "Tag title",
                       "description": "The title to show when selecting a tag for each uploaded file",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -3202,6 +3225,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3431,16 +3455,19 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the group (shown above the group)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "The description text shown underneath the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text shown in a tooltip when clicking the help button",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -3545,11 +3572,13 @@
                     "title": {
                       "title": "Title",
                       "description": "The text to display in the heading",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "The text to display in the help tooltip/popup",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -3628,6 +3657,7 @@
                 "title": {
                   "title": "Title/text/content",
                   "description": "The content of the IFrame. Can for example be set to a string containing HTML, a text resource key, or an expression looking up a value from the data model",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -3682,11 +3712,13 @@
                 "altTextImg": {
                   "title": "Alt text",
                   "description": "Alternative text for the image (for screen readers).",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "help": {
                   "title": "Help text",
                   "description": "Help text for the image (shown in help text tooltip/popup)",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -3775,6 +3807,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -3856,11 +3889,13 @@
                     "prefix": {
                       "title": "Prefix",
                       "description": "Prefix shown before the input field",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "suffix": {
                       "title": "Suffix",
                       "description": "Suffix shown after the input field",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -3886,6 +3921,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4098,6 +4134,7 @@
                 "title": {
                   "title": "Title",
                   "description": "The title/text to display on the button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -4170,36 +4207,43 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the group",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "The description text for the Likert table.",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text shown in a tooltip when clicking the help button",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "leftColumnHeader": {
                       "title": "Left column header",
                       "description": "The header text for the left column in the Likert table",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "questions": {
                       "title": "Questions",
                       "description": "The questions to be displayed in each row (use a dynamic text resource)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "questionDescriptions": {
                       "title": "Question descriptions",
                       "description": "The descriptions to be displayed in each row (use a dynamic text resource)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "questionHelpTexts": {
                       "title": "Question help texts",
                       "description": "The help texts to be displayed in each row (use a dynamic text resource)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -4224,6 +4268,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4300,16 +4345,19 @@
                 "target": {
                   "title": "Target",
                   "description": "The target of the link",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "title": {
                   "title": "Title",
                   "description": "The title/text of the link",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "download": {
                   "title": "Download",
                   "description": "Download target instead of navigating to it. Non-blank value is passed to the download attribute and becomes the filename of the downloaded file. Blank value means default filename is used.",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -4407,6 +4455,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4568,6 +4617,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4691,6 +4741,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -4817,16 +4868,19 @@
                 "back": {
                   "title": "Back",
                   "description": "Text on the back/previous page button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "next": {
                   "title": "Next",
                   "description": "Text on the next page button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "backToPage": {
                   "title": "Back to Page",
                   "description": "Text on the \"Back to Page\" button when linkToPage/linkToComponent expression is used.",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -5123,16 +5177,19 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the component",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "Description, optionally shown below the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help Text",
                       "description": "Help text, optionally shown next to the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -5156,6 +5213,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5229,11 +5287,13 @@
                 "title": {
                   "title": "Title",
                   "description": "Header/title of the panel",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "body": {
                   "title": "Body",
                   "description": "Body of the panel",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -5303,11 +5363,13 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the paragraph",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text, optionally shown in a tooltip",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -5371,16 +5433,19 @@
                 "title": {
                   "title": "Title",
                   "description": "The title of the payment details",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "description": {
                   "title": "Description",
                   "description": "Description, optionally shown below the title",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "help": {
                   "title": "Help text",
                   "description": "Help text shown in a tooltip when clicking the help button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -5444,16 +5509,19 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the payment component",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "Description, optionally shown below the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text shown in a tooltip when clicking the help button",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -5518,6 +5586,7 @@
                 "title": {
                   "title": "Button title/text",
                   "description": "The text to display on the button.",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -5588,16 +5657,19 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the component",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "Description, optionally shown below the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help",
                       "description": "Help text, optionally shown next to the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -5621,6 +5693,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5680,6 +5753,7 @@
                 "title": {
                   "title": "Title",
                   "description": "The title/text on the button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -5764,6 +5838,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -5866,66 +5941,79 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the group (shown above each instance in a Summary)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "The description text shown underneath the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text shown in a tooltip when clicking the help button",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "addButtonFull": {
                       "title": "Add button (full) (for repeating groups)",
                       "description": "The text for the \"Add\" button (overrides \"addButton\", and sets the full text for the button)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "addButton": {
                       "title": "Add button (suffix) (for repeating groups)",
                       "description": "The text for the \"Add\" button (used as a suffix after the default button text)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "saveButton": {
                       "title": "Save button (for repeating groups)",
                       "description": "The text for the \"Save\" button when the repeating group item is in edit mode",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "saveAndNextButton": {
                       "title": "Save and next button (for repeating groups)",
                       "description": "The text for the \"Save and next\" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "editButtonClose": {
                       "title": "Edit button (close) (for repeating groups)",
                       "description": "The text for the \"Edit\" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "editButtonOpen": {
                       "title": "Edit button (open) (for repeating groups)",
                       "description": "The text for the \"Edit\" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "paginationNextButton": {
                       "title": "Next button in pagination",
                       "description": "The text for the \"Next\" button in pagination",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "paginationBackButton": {
                       "title": "Back button in pagination",
                       "description": "The text for the \"Back\" button in pagination",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "multipageBackButton": {
                       "title": "Back button in multipage navigation",
                       "description": "The text for the \"Back\" button in multipage navigation",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "multipageNextButton": {
                       "title": "Next button in multipage navigation",
                       "description": "The text for the \"Next\" button in multipage navigation",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -5962,6 +6050,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -6120,21 +6209,25 @@
                 "title": {
                   "title": "Title",
                   "description": "Header/title of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "description": {
                   "title": "Description",
                   "description": "Description of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "help": {
                   "title": "Help",
                   "description": "Help text of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "summaryTitle": {
                   "title": "SummaryTitle",
                   "description": "Title of the summary",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -6185,111 +6278,133 @@
                 "awaitingSignaturePanelTitle": {
                   "title": "Awaiting signature panel title",
                   "description": "The title of the panel that is displayed when the user should sign",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "checkboxLabel": {
                   "title": "Checkbox label",
                   "description": "The text to display when a user is asked to confirm what they are signing",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "checkboxDescription": {
                   "title": "Checkbox description",
                   "description": "A text that describes the checkbox label in more detail if needed",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "signingButton": {
                   "title": "Signing button",
                   "description": "The text to display in the button that the user clicks in order to sign",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "noActionRequiredPanelTitleHasSigned": {
                   "title": "Go to inbox panel title signed",
                   "description": "The title of the panel that is displayed when the user has signed and no further action is required",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "noActionRequiredPanelTitleNotSigned": {
                   "title": "Go to inbox panel title not signed",
                   "description": "The title of the panel that is displayed when the user has not signed and no further action is required",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "noActionRequiredPanelDescriptionHasSigned": {
                   "title": "Go to inbox panel description signed",
                   "description": "The description of the panel that is displayed when the user has signed and no further action is required",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "noActionRequiredPanelDescriptionNotSigned": {
                   "title": "Go to inbox panel description not signed",
                   "description": "The description of the panel that is displayed when the user has not signed and no further action is required",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "noActionRequiredButton": {
                   "title": "Go to inbox button",
                   "description": "The text to display in the button that the user clicks in order to go to the inbox and no further action is required",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "awaitingOtherSignaturesPanelTitle": {
                   "title": "Not ready for submit title",
                   "description": "The title for the panel when the signing task is not ready for submit",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "awaitingOtherSignaturesPanelDescriptionNotSigning": {
                   "title": "Awaiting other signatures description not signing",
                   "description": "The description for the panel when the current user is not signing",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "awaitingOtherSignaturesPanelDescriptionSigned": {
                   "title": "Signed description",
                   "description": "The description for the panel when the current user has signed",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "submitPanelTitle": {
                   "title": "Ready for submit title",
                   "description": "The title for the panel when the signing task is ready for submit",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "submitPanelDescription": {
                   "title": "Ready for submit description",
                   "description": "The description for the panel when the signing task is ready for submit",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "submitButton": {
                   "title": "Submit button",
                   "description": "The text to display in the button that the user clicks in order to submit the signing task",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "errorPanelTitle": {
                   "title": "Error panel title",
                   "description": "The title of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "errorPanelDescription": {
                   "title": "Error panel description",
                   "description": "The description of the panel that is displayed when at least one of the signees is invalid and thus has not received access to the form",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "rejectModalTitle": {
                   "title": "Reject modal title",
                   "description": "The title of the modal that is displayed when the use clicked on the reject button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "rejectModalDescription": {
                   "title": "Reject modal description",
                   "description": "The description of the modal that is displayed when the use clicked on the reject button",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "rejectModalButton": {
                   "title": "Reject modal button",
                   "description": "The text to display in the button that the user clicks in the modal in order to confirm reject of the signing task",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "rejectModalCloseButton": {
                   "title": "Reject modal close button",
                   "description": "The text to display in the button that closes the modal without rejecting the signing task, i.e. continuing the signing",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "rejectModalTriggerButton": {
                   "title": "Reject modal trigger button",
                   "description": "The text to display in the button that triggers the reject modal",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -6340,21 +6455,25 @@
                 "title": {
                   "title": "Title",
                   "description": "Header/title of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "description": {
                   "title": "Description",
                   "description": "Description of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "help": {
                   "title": "Help",
                   "description": "Help text of the list",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 },
                 "summaryTitle": {
                   "title": "Summary title",
                   "description": "Header/title of the summary",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -6439,6 +6558,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -6555,26 +6675,31 @@
                     "title": {
                       "title": "Title",
                       "description": "The title of the subform component",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "description": {
                       "title": "Description",
                       "description": "The description text shown underneath the title",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "help": {
                       "title": "Help text",
                       "description": "Help text shown in a tooltip when clicking the help button",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "addButton": {
                       "title": "Add button (suffix)",
                       "description": "The text for the \"Add\" button (used as a suffix after the default button text)",
+                      "default": "",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     },
                     "tableEditButton": {
                       "title": "Table edit button",
                       "description": "The text for the \"Edit\" button in the table rows",
+                      "default": "general.edit",
                       "$ref": "expression.schema.v1.json#/definitions/string"
                     }
                   }
@@ -6611,6 +6736,7 @@
               "type": "boolean"
             },
             "entryDisplayName": {
+              "default": "",
               "$ref": "expression.schema.v1.json#/definitions/string"
             },
             "tableColumns": {
@@ -6799,6 +6925,7 @@
                 "returnToSummaryButtonTitle": {
                   "title": "ReturnToSummaryButtonTitle",
                   "description": "Used to specify the text on the NavigationButtons component that should be used after clicking \"Change\" on the summary component",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -6956,6 +7083,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -7148,6 +7276,7 @@
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "dataModelBindings": {
@@ -7189,6 +7318,7 @@
                 "08:00",
                 "09:30"
               ],
+              "default": "",
               "anyOf": [
                 {
                   "$ref": "expression.schema.v1.json#/definitions/string"
@@ -7205,6 +7335,7 @@
                 "17:00",
                 "23:30"
               ],
+              "default": "",
               "anyOf": [
                 {
                   "$ref": "expression.schema.v1.json#/definitions/string"
@@ -7273,6 +7404,7 @@
                 "altText": {
                   "title": "Alt text",
                   "description": "Alternative text for the video (for screen readers).",
+                  "default": "",
                   "$ref": "expression.schema.v1.json#/definitions/string"
                 }
               },
@@ -8842,6 +8974,7 @@
         "colSpan": {
           "title": "Column span",
           "description": "Number of columns this cell should span. Defaults to 1 if not set.",
+          "default": 1,
           "$ref": "expression.schema.v1.json#/definitions/number"
         }
       },
@@ -9393,6 +9526,7 @@
             "some.text.key",
             "My Description"
           ],
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "helpText": {
@@ -9402,6 +9536,7 @@
             "some.text.key",
             "My Help Text"
           ],
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
@@ -9598,6 +9733,7 @@
         "optionFilter": {
           "title": "Filter options (using an expression)",
           "description": "Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use [\"value\"]. You can also use [\"value\", \"label\"] to get the label text resource id, likewise also \"description\" and \"helpText\".",
+          "default": true,
           "$ref": "expression.schema.v1.json#/definitions/boolean"
         }
       }
@@ -10280,6 +10416,7 @@
       "type": "object",
       "properties": {
         "thousandSeparator": {
+          "default": false,
           "anyOf": [
             {
               "$ref": "expression.schema.v1.json#/definitions/boolean"
@@ -10290,6 +10427,7 @@
           ]
         },
         "decimalSeparator": {
+          "default": ".",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "allowedDecimalSeparators": {
@@ -10319,9 +10457,11 @@
           "type": "boolean"
         },
         "suffix": {
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "prefix": {
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       },
@@ -11600,16 +11740,19 @@
         "tableTitle": {
           "title": "Table title",
           "description": "Title used in the table view (overrides the default title)",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "shortName": {
           "title": "Short name (for validation)",
           "description": "Alternative name used for required validation messages (overrides the default title)",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "requiredValidation": {
           "title": "Required validation message",
           "description": "Full validation message shown when the component is required and no value has been entered (overrides both the default and shortName)",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
@@ -11621,16 +11764,19 @@
         "title": {
           "title": "Title",
           "description": "Label text/title shown above the component",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "description": {
           "title": "Description",
           "description": "Label description shown above the component, below the title",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "help": {
           "title": "Help text",
           "description": "Help text shown in a tooltip when clicking the help button",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
@@ -11642,11 +11788,13 @@
         "summaryTitle": {
           "title": "Summary title",
           "description": "Title used in the summary view (overrides the default title)",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         },
         "summaryAccessibleTitle": {
           "title": "Accessible summary title",
           "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "default": "",
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
