@@ -585,6 +585,12 @@ RUN systemctl enable agent-desktop-display.service agent-desktop-session.service
     && test -x /usr/local/bin/desktop \
     && . /etc/agent-desktop.conf \
     && test "${DISPLAY}" = "${AGENT_DESKTOP_DISPLAY}" \
+    && vnc_port="$(sed -n 's/^port=//p' /etc/agent-access.d/vnc.conf)" \
+    && web_port="$(sed -n 's/^web-port=//p' /etc/agent-access.d/vnc.conf)" \
+    && { grep -qxF "ListenStream=127.0.0.1:${vnc_port}" /etc/systemd/system/agent-vnc.socket \
+        || { echo "agent-vnc.socket does not listen on the descriptor's port ${vnc_port}" >&2; exit 1; }; } \
+    && { grep -qxF "Environment=AGENT_NOVNC_PORT=${web_port}" /etc/systemd/system/agent-vnc-web.service \
+        || { echo "agent-vnc-web.service does not serve the descriptor's web-port ${web_port}" >&2; exit 1; }; } \
     && for unit in agent-vnc.socket agent-vnc.service agent-vnc-web.service; do \
         state="$(systemctl is-enabled "${unit}" 2>/dev/null || true)"; \
         case "${state}" in disabled | static) ;; \

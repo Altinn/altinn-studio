@@ -185,6 +185,7 @@ image also ships the units that bridge a port to it and serve it in a browser, d
 platform turns them on when the Agent declares the capability, and off when it stops:
 
 ```yaml
+spec:
   access:
     - type: ssh
     - type: vnc

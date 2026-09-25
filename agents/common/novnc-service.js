@@ -12,10 +12,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { WebSocketServer } = require('ws');
 
+/** Reads a setting the unit must provide, so the unit stays the only place that names it. */
+function required(name) {
+  const value = process.env[name];
+  if (!value) {
+    process.stderr.write(`novnc: ${name} is not set; run this through agent-vnc-web.service\n`);
+    process.exit(1);
+  }
+  return value;
+}
+
 const root = process.env.AGENT_NOVNC_ROOT || '/usr/local/share/novnc';
-const socketPath = process.env.AGENT_DESKTOP_SOCKET || '/run/agent-desktop/vnc.sock';
+const socketPath = required('AGENT_DESKTOP_SOCKET');
 const host = process.env.AGENT_NOVNC_HOST || '127.0.0.1';
-const port = Number(process.env.AGENT_NOVNC_PORT || 6080);
+const port = Number(required('AGENT_NOVNC_PORT'));
 
 // resize=scale keeps the scaling in the viewer. resize=remote would ask the X server to match the
 // browser window, which would move the Agent's own display off the geometry its screenshots and
@@ -81,7 +91,9 @@ const server = http.createServer((request, response) => {
       response.end();
       return;
     }
-    fs.createReadStream(file).on('error', () => response.destroy()).pipe(response);
+    fs.createReadStream(file)
+      .on('error', () => response.destroy())
+      .pipe(response);
   });
 });
 
@@ -122,5 +134,7 @@ sockets.on('connection', (socket) => {
 });
 
 server.listen(port, host, () => {
-  process.stdout.write(`novnc: serving ${root} on http://${host}:${port}${VIEWER} for ${socketPath}\n`);
+  process.stdout.write(
+    `novnc: serving ${root} on http://${host}:${port}${VIEWER} for ${socketPath}\n`,
+  );
 });
