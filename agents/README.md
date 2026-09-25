@@ -191,8 +191,8 @@ platform turns them on when the Agent declares the capability, and off when it s
 ```
 
 The published `desktop` variants declare both. Remove the `vnc` entry and re-apply and the Agent
-keeps its screen with nothing listening — `agentd` checks that rather than assuming it, and reports
-an image that is still publishing the desktop outside its access units.
+keeps its screen with nothing listening: `agentd` disables the units and checks that they stopped,
+and the image's smoke test checks that the desktop opens no port outside them.
 
 In a browser, with nothing to install:
 
