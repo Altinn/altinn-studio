@@ -155,8 +155,8 @@ GITEA_LOCAL_TOKEN=your-token
 GITEA_BASE_URL=http://localhost:3000
 
 # Optional: Multi-model setup
-LLM_MODEL_PLANNER=gpt-4o
-LLM_MODEL_ACTOR=claude-sonnet-4-5
+LLM_MODEL_PLANNER=gpt-5.6-sol
+LLM_MODEL_ACTOR=gpt-5.6-terra
 
 # Optional: Langfuse observability
 LANGFUSE_SECRET_KEY=sk-lf-...
