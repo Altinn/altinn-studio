@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AppTable, useIsMobile } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
@@ -9,19 +10,27 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 const emptyArray: never[] = [];
 
 export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
-  const { dataModelBindings, textResourceBindings, columns, required } = useItemWhenType(
-    targetBaseComponentId,
-    'SimpleTable',
+  const config = useComponentConfig(targetBaseComponentId, 'SimpleTable');
+  const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'SimpleTable');
+  const required = useEvalExpression(config.required, Expressions.SimpleTable.required);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.SimpleTable.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.SimpleTable.textResourceBindings.title,
   );
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const title = summaryTitle || resolvedTitle;
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
 
@@ -59,7 +68,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={title && <Caption title={<Lang id={title} />} />}
         data={Array.isArray(data) ? data : emptyArray}
-        columns={columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
+        columns={config.columns.map((column) => ({ ...column, header: langAsString(column.header) }))}
         mobile={isMobile}
         emptyText={langAsString('general.empty_table')}
       />

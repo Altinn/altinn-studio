@@ -2,6 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { Button, Flex } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -24,7 +25,8 @@ import {
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { RepGroupRow } from 'src/layout/RepeatingGroup/utils';
 
 export interface IRepeatingGroupsEditContainer {
@@ -80,31 +82,46 @@ function RepeatingGroupsEditContainerInternal({
     useRepeatingGroupEdit();
   const isDeleting = RepGroupContext.useIsDeletingRow(editId);
   const id = useIndexedId(baseComponentId);
-  const rowWithExpressions = RepGroupHooks.useRowWithExpressions(baseComponentId, { uuid: row.uuid });
-  const textsForRow = rowWithExpressions?.textResourceBindings;
-  const editForRow = rowWithExpressions?.edit;
-  const { textResourceBindings, edit: editForGroup, tableColumns } = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const { refSetter, focusEditContainer, focusEditButton } = useRepeatingGroupsFocusContext();
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+
+  const saveButton = useEvalExpression(config.edit?.saveButton, Expressions.RepeatingGroup.edit.saveButton);
+  const saveAndNextButton = useEvalExpression(
+    config.edit?.saveAndNextButton,
+    Expressions.RepeatingGroup.edit.saveAndNextButton,
+  );
+  const deleteButton = useEvalExpression(config.edit?.deleteButton, Expressions.RepeatingGroup.edit.deleteButton);
   const texts = {
-    ...textResourceBindings,
-    ...textsForRow,
+    multipageBackButton: useEvalExpression(
+      config.textResourceBindings?.multipageBackButton,
+      Expressions.RepeatingGroup.textResourceBindings.multipageBackButton,
+    ),
+    multipageNextButton: useEvalExpression(
+      config.textResourceBindings?.multipageNextButton,
+      Expressions.RepeatingGroup.textResourceBindings.multipageNextButton,
+    ),
+    saveButton: useEvalExpression(
+      config.textResourceBindings?.saveButton,
+      Expressions.RepeatingGroup.textResourceBindings.saveButton,
+    ),
+    saveAndNextButton: useEvalExpression(
+      config.textResourceBindings?.saveAndNextButton,
+      Expressions.RepeatingGroup.textResourceBindings.saveAndNextButton,
+    ),
   };
+  const { refSetter, focusEditContainer, focusEditButton } = useRepeatingGroupsFocusContext();
 
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
-  let saveButtonVisible =
-    !forceHideSaveButton &&
-    (editForRow?.saveButton !== false || (editForRow.saveAndNextButton === true && !moreVisibleRowsAfterEditIndex));
-  const saveAndNextButtonVisible =
-    !forceHideSaveButton && editForRow?.saveAndNextButton === true && moreVisibleRowsAfterEditIndex;
+  let saveButtonVisible = !forceHideSaveButton && (saveButton || (saveAndNextButton && !moreVisibleRowsAfterEditIndex));
+  const saveAndNextButtonVisible = !forceHideSaveButton && saveAndNextButton && moreVisibleRowsAfterEditIndex;
 
-  if (editForGroup?.mode === 'hideTable' && !saveButtonVisible && !saveAndNextButtonVisible) {
+  if (config.edit?.mode === 'hideTable' && !saveButtonVisible && !saveAndNextButtonVisible) {
     // If the save button was not visible in this mode, it would not be
     // possible to exit the edit mode. Therefore, we force it to be visible.
     saveButtonVisible = true;
   }
 
-  const hideTable = editForGroup?.mode === 'hideTable' || editForGroup?.mode === 'showAll';
+  const hideTable = config.edit?.mode === 'hideTable' || config.edit?.mode === 'showAll';
 
   if (!row) {
     return null;
@@ -118,10 +135,10 @@ function RepeatingGroupsEditContainerInternal({
         { [classes.hideTable]: hideTable, [classes.nestedHideTable]: hideTable && isNested },
         className,
       )}
-      style={{ marginBottom: isNested && editForGroup?.mode === 'showAll' ? 15 : undefined }}
+      style={{ marginBottom: isNested && config.edit?.mode === 'showAll' ? 15 : undefined }}
       data-testid='group-edit-container'
     >
-      {editForRow?.deleteButton !== false && editForGroup?.mode === 'showAll' && (
+      {deleteButton && config.edit?.mode === 'showAll' && (
         <Flex
           item
           container
@@ -162,7 +179,7 @@ function RepeatingGroupsEditContainerInternal({
               return null;
             }
 
-            if (tableColumns && tableColumns[child.baseId]?.showInExpandedEdit === false) {
+            if (config.tableColumns && config.tableColumns[child.baseId]?.showInExpandedEdit === false) {
               return null;
             }
 
@@ -178,7 +195,7 @@ function RepeatingGroupsEditContainerInternal({
           item
           style={{ display: 'flex', width: '100%', marginBottom: 12 }}
         >
-          {editForGroup?.multiPage && (
+          {config.edit?.multiPage && (
             <Flex
               container
               direction='row'

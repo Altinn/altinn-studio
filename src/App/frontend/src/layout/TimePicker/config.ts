@@ -19,9 +19,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .addDataModelBinding(CG.common('IDataModelBindingsSimple'))
   .addProperty(new CG.prop('autocomplete', new CG.const('time').optional()))

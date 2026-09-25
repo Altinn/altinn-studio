@@ -1,14 +1,21 @@
 import React from 'react';
 
 import { Video } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useParentCard } from 'src/layout/Cards/CardContext';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function VideoComponent({ baseComponentId }: PropsFromGenericComponent<'Video'>) {
-  const { video, textResourceBindings } = useItemWhenType(baseComponentId, 'Video');
+  const config = useComponentConfig(baseComponentId, 'Video');
+  const altText = useEvalOptionalText(
+    config.textResourceBindings?.altText,
+    Expressions.Video.textResourceBindings.altText,
+  );
+
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   const parentCard = useParentCard();
@@ -17,8 +24,8 @@ export function VideoComponent({ baseComponentId }: PropsFromGenericComponent<'V
   return (
     <Video
       componentId={componentId}
-      src={video?.src}
-      altText={textResourceBindings?.altText}
+      src={config.video?.src}
+      altText={altText}
       mediaHeight={mediaHeight}
       innerGrid={innerGrid}
     />

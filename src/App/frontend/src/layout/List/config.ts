@@ -18,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))

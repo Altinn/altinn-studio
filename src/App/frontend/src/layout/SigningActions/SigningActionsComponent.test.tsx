@@ -19,7 +19,7 @@ import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
 
-vi.mock('src/utils/layout/useNodeItem');
+vi.mock('src/utils/layout/useFormData');
 vi.mock('react-router');
 vi.mock('src/features/instance/useProcessNext.tsx');
 vi.mock('src/core/contexts/AppQueriesProvider');

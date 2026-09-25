@@ -2,6 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { Fieldset } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
@@ -12,7 +13,8 @@ import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IDisplayLikertContainer {
   likertBaseId: string;
@@ -35,8 +37,14 @@ export function LargeLikertSummaryContainer({
   id,
   renderLayoutComponent,
 }: IDisplayLikertContainer) {
-  const container = useItemWhenType(likertBaseId, 'Likert');
-  const { title, summaryTitle } = container.textResourceBindings ?? {};
+  const config = useComponentConfig(likertBaseId, 'Likert');
+  const componentId = useIndexedId(likertBaseId);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Likert.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Likert.textResourceBindings.summaryTitle,
+  );
+
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const depth = getLayoutDepth(likertBaseId, layoutLookups);
   const childId = makeLikertChildId(likertBaseId);
@@ -69,7 +77,7 @@ export function LargeLikertSummaryContainer({
     >
       <div
         ref={divRef}
-        id={id || container.id}
+        id={id || componentId}
         data-testid='display-group-container'
       >
         {renderLayoutComponent(childIndexedId, childId)}

@@ -104,9 +104,9 @@ type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
  * expression, such as the return type and the default value (which will be used should the expression fail at
  * some point)
  */
-export interface ExprConfig<V extends ExprVal = ExprVal> {
+export interface ExprConfig<V extends ExprVal = ExprVal, F = ExprValToActual<V>> {
   returnType: V;
-  defaultValue: ExprValToActual<V>;
+  defaultValue: F;
 }
 
 export type ExprPositionalArgs = ExprValToActual<ExprVal.Any>[];

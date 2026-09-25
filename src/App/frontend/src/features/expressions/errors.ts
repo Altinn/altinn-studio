@@ -1,7 +1,7 @@
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ValidationErrorMessage } from 'src/features/expressions/validation';
 import type { EvaluateExpressionParams } from 'src/features/expressions/index';
-import type { ExprConfig, Expression } from 'src/features/expressions/types';
+import type { ExprConfig, Expression, ExprVal } from 'src/features/expressions/types';
 
 export class ExprRuntimeError extends Error {
   public constructor(
@@ -46,7 +46,7 @@ export class NodeRelationNotFound extends ExprRuntimeError {
 }
 
 export interface PrettyErrorsOptions {
-  config?: ExprConfig;
+  config?: ExprConfig<ExprVal, unknown>;
   introText?: string;
 }
 

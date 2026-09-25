@@ -3,7 +3,7 @@ import React from 'react';
 import { getComponentDef } from 'src/layout';
 import { useBaseIdsFromGrid } from 'src/layout/Grid/tools';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 export function GridSummaryComponent({ targetBaseComponentId, ...rest }: SummaryRendererProps) {
@@ -28,7 +28,7 @@ function Child({
   isLast,
   overrides,
 }: { childBaseId: string; isLast: boolean } & Omit<SummaryRendererProps, 'targetBaseComponentId'>) {
-  const component = useExternalItem(childBaseId);
+  const component = useComponentConfig(childBaseId);
   if (!component || !('renderSummary' in getComponentDef(component.type))) {
     return null;
   }

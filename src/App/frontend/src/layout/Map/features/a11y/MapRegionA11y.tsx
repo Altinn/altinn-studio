@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 interface MapRegionA11yProps {
   baseComponentId: string;
@@ -29,8 +32,8 @@ interface MapRegionA11yProps {
 export function MapRegionA11y({ baseComponentId }: MapRegionA11yProps) {
   const map = useMap();
   const { langAsString } = useLanguage();
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'Map');
-  const title = textResourceBindings?.title;
+  const config = useComponentConfig(baseComponentId, 'Map');
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Map.textResourceBindings.title);
   const label = title ? langAsString(title) : undefined;
 
   const instructions = langAsString('map_component.ariaLabel');

@@ -22,7 +22,7 @@ import type {
   ValidateComponent,
 } from 'src/layout';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class FileUpload extends FileUploadDef implements ValidateComponent<'FileUpload'> {
@@ -43,15 +43,6 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
   useDisplayData(baseComponentId: string): string {
     const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
     return attachments.map((a) => a.data.filename).join(', ');
-  }
-
-  evalExpressions(props: ExprResolver<'FileUpload'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      alertOnDelete: props.evalBool(props.item.alertOnDelete, false),
-      maxNumberOfAttachments: props.evalNum(props.item.maxNumberOfAttachments, Infinity),
-      minNumberOfAttachments: props.evalNum(props.item.minNumberOfAttachments, 0),
-    };
   }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {

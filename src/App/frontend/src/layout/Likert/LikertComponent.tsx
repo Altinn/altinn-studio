@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Description, getDescriptionId, getLabelId, HelpTextContainer, useIsMobileOrTablet } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -16,7 +17,8 @@ import classes from 'src/layout/Likert/LikertComponent.module.css';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 
 interface LikertTitleProps {
@@ -55,18 +57,26 @@ function LikertTitle({ title, description, help, componentId, labelId }: LikertT
 }
 
 export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'Likert'>) => {
-  const { id, dataModelBindings, textResourceBindings, columns } = useItemWhenType(baseComponentId, 'Likert');
+  const config = useComponentConfig(baseComponentId, 'Likert');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Likert');
+  const componentId = useIndexedId(baseComponentId);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Likert.textResourceBindings.title);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Likert.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Likert.textResourceBindings.help);
+  const leftColumnHeader = useEvalOptionalText(
+    config.textResourceBindings?.leftColumnHeader,
+    Expressions.Likert.textResourceBindings.leftColumnHeader,
+  );
+
   const groupBinding = dataModelBindings.questions;
   const mobileView = useIsMobileOrTablet();
   const rows = useLikertRows(baseComponentId);
   const { options: calculatedOptions, isFetching } = useOptionsFor(makeLikertChildId(baseComponentId), 'single');
-
   const indexedId = useIndexedId(baseComponentId);
-  const title = textResourceBindings?.title;
-  const description = textResourceBindings?.description;
-  const help = textResourceBindings?.help;
   const labelId = getLabelId(indexedId);
-
   if (mobileView) {
     return (
       <ComponentStructureWrapper
@@ -88,8 +98,8 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
         <div
           role='group'
           className={classes.likertMobileGroup}
-          aria-labelledby={textResourceBindings?.title ? labelId : undefined}
-          aria-describedby={textResourceBindings?.description ? getDescriptionId(indexedId) : undefined}
+          aria-labelledby={title ? labelId : undefined}
+          aria-describedby={description ? getDescriptionId(indexedId) : undefined}
         >
           {rows.map((row) =>
             row ? (
@@ -106,7 +116,6 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       </ComponentStructureWrapper>
     );
   }
-
   return (
     <ComponentStructureWrapper
       baseComponentId={baseComponentId}
@@ -117,11 +126,11 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
         <AltinnSpinner />
       ) : (
         <Table
-          id={id}
+          id={componentId}
           border
           className={classes.likertTable}
           aria-labelledby={title ? labelId : undefined}
-          aria-describedby={textResourceBindings?.description ? getDescriptionId(indexedId) : undefined}
+          aria-describedby={description ? getDescriptionId(indexedId) : undefined}
         >
           {title && (
             <caption className={classes.likertHeading}>
@@ -134,25 +143,24 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
               />
             </caption>
           )}
-          <Table.Head id={`likert-table-header-${id}`}>
+          <Table.Head id={`likert-table-header-${componentId}`}>
             <Table.Row>
               <Table.HeaderCell scope='col'>
                 <span
                   className={cn({
-                    'sr-only': textResourceBindings?.leftColumnHeader == null,
+                    'sr-only': leftColumnHeader == null,
                   })}
                 >
-                  <Lang id={textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'} />
+                  <Lang id={leftColumnHeader ?? 'likert.left_column_default_header_text'} />
                 </span>
               </Table.HeaderCell>
               {calculatedOptions.map((option, index) => {
-                const divider = columns?.find((column) => column.value == option.value)?.divider;
-
+                const divider = config.columns?.find((column) => column.value == option.value)?.divider;
                 return (
                   <Table.HeaderCell
                     key={option.value}
                     scope='col'
-                    id={`${id}-likert-columnheader-${index}`}
+                    id={`${componentId}-likert-columnheader-${index}`}
                     className={cn({
                       [classes.likertCellDividerStart]: divider === 'before',
                       [classes.likertCellDividerEnd]: divider === 'after',
@@ -170,7 +178,6 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
               const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
                 layout: LayoutStyle.Table,
               };
-
               return row ? (
                 <DataModelLocationProvider
                   key={row.index}

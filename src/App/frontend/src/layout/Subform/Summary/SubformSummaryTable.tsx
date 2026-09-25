@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
 
 import { FatalError, Flex, Spinner } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 
@@ -24,7 +25,9 @@ import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import utilClasses from 'src/styles/utils.module.css';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { IData } from 'src/types/shared';
 
@@ -43,7 +46,8 @@ function SubformTableRow({
 }) {
   const id = dataElement.id;
   const page = FormStore.bootstrap.useLayoutLookups().componentToPage[baseComponentId] ?? 'unknown';
-  const { id: nodeId, tableColumns } = useItemWhenType(baseComponentId, 'Subform');
+  const config = useComponentConfig(baseComponentId, 'Subform');
+  const nodeId = useIndexedId(baseComponentId);
   const { instanceOwnerPartyId, instanceGuid, taskId } = useAllNavigationParams();
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
@@ -52,11 +56,10 @@ function SubformTableRow({
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
 
-  const numColumns = tableColumns.length;
   if (isSubformDataFetching) {
     return (
       <Table.Row>
-        <Table.Cell colSpan={numColumns}>
+        <Table.Cell colSpan={config.tableColumns.length}>
           <Spinner aria-label={langAsString('general.loading')} />
         </Table.Cell>
       </Table.Row>
@@ -64,7 +67,7 @@ function SubformTableRow({
   } else if (subformDataError) {
     return (
       <Table.Row>
-        <Table.Cell colSpan={numColumns}>
+        <Table.Cell colSpan={config.tableColumns.length}>
           <FatalError>
             <Lang id='form_filler.error_fetch_subform' />
           </FatalError>
@@ -81,8 +84,8 @@ function SubformTableRow({
       data-row-num={rowNumber}
       className={classNames({ [classes1.tableRowError]: !pdfModeActive && hasErrors })}
     >
-      {tableColumns.length ? (
-        tableColumns.map((entry, index) => (
+      {config.tableColumns.length ? (
+        config.tableColumns.map((entry, index) => (
           <Table.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
@@ -111,17 +114,24 @@ function SubformTableRow({
 export function SubformSummaryTable({
   targetBaseComponentId,
 }: Pick<Summary2Props, 'targetBaseComponentId'>): React.JSX.Element | null {
-  const { id, layoutSet, textResourceBindings, tableColumns = [] } = useItemWhenType(targetBaseComponentId, 'Subform');
+  const config = useComponentConfig(targetBaseComponentId, 'Subform');
+  const componentId = useIndexedId(targetBaseComponentId);
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Subform.textResourceBindings.description,
+  );
+
   const navigation = useNavigation();
 
   const isSubformPage = useIsSubformPage();
-  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const subformIdsWithError =
     useComponentValidationsFor(targetBaseComponentId).find(isSubformValidation)?.subformDataElementIds;
 
   if (!dataType) {
-    window.logErrorOnce(`Unable to find data type for subform with id ${id}`);
-    throw new Error(`Unable to find data type for subform with id ${id}`);
+    window.logErrorOnce(`Unable to find data type for subform with id ${componentId}`);
+    throw new Error(`Unable to find data type for subform with id ${componentId}`);
   }
 
   const pdfModeActive = usePdfModeActive();
@@ -141,10 +151,12 @@ export function SubformSummaryTable({
       <>
         <Label
           baseComponentId={targetBaseComponentId}
-          id={`subform-summary2-${id}`}
+          id={`subform-summary2-${componentId}`}
           renderLabelAs='span'
           weight='regular'
-          textResourceBindings={{ title: textResourceBindings?.title }}
+          textResourceBindings={{
+            title,
+          }}
           className={classes2.summaryLabelMargin}
         />
         <Paragraph asChild>
@@ -159,27 +171,27 @@ export function SubformSummaryTable({
   return (
     <ComponentStructureWrapper baseComponentId={targetBaseComponentId}>
       <Flex
-        id={id}
+        id={componentId}
         container
         item
-        data-componentid={id}
+        data-componentid={componentId}
         data-componentbaseid={targetBaseComponentId}
       >
         <Table
-          id={`subform-${id}-table`}
+          id={`subform-${componentId}-table`}
           className={classes1.subformTable}
         >
-          {textResourceBindings?.title && (
+          {title && (
             <Caption
-              id={`subform-${id}-caption`}
-              title={<Lang id={textResourceBindings.title} />}
-              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+              id={`subform-${componentId}-caption`}
+              title={<Lang id={title} />}
+              description={description && <Lang id={description} />}
             />
           )}
-          <Table.Head id={`subform-${id}-table-body`}>
+          <Table.Head id={`subform-${componentId}-table-body`}>
             <Table.Row>
-              {tableColumns.length ? (
-                tableColumns.map((entry, index) => (
+              {(config.tableColumns ?? []).length ? (
+                (config.tableColumns ?? []).map((entry, index) => (
                   <Table.HeaderCell
                     className={classes1.tableCellFormatting}
                     key={index}

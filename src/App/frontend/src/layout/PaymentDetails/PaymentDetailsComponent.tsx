@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import deepEqual from 'fast-deep-equal';
 
 import { FormStore } from 'src/features/form/FormContext';
@@ -7,17 +8,30 @@ import { useResolvedQueryParameters } from 'src/features/options/evalQueryParame
 import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericComponent<'PaymentDetails'>) {
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
-  const { refetchDependencies, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
-  const { title, description, help } = textResourceBindings || {};
+  const config = useComponentConfig(baseComponentId, 'PaymentDetails');
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.PaymentDetails.textResourceBindings.title,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.PaymentDetails.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.PaymentDetails.textResourceBindings.help,
+  );
+
   const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
 
-  const resolvedDependencies = useResolvedQueryParameters(refetchDependencies);
+  const resolvedDependencies = useResolvedQueryParameters(config.refetchDependencies);
   const previousDependencies = useRef<Record<string, unknown> | undefined>(undefined);
 
   // refetch data if we have configured refetch dependencies and their values have changed

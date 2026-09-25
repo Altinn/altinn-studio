@@ -21,9 +21,6 @@ export const Config = asOptionsComponent(
       renderInCards: true,
       renderInCardsMedia: false,
     },
-    functionality: {
-      customExpressions: true,
-    },
   }),
   { supportsPreselection: false },
 )

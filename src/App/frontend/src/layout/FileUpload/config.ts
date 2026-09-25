@@ -24,9 +24,6 @@ export const Config = asOptionsComponent(
         renderInCardsMedia: false,
         renderInTabs: true,
       },
-      functionality: {
-        customExpressions: true,
-      },
     }),
   ).addTextResource(
     new CG.trb({

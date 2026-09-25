@@ -3,10 +3,11 @@ import type { NumericFormatProps, PatternFormatProps } from 'react-number-format
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { formatNumber } from 'src/utils/formattingUtils';
-import type { CompInternal } from 'src/layout/layout';
+import type { ExprResolved } from 'src/features/expressions/types';
+import type { CompExternal } from 'src/layout/layout';
 import type { CurrencyFormattingOptions, UnitFormattingOptions } from 'src/utils/formattingUtils';
 
-type Formatting = Exclude<CompInternal<'Input'>['formatting'], undefined>;
+type Formatting = Exclude<ExprResolved<CompExternal<'Input'>>['formatting'], undefined>;
 
 interface Output {
   number?: NumericFormatProps | PatternFormatProps;

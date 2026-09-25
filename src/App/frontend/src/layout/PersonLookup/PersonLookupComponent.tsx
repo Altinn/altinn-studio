@@ -10,6 +10,7 @@ import {
   NumericInput,
   RequiredIndicator,
 } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { queryOptions, useQuery } from '@tanstack/react-query';
@@ -23,8 +24,10 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
 import { validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { httpPost } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -83,7 +86,12 @@ async function fetchPerson(
 }
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
-  const { id, dataModelBindings, required, readOnly } = useItemWhenType(baseComponentId, 'PersonLookup');
+  const config = useComponentConfig(baseComponentId, 'PersonLookup');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'PersonLookup');
+  const componentId = useIndexedId(baseComponentId);
+  const required = useEvalExpression(config.required, Expressions.PersonLookup.required);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.PersonLookup.readOnly);
+
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
@@ -207,7 +215,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
         <div className={classes.componentWrapper}>
           <div className={classes.ssnLabel}>
             <Label
-              htmlFor={`${id}_ssn`}
+              htmlFor={`${componentId}_ssn`}
               label={langAsString('person_lookup.ssn_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
@@ -215,7 +223,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 hasSuccessfullyFetched ? (
                   <Description
                     description={langAsString('person_lookup.from_registry_description')}
-                    componentId={`${id}_ssn`}
+                    componentId={`${componentId}_ssn`}
                   />
                 ) : undefined
               }
@@ -223,8 +231,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           </div>
           <Field className={classes.ssn}>
             <NumericInput
-              id={`${id}_ssn`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
+              id={`${componentId}_ssn`}
+              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_ssn`) : undefined}
               aria-label={langAsString('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? ssn : tempSsn}
               required={required}
@@ -258,7 +266,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           </Field>
           <div className={classes.nameLabel}>
             <Label
-              htmlFor={`${id}_name`}
+              htmlFor={`${componentId}_name`}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
               label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
@@ -266,7 +274,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 hasSuccessfullyFetched ? (
                   <Description
                     description={langAsString('person_lookup.from_registry_description')}
-                    componentId={`${id}_name`}
+                    componentId={`${componentId}_name`}
                   />
                 ) : undefined
               }
@@ -274,8 +282,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           </div>
           <Field className={classes.name}>
             <Input
-              id={`${id}_name`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
+              id={`${componentId}_name`}
+              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_name`) : undefined}
               aria-label={langAsString(
                 hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
               )}

@@ -1,9 +1,12 @@
 import React from 'react';
 
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Summary/SummaryItemCompact.module.css';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 
 export interface ICompactSummaryItem {
   targetBaseComponentId: string;
@@ -11,16 +14,14 @@ export interface ICompactSummaryItem {
 }
 
 export function SummaryItemCompact({ targetBaseComponentId, displayData }: ICompactSummaryItem) {
-  const targetItem = useItemFor(targetBaseComponentId);
-  const textBindings = 'textResourceBindings' in targetItem ? targetItem.textResourceBindings : undefined;
-  const summaryTitleTrb =
-    textBindings && 'summaryTitle' in textBindings ? (textBindings.summaryTitle as string) : undefined;
-  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const config = useComponentConfig(targetBaseComponentId);
+  const summaryTitle = useEvalOptionalTrb(config, 'summaryTitle', CommonExpressions.TRBSummarizable);
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
   return (
     <div data-testid='summary-item-compact'>
       {/* FIXME: is data-testid actually necessary? Can we get it in tests in other ways? */}
-      <SummaryTitle title={summaryTitleTrb ?? titleTrb} />
+      <SummaryTitle title={summaryTitle ?? title} />
       <DisplayData displayData={displayData} />
     </div>
   );

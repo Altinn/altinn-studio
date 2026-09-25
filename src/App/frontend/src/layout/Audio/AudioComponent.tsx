@@ -1,14 +1,21 @@
 import React from 'react';
 
 import { Audio } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useParentCard } from 'src/layout/Cards/CardContext';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AudioComponent({ baseComponentId }: PropsFromGenericComponent<'Audio'>) {
-  const { audio, textResourceBindings } = useItemWhenType(baseComponentId, 'Audio');
+  const config = useComponentConfig(baseComponentId, 'Audio');
+  const altText = useEvalOptionalText(
+    config.textResourceBindings?.altText,
+    Expressions.Audio.textResourceBindings.altText,
+  );
+
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   const parentCard = useParentCard();
@@ -17,8 +24,8 @@ export function AudioComponent({ baseComponentId }: PropsFromGenericComponent<'A
   return (
     <Audio
       componentId={componentId}
-      src={audio?.src}
-      altText={textResourceBindings?.altText}
+      src={config.audio?.src}
+      altText={altText}
       mediaHeight={mediaHeight}
       innerGrid={innerGrid}
     />

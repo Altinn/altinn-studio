@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 
 import { useIsMobileOrTablet } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
@@ -27,13 +28,14 @@ import {
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
+import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
-import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -42,15 +44,31 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const baseComponentId = useRepeatingGroupComponentId();
   const { rowsToDisplay } = useRepeatingGroupPagination();
   const rows = RepGroupHooks.useAllRowsWithButtons(baseComponentId);
-  const { textResourceBindings, labelSettings, id, edit, minCount, stickyHeader, tableColumns, dataModelBindings } =
-    useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const required = !!minCount && minCount > 0;
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const componentId = useIndexedId(baseComponentId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.RepeatingGroup.textResourceBindings.title,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.RepeatingGroup.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.RepeatingGroup.textResourceBindings.help,
+  );
 
-  const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
+  const required = !!config.minCount && config.minCount > 0;
 
-  const hiddenColumns = Object.entries(columnSettings)
-    .filter(([_, settings]) => settings.hidden === true)
-    .map(([id]) => id);
+  const hiddenColumns = useHiddenColumns(config.tableColumns);
+  const columnSettings = Object.fromEntries(
+    Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
+      id,
+      { ...column, hidden: hiddenColumns.includes(id) },
+    ]),
+  );
 
   const tableIds = useTableComponentIds(baseComponentId);
   const tableIdsWithoutHiddenColumns = tableIds.filter((id) => !hiddenColumns.includes(id));
@@ -66,7 +84,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const isEmpty = numRows === 0;
   const isEditingFirstRow = RepGroupContext.useIsEditingRow(firstRowId);
   const hasColumnsWithEditInTable =
-    tableColumns && Object.keys(tableColumns).some((colId) => tableColumns[colId].editInTable);
+    config.tableColumns && Object.keys(config.tableColumns).some((colId) => config.tableColumns?.[colId].editInTable);
   const showTableHeader =
     numRows > 0 && (hasColumnsWithEditInTable || !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow));
 
@@ -80,10 +98,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   }
   const displayDeleteColumn = showDeleteButtonColumns.has(true) || !showDeleteButtonColumns.has(false);
   let displayEditColumn = showEditButtonColumns.has(true) || !showEditButtonColumns.has(false);
-  if (edit?.mode === 'onlyTable') {
+  if (config.edit?.mode === 'onlyTable') {
     displayEditColumn = false;
   }
-  const useVerticalButtonLayout = edit?.buttonLayout === 'vertical';
+  const useVerticalButtonLayout = config.edit?.buttonLayout === 'vertical';
   const columnCount = useVerticalButtonLayout
     ? Number(displayEditColumn || displayDeleteColumn)
     : Number(displayEditColumn) + Number(displayDeleteColumn);
@@ -94,8 +112,8 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
   return (
     <div
-      data-testid={`group-${id}`}
-      id={`group-${id}`}
+      data-testid={`group-${componentId}`}
+      id={`group-${componentId}`}
       className={cn({
         [classes.groupContainer]: !isNested,
         [classes.nestedGroupContainer]: isNested,
@@ -103,13 +121,13 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
       })}
     >
       <Table
-        id={`group-${id}-table`}
-        stickyHeader={stickyHeader}
+        id={`group-${componentId}-table`}
+        stickyHeader={config.stickyHeader}
         className={cn(
           {
             [classes.editingBorder]: isNested,
             [classes.nestedTable]: isNested,
-            [classes.nestedNonSticky]: isNested && !stickyHeader,
+            [classes.nestedNonSticky]: isNested && !config.stickyHeader,
           },
           classes.repeatingGroupTable,
         )}
@@ -117,18 +135,21 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         // the "Legg til ny" button.
         border={isNested && rowsToDisplay.length > 0}
       >
-        {textResourceBindings?.title && (
+        {title && (
           <Caption
-            id={`group-${id}-caption`}
+            id={`group-${componentId}-caption`}
             className={cn({ [classes.fullWidthCaption]: !isEmpty && !isNested })}
-            title={<Lang id={textResourceBindings.title} />}
-            description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+            title={<Lang id={title} />}
+            description={description && <Lang id={description} />}
             helpText={
-              textResourceBindings.help
-                ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+              help
+                ? {
+                    text: <Lang id={help} />,
+                    accessibleTitle: title,
+                  }
                 : undefined
             }
-            labelSettings={labelSettings}
+            labelSettings={config.labelSettings}
             required={required}
           />
         )}
@@ -139,7 +160,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           hiddenColumnIndices={hiddenColumnIndices}
         />
         {showTableHeader && !mobileView && (
-          <Table.Head id={`group-${id}-table-header`}>
+          <Table.Head id={`group-${componentId}-table-header`}>
             <Table.Row>
               <DataModelLocationProvider
                 groupBinding={dataModelBindings.group}
@@ -189,7 +210,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             </Table.Row>
           </Table.Head>
         )}
-        <Table.Body id={`group-${id}-table-body`}>
+        <Table.Body id={`group-${componentId}-table-body`}>
           {rowsToDisplay.map((row) => (
             <RowToDisplay
               key={`edit-container-${row.uuid}`}
@@ -239,7 +260,7 @@ function RowToDisplay({
   tableIds: string[];
   hiddenColumns: string[];
 } & BaseRow) {
-  const component = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const editContainerColSpan = mobileView ? 2 : tableIds.length + 3 + columnCount;
@@ -293,11 +314,11 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
   const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
-  const { rowsBefore, rowsAfter } = useExternalItem(baseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
-  const rows = where === 'Before' ? rowsBefore : rowsAfter;
+  const rows = where === 'Before' ? config.rowsBefore : config.rowsAfter;
   const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
   const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
   const hiddenFromExtraRows = useMemo(

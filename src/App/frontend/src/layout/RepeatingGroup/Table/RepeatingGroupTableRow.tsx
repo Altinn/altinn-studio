@@ -2,6 +2,7 @@ import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
 import { Button, Flex, useIsMobile } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -29,14 +30,15 @@ import {
   useRepeatingGroupsFocusContext,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
-import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { AlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import type { CompTypes } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -49,22 +51,6 @@ export interface IRepeatingGroupTableRowProps {
   displayDeleteColumn: boolean;
   useVerticalButtonLayout: boolean;
   hiddenColumns: string[];
-}
-
-function getTableTitle(textResourceBindings: ITextResourceBindings) {
-  if (!textResourceBindings) {
-    return '';
-  }
-
-  if ('tableTitle' in textResourceBindings) {
-    return textResourceBindings.tableTitle;
-  }
-
-  if ('title' in textResourceBindings) {
-    return textResourceBindings.title;
-  }
-
-  return '';
 }
 
 function getEditButtonText(
@@ -101,11 +87,24 @@ export function RepeatingGroupTableRow({
   const indexedId = useIndexedId(baseComponentId);
   const langTools = useLanguage();
   const { langAsString } = langTools;
-  const { edit: editForGroup, tableColumns: columnSettings } = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const compactButtons = Boolean(editForGroup?.compactButtons);
-  const rowExpressions = RepGroupHooks.useRowWithExpressions(baseComponentId, { uuid });
-  const editForRow = rowExpressions?.edit;
-  const trbForRow = rowExpressions?.textResourceBindings;
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+
+  const compactButtons = Boolean(config.edit?.compactButtons);
+  const editForRow = {
+    editButton: useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton),
+    deleteButton: useEvalExpression(config.edit?.deleteButton, Expressions.RepeatingGroup.edit.deleteButton),
+    alertOnDelete: useEvalExpression(config.edit?.alertOnDelete, Expressions.RepeatingGroup.edit.alertOnDelete),
+  };
+  const trbForRow = {
+    editButtonOpen: useEvalExpression(
+      config.textResourceBindings?.editButtonOpen,
+      Expressions.RepeatingGroup.textResourceBindings.editButtonOpen,
+    ),
+    editButtonClose: useEvalExpression(
+      config.textResourceBindings?.editButtonClose,
+      Expressions.RepeatingGroup.textResourceBindings.editButtonClose,
+    ),
+  };
 
   const alertOnDelete = useAlertOnChange(Boolean(editForRow?.alertOnDelete), deleteRow);
 
@@ -137,25 +136,25 @@ export function RepeatingGroupTableRow({
     >
       <FindDeepValidations
         setRowHasErrors={setRowHasErrors}
-        columnSettings={columnSettings}
+        columnSettings={config.tableColumns}
         index={index}
-        editMode={editForGroup?.mode}
+        editMode={config.edit?.mode}
       />
       {!mobileView ? (
         tableItems.map((item) =>
-          shouldEditInTable(editForGroup?.mode, item.baseId, item.type, columnSettings) ? (
+          shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
             <EditableCell
               key={item.baseId}
               index={index}
               refSetter={refSetter}
               baseComponentId={item.baseId}
-              columnSettings={columnSettings}
+              columnSettings={config.tableColumns}
             />
           ) : (
             <NonEditableCell
               key={item.baseId}
               baseComponentId={item.baseId}
-              columnSettings={columnSettings}
+              columnSettings={config.tableColumns}
               rowUuid={uuid}
             />
           ),
@@ -169,7 +168,7 @@ export function RepeatingGroupTableRow({
             {tableItems.map(
               (item, i, { length }) =>
                 !isEditingRow &&
-                (shouldEditInTable(editForGroup?.mode, item.baseId, item.type, columnSettings) ? (
+                (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
                   <Flex
                     container
                     item
@@ -536,9 +535,9 @@ function NonEditableCell({
   );
 }
 
-function TableTitle({ baseComponentId, compType }: { baseComponentId: string; compType: CompTypes }) {
-  const item = useItemWhenType(baseComponentId, compType);
-  return <Lang id={getTableTitle(item?.textResourceBindings ?? {})} />;
+function TableTitle({ baseComponentId }: { baseComponentId: string; compType: CompTypes }) {
+  const title = useTableTitle(baseComponentId);
+  return <Lang id={title} />;
 }
 
 function DisplayData({ baseComponentId }: { baseComponentId: string }) {

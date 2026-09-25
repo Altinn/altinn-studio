@@ -7,21 +7,7 @@ export interface RequiredComponentConfig {
   availability: 'configurable' | 'internal';
   metadata: ComponentMetadata;
   capabilities: CompCapabilities;
-  functionality: FunctionalityConfig;
-}
-
-export interface FunctionalityConfig {
-  /**
-   * If true, the component must implement its own evalExpressions() method, otherwise it will use the default
-   * implementation.
-   */
-  customExpressions: boolean;
-
-  /**
-   * If set to false, the component will not support display data. This is useful for components otherwise would
-   * be required to support display data (when having data model bindings, and being a form component), but where
-   * display data is not relevant (i.e. when binding to a group or array of objects).
-   */
+  /** Disable display data for form components bound to groups rather than scalar values. */
   displayData?: false;
 }
 

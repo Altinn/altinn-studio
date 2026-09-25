@@ -10,6 +10,7 @@ import {
   mapExtensionToAcceptMime,
   useIsMobileOrTablet,
 } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
@@ -30,22 +31,28 @@ import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
-  const item = useItemWhenType<'FileUpload'>(baseComponentId, 'FileUpload');
-  const {
-    id,
-    maxFileSizeInMB,
-    readOnly,
-    displayMode,
-    maxNumberOfAttachments,
-    hasCustomFileEndings,
-    validFileEndings,
-    textResourceBindings,
-    dataModelBindings,
-  } = item;
+  const config = useComponentConfig<'FileUpload'>(baseComponentId, 'FileUpload');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'FileUpload');
+  const componentId = useIndexedId(baseComponentId);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
+  const maxNumberOfAttachments = useEvalExpression(
+    config.maxNumberOfAttachments,
+    Expressions.FileUpload.maxNumberOfAttachments,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.FileUpload.textResourceBindings.description,
+  );
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.FileUpload.textResourceBindings.title,
+  );
+
   const isSubformPage = useIsSubformPage();
 
   const [showFileUpload, setShowFileUpload] = React.useState(false);
@@ -60,26 +67,28 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
     (v) => !('attachmentId' in v) || !v.attachmentId,
   );
   const filesToAccept =
-    hasCustomFileEndings && validFileEndings !== undefined ? mapExtensionToAcceptMime(validFileEndings) : undefined;
+    config.hasCustomFileEndings && config.validFileEndings !== undefined
+      ? mapExtensionToAcceptMime(config.validFileEndings)
+      : undefined;
   const { options, isFetching } = useGetOptions(baseComponentId, 'single');
   const indexedId = useIndexedId(baseComponentId);
 
   const canUploadMoreAttachments = attachments.length < maxNumberOfAttachments;
-  const isComplexMode = displayMode !== 'simple';
-  const isSimpleModeWithNoAttachments = displayMode === 'simple' && attachments.length === 0;
+  const isComplexMode = config.displayMode !== 'simple';
+  const isSimpleModeWithNoAttachments = config.displayMode === 'simple' && attachments.length === 0;
 
   const shouldShowFileUpload =
     canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
 
   const shouldShowAddButton =
-    displayMode === 'simple' &&
+    config.displayMode === 'simple' &&
     !showFileUpload &&
     attachments.length < maxNumberOfAttachments &&
     attachments.length > 0;
 
-  const dragLabelId = `file-upload-drag-${id}`;
-  const formatLabelId = `file-upload-format-${id}`;
-  const descriptionId = textResourceBindings?.description ? getDescriptionId(id) : undefined;
+  const dragLabelId = `file-upload-drag-${componentId}`;
+  const formatLabelId = `file-upload-format-${componentId}`;
+  const descriptionId = description ? getDescriptionId(componentId) : undefined;
   const ariaDescribedBy = [descriptionId, dragLabelId, formatLabelId].filter(Boolean).join(' ');
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -100,10 +109,12 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
     uploadAttachments({ files: acceptedFiles, nodeId: indexedId, dataModelBindings });
 
     if (acceptedFiles.length > 0) {
-      setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
+      setShowFileUpload(config.displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
     }
 
-    const rejections = rejectedFiles.map((fileRejection) => new RejectedFileError(fileRejection, maxFileSizeInMB));
+    const rejections = rejectedFiles.map(
+      (fileRejection) => new RejectedFileError(fileRejection, config.maxFileSizeInMB),
+    );
     if (rejections?.length) {
       addRejectedAttachments(indexedId, rejections);
     }
@@ -121,7 +132,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div
-        id={`altinn-fileuploader-${id}`}
+        id={`altinn-fileuploader-${componentId}`}
         style={{ padding: '0px', width: '100%' }}
       >
         <Label
@@ -131,17 +142,17 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
         {shouldShowFileUpload && (
           <>
             <Dropzone
-              id={id}
+              id={componentId}
               maxFileSize={{
-                sizeInMB: maxFileSizeInMB,
-                text: langAsString('form_filler.file_uploader_max_size_mb', [maxFileSizeInMB]),
+                sizeInMB: config.maxFileSizeInMB,
+                text: langAsString('form_filler.file_uploader_max_size_mb', [config.maxFileSizeInMB]),
               }}
               readOnly={!!readOnly}
               onClick={(e) => e.preventDefault()}
               onDrop={handleDrop}
               hasValidationMessages={hasValidationErrors(validations)}
               acceptedFiles={filesToAccept}
-              labelId={textResourceBindings?.title ? getLabelId(id) : undefined}
+              labelId={title ? getLabelId(componentId) : undefined}
               describedBy={ariaDescribedBy}
             >
               <div className={classes.fileUploadWrapper}>
@@ -167,8 +178,8 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
                 </b>
                 <span id={formatLabelId}>
                   <Lang id='form_filler.file_uploader_valid_file_format' />
-                  {hasCustomFileEndings
-                    ? ` ${validFileEndings}`
+                  {config.hasCustomFileEndings
+                    ? ` ${config.validFileEndings}`
                     : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}
                 </span>
               </div>

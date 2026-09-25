@@ -1,18 +1,31 @@
 import React from 'react';
 
 import { Dropdown } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Dropdown'>) {
-  const item = useItemWhenType(baseComponentId, 'Dropdown');
-  const { readOnly, required, alertOnChange, grid, textResourceBindings, labelSettings } = item;
+  const config = useComponentConfig(baseComponentId, 'Dropdown');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Dropdown.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Dropdown.required);
+  const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Dropdown.alertOnChange);
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Dropdown.textResourceBindings.title,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Dropdown.textResourceBindings.help);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Dropdown.textResourceBindings.description,
+  );
 
   const isValid = useIsValid(baseComponentId);
   const { options, isFetching, selectedValues, setData } = useGetOptions(baseComponentId, 'single');
@@ -36,11 +49,11 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
       required={required}
       isValid={isValid}
       alertOnChange={alertOnChange}
-      title={textResourceBindings?.title}
-      help={textResourceBindings?.help}
-      description={textResourceBindings?.description}
-      showOptionalMarking={!!labelSettings?.optionalIndicator}
-      labelGrid={grid?.labelGrid}
+      title={title}
+      help={help}
+      description={description}
+      showOptionalMarking={!!config.labelSettings?.optionalIndicator}
+      labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLabel={overrideDisplay?.renderLabel}
       innerGrid={innerGrid}
