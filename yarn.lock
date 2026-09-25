@@ -16333,6 +16333,7 @@ __metadata:
     "@types/dotenv": "npm:^8.2.0"
     "@types/node": "npm:^24.0.0"
     dotenv: "npm:^17.0.0"
+    esbuild: "npm:^0.25.0"
     ts-node: "npm:^10.9.2"
   languageName: unknown
   linkType: soft

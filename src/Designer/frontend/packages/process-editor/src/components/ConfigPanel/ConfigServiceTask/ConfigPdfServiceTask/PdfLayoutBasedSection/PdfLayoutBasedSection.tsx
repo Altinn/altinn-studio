@@ -62,12 +62,11 @@ export const PdfLayoutBasedSection = (): React.ReactElement => {
   return (
     <StudioCard className={classes.createLayoutSet}>
       <StudioSuggestion
-        commitPendingClearOnBlur
         multiple={false}
         label={t('process_editor.configuration_panel_pdf_select_data_model_label')}
         description={t('process_editor.configuration_panel_pdf_select_data_model_description')}
         emptyText={t('process_editor.configuration_panel_pdf_no_data_models')}
-        selected={selectedDataModelId || undefined}
+        selected={selectedDataModelId || null}
         onSelectedChange={handleSelectedChange}
       >
         {allDataModelIds.map((option) => (

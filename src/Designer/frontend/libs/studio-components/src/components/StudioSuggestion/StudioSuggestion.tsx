@@ -10,8 +10,7 @@ import { StudioField } from '../StudioField';
 import { StudioLabel } from '../StudioLabel';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioValidationMessage } from '../StudioValidationMessage';
-import type { StudioSuggestionItem } from './StudioSuggestionItem/StudioSuggestionItem';
-import { useCommitPendingClear } from './useCommitPendingClear';
+import { useSuggestionSelection } from './useSuggestionSelection';
 import classes from './StudioSuggestion.module.css';
 
 export type StudioSuggestionProps = SuggestionProps &
@@ -22,8 +21,6 @@ export type StudioSuggestionProps = SuggestionProps &
     description?: string;
     error?: string | false;
     placeholder?: string;
-    /** Commit a cleared single select on blur before its parent can unmount it. */
-    commitPendingClearOnBlur?: boolean;
   };
 
 function StudioSuggestion(
@@ -40,31 +37,11 @@ function StudioSuggestion(
     description,
     error,
     placeholder,
-    commitPendingClearOnBlur = false,
     ...rest
   } = props;
   const inputId = useId();
-  // Only a single select has a pending clear: a multiple select keeps its values as chips, and its
-  // input is empty whenever the user is not typing.
-  const singleSelectProps = commitPendingClearOnBlur && props.multiple !== true ? props : undefined;
-  // The web component reports an emptied field on its own, and the commit below reports it when that
-  // report is dropped. Whichever comes first is passed on, and the other is not, until the user selects
-  // something or focuses the field again.
-  const clearReportedRef = useRef(false);
-  const reportSelectedChange = (item: StudioSuggestionItem | null): void => {
-    if (item === null && clearReportedRef.current) return;
-    clearReportedRef.current = item === null;
-    singleSelectProps?.onSelectedChange?.(item);
-  };
-  const commitPendingClear = useCommitPendingClear({
-    hasSelection: Boolean(singleSelectProps?.selected),
-    onClear: () => reportSelectedChange(null),
-  });
-  // `rest` is typed for both select modes, but this branch only runs for a single select.
-  const suggestionProps: SuggestionProps = singleSelectProps
-    ? ({ ...rest, onSelectedChange: reportSelectedChange } as SuggestionProps)
-    : rest;
-
+  const suggestionRef = useRef<React.ElementRef<typeof Suggestion>>(null);
+  const suggestionProps = useSuggestionSelection(rest, suggestionRef);
   return (
     <StudioField className={className}>
       <StudioLabel htmlFor={inputId}>
@@ -75,21 +52,7 @@ function StudioSuggestion(
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
-      <Suggestion
-        {...suggestionProps}
-        onFocus={(event) => {
-          rest.onFocus?.(event);
-          clearReportedRef.current = false;
-        }}
-        onBlur={(event) => {
-          rest.onBlur?.(event);
-          commitPendingClear.onBlur(event);
-        }}
-        onMouseDown={(event) => {
-          rest.onMouseDown?.(event);
-          commitPendingClear.onMouseDown();
-        }}
-      >
+      <Suggestion {...suggestionProps} ref={suggestionRef}>
         <Suggestion.Input
           aria-label={label}
           id={inputId}
