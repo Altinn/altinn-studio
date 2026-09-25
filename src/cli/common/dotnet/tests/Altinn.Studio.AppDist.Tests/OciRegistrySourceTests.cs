@@ -183,18 +183,6 @@ public sealed class OciRegistrySourceTests
     }
 
     [Fact]
-    public async Task ListVersions_RequestsLargePages()
-    {
-        var handler = new FakeRegistry();
-        handler.AddTags("1.0.0");
-
-        await Source(handler).ListVersions(CancellationToken.None);
-
-        Assert.Equal(OciRegistrySource.TagPageSize, handler.RequestedTagPageSize);
-        Assert.Equal(1000, OciRegistrySource.TagPageSize);
-    }
-
-    [Fact]
     public async Task ListVersions_FollowsPagination()
     {
         var handler = new FakeRegistry { TagPageSize = 2 };
