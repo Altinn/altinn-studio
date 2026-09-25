@@ -1,5 +1,6 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { useModelerEventListener } from './useModelerEventListener';
 import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
@@ -9,6 +10,7 @@ import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
 import type Modeler from 'bpmn-js/lib/Modeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 
 // Wrapper around bpmn-js to Reactify it
 
@@ -92,25 +94,27 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
     [setBpmnDetails, updateBpmnDetails],
   );
 
+  const handleElementsChanged = useCallback(
+    ({ elements }: { elements: Element[] }): void => {
+      setBpmnDetails((current) => {
+        if (!current || !elements.includes(current.element)) return current;
+        return {
+          ...getBpmnEditorDetailsFromBusinessObject(current.element.businessObject),
+          element: current.element,
+        };
+      });
+    },
+    [setBpmnDetails],
+  );
+
   useModelerEventListener<void>('commandStack.changed', handleCommandStackChanged);
   useModelerEventListener<TaskEvent>('shape.added', handleShapeAdd);
   useModelerEventListener<TaskEvent>('shape.remove', handleShapeRemove);
   useModelerEventListener<SelectionChangedEvent>('selection.changed', handleSelectionChange);
+  useModelerEventListener('elements.changed', handleElementsChanged);
 
   return useEditorCallback();
 };
-
-function useModelerEventListener<Event>(eventName: string, callback: (event: Event) => void): void {
-  const { modelerRef, isInitialized } = useBpmnContext();
-
-  useEffect(() => {
-    if (isInitialized) {
-      const modeler = modelerRef.current;
-      modeler.on(eventName, callback);
-      return () => modeler.off(eventName, callback);
-    }
-  }, [isInitialized, eventName, callback, modelerRef]);
-}
 
 function useEditorCallback(): (div: HTMLDivElement) => void {
   const { initialBpmnXml, modelerRef, setIsInitialized } = useBpmnContext();

@@ -4,20 +4,14 @@ import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddH
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 import { app, org } from '@studio/testing/testids';
-import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnElementForSigningTaskWithPdf,
+  mockBpmnElementForUserControlledSigningTask,
+  mockSigneeStatesDataTypeId,
+  mockSigningPdfDataTypeId,
+} from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor/types/BpmnBusinessObjectEditor';
-
-jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => {
-  const actual = jest.requireActual('@altinn/process-editor/utils/bpmnModeler/StudioModeler');
-  return {
-    ...actual,
-    StudioModeler: jest.fn().mockImplementation((args) => {
-      const instance = new actual.StudioModeler(args);
-      instance.getElement = jest.fn().mockReturnValue(instance.element);
-      return instance;
-    }),
-  };
-});
 
 const currentPolicyMock: Policy = {
   requiredAuthenticationLevelOrg: '3',
@@ -114,6 +108,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
       allowedContributors: [AllowedContributor.AppOwned],
+      allowedContentTypes: ['application/pdf'],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: testElementId,
     });
@@ -135,6 +130,7 @@ describe('OnProcessTaskAddHandler', () => {
       taskType: 'signing',
     });
 
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
@@ -143,12 +139,14 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it('should add layoutset and datatype when userControlledSigning task is added', () => {
+  it('should also add the signee states and signing pdf datatypes when userControlledSigning task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
       taskType: 'signing',
-      taskEvent: createTaskEvent(getMockBpmnElementForTask('signing').businessObject),
+      taskEvent: createTaskEvent(
+        mockBpmnElementForUserControlledSigningTask.businessObject as BpmnBusinessObjectEditor,
+      ),
     };
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
@@ -163,12 +161,79 @@ describe('OnProcessTaskAddHandler', () => {
       dataTypeId: 'signatureInformation-1234',
       taskId: testElementId,
     });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      dataTypeId: mockSigneeStatesDataTypeId,
+      taskId: testElementId,
+    });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      allowedContentTypes: ['application/pdf'],
+      dataTypeId: mockSigningPdfDataTypeId,
+      taskId: testElementId,
+    });
 
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it.each(['confirmation', 'feedback'])(
-    'should not add layoutSet, dataType or default policy when task type is %s',
+  it('should register the signing pdf datatype for a signing task that is not user controlled', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    const taskMetadata: OnProcessTaskEvent = {
+      taskType: 'signing',
+      taskEvent: createTaskEvent(
+        mockBpmnElementForSigningTaskWithPdf.businessObject as BpmnBusinessObjectEditor,
+      ),
+    };
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
+
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
+      allowedContributors: ['app:owned'],
+      dataTypeId: 'signatureInformation-1234',
+      taskId: testElementId,
+    });
+    expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
+      allowedContributors: ['app:owned'],
+      allowedContentTypes: ['application/pdf'],
+      dataTypeId: mockSigningPdfDataTypeId,
+      taskId: testElementId,
+    });
+  });
+
+  it('should not register a signee states datatype when the signing task does not declare one', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    const businessObjectWithoutSigneeStates = {
+      extensionElements: {
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: {
+              signatureDataType: 'signatureInformation-1234',
+              signeeProviderId: 'myProvider',
+            },
+          },
+        ],
+      },
+    } as unknown as BpmnBusinessObjectEditor;
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd({
+      taskType: 'signing',
+      taskEvent: createTaskEvent(businessObjectWithoutSigneeStates),
+    });
+
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(1);
+    expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
+      allowedContributors: [AllowedContributor.AppOwned],
+      dataTypeId: 'signatureInformation-1234',
+      taskId: testElementId,
+    });
+  });
+
+  it.each(['confirmation', 'feedback', 'subformPdf', ''])(
+    'should not add layoutSet, dataType or default policy when task type is "%s"',
     (task) => {
       const onProcessTaskAddHandler = createOnProcessTaskHandler();
 

@@ -1,14 +1,9 @@
-import type { BpmnTaskType as LayoutSetTaskType } from 'app-shared/types/BpmnTaskType';
 import { PaymentPolicyBuilder } from 'app-development/utils/policy';
-import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
-import type {
-  AddLayoutSetMutation,
-  AddLayoutSetMutationPayload,
-} from 'app-development/hooks/mutations/useAddLayoutSetMutation';
-import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
-import type { Element } from 'bpmn-js/lib/model/Types';
-import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
+import type { AddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
+import type { BpmnTaskType as LayoutSetTaskType } from 'app-shared/types/BpmnTaskType';
+import { TaskUtils } from '../utils/taskUtils';
 
 export enum AllowedContributor {
   AppOwned = 'app:owned',
@@ -24,128 +19,50 @@ export class OnProcessTaskAddHandler {
     private readonly addDataTypeToAppMetadata: (data: {
       dataTypeId: string;
       taskId: string;
-      allowedContributors?: Array<string>;
+      allowedContributors?: string[];
+      allowedContentTypes?: string[];
     }) => void,
   ) {}
 
-  /**
-   * This handler is responsible to react on task add event, to mutate files that are related to the task, but not a part of process-editor domain.
-   * @param taskMetadata
-   */
-  public handleOnProcessTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    if (taskMetadata.taskType === 'data') {
-      this.handleDataTaskAdd(taskMetadata);
+  public handleOnProcessTaskAdd({ taskEvent, taskType }: OnProcessTaskEvent): void {
+    if (taskType !== 'data' && taskType !== 'payment' && taskType !== 'signing') return;
+
+    const { id, businessObject } = taskEvent.element;
+    this.addLayoutSet({
+      taskType: taskType as LayoutSetTaskType,
+      layoutSetConfig: { id, taskId: id },
+    });
+    const taskExtension = TaskUtils.getTaskExtensionFromBusinessObject(businessObject);
+
+    if (taskType === 'payment') {
+      const paymentConfig = taskExtension?.paymentConfig;
+      this.addDataType(paymentConfig?.paymentDataType, id);
+      this.addDataType(paymentConfig?.paymentReceiptPdfDataType, id, 'application/pdf');
+
+      const paymentPolicy = new PaymentPolicyBuilder(this.org, this.app).getDefaultPaymentPolicy(
+        id,
+      );
+      this.mutateApplicationPolicy({
+        ...this.currentPolicy,
+        rules: [...this.currentPolicy.rules, ...paymentPolicy.rules],
+      });
     }
 
-    if (taskMetadata.taskType === 'payment') {
-      this.handlePaymentTaskAdd(taskMetadata);
-    }
-
-    if (taskMetadata.taskType === 'signing') {
-      this.handleSigningTaskAdd(taskMetadata);
+    if (taskType === 'signing') {
+      const signatureConfig = taskExtension?.signatureConfig;
+      this.addDataType(signatureConfig?.signatureDataType, id);
+      this.addDataType(signatureConfig?.signingPdfDataType, id, 'application/pdf');
+      this.addDataType(signatureConfig?.signeeStatesDataTypeId, id);
     }
   }
 
-  /**
-   * Adds a layout set to the added data task
-   * @param taskMetadata
-   * @private
-   */
-  private handleDataTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-  }
-
-  /**
-   * Adds a dataType, layoutSet and default policy to the added payment task
-   * @param taskMetadata
-   * @private
-   */
-  private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
+  private addDataType(dataTypeId: string | undefined, taskId: string, contentType?: string): void {
+    if (!dataTypeId) return;
     this.addDataTypeToAppMetadata({
       dataTypeId,
-      taskId: taskMetadata.taskEvent.element.id,
+      taskId,
       allowedContributors: [AllowedContributor.AppOwned],
-    });
-
-    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.addDataTypeToAppMetadata({
-      dataTypeId: receiptPdfDataTypeId,
-      taskId: taskMetadata.taskEvent.element.id,
-      allowedContributors: [AllowedContributor.AppOwned],
-    });
-
-    const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
-    const defaultPaymentPolicy = paymentPolicyBuilder.getDefaultPaymentPolicy(
-      taskMetadata.taskEvent.element.id,
-    );
-
-    // Need to merge the default payment policy with the current policy, since backend does not support partial updates.
-    this.mutateApplicationPolicy({
-      ...this.currentPolicy,
-      rules: [...this.currentPolicy.rules, ...defaultPaymentPolicy.rules],
-    });
-  }
-
-  /**
-   * Adds a dataType and layoutset to the added signing task
-   * @param taskMetadata
-   * @private
-   */
-  private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskAdd(taskMetadata);
-    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
-      this.addSigneeStateToApplicationMetadata(taskMetadata);
-    }
-  }
-
-  /**
-   * Creates the layout set config for the task
-   * @returns {{layoutSetConfig: LayoutSetConfig}}
-   * @private
-   */
-  private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
-    const elementId = taskMetadata.taskEvent.element.id;
-    return {
-      taskType: taskMetadata.taskType as LayoutSetTaskType,
-      layoutSetConfig: { id: elementId, taskId: elementId },
-    };
-  }
-
-  private handleGenericSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-
-    this.addDataTypeToAppMetadata({
-      dataTypeId,
-      taskId: taskMetadata.taskEvent.element.id,
-      allowedContributors: [AllowedContributor.AppOwned],
-    });
-  }
-
-  private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-
-    this.addDataTypeToAppMetadata({
-      dataTypeId: studioModeler.getSigneeStatesDataTypeId(
-        taskMetadata.taskType,
-        taskMetadata.taskEvent.element.businessObject,
-      ),
-      taskId: taskMetadata.taskEvent.element.id,
-      allowedContributors: [AllowedContributor.AppOwned],
+      ...(contentType && { allowedContentTypes: [contentType] }),
     });
   }
 }

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioProperty } from '@studio/components';
 import { useUniqueKeys } from '@studio/hooks';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import { useChecksum } from './useChecksum';
+import { useChecksum } from '../../../../hooks/useChecksum';
 import { ActionsEditor } from './ActionsEditor';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { type Action, BpmnActionModeler } from '../../../../utils/bpmnModeler/BpmnActionModeler';

@@ -8,6 +8,7 @@ import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const task1IdMock = 'task_1';
+const startEventIdMock = 'StartEvent_1';
 const setBpmnDetailsMock = jest.fn();
 let mockLayoutSets: LayoutSets = [];
 jest.mock('../../../../contexts/BpmnContext', () => ({
@@ -34,9 +35,9 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest
+        getAllElementIds: jest
           .fn()
-          .mockReturnValue([{ id: task1IdMock }, { id: 'task_2' }, { id: 'task_3' }]),
+          .mockReturnValue([task1IdMock, 'task_2', 'task_3', startEventIdMock]),
       };
     }),
   };
@@ -115,6 +116,11 @@ describe('EditTaskId', () => {
       {
         description: 'is not unique (case-insensitive)',
         inputValue: task1IdMock.toUpperCase(),
+        expectedError: 'process_editor.validation_error.id_not_unique',
+      },
+      {
+        description: 'collides with a non-task element, since bpmn ids are unique per document',
+        inputValue: startEventIdMock,
         expectedError: 'process_editor.validation_error.id_not_unique',
       },
       {

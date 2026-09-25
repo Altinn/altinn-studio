@@ -1,7 +1,21 @@
 .surface {
-  width: 100%;
+  /* Keep positioned content, including list markers, inside the scrollable panel. */
+  position: relative;
+  min-width: 0;
   background-color: var(--ds-color-neutral-surface-default);
   border-left: 1px solid var(--ds-color-neutral-border-subtle);
   overflow-y: auto;
-  min-width: 500px;
+  overflow-wrap: anywhere;
+}
+
+.surface fieldset {
+  min-inline-size: 0;
+}
+
+@media (max-width: 64rem) {
+  .surface {
+    border-left: 0;
+    border-top: 1px solid var(--ds-color-neutral-border-subtle);
+    overflow-y: visible;
+  }
 }
