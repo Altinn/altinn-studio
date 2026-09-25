@@ -161,7 +161,7 @@ const isSameRule = (config: InternalConfigState, newConfig: InternalConfigState,
   const newTypeValues = newConfig.types.map((t) => t.value);
 
   const typesMatch = arraysEqualUnordered(existingTypeValues, newTypeValues);
-  const pageScopeMatches = config.pageScope?.value === newConfig.pageScope.value;
+  const pageScopeMatches = config.pageScope?.value === newConfig.pageScope?.value;
 
   if (!typesMatch || !pageScopeMatches) {
     return false;
