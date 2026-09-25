@@ -780,23 +780,6 @@ fn text_width(text: &str) -> u16 {
     u16::try_from(Line::from(text).width()).unwrap_or(u16::MAX)
 }
 
-fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
-    let mut x = area.x;
-    for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            x = x.saturating_add(separator_width());
-        }
-        let width = hint_width(hint);
-        if let Some((code, modifiers)) = hint.key {
-            hit_map.click(
-                Rect::new(x, area.y, width.min(area.right().saturating_sub(x)), 1),
-                HitTarget::Action(MouseAction::Key(code, modifiers)),
-            );
-        }
-        x = x.saturating_add(width);
-    }
-}
-
 fn hint_width(hint: &Hint) -> u16 {
     u16::try_from(Line::from(format!("{} {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
 }
@@ -1083,7 +1066,8 @@ impl<'a> Form<'a> {
     fn render(self, frame: &mut Frame, area: Rect, width: u16, hit_map: &mut HitMap) -> Rect {
         let hint_row = self.rows.len() + 1;
         let mut lines = self.rows;
-        lines.extend([self.error, hint_line(self.hints)]);
+        // The hints are drawn into their line after the block, as the footer's are.
+        lines.extend([self.error, Line::default()]);
         let height = u16::try_from(lines.len()).unwrap_or(u16::MAX).saturating_add(2);
         let target = centered_rect(area, width.min(area.width), height.min(area.height));
         frame.render_widget(Clear, target);
@@ -1092,7 +1076,15 @@ impl<'a> Form<'a> {
             .border_style(Style::new().fg(self.border))
             .padding(Padding::horizontal(1));
         frame.render_widget(Paragraph::new(lines).block(block), target);
-        map_hint_targets(line_area(target, hint_row), self.hints, hit_map);
+        render_hints(
+            frame,
+            line_area(target, hint_row),
+            self.hints,
+            Color::Cyan,
+            Color::DarkGray,
+            hit_map,
+            |_| true,
+        );
         target
     }
 }
@@ -1222,19 +1214,6 @@ fn abbreviate(path: &str, home: Option<&str>) -> String {
             (rest.is_empty() || rest.starts_with('/')).then(|| format!("~{rest}"))
         })
         .unwrap_or_else(|| path.to_owned())
-}
-
-fn hint_line(hints: &[Hint]) -> Line<'static> {
-    let mut spans = Vec::new();
-    for (index, hint) in hints.iter().enumerate() {
-        if index > 0 {
-            spans.push(Span::styled(" · ", Style::new().fg(Color::DarkGray)));
-        }
-        spans.push(Span::styled(hint.label, Style::new().fg(Color::Cyan)));
-        spans.push(Span::raw(" "));
-        spans.push(Span::styled(hint.description, Style::new().fg(Color::DarkGray)));
-    }
-    Line::from(spans)
 }
 
 /// Line `line` of a form's content, inside its border and padding.
@@ -2018,6 +1997,21 @@ mod tests {
                     crossterm::event::KeyModifiers::NONE,
                 ))
         }));
+        let text = buffer_text(&terminal);
+        let (row, line) = text
+            .lines()
+            .enumerate()
+            .find(|(_, line)| line.contains("esc cancel"))
+            .expect("form hints");
+        let column = u16::try_from(text_column(line, "esc cancel")).expect("column");
+        assert_eq!(
+            forward.click_at(column, u16::try_from(row).expect("row")),
+            Some(HitTarget::Action(MouseAction::Key(
+                crossterm::event::KeyCode::Esc,
+                crossterm::event::KeyModifiers::NONE,
+            ))),
+            "a form hint is clicked where it is drawn:\n{text}"
+        );
     }
 
     fn modal_border(terminal: &Terminal<TestBackend>) -> Vec<(usize, usize)> {
