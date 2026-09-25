@@ -61,10 +61,10 @@ Return JSON with:
 ### Load System Prompts
 
 ```python
-from agents.prompts import get_prompt_content
+from agents.prompts import get_prompt_with_langfuse
 
-system_prompt = get_prompt_content("intake_planning")
-# Returns the content as a string
+system_prompt, langfuse_prompt = get_prompt_with_langfuse("intake_planning")
+# Returns the content as a string and the Langfuse prompt object (None if not used)
 ```
 
 ### Render User Templates
@@ -85,7 +85,7 @@ When `LANGFUSE_ENABLED=true`, the loader automatically tries to fetch prompts fr
 
 ### How It Works
 
-1. **`get_prompt_content("intake_planning")`** — Tries Langfuse `client.get_prompt("intake_planning", type="text")`, falls back to `intake_planning.md`
+1. **`get_prompt_with_langfuse("intake_planning")`** — Tries Langfuse `client.get_prompt("intake_planning", type="text")`, falls back to `intake_planning.md`
 2. **`render_template("intake_planning_user", user_goal=...)`** — Tries Langfuse `client.get_prompt("intake_planning_user", type="text").compile(user_goal=...)`, falls back to `templates/intake_planning_user.md`
 
 If Langfuse is down or a prompt doesn't exist there, it silently falls back to local files.
@@ -166,7 +166,7 @@ LANGFUSE_BASE_URL=https://langfuse.digdir.cloud  # Your Langfuse host
 
 ### Caching
 
-The Langfuse SDK caches prompts internally (default 60s TTL). You can override this per-call via `fetch_langfuse_prompt(name, cache_ttl_seconds=300)`.
+The Langfuse SDK caches prompts internally (default 60s TTL).
 
 ## Benefits
 
