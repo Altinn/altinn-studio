@@ -11,14 +11,18 @@ export type ExpressionRuntimeOptions<V extends ExprVal> = Omit<
   'returnType' | 'defaultValue' | 'errorIntroText'
 >;
 
+export type DescriptorExpression<D extends ExpressionDescriptor> = D['returnType'] extends ExprVal.Any
+  ? ExprValToActualOrExpr<ExprVal>
+  : ExprValToActualOrExpr<D['returnType']>;
+
 /** Applies descriptor validation, diagnostics and fallbacks using the supplied runtime context. */
-export function evaluateDescriptor<V extends ExprVal>(
-  expr: ExprValToActualOrExpr<V> | undefined,
-  descriptor: ExpressionDescriptor<V>,
+export function evaluateDescriptor<D extends ExpressionDescriptor>(
+  expr: DescriptorExpression<D> | undefined,
+  descriptor: D,
   dataSources: ExpressionDataSources,
   componentId?: string,
-  runtimeOptions?: ExpressionRuntimeOptions<V>,
-): ExprValToActual<V> {
+  runtimeOptions?: ExpressionRuntimeOptions<D['returnType']>,
+): ExprValToActual<D['returnType']> | D['defaultValue'] {
   const options = {
     ...descriptor,
     ...runtimeOptions,
@@ -29,5 +33,5 @@ export function evaluateDescriptor<V extends ExprVal>(
   if (expr === undefined || !ExprValidation.isValidOrScalar(expr, descriptor.returnType, options.errorIntroText)) {
     return descriptor.defaultValue;
   }
-  return evalExpr(expr, dataSources, options);
+  return evalExpr(expr as ExprValToActualOrExpr<D['returnType']>, dataSources, options);
 }

@@ -13,7 +13,7 @@ import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getRepeatingChildBaseIds } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { CompExternal } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -31,23 +31,23 @@ type EditableRow = BaseRow & { editButton: boolean };
 
 const noRows: never[] = [];
 
-interface EvalExprProps<T extends ExprVal> {
-  expr: ExprValToActualOrExpr<T> | undefined;
-  descriptor: ExpressionDescriptor<T>;
+interface EvalExprProps<D extends ExpressionDescriptor> {
+  expr: ExprValToActualOrExpr<D['returnType']> | undefined;
+  descriptor: D;
   dataSources: ExpressionDataSources;
   groupBinding: IDataModelReference | undefined;
   rowIndex: number;
   componentId: string;
 }
 
-function evalRowExpression<T extends ExprVal>({
+function evalRowExpression<D extends ExpressionDescriptor>({
   expr,
   descriptor,
   dataSources,
   groupBinding,
   rowIndex,
   componentId,
-}: EvalExprProps<T>) {
+}: EvalExprProps<D>): ExprValToActual<D['returnType']> | D['defaultValue'] {
   if (!groupBinding) {
     return descriptor.defaultValue;
   }

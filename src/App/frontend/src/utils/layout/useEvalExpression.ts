@@ -7,18 +7,18 @@ import { useExpressionDataSources } from 'src/features/expressions/runtime/useEx
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import type { ExpressionRuntimeOptions } from 'src/features/expressions/evaluateDescriptor';
+import type { DescriptorExpression, ExpressionRuntimeOptions } from 'src/features/expressions/evaluateDescriptor';
 import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
 /**
  * Evaluates one property at the current data model location. Component properties can use generated descriptors:
  * `useEvalExpression(config.required, Expressions.Input.required)`.
  */
-export function useEvalExpression<V extends ExprVal>(
-  expr: ExprValToActualOrExpr<V> | undefined,
-  descriptor: ExpressionDescriptor<V>,
-  runtimeOptions?: ExpressionRuntimeOptions<V>,
-): ExprValToActual<V> {
+export function useEvalExpression<D extends ExpressionDescriptor>(
+  expr: DescriptorExpression<D> | undefined,
+  descriptor: D,
+  runtimeOptions?: ExpressionRuntimeOptions<D['returnType']>,
+): ExprValToActual<D['returnType']> | D['defaultValue'] {
   const dataSources = useExpressionDataSources(expr);
   const baseComponentId = useCurrentComponentId();
   const componentId = useIndexedId(baseComponentId);
@@ -50,10 +50,10 @@ export function useEvalOptionalTrb<
 }
 
 type ExpressionInputs<D extends Record<string, ExpressionDescriptor>> = {
-  [K in keyof D]?: ExprValToActualOrExpr<D[K]['returnType']>;
+  [K in keyof D]?: DescriptorExpression<D[K]>;
 };
 type ExpressionResults<D extends Record<string, ExpressionDescriptor>> = {
-  [K in keyof D]?: ExprValToActual<D[K]['returnType']>;
+  [K in keyof D]?: ExprValToActual<D[K]['returnType']> | D[K]['defaultValue'];
 };
 
 /** Use when the consumer needs every configured entry, such as texts passed to a custom web component. */
@@ -77,13 +77,14 @@ export function useEvalExpressionMap<D extends Record<string, ExpressionDescript
 }
 
 /** Evaluates dictionary entries that share a generated descriptor. */
-export function useEvalExpressionDictionary<V extends ExprVal>(
-  expressions: Record<string, ExprValToActualOrExpr<V> | undefined> | undefined,
-  descriptor: ExpressionDescriptor<V>,
-): Record<string, ExprValToActual<V>> | undefined {
+export function useEvalExpressionDictionary<D extends ExpressionDescriptor>(
+  expressions: Record<string, DescriptorExpression<D> | undefined> | undefined,
+  descriptor: D,
+): Record<string, ExprValToActual<D['returnType']> | D['defaultValue']> | undefined {
   const descriptors = useMemo(
     () => Object.fromEntries(Object.keys(expressions ?? {}).map((key) => [key, descriptor])),
     [descriptor, expressions],
   );
-  return useEvalExpressionMap(expressions, descriptors) as Record<string, ExprValToActual<V>> | undefined;
+  return useEvalExpressionMap(expressions, descriptors) as
+    Record<string, ExprValToActual<D['returnType']> | D['defaultValue']> | undefined;
 }
