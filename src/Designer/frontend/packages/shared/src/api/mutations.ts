@@ -90,6 +90,7 @@ import {
   layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
@@ -229,7 +230,7 @@ export const createPreviewInstance = (org: string, app: string, partyId: number,
 
 // ProcessEditor
 
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributors?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributors);
+export const addDataTypeToAppMetadata = (org: string, app: string, { dataTypeId, taskId, allowedContributors, allowedContentTypes }: AddDataTypeToAppMetadataPayload) => post(processEditorDataTypePath(org, app, dataTypeId, taskId, allowedContentTypes), allowedContributors);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>

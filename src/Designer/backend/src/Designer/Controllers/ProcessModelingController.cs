@@ -157,7 +157,8 @@ public class ProcessModelingController : ControllerBase
         [FromRoute] string dataTypeId,
         [FromQuery] string taskId,
         CancellationToken cancellationToken,
-        [FromBody] List<string>? allowedContributors
+        [FromBody] List<string>? allowedContributors,
+        [FromQuery] List<string>? allowedContentTypes = null
     )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -167,6 +168,7 @@ public class ProcessModelingController : ControllerBase
             dataTypeId,
             taskId,
             allowedContributors,
+            allowedContentTypes,
             cancellationToken
         );
         return Ok();
