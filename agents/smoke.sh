@@ -215,6 +215,7 @@ AGENT_BROWSER_CA_BUNDLE="$work/ca.pem" /usr/local/libexec/agent-browser-ca-init
 
 cat > fixture.html <<'HTML'
 <!doctype html><meta charset="utf-8"><title>smoke</title>
+<script>if (location.search) document.title = 'smoke ' + decodeURIComponent(location.search.slice(1));</script>
 <style>body{font:32px sans-serif;margin:40px}button{font-size:28px;padding:12px 24px}</style>
 <h1>Skjema for søknad om støtte</h1>
 <button id="b" onclick="document.getElementById('o').textContent='Sendt inn ✓'">Send inn</button>
@@ -342,10 +343,12 @@ key Return
 wait 2
 BATCH
 desktop zoom 0 40 1456 40 --out address.jpg
+# The fixture puts the decoded query in its title, so this fails if any character was lost,
+# changed case or arrived through the wrong layout.
 title="$(desktop windows | grep -i chromium)"
 case "$title" in
-    *smoke*) ;;
-    *) fail "the desktop browser is not showing the fixture: $title" ;;
+    *"smoke søk=Blåbær ÆØÅ"*) ;;
+    *) fail "the desktop browser did not receive the Norwegian text typed into it: $title" ;;
 esac
 
 halted="$(desktop batch --no-screenshot <<'BATCH' || true
@@ -393,13 +396,18 @@ test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' http://127.0.0.1:60
     || fail "the browser viewer does not serve noVNC"
 test "$(curl -s --noproxy '*' --path-as-is -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/../../etc/passwd')" = 404 \
     || fail "the browser viewer served a path outside its directory"
-test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/%')" = 400 \
-    || fail "the browser viewer did not refuse a malformed path"
+for malformed in '%' '%00'; do
+    test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' "http://127.0.0.1:6080/$malformed")" = 400 \
+        || fail "the browser viewer did not refuse the malformed path /$malformed"
+done
 kill -0 "$viewer" 2>/dev/null || fail "a malformed path took the browser viewer down"
-# The page is worthless without the bridge, so assert the RFB stream reaches a WebSocket client.
+# The page is worthless without the bridge, so assert the RFB stream reaches a WebSocket client
+# from the viewer's own origin, and that a page from any other origin is refused: the desktop has
+# no VNC password, so the bridge is the screen, keyboard and pointer.
 cat >ws-probe.js <<'PROBE'
 const WebSocket = require('ws');
-const socket = new WebSocket(process.argv[2], ['binary']);
+const [url, origin] = process.argv.slice(2);
+const socket = new WebSocket(url, ['binary'], { origin });
 const timer = setTimeout(() => { console.error('no RFB greeting within 10s'); process.exit(1); }, 10000);
 socket.on('message', (data) => {
     clearTimeout(timer);
@@ -408,9 +416,17 @@ socket.on('message', (data) => {
     socket.close();
     process.exit(/^RFB \d{3}\.\d{3}\n$/.test(greeting) ? 0 : 1);
 });
+socket.on('unexpected-response', (_request, response) => {
+    console.error(`refused with ${response.statusCode}`);
+    process.exit(2);
+});
 socket.on('error', (error) => { console.error(error.message); process.exit(1); });
 PROBE
-node ws-probe.js ws://127.0.0.1:6080/websockify || fail "the browser viewer does not bridge the desktop"
+node ws-probe.js ws://127.0.0.1:6080/websockify http://127.0.0.1:6080 \
+    || fail "the browser viewer does not bridge the desktop"
+status=0
+node ws-probe.js ws://127.0.0.1:6080/websockify https://example.com || status=$?
+test "$status" = 2 || fail "the browser viewer bridged a page from another origin to the desktop"
 
 media-preview desktop.jpg
 finish

@@ -8,6 +8,9 @@
 # pixels; when the display is larger than the screenshot budget the helper scales them back itself.
 # Captures settle before they are written, so a screenshot never shows a half-drawn frame.
 set -euo pipefail
+# Without this, a failure inside `$(...)` is ignored: a capture whose ffmpeg failed would still be
+# reported with a path to a file that does not exist.
+shopt -s inherit_errexit
 
 # The image points DISPLAY at the Agent's own desktop; DESKTOP_DISPLAY overrides it for a second
 # screen or a test harness.
@@ -147,7 +150,7 @@ capture_settled() {
     local previous='' current attempt
     local scratch="${output%.*}.settling.jpg"
     for ((attempt = 1; attempt <= settle_attempts; attempt++)); do
-        grab "$scratch" "$size" "$offset" "$scale_width" "$scale_height"
+        grab "$scratch" "$size" "$offset" "$scale_width" "$scale_height" || fail "cannot capture display $display"
         current=$(cksum <"$scratch" | cut -d' ' -f1)
         if [ "$current" = "$previous" ]; then
             mv -f "$scratch" "$output"
@@ -165,7 +168,10 @@ new_capture_path() {
     mkdir -p "$captures"
     # /tmp is a tmpfs a build also uses. Keep recent captures readable and let the rest go, so a
     # long session, or a loop that screenshots more than it should, cannot fill it.
-    ls -1t "$captures"/*.jpg 2>/dev/null | tail -n +"$keep_captures" | xargs -r rm -f --
+    # `find` rather than `ls` on a glob: with no capture yet the glob matches nothing, `ls` exits 2,
+    # and under pipefail and inherit_errexit that would end every first screenshot silently.
+    find "$captures" -maxdepth 1 -name '*.jpg' -printf '%T@ %p\n' | sort -rn \
+        | tail -n +"$keep_captures" | cut -d' ' -f2- | xargs -r -d '\n' rm -f --
     printf '%s/%s-%s-%04d.jpg\n' "$captures" "$1" "$(date +%Y%m%d-%H%M%S)" "$((RANDOM % 10000))"
 }
 
@@ -216,7 +222,8 @@ command_zoom() {
     y=$(to_display "$y" "$sent_height" "$actual_height")
     w=$(to_display "$w" "$sent_width" "$actual_width")
     h=$(to_display "$h" "$sent_height" "$actual_height")
-    (( x >= 0 && y >= 0 && w > 0 && h > 0 )) || fail "zoom: region must be inside the display"
+    (( x >= 0 && y >= 0 && x < actual_width && y < actual_height && w > 0 && h > 0 )) \
+        || fail "zoom: region must start inside the display"
     (( x + w <= actual_width )) || w=$((actual_width - x))
     (( y + h <= actual_height )) || h=$((actual_height - y))
     [ -n "$out" ] || out=$(new_capture_path zoom)
@@ -246,9 +253,11 @@ command_windows() {
     $json && printf '[\n'
     local first=true
     for id in $(window_ids); do
-        local WINDOW X Y WIDTH HEIGHT SCREEN
-        eval "$(xdotool getwindowgeometry --shell "$id" 2>/dev/null)" || continue
-        class=$(window_class "$id")
+        local WINDOW X Y WIDTH HEIGHT SCREEN geometry
+        # A window can close between listing and inspecting it; it is then simply not listed.
+        geometry=$(xdotool getwindowgeometry --shell "$id" 2>/dev/null) || continue
+        eval "$geometry"
+        class=$(window_class "$id") || continue
         title=$(xdotool getwindowname "$id" 2>/dev/null || echo '')
         local x y w h
         x=$(to_display "$X" "$actual_width" "$sent_width")
@@ -370,7 +379,11 @@ command_key() {
     done
     [ ${#keys[@]} -ge 1 ] || fail "key takes an X11 key combination such as ctrl+s or Page_Down"
     require_integer "$repeat" "--repeat"
-    xdotool key --clearmodifiers --repeat "$repeat" --delay 40 -- "${keys[@]}"
+    # --clearmodifiers releases modifiers a person or a stray keydown left pressed, but under
+    # hold-key the held modifier is the point, so it is kept.
+    local clear=(--clearmodifiers)
+    [ -z "${DESKTOP_HOLDING:-}" ] || clear=()
+    xdotool key "${clear[@]}" --repeat "$repeat" --delay 40 -- "${keys[@]}"
     sync_x
 }
 
@@ -379,7 +392,7 @@ command_hold_key() {
     [ $# -ge 1 ] || fail "hold-key takes a keysym and a desktop command to run while it is held"
     xdotool keydown -- "$keysym"
     local status=0
-    run_command "$@" || status=$?
+    DESKTOP_HOLDING=$keysym run_command "$@" || status=$?
     xdotool keyup -- "$keysym"
     sync_x
     return "$status"
@@ -411,8 +424,9 @@ command_resize() {
     require_integer "$1" "width"; require_integer "$2" "height"
     local output mode="$1x$2"
     output=$(xrandr | awk '/ connected/ { print $1; exit }')
-    xrandr --output "$output" --mode "$mode" 2>/dev/null \
-        || { xrandr --newmode "$mode" 2>/dev/null || true; xrandr --output "$output" --mode "$mode"; }
+    if ! xrandr --output "$output" --mode "$mode" 2>/dev/null; then
+        fail "resize: $mode is not a mode of $output; available: $(xrandr | awk '/^ +[0-9]+x[0-9]+/ { printf "%s ", $1 }')"
+    fi
     command_display
 }
 
@@ -450,17 +464,19 @@ command_batch() {
     local failed=false index=0
     for line in "${lines[@]}"; do
         index=$((index + 1))
-        case ${line# } in '' | '#'*) continue ;; esac
-        if $failed; then
-            printf '%2d %s\n   Not executed: an earlier computer action in this turn failed.\n' "$index" "$line"
-            continue
-        fi
-        printf '%2d %s\n' "$index" "$line"
         # A batch line is split on whitespace, with no quoting and no shell expansion: text a batch
         # line carries can come from the screen, and the screen is untrusted. The two commands whose
         # last argument is free text take the rest of the line verbatim instead.
         local -a words=()
         read -r -a words <<<"$line"
+        # Blank lines, however indented, and comments are not actions.
+        [ ${#words[@]} -gt 0 ] || continue
+        [[ ${words[0]} != '#'* ]] || continue
+        if $failed; then
+            printf '%2d %s\n   Not executed: an earlier computer action in this turn failed.\n' "$index" "$line"
+            continue
+        fi
+        printf '%2d %s\n' "$index" "$line"
         case ${words[0]} in
             type | focus)
                 local rest=${line#*"${words[0]}"}

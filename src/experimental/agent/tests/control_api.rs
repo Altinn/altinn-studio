@@ -61,7 +61,7 @@ impl VncAccessApi for FakeVncAccess {
                 agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
                 guest_port: 5900,
                 web_guest_port: Some(6080),
-                forward_command: "/usr/local/bin/agentctl port-forward agent/worker 5900".into(),
+                forward_command: "/usr/local/bin/agentctl port-forward agent/worker :5900".into(),
             })
         })
     }
