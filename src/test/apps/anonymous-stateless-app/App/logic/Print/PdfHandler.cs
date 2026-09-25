@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Logic.Pdf

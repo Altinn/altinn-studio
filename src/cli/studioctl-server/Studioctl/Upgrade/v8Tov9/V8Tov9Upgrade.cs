@@ -48,6 +48,9 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
+    private const string FeaturesNamespace = "Altinn.App.Core.Features";
+
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
     /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
@@ -137,6 +140,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveLoggingDebugPackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
@@ -182,6 +188,11 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
+
+        // Last of the C# rewrites, so the using directives the steps above leave behind are covered
+        // too. The rule migration further down generates its code without the redundant usings.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, RemoveRedundantUsingDirectives(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
@@ -442,6 +453,63 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing Microsoft.Extensions.Logging.Debug package reference", ex);
+        }
+    }
+
+    // v9 apps get the SDK's implicit usings plus Altinn.App.Core.Features as a global using, so app
+    // code (data processors, validators, ...) compiles without a using block for the namespaces it
+    // needs most. File-level usings that become redundant are harmless: the compiler reports them
+    // only as hidden diagnostics.
+    static async Task<int> EnableImplicitUsings(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Implicit usings");
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            var change = await rewriter.EnableImplicitUsings(FeaturesNamespace);
+            if (!change.Any)
+            {
+                UpgradeConsole.Skip($"Implicit usings already enabled with {FeaturesNamespace} as a global using");
+                return ExitSuccess;
+            }
+
+            if (change.EnabledImplicitUsings)
+                UpgradeConsole.Ok("ImplicitUsings enabled in the project file");
+
+            foreach (var ns in change.AddedNamespaces)
+                UpgradeConsole.Ok($"{ns} added as a global using");
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error enabling implicit usings", ex);
+        }
+    }
+
+    static int RemoveRedundantUsingDirectives(CSharpSourceScanner scanner, string projectFile)
+    {
+        UpgradeConsole.BeginStep("Redundant using directives");
+        try
+        {
+            var globalNamespaces = ProjectGlobalUsings.Read(projectFile);
+            if (globalNamespaces.Count == 0)
+            {
+                UpgradeConsole.Skip("The project file declares no global usings");
+                return ExitSuccess;
+            }
+
+            var migration = new RedundantUsingDirectiveMigration(scanner, globalNamespaces);
+            if (migration.Migrate() == 0)
+            {
+                UpgradeConsole.Skip("No using directive duplicates the project's global usings");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing redundant using directives", ex);
         }
     }
 

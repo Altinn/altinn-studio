@@ -1,7 +1,4 @@
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 //// using Altinn.App.Models; // Uncomment this line to refer to app model(s)

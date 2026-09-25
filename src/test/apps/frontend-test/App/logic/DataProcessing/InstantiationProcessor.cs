@@ -1,10 +1,6 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Actions;
 using Altinn.App.Core.Internal.Registers;
 

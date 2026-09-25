@@ -1,9 +1,5 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Altinn.App.logic.DataProcessing
 {

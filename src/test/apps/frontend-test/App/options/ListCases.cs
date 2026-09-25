@@ -1,13 +1,7 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Core.Models;
+﻿using Altinn.App.Core.Models;
 using Altinn.App.Models;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.App.Options
 {
