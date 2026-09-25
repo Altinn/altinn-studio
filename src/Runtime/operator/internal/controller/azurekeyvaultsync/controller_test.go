@@ -17,6 +17,7 @@ import (
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/fakes"
 	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
@@ -45,6 +46,23 @@ type testHarness struct {
 	clock      *opclock.FakeClock
 }
 
+func newTestRuntime(t *testing.T, clock *opclock.FakeClock, environment string) rt.Runtime {
+	t.Helper()
+
+	runtime, err := internal.NewRuntime(
+		context.Background(),
+		internal.WithClock(clock),
+		internal.WithOperatorContext(&operatorcontext.Context{
+			Environment: environment,
+		}),
+	)
+	if err != nil {
+		t.Fatalf("failed to create runtime: %v", err)
+	}
+
+	return runtime
+}
+
 func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...client.Object) *testHarness {
 	t.Helper()
 
@@ -52,19 +70,8 @@ func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...
 	k8sClient := newFakeK8sClient(initObjs...)
 	clock := opclock.NewFakeClock()
 
-	rt, err := internal.NewRuntime(
-		context.Background(),
-		internal.WithClock(clock),
-		internal.WithOperatorContext(&operatorcontext.Context{
-			Environment: operatorcontext.EnvironmentLocal,
-		}),
-	)
-	if err != nil {
-		t.Fatalf("failed to create runtime: %v", err)
-	}
-
 	reconciler := NewReconcilerForTesting(
-		rt,
+		newTestRuntime(t, clock, operatorcontext.EnvironmentLocal),
 		k8sClient,
 		kvClient,
 		mappings,
@@ -446,6 +453,42 @@ func TestReconciler_RawOutputStoresPlainString(t *testing.T) {
 
 	// Raw output should NOT be JSON-encoded (no quotes)
 	g.Expect(string(mapping.fileData(secret))).To(Equal("InstrumentationKey=abc123"))
+}
+
+func defaultMapping(t *testing.T, name string) KeyVaultSecretMapping {
+	t.Helper()
+
+	runtime := newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentProd)
+	for _, mapping := range DefaultMappings(runtime) {
+		if mapping.Name == name {
+			return mapping
+		}
+	}
+
+	t.Fatalf("no default mapping named %q", name)
+	return KeyVaultSecretMapping{}
+}
+
+func TestDefaultMappings_ObservabilityIngestTokenIsDeliveredVerbatim(t *testing.T) {
+	g := NewWithT(t)
+
+	mapping := defaultMapping(t, "observability-ingest-token")
+	g.Expect(mapping.Namespace).To(Equal("runtime-obs"))
+	g.Expect(mapping.FileName).To(Equal("token"))
+	g.Expect(mapping.Secrets).To(Equal([]string{"Observability--Ingest--Token"}))
+
+	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
+	h.kvClient.SetSecret(mapping.Secrets[0], "gkQ2nT8pLxR4wZ6vB1sJ")
+
+	err := h.reconciler.SyncAll(h.ctx())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	secret := &corev1.Secret{}
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// The gateway sends this file as a bearer token, so any JSON encoding would be sent along with it.
+	g.Expect(string(mapping.fileData(secret))).To(Equal("gkQ2nT8pLxR4wZ6vB1sJ"))
 }
 
 func TestReconciler_StartExitsOnContextCancellation(t *testing.T) {
