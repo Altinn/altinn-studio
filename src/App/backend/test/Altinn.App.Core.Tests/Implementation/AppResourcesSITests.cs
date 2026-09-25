@@ -31,7 +31,7 @@ public class AppResourcesSITests
         }
         var appFiles = await TestAppFiles.Load(appDir.FullName);
         var frontendFeatures = new Mock<IFrontendFeatures>();
-        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
+        frontendFeatures.Setup(f => f.GetFrontendFeatures()).ReturnsAsync(new Dictionary<string, bool>());
         return new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
     }
 
@@ -121,6 +121,52 @@ public class AppResourcesSITests
             model!.DefaultDataType.Id.Should().Be("main");
             appResources.GetClassRefForLogicDataType("main").Should().Be("Model.Main");
             appResources.GetClassRefForLogicDataType("missing").Should().BeEmpty();
+        }
+        finally
+        {
+            Directory.Delete(tempDir.FullName, true);
+        }
+    }
+
+    [Fact]
+    public async Task GetLayoutModelForFolder_finds_a_data_type_the_apps_own_IAppMetadata_adds()
+    {
+        var tempDir = Directory.CreateTempSubdirectory("AppResourcesSI-LayoutModel-");
+        try
+        {
+            WriteApplicationMetadata(tempDir);
+            var uiDir = Path.Join(tempDir.FullName, "ui");
+            Directory.CreateDirectory(Path.Join(uiDir, "Task_1", "layouts"));
+
+            File.WriteAllText(
+                Path.Join(uiDir, "Task_1", "Settings.json"),
+                """{ "defaultDataType": "added", "pages": { "order": ["page1"] } }"""
+            );
+            File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": { "layout": [] } }""");
+
+            var appFiles = await TestAppFiles.Load(tempDir.FullName);
+            var appMetadata = new Mock<IAppMetadata>();
+            appMetadata
+                .Setup(m => m.ApplicationMetadata)
+                .Returns(
+                    new ApplicationMetadata("ttd/app")
+                    {
+                        DataTypes =
+                        [
+                            new DataType
+                            {
+                                Id = "added",
+                                AppLogic = new() { ClassRef = "Model.Added" },
+                            },
+                        ],
+                    }
+                );
+            var appResources = new AppResourcesSI(appFiles, appMetadata.Object);
+
+            var model = appResources.GetLayoutModelForFolder("Task_1");
+
+            model.Should().NotBeNull();
+            model!.DefaultDataType.Id.Should().Be("added");
         }
         finally
         {

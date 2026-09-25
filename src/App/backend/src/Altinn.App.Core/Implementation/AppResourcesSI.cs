@@ -213,7 +213,7 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public LayoutModel? GetLayoutModelForFolder(string folder)
     {
-        // One snapshot for every file, so that a reload in Development cannot mix two versions of the app
+        // One snapshot for every layout file, so that a reload in Development cannot mix two versions of the app
         AppFiles files = _appFiles.Current;
         var ui = GetUiConfiguration(files);
         if (ui is null)
@@ -225,7 +225,9 @@ internal sealed class AppResourcesSI : IAppResources
             return null;
         }
 
-        var dataTypes = ApplicationMetadataParser.Parse(files).DataTypes;
+        // Through IAppMetadata rather than from the snapshot, so a data type an app's own implementation adds is
+        // found here the same way it is everywhere else
+        var dataTypes = _appMetadata.ApplicationMetadata.DataTypes;
         var layouts = ui.Folders.Select(f => LoadLayout(files, f.Key, f.Value, dataTypes)).ToList();
         return new LayoutModel(layouts, folder);
     }
