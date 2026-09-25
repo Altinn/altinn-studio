@@ -71,6 +71,7 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
         getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };

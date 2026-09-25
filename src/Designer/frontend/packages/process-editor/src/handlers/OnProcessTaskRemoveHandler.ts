@@ -1,11 +1,13 @@
 import type { Policy } from 'app-shared/types/Policy';
-import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
+import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import { PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
-import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
-import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
+import { TaskUtils } from '../utils/taskUtils';
+import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
+import type { BpmnBusinessObjectEditor } from '../types/BpmnBusinessObjectEditor';
 
 export class OnProcessTaskRemoveHandler {
   constructor(
@@ -18,168 +20,71 @@ export class OnProcessTaskRemoveHandler {
     private readonly deleteLayoutSet: (data: { layoutSetIdToUpdate: string }) => void,
   ) {}
 
-  public handleOnProcessTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    if (taskMetadata.taskType === 'data') {
-      this.handleDataTaskRemove(taskMetadata);
-    }
+  public handleOnProcessTaskRemove({ taskEvent, taskType }: OnProcessTaskEvent): void {
+    if (!['data', 'payment', 'signing', 'pdf', 'subformPdf'].includes(taskType)) return;
 
-    if (taskMetadata.taskType === 'payment') {
-      this.handlePaymentTaskRemove(taskMetadata);
-    }
+    const { id, businessObject } = taskEvent.element;
+    const layoutSetId = getLayoutSetIdFromTaskId(id, this.layoutSets ?? []);
+    if (layoutSetId) this.deleteLayoutSet({ layoutSetIdToUpdate: layoutSetId });
 
-    if (taskMetadata.taskType === 'signing') {
-      this.handleSigningTaskRemove(taskMetadata);
-    }
-
-    if (taskMetadata.taskType === 'pdf') {
-      this.handlePdfServiceTaskRemove(taskMetadata);
-    }
-  }
-
-  private handleDataTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const layoutSetId = getLayoutSetIdFromTaskId(
-      taskMetadata.taskEvent.element.id,
-      this.layoutSets,
-    );
-
-    if (layoutSetId) {
-      this.deleteLayoutSet({
-        layoutSetIdToUpdate: layoutSetId,
-      });
-    }
-  }
-
-  private handlePaymentTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId,
-    });
-
-    const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId: receiptPdfDataTypeId,
-    });
-
-    const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
-    const currentPaymentRuleId = paymentPolicyBuilder.getPolicyRuleId(
-      taskMetadata.taskEvent.element.id,
-    );
-
-    // Need to merge the default payment policy with the current policy, since backend does not support partial updates.
-    const updatedPolicy: Policy = {
-      ...this.currentPolicy,
-      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== currentPaymentRuleId),
-    };
-
-    this.mutateApplicationPolicy(updatedPolicy);
-
-    const layoutSetId = getLayoutSetIdFromTaskId(
-      taskMetadata.taskEvent.element.id,
-      this.layoutSets,
-    );
-
-    if (layoutSetId) {
-      this.deleteLayoutSet({
-        layoutSetIdToUpdate: layoutSetId,
-      });
-    }
-  }
-
-  private handleSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskRemove(taskMetadata);
-    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
-      this.handleRemoveSigneeState(taskMetadata);
-    }
-  }
-
-  private removeDeletedSignatureTypeFromTasks(
-    deletedSigningTask: OnProcessTaskEvent,
-    studioModeler: StudioModeler,
-  ): void {
-    const signatureDataType =
-      deletedSigningTask.taskEvent.element.businessObject.extensionElements.values[0]
-        .signatureConfig.signatureDataType;
-
-    const tasks = studioModeler.getAllTasksByType('bpmn:Task');
-    const signingTasksToUpdate = tasks.filter(
-      ({
-        businessObject: {
-          extensionElements: { values },
-        },
-      }) => {
-        const { taskType, signatureConfig } = values[0];
-        return (
-          taskType === 'signing' &&
-          signatureConfig?.uniqueFromSignaturesInDataTypes?.dataTypes?.some(
-            ({ dataType }) => dataType === signatureDataType,
-          )
-        );
-      },
-    );
-
-    signingTasksToUpdate.forEach((element) => {
-      const uniqueFromSignaturesInDataTypes =
-        element.businessObject.extensionElements.values[0].signatureConfig
-          .uniqueFromSignaturesInDataTypes;
-
-      uniqueFromSignaturesInDataTypes.dataTypes = uniqueFromSignaturesInDataTypes.dataTypes.filter(
-        (dataType) => dataType.dataType !== signatureDataType,
+    if (taskType === 'payment' || taskType === 'signing') {
+      const studioModeler = new StudioModeler();
+      const otherTasks = [
+        ...studioModeler.getElementsByType(BpmnTypeEnum.Task),
+        ...studioModeler.getElementsByType(BpmnTypeEnum.ServiceTask),
+      ].filter((task) => task.id !== id);
+      const referencedDataTypes = new Set(
+        otherTasks.flatMap((task) => getGeneratedDataTypeIds(task.businessObject)),
       );
-    });
-  }
+      for (const dataTypeId of new Set(getGeneratedDataTypeIds(businessObject))) {
+        if (!referencedDataTypes.has(dataTypeId)) {
+          this.deleteDataTypeFromAppMetadata({ dataTypeId });
+        }
+      }
 
-  private handleGenericSigningTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-    const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId,
-    });
-
-    const layoutSetId = getLayoutSetIdFromTaskId(
-      taskMetadata.taskEvent.element.id,
-      this.layoutSets,
-    );
-
-    if (layoutSetId) {
-      this.deleteLayoutSet({
-        layoutSetIdToUpdate: layoutSetId,
-      });
+      const signatureDataType =
+        TaskUtils.getTaskExtensionFromBusinessObject(businessObject)?.signatureConfig
+          ?.signatureDataType;
+      if (
+        taskType === 'signing' &&
+        signatureDataType &&
+        !referencedDataTypes.has(signatureDataType)
+      ) {
+        this.removeSignatureReferences(otherTasks, signatureDataType);
+      }
     }
 
-    this.removeDeletedSignatureTypeFromTasks(taskMetadata, studioModeler);
-  }
-
-  private handleRemoveSigneeState(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
-    const dataTypeId = studioModeler.getSigneeStatesDataTypeId(
-      taskMetadata.taskType,
-      taskMetadata.taskEvent.element.businessObject,
-    );
-    this.deleteDataTypeFromAppMetadata({
-      dataTypeId,
-    });
-  }
-
-  private handlePdfServiceTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const layoutSetId = getLayoutSetIdFromTaskId(
-      taskMetadata.taskEvent.element.id,
-      this.layoutSets,
-    );
-
-    if (layoutSetId) {
-      this.deleteLayoutSet({
-        layoutSetIdToUpdate: layoutSetId,
+    if (taskType === 'payment') {
+      const ruleId = new PaymentPolicyBuilder(this.org, this.app).getPolicyRuleId(id);
+      this.mutateApplicationPolicy({
+        ...this.currentPolicy,
+        rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== ruleId),
       });
     }
   }
+
+  private removeSignatureReferences(tasks: Element[], signatureDataType: string): void {
+    for (const task of tasks) {
+      const taskExtension = TaskUtils.getTaskExtension(task);
+      if (taskExtension?.taskType !== 'signing') continue;
+      const uniqueFromSignatures = taskExtension.signatureConfig?.uniqueFromSignaturesInDataTypes;
+      if (uniqueFromSignatures?.dataTypes) {
+        uniqueFromSignatures.dataTypes = uniqueFromSignatures.dataTypes.filter(
+          ({ dataType }) => dataType !== signatureDataType,
+        );
+      }
+    }
+  }
+}
+
+function getGeneratedDataTypeIds(businessObject: BpmnBusinessObjectEditor): string[] {
+  const { signatureConfig, paymentConfig } =
+    TaskUtils.getTaskExtensionFromBusinessObject(businessObject) ?? {};
+  return [
+    signatureConfig?.signatureDataType,
+    signatureConfig?.signingPdfDataType,
+    signatureConfig?.signeeStatesDataTypeId,
+    paymentConfig?.paymentDataType,
+    paymentConfig?.paymentReceiptPdfDataType,
+  ].filter(Boolean);
 }

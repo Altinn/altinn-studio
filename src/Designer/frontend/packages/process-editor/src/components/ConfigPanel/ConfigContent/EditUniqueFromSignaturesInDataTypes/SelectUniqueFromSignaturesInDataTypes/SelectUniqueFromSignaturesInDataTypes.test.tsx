@@ -1,29 +1,21 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
-import { BpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import type { BpmnContextProps } from '../../../../../contexts/BpmnContext';
-import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import type { SelectUniqueFromSignaturesInDataTypesProps } from './SelectUniqueFromSignaturesInDataTypes';
 import { SelectUniqueFromSignaturesInDataTypes } from './SelectUniqueFromSignaturesInDataTypes';
-import { BpmnConfigPanelFormContextProvider } from '../../../../../contexts/BpmnConfigPanelContext';
-import {
-  mockBpmnApiContextValue,
-  mockBpmnContextValue,
-} from '../../../../../../test/mocks/bpmnContextMock';
 import {
   createMock,
   updateModdlePropertiesMock,
 } from '../../../../../../test/mocks/bpmnModelerMock';
-import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
   getMockBpmnElementForTask,
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
-jest.useFakeTimers({ advanceTimers: true });
-createMock.mockImplementation(() => []);
+createMock.mockImplementation((_, properties) => properties);
 
 const existingDataTypes = [
   { id: 'dataType1', name: 'Name 1' },
@@ -40,7 +32,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 1',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType1' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -49,7 +47,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 2',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType2' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -58,7 +62,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 3',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType3' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType3' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -68,7 +78,7 @@ jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -86,25 +96,51 @@ const existingDataTypesProps = {
 };
 
 describe('SelectUniqueFromSignaturesInDataTypes', () => {
+  beforeEach(() => {
+    element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
+      { dataTypes: [] };
+  });
+
   afterEach(jest.clearAllMocks);
+
+  it.each([
+    { dataType: 'dataType2', label: /Name 2/ },
+    { dataType: 'removed-signature', label: /removed-signature/ },
+  ])(
+    'shows the current BPMN selection $dataType after an external change',
+    async ({ dataType, label }) => {
+      const { rerender } = renderSelectDataTypes(existingDataTypesProps);
+      const signatureConfig = element.businessObject.extensionElements.values[0].signatureConfig;
+      signatureConfig.uniqueFromSignaturesInDataTypes = { dataTypes: [{ dataType }] };
+
+      rerender(<SelectUniqueFromSignaturesInDataTypes {...defaultSelectDataTypeProps} />);
+
+      expect(
+        await screen.findByRole('option', { name: label, selected: true }),
+      ).toBeInTheDocument();
+    },
+  );
 
   it('saves the new selection', async () => {
     const user = userEvent.setup();
 
-    renderSelectDataTypes(existingDataTypesProps);
+    const { unmount } = renderSelectDataTypes(existingDataTypesProps);
 
     const suggestionInput = screen.getByRole('textbox', {
       name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
     });
     await user.click(suggestionInput);
 
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await user.click(
       screen.getByRole('option', { name: signingTasks[0].businessObject.name, hidden: true }),
     );
 
-    await waitFor(() => expect(createMock).toHaveBeenCalled());
-    expect(updateModdlePropertiesMock).toHaveBeenCalled();
+    unmount();
+    expect(updateModdlePropertiesMock).toHaveBeenCalledWith(
+      element,
+      element.businessObject.extensionElements.values[0].signatureConfig,
+      { uniqueFromSignaturesInDataTypes: { dataTypes: [{ dataType: 'dataType1' }] } },
+    );
   });
 
   it('calls onClose when clicking the close button', async () => {
@@ -129,18 +165,11 @@ type RenderProps = {
 const renderSelectDataTypes = (props: Partial<RenderProps> = {}) => {
   const { bpmnApiContextProps, bpmnContextProps } = props;
 
-  return render(
-    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider
-        value={{
-          ...mockBpmnContextValue,
-          ...bpmnContextProps,
-        }}
-      >
-        <BpmnConfigPanelFormContextProvider>
-          <SelectUniqueFromSignaturesInDataTypes {...defaultSelectDataTypeProps} />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
+  return renderWithProviders(
+    <SelectUniqueFromSignaturesInDataTypes {...defaultSelectDataTypeProps} />,
+    {
+      bpmnApiContextProps,
+      bpmnContextProps,
+    },
   );
 };
