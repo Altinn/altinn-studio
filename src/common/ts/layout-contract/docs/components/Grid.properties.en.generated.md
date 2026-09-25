@@ -460,6 +460,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -668,6 +669,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -864,6 +866,7 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
+            <span class="component-property-default">Default: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>

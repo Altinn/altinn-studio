@@ -42,7 +42,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'minTime',
-      new CG.union(new CG.expr(ExprVal.String).setFallback(''), new CG.str())
+      new CG.union(new CG.expr(ExprVal.String), new CG.str())
         .optional()
         .setTitle('Earliest time', 'Tidligste klokkeslett')
         .setDescription(
@@ -55,7 +55,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'maxTime',
-      new CG.union(new CG.expr(ExprVal.String).setFallback(''), new CG.str())
+      new CG.union(new CG.expr(ExprVal.String), new CG.str())
         .optional()
         .setTitle('Latest time', 'Seneste klokkeslett')
         .setDescription(

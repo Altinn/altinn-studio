@@ -202,6 +202,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="textResourceBindings.tableEditButton">textResourceBindings.tableEditButton</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">&quot;general.edit&quot;</span></span>
             <span class="component-property-type" title="string | expression&lt;string&gt;">Type: <span class="component-property-value">string | expression&lt;string&gt;</span></span>
           </span>
         </summary>

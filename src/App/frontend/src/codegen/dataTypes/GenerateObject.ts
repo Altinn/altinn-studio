@@ -5,8 +5,10 @@ import { CG } from 'src/codegen/CG';
 import { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import { getSourceForCommon } from 'src/codegen/Common';
 import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
+import { prefixExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import type { CodeGenerator, CodeGeneratorWithProperties, Extract } from 'src/codegen/CodeGenerator';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Props = GenerateProperty<any>[];
@@ -173,6 +175,16 @@ export class GenerateObject<P extends Props>
 
   getAdditionalProperties(): CodeGenerator<unknown> | false {
     return this._additionalProperties;
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    const properties = this.getAllProperties().flatMap((property) =>
+      prefixExpressionDescriptors(property.name, property.type.expressionDescriptors()),
+    );
+    const additional = this._additionalProperties
+      ? prefixExpressionDescriptors('additionalProperties', this._additionalProperties.expressionDescriptors())
+      : [];
+    return [...properties, ...additional];
   }
 
   componentCatalogProperties(): Readonly<Record<string, PropertyDefinition>> {
