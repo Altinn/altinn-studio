@@ -26,7 +26,7 @@ import type {
 type BeforeFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[]) => void;
 type AfterFuncCallback = (path: string[], func: ExprFunctionName, args: unknown[], result: unknown) => void;
 
-export interface EvalExprOptions<V extends ExprVal = ExprVal> extends ExprConfig<V> {
+export interface EvalExprOptions<V extends ExprVal = ExprVal, F = ExprValToActual<V>> extends ExprConfig<V, F> {
   errorIntroText?: string;
   onBeforeFunctionCall?: BeforeFuncCallback;
   onAfterFunctionCall?: AfterFuncCallback;
@@ -64,9 +64,19 @@ export function evalExpr<V extends ExprVal = ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
   dataSources: ExpressionDataSources,
   options: EvalExprOptions,
-): ExprValToActual<V> {
+): ExprValToActual<V>;
+export function evalExpr<V extends ExprVal = ExprVal, F extends ExprValToActual<ExprVal> | undefined = undefined>(
+  expr: ExprValToActualOrExpr<V> | undefined,
+  dataSources: ExpressionDataSources,
+  options: EvalExprOptions<ExprVal, F>,
+): ExprValToActual<V> | F;
+export function evalExpr<V extends ExprVal = ExprVal>(
+  expr: ExprValToActualOrExpr<V> | undefined,
+  dataSources: ExpressionDataSources,
+  options: EvalExprOptions<ExprVal, ExprValToActual<ExprVal> | undefined>,
+): ExprValToActual<V> | undefined {
   if (!isExpression(expr)) {
-    return expr as ExprValToActual<V>;
+    return expr as ExprValToActual<V> | undefined;
   }
 
   dataSources.markExpressionEvaluated();
@@ -87,7 +97,7 @@ export function evalExpr<V extends ExprVal = ExprVal>(
   try {
     const result = innerEvalExpr(evalParams);
     if (result === null || result === undefined) {
-      return options.defaultValue as ExprValToActual<V>;
+      return options.defaultValue as ExprValToActual<V> | undefined;
     }
 
     if (options.returnType !== ExprVal.Any && options.returnType !== valueToExprValueType(result)) {
@@ -108,7 +118,7 @@ export function evalExpr<V extends ExprVal = ExprVal>(
       config: options,
       ...(options.errorIntroText ? { introText: options.errorIntroText } : {}),
     });
-    return options.defaultValue as ExprValToActual<V>;
+    return options.defaultValue as ExprValToActual<V> | undefined;
   }
 }
 
