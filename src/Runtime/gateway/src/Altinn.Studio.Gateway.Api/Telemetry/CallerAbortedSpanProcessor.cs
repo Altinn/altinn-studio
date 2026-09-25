@@ -19,7 +19,10 @@ internal sealed class CallerAbortedSpanProcessor(IHttpContextAccessor _httpConte
     {
         switch (data.Kind)
         {
-            case ActivityKind.Server when data.GetTagItem("http.response.status_code") is ClientClosedRequestStatusCode:
+            // ASP.NET Core also reports 499 when the request failed after the caller left; keep that an error.
+            case ActivityKind.Server
+                when data.Status != ActivityStatusCode.Error
+                    && data.GetTagItem("http.response.status_code") is ClientClosedRequestStatusCode:
                 data.SetTag(CallerAbortedAttribute, true);
                 break;
             case ActivityKind.Client when IsCancelledBecauseCallerAborted(data):

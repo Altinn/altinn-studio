@@ -111,6 +111,17 @@ internal static class FluxWebhookEndpoints
             response.EnsureSuccessStatusCode();
             logger.LogInformation("Successfully sent deploy event to Designer for {Org}/{App}", info.Org, info.App);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Flux closed the webhook request (e.g. its provider timeout) before Designer answered.
+            // Not a failure, so the exception is left out to keep it from being reported as one.
+#pragma warning disable S6667
+            logger.LogInformation(
+                "Flux closed the webhook request before the deploy event for {Name} was sent",
+                helmReleaseName
+            );
+#pragma warning restore S6667
+        }
         catch (Exception ex)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
