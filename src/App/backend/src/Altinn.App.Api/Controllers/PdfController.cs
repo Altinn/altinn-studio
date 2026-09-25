@@ -84,13 +84,14 @@ public class PdfController : ControllerBase
         [FromQuery] Guid? dataElementId = null
     )
     {
+        CancellationToken cancellationToken = HttpContext?.RequestAborted ?? CancellationToken.None;
         var instance = await _instanceClient.GetInstance(
             app,
             org,
             instanceOwnerPartyId,
             instanceGuid,
             authenticationMethod: null,
-            CancellationToken.None
+            cancellationToken
         );
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
         if (instance == null || currentTaskId == null)
@@ -104,7 +105,7 @@ public class PdfController : ControllerBase
                 instance,
                 currentTaskId,
                 true,
-                cancellationToken: CancellationToken.None
+                cancellationToken: cancellationToken
             );
             return new FileStreamResult(pdfContent, "application/pdf");
         }
@@ -139,7 +140,7 @@ public class PdfController : ControllerBase
             taskId,
             autoGeneratePdfForTaskIds,
             subformPdfContext,
-            CancellationToken.None
+            cancellationToken
         );
         return new FileStreamResult(previewContent, "application/pdf");
     }
