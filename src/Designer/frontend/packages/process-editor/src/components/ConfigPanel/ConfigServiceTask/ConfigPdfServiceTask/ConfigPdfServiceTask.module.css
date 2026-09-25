@@ -1,0 +1,31 @@
+.pdfConfig {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding-inline: var(--ds-size-5);
+  margin-top: var(--ds-size-3);
+  margin-bottom: var(--ds-size-3);
+  list-style-type: none;
+}
+
+ol > li::marker {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-5);
+}
+
+.displayTile {
+  padding-inline: var(--ds-size-5);
+}
+
+.boldFont {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.description {
+  margin-top: calc(var(--ds-size-2) * -1);
+}
