@@ -1,3 +1,4 @@
+import type { BpmnTaskType as LayoutSetTaskType } from 'app-shared/types/BpmnTaskType';
 import { PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
@@ -115,7 +116,7 @@ export class OnProcessTaskAddHandler {
   private createLayoutSetConfig(taskMetadata: OnProcessTaskEvent): AddLayoutSetMutationPayload {
     const elementId = taskMetadata.taskEvent.element.id;
     return {
-      taskType: taskMetadata.taskType,
+      taskType: taskMetadata.taskType as LayoutSetTaskType,
       layoutSetConfig: { id: elementId, taskId: elementId },
     };
   }

@@ -7,9 +7,8 @@ import {
   StudioPageSpinner,
 } from '@studio/components';
 import { Canvas } from './components/Canvas';
-import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
+import { BpmnContextProvider } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
-import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
 import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
@@ -21,7 +20,7 @@ import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandle
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
 import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
-import { useAppMetadataQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
@@ -45,7 +44,6 @@ export const ProcessEditor = (): JSX.Element => {
     isError: hasBpmnQueryError,
     refetch: refetchBpmn,
   } = useBpmnQuery(org, app);
-  const { data: appVersion, isLoading: appVersionPending } = useAppVersionQuery(org, app);
   const { mutateAsync: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
   const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
     useUpdateLayoutSetIdMutation(org, app);
@@ -130,7 +128,7 @@ export const ProcessEditor = (): JSX.Element => {
     ).handleOnProcessTaskRemove(taskMetadata);
   };
 
-  if (appVersionPending || appMetadataPending) {
+  if (appMetadataPending) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
@@ -143,7 +141,7 @@ export const ProcessEditor = (): JSX.Element => {
   }
 
   return (
-    <BpmnContextProvider bpmnXml={bpmnXml} appVersion={appVersion}>
+    <BpmnContextProvider bpmnXml={bpmnXml}>
       <BpmnApiContextProvider
         availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
         availableDataModelIds={availableDataModelIds}
@@ -162,24 +160,14 @@ export const ProcessEditor = (): JSX.Element => {
       >
         <BpmnConfigPanelFormContextProvider>
           <StudioRecommendedNextActionContextProvider>
-            <BpmnCanvas />
+            <div className={classes.container}>
+              <Canvas />
+              <ConfigPanel />
+            </div>
           </StudioRecommendedNextActionContextProvider>
         </BpmnConfigPanelFormContextProvider>
       </BpmnApiContextProvider>
     </BpmnContextProvider>
-  );
-};
-
-const BpmnCanvas = (): React.ReactElement | null => {
-  const { isEditAllowed } = useBpmnContext();
-
-  return (
-    <div className={classes.container}>
-      <Canvas />
-      <div className={classes.container}>
-        {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
-      </div>
-    </div>
   );
 };
 

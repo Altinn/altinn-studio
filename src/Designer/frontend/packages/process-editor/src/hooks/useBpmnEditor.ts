@@ -113,17 +113,17 @@ function useModelerEventListener<Event>(eventName: string, callback: (event: Eve
 }
 
 function useEditorCallback(): (div: HTMLDivElement) => void {
-  const { initialBpmnXml, modelerRef, setIsInitialized, appVersion } = useBpmnContext();
+  const { initialBpmnXml, modelerRef, setIsInitialized } = useBpmnContext();
 
   const initialize = useCallback(
     (div: HTMLDivElement) => {
-      const modeler = BpmnModelerInstance.getInstance(div, appVersion);
+      const modeler = BpmnModelerInstance.getInstance(div);
       if (!modelerRef.current) {
         modelerRef.current = modeler;
         initializeEditor(modeler, initialBpmnXml).then(() => setIsInitialized(true));
       }
     },
-    [setIsInitialized, modelerRef, initialBpmnXml, appVersion],
+    [setIsInitialized, modelerRef, initialBpmnXml],
   );
 
   const cleanUp = useCallback(() => {
