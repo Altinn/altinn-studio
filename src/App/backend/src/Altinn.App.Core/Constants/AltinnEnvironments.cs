@@ -46,10 +46,18 @@ internal static class AltinnEnvironments
     }
 }
 
-internal enum HostingEnvironment
+/// <summary>The hosting environment used to resolve environment-specific process configuration.</summary>
+public enum HostingEnvironment
 {
+    /// <summary>An environment name that is not recognized.</summary>
     Unknown,
+
+    /// <summary>Local development.</summary>
     Development,
+
+    /// <summary>Production.</summary>
     Production,
+
+    /// <summary>Staging and test environments.</summary>
     Staging,
 }

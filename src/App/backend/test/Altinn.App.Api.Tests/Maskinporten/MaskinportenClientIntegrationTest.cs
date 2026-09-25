@@ -1,4 +1,5 @@
 using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
@@ -6,6 +7,7 @@ using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -74,7 +76,10 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
+        await using var app = AppBuilder.Build(
+            HostBuilder(),
+            configData: HostConfiguration(secretsDirectory.Path, _platformHostName)
+        );
 
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
         Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
@@ -91,7 +96,7 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = AppBuilder.Build(HostBuilder(), configData: HostConfiguration(secretsDirectory.Path));
 
         await app.StartAsync();
         await app.StopAsync();
@@ -109,7 +114,7 @@ public class MaskinportenClientIntegrationTests
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = AppBuilder.Build(HostBuilder(), configData: HostConfiguration(secretsDirectory.Path));
 
         await app.StartAsync();
         await app.StopAsync();
@@ -119,11 +124,26 @@ public class MaskinportenClientIntegrationTests
     }
 
     /// <summary>
-    /// What an app host needs besides its provisioned secrets before it will start: an ephemeral port and no
-    /// localtest probing. The callback app code the workflow engine integration validates at startup is
-    /// provisioned as a file beside the client, because an <c>AppCodes</c> section is no longer read. The host
-    /// name decides which platform the app believes it is on, and a test host is on localtest unless it says
-    /// otherwise.
+    /// The builder for an app host that is started: startup validation reads the process and the application
+    /// metadata from the app files, which are loaded from the content root, so the host runs as a real test app.
+    /// The content root is set on the environment after the builder is created, the way <see cref="AppBuilder"/>
+    /// sets the environment name, because creating the builder with it would also add that app's
+    /// <c>appsettings.json</c>, with its fixed Kestrel endpoint and Application Insights key, to the
+    /// configuration these tests control.
+    /// </summary>
+    private static WebApplicationBuilder HostBuilder()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Environment.ContentRootPath = TestData.GetApplicationDirectory("tdd", "contributer-restriction");
+        return builder;
+    }
+
+    /// <summary>
+    /// What an app host needs besides its provisioned secrets and app files before it will start: an ephemeral
+    /// port and no localtest probing, plus the authorization endpoint the platform clients are built with when
+    /// startup validation resolves them. The callback app code is provisioned as a file beside the client,
+    /// because an <c>AppCodes</c> section is no longer read. The host name decides which platform the app
+    /// believes it is on, and a test host is on localtest unless it says otherwise.
     /// </summary>
     /// <param name="secretsDirectory">The directory standing in for the platform's secrets mount.</param>
     /// <param name="hostName">The host name the app is served under.</param>
@@ -133,6 +153,7 @@ public class MaskinportenClientIntegrationTests
     ) =>
         [
             .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
+            new("PlatformSettings:ApiAuthorizationEndpoint", "http://localhost:5101/authorization/api/v1/"),
             new("urls", "http://127.0.0.1:0"),
             new("GeneralSettings:DisableLocaltestValidation", "true"),
             new("GeneralSettings:HostName", hostName),

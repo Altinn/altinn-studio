@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.EFormidling.Models.SBD;
@@ -37,6 +39,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
     private readonly IEFormidlingClient? _eFormidlingClient;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly EFormidlingClientSettings? _clientSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
@@ -46,7 +49,8 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         IAppMetadata appMetadata,
         IServiceProvider sp,
         IOptions<AppSettings>? appSettings = null,
-        IEFormidlingClient? eFormidlingClient = null
+        IEFormidlingClient? eFormidlingClient = null,
+        IOptions<EFormidlingClientSettings>? clientSettings = null
     )
     {
         _logger = logger;
@@ -54,6 +58,27 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         _eFormidlingClient = eFormidlingClient;
         _appMetadata = appMetadata;
         _appImplementationFactory = sp.GetRequiredService<AppImplementationFactory>();
+        _clientSettings = clientSettings?.Value;
+    }
+
+    // Only the built-in service uses the app's metadata generator and client settings. Apps that
+    // replace IEFormidlingService compose their own shipment and need neither registration.
+    internal IEnumerable<string> ValidateConfiguration(HostingEnvironment environment)
+    {
+        if (_appImplementationFactory.Get<IEFormidlingMetadata>() is null)
+        {
+            yield return $"eFormidling is enabled for this environment ({environment}), but no "
+                + $"{nameof(IEFormidlingMetadata)} is registered. Complete the registration with "
+                + "AddEFormidling().WithMetadata<T>(), or disable the task with <altinn:disabled>.";
+        }
+
+        if (string.IsNullOrWhiteSpace(_clientSettings?.BaseUrl))
+        {
+            yield return $"eFormidling is enabled for this environment ({environment}), but "
+                + $"{nameof(EFormidlingClientSettings)}.{nameof(EFormidlingClientSettings.BaseUrl)} is not "
+                + "set. Add it to the EFormidlingClientSettings configuration section, or supply it with "
+                + "AddEFormidling().WithMetadata<T>().WithConfig(...).";
+        }
     }
 
     /// <inheritdoc />

@@ -38,12 +38,17 @@ using Microsoft.OpenApi;
 
 // WebApplicationFactory passes the content root a test selects with UseContentRoot as a command line argument.
 // Its own guess (the solution folder plus the project name) does not exist, so only an existing folder is used.
+// A host started without a chosen app runs as the test app its web root and appsettings.json come from: startup
+// validation reads the process and the application metadata from the app files in the content root, and the build
+// output holds only stub application metadata.
 string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
-        ContentRootPath = Directory.Exists(contentRootFromArgs) ? contentRootFromArgs : null,
+        ContentRootPath = Directory.Exists(contentRootFromArgs)
+            ? contentRootFromArgs
+            : TestData.GetApplicationDirectory("tdd", "contributer-restriction"),
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",

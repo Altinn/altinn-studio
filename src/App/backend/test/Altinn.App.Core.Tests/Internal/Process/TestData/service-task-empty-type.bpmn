@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_EmptyServiceTaskType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="EmptyServiceTaskTypeProcess" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Fill in">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <!-- The shape Studio's generic service task palette entry produces: it writes an empty task type
+         for the developer to fill in before deploying. -->
+    <bpmn:serviceTask id="Task_Generic" name="Altinn service task">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType></altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <!-- And the same omission on an ordinary task, which the rule does not distinguish: a blank task
+         type is what reaches the authorization client, whatever element carries it. -->
+    <bpmn:task id="Task_Blank" name="Blank">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>   </altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_Generic" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_Generic" targetRef="Task_Blank" />
+    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_Blank" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

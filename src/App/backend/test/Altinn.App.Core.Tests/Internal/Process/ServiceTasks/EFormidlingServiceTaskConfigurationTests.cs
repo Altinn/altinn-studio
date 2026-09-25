@@ -1,13 +1,14 @@
-using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,9 +16,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Eformidling;
+namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 
-public class EFormidlingConfigValidationServiceTests
+public class EFormidlingServiceTaskConfigurationTests
 {
     private const string ModelDataType = "model";
 
@@ -54,7 +55,7 @@ public class EFormidlingConfigValidationServiceTests
         Replaced,
     }
 
-    private static Task RunValidation(
+    private static async Task RunValidation(
         IReadOnlyList<ProcessTask> tasks,
         EFormidlingService eFormidlingService = EFormidlingService.BuiltIn,
         bool registerEFormidlingMetadata = true,
@@ -65,6 +66,9 @@ public class EFormidlingConfigValidationServiceTests
     {
         var processReader = new Mock<IProcessReader>();
         processReader.Setup(x => x.GetProcessTasks()).Returns([.. tasks]);
+        processReader
+            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
+            .Returns((string taskId) => tasks.Single(task => task.Id == taskId).ExtensionElements?.TaskExtension);
 
         var appMetadata = new Mock<IAppMetadata>();
         appMetadata
@@ -86,7 +90,8 @@ public class EFormidlingConfigValidationServiceTests
         services.AddSingleton(processReader.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
-        services.AddSingleton(new Mock<IUserTokenProvider>().Object);
+        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
+        services.AddSingleton<IProcessTask, DataTask>();
         services.Configure<EFormidlingClientSettings>(settings => settings.BaseUrl = baseUrl);
         switch (eFormidlingService)
         {
@@ -102,13 +107,20 @@ public class EFormidlingConfigValidationServiceTests
             services.AddSingleton(new Mock<IEFormidlingMetadata>().Object);
         }
 
-        ServiceProvider provider = services.BuildServiceProvider();
-        var validationService = new EFormidlingConfigValidationService(
+        await using ServiceProvider provider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true }
+        );
+        var validationService = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
-            NullLogger<EFormidlingConfigValidationService>.Instance
+            NullLogger<ProcessTaskConfigurationValidationService>.Instance
         );
 
-        return validationService.StartAsync(CancellationToken.None);
+        await validationService.StartAsync(CancellationToken.None);
+    }
+
+    private sealed class DataTask : IProcessTask
+    {
+        public string Type => "data";
     }
 
     [Fact]

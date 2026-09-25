@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A service task drawn as a plain <bpmn:task>. This is the shape every service task in this
+     repository's own workflow-engine scenarios has, and the runtime accepts it: nothing on the
+     dispatch path reads the BPMN element type, only <altinn:taskType>. -->
+<bpmn:definitions id="Altinn_PlainTaskCustomType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="PlainTaskCustomTypeProcess" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Fill in">
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Custom" name="Archive it">
+      <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>archive</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_Custom" />
+    <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_Custom" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>
