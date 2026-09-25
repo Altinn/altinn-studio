@@ -225,7 +225,7 @@ altinity-agents/
 │   │   ├── runner.py     # Graph build + pre-graph gates
 │   │   └── state.py      # AgentState
 │   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
-│   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
+│   ├── altinn/           # Altinn domain library (datamodel, layout, resources)
 │   ├── skills/           # Domain-knowledge skills, loaded on demand
 │   ├── prompts/          # System + user prompts (+ loader; Langfuse overrides these)
 │   ├── services/         # git, llm, events, preview, repo

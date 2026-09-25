@@ -34,7 +34,6 @@ dependencies = [
 
     # Altinn domain library (agents/altinn)
     "jsonschema>=4.0",
-    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]
