@@ -1,4 +1,5 @@
 import React from 'react';
+import { ProcessEditor as ProcessEditorLatest } from '@altinn/process-editor';
 import { ProcessEditor as ProcessEditorV8 } from '@altinn/process-editor-v8';
 import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner } from '@studio/components';
@@ -7,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { NEXT_V9_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 
-export default function ProcessEditor(): React.ReactElement | null {
+export default function ProcessEditor(): React.ReactElement {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: version, isPending: versionIsPending } = useAppVersionQuery(org, app);
@@ -21,5 +22,5 @@ export default function ProcessEditor(): React.ReactElement | null {
   // version, not the app frontend version, so the check is on backendVersion.
   const isV9 = !isBelowSupportedVersion(version?.backendVersion, NEXT_V9_VERSION);
 
-  return isV9 ? null : <ProcessEditorV8 />;
+  return isV9 ? <ProcessEditorLatest /> : <ProcessEditorV8 />;
 }

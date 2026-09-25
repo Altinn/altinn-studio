@@ -8,7 +8,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
+const latestEditorText = 'latest process editor';
 const v8EditorText = 'v8 process editor';
+
+jest.mock('@altinn/process-editor', () => ({
+  ProcessEditor: () => <div>{latestEditorText}</div>,
+}));
 
 jest.mock('@altinn/process-editor-v8', () => ({
   ProcessEditor: () => <div>{v8EditorText}</div>,
@@ -25,9 +30,10 @@ describe('ProcessEditor', () => {
     expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
-  it('leaves the v9 route empty while the new editor is being prepared', () => {
+  it('renders the latest process editor when the app library version is 9 or newer', () => {
     renderProcessEditor({ backendVersion: '9.0.0', frontendVersion: '4.0.0' });
 
+    expect(screen.getByText(latestEditorText)).toBeInTheDocument();
     expect(screen.queryByText(v8EditorText)).not.toBeInTheDocument();
   });
 
@@ -35,6 +41,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor({ backendVersion: '8.9.0', frontendVersion: '4.0.0' });
 
     expect(screen.getByText(v8EditorText)).toBeInTheDocument();
+    expect(screen.queryByText(latestEditorText)).not.toBeInTheDocument();
   });
 
   it('renders the v8 process editor when the app library version is unknown', () => {

@@ -1,0 +1,1 @@
+export { ConfigEndEvent } from './ConfigEndEvent';
