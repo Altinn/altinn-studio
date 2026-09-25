@@ -113,6 +113,34 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         );
     }
 
+    /// <summary>
+    /// Creates an HttpClient whose requests are authenticated by <typeparamref name="TAuthHandler"/> instead of the
+    /// default test scheme, with the same configuration and test services as <see cref="HttpClient"/>. No xsrf
+    /// cookie is added, so it suits GET requests from anonymous or API key callers.
+    /// </summary>
+    protected HttpClient CreateTestClientWithAuthHandler<TAuthHandler>()
+        where TAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        const string SchemeName = "TestClientScheme";
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile(GetConfigPath(), false, false)
+            .AddJsonStream(GenerateJsonOverrideConfig())
+            .AddEnvironmentVariables()
+            .Build();
+
+        return CreateTestClient(builder =>
+        {
+            builder.UseConfiguration(configuration);
+            builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureTestServices(services =>
+                services
+                    .AddAuthentication(defaultScheme: SchemeName)
+                    .AddScheme<AuthenticationSchemeOptions, TAuthHandler>(SchemeName, _ => { })
+            );
+            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
+        });
+    }
+
     protected HttpClient CreateTestClient(Action<IWebHostBuilder> configureWebHost, params DelegatingHandler[] handlers)
     {
         var factory = new TestWebApplicationFactory(configureWebHost, EnableOpenTelemetry);

@@ -16,6 +16,13 @@
 !src/common/ts/**
 !src/common/dotnet/Altinn.Studio.Common
 !src/common/dotnet/Altinn.Studio.Common/**
+!src/cli/.editorconfig
+!src/cli/Directory.Build.props
+!src/cli/Directory.Packages.props
+!src/cli/common/dotnet/.editorconfig
+!src/cli/common/dotnet/Directory.Build.props
+!src/cli/common/dotnet/Altinn.Studio.AppDist
+!src/cli/common/dotnet/Altinn.Studio.AppDist/**
 !src/Designer/backend
 !src/Designer/backend/**
 !src/Designer/development/azure-devops-mock/package.json
