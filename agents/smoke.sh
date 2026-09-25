@@ -330,10 +330,21 @@ for _ in $(seq 1 300); do desktop windows | grep -qi chromium && break; sleep 0.
 desktop windows | grep -qi chromium || fail "the desktop browser never opened a window"
 # The desktop browser exposes its page and its own controls to `desktop tree`, with click boxes.
 for _ in $(seq 1 50); do desktop tree chrom 2>/dev/null | grep -q '^ *document web "smoke" @' && break; sleep 0.2; done
-desktop tree chrom >tree.txt
+desktop tree chrom >tree.txt || true
 grep -q '^ *document web "smoke" @' tree.txt || fail "desktop tree does not show the page"$'\n'"$(cat tree.txt)"
 grep -q '^ *entry ".*" value=".*localhost:8321' tree.txt \
     || fail "desktop tree does not show the browser's address bar"
+# The headed playwright-cli browser the skill steers page work to is in the tree as well, including
+# from a project whose own playwright-cli configuration sets launch arguments: that configuration
+# replaces any other one, so the accessibility switch has to arrive by another route.
+mkdir -p headed/.playwright
+printf '{"browser":{"launchOptions":{"args":["--lang=nb"]}}}\n' >headed/.playwright/cli.config.json
+(cd headed && PLAYWRIGHT_CLI_SESSION=smoke-headed playwright-cli open --browser chromium --headed \
+    'https://localhost:8321/?headed' >/dev/null)
+for _ in $(seq 1 50); do desktop tree chromium 2>/dev/null | grep -q '"smoke headed" @' && break; sleep 0.2; done
+desktop tree chromium | grep -q '^ *document web "smoke headed" @' \
+    || fail "the headed playwright-cli browser is missing from desktop tree"
+(cd headed && PLAYWRIGHT_CLI_SESSION=smoke-headed playwright-cli close >/dev/null)
 shot="$(desktop --json screenshot)"
 echo "$shot"
 path="$(jq -r .path <<<"$shot")"
