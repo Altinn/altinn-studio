@@ -19,14 +19,17 @@ public class ProcessModelingService : IProcessModelingService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IAppVersionService _appVersionService;
 
     public ProcessModelingService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IAppDevelopmentService appDevelopmentService
+        IAppDevelopmentService appDevelopmentService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _appDevelopmentService = appDevelopmentService;
+        _appVersionService = appVersionService;
     }
 
     private string TemplatesFolderIdentifier(SemanticVersion version) =>
@@ -122,6 +125,7 @@ public class ProcessModelingService : IProcessModelingService
         string dataTypeId,
         string taskId,
         List<string>? allowedContributors,
+        List<string>? allowedContentTypes = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -140,11 +144,19 @@ public class ProcessModelingService : IProcessModelingService
             var dataTypeToAdd = new DataType
             {
                 Id = dataTypeId,
-                AllowedContentTypes = new List<string> { "application/json" },
+                AllowedContentTypes =
+                    allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { "application/json" },
                 MaxCount = 1,
                 TaskId = taskId,
-                EnablePdfCreation = false,
             };
+
+            if (!_appVersionService.IsV9App(altinnRepoEditingContext))
+            {
+                // V8 enables legacy PDF generation when this property is omitted.
+#pragma warning disable CS0618 // Required by apps using the v8 runtime
+                dataTypeToAdd.EnablePdfCreation = false;
+#pragma warning restore CS0618
+            }
 
             if (allowedContributors?.Count > 0)
             {

@@ -19,12 +19,29 @@ describe('useAddDataTypeToAppMetadata', () => {
     await waitFor(() => expect(addDataTypeToAppMetadata.current.isSuccess).toBe(true));
 
     expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledWith(
-      org,
-      app,
+    expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledWith(org, app, {
       dataTypeId,
       taskId,
-      undefined,
-    );
+    });
+  });
+
+  it('Forwards the allowed content types when the caller gives them', async () => {
+    const addDataTypeToAppMetadata = renderHookWithProviders()(() =>
+      useAddDataTypeToAppMetadata(org, app),
+    ).renderHookResult.result;
+    await addDataTypeToAppMetadata.current.mutateAsync({
+      dataTypeId,
+      taskId,
+      allowedContributors: ['app:owned'],
+      allowedContentTypes: ['application/pdf'],
+    });
+    await waitFor(() => expect(addDataTypeToAppMetadata.current.isSuccess).toBe(true));
+
+    expect(queriesMock.addDataTypeToAppMetadata).toHaveBeenCalledWith(org, app, {
+      dataTypeId,
+      taskId,
+      allowedContributors: ['app:owned'],
+      allowedContentTypes: ['application/pdf'],
+    });
   });
 });

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -50,5 +51,12 @@ public class CreateApplicationMetadataTests
         using var response = await HttpClient.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        // enablePdfCreation is deprecated and must not be written into new application metadata.
+        // Asserted on the raw file text rather than the deserialized model, because an explicit
+        // "enablePdfCreation": null would satisfy an object-level check while still leaving the
+        // property behind in the user's repository.
+        string metadataContent = await File.ReadAllTextAsync(metadataPath);
+        Assert.DoesNotContain("enablePdfCreation", metadataContent, StringComparison.OrdinalIgnoreCase);
     }
 }
