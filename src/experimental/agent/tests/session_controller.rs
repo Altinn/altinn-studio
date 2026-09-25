@@ -932,6 +932,12 @@ impl ServiceHarness {
             tokio::task::spawn_local(agent_controller.run()),
             tokio::task::spawn_local(session_controller.run()),
         ];
+        // The controller's startup pass writes a lifecycle. Finish it here so
+        // it cannot land after a lifecycle the test writes itself.
+        session_wakeup
+            .reconcile(session.id)
+            .await
+            .expect("startup Session reconciliation");
         let service = Rc::new(agent::sessions::Service::new(
             session_store,
             Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
