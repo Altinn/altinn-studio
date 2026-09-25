@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -63,4 +64,13 @@ func processZombie(pid int) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func processExecutable(pid int) (string, error) {
+	path, err := os.Readlink("/proc/" + strconv.Itoa(pid) + "/exe")
+	if err != nil {
+		return "", fmt.Errorf("read process executable: %w", err)
+	}
+	// The kernel adds this suffix when the file was replaced after the process started.
+	return strings.TrimSuffix(path, " (deleted)"), nil
 }
