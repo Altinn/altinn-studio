@@ -62,7 +62,7 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private static bool ProcessHasTask(Definitions definitions, string taskId) =>
-        definitions.Process.Tasks.Any(task => task.Id == taskId);
+        definitions.Process.AllTasks().Any(task => task.Id == taskId);
 
     public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
         AltinnRepoEditingContext editingContext,
@@ -495,7 +495,7 @@ public class UiFoldersService : IUiFoldersService
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
         // Order layout sets by their task's position in the process flow, with subforms (no task) last.
-        List<string> orderedTaskIds = definitions.Process.OrderTaskIdsByFlow();
+        List<string> orderedTaskIds = definitions.Process.OrderAllTaskIdsByFlow();
         Dictionary<string, int> taskOrderById = orderedTaskIds
             .Select((taskId, index) => (taskId, index))
             .ToDictionary(entry => entry.taskId, entry => entry.index);
@@ -524,7 +524,7 @@ public class UiFoldersService : IUiFoldersService
                 continue;
             }
 
-            string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
+            string? taskType = hasMatchingTask ? definitions.Process.TaskTypeOf(layoutSetName) ?? string.Empty : null;
 
             layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
         }
@@ -538,14 +538,6 @@ public class UiFoldersService : IUiFoldersService
     }
 
     private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
-
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
-    {
-        return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
-    }
 
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,
@@ -783,12 +775,7 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<ProcessTask> tasks = GetTasks(editingContext, cancellationToken);
 
-        Dictionary<string, string?> taskTypesById = tasks.ToDictionary(
-            task => task.Id,
-            task => task.ExtensionElements?.TaskExtension?.TaskType
-        );
-
-        return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
+        return taskNavigationGroups.Select(group => group.ToDto(taskId => tasks.TaskTypeOf(taskId)));
     }
 
     public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigation(
@@ -810,7 +797,7 @@ public class UiFoldersService : IUiFoldersService
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateGlobalTaskNavigation(
