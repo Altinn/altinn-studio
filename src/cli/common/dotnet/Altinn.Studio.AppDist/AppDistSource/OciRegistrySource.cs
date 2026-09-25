@@ -17,12 +17,6 @@ public sealed partial class OciRegistrySource : IAppDistSource
 {
     public const string DefaultRepository = "ghcr.io/altinn/altinn-studio/app-dist";
 
-    /// <summary>
-    /// Tags requested per page when listing versions. Registries default to small pages (ghcr.io: 100), which
-    /// would turn one listing into several requests as the number of published versions grows.
-    /// </summary>
-    public const int TagPageSize = 1000;
-
     private const string OciManifestMediaType = "application/vnd.oci.image.manifest.v1+json";
 
     private readonly HttpClient _http;
@@ -83,7 +77,7 @@ public sealed partial class OciRegistrySource : IAppDistSource
     {
         var tags = new List<string>();
         var visited = new HashSet<string>(StringComparer.Ordinal);
-        var url = $"https://{_host}/v2/{_repository}/tags/list?n={TagPageSize}";
+        var url = $"https://{_host}/v2/{_repository}/tags/list";
         try
         {
             while (url is not null)

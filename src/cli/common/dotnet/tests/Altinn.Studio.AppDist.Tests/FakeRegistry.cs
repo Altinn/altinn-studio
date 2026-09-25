@@ -20,9 +20,6 @@ internal sealed class FakeRegistry : HttpMessageHandler
     public int BlobRequests { get; private set; }
     public int TagListRequests { get; private set; }
     public int TagPageSize { get; set; }
-
-    /// <summary>The page size (<c>n</c>) requested by the most recent tag list request, if any.</summary>
-    public int? RequestedTagPageSize { get; private set; }
     public bool Offline { get; set; }
     public HttpStatusCode? ManifestErrorStatus { get; set; }
     public string? ManifestErrorCode { get; set; }
@@ -143,14 +140,13 @@ internal sealed class FakeRegistry : HttpMessageHandler
 
     private HttpResponseMessage TagsPage(string url)
     {
-        RequestedTagPageSize = int.TryParse(QueryParam(url, "n"), out var requested) ? requested : null;
         var last = QueryParam(url, "last");
         var remaining = last is null ? _tags : _tags.SkipWhile(t => t != last).Skip(1).ToList();
         var page = TagPageSize > 0 ? remaining.Take(TagPageSize).ToList() : remaining.ToList();
         var tagsJson = string.Join(",", page.Select(t => $"\"{t}\""));
         var response = Json($$"""{"name":"{{Repository}}","tags":[{{tagsJson}}]}""");
         if (TagPageLinkLoops)
-            response.Headers.TryAddWithoutValidation("Link", $"<{new Uri(url).PathAndQuery}>; rel=\"next\"");
+            response.Headers.TryAddWithoutValidation("Link", $"</v2/{Repository}/tags/list>; rel=\"next\"");
         else if (TagPageSize > 0 && remaining.Count > page.Count)
             response.Headers.TryAddWithoutValidation(
                 "Link",
