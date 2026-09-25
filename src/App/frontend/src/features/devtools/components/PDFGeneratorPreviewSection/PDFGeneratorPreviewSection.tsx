@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { skipToken, useQuery } from 'src/core/queries/reactQuery';
-import { getUiFolderSettings } from 'src/features/form/ui';
+import { usePdfPreviewSubformDataTypes } from 'src/core/queries/pdfPreview';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { isStudioPreview } from 'src/utils/isDev';
@@ -31,7 +29,7 @@ function PDFGeneratorPreviewWithTarget() {
     (task) => task.elementId === target.taskId && task.altinnTaskType === 'subformPdf',
   )?.elementId;
   const isSubformPdf = subformPdfTaskId !== undefined;
-  const subformDataTypes = useSubformDataTypes(subformPdfTaskId);
+  const subformDataTypes = usePdfPreviewSubformDataTypes(subformPdfTaskId);
   const subforms = dataElements.filter((element) => subformDataTypes.includes(element.dataType));
 
   return (
@@ -82,28 +80,4 @@ function PDFGeneratorPreviewWithTarget() {
       />
     </>
   );
-}
-
-/**
- * A subform PDF service task renders its subform through the Subform component in the task's own UI folder, so the
- * default data type of that component's layout set is the data type of the subforms the task makes PDFs of. If the
- * folder has several Subform components, the one it renders is the one whose data type the folder itself uses, as in
- * the documented setup.
- */
-function useSubformDataTypes(taskId: string | undefined): string[] {
-  const { fetchLayouts } = useAppQueries();
-  const { data } = useQuery({
-    queryKey: ['pdfPreviewSubformDataTypes', taskId],
-    queryFn: taskId ? () => fetchLayouts(taskId) : skipToken,
-    select: (layouts) =>
-      Object.values(layouts)
-        .flatMap((page) => page.data.layout)
-        .flatMap((component) =>
-          component.type === 'Subform' ? [getUiFolderSettings(component.layoutSet)?.defaultDataType] : [],
-        )
-        .filter((dataType) => dataType !== undefined),
-  });
-  const dataTypes = data ?? [];
-  const folderDataType = getUiFolderSettings(taskId)?.defaultDataType;
-  return folderDataType !== undefined && dataTypes.includes(folderDataType) ? [folderDataType] : dataTypes;
 }
