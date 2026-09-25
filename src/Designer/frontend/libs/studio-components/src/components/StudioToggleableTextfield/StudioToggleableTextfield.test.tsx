@@ -30,6 +30,13 @@ describe('StudioToggleableTextfield', () => {
     expect(screen.getByRole('textbox', { name: label })).toHaveValue(value);
   });
 
+  it('should focus the textfield when toggled to edit-mode', async () => {
+    const user = userEvent.setup();
+    renderStudioToggleableTextfield();
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('textbox', { name: label })).toHaveFocus();
+  });
+
   it('should run custom validation when value changes', async () => {
     const user = userEvent.setup();
     renderStudioToggleableTextfield({ customValidation });
