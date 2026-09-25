@@ -30,12 +30,12 @@ import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/Table/Repeatin
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
-import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { getRepeatingRowReference } from 'src/layout/RepeatingGroup/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useEvalExpressionCallback, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -43,7 +43,6 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
   const baseComponentId = useRepeatingGroupComponentId();
   const { rowsToDisplay } = useRepeatingGroupPagination();
-  const rows = RepGroupHooks.useAllRowsWithButtons(baseComponentId);
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const componentId = useIndexedId(baseComponentId);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup');
@@ -88,16 +87,14 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
   const showTableHeader =
     numRows > 0 && (hasColumnsWithEditInTable || !(numRows == 1 && firstRowId !== undefined && isEditingFirstRow));
 
-  const showDeleteButtonColumns = new Set<boolean>();
-  const showEditButtonColumns = new Set<boolean>();
-  for (const row of rows) {
-    if (row && rowsToDisplay.some((r) => r.uuid === row.uuid)) {
-      showDeleteButtonColumns.add(row.deleteButton);
-      showEditButtonColumns.add(row.editButton);
-    }
-  }
-  const displayDeleteColumn = showDeleteButtonColumns.has(true) || !showDeleteButtonColumns.has(false);
-  let displayEditColumn = showEditButtonColumns.has(true) || !showEditButtonColumns.has(false);
+  const canDelete = useEvalExpressionCallback(config.edit?.deleteButton, Expressions.RepeatingGroup.edit.deleteButton);
+  const canEdit = useEvalExpressionCallback(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
+  const displayDeleteColumn =
+    rowsToDisplay.length === 0 ||
+    rowsToDisplay.some((row) => canDelete(getRepeatingRowReference(dataModelBindings.group, row.index)));
+  let displayEditColumn =
+    rowsToDisplay.length === 0 ||
+    rowsToDisplay.some((row) => canEdit(getRepeatingRowReference(dataModelBindings.group, row.index)));
   if (config.edit?.mode === 'onlyTable') {
     displayEditColumn = false;
   }
