@@ -171,6 +171,10 @@ echo "terminal.gif: $(stat -c %s terminal.gif) bytes"
 
 [ "$variant" = full ] || finish
 
+echo "## rust"
+cargo --version
+cargo machete --version
+
 echo "## local development hosts"
 systemctl is-enabled agent-full-hosts-init.service >/dev/null \
     || fail "the full-image hosts service is not enabled"

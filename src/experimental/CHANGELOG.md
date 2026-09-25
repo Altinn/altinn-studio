@@ -26,6 +26,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   an Agent's provisioning, which also opens for an Agent created with `c`, or prompts a Session without attaching.
 - Altinn Agents include `typos` and `hunspell`, so the repository spell check (`yarn spell:quick`, `yarn spell:check`
   and the pre-commit hook) runs inside an Agent.
+- The full Altinn Agent includes `cargo-machete`, so `make deps-check` and `make check` in the Rust workspaces run
+  inside an Agent.
 
 ### Changed
 
