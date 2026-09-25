@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -30,6 +31,7 @@ public class UiFoldersController : Controller
     private readonly IAppVersionService _appVersionService;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IPublisher _publisher;
+    private const string SubformPdfRequiresV9Message = "Subform PDF tasks are only supported in v9 apps.";
 
     public UiFoldersController(
         IUiFoldersService uiFoldersService,
@@ -176,6 +178,47 @@ public class UiFoldersController : Controller
             cancellationToken
         );
         return Ok(uiFolders);
+    }
+
+    [HttpGet("subform-components")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> GetSubformComponents(string org, string app, CancellationToken cancellationToken)
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            return Problem(SubformPdfRequiresV9Message, statusCode: StatusCodes.Status400BadRequest);
+        }
+        IEnumerable<SubformComponentDto> subformComponents = await _uiFoldersService.GetSubformComponents(
+            editingContext,
+            cancellationToken
+        );
+        return Ok(subformComponents);
+    }
+
+    [HttpPost("layout-sets/{layoutSetId}/subform-pdf-component")]
+    [UseSystemTextJson]
+    public async Task<IActionResult> SaveSubformPdfComponent(
+        string org,
+        string app,
+        [FromRoute] string layoutSetId,
+        [FromBody] SubformPdfComponentPayload payload,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = CreateContext(org, app);
+        if (!_appVersionService.IsV9App(editingContext))
+        {
+            return Problem(SubformPdfRequiresV9Message, statusCode: StatusCodes.Status400BadRequest);
+        }
+        IEnumerable<SubformComponentDto> subformComponents = await _uiFoldersService.SaveSubformPdfComponent(
+            editingContext,
+            layoutSetId,
+            payload.ComponentId,
+            payload.SourceLayoutSetId,
+            cancellationToken
+        );
+        return Ok(subformComponents);
     }
 
     [HttpGet("settings/validation-on-navigation")]

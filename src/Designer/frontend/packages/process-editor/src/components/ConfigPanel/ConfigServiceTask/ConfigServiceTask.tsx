@@ -5,6 +5,7 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigEFormidlingServiceTask } from './ConfigEFormidlingServiceTask';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
+import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
 import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
 import { StudioDetails } from '@studio/components';
@@ -30,6 +31,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
         <EditTaskName />
         {isCustomTask && <EditServiceTaskType />}
         {isPdfTask && <ConfigPdfServiceTask />}
+        {isSubformPdfTask && <ConfigSubformPdfServiceTask />}
         {isEFormidlingTask && <ConfigEFormidlingServiceTask />}
         <div>
           <StudioDetails>

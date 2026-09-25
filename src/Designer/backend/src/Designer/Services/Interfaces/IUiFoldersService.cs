@@ -50,6 +50,28 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Lists the Subform components on every page of the layout sets that are not subforms, with the layout
+    /// set and default data type of the subform each one opens.
+    /// </summary>
+    public Task<IEnumerable<SubformComponentDto>> GetSubformComponents(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Makes the pages of a subform PDF task hold a hidden copy of a Subform component, which the task renders
+    /// its PDFs through. Creates the task's layout set when it is missing, and leaves the pages untouched when
+    /// they already hold exactly that copy.
+    /// </summary>
+    public Task<IEnumerable<SubformComponentDto>> SaveSubformPdfComponent(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string componentId,
+        string sourceLayoutSetId,
+        CancellationToken cancellationToken
+    );
+
     public Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken
