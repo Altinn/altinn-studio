@@ -78,8 +78,8 @@ public class UiFoldersServiceTests : IDisposable
     [Fact]
     public async Task GetLayoutSetsExtended_OrdersByProcessFlowAndPlacesSubformsLast()
     {
-        // Arrange: the process flows StartEvent -> Task_2 -> Task_1 -> EndEvent, while the BPMN file lists
-        // the Task_1 element before Task_2. The result must follow the flow order (Task_2, Task_1), not the
+        // Arrange: the process flows StartEvent -> Task_2 -> Task_1 -> PdfTask -> EndEvent, while the BPMN
+        // file lists the Task_1 element before Task_2. The result must follow the flow order, not the
         // element/alphabetical order, and the subform (which has no task) must come last.
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
 
@@ -90,7 +90,26 @@ public class UiFoldersServiceTests : IDisposable
         );
 
         // Assert
-        Assert.Equal(["Task_2", "Task_1", "subformSet"], result.Select(dto => dto.Id));
+        Assert.Equal(["Task_2", "Task_1", "PdfTask", "subformSet"], result.Select(dto => dto.Id));
+    }
+
+    [Fact]
+    public async Task GetLayoutSetsExtended_ReturnsLayoutSetOfPdfServiceTask()
+    {
+        // Arrange: a PDF task in layout-based mode is a bpmn:serviceTask rather than a bpmn:task, and its
+        // ui folder is named after it. The folder must be listed like any other task's, and report the task
+        // type declared on the service task.
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
+
+        // Act
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
+        UiFolderLayoutSetDto pdfLayoutSet = result.Single(dto => dto.Id == "PdfTask");
+
+        // Assert
+        Assert.Equal("pdf", pdfLayoutSet.TaskType);
     }
 
     private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext(
