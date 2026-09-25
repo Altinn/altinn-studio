@@ -21,21 +21,21 @@ describe('Multiple select component', () => {
     cy.get(multiselect).click();
 
     cy.get(multiselectList).contains('span', checkboxText1).click();
-    cy.findByRole('option', { name: /Karoline, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Karoline,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText2).click();
-    cy.findByRole('option', { name: /Kåre, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kåre,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText3).click();
-    cy.findByRole('option', { name: /Johanne, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Johanne,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('exist');
 
     //Uncheck
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('not.exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('not.exist');
 
     // Close the multiple select component
     cy.get(multiselect).type('{esc}');
@@ -57,7 +57,7 @@ describe('Multiple select component', () => {
 
     // Unchecking from Checkboxes should remove from RepeatingGroup (observe that data is preserved)
     cy.get(multiselect).type('{esc}'); // Make sure the multiselect is closed
-    cy.findByRole('option', { name: /Kåre, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kåre,/i }).should('exist');
     cy.get(repGroup).findAllByRole('row').should('have.length', 3); // Header + 2 row
     cy.get(repGroup)
       .findAllByRole('button', { name: /^Rediger/ })
@@ -93,19 +93,19 @@ describe('Multiple select component', () => {
     cy.findByRole('option', { name: /Kjøre til hytta på fjellet/i }).click();
 
     cy.findByRole('option', {
-      name: /Korte strekninger med bykjøring, eller annen moro, Press to remove/i,
+      name: /Korte strekninger med bykjøring, eller annen moro,/i,
     }).should('exist');
-    cy.findByRole('option', { name: /Kjøring i skogen, Press to remove/i }).should('exist');
-    cy.findByRole('option', { name: /Kjøre til hytta på fjellet, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kjøring i skogen,/i }).should('exist');
+    cy.findByRole('option', { name: /Kjøre til hytta på fjellet,/i }).should('exist');
 
     // The clickable element is a psuedo-element within the button
-    cy.findByRole('option', { name: /Kjøring i skogen, Press to remove/i }).click('right', { force: true });
+    cy.findByRole('option', { name: /Kjøring i skogen,/i }).click('right', { force: true });
     cy.findByRole('button', { name: /Bekreft/i }).click();
 
     cy.findByRole('option', {
-      name: /Korte strekninger med bykjøring, eller annen moro, Press to remove/i,
+      name: /Korte strekninger med bykjøring, eller annen moro,/i,
     }).should('exist');
-    cy.findByRole('option', { name: /Kjøre til hytta på fjellet, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kjøre til hytta på fjellet,/i }).should('exist');
   });
 
   it('Adds and removes data properly when using group and hard deletion', () => {
@@ -122,21 +122,21 @@ describe('Multiple select component', () => {
 
     // Check options in multiple select component
     cy.get(multiselectList).contains('span', checkboxText1).click();
-    cy.findByRole('option', { name: /Karoline, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Karoline,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText2).click();
-    cy.findByRole('option', { name: /Kåre, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kåre,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText3).click();
-    cy.findByRole('option', { name: /Johanne, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Johanne,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('exist');
 
     //Uncheck
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('not.exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('not.exist');
 
     // Close the multiple select component
     cy.get(multiselect).type('{esc}');
@@ -155,7 +155,7 @@ describe('Multiple select component', () => {
       .first()
       .click();
     cy.findByRole('option', {
-      name: /Karoline, Press to remove/i,
+      name: /Karoline,/i,
     }).should('not.exist');
 
     // Unchecking from multiple select should remove from RepeatingGroup (observe that data is preserved)
@@ -208,21 +208,21 @@ describe('Multiple select component', () => {
 
     // Check options in multiple select component
     cy.get(multiselectList).contains('span', checkboxText1).click();
-    cy.findByRole('option', { name: /Karoline, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Karoline,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText2).click();
-    cy.findByRole('option', { name: /Kåre, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kåre,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText3).click();
-    cy.findByRole('option', { name: /Johanne, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Johanne,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('exist');
 
     //Uncheck
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('not.exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('not.exist');
 
     // Close the multiple select component
     cy.get(multiselect).type('{esc}');
@@ -248,21 +248,21 @@ describe('Multiple select component', () => {
 
     // Check options in multiple select component
     cy.get(multiselectList).contains('span', checkboxText1).click();
-    cy.findByRole('option', { name: /Karoline, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Karoline,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText2).click();
-    cy.findByRole('option', { name: /Kåre, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kåre,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText3).click();
-    cy.findByRole('option', { name: /Johanne, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Johanne,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('exist');
 
     //Uncheck
     cy.get(multiselectList).contains('span', checkboxText4).click();
-    cy.findByRole('option', { name: /Kari, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Kari,/i }).should('not.exist');
     cy.get(multiselectList).contains('span', checkboxText5).click();
-    cy.findByRole('option', { name: /Petter, Press to remove/i }).should('not.exist');
+    cy.findByRole('option', { name: /Petter,/i }).should('not.exist');
 
     // Close the multiple select component
     cy.get(multiselect).type('{esc}');

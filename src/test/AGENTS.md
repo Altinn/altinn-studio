@@ -2,7 +2,7 @@
 
 Repository-level test assets shared across suites. Two parts:
 
-See the root [`/AGENTS.md`](../../AGENTS.md) for the wider picture. Note: most projects keep their *own*
+See the root [`/AGENTS.md`](../../AGENTS.md) for the wider picture. Note: most projects keep their _own_
 unit/integration tests next to their code — this folder is for cross-cutting load tests and the sample
 apps that E2E suites drive.
 

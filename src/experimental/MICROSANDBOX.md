@@ -327,6 +327,7 @@ source-only descendant has been audited as compatible with the already verified 
    version. For a source-only update, verify those runtime references still match the compatible
    `digdir-v*` tag. Repeat the source-revision search until it returns only this runbook and changelog
    history.
+
 4. Confirm that the Cargo revision is tagged by either the corresponding `digdir-v*` release or an
    explicitly runtime-compatible `digdir-source-v*` tag. Start a source-only audit with the complete
    diff from the runtime tag:

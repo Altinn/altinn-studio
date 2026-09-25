@@ -2,11 +2,11 @@
 
 This Agent develops the Agent platform itself, under `src/experimental`.
 
-| Variant | Checkout | Resources |
-| --- | --- | --- |
-| default (`agent.yaml`) | Fresh `Altinn/altinn-studio` clone made at boot | Normal |
-| `nested` | Fresh clone | Reduced to fit inside the default Agent |
-| `worktree` | Current host checkout mounted read-write | Normal |
+| Variant                | Checkout                                        | Resources                               |
+| ---------------------- | ----------------------------------------------- | --------------------------------------- |
+| default (`agent.yaml`) | Fresh `Altinn/altinn-studio` clone made at boot | Normal                                  |
+| `nested`               | Fresh clone                                     | Reduced to fit inside the default Agent |
+| `worktree`             | Current host checkout mounted read-write        | Normal                                  |
 
 Every variant builds the directory's `Dockerfile` locally. Self-development images are not published to GHCR.
 

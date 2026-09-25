@@ -29,15 +29,17 @@
 ### Using Docker Compose
 
 1. **Start Langfuse:**
+
    ```bash
    docker-compose -f docker-compose.langfuse.yml up -d
    ```
 
 2. **Wait for startup:**
+
    ```bash
    # Check logs
    docker-compose -f docker-compose.langfuse.yml logs -f langfuse-server
-   
+
    # Wait for "ready on http://0.0.0.0:3000"
    ```
 
@@ -50,6 +52,7 @@
    - Create new key pair
 
 5. **Update `.env`:**
+
    ```bash
    LANGFUSE_SECRET_KEY=sk-lf-xxx...  # From Langfuse UI
    LANGFUSE_PUBLIC_KEY=pk-lf-xxx...  # From Langfuse UI
@@ -78,11 +81,13 @@ docker-compose -f docker-compose.langfuse.yml down -v
 ### "Connection refused" or "Failed to initialize Langfuse"
 
 **For Cloud:**
+
 - Check your SECRET_KEY and PUBLIC_KEY are correct
 - Verify LANGFUSE_HOST=https://cloud.langfuse.com
 - Check internet connection
 
 **For Self-Hosted:**
+
 - Ensure Docker containers are running: `docker ps`
 - Check Langfuse logs: `docker-compose -f docker-compose.langfuse.yml logs`
 - Verify port 3005 is not blocked: `curl http://localhost:3005`
@@ -90,6 +95,7 @@ docker-compose -f docker-compose.langfuse.yml down -v
 ### "Langfuse initialized but no traces appearing"
 
 1. Check if Langfuse is actually enabled:
+
    ```bash
    cat .env | grep LANGFUSE_ENABLED
    # Should show: LANGFUSE_ENABLED=true
@@ -109,6 +115,7 @@ docker-compose -f docker-compose.langfuse.yml down -v
 ### Database connection issues (Self-Hosted)
 
 If Langfuse won't start:
+
 ```bash
 # Check database status
 docker-compose -f docker-compose.langfuse.yml ps
@@ -121,14 +128,14 @@ docker-compose -f docker-compose.langfuse.yml restart
 
 ## Comparison: Cloud vs Self-Hosted
 
-| Feature | Cloud | Self-Hosted |
-|---------|-------|-------------|
-| Setup time | 5 minutes | 10-15 minutes |
-| Maintenance | None | Docker updates |
-| Cost | Free tier available | Free (your infrastructure) |
-| Data location | Langfuse servers | Your infrastructure |
-| Scalability | Managed | Manual |
-| Best for | Quick start, teams | Privacy-sensitive, air-gapped |
+| Feature       | Cloud               | Self-Hosted                   |
+| ------------- | ------------------- | ----------------------------- |
+| Setup time    | 5 minutes           | 10-15 minutes                 |
+| Maintenance   | None                | Docker updates                |
+| Cost          | Free tier available | Free (your infrastructure)    |
+| Data location | Langfuse servers    | Your infrastructure           |
+| Scalability   | Managed             | Manual                        |
+| Best for      | Quick start, teams  | Privacy-sensitive, air-gapped |
 
 ---
 
