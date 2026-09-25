@@ -6,8 +6,8 @@ export default [
     replacement: path.resolve(__dirname, './packages/policy-editor/src'),
   },
   {
-    find: '@altinn/process-editor',
-    replacement: path.resolve(__dirname, './packages/process-editor/src'),
+    find: '@altinn/process-editor-v8',
+    replacement: path.resolve(__dirname, './packages/process-editor-v8/src'),
   },
   {
     find: '@altinn/schema-editor',
