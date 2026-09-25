@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `DataType.EnablePdfCreation` in application metadata is now nullable and marked obsolete. The flag has had no effect since PDF generation moved to the PDF service task (build check `ALTINNAPP0600`), so remove code that reads or sets it.
+
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 
