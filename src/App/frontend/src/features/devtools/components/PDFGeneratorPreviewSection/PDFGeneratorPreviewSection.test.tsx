@@ -6,11 +6,17 @@ import userEvent from '@testing-library/user-event';
 import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { ILayoutCollection } from 'src/layout/layout';
-import type { IData } from 'src/types/shared';
+import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
 const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
 const otherSubformId = 'cccccccc-1111-2222-3333-444444444444';
+
+const subformComponent = (id: string, layoutSet: string): CompExternal<'Subform'> => ({
+  id,
+  type: 'Subform',
+  layoutSet,
+  tableColumns: [],
+});
 
 async function render({
   folderDataType,
@@ -22,11 +28,11 @@ async function render({
     { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
     { elementId: 'Task_SubformPdf', elementType: 'ServiceTask', altinnTaskType: 'subformPdf' },
   ];
-  instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' }) as IData), {
+  instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' })), {
     ...instance.data[0],
     id: otherSubformId,
     dataType: 'otherSubform',
-  } as IData);
+  });
   // The task's UI folder may use the parent's data type. Its Subform components point to the subforms' UI folders.
   window.altinnAppGlobalData.ui.folders.Task_SubformPdf = {
     defaultDataType: folderDataType ?? instance.data[0].dataType,
@@ -34,13 +40,11 @@ async function render({
   };
   window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
   window.altinnAppGlobalData.ui.folders.OtherSubform = { defaultDataType: 'otherSubform', pages: { order: ['Side1'] } };
-  const layout = [
-    { id: 'subform-component', type: 'Subform', layoutSet: 'Subform', tableColumns: [] },
-    ...(otherSubform
-      ? [{ id: 'other-subform-component', type: 'Subform', layoutSet: 'OtherSubform', tableColumns: [] }]
-      : []),
+  const layout: CompExternal<'Subform'>[] = [
+    subformComponent('subform-component', 'Subform'),
+    ...(otherSubform ? [subformComponent('other-subform-component', 'OtherSubform')] : []),
   ];
-  const subformPdfLayouts = { Pdf: { data: { layout } } } as ILayoutCollection;
+  const subformPdfLayouts = { Pdf: { data: { layout } } } satisfies ILayoutCollection;
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
@@ -69,11 +73,11 @@ describe('PDFGeneratorPreviewSection', () => {
     await render();
 
     await user.click(await screen.findByText('Task_SubformPdf'));
-    expect(await screen.findByText('aaaaaaaa')).toBeInTheDocument();
-    expect(screen.queryByText(defaultMockDataElementId.slice(0, 8))).not.toBeInTheDocument();
+    expect(await screen.findByText(`Underskjema 1 (ID: ${subformIds[0]})`)).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(defaultMockDataElementId))).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Generer PDF/i })).toBeDisabled();
 
-    await user.click(screen.getByText('bbbbbbbb'));
+    await user.click(screen.getByText(`Underskjema 2 (ID: ${subformIds[1]})`));
     await user.click(screen.getByRole('button', { name: /Generer PDF/i }));
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
@@ -87,7 +91,7 @@ describe('PDFGeneratorPreviewSection', () => {
     await render({ folderDataType: 'subform', otherSubform: true });
 
     await user.click(await screen.findByText('Task_SubformPdf'));
-    expect(await screen.findByText('aaaaaaaa')).toBeInTheDocument();
-    expect(screen.queryByText(otherSubformId.slice(0, 8))).not.toBeInTheDocument();
+    expect(await screen.findByText(`Underskjema 1 (ID: ${subformIds[0]})`)).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(otherSubformId))).not.toBeInTheDocument();
   });
 });
