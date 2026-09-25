@@ -1,14 +1,7 @@
-//! VNC access granted and withdrawn in Linux Sandboxes.
-//!
-//! The image owns the desktop, the bridge to it and the browser viewer, and ships their units
-//! disabled. This module reads what the image declares in `/etc/agent-access.d/vnc.conf`, turns
-//! those units on when the Agent declares VNC access and off when it stops, and asserts the
-//! observable result: the declared ports listen after a grant, and the units are inactive after a
-//! withdrawal. Whether the image opens a port outside its units is a property of the image, which
-//! its smoke test asserts; at runtime a port may be the Agent's own.
-//!
-//! Nothing here names a socket path, a viewer program or a URL. Those belong to the image, which
-//! is where changing the viewer and changing the unit that serves it are one commit.
+//! VNC access granted and withdrawn in Linux Sandboxes: the units the image lists in
+//! `/etc/agent-access.d/vnc.conf` are enabled or disabled, then the result is checked. A grant
+//! waits for the declared ports to listen; a withdrawal checks that the units are inactive. The
+//! ports themselves are not checked on withdrawal, because the Agent may use them.
 
 use ::sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
 
@@ -36,10 +29,7 @@ pub(crate) struct Capability {
     pub(crate) units: Vec<String>,
     /// Guest loopback port carrying the RFB stream.
     pub(crate) port: u16,
-    /// Guest loopback port serving the browser-based viewer, when the image serves one.
-    ///
-    /// Optional because a browser viewer is a convenience an image may reasonably not carry; one
-    /// that omits it offers the RFB port alone and `agentctl vnc --web` says so.
+    /// Guest loopback port serving the browser viewer; an image may offer the RFB port alone.
     pub(crate) web_port: Option<u16>,
 }
 
@@ -50,13 +40,9 @@ impl Capability {
     }
 }
 
-/// Confirms the image declares VNC access and returns what it declares.
-///
-/// # Errors
-///
-/// Returns `Error::Invalid` naming the missing piece: the image is immutable for the incarnation,
-/// so retrying cannot change that.
-pub(crate) async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capability, Error> {
+/// Confirms the image declares VNC access and returns what it declares. A missing piece is
+/// `Error::Invalid`, since retrying cannot change the image.
+async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capability, Error> {
     let contract = [
         ("-x", SYSTEMCTL, "systemctl is missing"),
         (
@@ -75,17 +61,16 @@ pub(crate) async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capabil
     parse_descriptor(&read_descriptor(sandbox).await?)
 }
 
-/// Enables the image's access units, then waits for the declared ports to listen.
-///
-/// Idempotent: `enable --now` on an already-running unit converges rather than restarts, and the
-/// units are the image's, so nothing is written here.
+/// Checks the image, enables its access units and waits for the declared ports to listen.
+/// Idempotent: `enable --now` leaves a running unit alone.
 ///
 /// # Errors
 ///
-/// Returns an error when a unit cannot be enabled, or when a port the image declared is not
-/// listening within [`LISTEN_TIMEOUT`] of it being enabled.
-pub(crate) async fn grant(sandbox: &SandboxHandle, capability: &Capability) -> Result<(), Error> {
-    systemctl(sandbox, "enable", capability).await?;
+/// Returns an error when the image declares no VNC access, a unit cannot be enabled, or a
+/// declared port is not listening within [`LISTEN_TIMEOUT`].
+pub(crate) async fn grant(sandbox: &SandboxHandle) -> Result<Capability, Error> {
+    let capability = verify_capability(sandbox).await?;
+    systemctl(sandbox, "enable", &capability).await?;
     let deadline = tokio::time::Instant::now() + LISTEN_TIMEOUT;
     for port in capability.ports() {
         while !port_is_listening(sandbox, port).await? {
@@ -99,13 +84,10 @@ pub(crate) async fn grant(sandbox: &SandboxHandle, capability: &Capability) -> R
             tokio::time::sleep(LISTEN_POLL).await;
         }
     }
-    Ok(())
+    Ok(capability)
 }
 
-/// Disables the image's access units, then asserts systemd reports them inactive.
-///
-/// The declared ports are deliberately not checked: once access is withdrawn they are ordinary
-/// guest ports, and the Agent may well run its own server on one.
+/// Disables the image's access units, then checks that systemd reports them inactive.
 ///
 /// # Errors
 ///
@@ -209,11 +191,8 @@ fn missing(key: &str) -> Error {
     )))
 }
 
-/// Reads the descriptor, refusing anything that could not be acted on safely.
-///
-/// Unit names reach `systemctl` as arguments and ports are compared against the contract both
-/// sides agree on, so an image that declares something else is refused with the mismatch named
-/// rather than silently serving a desktop the caller cannot be told how to reach.
+/// Parses the descriptor, refusing unit names that are not plain units, since they reach
+/// `systemctl` as arguments, and ports other than the agreed ones.
 fn parse_descriptor(descriptor: &str) -> Result<Capability, Error> {
     let units: Vec<String> = setting(descriptor, "units")
         .ok_or_else(|| missing("units"))?

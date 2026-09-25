@@ -25,11 +25,9 @@ so never do resolution arithmetic yourself.
 
 `playwright-cli open --browser chromium --headed` puts the browser on this same desktop, so one
 browser is scriptable, in the tree and visible: act on refs with `playwright-cli click e12`, and
-take a screenshot only when layout, styling or rendering is the actual question. `desktop open`
-starts a browser Playwright cannot see, so open pages you will work on with `playwright-cli`. A
-snapshot or a tree costs a few hundred text tokens; a screenshot costs about 1.5k image tokens
-every time. Reach for the screenshot when you need to judge a screen, not to find out what is on
-it.
+take a screenshot only when layout, styling or rendering is the actual question. A snapshot or a
+tree costs a few hundred text tokens; a screenshot costs about 1.5k image tokens every time. Reach
+for the screenshot when you need to judge a screen, not to find out what is on it.
 
 Use the desktop rather than a headless browser when the task is a native application, when a
 person will watch or take over, or when the rendered result is the deliverable.
@@ -124,7 +122,6 @@ desktop hold-key KEYSYM COMMAND...   # e.g. desktop hold-key shift click 400 300
 
 desktop focus WINDOW                 # window id, or a substring of its title
 desktop resize WIDTH HEIGHT          # RandR; the screenshot budget does not change
-desktop open URL                     # the desktop browser
 desktop wait SECONDS
 desktop batch [--no-screenshot]      # one command per line on stdin
 ```

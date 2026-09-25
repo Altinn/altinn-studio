@@ -214,20 +214,6 @@ fn agent_images_install_the_pinned_gh_stack_extension() {
     }
 }
 
-/// The desktop Agent is the full Agent plus a screen, so its environment notes are the full
-/// Agent's followed by its own section. A note added to one and not the other is the drift this
-/// guards.
-#[test]
-fn the_desktop_environment_extends_the_full_environment() {
-    let agents = repository_root().join("agents");
-    let full = std::fs::read_to_string(agents.join("full/environment.md")).expect("full environment");
-    let desktop = std::fs::read_to_string(agents.join("desktop/environment.md")).expect("desktop environment");
-    let own = desktop
-        .strip_prefix(full.as_str())
-        .expect("desktop/environment.md starts with full/environment.md");
-    assert!(own.trim_start().starts_with("## The desktop"), "{own}");
-}
-
 #[test]
 fn every_agent_ignores_local_variants() {
     let root = repository_root();

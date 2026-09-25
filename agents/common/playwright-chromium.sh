@@ -1,14 +1,8 @@
 #!/bin/sh
-# The browser playwright-cli launches on the desktop image, set through PLAYWRIGHT_MCP_EXECUTABLE_PATH.
-#
-# A headed browser is on the screen a person watches and `desktop tree` reads, so it is started
-# through the desktop's `chromium` launcher, which adds --force-renderer-accessibility. That switch
-# cannot travel in a playwright-cli configuration file: a project's own .playwright/cli.config.json
-# takes that file's place, and its launch arguments replace rather than extend a user's global ones.
-# An executable path set in the environment is applied after every configuration file.
-#
-# A headless browser is started exactly as Playwright starts it by default, with the headless shell
-# and no accessibility switch, because nothing can read its tree.
+# The browser playwright-cli launches on the desktop image, through PLAYWRIGHT_MCP_EXECUTABLE_PATH.
+# Headed browsers go through the `chromium` launcher for its accessibility switch; headless ones
+# use Playwright's headless shell, as by default. The switch cannot go in a playwright-cli config,
+# since a project's own config replaces that file and its launch arguments replace a user's.
 set -eu
 for argument in "$@"; do
     case $argument in

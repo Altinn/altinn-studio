@@ -1,16 +1,12 @@
 [Unit]
 Description=D-Bus session bus for the Agent desktop
 Documentation=https://github.com/Altinn/altinn-studio/tree/main/agents
-# The runtime directory is created by tmpfiles, and the bus has to exist before the desktop's
-# programs start so that they register with the accessibility bus it activates.
+# The socket lives in the runtime directory tmpfiles creates.
 After=systemd-tmpfiles-setup.service
-Before=agent-desktop-session.service
 
 [Service]
-# A Session is a tmux process rather than a login, so no systemd user instance or login session
-# provides this bus. The address is fixed and the image sets DBUS_SESSION_BUS_ADDRESS to it, so
-# every Session and every program on the desktop finds the same bus. at-spi2-core is started on
-# it by D-Bus activation the first time an application or `desktop tree` asks for it.
+# A Session is a tmux process rather than a login, so nothing else provides a session bus. The
+# image points DBUS_SESSION_BUS_ADDRESS here, and at-spi2-core starts on it by activation.
 Type=exec
 User=agent
 Group=agent

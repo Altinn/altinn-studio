@@ -89,18 +89,23 @@ fn output(contents: &'static [u8]) -> Vec<ExecutionEvent> {
     ]
 }
 
-fn valid_descriptor() -> Vec<ExecutionEvent> {
-    output(b"units=agent-vnc.socket agent-vnc-web.service\nport=5900\nweb-port=6080\n")
-}
+const VALID_DESCRIPTOR: &[u8] = b"units=agent-vnc.socket agent-vnc-web.service\nport=5900\nweb-port=6080\n";
 
-/// Answers every image-contract probe affirmatively and hands back the descriptor.
-fn queue_desktop_image(backend: &memory::Provider) {
+/// Answers the image-contract probes as an image with systemd and `ss` whose VNC descriptor is
+/// `descriptor`, or which has none.
+fn queue_image(backend: &memory::Provider, descriptor: Option<&'static [u8]>) {
     for path in ["/usr/bin/systemctl", "/usr/bin/ss"] {
         backend.queue_execution_events_matching(is_test(path, "-x"), exited(0));
     }
     backend.queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    backend.queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    backend.queue_execution_events_matching(is_descriptor_read, valid_descriptor());
+    backend.queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(i32::from(descriptor.is_none())));
+    if let Some(descriptor) = descriptor {
+        backend.queue_execution_events_matching(is_descriptor_read, output(descriptor));
+    }
+}
+
+fn queue_desktop_image(backend: &memory::Provider) {
+    queue_image(backend, Some(VALID_DESCRIPTOR));
 }
 
 fn queue_listening(backend: &memory::Provider, listening: bool) {
@@ -211,20 +216,7 @@ async fn an_image_offering_no_browser_viewer_is_granted_and_described_without_on
     let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
-    for path in ["/usr/bin/systemctl", "/usr/bin/ss"] {
-        fixture
-            .backend
-            .queue_execution_events_matching(is_test(path, "-x"), exited(0));
-    }
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_descriptor_read, output(b"units=agent-vnc.socket\nport=5900\n"));
+    queue_image(&fixture.backend, Some(b"units=agent-vnc.socket\nport=5900\n"));
     fixture.backend.queue_execution_events_matching(
         is_listener_check(5900),
         output(b"LISTEN 0 0 127.0.0.1:5900 0.0.0.0:*\n"),
@@ -328,10 +320,7 @@ async fn withdrawing_access_disables_the_units_and_proves_they_stopped() {
 
 /// Answers a withdrawal's probes: systemd running and a desktop image's descriptor.
 fn queue_withdrawable_image(backend: &memory::Provider) {
-    backend.queue_execution_events_matching(is_test("/usr/bin/systemctl", "-x"), exited(0));
-    backend.queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    backend.queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    backend.queue_execution_events_matching(is_descriptor_read, valid_descriptor());
+    queue_desktop_image(backend);
     backend.queue_execution_events_matching(is_active_check, output(b"inactive\ninactive\n"));
 }
 
@@ -445,17 +434,7 @@ async fn an_image_that_declares_no_vnc_access_is_reported_as_an_image_problem() 
     let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
-    for path in ["/usr/bin/systemctl", "/usr/bin/ss"] {
-        fixture
-            .backend
-            .queue_execution_events_matching(is_test(path, "-x"), exited(0));
-    }
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(1));
+    queue_image(&fixture.backend, None);
 
     let error = fixture
         .access
@@ -482,20 +461,9 @@ async fn a_descriptor_declaring_the_wrong_port_is_refused() {
     let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
-    for path in ["/usr/bin/systemctl", "/usr/bin/ss"] {
-        fixture
-            .backend
-            .queue_execution_events_matching(is_test(path, "-x"), exited(0));
-    }
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    fixture.backend.queue_execution_events_matching(
-        is_descriptor_read,
-        output(b"units=agent-vnc.socket\nport=5901\nweb-port=6080\n"),
+    queue_image(
+        &fixture.backend,
+        Some(b"units=agent-vnc.socket\nport=5901\nweb-port=6080\n"),
     );
 
     let error = fixture
@@ -515,15 +483,7 @@ async fn an_image_without_the_descriptor_is_left_alone_when_no_access_is_declare
     let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
     fixture.store(&record, 0).await;
     let sandbox = fixture.sandbox(&record).await;
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/usr/bin/systemctl", "-x"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(1));
+    queue_image(&fixture.backend, None);
 
     assert!(!fixture.access.reconcile(&record, &sandbox).await.expect("pass"));
     assert!(

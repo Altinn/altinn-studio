@@ -11,9 +11,7 @@ spec:
       os: linux
     resources:
       cpu: "4"
-      # The desktop itself is small: the X and VNC server, the window manager and the panel
-      # together hold about 40 MiB and idle at a tenth of a core. The browser is what needs room,
-      # so this stays at the full Agent's memory rather than growing with the desktop.
+      # The desktop itself idles at about 40 MiB; the browser is what needs the full Agent's memory.
       memory: "8Gi"
       rootFilesystem:
         capacity: "64Gi"
@@ -21,8 +19,7 @@ spec:
     initSystem: image
     # The Sandbox default sizes /tmp at a quarter of guest memory, capped at 512 MiB, which is
     # too small for a large build's scratch space. A tmpfs holds only what is written to it.
-    # Chromium's shared memory lands here too, because the desktop browser runs with
-    # --disable-dev-shm-usage rather than depending on the Sandbox's /dev/shm size.
+    # Chromium's shared memory lands here too, through --disable-dev-shm-usage.
     mounts:
       - type: tmpfs
         target: /tmp
@@ -31,7 +28,9 @@ spec:
     source: home
   instructions:
     - source: ../instructions.md
-    - source: environment.md
+    # The full Agent's notes describe this computer too; only the desktop is added.
+    - source: ../full/environment.md
+    - source: desktop.md
   skills:
     - source: ../../src/cli/resources/agent/skills/app-development
       name: altinn-studio-app-development
@@ -85,9 +84,7 @@ spec:
         - dev.altinn.studio
   access:
     - type: ssh
-    # The desktop is on a Unix socket inside the Sandbox and opens no port of its own. This entry
-    # makes agentd enable the image's VNC access units, and removing it disables them again while
-    # leaving the Agent its screen.
+    # Enables the image's VNC access units; without it the desktop runs with no port open.
     - type: vnc
   network:
     mode: mediated
