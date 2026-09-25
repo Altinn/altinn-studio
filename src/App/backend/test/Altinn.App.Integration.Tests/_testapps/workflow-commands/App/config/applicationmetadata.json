@@ -1,0 +1,50 @@
+{
+  "id": "ttd/workflow-commands",
+  "org": "ttd",
+  "title": {
+    "nb": "Arbeidsflytkommandoer"
+  },
+  "dataTypes": [
+    {
+      "id": "model",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model",
+        "allowAnonymousOnStateless": false,
+        "autoDeleteOnProcessEnd": false
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "command-log",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributors": [
+        "app:owned"
+      ],
+      "minCount": 0,
+      "maxCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": true,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-05-15T12:17:03.656228Z",
+  "createdBy": "altinn",
+  "lastChanged": "2024-05-15T12:17:03.65623Z",
+  "lastChangedBy": "altinn"
+}

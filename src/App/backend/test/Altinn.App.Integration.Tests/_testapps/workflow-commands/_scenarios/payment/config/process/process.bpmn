@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="PaymentWorkflow" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="PaymentWorkflow" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1"><bpmn:outgoing>Flow_Start</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Data">
+      <bpmn:extensionElements><altinn:taskExtension><altinn:taskType>data</altinn:taskType></altinn:taskExtension></bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start</bpmn:incoming><bpmn:incoming>Flow_Reject</bpmn:incoming><bpmn:outgoing>Flow_Payment</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Payment" name="Payment">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>payment</altinn:taskType>
+          <altinn:actions><altinn:action>pay</altinn:action><altinn:action>reject</altinn:action></altinn:actions>
+          <altinn:paymentConfig><altinn:paymentDataType>payment</altinn:paymentDataType><altinn:paymentReceiptPdfDataType>payment-receipt</altinn:paymentReceiptPdfDataType></altinn:paymentConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Payment</bpmn:incoming><bpmn:outgoing>Flow_AfterPayment</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Reject">
+      <bpmn:incoming>Flow_AfterPayment</bpmn:incoming><bpmn:outgoing>Flow_Reject</bpmn:outgoing><bpmn:outgoing>Flow_End</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1"><bpmn:incoming>Flow_End</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_Payment" sourceRef="Task_1" targetRef="Task_Payment" />
+    <bpmn:sequenceFlow id="Flow_AfterPayment" sourceRef="Task_Payment" targetRef="Gateway_Reject" />
+    <bpmn:sequenceFlow id="Flow_Reject" sourceRef="Gateway_Reject" targetRef="Task_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_End" sourceRef="Gateway_Reject" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+</bpmn:definitions>

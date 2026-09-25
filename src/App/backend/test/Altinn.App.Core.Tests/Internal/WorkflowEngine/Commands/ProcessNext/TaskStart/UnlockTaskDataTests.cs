@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -31,6 +32,7 @@ public class UnlockTaskDataTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = instanceDataMutator,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = UnlockTaskData.Key,
@@ -223,7 +225,7 @@ public class UnlockTaskDataTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
-        Assert.Equal("UnlockTaskData payload is missing or invalid", failed.ErrorMessage);
+        Assert.StartsWith("UnlockTaskData payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         mutatorMock.VerifyNoOtherCalls();
         appMetadataMock.VerifyNoOtherCalls();

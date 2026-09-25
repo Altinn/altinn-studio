@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Localtest now answers the Correspondence API, so apps that send messages - such as the signing "call to action" each signee receives - work locally without workarounds. Every message is written to `correspondence/{correspondenceId}.json` in the Localtest storage folder, together with the request the app sent, so you can check exactly what went out. Repeating a send with the same idempotent key is rejected as already sent, the same as in a deployed environment. Attachments are not emulated and are reported as not supported.
+
 ## [0.1.0-preview.27] - 2026-09-23
 
 ### Added

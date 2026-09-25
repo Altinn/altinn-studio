@@ -9,7 +9,7 @@ public sealed record ServiceTaskAttempt
 {
     /// <summary>
     /// How many times this task has been retried after a retryable failure
-    /// (<see cref="ServiceTaskResult.FailedRetryable"/>, or an unhandled exception). <c>0</c> on the
+    /// (<see cref="ServiceTaskResult.FailedRetryable(string)"/>, or an unhandled exception). <c>0</c> on the
     /// first run.
     /// </summary>
     /// <remarks>

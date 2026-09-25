@@ -54,7 +54,7 @@ public class ServiceTaskPipelineMailboxTests
 
         // Two stages plus the conclusion, which is the list's last item.
         Assert.Equal(3, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[1]);
+        Assert.IsType<ProcessPipelineStage.ServiceHandler>(pipeline.Items[1]);
         var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
         Assert.Equal(TimeSpan.FromDays(3), opening.Declaration.Timeout);
         Assert.Equal(0, handle.OpeningIndex);
@@ -188,7 +188,7 @@ public class ServiceTaskPipelineMailboxTests
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.Equal(4, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[2]);
+        Assert.IsType<ProcessPipelineStage.ServiceHandler>(pipeline.Items[2]);
         Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[3]);
     }
 
@@ -347,7 +347,7 @@ public class ServiceTaskPipelineMailboxTests
             .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
+        Assert.IsType<ProcessPipelineStage.ServiceHandler>(pipeline.Items[0]);
         Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
     }
 
@@ -388,7 +388,7 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Throws<ArgumentNullException>(() =>
             builder.Stage((Func<ServiceTaskContext, Task<ServiceTaskStageResult>>)null!)
         );
-        Assert.Throws<ArgumentNullException>(() => builder.Stage(null!, new ProcessStepOptions()));
+        Assert.Throws<ArgumentNullException>(() => builder.Stage((WorkflowCommandRef)null!, new ProcessStepOptions()));
     }
 
     [Fact]

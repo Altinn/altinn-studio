@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;

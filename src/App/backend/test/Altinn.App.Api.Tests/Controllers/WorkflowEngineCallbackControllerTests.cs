@@ -14,6 +14,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -192,6 +193,9 @@ public class WorkflowEngineCallbackControllerTests
                 services.Services.AddSingleton(client.Object);
                 services.Services.AddSingleton<IWorkflowCallbackTokenGenerator, WorkflowCallbackTokenGenerator>();
                 services.Services.AddSingleton<ProcessStepOptionsResolver>();
+                services.Services.AddSingleton<ProcessTaskResolver>();
+                services.Services.AddSingleton<IProcessTask, DataProcessTask>();
+                services.Services.AddSingleton<IProcessTask, NullTypeProcessTask>();
                 services.Services.AddSingleton<ProcessNextRequestFactory>();
                 services.Services.AddSingleton<IWorkflowEngineService, WorkflowEngineService>();
                 services.Services.AddSingleton<IWorkflowEngineCommand>(new AcquireProcessingStatus());
@@ -294,6 +298,10 @@ public class WorkflowEngineCallbackControllerTests
         var commit = Assert.Single(workflow.Steps, step => step.OperationId == CommitProcessState.Key);
         var data = JsonSerializer.Deserialize<AppCommandData>(commit.Command.Data!.Value)!;
         var change = CommandPayloadSerializer.Deserialize<ProcessStateChangePayload>(data.Payload)!.ProcessStateChange;
+        Assert.True(
+            change.NewProcessState?.CurrentTask is not null || change.NewProcessState?.Ended is not null,
+            data.Payload
+        );
         Assert.All(change.Events!, e => Assert.Equal(referenceTime.UtcDateTime, e.Created));
         Assert.Equal(
             referenceTime.UtcDateTime,
@@ -1043,6 +1051,7 @@ public class WorkflowEngineCallbackControllerTests
     )
     {
         var services = new MockedServiceCollection();
+        services.Mock<IProcessReader>().Setup(reader => reader.GetProcessTasks()).Returns([]);
         services.AddDataType(
             new DataType
             {

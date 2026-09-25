@@ -1,5 +1,7 @@
 using System.Reflection;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -38,15 +40,32 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
         var errors = new List<string>();
 
-        foreach (IPipelineServiceTask task in Resolve<IServiceTask>(sp))
+        List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
+        List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+        foreach (
+            var group in simpleTasks
+                .Cast<IPipelineServiceTask>()
+                .Concat(pipelineTasks)
+                .DistinctBy(task => task, ReferenceEqualityComparer.Instance)
+                .GroupBy(task => task.Type, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+        )
         {
-            ValidateSealedDefine(task, errors);
-            ValidatePipeline(task, errors);
+            errors.Add(
+                $"  - Service task type '{group.Key}' has multiple registrations (case-insensitive): "
+                    + string.Join(", ", group.Select(task => task.GetType().FullName))
+            );
         }
 
-        foreach (IPipelineServiceTask task in Resolve<IPipelineServiceTask>(sp))
+        foreach (IPipelineServiceTask task in simpleTasks)
         {
-            ValidatePipeline(task, errors);
+            ValidateSealedDefine(task, errors);
+            ValidatePipeline(task, errors, sp);
+        }
+
+        foreach (IPipelineServiceTask task in pipelineTasks)
+        {
+            ValidatePipeline(task, errors, sp);
         }
 
         if (errors.Count > 0)
@@ -63,7 +82,7 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private static void ValidatePipeline(IPipelineServiceTask task, List<string> errors)
+    private static void ValidatePipeline(IPipelineServiceTask task, List<string> errors, IServiceProvider services)
     {
         string taskName = task.GetType().FullName ?? task.GetType().Name;
 
@@ -72,7 +91,23 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             // Runs Define — a throwing or null-returning implementation lands here, as do the
             // builder's own eager rejections (invalid options, a foreign or duplicate-answered
             // mailbox handle, a mailbox left unanswered when a terminal ends the composition).
-            _ = task.ResolvePipeline();
+            ServiceTaskPipeline pipeline = task.ResolvePipeline();
+            foreach (ProcessPipelineStage.Command stage in pipeline.Items.OfType<ProcessPipelineStage.Command>())
+            {
+                string key = stage.Reference.Key;
+                if (
+                    !WorkflowEngineCommandValidator.IsValidCommandKey(key)
+                    || WorkflowEngineCommandValidator.FrameworkCommandKeys.Contains(key)
+                    || new AppImplementationFactory(services)
+                        .GetAll<IWorkflowEngineCommand>()
+                        .Count(command => command.GetKey() == key) != 1
+                )
+                {
+                    errors.Add(
+                        $"  - {taskName}: stage command '{key}' must name exactly one registered business command."
+                    );
+                }
+            }
         }
         catch (Exception ex)
         {

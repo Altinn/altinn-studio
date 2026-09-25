@@ -9,6 +9,11 @@ This project contains scenario-based integration tests for Altinn apps. The test
 
 The harness starts localtest with `studioctl env up --detach` if no environment is running. It always sets `STUDIOCTL_INTERNAL_DEV=true` on its `studioctl` subprocesses so localtest uses images built from the current monorepo checkout when available. If localtest was already running, the harness reuses it and does not stop it during cleanup.
 
+For an externally configured isolated runtime, `TEST_STUDIOCTL_COMMAND` selects its `studioctl`
+executable or wrapper, and `TEST_LOCALTEST_HOST_PORT` / `TEST_PDF_HOST_PORT` select the matching host
+ports (defaults: 8000 / 5300). These overrides tell the harness where to connect; they do not change
+the runtime's container names, network, or port bindings.
+
 ## Architecture
 
 - `AppFixture` coordinates localtest, generated app folders, app startup, and snapshot scrubbers.
@@ -81,7 +86,9 @@ Tests in a class fixture are serialized because they share one app process and f
 - `fixture.Instances.Download(token, instanceResponse)`
 - `fixture.Instances.PatchFormData(token, instanceResponse, patchRequest, language?)`
 - `fixture.Instances.ValidateInstance(token, instanceResponse, ignoredValidators?, onlyIncrementalValidators?, language?)`
-- `fixture.Instances.ProcessNext(token, instanceResponse, processNext?, elementId?, language?)`
+- `fixture.Instances.ProcessNext(token, instanceResponse, processNext?, elementId?, language?, returnInstance?)`
+- `fixture.Signing.GetState(token, instanceResponse, taskId?)`
+- `fixture.Storage.CreateInstance(token, template)` and `fixture.Storage.InsertData(...)` for seeding instances from older app versions without running the current instantiation workflow
 - `fixture.ApplicationMetadata.Get()`
 - `fixture.Generic.Get(endpoint, token)`
 - `fixture.Generic.Post(endpoint, token, content)`
@@ -200,3 +207,28 @@ Generated apps are written to `_testapps/generated/`, which is ignored by git.
 ## Available Test Apps
 
 - `TestApps.Basic` - Basic app used by the current integration tests.
+- `TestApps.DelegatedSigning` - A data task followed by delegated signing, with a reject path back to the data task. Used by the tests in `Signing/`.
+
+### Delegated signing
+
+Run the signing integration tests with:
+
+```bash
+dotnet test test/Altinn.App.Integration.Tests/ --filter FullyQualifiedName~Signing
+```
+
+The app uses the real workflow engine, Storage, Register, Access Management, Correspondence emulation, and
+signing services in localtest. Its test controls inject failures at the external boundaries and record
+attempts: Access Management and Correspondence calls pass through thin wrappers that can refuse a recipient
+or drop a response before forwarding to localtest, which stores accepted messages and answers HTTP 409 for a
+repeated idempotency key. Only the Altinn CDN organization registry is faked in-process. No messages leave
+the machine.
+
+Tests verify that retries preserve resolved signees, delegation checkpoints, and notification keys;
+that a failed workflow can resume; and that instances created before the workflow engine can finish or
+reject signing without being initialized again. Completing preserves their signatures; rejecting removes
+the old signing state and signatures even if the abort callback's response is lost. The test app shortens the
+signing commands' retry intervals and budgets so exhaustion is deterministic and quick.
+
+The direct `/test/delegated-signing/reset`, `/state`, and `/allow` endpoints configure and inspect each
+test. These controls belong only to this integration test app.

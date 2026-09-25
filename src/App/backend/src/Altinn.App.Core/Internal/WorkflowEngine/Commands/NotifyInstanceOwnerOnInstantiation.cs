@@ -1,6 +1,7 @@
 using System.Globalization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Notifications;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models.Notifications.Future;

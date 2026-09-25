@@ -60,6 +60,16 @@ public abstract record ServiceTaskOpeningStageResult
         return new FailedServiceTaskOpeningStageResult(errorMessage, FailureKind.Retryable);
     }
 
+    /// <summary>Creates a retryable failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskOpeningStageResult FailedRetryable(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskOpeningStageResult(errorMessage, FailureKind.Retryable, errorCode);
+    }
+
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying and mark
     /// the stage as failed immediately. Use this for errors that won't resolve by retrying
@@ -75,20 +85,30 @@ public abstract record ServiceTaskOpeningStageResult
         return new FailedServiceTaskOpeningStageResult(errorMessage, FailureKind.Permanent);
     }
 
+    /// <summary>Creates a permanent failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskOpeningStageResult FailedPermanent(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskOpeningStageResult(errorMessage, FailureKind.Permanent, errorCode);
+    }
+
     /// <summary>
     /// Concludes the <strong>whole task</strong> from this stage: every mailbox the task has opened is
     /// closed before anything downstream starts, no receiver is enqueued, the pipeline items composed after
     /// this stage never run, and the process advances (or not) per <paramref name="result"/>. For the send
     /// whose failure already settles the matter — a recipient address that does not exist — where waiting
     /// out the exchange would only delay the same verdict. Conclude only on failures remediated case-side;
-    /// an app-level failure (credentials, configuration) should be an ordinary <see cref="FailedPermanent"/>
+    /// an app-level failure (credentials, configuration) should be an ordinary <see cref="FailedPermanent(string)"/>
     /// instead, so the mailbox stays open and fixing the problem plus resuming the workflow lets the
     /// exchange complete.
     /// </summary>
     /// <param name="result">
     /// How the task concludes. <see cref="ServiceTaskResult.Success"/> and
-    /// <see cref="ServiceTaskResult.FailedPermanent"/> conclude; a wrapped
-    /// <see cref="ServiceTaskResult.FailedRetryable"/> or <see cref="ServiceTaskResult.Defer"/> concludes
+    /// <see cref="ServiceTaskResult.FailedPermanent(string)"/> conclude; a wrapped
+    /// <see cref="ServiceTaskResult.FailedRetryable(string)"/> or <see cref="ServiceTaskResult.Defer"/> concludes
     /// nothing and acts exactly as the stage vocabulary's own member.
     /// </param>
     /// <remarks>
@@ -111,7 +131,10 @@ internal sealed record CompletedServiceTaskOpeningStageResult : ServiceTaskOpeni
 internal sealed record DeferredServiceTaskOpeningStageResult(TimeSpan Delay, string? Reason)
     : ServiceTaskOpeningStageResult;
 
-internal sealed record FailedServiceTaskOpeningStageResult(string ErrorMessage, FailureKind Kind)
-    : ServiceTaskOpeningStageResult;
+internal sealed record FailedServiceTaskOpeningStageResult(
+    string ErrorMessage,
+    FailureKind Kind,
+    string? ErrorCode = null
+) : ServiceTaskOpeningStageResult;
 
 internal sealed record ConcludedServiceTaskOpeningStageResult(ServiceTaskResult Result) : ServiceTaskOpeningStageResult;

@@ -1,6 +1,6 @@
 /* Pipeline rendering — step circles, connectors, phase labels */
 
-import { parseTransition, stepPhase, stepSubLabel } from '../core/state.js';
+import { parseTransition, phaseTask, stepPhase, stepSubLabel } from '../core/state.js';
 import { esc, escAttr, escHtml, escJsArg } from '../core/helpers.js';
 
 /**
@@ -171,9 +171,11 @@ export const buildPipelineHTML = (wf, isStatic) => {
         return html;
     }
 
-    const phases = steps.map((s) => stepPhase(s.commandDetail));
+    const phases = steps.map((s) => stepPhase(s));
     /** @param {string} phase @returns {string} */
     const phaseLabel = (phase) => {
+        const task = phaseTask(phase);
+        if (task) return task;
         if (phase === 'end') return tx.from;
         if (phase === 'start') return tx.to;
         if (phase === 'process-end') return 'End Event';

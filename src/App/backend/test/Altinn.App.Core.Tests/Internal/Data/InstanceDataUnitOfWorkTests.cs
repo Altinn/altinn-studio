@@ -1150,6 +1150,93 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.DoesNotContain("customerName", setup.DataMutator.Instance.PresentationTexts.Keys);
     }
 
+    [Theory]
+    [InlineData(false, "Task_Signing")]
+    [InlineData(true, "Task_Signing")]
+    [InlineData(false, null)]
+    [InlineData(true, null)]
+    public async Task SaveChanges_ContentUpdatePreservesExistingReferences(bool formData, string? generatedFromTask)
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "original"u8.ToArray(),
+            blobVersionId: BlobVersion(1)
+        );
+        DataElement element = formData
+            ? AddPersistedPaymentForm(setup, new PaymentForm { Status = "created" }, BlobVersion(1))
+            : setup.DataMutator.GetDataElement(setup.DataElement);
+        List<Guid> existingRefs = [Guid.NewGuid()];
+        element.Refs = existingRefs;
+        element.References = generatedFromTask is null
+            ? null
+            :
+            [
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = generatedFromTask,
+                },
+            ];
+        DataElement storedElement = setup
+            .Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid)
+            .instance.Data.Single(candidate => candidate.Id == element.Id);
+        storedElement.Refs = existingRefs;
+        storedElement.References = element.References;
+        if (formData)
+        {
+            var form = Assert.IsType<PaymentForm>(await setup.DataMutator.GetFormData(element));
+            form.Status = "updated";
+        }
+        else
+        {
+            setup.DataMutator.UpdateBinaryDataElement(element, element.ContentType!, "updated"u8.ToArray());
+        }
+
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(false));
+
+        var request = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(
+            DeserializeMutationRequest(request.RequestBody!).UpdateDataElements
+        );
+        Assert.Equal(Guid.Parse(element.Id), update.DataElementId);
+        Assert.Equal(BlobVersion(1), update.ExpectedCurrentBlobVersion);
+        Assert.Equal(generatedFromTask, update.GeneratedFromTask);
+        Assert.Equal(existingRefs, update.Refs);
+        Assert.NotNull(update.ContentPartName);
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_UpdatedBinaryCacheMatchesCommittedBlobVersion()
+    {
+        byte[] original = "original"u8.ToArray();
+        byte[] updated = "committed"u8.ToArray();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            original,
+            new StorageVersionMetadata(7, 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        Assert.Equal(original, (await setup.DataMutator.GetBinaryData(setup.DataElement)).ToArray());
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updated);
+
+        await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(false),
+            "updated-cache",
+            CancellationToken.None
+        );
+
+        Assert.Equal(updated, (await setup.DataMutator.GetBinaryData(setup.DataElement)).ToArray());
+        Assert.NotEqual(BlobVersion(1), setup.DataMutator.GetDataElement(setup.DataElement).BlobVersionId);
+        Assert.Equal(8, setup.DataMutator.StorageVersions.InstanceVersion);
+        Assert.Single(GetDataRequests(setup, setup.DataElement));
+        Assert.Empty(setup.DataMutator.GetDataElementChanges(false).AllChanges);
+    }
+
     [Fact]
     public async Task SaveWorkflowOwnedAggregate_CommitsDataAndProcessStateWithWorkflowPreconditions()
     {

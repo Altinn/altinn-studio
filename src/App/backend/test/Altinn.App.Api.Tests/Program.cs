@@ -61,6 +61,10 @@ builder.Services.AddSingleton<IStartupFilter, ApiTestBase.ApiTestBaseStartupFilt
 builder.Configuration.AddJsonFile(
     Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction", "appsettings.json")
 );
+
+// The base host is also used directly by test helpers, before GetRootedClient selects another app.
+// Give startup validators the same real app root as the default appsettings and web root above.
+builder.Configuration["AppSettings:AppBasePath"] = TestData.GetApplicationDirectory("tdd", "contributer-restriction");
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
 builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>

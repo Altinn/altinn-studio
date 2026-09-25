@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Enums;
 

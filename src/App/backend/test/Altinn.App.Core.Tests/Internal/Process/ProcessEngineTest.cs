@@ -15,6 +15,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
@@ -342,7 +343,6 @@ public sealed class ProcessEngineTest
             .Should()
             .ContainInOrder(
                 // EndTask commands
-                "EndTask",
                 "CommonTaskFinalization",
                 "OnTaskEndingHook",
                 "LockTaskData",
@@ -352,7 +352,6 @@ public sealed class ProcessEngineTest
                 "CleanupGeneratedFromTask",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
-                "StartTask",
                 "CommitProcessState"
             );
 
@@ -553,7 +552,6 @@ public sealed class ProcessEngineTest
             .Should()
             .ContainInOrder(
                 // AbandonTask commands
-                "AbandonTask",
                 "OnTaskAbandonHook",
                 "MutateProcessState",
                 // StartTask commands
@@ -561,7 +559,6 @@ public sealed class ProcessEngineTest
                 "CleanupGeneratedFromTask",
                 "OnTaskStartingHook",
                 "CommonTaskInitialization",
-                "StartTask",
                 "CommitProcessState"
             );
 
@@ -734,7 +731,6 @@ public sealed class ProcessEngineTest
             .Should()
             .ContainInOrder(
                 // EndTask commands (see OLD CurrentTask)
-                "EndTask",
                 "CommonTaskFinalization",
                 "OnTaskEndingHook",
                 "LockTaskData",
@@ -1059,6 +1055,7 @@ public sealed class ProcessEngineTest
         services.AddSingleton(instanceClientMock.Object);
 
         await using var fixture = Fixture.Create(services, userActions: [userActionMock.Object]);
+        fixture.Mock<IProcessReader>().Setup(x => x.GetProcessTasks()).Returns([]);
         fixture
             .Mock<IAppMetadata>()
             .Setup(x => x.GetApplicationMetadata())
@@ -2914,7 +2911,6 @@ public sealed class ProcessEngineTest
         ExtractCommandKeys(capturedRequest)
             .Should()
             .Equal(
-                EndTask.Key,
                 CommonTaskFinalization.Key,
                 OnTaskEndingHook.Key,
                 LockTaskData.Key,
@@ -2923,7 +2919,6 @@ public sealed class ProcessEngineTest
                 CleanupGeneratedFromTask.Key,
                 OnTaskStartingHook.Key,
                 CommonTaskInitialization.Key,
-                StartTask.Key,
                 CommitProcessState.Key,
                 EnqueueSideEffectsWorkflow.Key,
                 ExecuteServiceTask.Key
@@ -3669,8 +3664,15 @@ public sealed class ProcessEngineTest
             secretProviderMock.Setup(p => p.GetValidationSecrets()).Returns([stateSigningCode]);
             services.TryAddSingleton<IWorkflowCallbackSecretProvider>(_ => secretProviderMock.Object);
 
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IProcessTask, DataProcessTask>());
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IProcessTask, ConfirmationProcessTask>());
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IProcessTask, NullTypeProcessTask>());
+            // These process-engine tests exercise a signing user action and the resulting transition;
+            // the signing task's own command declarations are covered by SigningProcessTaskTests.
+            services.AddSingleton<IProcessTask>(new SigningTaskDeclarationStub());
+            services.TryAddTransient<ProcessTaskResolver>();
             services.TryAddTransient<ProcessNextRequestFactory>();
-            services.TryAddSingleton<ProcessStepOptionsResolver>();
+            services.TryAddTransient<ProcessStepOptionsResolver>();
             services.TryAddTransient<WorkflowStateSigner>();
             services.TryAddTransient<WorkflowCallbackStateService>();
 
@@ -3699,6 +3701,11 @@ public sealed class ProcessEngineTest
 
             return ValueTask.CompletedTask;
         }
+    }
+
+    private sealed class SigningTaskDeclarationStub : IProcessTask
+    {
+        public string Type => AltinnTaskTypes.Signing;
     }
 
     private bool CompareInstance(Instance expected, Instance actual)

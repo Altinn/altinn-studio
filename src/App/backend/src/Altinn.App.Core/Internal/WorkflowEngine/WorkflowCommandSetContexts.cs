@@ -27,6 +27,9 @@ internal sealed record TaskStartContext
     /// </summary>
     public required ResolvedServiceTask? ServiceTask { get; init; }
 
+    /// <summary>The lifecycle pipeline's planned steps, fixed when the transition is enqueued.</summary>
+    public IReadOnlyList<Models.Engine.StepRequest> StartSteps { get; init; } = [];
+
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>

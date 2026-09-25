@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -36,6 +37,7 @@ public class CommonTaskInitializationTests
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = instanceDataMutator,
             CancellationToken = CancellationToken.None,
+            CommandPayload = serializedPayload,
             Payload = new AppCallbackPayload
             {
                 CommandKey = CommonTaskInitialization.Key,

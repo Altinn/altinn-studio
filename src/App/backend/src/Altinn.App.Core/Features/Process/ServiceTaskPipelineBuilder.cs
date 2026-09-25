@@ -44,7 +44,17 @@ public sealed class ServiceTaskPipelineBuilder
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        _items.Add(new ServiceTaskStage.Plain(work, options));
+        _items.Add(new ProcessPipelineStage.ServiceHandler(work, options));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a registered command as one durable stage. Its payload is fixed at enqueue, and command defaults
+    /// are overridden by task and stage options. It cannot advance or conclude the service task.
+    /// </summary>
+    public ServiceTaskPipelineBuilder Stage(WorkflowCommandRef command, ProcessStepOptions? options = null)
+    {
+        _items.Add(new ProcessPipelineStage.Command(command, options));
         return this;
     }
 
@@ -95,7 +105,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// </param>
     /// <param name="onClosed">
     /// Answers the mailbox closing with the exchange unfinished — fatal
-    /// (<see cref="ServiceTaskStageResult.FailedPermanent"/>), or simply the end of an exchange the task can
+    /// (<see cref="ServiceTaskStageResult.FailedPermanent(string)"/>), or simply the end of an exchange the task can
     /// live without (<see cref="ServiceTaskStageResult.Completed"/>).
     /// </param>
     /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>

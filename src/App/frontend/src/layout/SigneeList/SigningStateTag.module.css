@@ -1,3 +1,10 @@
 .stateTag {
   max-width: 100%;
 }
+
+.notificationFailedHint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--ds-color-neutral-text-subtle);
+}

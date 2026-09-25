@@ -107,10 +107,12 @@ internal sealed class SignDocumentManager(
             .. signeeContexts.Select(context => new SigneeContext
             {
                 TaskId = context.TaskId,
+                SigneeId = context.SigneeId,
                 Signee = context.Signee,
                 SigneeState = context.SigneeState,
                 SignDocument = context.SignDocument,
                 CommunicationConfig = context.CommunicationConfig,
+                AdditionalActionsToDelegate = context.AdditionalActionsToDelegate,
             }),
         ];
 
@@ -212,10 +214,12 @@ internal sealed class SignDocumentManager(
         SigneeContext updatedContext = new()
         {
             TaskId = signeeContext.TaskId,
+            SigneeId = signeeContext.SigneeId,
             Signee = signeeContext.Signee,
             SigneeState = signeeContext.SigneeState,
             SignDocument = matchedSignDocument,
             CommunicationConfig = signeeContext.CommunicationConfig,
+            AdditionalActionsToDelegate = signeeContext.AdditionalActionsToDelegate,
         };
 
         if (signeeContext.Signee is OrganizationSignee orgSignee)
@@ -255,10 +259,12 @@ internal sealed class SignDocumentManager(
         return new SigneeContext
         {
             TaskId = context.TaskId,
+            SigneeId = context.SigneeId,
             Signee = updatedSignee,
             SigneeState = context.SigneeState,
             SignDocument = context.SignDocument,
             CommunicationConfig = context.CommunicationConfig,
+            AdditionalActionsToDelegate = context.AdditionalActionsToDelegate,
         };
     }
 

@@ -33,7 +33,8 @@ internal static class ServiceTaskLookupExtensions
     ) =>
         factory
             .GetServiceTasks()
-            .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase));
+            .DistinctBy(task => task, ReferenceEqualityComparer.Instance)
+            .SingleOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// The task's composed pipeline — for an <see cref="IServiceTask"/>, the forwarding default

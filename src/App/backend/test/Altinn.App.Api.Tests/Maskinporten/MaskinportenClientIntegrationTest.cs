@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,7 +75,7 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path, _platformHostName));
+        await using var app = BuildHost(secretsDirectory.Path, _platformHostName);
 
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
         Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
@@ -91,7 +92,7 @@ public class MaskinportenClientIntegrationTests
         using var secretsDirectory = new TempDirectory();
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = BuildHost(secretsDirectory.Path);
 
         await app.StartAsync();
         await app.StopAsync();
@@ -109,7 +110,7 @@ public class MaskinportenClientIntegrationTests
         await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
         ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
 
-        await using var app = AppBuilder.Build(configData: HostConfiguration(secretsDirectory.Path));
+        await using var app = BuildHost(secretsDirectory.Path);
 
         await app.StartAsync();
         await app.StopAsync();
@@ -137,6 +138,24 @@ public class MaskinportenClientIntegrationTests
             new("GeneralSettings:DisableLocaltestValidation", "true"),
             new("GeneralSettings:HostName", hostName),
         ];
+
+    private static Microsoft.AspNetCore.Builder.WebApplication BuildHost(
+        string secretsDirectory,
+        string hostName = _localtestHostName
+    ) =>
+        AppBuilder.Build(
+            configData: HostConfiguration(secretsDirectory, hostName),
+            overrideAltinnAppServices: services =>
+            {
+                // These hosts test provisioned credentials without an app's BPMN or platform endpoints.
+                // Keep credential validation active, but exclude the unrelated process configuration check.
+                services.Remove(
+                    services.Single(descriptor =>
+                        descriptor.ImplementationType == typeof(ProcessTaskConfigurationValidationService)
+                    )
+                );
+            }
+        );
 
     private static Task WriteProvisionedClient(string secretsDirectory, string clientId) =>
         File.WriteAllTextAsync(

@@ -1,0 +1,29 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "Delegert signering"
+    },
+    {
+      "id": "signing.title",
+      "value": "Signering"
+    },
+    {
+      "id": "data.property1",
+      "value": "Felt 1"
+    },
+    {
+      "id": "data.property2",
+      "value": "Felt 2"
+    },
+    {
+      "id": "data.property3",
+      "value": "Felt 3"
+    },
+    {
+      "id": "data.next",
+      "value": "Til signering"
+    }
+  ]
+}

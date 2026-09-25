@@ -9,10 +9,31 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- App developers can share workflow-step helpers between lifecycle and service pipelines, derive retry-stable idempotency keys with `WorkflowStepIdempotencyKey`, and provide application error codes in service-task failures for workflow diagnostics.
+- App developers can compose task start, end and abandon work as pipelines using `IProcessTask`, and reuse registered commands as stages in service-task pipelines. Each stage has its own retries and workflow dashboard entry. Existing service-task definitions remain supported.
+- The workflow engine dashboard now groups every step of a task's start, end and abandon phases under that task, including the steps the task type declares itself, such as the signing task's resolve, delegate and notify steps. Previously only the built-in lifecycle steps were grouped, and the cleanup step sat outside the group.
+- Process task configuration is checked when the app starts instead of when a task is entered: every BPMN task must have an implementation for its type, every command a task declares must be registered, and each task type's own checks (`IProcessTask.ValidateConfiguration`) must pass. For signing tasks that means a missing `signatureDataType`, only one of `signeeProviderId` and `signeeStatesDataTypeId`, no signee provider matching `signeeProviderId`, or — in test and production environments — no correspondence resource for the environment now stops the app from starting, with every problem listed; locally a missing correspondence resource is logged as a warning.
+- `HostingEnvironment` (development, staging, production, unknown) is now public, carried by `ProcessTaskValidationContext`.
+- The signing state response (`GET .../signing`) exposes structured `delegationFailure` and `notificationFailure` codes. A permanent failure that concerns a single signee is recorded against that signee, so the reason is visible next to the person it affects rather than only in the process workflow status.
+
 ### Changed
+
+- Breaking: `IProcessTask` no longer has `Start`, `End` and `Abandon` methods, and `ProcessTaskContext` is removed. Move each durable operation into an `IWorkflowEngineCommand`, register it in DI, and compose its key and serialized input as a `WorkflowCommandRef` using `.Stage(...)` in `DefineStartPipeline`, `DefineEndPipeline` or `DefineAbandonPipeline`. Commands receive instance data, workflow and step IDs, raw `CommandPayload`, and cancellation through `ProcessEngineCommandContext`; carry the BPMN task ID in the payload when needed. Each command appears by name as an independently retryable workflow step. Apps that only need logic around an existing task type should use `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` instead.
+- Breaking: built-in payment and signing tasks now expose separate workflow steps for their operations, such as `CompletePayment`, `GenerateSigningPdf` and `RevokeSigneeRights`. Update dashboards or alerts that depend on the old task lifecycle operation names.
+- Breaking: ending a payment task whose payment is not complete now fails the transition immediately and permanently, until an operator resumes it, instead of retrying for a day. Nothing changes for a completed or skipped payment.
+- User-controlled signing now resolves the signee list, delegates access to every signee in one step, and sends every signee's notification in another. Temporary platform or authentication failures are retried, and an operator can resume a failed transition after fixing its cause. A step that completed is not repeated by a later retry, and repeated notification sends are deduplicated. Existing instances retain their previously assigned signees and signatures.
+- A permanent failure that concerns one signee no longer holds up the signing task. When Access Management refuses rights for one recipient, the refusal is recorded against that signee and the task opens; the signee list and the signing panel show who could not be given access and why, so the instance owner can reject the task and correct the data instead of waiting for an operator. When Correspondence refuses one recipient's message, that is recorded the same way and signing proceeds, because the notification is a courtesy rather than a precondition: the signee can still sign, they just were not told to. No notification failure holds the task any more, including a missing correspondence resource, which is what made a runtime-delegated signing task impossible to enter in local development. Failures that would repeat for every signee still fail the transition for the service owner to fix and resume: the app's own credentials or scopes being refused, a Maskinporten token that cannot be obtained, or the instance owner not resolving.
+- Breaking: a signing task with a signee provider must configure a `correspondenceResource` for the `staging` and `prod` environments, checked when the app starts. Local development logs a warning instead.
 
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
+
+### Fixed
+
+- Service task types now resolve consistently during task transitions and execution, including case-insensitive matching. Ambiguous registrations fail app startup with a diagnostic identifying the competing implementations.
+- Payment cleanup and PDF generation for payment and signing recover from lost responses without getting stuck on already deleted payment data or creating duplicate documents.
 
 ## [9.0.0-preview.6] - 2026-09-18
 

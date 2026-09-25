@@ -798,6 +798,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         if (outcome == WorkflowAggregateSaveOutcome.Saved)
         {
+            // Capture must pair committed blob versions with their current bytes after pending updates
+            // are cleared. User saves retain previous bytes for post-save validation instead.
+            foreach (var change in changes.AllChanges.Where(change => change.Type == ChangeType.Updated))
+            {
+                StoreCurrentDataElementContent(
+                    change,
+                    change.DataElement ?? throw new UnreachableException("Saved update must have a data element")
+                );
+            }
+
             // The updated state blob is captured from this unit of work after the save; committed
             // changes must not linger as pending or the next callback would recommit them. User
             // saves deliberately do NOT clear: the validation flow re-derives the changes after
@@ -1018,6 +1028,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             ContentPartName = contentPartName,
                             ExpectedCurrentBlobVersion = GetDataElementBlobVersionId(change.DataElementIdentifier),
                             ContentType = change.ContentType,
+                            Refs = change.DataElement.Refs,
+                            // Content updates replace task references, so retain the existing task-entry tag.
+                            GeneratedFromTask = change
+                                .DataElement.References?.Find(reference =>
+                                    reference.Relation == RelationType.GeneratedFrom
+                                    && reference.ValueType == ReferenceType.Task
+                                )
+                                ?.Value,
                             Filename = change switch
                             {
                                 BinaryDataChange binaryDataChange => binaryDataChange.FileName,

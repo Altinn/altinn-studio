@@ -31,6 +31,17 @@ function getSigneeStatus(state: SigneeState): SigneeStatus {
   return 'waiting';
 }
 
+const NOTIFICATION_FAILED_HINT = {
+  Configuration: 'signee_list.notification_failed_hint_configuration',
+  ServiceOwnerUnavailable: 'signee_list.notification_failed_hint_configuration',
+  Rejected: 'signee_list.notification_failed_hint_rejected',
+  Unknown: 'signee_list.notification_failed_hint_rejected',
+} as const;
+
+function getNotificationFailedHint(state: SigneeState): string | undefined {
+  return state.notificationFailure ? NOTIFICATION_FAILED_HINT[state.notificationFailure] : undefined;
+}
+
 export function SigneeStateTag({ state }: { state: SigneeState }) {
   const status = getSigneeStatus(state);
   const colorByStatus: Record<SigneeStatus, React.ComponentProps<typeof Tag>['data-color']> = {
@@ -40,13 +51,22 @@ export function SigneeStateTag({ state }: { state: SigneeState }) {
     waiting: 'neutral',
   };
 
+  const notificationFailedHint = status === 'notificationFailed' ? getNotificationFailedHint(state) : undefined;
+
   return (
-    <Tag
-      data-color={colorByStatus[status]}
-      data-size='sm'
-      className={classes.stateTag}
-    >
-      <Lang id={SIGNEE_STATUS[status]} />
-    </Tag>
+    <>
+      <Tag
+        data-color={colorByStatus[status]}
+        data-size='sm'
+        className={classes.stateTag}
+      >
+        <Lang id={SIGNEE_STATUS[status]} />
+      </Tag>
+      {notificationFailedHint && (
+        <span className={classes.notificationFailedHint}>
+          <Lang id={notificationFailedHint} />
+        </span>
+      )}
+    </>
   );
 }

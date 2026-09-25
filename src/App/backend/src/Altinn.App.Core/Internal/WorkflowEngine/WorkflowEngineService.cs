@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
@@ -631,7 +632,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             InstanceWithStorageMetadata freshInstance =
                                 await _instanceClient.GetInstanceWithStorageMetadata(
                                     instance,
-                                    cancellationToken: cancellationToken
+                                    StorageAuthenticationMethod.ServiceOwner(),
+                                    cancellationToken
                                 );
                             bool processStateChanged = HasCommittedProcessState(currentChain);
                             return new ProcessNextWorkflowResult(
@@ -678,7 +680,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
                                 instance,
-                                cancellationToken: cancellationToken
+                                StorageAuthenticationMethod.ServiceOwner(),
+                                cancellationToken
                             );
                         return new ProcessNextWorkflowResult(
                             freshInstance.Instance,
@@ -711,7 +714,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         InstanceWithStorageMetadata freshInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             instance,
-            cancellationToken: cancellationToken
+            StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken
         );
         if (lastObservedCollectionWorkflows.Count == 0)
         {

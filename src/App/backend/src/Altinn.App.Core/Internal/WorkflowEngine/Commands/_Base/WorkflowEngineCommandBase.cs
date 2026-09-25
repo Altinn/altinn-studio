@@ -30,31 +30,36 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
         }
         catch (JsonException)
         {
-            payload = null;
+            return InvalidPayload("is not valid JSON for this command");
         }
         catch (NotSupportedException)
         {
-            payload = null;
+            return InvalidPayload("has an unsupported payload type");
         }
 
         if (payload is null)
         {
-            string commandKey = GetKey();
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
-                    $"{commandKey} payload is missing or invalid",
-                    "InvalidPayloadException"
-                )
-            );
+            return InvalidPayload("is missing");
+        }
+
+        if (payload.Validate() is { } validationError)
+        {
+            return InvalidPayload(validationError);
         }
 
         return Execute(context, payload);
     }
 
     protected virtual TRequestPayload? ResolvePayload(ProcessEngineCommandContext context) =>
-        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload) is TRequestPayload payload
-            ? payload
-            : null;
+        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.CommandPayload) as TRequestPayload;
+
+    private Task<ProcessEngineCommandResult> InvalidPayload(string reason) =>
+        Task.FromResult<ProcessEngineCommandResult>(
+            FailedProcessEngineCommandResult.Permanent(
+                $"{GetKey()} payload is missing or invalid: {reason}",
+                "InvalidPayloadException"
+            )
+        );
 
     public abstract Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,

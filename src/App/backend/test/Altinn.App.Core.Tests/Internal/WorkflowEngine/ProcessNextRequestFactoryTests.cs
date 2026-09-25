@@ -4,6 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -55,20 +56,24 @@ public class ProcessNextRequestFactoryTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        // The default task type every test transition uses unless it names a service task. Registered
+        // first so a test's own configureServices can add another IProcessTask for "data" and win
+        // (ProcessTaskResolver picks the LAST match), e.g. to exercise a task's own declared commands.
+        services.AddSingleton<IProcessTask, DataProcessTask>();
         foreach (IPipelineServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
         }
+        services.AddTransient<IWorkflowEngineCommand>(sp => new ExecuteServiceTask(
+            new AppImplementationFactory(sp),
+            TestMailboxDeliveryEnvelope.Create()
+        ));
         configureServices?.Invoke(services);
         var sp = services.BuildServiceProvider();
         var appImplFactory = sp.GetRequiredService<AppImplementationFactory>();
+        var processTaskResolver = new ProcessTaskResolver(sp);
 
-        // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
-        // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
-        var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create())],
-            appImplFactory
-        );
+        var stepOptionsResolver = new ProcessStepOptionsResolver(sp);
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -84,7 +89,8 @@ public class ProcessNextRequestFactoryTests
             TestAppIdentifier,
             appSettings,
             callbackTokenGeneratorMock.Object,
-            stepOptionsResolver
+            stepOptionsResolver,
+            processTaskResolver
         );
     }
 
@@ -464,18 +470,16 @@ public class ProcessNextRequestFactoryTests
         var expected = new List<string>
         {
             // Task end commands
-            EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
             // MutateProcessState (between end and start)
             MutateProcessState.Key,
-            // Task start commands
+            // Task start commands (the built-in data task declares none)
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // CommitProcessState (commit boundary)
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -583,7 +587,6 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractCommandKeys(bundle);
         var expected = new List<string>
         {
-            EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
@@ -592,7 +595,6 @@ public class ProcessNextRequestFactoryTests
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             CommitProcessState.Key,
             EnqueueSideEffectsWorkflow.Key,
             ExecuteServiceTask.Key,
@@ -631,7 +633,6 @@ public class ProcessNextRequestFactoryTests
         var expected = new List<string>
         {
             // Task end commands
-            EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
@@ -682,7 +683,6 @@ public class ProcessNextRequestFactoryTests
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // CommitProcessState
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -738,16 +738,14 @@ public class ProcessNextRequestFactoryTests
         var expected = new List<string>
         {
             // Abandon commands
-            AbandonTask.Key,
             OnTaskAbandonHook.Key,
             // MutateProcessState
             MutateProcessState.Key,
-            // Task start commands
+            // Task start commands (the built-in data task declares none)
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             // CommitProcessState
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
@@ -816,6 +814,54 @@ public class ProcessNextRequestFactoryTests
 
         public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    }
+
+    /// <summary>
+    /// A fake task type that declares whatever start/end/abandon commands a test hands it. Registered as an
+    /// <see cref="IProcessTask"/> for "data" (the type every transition helper in this file uses by default),
+    /// it wins over the built-in <see cref="DataProcessTask"/> that <see cref="CreateFactory"/> registers first
+    /// (<see cref="ProcessTaskResolver"/> picks the LAST match for a type).
+    /// </summary>
+    private sealed class FakeProcessTask(
+        string type,
+        IReadOnlyList<WorkflowCommandRef>? startCommands = null,
+        IReadOnlyList<WorkflowCommandRef>? endCommands = null,
+        IReadOnlyList<WorkflowCommandRef>? abandonCommands = null
+    ) : IProcessTask
+    {
+        public string Type => type;
+
+        public ProcessPipeline DefineStartPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in startCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
+
+        public ProcessPipeline DefineEndPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in endCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
+
+        public ProcessPipeline DefineAbandonPipeline(string taskId, ProcessPipelineBuilder pipeline)
+        {
+            foreach (WorkflowCommandRef command in abandonCommands ?? [])
+                pipeline.Stage(command);
+            return pipeline.Build();
+        }
+    }
+
+    /// <summary>A normal workflow command declaring its own execution defaults.</summary>
+    private sealed class FakeProcessTaskCommand(string key, ProcessStepOptions? options = null) : IWorkflowEngineCommand
+    {
+        public string GetKey() => key;
+
+        public ProcessStepOptions? DefaultStepOptions => options;
+
+        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context) =>
+            Task.FromResult(ProcessEngineCommandResult.Completed());
     }
 
     /// <summary>
@@ -1617,7 +1663,7 @@ public class ProcessNextRequestFactoryTests
 
         var keys = ExtractCommandKeys(bundle);
         Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
-        Assert.Equal(EndTask.Key, keys[0]);
+        Assert.Equal(CommonTaskFinalization.Key, keys[0]);
         Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
         Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);
         Assert.Equal(dependency, Assert.Single(bundle.Request.Workflows.Single().DependsOn!));
@@ -1800,10 +1846,27 @@ public class ProcessNextRequestFactoryTests
     // ---- Step options resolution (execution timeout / retry strategy): tier 1/2/3 ----
 
     [Fact]
-    public async Task StepOptions_OrdinaryCommand_LeavesEngineDefaults()
+    public async Task StepOptions_DeclaredWorkflowCommand_DefaultsAreApplied()
     {
-        // Arrange - tier 1: a command with no per-command default and no app handler
-        var factory = CreateFactory();
+        // A declared normal command supplies its own timeout and retry strategy.
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                    new FakeProcessTask("data", startCommands: [new WorkflowCommandRef("MyStartCommand")])
+                )
+                .AddSingleton<IWorkflowEngineCommand>(
+                    new FakeProcessTaskCommand(
+                        "MyStartCommand",
+                        new ProcessStepOptions
+                        {
+                            MaxExecutionTime = TimeSpan.FromMinutes(3),
+                            RetryStrategy = ProcessStepRetryStrategy.Exponential(
+                                TimeSpan.FromSeconds(5),
+                                maxRetries: 3
+                            ),
+                        }
+                    )
+                )
+        );
         var stateChange = CreateTaskToTaskTransition();
 
         // Act
@@ -1814,10 +1877,82 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert - nothing stamped, so the engine applies its own global defaults
-        var startTaskStep = GetStep(bundle, StartTask.Key);
-        Assert.Null(startTaskStep.Command.MaxExecutionTime);
-        Assert.Null(startTaskStep.RetryStrategy);
+        // The declared command's defaults land on its ordinary workflow step.
+        StepRequest step = bundle.Request.Workflows[0].Steps.Single(s => s.OperationId == "MyStartCommand");
+        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+        Assert.NotNull(step.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step.RetryStrategy.BackoffType);
+        Assert.Equal(TimeSpan.FromSeconds(5), step.RetryStrategy.BaseInterval);
+        Assert.Equal(3, step.RetryStrategy.MaxRetries);
+    }
+
+    [Fact]
+    public async Task Create_TaskStartCommands_AddOneOrdinaryCommandStepEach_InOrder()
+    {
+        // Arrange - a task type declaring two start commands, in order
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                new FakeProcessTask(
+                    "data",
+                    startCommands:
+                    [
+                        new WorkflowCommandRef("FirstStartCommand"),
+                        new WorkflowCommandRef("SecondStartCommand"),
+                    ]
+                )
+            )
+        );
+        var stateChange = CreateInitialTaskStart();
+
+        // Act
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        // One ordinary step per declared command, in order, placed after
+        // CommonTaskInitialization and before the CommitProcessState commit.
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int commonInitIndex = operationIds.IndexOf(CommonTaskInitialization.Key);
+        int firstCommandIndex = operationIds.IndexOf("FirstStartCommand");
+        int secondCommandIndex = operationIds.IndexOf("SecondStartCommand");
+        int saveIndex = operationIds.IndexOf(CommitProcessState.Key);
+
+        Assert.NotEqual(-1, firstCommandIndex);
+        Assert.NotEqual(-1, secondCommandIndex);
+        Assert.Equal(commonInitIndex + 1, firstCommandIndex);
+        Assert.Equal(firstCommandIndex + 1, secondCommandIndex);
+        Assert.True(secondCommandIndex < saveIndex);
+    }
+
+    [Fact]
+    public async Task Create_TaskEndCommand_PrecedesCommonTaskFinalization()
+    {
+        // Arrange - the leaving task's type declares one end command
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(
+                new FakeProcessTask("data", endCommands: [new WorkflowCommandRef("MyEndCommand")])
+            )
+        );
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        // Assert
+        List<string> operationIds = bundle.Request.Workflows[0].Steps.Select(s => s.OperationId).ToList();
+        int endCommandIndex = operationIds.IndexOf("MyEndCommand");
+        int commonFinalizationIndex = operationIds.IndexOf(CommonTaskFinalization.Key);
+
+        Assert.NotEqual(-1, endCommandIndex);
+        Assert.True(endCommandIndex < commonFinalizationIndex);
     }
 
     [Fact]

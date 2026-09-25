@@ -15,9 +15,10 @@ internal sealed class ProcessTaskResolver
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessTaskResolver"/> class.
     /// </summary>
-    public ProcessTaskResolver(AppImplementationFactory appImplementationFactory)
+    public ProcessTaskResolver(IServiceProvider services)
     {
-        _appImplementationFactory = appImplementationFactory;
+        // Startup has no HTTP request: bind the fallback to this scope instead of the root container.
+        _appImplementationFactory = new AppImplementationFactory(services);
     }
 
     /// <summary>
@@ -33,8 +34,7 @@ internal sealed class ProcessTaskResolver
             altinnTaskType = "NullType";
         }
 
-        IEnumerable<IPipelineServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
-        IPipelineServiceTask? serviceTask = serviceTasks.LastOrDefault(pt => pt.Type == altinnTaskType);
+        IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(altinnTaskType);
 
         if (serviceTask is not null)
         {

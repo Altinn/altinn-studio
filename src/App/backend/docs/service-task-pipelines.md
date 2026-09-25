@@ -5,6 +5,9 @@ and message-answered (mailbox) exchanges. This is the app-developer companion to
 spec in `src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md`; until it lands on docs.altinn.studio,
 this file is the reference the API docs point to.
 
+Ordinary service stages share their model and execution with [lifecycle pipeline stages](process-pipelines.md).
+Both support registered commands; service pipelines retain their own conclusion and mailbox semantics.
+
 ## The shape of a pipeline
 
 Every service task is a pipeline. A task that does one thing implements `IServiceTask` and only writes

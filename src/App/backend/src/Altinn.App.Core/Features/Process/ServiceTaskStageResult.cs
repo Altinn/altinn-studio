@@ -53,6 +53,16 @@ public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
         return new FailedServiceTaskStageResult(errorMessage, FailureKind.Retryable);
     }
 
+    /// <summary>Creates a retryable failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskStageResult FailedRetryable(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskStageResult(errorMessage, FailureKind.Retryable, errorCode);
+    }
+
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying and mark
     /// the stage as failed immediately. Use this for errors that won't resolve by retrying
@@ -65,6 +75,16 @@ public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
         return new FailedServiceTaskStageResult(errorMessage, FailureKind.Permanent);
     }
+
+    /// <summary>Creates a permanent failure with an application-defined diagnostic code.</summary>
+    /// <param name="errorMessage">Human-readable explanation of the failure.</param>
+    /// <param name="errorCode">Stable code identifying the failure in workflow diagnostics.</param>
+    public static ServiceTaskStageResult FailedPermanent(string errorMessage, string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
+        return new FailedServiceTaskStageResult(errorMessage, FailureKind.Permanent, errorCode);
+    }
 }
 
 internal sealed record CompletedServiceTaskStageResult : ServiceTaskStageResult
@@ -74,4 +94,5 @@ internal sealed record CompletedServiceTaskStageResult : ServiceTaskStageResult
 
 internal sealed record DeferredServiceTaskStageResult(TimeSpan Delay, string? Reason) : ServiceTaskStageResult;
 
-internal sealed record FailedServiceTaskStageResult(string ErrorMessage, FailureKind Kind) : ServiceTaskStageResult;
+internal sealed record FailedServiceTaskStageResult(string ErrorMessage, FailureKind Kind, string? ErrorCode = null)
+    : ServiceTaskStageResult;

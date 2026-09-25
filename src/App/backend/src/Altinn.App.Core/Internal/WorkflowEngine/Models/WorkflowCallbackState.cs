@@ -26,6 +26,14 @@ internal sealed record WorkflowCallbackState
     public required List<FormDataEntry> FormData { get; init; }
 
     /// <summary>
+    /// Exact bytes of configured signing/payment JSON, bound to the captured element and blob version. Keeping
+    /// these bytes lets a retried recipient command reach aggregate replay after its earlier save succeeded.
+    /// </summary>
+    [JsonPropertyName("taskStateData")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<TaskStateDataEntry>? TaskStateData { get; init; }
+
+    /// <summary>
     /// The mailboxes a service task's declaring stages have opened, keyed by the opening stage's item index
     /// as a string (JSON object keys are strings) — the app's own bookkeeping riding the blob rather than
     /// anything the engine reads. <c>null</c> for every workflow that has not opened a mailbox.
@@ -68,4 +76,20 @@ internal sealed record FormDataEntry
 
     [JsonPropertyName("data")]
     public required JsonElement Data { get; init; }
+}
+
+/// <summary>One configured signing/payment state element in the signed callback snapshot.</summary>
+internal sealed record TaskStateDataEntry
+{
+    [JsonPropertyName("id")]
+    public required string Id { get; init; }
+
+    [JsonPropertyName("dataType")]
+    public required string DataType { get; init; }
+
+    [JsonPropertyName("blobVersionId")]
+    public required string? BlobVersionId { get; init; }
+
+    [JsonPropertyName("data")]
+    public required byte[] Data { get; init; }
 }
