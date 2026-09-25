@@ -1,78 +1,33 @@
-import { getSourceForCommon } from 'src/codegen/Common';
-import { GenerateArray } from 'src/codegen/dataTypes/GenerateArray';
-import { GenerateCommonImport } from 'src/codegen/dataTypes/GenerateCommonImport';
-import { GenerateExpressionOr } from 'src/codegen/dataTypes/GenerateExpressionOr';
-import { GenerateIntersection } from 'src/codegen/dataTypes/GenerateIntersection';
-import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
-import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
 import type { CodeGenerator } from 'src/codegen/CodeGenerator';
 
-/** Walks final component properties, including inherited overrides, and emits descriptors at their layout paths. */
+export interface ExpressionDescriptorEntry {
+  path: readonly string[];
+  returnType: ExprVal;
+  defaultValue: unknown;
+}
+
+export function prefixExpressionDescriptors(
+  segment: string,
+  entries: readonly ExpressionDescriptorEntry[],
+): ExpressionDescriptorEntry[] {
+  return entries.map((entry) => ({ ...entry, path: [segment, ...entry.path] }));
+}
+
+/** Renders the expression descriptors assembled by the generator objects. */
 export function generateExpressionDescriptors(componentType: string, root: CodeGenerator<unknown>): string {
   const leaves = new Map<string, string>();
-
-  function visit(source: CodeGenerator<unknown>, path: string[], ancestors: Set<object>) {
-    if (ancestors.has(source)) {
-      return;
-    }
-    const nextAncestors = new Set(ancestors).add(source);
-    if (source instanceof GenerateExpressionOr) {
-      try {
-        addDescriptor(source.toDescriptor(componentType, path.join('.')), path);
-      } catch (error) {
-        throw new Error(`Cannot generate expression descriptor for ${componentType}.${path.join('.')}`, {
-          cause: error,
-        });
-      }
-    } else if (source instanceof GenerateCommonImport) {
-      visit(getSourceForCommon(source.key), path, nextAncestors);
-    } else if (source instanceof GenerateObject) {
-      for (const property of source.getAllProperties()) {
-        visit(property.type, [...path, property.name], nextAncestors);
-      }
-      const additional = source.getAdditionalProperties();
-      if (additional) {
-        visit(additional, [...path, 'additionalProperties'], nextAncestors);
-      }
-    } else if (source instanceof GenerateArray) {
-      visit(source.innerType, [...path, 'items'], nextAncestors);
-    } else if (source instanceof GenerateUnion || source instanceof GenerateIntersection) {
-      const expressions = source.getTypes().filter((type) => type instanceof GenerateExpressionOr);
-      if (source instanceof GenerateUnion && expressions.length > 1) {
-        // The existing evaluator accepts either scalar type and uses one fallback for both.
-        addDescriptor(
-          GenerateExpressionOr.renderDescriptor(
-            ExprVal.Any,
-            source.getExpressionFallback(),
-            componentType,
-            path.join('.'),
-          ),
-          path,
-        );
-      }
-      for (const type of source.getTypes()) {
-        if (source instanceof GenerateUnion && expressions.length > 1 && type instanceof GenerateExpressionOr) {
-          continue;
-        }
-        visit(type, path, nextAncestors);
-      }
-    } else if (source.internal.source) {
-      visit(source.internal.source, path, nextAncestors);
-    }
-  }
-
-  function addDescriptor(definition: string, path: string[]) {
-    const propertyPath = path.join('.');
-    if (leaves.has(propertyPath) && leaves.get(propertyPath) !== definition) {
+  for (const entry of root.expressionDescriptors()) {
+    const propertyPath = entry.path.join('.');
+    const descriptor = renderDescriptor(entry, componentType, propertyPath);
+    if (leaves.has(propertyPath) && leaves.get(propertyPath) !== descriptor) {
       throw new Error(`Conflicting expression descriptors at ${componentType}.${propertyPath}`);
     }
-    leaves.set(propertyPath, definition);
+    leaves.set(propertyPath, descriptor);
   }
 
-  visit(root, [], new Set());
   const tree: DescriptorTree = {};
-  for (const [path, definition] of leaves) {
+  for (const [path, descriptor] of leaves) {
     let current = tree;
     const segments = path.split('.');
     for (const segment of segments.slice(0, -1)) {
@@ -82,9 +37,35 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
       }
       current = child ?? (current[segment] = {});
     }
-    current[segments[segments.length - 1]] = definition;
+    current[segments[segments.length - 1]] = descriptor;
   }
   return renderTree(tree);
+}
+
+function renderDescriptor(entry: ExpressionDescriptorEntry, componentType: string, propertyPath: string): string {
+  const typeName = Object.entries(ExprVal).find(([, value]) => value === entry.returnType)?.[0];
+  if (!typeName) {
+    throw new Error(`Unknown expression return type ${entry.returnType}`);
+  }
+  return `{
+    returnType: ExprVal.${typeName},
+    defaultValue: ${serializeFallback(entry.defaultValue)},
+    errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
+  } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
+}
+
+function serializeFallback(value: unknown): string {
+  if (value === undefined) {
+    return 'undefined';
+  }
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    return String(value);
+  }
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new Error('Expression fallback must be serializable');
+  }
+  return serialized;
 }
 
 interface DescriptorTree {

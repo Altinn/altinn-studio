@@ -4,6 +4,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { ExprVal } from 'src/features/expressions/types';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 const toTsMap: { [key in ExprVal]: string } = {
   [ExprVal.Any]: 'ExprValToActualOrExpr<ExprVal.Any>',
@@ -37,49 +38,32 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
 
   private expressionFallback?: ExprValToActual<Val>;
 
-  /**
-   * Sets the value returned when expression evaluation fails. If omitted, the default passed to
-   * `.optional()` is used. Properties without that default need an explicit fallback.
-   */
+  /** Required expressions need a value to return when evaluation fails. */
   setFallback(value: ExprValToActual<Val>): this {
     this.ensureMutable();
     this.expressionFallback = value;
     return this;
   }
 
-  getExpressionFallback(): ExprValToActual<Val> {
-    const fallback =
-      this.expressionFallback !== undefined
-        ? this.expressionFallback
-        : this.internal.optional
-          ? this.internal.optional.default
-          : undefined;
-    if (fallback === undefined) {
+  getExpressionFallback(): ExprValToActual<Val> | undefined {
+    if (this.internal.optional) {
+      this.assertNoExplicitFallback();
+    }
+    const fallback = this.internal.optional ? this.internal.optional.default : this.expressionFallback;
+    if (!this.internal.optional && fallback === undefined) {
       throw new Error(`Expression ${this.getName() ?? this.valueType} needs an explicit fallback in its declaration`);
     }
     return fallback;
   }
 
-  toDescriptor(componentType: string, propertyPath: string): string {
-    return GenerateExpressionOr.renderDescriptor(
-      this.valueType,
-      this.getExpressionFallback(),
-      componentType,
-      propertyPath,
-    );
+  assertNoExplicitFallback(): void {
+    if (this.expressionFallback !== undefined) {
+      throw new Error(`Optional expression ${this.getName() ?? this.valueType} cannot have an explicit fallback`);
+    }
   }
 
-  /** Also used by unions that accept more than one expression return type. */
-  static renderDescriptor(valueType: ExprVal, fallback: unknown, componentType: string, propertyPath: string): string {
-    const typeName = Object.entries(ExprVal).find(([, value]) => value === valueType)?.[0];
-    if (!typeName) {
-      throw new Error(`Unknown expression return type ${valueType}`);
-    }
-    return `{
-      returnType: ExprVal.${typeName},
-      defaultValue: ${serializeFallback(fallback)},
-      errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
-    } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return [{ path: [], returnType: this.valueType, defaultValue: this.getExpressionFallback() }];
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
@@ -112,15 +96,4 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
     };
     return { ...definitions[this.valueType], ...this.componentCatalogMetadata() };
   }
-}
-
-function serializeFallback(value: unknown): string {
-  if (typeof value === 'number' && !Number.isFinite(value)) {
-    return String(value);
-  }
-  const serialized = JSON.stringify(value);
-  if (serialized === undefined) {
-    throw new Error('Expression fallback must be serializable');
-  }
-  return serialized;
 }

@@ -79,7 +79,6 @@ const common = {
           new CG.prop(
             'hidden',
             new CG.expr(ExprVal.Boolean)
-              .setFallback(false)
               .setTitle('Hidden', 'Skjult')
               .setDescription(
                 'Expression that will hide the page/form layout if true',
@@ -462,7 +461,6 @@ const common = {
       new CG.prop(
         'description',
         new CG.expr(ExprVal.String)
-          .setFallback('')
           .optional()
           .setTitle('Description', 'Beskrivelse')
           .setDescription(
@@ -474,7 +472,6 @@ const common = {
       new CG.prop(
         'helpText',
         new CG.expr(ExprVal.String)
-          .setFallback('')
           .optional()
           .setTitle('Help Text', 'Hjelpetekst')
           .setDescription(
@@ -542,8 +539,7 @@ const common = {
       new CG.prop(
         'optionFilter',
         new CG.expr(ExprVal.Boolean)
-          .setFallback(true)
-          .optional()
+          .optional({ default: true })
           .setTitle('Filter options (using an expression)', 'Filtrer alternativer med et uttrykk')
           .setDescription(
             'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
@@ -570,8 +566,7 @@ const common = {
       new CG.prop(
         'colSpan',
         new CG.expr(ExprVal.Number)
-          .setFallback(1)
-          .optional()
+          .optional({ default: 1 })
           .setTitle('Column span', 'Kolonnespenn')
           .setDescription(
             'Number of columns this cell should span. Defaults to 1 if not set.',
@@ -978,8 +973,7 @@ const common = {
       new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
-          .setFallback('navigation.form_pages')
-          .optional()
+          .optional({ default: 'navigation.form_pages' })
           .setTitle('Navigation title', 'Navigasjonstittel')
           .setDescription(
             'Overrides the default "Skjemasider" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.',
@@ -1013,7 +1007,6 @@ const common = {
       new CG.prop(
         'hideAppNameInPdf',
         new CG.expr(ExprVal.Boolean)
-          .setFallback(false)
           .setTitle('Hide app name in PDF', 'Skjul appnavn i PDF')
           .setDescription(
             'Controls whether the app name is hidden in the PDF header and footer.',
@@ -1151,17 +1144,17 @@ const common = {
     new CG.obj(
       new CG.prop(
         'thousandSeparator',
-        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).setExpressionFallback(false).optional(),
+        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional({ default: false }),
       ),
-      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).setFallback('.').optional()),
+      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional({ default: '.' })),
       new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
       new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
       new CG.prop('decimalScale', new CG.num().optional()),
       new CG.prop('fixedDecimalScale', new CG.bool().optional()),
       new CG.prop('allowNegative', new CG.bool().optional()),
       new CG.prop('allowLeadingZeros', new CG.bool().optional()),
-      new CG.prop('suffix', new CG.expr(ExprVal.String).setFallback('').optional()),
-      new CG.prop('prefix', new CG.expr(ExprVal.String).setFallback('').optional()),
+      new CG.prop('suffix', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('prefix', new CG.expr(ExprVal.String).optional()),
     )
       .setTitle('Number formatting options', 'Innstillinger for tallformat')
       .setDescription(
