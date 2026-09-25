@@ -484,6 +484,9 @@ impl Session {
 
     /// Describes why an operation cannot use this Session's running harness.
     pub(crate) fn not_running_error(&self) -> Error {
+        if self.is_archived() {
+            return self.archived_error();
+        }
         let detail = self
             .status
             .lifecycle
@@ -493,11 +496,16 @@ impl Session {
                 LifecycleState::Starting => "its lifecycle is starting",
                 LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
-                LifecycleState::Archived => "it is archived",
+                LifecycleState::Archived => "its harness was stopped when it was archived",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
             });
         Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+
+    /// Refuses an operation on an archived Session, whatever its harness does.
+    pub(crate) fn archived_error(&self) -> Error {
+        Error::Invalid(format!("Session \"{}\" is archived", self.name))
     }
 }
 
@@ -715,6 +723,37 @@ pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
+
+    #[test]
+    fn an_archived_session_is_refused_as_archived_whatever_its_harness_does() {
+        let session = |archived_at| super::Session {
+            id: "dd4cdbaf-9ea0-477e-96dd-bbd6b1e4f7dc".parse().expect("Session ID"),
+            agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+            agent: "worker".into(),
+            name: "s1".to_string().try_into().expect("Session name"),
+            harness: crate::harness::test_harness(),
+            model_selection: crate::ModelSelection::default(),
+            created_at: time::OffsetDateTime::UNIX_EPOCH,
+            deletion_timestamp: None,
+            archived_at,
+            status: Status::new(Lifecycle::running(), Reported::default()),
+            activation_generation: 0,
+            observed_activation_generation: 0,
+        };
+        let refused = session(Some(time::OffsetDateTime::UNIX_EPOCH))
+            .not_running_error()
+            .to_string();
+        assert!(
+            refused.ends_with("Session \"s1\" is archived"),
+            "an archive that arrives while a prompt waits for input readiness: {refused}"
+        );
+        assert!(
+            session(None)
+                .not_running_error()
+                .to_string()
+                .contains("has not reported readiness")
+        );
+    }
 
     #[test]
     fn an_archive_decides_the_state_over_the_harness() {

@@ -190,7 +190,8 @@ impl Service {
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
-            match current.status.state {
+            let activity = &current.status.reported.activity;
+            let waiting = match current.status.state {
                 State::Failed => {
                     return Err(Error::Session(format!(
                         "Session \"{name}\" failed while waiting for turn completion: {}",
@@ -207,14 +208,10 @@ impl Service {
                         "Session \"{name}\" was archived while waiting for turn completion"
                     )));
                 }
-                State::Starting | State::Working | State::WaitingForInput | State::Archiving => {}
-            }
-            let activity = &current.status.reported.activity;
-            let waiting = match current.status.state {
                 State::WaitingForInput => true,
                 // An archive that has not stopped the harness yet leaves the turn to its own report.
                 State::Archiving => activity.phase == super::Phase::WaitingForInput,
-                State::Starting | State::Working | State::Idle | State::Archived | State::Failed => false,
+                State::Starting | State::Working => false,
             };
             if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
@@ -278,7 +275,7 @@ impl Service {
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
         let session = self.visible(agent, name).await?;
         if session.is_archived() {
-            return Err(Error::Invalid(format!("Session \"{name}\" is archived")));
+            return Err(session.archived_error());
         }
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
