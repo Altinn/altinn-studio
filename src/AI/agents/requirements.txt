@@ -29,4 +29,3 @@ PyYAML>=6.0
 
 # Altinn domain library (agents/altinn)
 jsonschema>=4.0
-defusedxml>=0.7
