@@ -91,6 +91,19 @@ public interface IFormDataWrapper
     /// Set all Guid AltinnRowId fields that are Guid.Empty to Guid.NewGuid (so that we have an addressable id for the row when diffing for patches)
     /// </summary>
     void InitializeAltinnRowIds();
+
+    /// <summary>
+    /// Set properties with a fixed value back to the value declared in the model class, and report the properties that had another value.
+    /// </summary>
+    /// <remarks>
+    /// A property is considered fixed when it has <c>[BindNever]</c> and a literal initializer.
+    /// Altinn Studio generates such properties for XSD attributes with a <c>fixed</c> value.
+    /// Data received from clients is rejected when the returned list is not empty, while data stored with other fixed values
+    /// (for example before the fixed value changed in the schema) is corrected when it is loaded. Storing data with
+    /// other fixed values fails, since only app code can produce such data.
+    /// </remarks>
+    /// <returns>One entry per property that was corrected, or an empty list if all fixed values were already correct</returns>
+    IReadOnlyList<FixedValueError> RestoreFixedValues();
 }
 
 /// <summary>

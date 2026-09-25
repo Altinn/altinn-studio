@@ -2881,19 +2881,12 @@ namespace Altinn.App.Core.Helpers.Serialization
     public sealed class ModelSerializationService
     {
         public ModelSerializationService(Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        [System.Obsolete("DeserializeFromStorage needs a DataElement parameter to support json in storage")]
-        public object DeserializeFromStorage(System.ReadOnlySpan<byte> data, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         public object DeserializeFromStorage(System.ReadOnlySpan<byte> data, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.Platform.Storage.Interface.Models.DataElement dataElement) { }
         public object DeserializeJson(System.ReadOnlySpan<byte> data, System.Type modelType) { }
         public System.Threading.Tasks.Task<Altinn.App.Core.Models.Result.ServiceResult<object, Microsoft.AspNetCore.Mvc.ProblemDetails>> DeserializeSingleFromStream(System.IO.Stream body, string? contentType, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         public object DeserializeXml(System.ReadOnlySpan<byte> data, System.Type modelType) { }
         public object GetEmpty(Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         public System.ReadOnlyMemory<byte> SerializeToJson(object model) { }
-        [System.Obsolete("SerializeToStorage needs a DataElement parameter to support json in storage")]
-        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
-                "data",
-                "contentType"})]
-        public System.ValueTuple<System.ReadOnlyMemory<byte>, string> SerializeToStorage(object model, Altinn.Platform.Storage.Interface.Models.DataType dataType) { }
         [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
                 "data",
                 "contentType"})]
@@ -3338,6 +3331,14 @@ namespace Altinn.App.Core.Internal.Auth
 }
 namespace Altinn.App.Core.Internal.Data
 {
+    public sealed class FixedValueError : System.IEquatable<Altinn.App.Core.Internal.Data.FixedValueError>
+    {
+        public FixedValueError(string Path, string? ExpectedValue, string? ActualValue) { }
+        public string? ActualValue { get; init; }
+        public string? ExpectedValue { get; init; }
+        public string Path { get; init; }
+        public override string ToString() { }
+    }
     public static class FormDataWrapperFactory
     {
         public static void Register<T>(System.Func<object, Altinn.Platform.Storage.Interface.Models.DataType, Altinn.Platform.Storage.Interface.Models.DataElement?, Altinn.App.Core.Internal.Data.IFormDataWrapper> factory)
@@ -3457,6 +3458,7 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Data.FixedValueError> RestoreFixedValues();
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
     }
 }

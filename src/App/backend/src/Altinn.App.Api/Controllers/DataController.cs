@@ -1133,6 +1133,7 @@ public class DataController : ControllerBase
 
         // Get the previous service model for dataProcessing to work
         var oldServiceModel = await dataMutator.GetFormData(dataElement);
+
         // Set the new service model so that dataAccessors see the new state
         dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel, dataType, dataElement));
 
