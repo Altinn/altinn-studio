@@ -1,26 +1,20 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import {
-  isVersionEqualOrGreater,
-  MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
-  MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
-} from '../utils/processEditorUtils';
 import { t } from 'i18next';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
 class SupportedPaletteProvider {
-  constructor(bpmnFactory, create, elementFactory, palette, modeling, appVersion) {
+  constructor(bpmnFactory, create, elementFactory, palette, modeling) {
     this.bpmnFactory = bpmnFactory;
     this.create = create;
     this.elementFactory = elementFactory;
     this.modeling = modeling;
-    this.appVersion = appVersion;
 
     palette.registerProvider(this);
   }
 
   getPaletteEntries() {
-    const { elementFactory, create, bpmnFactory, modeling, appVersion } = this;
+    const { elementFactory, create, bpmnFactory, modeling } = this;
 
     function createCustomTask(taskType) {
       return function (event) {
@@ -107,7 +101,7 @@ class SupportedPaletteProvider {
                 signeeStatesDataTypeId: `signees-states-${generateRandomId(4)}`,
                 signeeProviderId: '', // No default interface exists in the apps
                 signingPdfDataType: `signatures-pdf-${generateRandomId(4)}`,
-                correspondenceResource: '', // No default
+                correspondenceResource: [], // No default; environment-scoped entries are added in the panel
                 runDefaultValidator: bpmnFactory.create('altinn:RunDefaultValidator', {
                   value: true,
                 }),
@@ -196,36 +190,6 @@ class SupportedPaletteProvider {
       const taskType = 'pdf';
 
       return function (event) {
-        if (
-          appVersion &&
-          !isVersionEqualOrGreater(
-            appVersion.backendVersion,
-            MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
-          )
-        ) {
-          window.alert(
-            t('process_editor.palette_pdf_service_task_version_error', {
-              version: MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK,
-            }),
-          );
-          return;
-        }
-
-        if (
-          appVersion &&
-          !isVersionEqualOrGreater(
-            appVersion.frontendVersion,
-            MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
-          )
-        ) {
-          window.alert(
-            t('process_editor.palette_pdf_service_task_frontend_version_error', {
-              version: MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
-            }),
-          );
-          return;
-        }
-
         const task = buildAltinnServiceTask(taskType);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
@@ -368,7 +332,6 @@ SupportedPaletteProvider.$inject = [
   'elementFactory',
   'palette',
   'modeling',
-  'appVersion',
 ];
 
 export default {

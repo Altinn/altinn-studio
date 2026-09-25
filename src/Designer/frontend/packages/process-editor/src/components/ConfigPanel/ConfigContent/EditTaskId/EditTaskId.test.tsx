@@ -9,14 +9,12 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 const task1IdMock = 'task_1';
 const setBpmnDetailsMock = jest.fn();
-let mockBackendVersion = '8.9.0';
 let mockLayoutSets: LayoutSets = [];
 jest.mock('../../../../contexts/BpmnContext', () => ({
   useBpmnContext: () => ({
     modelerRef: mockModelerRef,
     setBpmnDetails: setBpmnDetailsMock,
     bpmnDetails: mockBpmnDetails,
-    appVersion: { backendVersion: mockBackendVersion, frontendVersion: '' },
   }),
 }));
 
@@ -47,7 +45,6 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 describe('EditTaskId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBackendVersion = '8.9.0';
     mockLayoutSets = [];
   });
   it('should render task id as view mode by default', () => {
@@ -173,12 +170,11 @@ describe('EditTaskId', () => {
     });
   });
 
-  describe('when the task has a layout set named after it (v9)', () => {
+  describe('when the task has a layout set named after it', () => {
     const subformLayoutSetId = 'subformLayoutSet';
     const idLongerThanLayoutSetNameLimit = 'a'.repeat(29);
 
     beforeEach(() => {
-      mockBackendVersion = '9.0.0';
       mockLayoutSets = [{ id: mockBpmnDetails.id }, { id: subformLayoutSetId, type: 'subform' }];
     });
 
@@ -215,16 +211,6 @@ describe('EditTaskId', () => {
 
     it('should accept an id longer than a layout set name can be when the task has no layout set', async () => {
       mockLayoutSets = [{ id: subformLayoutSetId, type: 'subform' }];
-      const user = userEvent.setup();
-      render(<EditTaskId />);
-
-      await changeTaskId(user, idLongerThanLayoutSetNameLimit);
-
-      expect(setBpmnDetailsMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('should accept an id longer than a layout set name can be in an app before v9', async () => {
-      mockBackendVersion = '8.9.0';
       const user = userEvent.setup();
       render(<EditTaskId />);
 
