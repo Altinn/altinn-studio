@@ -707,7 +707,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::ConfirmDeleteSession { agent, session } => {
             Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
                 .row(Line::from(format!("Delete session {agent}/{session}?")))
-                .row(note_line("Its harness is stopped and its conversation is lost."))
+                .row(note_line("Its harness is stopped and the Session is removed."))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
         Modal::NewSession(form) => render_new_session(frame, area, form, hit_map),

@@ -268,6 +268,7 @@ struct FakeRuntime {
     attached: Cell<bool>,
     stop_calls: Cell<usize>,
     fail_stop_once: Cell<bool>,
+    stops_failing: Cell<bool>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
     fail_transcript: Cell<bool>,
@@ -291,6 +292,7 @@ impl Default for FakeRuntime {
             attached: Cell::new(false),
             stop_calls: Cell::new(0),
             fail_stop_once: Cell::new(false),
+            stops_failing: Cell::new(false),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
             fail_transcript: Cell::new(false),
@@ -375,7 +377,7 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<(), Error>> {
         self.stop_calls.set(self.stop_calls.get() + 1);
-        if self.fail_stop_once.replace(false) {
+        if self.fail_stop_once.replace(false) || self.stops_failing.get() {
             return Box::pin(async { Err(Error::Session("injected stop failure".into())) });
         }
         self.present.set(false);
@@ -2808,6 +2810,65 @@ async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once
     ));
     assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
     assert!(matches!(service.delete("worker", &name).await, Err(Error::NotFound)));
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+/// A delete whose harness cannot be stopped yet reports that it is still
+/// pending, rather than looking like it was refused.
+#[tokio::test(flavor = "local")]
+async fn a_delete_that_cannot_stop_the_harness_yet_reports_that_it_is_pending() {
+    const TOKEN: &str = "bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.stops_failing.set(true);
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes));
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            sandboxes.clone(),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, _| {}),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(
+        session_store.clone(),
+        sandboxes,
+        runtime.clone(),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        session_wakeup,
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    let pending = service.delete("worker", &name).await.expect_err("the stop failed");
+    assert!(
+        pending
+            .to_string()
+            .contains("is marked for deletion and will be retried"),
+        "{pending}"
+    );
+    assert!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("still marked")
+            .is_deleting()
+    );
 
     agent_task.abort();
     session_task.abort();

@@ -338,7 +338,7 @@ impl Service {
             }
         };
         // Validated before the Session is persisted: a Session name is bound to its harness for the
-        // life of the Agent, so a refused attempt must not leave the name claimed.
+        // life of the Session, so a refused attempt must not leave the name claimed.
         Self::reject_omitted_optional_harness(&owner, harness)?;
         let session = if let Some(session) = existing {
             session
@@ -380,13 +380,11 @@ impl Service {
     ///
     /// Returns an error when the scoped Agent is missing or persistent state cannot be read.
     pub async fn list(&self, agent: Option<&str>) -> Result<Vec<Session>, Error> {
-        let sessions = if let Some(agent) = agent {
-            self.sandboxes.agent_by_name(agent).await?;
-            self.store.list_agent_sessions(agent).await?
-        } else {
-            self.store.list_all_sessions().await?
+        let Some(agent) = agent else {
+            return self.live_sessions().await;
         };
-        Ok(sessions.into_iter().filter(|session| !session.is_deleting()).collect())
+        self.sandboxes.agent_by_name(agent).await?;
+        Ok(live(self.store.list_agent_sessions(agent).await?))
     }
 
     /// Releases one Session: its harness is stopped and the Session is removed.
@@ -405,20 +403,17 @@ impl Service {
     /// failed pass.
     pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
         let session = self.store.mark_session_deleting(agent, name).await?;
-        self.wakeup.reconcile(session.id).await?;
-        Ok(())
+        self.wakeup.reconcile(session.id).await.map_err(|error| {
+            Error::Session(format!(
+                "Session \"{name}\" is marked for deletion and will be retried; stopping its harness failed: {error}"
+            ))
+        })
     }
 
-    /// Sessions an upgrade has to account for. One already on its way out
-    /// neither blocks the upgrade nor deserves a relaunch.
-    async fn releasable(&self) -> Result<Vec<Session>, Error> {
-        Ok(self
-            .store
-            .list_all_sessions()
-            .await?
-            .into_iter()
-            .filter(|session| !session.is_deleting())
-            .collect())
+    /// Every Session that is not being deleted. One already on its way out
+    /// is gone as far as listings and upgrades are concerned.
+    async fn live_sessions(&self) -> Result<Vec<Session>, Error> {
+        Ok(live(self.store.list_all_sessions().await?))
     }
 
     /// Resolves a Session a caller may still act on. A Session marked for
@@ -444,7 +439,7 @@ impl Service {
 
     async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
         let mut readiness = UpgradeReadiness::default();
-        for session in self.releasable().await? {
+        for session in self.live_sessions().await? {
             let label = format!("session/{}/{}", session.agent, session.name);
             if session.status.state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
@@ -498,7 +493,7 @@ impl Service {
     }
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
-        for session in self.releasable().await? {
+        for session in self.live_sessions().await? {
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;
@@ -550,6 +545,11 @@ impl Service {
         }
         Ok(Some(sandbox))
     }
+}
+
+/// Leaves out Sessions that are being deleted.
+fn live(sessions: Vec<Session>) -> Vec<Session> {
+    sessions.into_iter().filter(|session| !session.is_deleting()).collect()
 }
 
 /// An existing Session keeps its recorded harness, model and effort; only an
