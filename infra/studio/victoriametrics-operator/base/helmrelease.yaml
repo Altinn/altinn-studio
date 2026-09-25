@@ -1,0 +1,88 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoriametrics-operator
+  namespace: victoriametrics-operator
+spec:
+  interval: 1h
+  timeout: 5m
+  # crds.plain below moves the CRDs into the chart's crds/ directory, which Helm
+  # only creates on first install. CreateReplace makes the helm-controller also
+  # replace them on upgrade, so a chart bump brings its schema changes along.
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 5
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 5
+  chart:
+    spec:
+      # Chart 0.67.3 ships operator v0.74.1.
+      chart: victoria-metrics-operator
+      sourceRef:
+        kind: HelmRepository
+        name: victoriametrics-oci
+        namespace: victoriametrics-operator
+      version: 0.67.3
+  values:
+    # Without this every resource is named
+    # victoriametrics-operator-victoria-metrics-operator.
+    fullnameOverride: victoriametrics-operator
+    crds:
+      # The default templated CRDs have a schemaless spec that preserves unknown
+      # fields, so a mistyped field in a Victoria resource is accepted and
+      # silently ignored. The plain CRDs carry the full OpenAPI schema, and the
+      # API server rejects unknown and mistyped fields.
+      #
+      # Uninstalling leaves the CRDs, and every Victoria resource with them, in
+      # place. Plain CRDs lose the chart's helm.sh/resource-policy: keep
+      # annotation, which only the templated ones carry, but they no longer need
+      # it: CRDs from crds/ are not part of the release manifest, so neither Helm
+      # nor the helm-controller deletes them. Removing them is a manual step.
+      plain: true
+    rbac:
+      # By default the chart aggregates full access to every VictoriaMetrics
+      # resource into the built-in admin role and read access into view, which
+      # would extend every namespace admin and viewer in the cluster. Nobody but
+      # cluster admins needs to touch them.
+      aggregatedClusterRoles:
+        enabled: false
+    # watchNamespaces limits what the operator watches and reconciles, not what
+    # it is allowed to do. It still gets a ClusterRole, bound cluster-wide, with
+    # every verb on secrets, pods, services, workloads, roles, cluster roles and
+    # their bindings, among others; see templates/role.yaml in the chart. The
+    # chart only drops to a namespaced Role when the single watched namespace is
+    # the operator's own. Treat the operator's service account as cluster-admin
+    # equivalent.
+    watchNamespaces:
+      - observability
+    operator:
+      # The converter mirrors Prometheus Operator objects (ServiceMonitor,
+      # PodMonitor, PrometheusRule and so on) into their VictoriaMetrics
+      # equivalents. With watchNamespaces set it only ever sees objects in
+      # observability, where there are none: the Victoria backend is declared
+      # with VictoriaMetrics resources directly. Enabled, it would only add
+      # watches that produce nothing.
+      disable_prometheus_converter: true
+    # Studio has no service mesh, so reachability is not the concern. The
+    # webhook is off because it fails closed: while the operator is down or
+    # unreachable, every write to the Victoria resources is rejected, which is
+    # one more thing that can block a deploy. It would also need ingress from
+    # the API server, which networkpolicy.yaml cannot express. The full CRD
+    # schemas above already make the API server reject malformed resources.
+    admissionWebhooks:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+    # The operator is a controller, not part of the telemetry data path, so it
+    # stays on the general node pool. It carries no observability toleration or
+    # node selector: pinning it to the pool it schedules workloads onto would
+    # leave nothing able to recreate them if that pool is replaced.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi

@@ -59,6 +59,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/deploy-studio-observability.yaml                        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-otel-operator.yaml                        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-syncroot.yaml                             @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-studio-victoriametrics-operator.yaml             @altinn/team-altinn-studio-kjoring
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring
