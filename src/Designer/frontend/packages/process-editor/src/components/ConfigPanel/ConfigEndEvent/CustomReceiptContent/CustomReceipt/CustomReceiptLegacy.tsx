@@ -37,7 +37,7 @@ export const CustomReceiptLegacy = (): React.ReactElement => {
     mutateLayoutSetId({
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId,
-    });
+    }).catch(() => {}); // The mutation reports its own errors.
   };
 
   return (

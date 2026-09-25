@@ -9,7 +9,7 @@ import { useBpmnApiContext } from '../contexts/BpmnApiContext';
  * The editor keeps its current state if the saved process cannot be fetched or imported.
  */
 export const useReloadSavedProcess = (): ((elementIdToSelect?: string) => Promise<void>) => {
-  const { modelerRef, setBpmnDetails, isReloadingRef } = useBpmnContext();
+  const { modelerRef, setBpmnDetails, isReloadingRef, reloadCountRef } = useBpmnContext();
   const { getSavedBpmn } = useBpmnApiContext();
 
   return useCallback(
@@ -20,6 +20,7 @@ export const useReloadSavedProcess = (): ((elementIdToSelect?: string) => Promis
         // Importing clears the command stack without firing "commandStack.changed", so it does not save.
         isReloadingRef.current = true;
         await modelerRef.current?.importXML(savedXml);
+        reloadCountRef.current += 1;
       } catch {
         return;
       } finally {
@@ -31,6 +32,6 @@ export const useReloadSavedProcess = (): ((elementIdToSelect?: string) => Promis
         modeler?.get<ElementRegistry>('elementRegistry').get(elementIdToSelect);
       if (element) modeler.get<Selection>('selection').select(element);
     },
-    [getSavedBpmn, setBpmnDetails, isReloadingRef, modelerRef],
+    [getSavedBpmn, setBpmnDetails, isReloadingRef, reloadCountRef, modelerRef],
   );
 };

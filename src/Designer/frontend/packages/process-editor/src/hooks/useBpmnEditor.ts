@@ -15,25 +15,39 @@ import type Modeler from 'bpmn-js/lib/Modeler';
 export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
 export const useBpmnEditor = (): UseBpmnEditorResult => {
-  const { getUpdatedXml, setBpmnDetails, isReloadingRef } = useBpmnContext();
+  const { getUpdatedXml, setBpmnDetails, isReloadingRef, reloadCountRef, enqueueProcessChange } =
+    useBpmnContext();
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
   const reloadSavedProcess = useReloadSavedProcess();
 
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
-  const handleCommandStackChanged = useCallback(async () => {
-    const xml = await getUpdatedXml();
+  const handleCommandStackChanged = useCallback((): Promise<void> => {
     const metadata = metadataFormRef.current || null;
     resetForm();
-    try {
-      await saveBpmn(xml, metadata);
-    } catch {
-      // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
-      // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
-      if (metadata?.taskIdChange) await reloadSavedProcess();
-    }
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, reloadSavedProcess]);
+    const reloadCount = reloadCountRef.current;
+    // Saves run one at a time, and each sends the process as it is when the save starts.
+    return enqueueProcessChange(async () => {
+      if (reloadCountRef.current !== reloadCount) return; // A reload has replaced this edit with the saved process.
+      const xml = await getUpdatedXml();
+      try {
+        await saveBpmn(xml, metadata);
+      } catch {
+        // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
+        // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
+        if (metadata?.taskIdChange) await reloadSavedProcess();
+      }
+    });
+  }, [
+    saveBpmn,
+    resetForm,
+    metadataFormRef,
+    getUpdatedXml,
+    reloadSavedProcess,
+    reloadCountRef,
+    enqueueProcessChange,
+  ]);
 
   const handleShapeAdd = useCallback(
     async (taskEvent: TaskEvent): Promise<void> => {
