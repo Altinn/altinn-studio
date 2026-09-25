@@ -14,6 +14,7 @@ import type { TypeConfig as CardsTypeConfig } from '@app/layout-contract/generat
 import type { TypeConfig as CheckboxesTypeConfig } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 import type { TypeConfig as CustomTypeConfig } from '@app/layout-contract/generated/components/Custom/config.generated';
 import type { TypeConfig as CustomButtonTypeConfig } from '@app/layout-contract/generated/components/CustomButton/config.generated';
+import type { TypeConfig as CustomReactTypeConfig } from '@app/layout-contract/generated/components/CustomReact/config.generated';
 import type { TypeConfig as DateTypeConfig } from '@app/layout-contract/generated/components/Date/config.generated';
 import type { TypeConfig as DatepickerTypeConfig } from '@app/layout-contract/generated/components/Datepicker/config.generated';
 import type { TypeConfig as DividerTypeConfig } from '@app/layout-contract/generated/components/Divider/config.generated';
@@ -76,6 +77,7 @@ export type ComponentTypeConfigs = {
   Checkboxes: CheckboxesTypeConfig;
   Custom: CustomTypeConfig;
   CustomButton: CustomButtonTypeConfig;
+  CustomReact: CustomReactTypeConfig;
   Date: DateTypeConfig;
   Datepicker: DatepickerTypeConfig;
   Divider: DividerTypeConfig;
@@ -139,6 +141,7 @@ export type ConfigurableComponent =
   | CheckboxesTypeConfig['layout']
   | CustomTypeConfig['layout']
   | CustomButtonTypeConfig['layout']
+  | CustomReactTypeConfig['layout']
   | DateTypeConfig['layout']
   | DatepickerTypeConfig['layout']
   | DividerTypeConfig['layout']
@@ -186,4 +189,4 @@ export type ConfigurableComponent =
   | VideoTypeConfig['layout'];
 export type CompExternal = ComponentTypeConfigs[keyof ComponentTypeConfigs]['layout'];
 
-// Source hash: 8387c0ffd6a5142ed797669605c6c2750d58fdb5db33d64c61f5936408d9c1f3
+// Source hash: 180134d23cdeb25bd470daa3d5f47349d21956a945d11ebd604aba132c3daf81

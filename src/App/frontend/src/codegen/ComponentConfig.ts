@@ -130,6 +130,17 @@ export class ComponentConfig {
     return this;
   }
 
+  /**
+   * Allows text resource bindings with any key, in addition to the ones defined for the component. Use this only for
+   * components where the set of texts is not known up front (i.e. app-provided components).
+   */
+  public allowAdditionalTextResources(): this {
+    this.ensureTextResourceBindings();
+    this.inner.getProperty('textResourceBindings')?.type.additionalProperties(new CG.expr(ExprVal.String));
+
+    return this;
+  }
+
   public isFormLike(): boolean {
     return this.config.category === CompCategory.Form || this.config.category === CompCategory.Container;
   }

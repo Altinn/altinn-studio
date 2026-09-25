@@ -13,7 +13,11 @@ type RawJsonSchema = {
   jsonSchema: JSONSchema7 | (() => JSONSchema7) | CodeGenerator<any>;
 };
 
-type RawDef = RawTypeScript | RawJsonSchema | (RawTypeScript & RawJsonSchema);
+type RawComponentCatalog = {
+  componentCatalog?: PropertyValueDefinition;
+};
+
+type RawDef = (RawTypeScript | RawJsonSchema | (RawTypeScript & RawJsonSchema)) & RawComponentCatalog;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
@@ -83,6 +87,9 @@ export class GenerateRaw extends MaybeOptionalCodeGenerator<any> {
   }
 
   toComponentCatalogDefinition(): PropertyValueDefinition {
+    if (this.raw.componentCatalog) {
+      return this.raw.componentCatalog;
+    }
     throw new Error('GenerateRaw must provide a component catalogue representation');
   }
 }

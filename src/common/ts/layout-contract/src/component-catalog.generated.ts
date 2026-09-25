@@ -1189,6 +1189,33 @@ const CustomButtonSize = {
   description: { en: 'The size of the button.', nb: 'Knappens størrelse.' },
 } as const;
 
+const IDataModelBindingsForCustomReact = {
+  type: 'object',
+  properties: {},
+  additionalProperties: {
+    type: 'object',
+    properties: IDataModelReference['properties'],
+    additionalProperties: false,
+    semanticType: 'dataModelBinding',
+  },
+  title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+  description: {
+    en: 'Connects component values to fields in the data model.',
+    nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+  },
+} as const;
+
+const CustomReactOptions = {
+  type: 'object',
+  properties: {},
+  additionalProperties: { type: 'any' },
+  title: { en: 'Options', nb: 'Innstillinger' },
+  description: {
+    en: 'Component-specific settings, passed unchanged to the React component as the "options" prop. Values are plain JSON and are not evaluated as expressions.',
+    nb: 'Innstillinger for komponenten, som sendes uendret til React-komponenten som «options». Verdiene er vanlig JSON og tolkes ikke som uttrykk.',
+  },
+} as const;
+
 const IDataModelBindingsSimple = {
   type: 'object',
   properties: {
@@ -5778,6 +5805,110 @@ const generatedContract = {
             en: 'Connects component texts to text resources or expressions.',
             nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
           },
+          required: false,
+        },
+      },
+    },
+    CustomReact: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: true,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: {
+        name: { nb: 'Egendefinert React-komponent', en: 'Custom React component' },
+        lifecycle: { status: 'beta' },
+      },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        readOnly: FormComponentProps['properties']['readOnly'],
+        required: FormComponentProps['properties']['required'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        renderAsSummary: SummarizableComponentProps['properties']['renderAsSummary'],
+        forceShowInSummary: SummarizableComponentProps['properties']['forceShowInSummary'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
+        type: {
+          type: 'constant',
+          value: 'CustomReact',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: { type: 'string', expression: true },
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        removeWhenHidden: {
+          type: 'boolean',
+          expression: true,
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
+          required: false,
+        },
+        dataModelBindings: {
+          type: 'object',
+          properties: IDataModelBindingsForCustomReact['properties'],
+          additionalProperties: IDataModelBindingsForCustomReact['additionalProperties'],
+          title: IDataModelBindingsForCustomReact['title'],
+          description: IDataModelBindingsForCustomReact['description'],
+          required: false,
+        },
+        componentName: {
+          type: 'string',
+          pattern: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$',
+          title: { en: 'Component name', nb: 'Komponentnavn' },
+          description: {
+            en: 'Name of the React component, as registered by the app with window.altinnAppFrontend.registerComponent(). Lowercase words separated by hyphens, for example "my-org-map".',
+            nb: 'Navnet på React-komponenten, slik appen registrerer den med window.altinnAppFrontend.registerComponent(). Små bokstaver og ord skilt med bindestrek, for eksempel «my-org-map».',
+          },
+          required: true,
+        },
+        options: {
+          type: 'object',
+          properties: CustomReactOptions['properties'],
+          additionalProperties: CustomReactOptions['additionalProperties'],
+          title: CustomReactOptions['title'],
+          description: CustomReactOptions['description'],
           required: false,
         },
       },

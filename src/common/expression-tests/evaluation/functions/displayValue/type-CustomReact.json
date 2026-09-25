@@ -1,0 +1,36 @@
+{
+  "name": "Display value of CustomReact component",
+  "expression": [
+    "displayValue",
+    "customReact"
+  ],
+  "context": {
+    "component": "customReact",
+    "currentLayout": "Page"
+  },
+  "expects": "Alice, 42",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "customReact",
+            "type": "CustomReact",
+            "componentName": "my-component",
+            "dataModelBindings": {
+              "name": "Skjema.Name",
+              "age": "Skjema.Age"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Name": "Alice",
+      "Age": 42
+    }
+  }
+}

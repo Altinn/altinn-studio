@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
+import type { AltinnAppFrontendApi } from 'src/features/customReact/types';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
@@ -45,6 +46,10 @@ declare global {
     // in the app preview. We cannot simply remove/rename this without making sure the Studio team has a plan to
     // replace that functionality with something else.
     queryClient: QueryClient;
+
+    // Public API for app scripts, used to register app-provided React components (CustomReact). This is a public
+    // contract towards apps, see src/features/customReact/types.ts before changing anything here.
+    altinnAppFrontend?: AltinnAppFrontendApi;
 
     // This can be used to override the current layouts. In the future this is what will be used by Studio as well.
     changeLayouts: (mutator: (existingLayouts: ILayoutCollection) => ILayoutCollection) => void;

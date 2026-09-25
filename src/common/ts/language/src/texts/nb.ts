@@ -31,6 +31,7 @@ export function nb() {
     'confirm.sender': 'Aktør',
     'confirm.title': 'Se over svarene dine før du sender inn',
     'custom_actions.general_error': 'Noe gikk galt med denne handlingen. Prøv igjen senere.',
+    'custom_react.not_registered': 'Denne delen av skjemaet kunne ikke vises. Prøv å laste inn siden på nytt.',
     'date_picker.invalid_date_message': 'Ugyldig datoformat. Bruk formatet {0}.',
     'date_picker.cancel_label': 'Avbryt',
     'date_picker.clear_label': 'Tøm',
