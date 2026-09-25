@@ -1,8 +1,10 @@
+using Altinn.App.Core.Internal.Process.ProcessTasks;
+
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Lookup helpers for registered service tasks, so the matching rule — task type is
-/// case-insensitive (BPMN attribute semantics) — lives in one place.
+/// Lookup helpers for registered service tasks, so the matching rule — exact task type, last registration
+/// wins — lives in one place.
 /// </summary>
 internal static class ServiceTaskLookupExtensions
 {
@@ -24,16 +26,20 @@ internal static class ServiceTaskLookupExtensions
     }
 
     /// <summary>
-    /// The registered service task whose <c>Type</c> matches <paramref name="serviceTaskType"/>
-    /// (ignoring case, matching the BPMN attribute semantics), or <c>null</c>.
+    /// The registered service task <paramref name="serviceTaskType"/> resolves to, or <c>null</c>.
     /// </summary>
     public static IPipelineServiceTask? FindServiceTask(
         this AppImplementationFactory factory,
         string serviceTaskType
-    ) =>
-        factory
-            .GetServiceTasks()
-            .FirstOrDefault(t => t.Type.Equals(serviceTaskType, StringComparison.OrdinalIgnoreCase));
+    ) => factory.GetServiceTasks().ResolveByTaskType(serviceTaskType);
+
+    /// <summary>
+    /// The task in <paramref name="tasks"/> that <paramref name="altinnTaskType"/> resolves to, or
+    /// <c>null</c>: an exact (ordinal) match on <c>Type</c>, last registration winning, so an app's own
+    /// implementation replaces a built-in it was registered after.
+    /// </summary>
+    public static T? ResolveByTaskType<T>(this IEnumerable<T> tasks, string altinnTaskType)
+        where T : class, IProcessTask => tasks.LastOrDefault(task => task.Type == altinnTaskType);
 
     /// <summary>
     /// The task's composed pipeline — for an <see cref="IServiceTask"/>, the forwarding default

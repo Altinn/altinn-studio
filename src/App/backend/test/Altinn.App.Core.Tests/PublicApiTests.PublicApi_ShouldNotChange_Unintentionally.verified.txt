@@ -115,6 +115,13 @@ namespace Altinn.App.Core.Constants
         public const string RuntimeCookieName = "AltinnStudioRuntime";
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
     }
+    public enum HostingEnvironment
+    {
+        Unknown = 0,
+        Development = 1,
+        Production = 2,
+        Staging = 3,
+    }
 }
 namespace Altinn.App.Core.EFormidling.Configuration
 {
@@ -2362,6 +2369,13 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
+    {
+        public ProcessTaskValidationContext() { }
+        public required Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; init; }
+        public required Altinn.App.Core.Constants.HostingEnvironment Environment { get; init; }
+        public required string TaskId { get; init; }
+    }
     public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
     {
         public ServiceTaskAttempt() { }
@@ -4180,6 +4194,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker
     {

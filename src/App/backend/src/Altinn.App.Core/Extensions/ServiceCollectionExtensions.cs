@@ -388,6 +388,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
+        services.AddHostedService<Internal.Process.ProcessTaskConfigurationValidationService>();
+
         // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
         // eFormidling task but never called it is told at startup instead of mid-process.
         services.AddHostedService<EFormidlingConfigValidationService>();
