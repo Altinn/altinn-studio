@@ -120,9 +120,8 @@ public class AuthorizationController : Controller
     }
 
     /// <summary>
-    /// Checks if the user can represent the selected party.
+    /// Checks if the authenticated user can represent the selected party.
     /// </summary>
-    /// <param name="userId">The userId</param>
     /// <param name="partyId">The partyId</param>
     /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Boolean indicating if the selected party is valid.</returns>
@@ -131,18 +130,14 @@ public class AuthorizationController : Controller
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId, CancellationToken cancellationToken)
+    public async Task<IActionResult> ValidateSelectedParty(int partyId, CancellationToken cancellationToken)
     {
-        if (partyId == 0 || userId == 0)
+        if (partyId == 0)
         {
-            return BadRequest("Both userId and partyId must be provided.");
+            return BadRequest("partyId must be provided.");
         }
 
-        bool? result = await _authorization.ValidateSelectedParty(
-            userId,
-            partyId,
-            cancellationToken: cancellationToken
-        );
+        bool? result = await _authorization.ValidateSelectedParty(partyId, cancellationToken: cancellationToken);
 
         if (result != null)
         {
@@ -150,7 +145,7 @@ public class AuthorizationController : Controller
         }
         else
         {
-            return StatusCode(500, $"Something went wrong when trying to validate party {partyId} for user {userId}");
+            return StatusCode(500, $"Something went wrong when trying to validate party {partyId}");
         }
     }
 }
