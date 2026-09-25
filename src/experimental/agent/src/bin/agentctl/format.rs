@@ -238,10 +238,15 @@ const fn session_state(state: agent::sessions::State) -> &'static str {
     }
 }
 
+/// Whether an archived Session's harness has yet to stop.
+pub(crate) const fn is_archiving(session: &agent::sessions::Session) -> bool {
+    session.is_archived() && !matches!(session.status.state, agent::sessions::State::Archived)
+}
+
 /// A Session's state as shown to people: an archived Session whose harness has
 /// not stopped yet reads Archiving rather than the state it is leaving.
 pub(crate) const fn session_status(session: &agent::sessions::Session) -> &'static str {
-    if session.is_archived() && !matches!(session.status.state, agent::sessions::State::Archived) {
+    if is_archiving(session) {
         "Archiving"
     } else {
         session_state(session.status.state)

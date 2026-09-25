@@ -228,6 +228,11 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
         )),
     );
     spans.push(needs_you);
+    // Before the counts, so a narrow header cuts those rather than the outcome
+    // of a change, which is gone after a few seconds.
+    if let Some((notice, _)) = &app.notice {
+        spans.push(Span::styled(format!(" · {notice}"), Style::new().fg(Color::Cyan)));
+    }
     for (count, label, color) in [
         (counts.working, "working", Color::Green),
         (counts.starting, "starting", Color::Cyan),
@@ -254,9 +259,6 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     }
     if app.discovering {
         spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
-    }
-    if let Some((notice, _)) = &app.notice {
-        spans.push(Span::styled(format!(" · {notice}"), Style::new().fg(Color::Cyan)));
     }
     frame.render_widget(Line::from(spans), area);
 }
@@ -703,7 +705,7 @@ fn render_hints(
     let overflow = lines.len() > usize::from(area.height);
     lines.truncate(usize::from(area.height));
     if overflow && let Some(last) = lines.last_mut() {
-        let reserved = separator_width().saturating_add(1);
+        let reserved = separator_width().saturating_add(text_width(HINT_OVERFLOW));
         while let [kept @ .., _] = *last
             && hints_width(last).saturating_add(reserved) > area.width
         {
@@ -771,14 +773,18 @@ fn hints_width(hints: &[Hint]) -> u16 {
 }
 
 fn separator_width() -> u16 {
-    u16::try_from(Line::from(HINT_SEPARATOR).width()).unwrap_or(u16::MAX)
+    text_width(HINT_SEPARATOR)
+}
+
+fn text_width(text: &str) -> u16 {
+    u16::try_from(Line::from(text).width()).unwrap_or(u16::MAX)
 }
 
 fn map_hint_targets(area: Rect, hints: &[Hint], hit_map: &mut HitMap) {
     let mut x = area.x;
     for (index, hint) in hints.iter().enumerate() {
         if index > 0 {
-            x = x.saturating_add(3);
+            x = x.saturating_add(separator_width());
         }
         let width = hint_width(hint);
         if let Some((code, modifiers)) = hint.key {
@@ -1444,18 +1450,45 @@ mod tests {
     }
 
     #[test]
-    fn the_header_tells_what_an_archive_did() {
+    fn the_header_tells_what_an_archive_did_before_its_counts() {
         let mut app = triage_app();
         app.notice = Some(("main archived · A to show".into(), std::time::Instant::now()));
-        let mut terminal = Terminal::new(TestBackend::new(100, 10)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(50, 10)).expect("test terminal");
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
-        assert!(
-            text.lines()
-                .next()
-                .is_some_and(|line| line.contains("· main archived · A to show")),
-            "{text}"
+        let header = text.lines().next().unwrap_or_default();
+        assert_eq!(
+            header.trim_end(),
+            " agentctl  1 need you · main archived · A to show",
+            "a narrow header cuts the counts, not the notice"
         );
+    }
+
+    #[test]
+    fn the_footer_keeps_its_height_below_the_tree_and_fits_other_views() {
+        let mut app = triage_app();
+        let mut heights = Vec::new();
+        for selection in [
+            TreeRowId::Agent("agent-00".into()),
+            TreeRowId::Session {
+                agent: "agent-00".into(),
+                session: agent::sessions::SessionName::new("main").expect("name"),
+            },
+        ] {
+            app.selection = Some(selection);
+            heights.push(footer_height(&app, 80));
+        }
+        app.modal = Some(Modal::Filter);
+        heights.push(footer_height(&app, 80));
+        assert_eq!(heights, [3, 3, 3], "the tree keeps its rows");
+        assert_eq!(footer_height(&app, 140), 2, "a wide terminal needs one line per group");
+
+        app.modal = None;
+        app.view = View::Forwards;
+        assert_eq!(footer_height(&app, 80), 2, "the forwards view sizes for its own keys");
+        app.view = View::Tree;
+        app.detail = Some(super::super::app::Detail::text("describe".into(), Vec::new()));
+        assert_eq!(footer_height(&app, 80), 2, "and so does a detail");
     }
 
     fn session(agent: &str, name: &str, state: &str) -> agent::sessions::Session {

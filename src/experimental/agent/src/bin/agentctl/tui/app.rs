@@ -1103,7 +1103,7 @@ impl App {
                     return Vec::new();
                 };
                 let agent_matches = self.agent_matches(agent);
-                let sessions = self.listed_positions(group);
+                let sessions = self.listed_positions(group, agent_matches);
                 if !agent_matches && sessions.is_empty() {
                     return Vec::new();
                 }
@@ -1121,23 +1121,33 @@ impl App {
             .collect();
         if self.selected_index().is_none() {
             let agent = match &self.selection {
-                Some(TreeRowId::Session { agent, .. }) => self.session_or_agent_near(agent, fallback),
+                Some(TreeRowId::Session { agent, session }) => self.session_or_agent_near(agent, session),
                 _ => None,
             };
             self.selection = agent.or_else(|| self.tree_id_at(fallback.min(self.rows.len().saturating_sub(1))));
         }
     }
 
-    /// Where the selection goes when its Session's row disappeared: the Session
-    /// of the same Agent now in its place, the one above when it was the last,
-    /// or else the Agent. Archiving or deleting one Session after another then
-    /// needs no move between them.
-    fn session_or_agent_near(&self, agent: &str, fallback: usize) -> Option<TreeRowId> {
-        [Some(fallback), fallback.checked_sub(1)]
-            .into_iter()
-            .flatten()
-            .filter_map(|index| self.tree_id_at(index))
-            .find(|id| matches!(id, TreeRowId::Session { agent: owner, .. } if owner == agent))
+    /// Where the selection goes when its Session's row disappeared: the listed
+    /// Session of the same Agent that follows it by name, the one before it
+    /// when it was the last, or else the Agent. Archiving or deleting one
+    /// Session after another then needs no move between them, however many
+    /// rows a snapshot, the filter or showing archived Sessions removed.
+    fn session_or_agent_near(&self, agent: &str, name: &SessionName) -> Option<TreeRowId> {
+        let listed = (0..self.rows.len())
+            .filter_map(|index| match self.tree_id_at(index)? {
+                TreeRowId::Session { agent: owner, session } if owner == agent => Some(session),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        listed
+            .iter()
+            .find(|session| *session > name)
+            .or_else(|| listed.iter().rev().find(|session| *session < name))
+            .map(|session| TreeRowId::Session {
+                agent: agent.to_owned(),
+                session: session.clone(),
+            })
             .or_else(|| Some(TreeRowId::Agent(agent.to_owned())).filter(|id| self.tree_index(id).is_some()))
     }
 
@@ -1147,11 +1157,7 @@ impl App {
 
     /// Positions of the group's Sessions the tree lists, folded or not: the
     /// shown ones, and while filtered, those matching or of a matching Agent.
-    fn listed_positions(&self, group: &Group) -> Vec<usize> {
-        let agent_matches = self
-            .agents
-            .get(group.agent)
-            .is_some_and(|agent| self.agent_matches(agent));
+    fn listed_positions(&self, group: &Group, agent_matches: bool) -> Vec<usize> {
         (0..group.sessions.len())
             .filter(|position| {
                 self.sessions
@@ -1185,7 +1191,7 @@ impl App {
     /// Selects the next Session waiting for input in tree order, after the
     /// selection and wrapping around. The header counts every such Session, so
     /// one in a folded Agent is unfolded and one the filter hides clears it.
-    /// An archived Session is not counted and never selected while hidden.
+    /// An archived Session is neither counted nor selected, as nobody answers it.
     fn select_next_needing_input(&mut self) {
         let order = self
             .groups
@@ -1216,7 +1222,7 @@ impl App {
             .map_or(0, |index| index + 1);
         let Some((target, session)) = (0..order.len())
             .map(|step| &order[(start + step) % order.len()])
-            .find(|(_, session)| session.is_some_and(|session| self.lists(session) && needs_you(session)))
+            .find(|(_, session)| session.is_some_and(needs_you))
         else {
             return;
         };
@@ -1962,7 +1968,8 @@ impl App {
                         since,
                     } = agent_state(agent);
                     // The Sessions listed under it, as unfolding would show them.
-                    let count = match self.listed_positions(self.groups.get(group)?).len() {
+                    let listed = self.listed_positions(self.groups.get(group)?, self.agent_matches(agent));
+                    let count = match listed.len() {
                         0 => String::new(),
                         1 => "1 session".to_owned(),
                         count => format!("{count} sessions"),
@@ -2160,7 +2167,7 @@ const fn needs_you(session: &Session) -> bool {
 /// A Session's tone, glyph and state label. An archived Session reads as
 /// archived even before its harness stops.
 const fn session_state(session: &Session) -> (Tone, &'static str, &'static str) {
-    if session.is_archived() && !matches!(session.status.state, State::Archived) {
+    if format::is_archiving(session) {
         return (Tone::Gray, "_", "Archiving");
     }
     match session.status.state {
@@ -2792,6 +2799,60 @@ mod tests {
 
         app.apply_snapshot(vec![agent("builder"), agent("worker")], snapshot(&["s1", "s2", "s3"]));
         assert_eq!(app.selection, Some(TreeRowId::Agent("worker".into())), "then its Agent");
+    }
+
+    #[test]
+    fn a_selection_whose_neighbours_also_leave_goes_to_the_nearest_listed_session() {
+        let mut app = App::new();
+        app.show_archived = true;
+        app.apply_snapshot(
+            vec![agent("alpha"), agent("worker")],
+            vec![
+                archived(session("alpha", "a1", "archived")),
+                archived(session("alpha", "a2", "archived")),
+                archived(session("worker", "s1", "archived")),
+                archived(session("worker", "s2", "archived")),
+                archived(session("worker", "s3", "archived")),
+                session("worker", "s4", "idle"),
+            ],
+        );
+        app.selection = Some(session_row("worker", "s3"));
+        app.on_key(key(KeyCode::Char('A')));
+        assert_eq!(
+            app.selection,
+            Some(session_row("worker", "s4")),
+            "rows above, of its own and of another Agent, left with it"
+        );
+
+        app.selection = Some(session_row("worker", "s4"));
+        app.on_key(key(KeyCode::Char('A')));
+        app.selection = Some(session_row("worker", "s4"));
+        app.filter = "s1".into();
+        app.rebuild();
+        assert_eq!(
+            app.selection,
+            Some(session_row("worker", "s1")),
+            "the filter keeps only one before it"
+        );
+    }
+
+    #[test]
+    fn a_snapshot_that_adds_and_removes_sessions_selects_by_name_not_position() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("worker")],
+            vec![session("worker", "s2", "idle"), session("worker", "s3", "idle")],
+        );
+        app.selection = Some(session_row("worker", "s2"));
+        app.apply_snapshot(
+            vec![agent("worker")],
+            vec![
+                session("worker", "s1", "idle"),
+                archived(session("worker", "s2", "archived")),
+                session("worker", "s3", "idle"),
+            ],
+        );
+        assert_eq!(app.selection, Some(session_row("worker", "s3")));
     }
 
     #[test]
