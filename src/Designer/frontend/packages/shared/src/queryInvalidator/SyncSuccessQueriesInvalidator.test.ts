@@ -61,7 +61,7 @@ describe('SyncSuccessQueriesInvalidator', () => {
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppValidation, org, app],
     });
-    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(3);
   });
 
   it('should invalidate AppValidation when process.bpmn is synced', async () => {
@@ -106,6 +106,25 @@ describe('SyncSuccessQueriesInvalidator', () => {
         queryKey: [QueryKey.FormLayouts, org, app],
       }),
     );
-    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(2);
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(3);
   });
+
+  it.each(['layouts', 'Settings.json', 'process.bpmn'])(
+    'should invalidate SubformComponents when %s is synced',
+    async (fileOrFolderName) => {
+      const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(
+        queryClientMock,
+        org,
+        app,
+      );
+
+      queriesInvalidator.invalidateQueriesByFileLocation(fileOrFolderName);
+
+      await waitFor(() =>
+        expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+          queryKey: [QueryKey.SubformComponents, org, app],
+        }),
+      );
+    },
+  );
 });

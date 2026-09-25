@@ -25,9 +25,9 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
 
   const handleCommandStackChanged = useCallback(async () => {
-    const xml = await getUpdatedXml();
     const metadata = metadataFormRef.current || null;
     resetForm();
+    const xml = await getUpdatedXml();
     try {
       await saveBpmn(xml, metadata);
     } catch {

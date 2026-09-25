@@ -26,7 +26,10 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     private static string SettingsPath(string layoutSetName) => $"App/ui/{layoutSetName}/Settings.json";
 
-    private static string InitialLayoutPath(string layoutSetName) => $"App/ui/{layoutSetName}/layouts/Side1.json";
+    private static string LayoutPath(string layoutSetName, string layoutName) =>
+        $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
+
+    private static string InitialLayoutPath(string layoutSetName) => LayoutPath(layoutSetName, "Side1");
 
     private const string ApplicationMetadataPath = "App/config/applicationmetadata.json";
 
@@ -86,17 +89,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
         };
 
-        string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
-
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         Assert.True(
@@ -131,17 +124,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, Type = "subform" },
         };
 
-        string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
-
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
@@ -160,6 +143,86 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenPdfTask_CreatesWaitingPageAndPdfLayout(string org, string app, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        const string NewLayoutSetName = "pdfTask";
+        var payload = new LayoutSetPayload
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+        };
+
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(
+                org,
+                targetRepository,
+                developer,
+                LayoutPath(NewLayoutSetName, "ServiceTask")
+            )
+        );
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        );
+
+        JsonNode settings = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
+        );
+        Assert.Equal("PdfLayout", (string)settings["pages"]["pdfLayoutName"]);
+        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenSubformPdfTask_CreatesWaitingPageWithoutPdfLayout(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        const string NewLayoutSetName = "subformPdfTask";
+        var payload = new LayoutSetPayload
+        {
+            TaskType = TaskType.SubformPdf,
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+        };
+
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // The waiting page replaces the app frontend's built-in service task view while the PDFs are generated
+        Assert.True(
+            TestDataHelper.FileExistsInRepo(
+                org,
+                targetRepository,
+                developer,
+                LayoutPath(NewLayoutSetName, "ServiceTask")
+            )
+        );
+
+        // The PDF renders from the subform's own layout set, so this folder has no PDF layout
+        Assert.False(
+            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        );
+
+        JsonNode settings = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
+        );
+        Assert.Null(settings["pages"]["pdfLayoutName"]);
+        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+        Assert.Equal("model", (string)settings["defaultDataType"]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task AddLayoutSet_WhenIdAlreadyExists_ReturnsOkWithInfoMessage(
         string org,
         string app,
@@ -171,17 +234,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
         var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "form" } };
 
-        string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
-
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         string content = await response.Content.ReadAsStringAsync();
@@ -197,17 +250,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
         var payload = new LayoutSetPayload { LayoutSetConfigDto = new LayoutSetConfigDto { Id = "invalid name!" } };
 
-        string url = VersionPrefix(org, targetRepository);
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
-
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -275,15 +318,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         {
             LayoutSetConfigDto = new LayoutSetConfigDto { Id = CustomReceipt, DataType = "model" },
         };
-        using var addRequest = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, targetRepository))
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(payload),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
-        using HttpResponseMessage addResponse = await HttpClient.SendAsync(addRequest);
+        using HttpResponseMessage addResponse = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
 
         // Deleting the receipt must not clear the "model" data type's binding to "Task_1".
@@ -298,5 +333,19 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             .AsArray()
             .Single(dataType => (string)dataType["id"] == "model");
         Assert.Equal("Task_1", (string)modelDataType["taskId"]);
+    }
+
+    private async Task<HttpResponseMessage> PostLayoutSet(string org, string repository, LayoutSetPayload payload)
+    {
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, repository))
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        return await HttpClient.SendAsync(httpRequestMessage);
     }
 }

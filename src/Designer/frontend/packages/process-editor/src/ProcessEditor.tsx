@@ -91,7 +91,7 @@ export const ProcessEditor = (): JSX.Element => {
     formData.append('metadata', JSON.stringify(metadata));
 
     await mutateBpmn(
-      { form: formData },
+      { form: formData, metadata },
       {
         onError: () => {
           toast.error(t('process_editor.save_bpmn_xml_error'));

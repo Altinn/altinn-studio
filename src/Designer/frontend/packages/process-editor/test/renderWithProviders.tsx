@@ -12,6 +12,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { BpmnContext, type BpmnContextProps } from '../src/contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../src/contexts/BpmnApiContext';
 import { mockBpmnApiContextValue, mockBpmnContextValue } from './mocks/bpmnContextMock';
+import { BpmnConfigPanelFormContextProvider } from '../src/contexts/BpmnConfigPanelContext';
 
 export type ProviderProps = {
   bpmnContextProps?: Partial<BpmnContextProps>;
@@ -44,7 +45,7 @@ export const createProviderWrapper = ({
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextProps }}>
           <BpmnContext.Provider value={{ ...mockBpmnContextValue, ...bpmnContextProps }}>
-            {children}
+            <BpmnConfigPanelFormContextProvider>{children}</BpmnConfigPanelFormContextProvider>
           </BpmnContext.Provider>
         </BpmnApiContext.Provider>
       </ServicesContextProvider>

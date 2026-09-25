@@ -1,9 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
+import type { MetadataForm } from '../../types/BpmnMetadataForm';
 
 type UseBpmnMutationPayload = {
   form: FormData;
+  metadata?: MetadataForm;
 };
 
 export const useBpmnMutation = (org: string, app: string) => {
@@ -14,9 +16,22 @@ export const useBpmnMutation = (org: string, app: string) => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.FetchBpmn, org, app] });
       await queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
-      // In v9 a task id change renames the task's layout set folder.
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
+    },
+    onSettled: async (_data, error, { metadata }) => {
+      const taskId = metadata?.subformPdfComponentChange?.taskId;
+      if (error && !taskId) return;
+      // Task renames and subform selections change layout sets. A copy save can fail after
+      // writing files, so refresh subform state even when that part of the save failed.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] }),
+        ...(taskId
+          ? [
+              queryClient.invalidateQueries({ queryKey: [QueryKey.SubformComponents, org, app] }),
+              queryClient.invalidateQueries({ queryKey: [QueryKey.FormLayouts, org, app, taskId] }),
+            ]
+          : []),
+      ]);
     },
   });
 };
