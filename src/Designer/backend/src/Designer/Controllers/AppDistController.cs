@@ -8,9 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.AppDist;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Infrastructure.AppDist;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
 
@@ -18,11 +20,12 @@ namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
 /// Serves files from published Altinn app frontend distributions. The distributions are public, so the
-/// endpoints accept anonymous callers as well as Studio sessions and API keys.
+/// endpoints accept anonymous callers as well as Studio sessions and API keys. Anonymous callers are rate limited.
 /// </summary>
 [ApiController]
 [AllowAnonymous]
 [AllowApiKey]
+[EnableRateLimiting(AppDistRateLimiting.PolicyName)]
 [Route("designer/app-dist")]
 public partial class AppDistController(IAppDistProvider appDistProvider) : ControllerBase
 {
