@@ -1432,7 +1432,8 @@ impl App {
             KeyCode::Char('z') => self.toggle_all(),
             KeyCode::Char('A') => {
                 self.show_archived = !self.show_archived;
-                // A notice pointing at `A` is answered once it is pressed.
+                // Every notice is about archiving, so showing or hiding
+                // archived Sessions answers it, "A to show" included.
                 self.notice = None;
                 self.rebuild();
             }
