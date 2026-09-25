@@ -1432,6 +1432,8 @@ impl App {
             KeyCode::Char('z') => self.toggle_all(),
             KeyCode::Char('A') => {
                 self.show_archived = !self.show_archived;
+                // A notice pointing at `A` is answered once it is pressed.
+                self.notice = None;
                 self.rebuild();
             }
             KeyCode::Char('F') => self.view = View::Forwards,
@@ -1792,10 +1794,12 @@ impl App {
         }
     }
 
-    /// Tells what archiving or unarchiving did, since an archived Session
+    /// Applies an archive or unarchive as the daemon recorded it, so the tree
+    /// changes with the notice instead of on the next watch reply, which
+    /// confirms it. The notice tells what happened, since an archived Session
     /// leaves the tree while archived Sessions are hidden. It is kept short to
     /// fit the header; the row reads Archiving while the harness still runs.
-    pub(crate) fn archive_changed(&mut self, session: &Session, now: Instant) {
+    pub(crate) fn archive_changed(&mut self, session: Session, now: Instant) {
         let name = session.name.as_str();
         let notice = match (session.is_archived(), self.show_archived) {
             (false, _) => format!("{name} unarchived"),
@@ -1803,6 +1807,14 @@ impl App {
             (true, false) => format!("{name} archived · A to show"),
         };
         self.notice = Some((notice, now));
+        if let Some(listed) = self
+            .sessions
+            .iter_mut()
+            .find(|listed| listed.agent == session.agent && listed.name == session.name)
+        {
+            *listed = session;
+            self.rebuild();
+        }
     }
 
     pub(crate) fn expire_notice(&mut self, now: Instant) {
@@ -2920,18 +2932,51 @@ mod tests {
     }
 
     #[test]
+    fn an_archive_applies_to_the_tree_as_recorded_and_a_clears_its_notice() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![agent("worker")],
+            vec![session("worker", "s1", "working"), session("worker", "s2", "idle")],
+        );
+        app.selection = Some(session_row("worker", "s1"));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived {
+                agent: "worker".into(),
+                session: SessionName::new("s1").expect("name"),
+                archived: true,
+            }
+        );
+        app.archive_changed(archived(session("worker", "s1", "working")), Instant::now());
+        assert_eq!(
+            app.tree_index(&session_row("worker", "s1")),
+            None,
+            "gone before the watch replies"
+        );
+        assert_eq!(app.selection, Some(session_row("worker", "s2")));
+        assert_eq!(app.triage_counts().archived, 1);
+
+        app.on_key(key(KeyCode::Char('A')));
+        assert!(app.notice.is_none(), "showing archived Sessions answers the notice");
+        assert_eq!(app.render_rows()[1].state, "Archiving");
+
+        app.archive_changed(archived(session("worker", "gone", "idle")), Instant::now());
+        assert_eq!(app.sessions.len(), 2, "a Session the tree does not list is not added");
+    }
+
+    #[test]
     fn archiving_tells_what_happened_for_a_while() {
         let mut app = App::new();
         let now = Instant::now();
-        app.archive_changed(&archived(session("worker", "s1", "archived")), now);
+        app.archive_changed(archived(session("worker", "s1", "archived")), now);
         assert_eq!(
             app.notice.as_ref().map(|(text, _)| text.as_str()),
             Some("s1 archived · A to show")
         );
         app.show_archived = true;
-        app.archive_changed(&archived(session("worker", "s2", "working")), now);
+        app.archive_changed(archived(session("worker", "s2", "working")), now);
         assert_eq!(app.notice.as_ref().map(|(text, _)| text.as_str()), Some("s2 archived"));
-        app.archive_changed(&session("worker", "s1", "idle"), now);
+        app.archive_changed(session("worker", "s1", "idle"), now);
         assert_eq!(
             app.notice.as_ref().map(|(text, _)| text.as_str()),
             Some("s1 unarchived")

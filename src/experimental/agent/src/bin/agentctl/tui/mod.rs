@@ -206,7 +206,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 continue;
             }
             Input::ArchiveChanged(session) => {
-                app.archive_changed(&session, Instant::now());
+                app.archive_changed(session, Instant::now());
                 continue;
             }
             Input::ForwardCreated(outcome) => {
