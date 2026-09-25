@@ -4,13 +4,16 @@ using Altinn.Studio.Designer.Converters;
 
 namespace Altinn.Studio.Designer.Models;
 
-public class LayoutSets : Altinn.App.Core.Models.LayoutSets
+/// <summary>
+/// Designer's view of layout-sets.json, deliberately independent of <c>Altinn.App.Core.Models.LayoutSets</c>.
+/// </summary>
+public class LayoutSets
 {
     [JsonPropertyName("$schema")]
     public string? Schema { get; set; }
 
     [JsonPropertyName("sets")]
-    public new required List<LayoutSetConfig> Sets { get; set; }
+    public required List<LayoutSetConfig> Sets { get; set; }
 
     [JsonPropertyName("uiSettings")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

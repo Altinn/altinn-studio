@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Altinn specific packages">
-    <PackageVersion Include="Altinn.App.Core" Version="8.0.0" />
+    <PackageVersion Include="Altinn.App.Core" Version="8.11.2" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.1.13" />
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="3.2.12" />
     <!-- Both ship Altinn.Platform.Storage.Interface.dll; the stable one (a transitive dependency of Altinn.App.Core) is referenced with ExcludeAssets="all" so only the Experimental build, where DataType.EnablePdfCreation is nullable, is compiled and copied. -->

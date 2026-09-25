@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -95,9 +96,10 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
     }
 
     [Fact]
-    public async Task GetEnrichedInstance_ForV9App_IncludesProcessTasksForCurrentTask()
+    public async Task GetEnrichedInstance_ForV9App_IncludesOrdinaryAndServiceTasks()
     {
-        string createUrl = $"{Org}/{AppV9}/instances?instanceOwnerPartyId={PartyId}&taskId=Task_1";
+        const string app = "app-with-ordered-ui-folders";
+        string createUrl = $"{Org}/{app}/instances?instanceOwnerPartyId={PartyId}&taskId=Task_1";
         using HttpRequestMessage createRequest = new(HttpMethod.Post, createUrl);
         using HttpResponseMessage createResponse = await HttpClient.SendAsync(createRequest);
         Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
@@ -107,7 +109,7 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         );
         Assert.NotNull(instance);
 
-        string enrichedUrl = $"{Org}/{AppV9}/instances/{PartyId}/{instance.Id}/enriched";
+        string enrichedUrl = $"{Org}/{app}/instances/{PartyId}/{instance.Id}/enriched";
         using HttpRequestMessage enrichedRequest = new(HttpMethod.Get, enrichedUrl);
         using HttpResponseMessage enrichedResponse = await HttpClient.SendAsync(enrichedRequest);
 
@@ -116,6 +118,11 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         JsonArray processTasks = enriched?["process"]?["processTasks"] as JsonArray;
 
         Assert.NotNull(processTasks);
-        Assert.Equal("Task_1", processTasks[0]?["elementId"]?.GetValue<string>());
+        Assert.Equal(
+            new[] { ("Task_1", "data"), ("Task_2", "data"), ("PdfTask", "pdf") },
+            processTasks.Select(task =>
+                (task?["elementId"]?.GetValue<string>(), task?["altinnTaskType"]?.GetValue<string>())
+            )
+        );
     }
 }
