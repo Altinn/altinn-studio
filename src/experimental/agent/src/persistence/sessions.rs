@@ -17,7 +17,7 @@ use super::{agents, database_error};
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
     sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
-    sessions.model, sessions.effort, sessions.deletion_timestamp";
+    sessions.model, sessions.effort, sessions.deletion_timestamp, sessions.archived_at";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
 /// activation revision it was observed at.
@@ -183,6 +183,34 @@ pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &Ses
         // higher-precision value this Session would never report again.
         session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
     }
+    transaction.commit().map_err(database_error)?;
+    Ok(session)
+}
+
+/// Records whether one named Session is archived. Archiving an archived
+/// Session keeps its original time; unarchiving clears it.
+pub(super) fn set_archived(
+    connection: &mut Connection,
+    agent: &str,
+    name: &SessionName,
+    archived: bool,
+) -> Result<Session, Error> {
+    let transaction = connection.transaction().map_err(database_error)?;
+    let owner = agents::get_by_name(&transaction, agent)?;
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    if session.is_deleting() {
+        return Err(Error::NotFound);
+    }
+    if session.is_archived() != archived {
+        let archived_at = archived.then(|| time::OffsetDateTime::now_utc().unix_timestamp());
+        transaction
+            .execute(
+                "UPDATE sessions SET archived_at = ?1 WHERE id = ?2",
+                params![archived_at, session.id.to_string()],
+            )
+            .map_err(database_error)?;
+    }
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
     transaction.commit().map_err(database_error)?;
     Ok(session)
 }
@@ -489,6 +517,11 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         .map(time::OffsetDateTime::from_unix_timestamp)
         .transpose()
         .map_err(conversion_error)?;
+    let archived_at = row
+        .get::<_, Option<i64>>(14)?
+        .map(time::OffsetDateTime::from_unix_timestamp)
+        .transpose()
+        .map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
@@ -498,6 +531,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         model_selection: crate::ModelSelection { model, effort },
         created_at,
         deletion_timestamp,
+        archived_at,
         status: Status::new(
             Lifecycle {
                 state: lifecycle.state,

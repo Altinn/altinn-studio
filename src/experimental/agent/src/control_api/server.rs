@@ -15,11 +15,11 @@ use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE,
-    METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN,
-    METHOD_SSH_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams,
-    Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams,
-    ShutdownParams, error_response, read_message,
+    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams,
+    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -165,6 +165,14 @@ pub trait SessionApi {
     /// Requests release of one Session; see [`sessions::Service::delete`].
     fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>>;
 
+    /// Archives or unarchives one Session; see [`sessions::Service::set_archived`].
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
+
     /// Lists Sessions whose work or terminal attachment prevents an upgrade.
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
 }
@@ -210,6 +218,15 @@ impl SessionApi for sessions::Service {
 
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>> {
         Box::pin(async move { Self::list(self, agent).await })
+    }
+
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+        Box::pin(async move { Self::set_archived(self, agent, name, archived).await })
     }
 
     fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>> {
@@ -470,6 +487,8 @@ impl Server {
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
             METHOD_SESSION_DELETE => self.handle_session_delete(request.id, request.params).await,
+            METHOD_SESSION_ARCHIVE => self.handle_session_archive(request.id, request.params, true).await,
+            METHOD_SESSION_UNARCHIVE => self.handle_session_archive(request.id, request.params, false).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -699,6 +718,16 @@ impl Server {
         )
     }
 
+    async fn handle_session_archive(&self, id: u64, value: Value, archived: bool) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.sessions.set_archived(&params.agent, &params.name, archived).await,
+        )
+    }
+
     async fn handle_session_list(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<SessionListParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
@@ -725,6 +754,8 @@ fn is_mutating(method: &str) -> bool {
             | METHOD_SESSION_ENSURE
             | METHOD_SESSION_PROMPT
             | METHOD_SESSION_DELETE
+            | METHOD_SESSION_ARCHIVE
+            | METHOD_SESSION_UNARCHIVE
     )
 }
 

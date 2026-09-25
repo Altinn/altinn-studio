@@ -93,6 +93,9 @@ the next relaunch. Detaching leaves a Session running. An inactive, unattached S
 on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
 unexpected harness exits use bounded backoff. Deleting a Session hides it at once; the Session controller stops its
 harness before removing it, so an unreachable Sandbox delays the deletion rather than leaving a harness untracked.
+Archiving a Session stops its harness once any turn in progress ends, but not for a turn waiting for approval or quiet
+for a minute, and keeps it stopped until the Session is unarchived; it keeps its name and conversation, and the next
+attach resumes it.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
@@ -183,15 +186,14 @@ Important current limitations are:
 - Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
 - Sessions share one Sandbox user and tmux server and therefore one trust boundary;
 - attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
-- Session content, prompt steering, archive and plugin APIs are not implemented; and
+- Session content, prompt steering and plugin APIs are not implemented; and
 - global scheduling and Kubernetes orchestration are future work.
 
 The next planned slices are:
 
 1. expose harness-native Session content and prompt/steer/interrupt operations;
-2. add Session archiving;
-3. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
-4. add global orchestration only after the local control-plane contracts are proven.
+2. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
+3. add global orchestration only after the local control-plane contracts are proven.
 
 ## References
 

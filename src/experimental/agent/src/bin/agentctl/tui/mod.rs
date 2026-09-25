@@ -267,6 +267,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Action::DeleteSession { agent, session } => {
                 spawn_session_delete(home.socket_path(), inputs.clone(), agent, session);
             }
+            Action::SetArchived {
+                agent,
+                session,
+                archived,
+            } => spawn_session_archive(home.socket_path(), inputs.clone(), agent, session, archived),
             Action::DeleteForward { id } => forwards.remove(id),
             Action::Prompt(form) => {
                 app.prompting += 1;
@@ -422,6 +427,18 @@ fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
 fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
     tokio::task::spawn_local(async move {
         if let Err(error) = Client::for_path(socket_path).delete_session(&agent, session).await {
+            let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
+        }
+    });
+}
+
+/// Archives or unarchives a Session off the event loop, which stopping its harness would block.
+fn spawn_session_archive(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName, archived: bool) {
+    tokio::task::spawn_local(async move {
+        if let Err(error) = Client::for_path(socket_path)
+            .set_session_archived(&agent, session, archived)
+            .await
+        {
             let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
         }
     });

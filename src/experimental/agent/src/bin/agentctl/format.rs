@@ -233,6 +233,7 @@ pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str
         agent::sessions::State::Working => "Working",
         agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
+        agent::sessions::State::Archived => "Archived",
         agent::sessions::State::Failed => "Failed",
     }
 }

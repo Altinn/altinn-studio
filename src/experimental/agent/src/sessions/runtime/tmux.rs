@@ -738,6 +738,7 @@ mod tests {
             model_selection,
             created_at: OffsetDateTime::UNIX_EPOCH,
             deletion_timestamp: None,
+            archived_at: None,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
