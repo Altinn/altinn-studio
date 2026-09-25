@@ -358,6 +358,15 @@ grep -q 'Not executed: an earlier computer action in this turn failed.' <<<"$hal
     || fail "a failing batch did not halt the actions after it"
 test "$(grep -c 'Not executed' <<<"$halted")" -eq 1 \
     || fail "the halted batch skipped the wrong number of actions"
+# A failure inside xdotool, rather than in the helper's own argument checks, halts a batch too.
+halted="$(desktop batch --no-screenshot <<'BATCH' || true
+focus 0xdeadbeef
+type this must never run
+BATCH
+)"
+grep -q 'Not executed' <<<"$halted" || fail "a batch carried on after xdotool failed"$'\n'"$halted"
+# A bare `type` is refused rather than typing its own name.
+! desktop batch --no-screenshot <<<'type' >/dev/null 2>&1 || fail "a bare type line was accepted"
 
 desktop batch <<'BATCH' >trailing.txt
 wait 0.2
@@ -365,8 +374,6 @@ BATCH
 grep -qE '\.jpg \(1456x819' trailing.txt || fail "a batch did not end with a screenshot"
 
 echo "## desktop in a browser"
-# The image provides the viewer; a platform-owned unit runs it when the Agent declares VNC access.
-# There is no systemd here, so it is started the way that unit starts it.
 # Started the way the image's own unit starts it, since there is no systemd here to do it: the
 # unit's command with the unit's environment and nothing else. A service inherits none of the
 # image's ENV, so a variable the unit forgets to declare has to fail here too — NODE_PATH already
@@ -384,8 +391,11 @@ for _ in $(seq 1 100); do
 done
 test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' http://127.0.0.1:6080/vnc.html)" = 200 \
     || fail "the browser viewer does not serve noVNC"
-test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/../../etc/passwd')" = 404 \
+test "$(curl -s --noproxy '*' --path-as-is -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/../../etc/passwd')" = 404 \
     || fail "the browser viewer served a path outside its directory"
+test "$(curl -s --noproxy '*' -o /dev/null -w '%{http_code}' 'http://127.0.0.1:6080/%')" = 400 \
+    || fail "the browser viewer did not refuse a malformed path"
+kill -0 "$viewer" 2>/dev/null || fail "a malformed path took the browser viewer down"
 # The page is worthless without the bridge, so assert the RFB stream reaches a WebSocket client.
 cat >ws-probe.js <<'PROBE'
 const WebSocket = require('ws');

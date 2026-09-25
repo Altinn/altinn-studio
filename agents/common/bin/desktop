@@ -35,6 +35,15 @@ export LC_ALL=${LC_ALL:-C.UTF-8}
 json=false
 fail() { echo "desktop: $*" >&2; exit 1; }
 
+self=$(readlink -f -- "${BASH_SOURCE[0]}")
+# Runs one desktop command as its own process. Bash ignores `set -e` in a function called from an
+# `if`, `||` or `!` context, and every command ends in `sync_x`, which always succeeds, so a failed
+# xdotool call inside such a context would report success. A fresh process has errexit back, and a
+# `fail` in it cannot end the caller before the caller has cleaned up.
+run_command() {
+    if $json; then "$self" --json "$@"; else "$self" "$@"; fi
+}
+
 # Captures are JPEG: the settle loop takes two byte-identical frames as proof that the screen has
 # stopped changing, and that only holds for one deterministic encoder.
 require_jpeg_path() {
@@ -370,7 +379,7 @@ command_hold_key() {
     [ $# -ge 1 ] || fail "hold-key takes a keysym and a desktop command to run while it is held"
     xdotool keydown -- "$keysym"
     local status=0
-    dispatch "$@" || status=$?
+    run_command "$@" || status=$?
     xdotool keyup -- "$keysym"
     sync_x
     return "$status"
@@ -453,9 +462,14 @@ command_batch() {
         local -a words=()
         read -r -a words <<<"$line"
         case ${words[0]} in
-            type | focus) words=("${words[0]}" "${line#*"${words[0]}" }") ;;
+            type | focus)
+                local rest=${line#*"${words[0]}"}
+                rest=${rest# }
+                # A bare `type` or `focus` has no argument, which the command itself refuses.
+                if [ -n "$rest" ]; then words=("${words[0]}" "$rest"); else words=("${words[0]}"); fi
+                ;;
         esac
-        if ! dispatch "${words[@]}" 2>&1 | sed 's/^/   /'; then failed=true; fi
+        if ! run_command "${words[@]}" 2>&1 | sed 's/^/   /'; then failed=true; fi
     done
     if $screenshot; then command_screenshot; fi
     $failed && return 1

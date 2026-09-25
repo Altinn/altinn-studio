@@ -35,9 +35,15 @@ const CONTENT_TYPES = new Map([
   ['.woff2', 'font/woff2'],
 ]);
 
-/** Resolves a request path inside the served directory, or null when it escapes. */
+/** Resolves a request path inside the served directory: null when it escapes, undefined when malformed. */
 function resolve(requestPath) {
-  const decoded = decodeURIComponent(requestPath.split('?')[0]);
+  let decoded;
+  try {
+    decoded = decodeURIComponent(requestPath.split('?')[0]);
+  } catch {
+    // A malformed escape must not take down the viewer every open browser shares.
+    return undefined;
+  }
   const resolved = path.resolve(root, `.${path.posix.normalize(decoded)}`);
   return resolved === root || resolved.startsWith(`${root}${path.sep}`) ? resolved : null;
 }
@@ -52,7 +58,11 @@ const server = http.createServer((request, response) => {
     return;
   }
   const file = resolve(request.url);
-  if (!file) {
+  if (file === undefined) {
+    response.writeHead(400).end();
+    return;
+  }
+  if (file === null) {
     response.writeHead(403).end();
     return;
   }

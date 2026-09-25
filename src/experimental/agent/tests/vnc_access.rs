@@ -62,6 +62,18 @@ fn is_disable(spec: &ExecutionSpec) -> bool {
     )
 }
 
+fn is_active_check(spec: &ExecutionSpec) -> bool {
+    is_command(
+        spec,
+        "/usr/bin/sudo",
+        &["-n", "/usr/bin/systemctl", "is-active", UNITS[0], UNITS[1]],
+    )
+}
+
+fn is_any_listener_check(spec: &ExecutionSpec) -> bool {
+    command(spec).is_some_and(|(executable, _)| executable == "/usr/bin/ss")
+}
+
 fn exited(code: i32) -> Vec<ExecutionEvent> {
     vec![
         ExecutionEvent::Started { process_id: None },
@@ -234,7 +246,40 @@ async fn an_image_offering_no_browser_viewer_is_granted_and_described_without_on
     );
 }
 
-#[tokio::test(flavor = "local")]
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_viewer_that_binds_its_port_after_being_enabled_is_waited_for() {
+    let fixture = Fixture::new();
+    let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&record, 0).await;
+    let sandbox = fixture.sandbox(&record).await;
+    queue_desktop_image(&fixture.backend);
+    fixture.backend.queue_execution_events_matching(
+        is_listener_check(5900),
+        output(b"LISTEN 0 0 127.0.0.1:5900 0.0.0.0:*\n"),
+    );
+    // systemd reports a simple service started once it has forked, before it has bound its port.
+    fixture
+        .backend
+        .queue_execution_events_matching(is_listener_check(6080), output(b""));
+    fixture.backend.queue_execution_events_matching(
+        is_listener_check(6080),
+        output(b"LISTEN 0 0 127.0.0.1:6080 0.0.0.0:*\n"),
+    );
+
+    assert!(fixture.access.reconcile(&record, &sandbox).await.expect("grant"));
+    assert_eq!(
+        fixture
+            .backend
+            .execution_specs()
+            .iter()
+            .filter(|spec| is_listener_check(6080)(spec))
+            .count(),
+        2,
+        "the viewer port is checked again rather than failing the pass"
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
 async fn a_grant_that_leaves_a_declared_port_silent_is_a_failure() {
     let fixture = Fixture::new();
     let record = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
@@ -251,35 +296,33 @@ async fn a_grant_that_leaves_a_declared_port_silent_is_a_failure() {
         .await
         .expect_err("a silent port is an error");
     assert!(
-        error.to_string().contains("nothing is listening on guest port 5900"),
+        error
+            .to_string()
+            .contains("nothing is listening on guest port 5900 after 10s"),
         "{error}"
     );
 }
 
 #[tokio::test(flavor = "local")]
-async fn withdrawing_access_disables_the_units_and_proves_the_ports_are_free() {
+async fn withdrawing_access_disables_the_units_and_proves_they_stopped() {
     let fixture = Fixture::new();
     let withdrawn = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
     fixture.store(&withdrawn, 0).await;
     let sandbox = fixture.sandbox(&withdrawn).await;
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/usr/bin/systemctl", "-x"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_descriptor_read, valid_descriptor());
-    queue_listening(&fixture.backend, false);
+    queue_withdrawable_image(&fixture.backend);
+    // The Agent's own server on the viewer port is none of withdrawal's business.
+    queue_listening(&fixture.backend, true);
 
     assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("withdraw"));
+    let specs = fixture.backend.execution_specs();
     assert!(
-        fixture.backend.execution_specs().iter().any(is_disable),
+        specs.iter().any(is_disable),
         "the declared units are disabled and stopped"
+    );
+    assert!(specs.iter().any(is_active_check), "the units are confirmed inactive");
+    assert!(
+        !specs.iter().any(is_any_listener_check),
+        "once access is withdrawn the declared ports are ordinary guest ports"
     );
 }
 
@@ -289,6 +332,7 @@ fn queue_withdrawable_image(backend: &memory::Provider) {
     backend.queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
     backend.queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
     backend.queue_execution_events_matching(is_descriptor_read, valid_descriptor());
+    backend.queue_execution_events_matching(is_active_check, output(b"inactive\ninactive\n"));
 }
 
 #[tokio::test(flavor = "local")]
@@ -307,7 +351,6 @@ async fn a_withdrawal_that_succeeded_is_not_repeated_until_the_incarnation_is_fo
     };
 
     queue_withdrawable_image(&fixture.backend);
-    queue_listening(&fixture.backend, false);
     assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("withdraw"));
     let probes = fixture.backend.execution_specs().len();
     assert!(!fixture.access.reconcile(&withdrawn, &sandbox).await.expect("resync"));
@@ -320,7 +363,6 @@ async fn a_withdrawal_that_succeeded_is_not_repeated_until_the_incarnation_is_fo
 
     fixture.access.forget(withdrawn.id);
     queue_withdrawable_image(&fixture.backend);
-    queue_listening(&fixture.backend, false);
     assert!(
         !fixture
             .access
@@ -332,34 +374,23 @@ async fn a_withdrawal_that_succeeded_is_not_repeated_until_the_incarnation_is_fo
 }
 
 #[tokio::test(flavor = "local")]
-async fn an_image_still_listening_after_withdrawal_is_reported() {
+async fn a_unit_still_active_after_withdrawal_is_reported() {
     let fixture = Fixture::new();
     let withdrawn = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", false);
     fixture.store(&withdrawn, 0).await;
     let sandbox = fixture.sandbox(&withdrawn).await;
     fixture
         .backend
-        .queue_execution_events_matching(is_test("/usr/bin/systemctl", "-x"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test("/run/systemd/system", "-d"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_test(DESCRIPTOR, "-f"), exited(0));
-    fixture
-        .backend
-        .queue_execution_events_matching(is_descriptor_read, valid_descriptor());
-    fixture
-        .backend
-        .queue_execution_events_matching(is_listener_check(5900), output(b"LISTEN 0 0 0.0.0.0:5900 0.0.0.0:*\n"));
+        .queue_execution_events_matching(is_active_check, output(b"inactive\nactive\n"));
+    queue_withdrawable_image(&fixture.backend);
 
     let error = fixture
         .access
         .reconcile(&withdrawn, &sandbox)
         .await
-        .expect_err("a surviving listener is an error");
+        .expect_err("a surviving unit is an error");
     assert!(
-        error.to_string().contains("guest port 5900 is still listening"),
+        error.to_string().contains("agent-vnc-web.service is active"),
         "withdrawal is verified rather than assumed: {error}"
     );
 }

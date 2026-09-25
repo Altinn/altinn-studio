@@ -3,8 +3,9 @@
 //! The image owns the desktop, the bridge to it and the browser viewer, and ships their units
 //! disabled. This module reads what the image declares in `/etc/agent-access.d/vnc.conf`, turns
 //! those units on when the Agent declares VNC access and off when it stops, and asserts the
-//! observable result: the declared ports listen afterwards, and nothing listens once access is
-//! withdrawn.
+//! observable result: the declared ports listen after a grant, and the units are inactive after a
+//! withdrawal. Whether the image opens a port outside its units is a property of the image, which
+//! its smoke test asserts; at runtime a port may be the Agent's own.
 //!
 //! Nothing here names a socket path, a viewer program or a URL. Those belong to the image, which
 //! is where changing the viewer and changing the unit that serves it are one commit.
@@ -17,12 +18,16 @@ use super::linux::{SYSTEMCTL, SYSTEMD_RUNNING, path_exists, run_checked, systemd
 
 /// The image contract: what this image provides for `access: [{type: vnc}]`.
 pub(crate) const DESCRIPTOR: &str = "/etc/agent-access.d/vnc.conf";
-/// Reads listening sockets, so withdrawal can be asserted rather than assumed.
+/// Reads listening sockets, so a grant can be asserted rather than assumed.
 const SS: &str = "/usr/bin/ss";
 /// A descriptor larger than this is not the one the contract describes.
 const MAX_DESCRIPTOR_BYTES: usize = 64 * 1024;
 /// More units than any one access capability has any business owning.
 const MAX_UNITS: usize = 8;
+/// How long an enabled unit may take to start listening. A viewer is an ordinary service that
+/// systemd reports started once it has forked, before it has bound its port.
+const LISTEN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+const LISTEN_POLL: std::time::Duration = std::time::Duration::from_millis(100);
 
 /// What the image declares it provides.
 #[derive(Debug, Eq, PartialEq)]
@@ -39,7 +44,7 @@ pub(crate) struct Capability {
 }
 
 impl Capability {
-    /// The ports the image promised, which are what a grant and a withdrawal are checked against.
+    /// The ports the image promised, which are what a grant is checked against.
     fn ports(&self) -> Vec<u16> {
         std::iter::once(self.port).chain(self.web_port).collect()
     }
@@ -59,7 +64,7 @@ pub(crate) async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capabil
             SYSTEMD_RUNNING,
             "systemd is not the running init, and the access units need it",
         ),
-        ("-x", SS, "ss is missing, so withdrawal could not be verified"),
+        ("-x", SS, "ss is missing, so a grant could not be verified"),
         ("-f", DESCRIPTOR, "/etc/agent-access.d/vnc.conf is missing"),
     ];
     for (test, path, what) in contract {
@@ -70,36 +75,41 @@ pub(crate) async fn verify_capability(sandbox: &SandboxHandle) -> Result<Capabil
     parse_descriptor(&read_descriptor(sandbox).await?)
 }
 
-/// Enables the image's access units, then asserts the declared ports are listening.
+/// Enables the image's access units, then waits for the declared ports to listen.
 ///
 /// Idempotent: `enable --now` on an already-running unit converges rather than restarts, and the
 /// units are the image's, so nothing is written here.
 ///
 /// # Errors
 ///
-/// Returns an error when a unit cannot be enabled, or when the ports the image declared are not
-/// listening once it has been.
+/// Returns an error when a unit cannot be enabled, or when a port the image declared is not
+/// listening within [`LISTEN_TIMEOUT`] of it being enabled.
 pub(crate) async fn grant(sandbox: &SandboxHandle, capability: &Capability) -> Result<(), Error> {
     systemctl(sandbox, "enable", capability).await?;
+    let deadline = tokio::time::Instant::now() + LISTEN_TIMEOUT;
     for port in capability.ports() {
-        if !port_is_listening(sandbox, port).await? {
-            return Err(Error::SandboxSetup(format!(
-                "the image's VNC access units were enabled but nothing is listening on guest port {port}"
-            )));
+        while !port_is_listening(sandbox, port).await? {
+            if tokio::time::Instant::now() >= deadline {
+                return Err(Error::SandboxSetup(format!(
+                    "the image's VNC access units were enabled but nothing is listening on guest port {port} \
+                     after {}s",
+                    LISTEN_TIMEOUT.as_secs()
+                )));
+            }
+            tokio::time::sleep(LISTEN_POLL).await;
         }
     }
     Ok(())
 }
 
-/// Disables the image's access units, then asserts the declared ports are free.
+/// Disables the image's access units, then asserts systemd reports them inactive.
 ///
-/// The assertion is the point: it is what turns "the image opens no port of its own" from a claim
-/// in a comment into something the platform checks, on the pass where it matters.
+/// The declared ports are deliberately not checked: once access is withdrawn they are ordinary
+/// guest ports, and the Agent may well run its own server on one.
 ///
 /// # Errors
 ///
-/// Returns an error when the units cannot be disabled, or when something is still listening on a
-/// declared port afterwards.
+/// Returns an error when the units cannot be disabled, or when one is still active afterwards.
 pub(crate) async fn withdraw(sandbox: &SandboxHandle) -> Result<(), Error> {
     if !systemd_available(sandbox).await? || !path_exists(sandbox, "-f", DESCRIPTOR).await? {
         // An image that declares no VNC access never had any units to turn off.
@@ -107,15 +117,45 @@ pub(crate) async fn withdraw(sandbox: &SandboxHandle) -> Result<(), Error> {
     }
     let capability = parse_descriptor(&read_descriptor(sandbox).await?)?;
     systemctl(sandbox, "disable", &capability).await?;
-    for port in capability.ports() {
-        if port_is_listening(sandbox, port).await? {
-            return Err(Error::SandboxSetup(format!(
-                "VNC access was withdrawn but guest port {port} is still listening; the image is \
-                 publishing the desktop outside its access units"
-            )));
-        }
+    let still_active = active_units(sandbox, &capability).await?;
+    if still_active.is_empty() {
+        return Ok(());
     }
-    Ok(())
+    Err(Error::SandboxSetup(format!(
+        "VNC access was withdrawn but {} still active",
+        still_active.join(", ")
+    )))
+}
+
+/// Returns the image's access units that systemd does not report inactive.
+async fn active_units(sandbox: &SandboxHandle, capability: &Capability) -> Result<Vec<String>, Error> {
+    let arguments = ["-n", SYSTEMCTL, "is-active"]
+        .into_iter()
+        .chain(capability.units.iter().map(String::as_str))
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    // `is-active` exits non-zero whenever a unit is not active, so its exit status says nothing
+    // here; the one state line it prints per unit, in argument order, is the answer.
+    let output = sandbox
+        .run_execution(ExecutionSpec::command(SandboxPath::new("/usr/bin/sudo"), arguments))
+        .await?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let states: Vec<&str> = stdout.lines().map(str::trim).collect();
+    if states.len() != capability.units.len() {
+        return Err(Error::SandboxSetup(format!(
+            "`systemctl is-active` reported {} states for {} units: {}",
+            states.len(),
+            capability.units.len(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    Ok(capability
+        .units
+        .iter()
+        .zip(states)
+        .filter(|(_, state)| !matches!(*state, "inactive" | "failed"))
+        .map(|(unit, state)| format!("{unit} is {state}"))
+        .collect())
 }
 
 /// Runs `systemctl <action> --now` on the image's access units once systemd has booted.
