@@ -1,7 +1,6 @@
 [Unit]
 Description=X11 display and VNC server for the Agent desktop
 Before=multi-user.target
-After=agent-browser-ca-init.service
 
 [Service]
 # Xtigervnc is both the X server and the VNC server, so the desktop runs one process where an

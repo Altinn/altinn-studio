@@ -3,6 +3,10 @@
 .NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest
 resources.
 External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
+`studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
+host-mediated API key.
+`typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
+`cargo-machete` for the Rust workspaces' unused-dependency check (`make deps-check`).
 
 Podman with `docker` and `/run/docker.sock` as compatibility surfaces, kind, kubectl, Helm and Flux.
 
@@ -14,8 +18,10 @@ you write into commits, changelogs or files, are in that zone.
 
 Containers receive mediated CA configuration automatically. Build steps receive the full CA bundle at
 `/run/agent/tls/ca-bundle.pem` and common system trust paths; the Agent's own complete bundle is
-`/etc/ssl/certs/ca-certificates.crt`, and Chromium trusts the same bundle. A current Buildah bug drops default
-environment variables from build stages, so a `RUN` that downloads through Node exports
+`/etc/ssl/certs/ca-certificates.crt`. Chromium trusts the same bundle once `$XDG_RUNTIME_DIR/chromium-ca-ready`
+exists; the import finishes in the background seconds after boot, so if a browser reports a certificate error shortly
+after the Session starts, wait for that file and reopen the browser. A current Buildah bug drops default environment
+variables from build stages, so a `RUN` that downloads through Node exports
 `NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable; never persist it with `ENV`.
 
 Kind clusters run here. Kind detects Podman on its own, so `KIND_EXPERIMENTAL_PROVIDER` is unnecessary, and
