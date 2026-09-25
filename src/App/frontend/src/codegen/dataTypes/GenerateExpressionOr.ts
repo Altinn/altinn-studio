@@ -60,6 +60,28 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
     return fallback;
   }
 
+  toDescriptor(componentType: string, propertyPath: string): string {
+    return GenerateExpressionOr.renderDescriptor(
+      this.valueType,
+      this.getExpressionFallback(),
+      componentType,
+      propertyPath,
+    );
+  }
+
+  /** Also used by unions that accept more than one expression return type. */
+  static renderDescriptor(valueType: ExprVal, fallback: unknown, componentType: string, propertyPath: string): string {
+    const typeName = Object.entries(ExprVal).find(([, value]) => value === valueType)?.[0];
+    if (!typeName) {
+      throw new Error(`Unknown expression return type ${valueType}`);
+    }
+    return `{
+      returnType: ExprVal.${typeName},
+      defaultValue: ${serializeFallback(fallback)},
+      errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
+    } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
+  }
+
   toTypeScriptDefinition(symbol: string | undefined): string {
     CodeGeneratorContext.curFile().addImport('ExprVal', '@app/layout-contract');
     CodeGeneratorContext.curFile().addImport('ExprValToActualOrExpr', '@app/layout-contract');
@@ -90,4 +112,15 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
     };
     return { ...definitions[this.valueType], ...this.componentCatalogMetadata() };
   }
+}
+
+function serializeFallback(value: unknown): string {
+  if (typeof value === 'number' && !Number.isFinite(value)) {
+    return String(value);
+  }
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new Error('Expression fallback must be serializable');
+  }
+  return serialized;
 }

@@ -8,7 +8,7 @@ import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
 import { ExprVal } from 'src/features/expressions/types';
 import type { CodeGenerator } from 'src/codegen/CodeGenerator';
 
-/** Collects expression leaves without evaluating expressions or generating schemas. */
+/** Walks final component properties, including inherited overrides, and emits descriptors at their layout paths. */
 export function generateExpressionDescriptors(componentType: string, root: CodeGenerator<unknown>): string {
   const leaves = new Map<string, string>();
 
@@ -19,7 +19,7 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
     const nextAncestors = new Set(ancestors).add(source);
     if (source instanceof GenerateExpressionOr) {
       try {
-        addDescriptor(source.valueType, source.getExpressionFallback(), path);
+        addDescriptor(source.toDescriptor(componentType, path.join('.')), path);
       } catch (error) {
         throw new Error(`Cannot generate expression descriptor for ${componentType}.${path.join('.')}`, {
           cause: error,
@@ -41,7 +41,15 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
       const expressions = source.getTypes().filter((type) => type instanceof GenerateExpressionOr);
       if (source instanceof GenerateUnion && expressions.length > 1) {
         // The existing evaluator accepts either scalar type and uses one fallback for both.
-        addDescriptor(ExprVal.Any, source.getExpressionFallback(), path);
+        addDescriptor(
+          GenerateExpressionOr.renderDescriptor(
+            ExprVal.Any,
+            source.getExpressionFallback(),
+            componentType,
+            path.join('.'),
+          ),
+          path,
+        );
       }
       for (const type of source.getTypes()) {
         if (source instanceof GenerateUnion && expressions.length > 1 && type instanceof GenerateExpressionOr) {
@@ -54,17 +62,8 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
     }
   }
 
-  function addDescriptor(valueType: ExprVal, fallback: unknown, path: string[]) {
-    const typeName = Object.entries(ExprVal).find(([, value]) => value === valueType)?.[0];
-    if (!typeName) {
-      throw new Error(`Unknown expression return type ${valueType}`);
-    }
+  function addDescriptor(definition: string, path: string[]) {
     const propertyPath = path.join('.');
-    const definition = `{
-      returnType: ExprVal.${typeName},
-      defaultValue: ${serializeFallback(fallback)},
-      errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
-    } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
     if (leaves.has(propertyPath) && leaves.get(propertyPath) !== definition) {
       throw new Error(`Conflicting expression descriptors at ${componentType}.${propertyPath}`);
     }
@@ -96,15 +95,4 @@ function renderTree(tree: DescriptorTree): string {
   return `{${Object.entries(tree)
     .map(([key, value]) => `${JSON.stringify(key)}: ${typeof value === 'string' ? value : renderTree(value)}`)
     .join(',\n')}}`;
-}
-
-function serializeFallback(value: unknown): string {
-  if (typeof value === 'number' && !Number.isFinite(value)) {
-    return String(value);
-  }
-  const serialized = JSON.stringify(value);
-  if (serialized === undefined) {
-    throw new Error('Expression fallback must be serializable');
-  }
-  return serialized;
 }
