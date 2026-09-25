@@ -1,6 +1,8 @@
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 
+import * as Designsystemet from '@digdir/designsystemet-react';
+
 import { CUSTOM_REACT_API_VERSION, registerComponent } from 'src/features/customReact/registry';
 import type { AltinnAppFrontendApi } from 'src/features/customReact/types';
 
@@ -10,6 +12,10 @@ const api: AltinnAppFrontendApi = Object.freeze({
   apiVersion: CUSTOM_REACT_API_VERSION,
   React,
   jsxRuntime,
+  // Exposed as a whole on purpose, so that app components can use the same Designsystemet as the app frontend,
+  // without bundling their own copy (which would also need its own react-dom). This keeps every export in the
+  // bundle, as it cannot be tree-shaken.
+  Designsystemet,
   registerComponent,
 });
 

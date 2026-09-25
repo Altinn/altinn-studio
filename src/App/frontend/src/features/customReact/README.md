@@ -73,11 +73,12 @@ export default defineConfig({
       fileName: () => 'my-org-components.js',
     },
     rollupOptions: {
-      external: ['react', 'react/jsx-runtime'],
+      external: ['react', 'react/jsx-runtime', '@digdir/designsystemet-react'],
       output: {
         globals: {
           react: 'altinnAppFrontend.React',
           'react/jsx-runtime': 'altinnAppFrontend.jsxRuntime',
+          '@digdir/designsystemet-react': 'altinnAppFrontend.Designsystemet',
         },
       },
     },
@@ -88,6 +89,18 @@ export default defineConfig({
 Use `"jsx": "react-jsx"` in `tsconfig.json`. Run `vite build`, which produces `dist/my-org-components.js`.
 
 If React is bundled by mistake, the component fails with an "Invalid hook call" error.
+
+Only packages that the app frontend exposes on `window.altinnAppFrontend` can be external: `react`,
+`react/jsx-runtime` and `@digdir/designsystemet-react`. Everything else must be bundled. Mapping another package to
+a global that does not exist makes the script fail before it registers anything, so every component on the page
+reports that it is not registered.
+
+### Using Designsystemet
+
+Import components from `@digdir/designsystemet-react` as usual. The mapping above makes the built script use the
+app frontend's copy, so it is not bundled, and it shares React and React DOM with the page. Install the same version
+as the app frontend (currently `1.21.0`) as a dev dependency, for the types. Do not import `@digdir/designsystemet-css`:
+the app frontend already loads the styles, so the `ds-*` classes work too.
 
 ## 3. Add the script to the app
 
@@ -179,3 +192,4 @@ in the frontend-test app.
 The props and `window.altinnAppFrontend` are a public contract, defined in [`types.ts`](./types.ts). Adding optional
 props is not a breaking change. Removing or changing a prop, or a React major upgrade in the app frontend, bumps
 `apiVersion`. Components built for the old version then fail to register with a clear error and must be rebuilt.
+Minor and patch upgrades of Designsystemet in the app frontend reach app components without a rebuild.

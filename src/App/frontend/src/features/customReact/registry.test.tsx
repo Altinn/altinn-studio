@@ -3,7 +3,7 @@ import React, { forwardRef, memo } from 'react';
 import { act, render, screen } from '@testing-library/react';
 
 import { CUSTOM_REACT_API_VERSION, registerComponent, useRegisteredComponent } from 'src/features/customReact/registry';
-import type { RegisterComponentArgs } from 'src/features/customReact/types';
+import type { CustomReactComponentProps, RegisterComponentArgs } from 'src/features/customReact/types';
 
 const Dummy = () => <div>dummy</div>;
 
@@ -60,7 +60,7 @@ describe('registerComponent', () => {
 describe('useRegisteredComponent', () => {
   function Consumer({ name }: { name: string }) {
     const Component = useRegisteredComponent(name);
-    return Component ? <Component {...({} as never)} /> : <div>not registered</div>;
+    return Component ? <Component {...({} as CustomReactComponentProps)} /> : <div>not registered</div>;
   }
 
   it('re-renders when the component is registered after the first render', () => {

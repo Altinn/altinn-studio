@@ -5,7 +5,8 @@
  * self-contained (only type imports from 'react'), and treat every change here as a change to a public API:
  * - Adding an optional member is fine.
  * - Removing or changing a member requires bumping CUSTOM_REACT_API_VERSION, which breaks all apps built for the
- *   previous version on purpose (they get a clear error instead of subtle runtime failures).
+ *   previous version on purpose (they get a clear error instead of subtle runtime failures). This includes major
+ *   upgrades of React and Designsystemet, since apps use the app frontend's copies of both.
  */
 import type * as ReactModule from 'react';
 import type * as JsxRuntimeModule from 'react/jsx-runtime';
@@ -92,5 +93,13 @@ export interface AltinnAppFrontendApi {
   readonly apiVersion: 1;
   readonly React: typeof ReactModule;
   readonly jsxRuntime: typeof JsxRuntimeModule;
+
+  /**
+   * The app frontend's copy of '@digdir/designsystemet-react'. Map the package to this in your build, and import
+   * from '@digdir/designsystemet-react' as usual in your code; install the same version as the app frontend for
+   * the types. The styles are already loaded by the app frontend. It is typed loosely here, so that apps that do
+   * not use Designsystemet do not need to install it.
+   */
+  readonly Designsystemet: Readonly<Record<string, unknown>>;
   readonly registerComponent: (args: RegisterComponentArgs) => void;
 }
