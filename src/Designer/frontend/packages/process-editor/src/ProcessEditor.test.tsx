@@ -7,14 +7,12 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useBpmnContext } from './contexts/BpmnContext';
 import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { toast } from 'react-toastify';
 
-const defaultAppVersion: AppVersion = { backendVersion: '8.0.0', frontendVersion: '4.0.0' };
 const mockBpmnXml: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
 jest.mock('./contexts/BpmnContext', () => ({
@@ -53,25 +51,13 @@ describe('ProcessEditor', () => {
     jest.clearAllMocks();
   });
 
-  it('shows a spinner while loading the app version', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.AppMetadata, org, app], []);
-
-    renderProcessEditor({ queryClient });
-
-    expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
-  });
-
   it('shows a spinner while loading application metadata', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
-
-    renderProcessEditor({ queryClient });
+    renderProcessEditor({ queryClient: createQueryClientMock() });
 
     expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
-  it('shows an error when the app version is loaded but the BPMN is missing', () => {
+  it('shows an error when the BPMN is missing', () => {
     renderProcessEditor({ queryClient: queryClientWithAppData() });
 
     expect(
@@ -103,21 +89,7 @@ describe('ProcessEditor', () => {
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
 
     expect(
-      screen.getByText(textMock('process_editor.configuration_view_panel_no_task')),
-    ).toBeInTheDocument();
-  });
-
-  it('uses the v8 BPMN context for the editor and configuration panel', () => {
-    jest
-      .mocked(useBpmnContext)
-      .mockImplementation(jest.requireActual('./contexts/BpmnContext').useBpmnContext);
-
-    renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('process_editor.configuration_panel_no_task_title'),
-      }),
+      screen.getByText(textMock('process_editor.configuration_panel_no_task_title')),
     ).toBeInTheDocument();
   });
 
@@ -125,7 +97,6 @@ describe('ProcessEditor', () => {
     const queryClient = queryClientWithAppData({ dataTypes: [{ id: 'dataType1' }] });
     (useBpmnContext as jest.Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
-      isEditAllowed: true,
     });
 
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient });
@@ -171,7 +142,6 @@ describe('ProcessEditor', () => {
 
 const queryClientWithAppData = (appMetadata: unknown = []) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.AppVersion, org, app], defaultAppVersion);
   queryClient.setQueryData([QueryKey.AppMetadata, org, app], appMetadata);
   return queryClient;
 };
