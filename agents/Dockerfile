@@ -345,6 +345,28 @@ RUN apt-get update \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
     && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
 
+# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
+# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
+# the version matches the CI workflows that install it and must move together with them.
+ARG CARGO_MACHETE_VERSION=0.9.2
+
+RUN case "${TARGETARCH}" in \
+        amd64) CARGO_MACHETE_TARGET=x86_64-unknown-linux-musl; \
+            CARGO_MACHETE_SHA256=48200087f54c55aabcd4db4af1e25742b49846c02a1b1bfa134711945b35b2e9 ;; \
+        arm64) CARGO_MACHETE_TARGET=aarch64-unknown-linux-gnu; \
+            CARGO_MACHETE_SHA256=6f96c3e6026a5bdd241b6ae600c6fb86c9197c6e189a894f91371baa01fd10f5 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && CARGO_MACHETE_NAME="cargo-machete-v${CARGO_MACHETE_VERSION}-${CARGO_MACHETE_TARGET}" \
+    && curl -fsSL \
+        "https://github.com/bnjbvr/cargo-machete/releases/download/v${CARGO_MACHETE_VERSION}/${CARGO_MACHETE_NAME}.tar.gz" \
+        -o /tmp/cargo-machete.tar.gz \
+    && echo "${CARGO_MACHETE_SHA256}  /tmp/cargo-machete.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/cargo-machete.tar.gz -C /tmp "${CARGO_MACHETE_NAME}/cargo-machete" \
+    && install -m 0755 "/tmp/${CARGO_MACHETE_NAME}/cargo-machete" /usr/local/bin/cargo-machete \
+    && rm -rf /tmp/cargo-machete.tar.gz "/tmp/${CARGO_MACHETE_NAME}" \
+    && test "$(cargo-machete --version)" = "${CARGO_MACHETE_VERSION}"
+
 # Playwright ties every package version to one Chromium build. The browser CLI owns the version:
 # the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
 # standalone scripts and the single browser under PLAYWRIGHT_BROWSERS_PATH cannot drift apart.
@@ -420,6 +442,7 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -rf /tmp/flux.tar.gz /tmp/helm.tar.gz /tmp/kind /tmp/kubectl /tmp/linux-* \
     && cargo --version \
+    && cargo machete --version \
     && podman --version \
     && podman-compose --version \
     && kind version \
