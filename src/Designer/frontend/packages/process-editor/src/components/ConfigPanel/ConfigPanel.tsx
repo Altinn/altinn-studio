@@ -7,6 +7,7 @@ import { ConfigEndEvent } from './ConfigEndEvent';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { ConfigServiceTask } from './ConfigServiceTask';
+import { ConfigGateway } from './ConfigGateway';
 import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 
 export const ConfigPanel = (): React.ReactElement => {
@@ -49,6 +50,11 @@ const ConfigPanelContent = (): React.ReactElement => {
   const elementIsServiceTask = bpmnDetails.type === BpmnTypeEnum.ServiceTask;
   if (elementIsServiceTask) {
     return <ConfigServiceTask key={bpmnDetails.id} />;
+  }
+
+  const elementIsExclusiveGateway = bpmnDetails.type === BpmnTypeEnum.ExclusiveGateway;
+  if (elementIsExclusiveGateway) {
+    return <ConfigGateway key={bpmnDetails.id} />;
   }
 
   return (
