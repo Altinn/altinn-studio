@@ -98,7 +98,7 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
     [Fact]
     public async Task GetEnrichedInstance_ForV9App_IncludesTasksAndServiceTasks()
     {
-        const string app = "app-with-ordered-ui-folders";
+        const string app = "app-with-subform-pdf-v9";
         string createUrl = $"{Org}/{app}/instances?instanceOwnerPartyId={PartyId}&taskId=Task_1";
         using HttpRequestMessage createRequest = new(HttpMethod.Post, createUrl);
         using HttpResponseMessage createResponse = await HttpClient.SendAsync(createRequest);
@@ -119,7 +119,13 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
 
         Assert.NotNull(processTasks);
         Assert.Equal(
-            new[] { ("Task_1", "data"), ("Task_2", "data"), ("PdfTask", "pdf") },
+            new[]
+            {
+                ("Task_1", "data"),
+                ("PdfWithStaleCopy", "subformPdf"),
+                ("PdfWithCopy", "subformPdf"),
+                ("PdfWithoutPages", "subformPdf"),
+            },
             processTasks.Select(task =>
                 (task?["elementId"]?.GetValue<string>(), task?["altinnTaskType"]?.GetValue<string>())
             )

@@ -323,15 +323,31 @@ describe('useBpmnEditor', () => {
     expect(onProcessTaskAdd).not.toHaveBeenCalled();
   });
 
-  it('Clears the metadata form before the save completes, so the next edit does not resend it', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
+  it('captures save metadata before serialization and preserves metadata for the next edit', async () => {
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
     const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
     result.current.metadataFormRef.current = { taskIdChange };
+    let finishSerialization: (result: { xml: string }) => void;
+    saveXML.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishSerialization = resolve;
+      }),
+    );
 
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+    act(() => eventListeners.triggerEvent('commandStack.changed'));
+    expect(result.current.metadataFormRef.current).toBeUndefined();
+    const nextMetadata: MetadataForm = {
+      subformPdfComponentChange: {
+        taskId: 'PdfTask',
+        componentId: 'vehicles',
+        sourceLayoutSetId: 'Task_1',
+      },
+    };
+    result.current.metadataFormRef.current = nextMetadata;
+    await act(async () => finishSerialization({ xml }));
 
     await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange }));
-    expect(result.current.metadataFormRef.current).toBeUndefined();
+    expect(result.current.metadataFormRef.current).toBe(nextMetadata);
   });
 
   it('Resets the modeler ref when the callback is called with null', async () => {
