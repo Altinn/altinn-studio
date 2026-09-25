@@ -1,0 +1,27 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  margin: var(--ds-size-4);
+}
+
+.a2subjectsAndOtherSubjects {
+  border-left: 4px solid var(--ds-color-warning-base-default);
+  padding-left: var(--ds-size-2);
+  margin-bottom: var(--ds-size-8);
+}
+
+.onlyA2Subjects {
+  border-left: 4px solid var(--ds-color-danger-base-default);
+  padding-left: var(--ds-size-2);
+  margin-bottom: var(--ds-size-8);
+}
+
+.buttonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+}

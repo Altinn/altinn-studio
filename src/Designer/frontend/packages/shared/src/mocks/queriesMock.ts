@@ -244,6 +244,11 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
+  getAltinn2ResourcePolicies: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<{ identifier?: string; policy?: Policy; resourceType: string }[]>([]),
+    ),
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
@@ -398,6 +403,7 @@ export const queriesMock: ServicesContextProps = {
   convertToPageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
+  publishResourcePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
   importResourceFromAltinn3: jest.fn().mockImplementation(() => Promise.resolve({})),
   publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
