@@ -13,6 +13,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, so app code no longer needs `using` directives for the most common namespaces. The `using` directives this makes redundant are removed from the app's C# files, except the generated data models under `models/`, which Studio regenerates. Converted legacy rules are generated without them.
 
+### Fixed
+
+- studioctl no longer stops an unrelated process, or itself, when studioctl-server stopped without studioctl, for example after a crash or a container restart. studioctl now checks that the process in its pid file is studioctl-server before it waits for it or stops it. If it is not, studioctl discards the old pid file and starts a new server.
+
 ## [0.1.0-preview.27] - 2026-09-23
 
 ### Added
