@@ -9,7 +9,7 @@ internal static class TestAppFiles
 {
     public const string MinimalApplicationMetadata = """{ "id": "ttd/app" }""";
 
-    public static async Task<AppFilesAccessor> Load(string appDir) => new(await AppFilesLoader.Load(appDir, default));
+    public static AppFilesAccessor Load(string appDir) => new(AppFilesLoader.Load(appDir));
 
     /// <summary>
     /// Writes the application metadata file the loader requires, for tests that are about other files.

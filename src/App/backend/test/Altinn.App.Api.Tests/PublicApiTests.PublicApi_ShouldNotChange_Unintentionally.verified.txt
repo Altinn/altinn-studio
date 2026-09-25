@@ -770,7 +770,7 @@ namespace Altinn.App.Api.Extensions
     public static class ServiceCollectionExtensions
     {
         public static void AddAltinnAppControllersWithViews(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
-        public static System.Threading.Tasks.Task AddAltinnAppServices(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) { }
+        public static void AddAltinnAppServices(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration config, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env) { }
     }
     public static class WebApplicationBuilderExtensions
     {

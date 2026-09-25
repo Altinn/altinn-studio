@@ -190,9 +190,6 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateAddAltinnAppServicesAwait(scanner));
-
-        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppMetadataProperties(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -860,28 +857,6 @@ internal static class V8Tov9Upgrade
     /// silent-blindness bug (semantic detectors on the rewritten live view) or self-contradicting
     /// output (syntax detectors on the pristine view re-reporting what a rewriter just fixed).
     /// </remarks>
-    /// <summary>
-    /// Awaits the Task that AddAltinnAppServices returns in v9, making the template's ConfigureServices local
-    /// function async and awaiting it in turn. Runs before <see cref="CheckRemovedCSharpApis"/>.
-    /// </summary>
-    static async Task<int> MigrateAddAltinnAppServicesAwait(CSharpSourceScanner scanner)
-    {
-        UpgradeConsole.BeginStep("AddAltinnAppServices await");
-        try
-        {
-            var result = new AddAltinnAppServicesAwaitMigration(scanner).Migrate();
-            return ReportMigrationResult(
-                result,
-                cleanText: "AddAltinnAppServices is already awaited",
-                cleanStatus: UpgradeMessageStatus.Skip
-            );
-        }
-        catch (Exception ex)
-        {
-            return Fail("Error migrating the AddAltinnAppServices call", ex);
-        }
-    }
-
     /// <summary>
     /// Rewrites awaited IAppMetadata reads to the v9 properties. The old methods survive as obsolete, so a
     /// call this cannot rewrite still compiles and is only advised on.

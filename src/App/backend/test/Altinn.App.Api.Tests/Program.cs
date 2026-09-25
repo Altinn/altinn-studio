@@ -84,17 +84,17 @@ foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variab
     builder.Configuration[key] = value;
 }
 
-await ConfigureServices(builder.Services, builder.Configuration);
+ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
 
 WebApplication app = builder.Build();
 Configure();
 app.Run();
 
-async Task ConfigureServices(IServiceCollection services, IConfiguration config)
+void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
-    await services.AddAltinnAppServices(config, builder.Environment);
+    services.AddAltinnAppServices(config, builder.Environment);
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
     {

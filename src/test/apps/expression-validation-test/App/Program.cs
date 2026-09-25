@@ -16,7 +16,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-await ConfigureServices(builder.Services, builder.Configuration);
+ConfigureServices(builder.Services, builder.Configuration);
 
 ConfigureWebHostBuilder(builder.WebHost);
 
@@ -26,7 +26,7 @@ Configure();
 
 app.Run();
 
-async Task ConfigureServices(IServiceCollection services, IConfiguration config)
+void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddAltinnAppControllersWithViews();
 
@@ -34,7 +34,7 @@ async Task ConfigureServices(IServiceCollection services, IConfiguration config)
     RegisterCustomAppServices(services, config, builder.Environment);
 
     // Register services required to run this as an Altinn application
-    await services.AddAltinnAppServices(config, builder.Environment);
+    services.AddAltinnAppServices(config, builder.Environment);
 
     services.AddAltinnCodelists();
 

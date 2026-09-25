@@ -81,8 +81,8 @@ internal sealed class AppFiles
         _applicationMetadata
         ?? throw new ApplicationConfigException(
             "The app files have not been loaded, so config/applicationmetadata.json is not available. "
-                + "AddAltinnAppServices loads them and must be awaited in Program.cs: "
-                + "await services.AddAltinnAppServices(config, builder.Environment);"
+                + "AddAltinnAppServices in Program.cs loads them; a test that builds its own container must "
+                + "register a loaded AppFilesAccessor."
         );
 
     /// <summary>

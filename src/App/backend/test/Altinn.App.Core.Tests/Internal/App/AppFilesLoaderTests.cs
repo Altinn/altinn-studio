@@ -11,7 +11,7 @@ public sealed class AppFilesLoaderTests : IDisposable
 
     public void Dispose() => _appDir.Delete(recursive: true);
 
-    private Task<AppFiles> Load() => AppFilesLoader.Load(_appDir.FullName, default);
+    private AppFiles Load() => AppFilesLoader.Load(_appDir.FullName);
 
     private void WriteFile(string relativePath, string content, Encoding? encoding = null)
     {
@@ -57,10 +57,10 @@ public sealed class AppFilesLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task The_files_are_loaded_into_their_typed_place_without_bom()
+    public void The_files_are_loaded_into_their_typed_place_without_bom()
     {
         WriteStandardApp();
-        var files = await Load();
+        var files = Load();
 
         Assert.Equal("""{ "id": "ttd/app" }""", AsString(files.ApplicationMetadata));
         Assert.Equal("<policy />", AsString(files.XacmlPolicy));
@@ -96,10 +96,10 @@ public sealed class AppFilesLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task An_app_with_only_application_metadata_has_nothing_else()
+    public void An_app_with_only_application_metadata_has_nothing_else()
     {
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
-        var files = await Load();
+        var files = Load();
 
         Assert.Empty(files.GetTextResourceLanguages());
         Assert.Null(files.GetModelFiles("model"));
@@ -115,24 +115,24 @@ public sealed class AppFilesLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task Loading_fails_without_the_application_metadata_file()
+    public void Loading_fails_without_the_application_metadata_file()
     {
         WriteFile("ui/Settings.json", "{}");
 
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => Load());
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
 
         Assert.Contains("config/applicationmetadata.json", exception.Message);
     }
 
     [Fact]
-    public async Task Loading_reports_every_app_json_file_that_does_not_parse()
+    public void Loading_reports_every_app_json_file_that_does_not_parse()
     {
         WriteStandardApp();
         WriteFile("ui/a/layouts/page1.json", """{ "data": { "layout": [ } }""");
         WriteFile("config/texts/resource.en.json", "not json");
         WriteFile("models/model.xsd", "<not-json-so-not-validated");
 
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => Load());
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
 
         Assert.Contains("config/texts/resource.en.json", exception.Message);
         Assert.Contains("ui/a/layouts/page1.json", exception.Message);
@@ -146,24 +146,24 @@ public sealed class AppFilesLoaderTests : IDisposable
     // on a case-insensitive file system, where a path lookup would have succeeded. Each casing gets its own
     // test (and temp directory) because such a file system keeps only one of two names that differ by case.
     [Fact]
-    public async Task A_wrongly_cased_application_metadata_file_is_missing_on_every_operating_system()
+    public void A_wrongly_cased_application_metadata_file_is_missing_on_every_operating_system()
     {
         WriteFile("config/ApplicationMetadata.json", """{ "id": "ttd/app" }""");
 
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() => Load());
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
 
         Assert.Contains("config/applicationmetadata.json", exception.Message);
     }
 
     [Fact]
-    public async Task Names_are_matched_case_sensitively_on_every_operating_system()
+    public void Names_are_matched_case_sensitively_on_every_operating_system()
     {
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
         WriteFile("ui/settings.json", "{}");
         WriteFile("Options/land.json", "[]");
         WriteFile("options/KOMMUNER.JSON", "[]");
         WriteFile("Models/model.schema.json", "{}");
-        var files = await Load();
+        var files = Load();
 
         Assert.Null(files.Ui.Settings);
         Assert.Empty(files.GetOptionIds());
@@ -171,10 +171,10 @@ public sealed class AppFilesLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task Names_that_look_like_paths_are_just_missing_keys()
+    public void Names_that_look_like_paths_are_just_missing_keys()
     {
         WriteStandardApp();
-        var files = await Load();
+        var files = Load();
 
         Assert.Null(files.GetTextResource("../applicationmetadata"));
         Assert.Null(files.GetOptions("../config/applicationmetadata"));
@@ -183,10 +183,10 @@ public sealed class AppFilesLoaderTests : IDisposable
     }
 
     [Fact]
-    public async Task A_scan_matches_the_snapshot_until_a_file_changes()
+    public void A_scan_matches_the_snapshot_until_a_file_changes()
     {
         WriteStandardApp();
-        var files = await Load();
+        var files = Load();
 
         Assert.True(files.IsLoadedFrom(AppFilesLoader.Scan(_appDir.FullName)));
 
@@ -198,7 +198,7 @@ public sealed class AppFilesLoaderTests : IDisposable
     public void The_empty_snapshot_explains_that_the_files_were_not_loaded()
     {
         var exception = Assert.Throws<ApplicationConfigException>(() => AppFiles.Empty.ApplicationMetadata);
-        Assert.Contains("await services.AddAltinnAppServices", exception.Message);
+        Assert.Contains("AddAltinnAppServices", exception.Message);
     }
 
     private static string? AsString(ReadOnlyMemory<byte>? bytes) =>

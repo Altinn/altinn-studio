@@ -39,7 +39,7 @@ public sealed class AppFilesDITests : IDisposable
         var services = new ServiceCollection();
         services.AddLogging();
 
-        await services.AddAppFiles(Environment(environment));
+        services.AddAppFiles(Environment(environment));
 
         await using var provider = services.BuildServiceProvider();
         var accessor = provider.GetRequiredService<AppFilesAccessor>();
@@ -48,12 +48,12 @@ public sealed class AppFilesDITests : IDisposable
     }
 
     [Fact]
-    public async Task AddAppFiles_fails_when_the_application_metadata_file_is_missing()
+    public void AddAppFiles_fails_when_the_application_metadata_file_is_missing()
     {
         WriteFile("ui/Settings.json", "{}");
         var services = new ServiceCollection();
 
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
             services.AddAppFiles(Environment("Production"))
         );
 
@@ -61,13 +61,13 @@ public sealed class AppFilesDITests : IDisposable
     }
 
     [Fact]
-    public async Task AddAppFiles_fails_when_a_file_is_broken()
+    public void AddAppFiles_fails_when_a_file_is_broken()
     {
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
         WriteFile("ui/Settings.json", "{ broken");
         var services = new ServiceCollection();
 
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
             services.AddAppFiles(Environment("Production"))
         );
 
@@ -75,34 +75,13 @@ public sealed class AppFilesDITests : IDisposable
     }
 
     [Fact]
-    public async Task The_accessor_and_poller_are_registered_before_the_load_completes()
+    public void AddAppFiles_refuses_a_second_call()
     {
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
         var services = new ServiceCollection();
-        services.AddLogging();
+        services.AddAppFiles(Environment("Production"));
 
-        // A Program.cs that forgets to await builds the container while the files may still be loading. It still
-        // resolves the accessor, which explains the missing await until the files are in (see AppFiles.Empty), and
-        // the poller, which would load the files on its first poll.
-        var loading = services.AddAppFiles(Environment("Development"));
-        await using var provider = services.BuildServiceProvider();
-        var accessor = provider.GetRequiredService<AppFilesAccessor>();
-        Assert.Contains(provider.GetServices<IHostedService>(), s => s is AppFilesPoller);
-        await loading;
-
-        Assert.Equal("""{ "id": "ttd/app" }""", Encoding.UTF8.GetString(accessor.Current.ApplicationMetadata.Span));
-    }
-
-    [Fact]
-    public async Task AddAppFiles_refuses_a_second_call()
-    {
-        WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app" }""");
-        var services = new ServiceCollection();
-        await services.AddAppFiles(Environment("Production"));
-
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            services.AddAppFiles(Environment("Production"))
-        );
+        var exception = Assert.Throws<InvalidOperationException>(() => services.AddAppFiles(Environment("Production")));
 
         Assert.Contains("AddAltinnAppServices", exception.Message);
     }

@@ -26,7 +26,7 @@ public sealed class ApplicationLanguageTests : IDisposable
         WriteFile("config/texts/resource.en-GB.json", """{ "language": "en-GB", "resources": [] }""");
         WriteFile("config/texts/notes.json", """{ "language": "ignored" }""");
         TestAppFiles.WriteMinimalApplicationMetadata(_appDir.FullName);
-        var appFiles = await TestAppFiles.Load(_appDir.FullName);
+        var appFiles = TestAppFiles.Load(_appDir.FullName);
 
         var languages = await new ApplicationLanguage(appFiles).GetApplicationLanguages();
 
@@ -37,7 +37,7 @@ public sealed class ApplicationLanguageTests : IDisposable
     public async Task No_text_resources_gives_no_languages()
     {
         TestAppFiles.WriteMinimalApplicationMetadata(_appDir.FullName);
-        var appFiles = await TestAppFiles.Load(_appDir.FullName);
+        var appFiles = TestAppFiles.Load(_appDir.FullName);
 
         Assert.Empty(await new ApplicationLanguage(appFiles).GetApplicationLanguages());
     }

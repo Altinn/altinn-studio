@@ -48,7 +48,7 @@ internal sealed class AppFilesPoller : BackgroundService
             using var timer = new PeriodicTimer(PollInterval, _timeProvider);
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                _outcomes.Writer.TryWrite(await Poll(stoppingToken));
+                _outcomes.Writer.TryWrite(Poll());
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -64,7 +64,7 @@ internal sealed class AppFilesPoller : BackgroundService
     /// <summary>
     /// Replaces the snapshot when the files on disk differ from the ones it was loaded from.
     /// </summary>
-    internal async Task<ReloadOutcome> Poll(CancellationToken cancellationToken)
+    internal ReloadOutcome Poll()
     {
         AppFilesScan? scan = null;
         try
@@ -75,7 +75,7 @@ internal sealed class AppFilesPoller : BackgroundService
                 return ReloadOutcome.Unchanged;
             }
 
-            _accessor.Update(await AppFilesLoader.Load(scan, cancellationToken));
+            _accessor.Update(AppFilesLoader.Load(scan));
         }
         catch (ApplicationConfigException e) when (scan is not null)
         {

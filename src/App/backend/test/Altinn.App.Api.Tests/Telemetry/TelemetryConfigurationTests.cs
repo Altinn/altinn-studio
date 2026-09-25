@@ -150,7 +150,7 @@ public class TelemetryConfigurationTests
             ])
             .Build();
 
-        await Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
+        Altinn.App.Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(services, config, env);
         services.AddApplicationInsightsTelemetryProcessor<TelemetryProcessor>();
         services.Configure<ApplicationInsightsServiceOptions>(options =>
             options.RequestCollectionOptions.InjectResponseHeaders = false

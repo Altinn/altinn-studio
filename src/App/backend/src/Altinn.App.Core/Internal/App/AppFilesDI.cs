@@ -7,21 +7,19 @@ namespace Altinn.App.Core.Internal.App;
 internal static class AppFilesDI
 {
     /// <summary>
-    /// Registers the <see cref="AppFilesAccessor"/> and loads the app files from the content root of the host into it,
-    /// failing for a broken app. In Development it also registers <see cref="AppFilesPoller"/>, which picks up edits
-    /// without a restart.
+    /// Loads the app files from the content root of the host, failing for a broken app, and registers them in an
+    /// <see cref="AppFilesAccessor"/>. In Development it also registers <see cref="AppFilesPoller"/>, which picks up
+    /// edits without a restart.
     /// </summary>
     /// <exception cref="ApplicationConfigException">When the app files cannot be loaded.</exception>
     /// <exception cref="InvalidOperationException">When the app files have already been added.</exception>
-    public static async Task AddAppFiles(this IServiceCollection services, IHostEnvironment env)
+    public static void AddAppFiles(this IServiceCollection services, IHostEnvironment env)
     {
         ThrowIfAdded(services);
         string basePath = env.ContentRootPath;
 
-        // Everything is registered before the first await. A Program.cs that forgets to await then builds a container
-        // that has the accessor, which explains the missing await from AppFiles.Empty until the files are in, and in
-        // Development has the poller, which loads them on its first poll.
-        var accessor = new AppFilesAccessor();
+        // Loaded before it is registered, so that no container holds an accessor without files
+        var accessor = new AppFilesAccessor(AppFilesLoader.Load(basePath));
         services.AddSingleton(accessor);
         if (env.IsDevelopment())
         {
@@ -31,8 +29,6 @@ internal static class AppFilesDI
                 sp.GetRequiredService<ILogger<AppFilesPoller>>()
             ));
         }
-
-        accessor.Update(await AppFilesLoader.Load(basePath, CancellationToken.None));
     }
 
     /// <summary>

@@ -28,7 +28,7 @@ public sealed class AppFilesPollerTests : IDisposable
 
     private async Task<(AppFilesAccessor Accessor, AppFilesPoller Poller)> Start()
     {
-        var accessor = new AppFilesAccessor(await AppFilesLoader.Load(_appDir.FullName, default));
+        var accessor = new AppFilesAccessor(AppFilesLoader.Load(_appDir.FullName));
         return (
             accessor,
             new AppFilesPoller(accessor, _appDir.FullName, NullLogger<AppFilesPoller>.Instance, _timeProvider)
@@ -43,12 +43,12 @@ public sealed class AppFilesPollerTests : IDisposable
         var (accessor, poller) = await Start();
         var initial = accessor.Current;
 
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Unchanged, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Unchanged, poller.Poll());
         Assert.Same(initial, accessor.Current);
 
         WriteFile("ui/footer.json", """{ "footer": [1] }""");
         WriteFile("options/land.json", "[]");
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, poller.Poll());
 
         Assert.Equal("""{ "footer": [1] }""", Footer(accessor));
         Assert.Equal(["land"], accessor.Current.GetOptionIds());
@@ -64,14 +64,14 @@ public sealed class AppFilesPollerTests : IDisposable
         var (accessor, poller) = await Start();
 
         WriteFile("ui/footer.json", """{ "footer": [ }""");
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Failed, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Failed, poller.Poll());
         Assert.Equal("""{ "footer": [] }""", Footer(accessor));
 
         // The same broken state is not retried, so the log is not spammed on every poll
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Unchanged, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Unchanged, poller.Poll());
 
         WriteFile("ui/footer.json", """{ "footer": [2] }""");
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, poller.Poll());
         Assert.Equal("""{ "footer": [2] }""", Footer(accessor));
     }
 
@@ -83,7 +83,7 @@ public sealed class AppFilesPollerTests : IDisposable
 
         File.Delete(Path.Join(_appDir.FullName, "config/applicationmetadata.json"));
 
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Failed, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Failed, poller.Poll());
         Assert.Equal("""{ "id": "ttd/app" }""", Encoding.UTF8.GetString(accessor.Current.ApplicationMetadata.Span));
     }
 
@@ -102,7 +102,7 @@ public sealed class AppFilesPollerTests : IDisposable
 
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app", "title": { "nb": "Etter" } }""");
         WriteFile("options/land.json", """[{ "value": "SE", "label": "Sverige" }]""");
-        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, await poller.Poll(default));
+        Assert.Equal(AppFilesPoller.ReloadOutcome.Reloaded, poller.Poll());
 
         // AppMetadata caches the parsed file, but only for as long as the snapshot it was parsed from is current
         Assert.Equal("Etter", (appMetadata.ApplicationMetadata).Title["nb"]);

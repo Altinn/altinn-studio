@@ -42,7 +42,7 @@ public static class AppBuilder
         registerCustomAppServices?.Invoke(builder.Services);
 
         // 3. AddAltinnAppServices
-        await Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
+        Api.Extensions.ServiceCollectionExtensions.AddAltinnAppServices(
             builder.Services,
             builder.Configuration,
             builder.Environment

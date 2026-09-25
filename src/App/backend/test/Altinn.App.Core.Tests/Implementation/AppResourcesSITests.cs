@@ -29,9 +29,9 @@ public class AppResourcesSITests
         {
             WriteApplicationMetadata(appDir);
         }
-        var appFiles = await TestAppFiles.Load(appDir.FullName);
+        var appFiles = TestAppFiles.Load(appDir.FullName);
         var frontendFeatures = new Mock<IFrontendFeatures>();
-        frontendFeatures.Setup(f => f.GetFrontendFeatures()).ReturnsAsync(new Dictionary<string, bool>());
+        frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
         return new AppResourcesSI(appFiles, new AppMetadata(appFiles, frontendFeatures.Object));
     }
 
@@ -144,7 +144,7 @@ public class AppResourcesSITests
             );
             File.WriteAllText(Path.Join(uiDir, "Task_1", "layouts", "page1.json"), """{ "data": { "layout": [] } }""");
 
-            var appFiles = await TestAppFiles.Load(tempDir.FullName);
+            var appFiles = TestAppFiles.Load(tempDir.FullName);
             var appMetadata = new Mock<IAppMetadata>();
             appMetadata
                 .Setup(m => m.ApplicationMetadata)

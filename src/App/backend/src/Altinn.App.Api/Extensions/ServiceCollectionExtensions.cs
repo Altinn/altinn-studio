@@ -75,13 +75,12 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Adds all services to run an Altinn application. Loads the app resource files (config, models, options and ui folders)
-    /// into memory as the last step, so the returned task must be awaited before the host is built, and a broken
-    /// app fails here instead of on the first request.
+    /// into memory, so a broken app fails here instead of on the first request.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> being built.</param>
     /// <param name="config">A reference to the current <see cref="IConfiguration"/> object.</param>
     /// <param name="env">A reference to the current <see cref="IWebHostEnvironment"/> object.</param>
-    public static async Task AddAltinnAppServices(
+    public static void AddAltinnAppServices(
         this IServiceCollection services,
         IConfiguration config,
         IWebHostEnvironment env
@@ -139,8 +138,7 @@ public static class ServiceCollectionExtensions
             c.SwaggerEndpoint($"/{appId}/v1/customOpenapi.json", $"End user app API for {appId}");
         });
 
-        // Last, so that everything above is registered even when a Program.cs forgets to await the returned task
-        await services.AddAppFiles(env);
+        services.AddAppFiles(env);
     }
 
     /// <summary>

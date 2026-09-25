@@ -22,7 +22,7 @@ public sealed class IndexPageGeneratorTests : IDisposable
     private async Task<IndexPageGenerator> CreateGenerator()
     {
         TestAppFiles.WriteMinimalApplicationMetadata(_appDir.FullName);
-        var appFiles = await TestAppFiles.Load(_appDir.FullName);
+        var appFiles = TestAppFiles.Load(_appDir.FullName);
         var frontendFeatures = new Mock<IFrontendFeatures>();
         frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
         return new IndexPageGenerator(frontendFeatures.Object, appFiles);

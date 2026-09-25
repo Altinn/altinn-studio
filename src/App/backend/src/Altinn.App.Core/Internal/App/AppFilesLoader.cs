@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.Json;
 
@@ -29,7 +28,6 @@ internal static class AppFilesLoader
     internal const string CustomJsFolder = "wwwroot/custom-js";
     internal const string LegacyIndexPagePath = "views/Home/Index.cshtml";
 
-    private const int MaxParallelReads = 8;
     private const string JsonExtension = ".json";
     private const string TextResourcePrefix = "resource.";
 
@@ -45,10 +43,8 @@ internal static class AppFilesLoader
     /// Reads and validates the app files.
     /// </summary>
     /// <param name="basePath">Absolute path of the app folder, normally the content root of the host</param>
-    /// <param name="cancellationToken">Cancels the file reads</param>
     /// <exception cref="ApplicationConfigException">With every problem found, when the app files cannot be loaded.</exception>
-    public static Task<AppFiles> Load(string basePath, CancellationToken cancellationToken) =>
-        Load(Scan(basePath), cancellationToken);
+    public static AppFiles Load(string basePath) => Load(Scan(basePath));
 
     /// <summary>
     /// Lists the app files with their size and modification time, without reading the contents. There is no
@@ -130,69 +126,63 @@ internal static class AppFilesLoader
 
     /// <summary>
     /// Reads the contents of the scanned files, validates that every json file parses and that the application
-    /// metadata file exists, and builds the snapshot.
+    /// metadata file exists, and builds the snapshot. The files are read on the calling thread, as the host reads
+    /// its configuration files: an app has at most a few hundred small files, read once at startup.
     /// </summary>
     /// <exception cref="ApplicationConfigException">With every problem found, when the app files cannot be loaded.</exception>
-    public static async Task<AppFiles> Load(AppFilesScan scan, CancellationToken cancellationToken)
+    public static AppFiles Load(AppFilesScan scan)
     {
         var files = scan.Files;
         var contents = new ReadOnlyMemory<byte>[files.Length];
-        var errors = new ConcurrentBag<string>();
+        var errors = new List<string>();
 
-        await Parallel.ForEachAsync(
-            Enumerable.Range(0, files.Length),
-            new ParallelOptions { MaxDegreeOfParallelism = MaxParallelReads, CancellationToken = cancellationToken },
-            async (i, ct) =>
+        for (int i = 0; i < files.Length; i++)
+        {
+            var file = files[i];
+            if (!HasContents(file.Kind))
             {
-                var file = files[i];
-                if (!HasContents(file.Kind))
-                {
-                    return;
-                }
+                continue;
+            }
 
-                ReadOnlyMemory<byte> bytes;
+            ReadOnlyMemory<byte> bytes;
+            try
+            {
+                bytes = WithoutBom(File.ReadAllBytes(Path.Join(scan.BasePath, file.Stamp.RelativePath)));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                errors.Add($"{file.Stamp.RelativePath}: {e.Message}");
+                continue;
+            }
+
+            if (IsJson(file.Kind))
+            {
                 try
                 {
-                    bytes = WithoutBom(
-                        await File.ReadAllBytesAsync(Path.Join(scan.BasePath, file.Stamp.RelativePath), ct)
-                    );
+                    using var _ = JsonDocument.Parse(bytes, _jsonValidationOptions);
                 }
-                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                catch (JsonException e)
                 {
                     errors.Add($"{file.Stamp.RelativePath}: {e.Message}");
-                    return;
+                    continue;
                 }
-
-                if (IsJson(file.Kind))
-                {
-                    try
-                    {
-                        using var _ = JsonDocument.Parse(bytes, _jsonValidationOptions);
-                    }
-                    catch (JsonException e)
-                    {
-                        errors.Add($"{file.Stamp.RelativePath}: {e.Message}");
-                        return;
-                    }
-                }
-
-                contents[i] = bytes;
             }
-        );
+
+            contents[i] = bytes;
+        }
 
         if (!files.Any(f => f.Kind == AppFileKind.ApplicationMetadata))
         {
             errors.Add($"{ApplicationMetadataPath}: the application metadata file is missing");
         }
 
-        if (!errors.IsEmpty)
+        if (errors.Count > 0)
         {
-            var sortedErrors = errors.ToArray();
-            Array.Sort(sortedErrors, StringComparer.Ordinal);
+            errors.Sort(StringComparer.Ordinal);
             throw new ApplicationConfigException(
                 "The app files cannot be loaded. Fix the following and restart the app:"
                     + Environment.NewLine
-                    + string.Join(Environment.NewLine, sortedErrors.Select(e => $" - {e}"))
+                    + string.Join(Environment.NewLine, errors.Select(e => $" - {e}"))
             );
         }
 

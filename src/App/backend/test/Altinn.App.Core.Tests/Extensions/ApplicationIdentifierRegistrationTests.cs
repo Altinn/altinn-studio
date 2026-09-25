@@ -33,7 +33,7 @@ public sealed class ApplicationIdentifierRegistrationTests : IDisposable
     {
         TestAppFiles.WriteMinimalApplicationMetadata(_appDir.FullName);
         var services = new ServiceCollection();
-        services.AddSingleton(await TestAppFiles.Load(_appDir.FullName));
+        services.AddSingleton(TestAppFiles.Load(_appDir.FullName));
         services.AddSingleton<IFrontendFeatures>(new FrontendFeatures(new ConfigurationBuilder().Build()));
         services.AddSingleton<IAppMetadata, AppMetadata>();
         services.AddAppImplementationFactory();

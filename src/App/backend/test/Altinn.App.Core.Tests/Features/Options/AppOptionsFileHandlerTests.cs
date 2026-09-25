@@ -14,7 +14,7 @@ public sealed class AppOptionsFileHandlerTests : IDisposable
     private async Task<AppOptionsFileHandler> CreateHandler()
     {
         TestAppFiles.WriteMinimalApplicationMetadata(_appDir.FullName);
-        var appFiles = await TestAppFiles.Load(_appDir.FullName);
+        var appFiles = TestAppFiles.Load(_appDir.FullName);
         return new AppOptionsFileHandler(appFiles);
     }
 
