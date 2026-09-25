@@ -55,7 +55,7 @@
     "src/Designer/frontend/packages/text-editor",
     "src/Designer/frontend/packages/ux-editor-v4",
     "src/Designer/frontend/packages/ux-editor-v3",
-    "src/Designer/frontend/packages/process-editor",
+    "src/Designer/frontend/packages/process-editor-v8",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
     "src/common/ts",
