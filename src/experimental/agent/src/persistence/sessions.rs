@@ -532,7 +532,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         created_at,
         deletion_timestamp,
         archived_at,
-        status: Status::new(
+        status: Status::observed(
             Lifecycle {
                 state: lifecycle.state,
                 failure: lifecycle.failure,
@@ -542,9 +542,9 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
                 harness_transcript_path,
                 activity,
             },
-        )
-        .entered(lifecycle.since)
-        .archived(archived_at),
+            lifecycle.since,
+            archived_at,
+        ),
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

@@ -3015,6 +3015,11 @@ async fn unarchiving_after_a_failed_archive_does_not_relaunch_the_harness() {
         .set_session_archived("worker", &name, false)
         .await
         .expect("unarchive");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput,
+        "until the pass, the harness the failed stop left running reports for itself, not Idle"
+    );
     reconciler.reconcile(session.id).await.expect("unarchive pass");
     let adopted = database.get_session(session.id).await.expect("Session");
     assert_eq!(
