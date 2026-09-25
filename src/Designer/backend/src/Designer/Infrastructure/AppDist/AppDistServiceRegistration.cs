@@ -11,7 +11,8 @@ public static class AppDistServiceRegistration
 {
     /// <summary>
     /// Registers the app distribution provider: the registry-backed <see cref="AppDistProvider"/> with a file
-    /// system cache, wrapped in <see cref="CachedAppDistProvider"/> to bound registry traffic.
+    /// system cache, wrapped in <see cref="CachedAppDistProvider"/> to bound registry traffic, and the rate limiter
+    /// for anonymous callers.
     /// </summary>
     public static IServiceCollection AddAppDist(this IServiceCollection services)
     {
@@ -35,7 +36,8 @@ public static class AppDistServiceRegistration
             serviceProvider.GetRequiredService<IOptionsMonitor<AppDistSettings>>(),
             serviceProvider.GetRequiredService<TimeProvider>()
         ));
-        services.AddAppDistRateLimiting();
+        services.AddSingleton<AppDistRateLimiter>();
+        services.AddSingleton<AppDistRateLimitFilter>();
 
         return services;
     }

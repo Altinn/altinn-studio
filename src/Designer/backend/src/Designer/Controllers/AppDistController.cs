@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Infrastructure.AppDist;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
 
@@ -25,7 +24,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [AllowAnonymous]
 [AllowApiKey]
-[EnableRateLimiting(AppDistRateLimiting.PolicyName)]
+[ServiceFilter<AppDistRateLimitFilter>]
 [Route("designer/app-dist")]
 public partial class AppDistController(IAppDistProvider appDistProvider) : ControllerBase
 {
