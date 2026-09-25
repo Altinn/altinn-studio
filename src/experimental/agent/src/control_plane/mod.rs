@@ -6,7 +6,6 @@ pub mod memory;
 mod reconciler;
 mod resource;
 mod service;
-mod status;
 
 use std::rc::Rc;
 
@@ -15,11 +14,10 @@ use ::sandbox::LocalFuture;
 use crate::{Error, Status};
 
 pub use controller::{Controller, ErrorHandler, Wakeup};
-pub use convergence::{Convergence, Observers, WaitPolicy};
+pub use convergence::{Convergence, WaitPolicy};
 pub use reconciler::{Reconciler, SessionNotifier};
 pub use resource::{AgentId, AgentRecord, ENV_FILE};
 pub use service::{ApplyRequest, ControlPlane, Notifier};
-pub use status::{ObservedStatus, StatusWatch};
 
 /// Separates desired-state writes from reconciler status writes using generation checks.
 pub trait AgentStore {
@@ -35,8 +33,10 @@ pub trait AgentStore {
     /// Creates or replaces desired state if the stored generation still matches.
     fn put(&self, record: AgentRecord, expected_generation: u64) -> LocalFuture<'_, Result<(), Error>>;
 
-    /// Replaces observed state if the reconciled generation is still current.
-    fn update_status(&self, id: AgentId, generation: u64, status: Status) -> LocalFuture<'_, Result<(), Error>>;
+    /// Replaces observed state if the reconciled generation is still current,
+    /// stamping condition transition times against the stored status, and
+    /// returns the status as stored.
+    fn update_status(&self, id: AgentId, generation: u64, status: Status) -> LocalFuture<'_, Result<Status, Error>>;
 
     /// Atomically records the first deletion request.
     fn mark_deleting<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<AgentRecord, Error>>;

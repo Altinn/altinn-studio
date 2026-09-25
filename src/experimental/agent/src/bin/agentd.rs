@@ -128,7 +128,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let session_store: Rc<dyn agent::sessions::SessionStore> = store.clone();
     let session_runtime: Rc<dyn agent::sessions::SessionRuntime> = Rc::new(agent::sessions::Tmux);
     let agent_sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(store.clone(), sandboxes.clone()));
-    let observers = agent::control_plane::Observers::new();
+    let changes = database.changes();
+    let provisioning = agent::progress::ProvisioningState::new(changes.clone());
 
     let platform_api_server = Rc::new(agent::platform_api::Server::new(
         session_reports,
@@ -154,7 +155,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     ));
     let ssh = ssh_access(&home, &database, store.clone())?;
     let reconciler = Rc::new(
-        Reconciler::new(store.clone(), sandboxes.clone(), observers.clone())
+        Reconciler::new(store.clone(), sandboxes.clone(), provisioning.clone())
             .with_session_notifier(session_notifier)
             .with_ssh_access(ssh.clone()),
     );
@@ -164,8 +165,9 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         Duration::from_secs(30),
         reconciliation_errors("Agent"),
     );
-    let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())));
-    let convergence = agent::control_plane::Convergence::new(wakeup, observers);
+    let control_plane =
+        Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())).with_provisioning(provisioning));
+    let convergence = agent::control_plane::Convergence::new(wakeup, store.clone(), changes.clone());
     let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
     let sessions = Rc::new(SessionService::new(
         session_store,
@@ -181,6 +183,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         executions,
         sessions,
         ssh,
+        changes,
         Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());
