@@ -203,7 +203,6 @@ async def handle(state: AgentState) -> AgentState:
         form_spec_summary=state.form_spec.to_summary() if state.form_spec else None,
         developer=state.developer,
         org=state.org,
-        repo_facts=state.repo_facts,
     )
     skills = discover_skills()
     system_prompt = build_system_prompt(session, skill_listing=format_skill_listing(skills))
