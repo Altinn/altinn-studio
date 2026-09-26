@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// App implementation of the execution service needed for executing an Altinn Core Application (Functional term).
 /// </summary>
-public class AppResourcesSI : IAppResources
+internal sealed class AppResourcesSI : IAppResources
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

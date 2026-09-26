@@ -2228,6 +2228,31 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void AppResourcesDetector_FlagsTheInternalAppResourcesSIClass()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            using Altinn.App.Core.Implementation;
+            public class Wrapper
+            {
+                private readonly AppResourcesSI _inner;
+                public Wrapper(AppResourcesSI inner) => _inner = inner;
+                public string Schema() => _inner.GetModelJsonSchema("model");
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Equal(
+            ["logic/Wrapper.cs:4: AppResourcesSI", "logic/Wrapper.cs:5: AppResourcesSI"],
+            result.Warnings.Where(w => w.Contains("Wrapper.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
     public void AppResourcesDetector_CleanApp_ReportsNothing()
     {
         _app.Write(

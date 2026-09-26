@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, so app code no longer needs `using` directives for the most common namespaces. The `using` directives this makes redundant are removed from the app's C# files, except the generated data models under `models/`, which Studio regenerates. Converted legacy rules are generated without them.
 - `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods `GetModelJsonSchema`, `GetXsdSchema` and `GetPrefillJson` where a call passes it by name, since v9 names the parameter `dataTypeId`.
+- `studioctl app upgrade v9` reports references to the `AppResourcesSI` class, which is internal in v9, with `IAppResources` as the replacement.
 
 ## [0.1.0-preview.27] - 2026-09-23
 
