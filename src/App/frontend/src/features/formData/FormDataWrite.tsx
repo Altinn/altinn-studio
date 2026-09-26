@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
@@ -12,9 +11,10 @@ import {
   type useGetCachedInitialValidations,
   useIsUpdatingInitialValidations,
 } from 'src/core/queries/backendValidation';
+import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { FormStore } from 'src/features/form/FormContext';
+import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
@@ -30,7 +30,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
-import type { FormStoreState } from 'src/features/form/FormContext';
+import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/FormDataWriteStateMachine';
@@ -53,6 +53,15 @@ export interface FormDataSliceProps {
 }
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
+
+function adjustNestedFormStatus(rootStore: FormStoreApi, unsavedDelta: number, unloadWarningDelta: number) {
+  rootStore.setState((state) => ({
+    nestedFormStatus: {
+      unsaved: state.nestedFormStatus.unsaved + unsavedDelta,
+      unloadWarnings: state.nestedFormStatus.unloadWarnings + unloadWarningDelta,
+    },
+  }));
+}
 
 function useFormDataSaveMutation() {
   const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
@@ -301,6 +310,9 @@ export function FormDataWriteEffects() {
 }
 
 function FormDataEffects() {
+  const store = FormStore.raw.useStore();
+  const parent = store.getState().parent;
+  const rootStore = getRootFormStore(store);
   const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
     s.data.autoSaving,
     s.data.lockedBy,
@@ -310,6 +322,10 @@ function FormDataEffects() {
   const hasUnsavedChanges = useHasUnsavedChanges();
   const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
   const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
+  const [nestedUnsaved, nestedUnloadWarnings] = FormStore.raw.useShallowSelector((state) => [
+    state.nestedFormStatus.unsaved,
+    state.nestedFormStatus.unloadWarnings,
+  ]);
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
@@ -325,11 +341,27 @@ function FormDataEffects() {
     throw error;
   }
 
-  // The data attribute tracks saveable changes for tests. The unload warning also includes invalid input,
-  // which cannot be saved and would be lost when leaving the page.
+  // Nested forms publish their status to the root FormStore. Only the root writes global browser state.
   useEffect(() => {
+    if (!parent) {
+      return;
+    }
+
+    adjustNestedFormStatus(rootStore, Number(hasUnsavedChanges), Number(shouldWarnBeforeUnload));
+
+    return () => {
+      adjustNestedFormStatus(rootStore, -Number(hasUnsavedChanges), -Number(shouldWarnBeforeUnload));
+    };
+  }, [parent, rootStore, hasUnsavedChanges, shouldWarnBeforeUnload]);
+
+  // The data attribute tracks saveable changes for tests. Invalid input also requires an unload warning.
+  useEffect(() => {
+    if (parent) {
+      return;
+    }
+
     clearTimeout(setUnsavedAttrTimeout.current);
-    if (hasUnsavedChanges) {
+    if (hasUnsavedChanges || nestedUnsaved > 0) {
       document.body.setAttribute('data-unsaved-changes', 'true');
     } else {
       setUnsavedAttrTimeout.current = setTimeout(() => {
@@ -337,19 +369,20 @@ function FormDataEffects() {
         setUnsavedAttrTimeout.current = undefined;
       }, 10);
     }
-    window.onbeforeunload = shouldWarnBeforeUnload
-      ? (event) => {
-          event.preventDefault();
-          return true;
-        }
-      : null;
+    window.onbeforeunload =
+      shouldWarnBeforeUnload || nestedUnloadWarnings > 0
+        ? (event) => {
+            event.preventDefault();
+            return true;
+          }
+        : null;
 
     return () => {
       clearTimeout(setUnsavedAttrTimeout.current);
       document.body.removeAttribute('data-unsaved-changes');
       window.onbeforeunload = null;
     };
-  }, [hasUnsavedChanges, shouldWarnBeforeUnload]);
+  }, [parent, hasUnsavedChanges, shouldWarnBeforeUnload, nestedUnsaved, nestedUnloadWarnings]);
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
