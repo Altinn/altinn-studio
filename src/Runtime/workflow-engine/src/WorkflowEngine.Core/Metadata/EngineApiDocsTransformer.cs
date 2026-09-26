@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Models;
 
 // Urls should not be hard-coded
@@ -58,8 +59,32 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             "Filter by workflow status (repeatable, case-insensitive). Omit to return all statuses; an unrecognized value returns 400.",
         ["label"] = "Filter by label, formatted as key:value (repeatable). Entries without a colon are ignored.",
         ["collectionKey"] = "Filter to a single workflow collection.",
+        ["isHead"] =
+            "Filter by head visibility. Deliberately asymmetric with the response field of the same name: "
+            + "the field is the raw enqueue directive (true, false, or absent), while this parameter is effective "
+            + "visibility — isHead=true matches every workflow the head frontier can see (directive true OR unset, "
+            + "so it returns rows whose isHead field reads null), and isHead=false matches exactly the invisible "
+            + "ones (directive false). Omit to return both.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
         ["pageSize"] = "Items per page (default 25, clamped to 1–100).",
+    };
+
+    private static readonly Dictionary<string, string> _listCollectionParamDescriptions = new()
+    {
+        ["key"] =
+            "Annotate mode: report health for these collection keys (repeatable; duplicates are deduplicated). "
+            + "Mutually exclusive with cursor and failures (400). Requests with more distinct keys than the maximum "
+            + "page size are rejected with 400, never truncated. Keys without a collection row are reported in "
+            + "unmatchedKeys.",
+        ["failures"] =
+            "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
+            + "DependencyFailed; Abandoned never matches). 'visible' restricts to failures the head frontier can "
+            + "see (isHead directive not false), 'invisible' to failures of workflows enqueued with isHead=false, "
+            + "'any' ignores visibility. An unrecognized value returns 400.",
+        ["cursor"] =
+            "Pagination cursor — pass the nextCursor from the previous response to fetch the next page. "
+            + "Not valid together with key.",
+        ["pageSize"] = "Items per page (default 25, clamped to 1–100). Ignored in annotate (key) mode.",
     };
 
     public Task TransformAsync(
@@ -81,33 +106,61 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             };
         }
 
-        if (operationId == "ListWorkflows" && operation.Parameters is not null)
-        {
-            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
-            {
-                if (parameter.Name is { } name && _listWorkflowParamDescriptions.TryGetValue(name, out var description))
-                    parameter.Description = description;
+        if (operationId == "ListWorkflows")
+            ApplyParameterDocs(
+                operation,
+                _listWorkflowParamDescriptions,
+                enumParameterName: "status",
+                new OpenApiSchema { Type = JsonSchemaType.Array, Items = EnumSchema<PersistentItemStatus>() }
+            );
 
-                if (parameter.Name == "status")
-                {
-                    parameter.Schema = new OpenApiSchema
-                    {
-                        Type = JsonSchemaType.Array,
-                        Items = new OpenApiSchema
-                        {
-                            Type = JsonSchemaType.String,
-                            Enum =
-                            [
-                                .. Enum.GetNames<PersistentItemStatus>().Select(JsonNode (x) => JsonValue.Create(x)),
-                            ],
-                        },
-                    };
-                }
-            }
-        }
+        if (operationId == "ListCollections")
+            ApplyParameterDocs(
+                operation,
+                _listCollectionParamDescriptions,
+                enumParameterName: "failures",
+                EnumSchema<CollectionFailureFilter>()
+            );
 
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Describes an operation's query parameters and replaces one of them with an enum schema.
+    /// Minimal APIs infer a bare string for a name-parsed enum parameter, so the schema is set
+    /// here to list exactly the names the endpoint accepts.
+    /// </summary>
+    private static void ApplyParameterDocs(
+        OpenApiOperation operation,
+        Dictionary<string, string> descriptions,
+        string enumParameterName,
+        OpenApiSchema enumSchema
+    )
+    {
+        if (operation.Parameters is null)
+            return;
+
+        foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
+        {
+            if (parameter.Name is { } name && descriptions.TryGetValue(name, out var description))
+                parameter.Description = description;
+
+            if (parameter.Name == enumParameterName)
+                parameter.Schema = enumSchema;
+        }
+    }
+
+    /// <summary>
+    /// A string schema enumerating the declared names of <typeparamref name="TEnum"/> — the same
+    /// list <see cref="EnumNames"/> accepts, so the document and the parser cannot disagree.
+    /// </summary>
+    private static OpenApiSchema EnumSchema<TEnum>()
+        where TEnum : struct, Enum =>
+        new()
+        {
+            Type = JsonSchemaType.String,
+            Enum = [.. EnumNames.Of<TEnum>().Select(JsonNode (x) => JsonValue.Create(x))],
+        };
 }
 
 /// <summary>
