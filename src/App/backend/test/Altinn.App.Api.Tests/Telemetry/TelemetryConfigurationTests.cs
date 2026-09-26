@@ -196,7 +196,7 @@ public class TelemetryConfigurationTests
             new("AppSettings:UseOpenTelemetry", "true"),
         ];
         Telemetry? telemetry = null;
-        await using (var app = AppBuilder.Build(configData: configData))
+        await using (var app = await AppBuilder.Build(configData: configData))
         {
             var telemetryClient = app.Services.GetService<TelemetryClient>();
             Assert.Null(telemetryClient);
@@ -213,7 +213,7 @@ public class TelemetryConfigurationTests
     public async Task OpenTelemetry_Does_Not_Register_By_Default()
     {
         List<KeyValuePair<string, string?>> configData = [new("ApplicationInsights:InstrumentationKey", "test")];
-        await using (var app = AppBuilder.Build(configData: configData))
+        await using (var app = await AppBuilder.Build(configData: configData))
         {
             var telemetryClient = app.Services.GetService<TelemetryClient>();
             Assert.NotNull(telemetryClient);
@@ -231,7 +231,7 @@ public class TelemetryConfigurationTests
             new("ApplicationInsights:InstrumentationKey", "test"),
             new("AppSettings:UseOpenTelemetry", "true"),
         ];
-        await using var app = AppBuilder.Build(configData: configData);
+        await using var app = await AppBuilder.Build(configData: configData);
 
         var traceProvider = app.Services.GetRequiredService<TracerProvider>();
 
@@ -247,7 +247,7 @@ public class TelemetryConfigurationTests
             new("ApplicationInsights:InstrumentationKey", "test"),
             new("AppSettings:UseOpenTelemetry", "true"),
         ];
-        await using var app = AppBuilder.Build(configData: configData);
+        await using var app = await AppBuilder.Build(configData: configData);
 
         var options = app.Services.GetRequiredService<IOptions<PeriodicExportingMetricReaderOptions>>().Value;
 
@@ -264,7 +264,7 @@ public class TelemetryConfigurationTests
             new("AppSettings:UseOpenTelemetry", "true"),
         ];
         var samplerToUse = new ParentBasedSampler(new AlwaysOnSampler());
-        await using var app = AppBuilder.Build(
+        await using var app = await AppBuilder.Build(
             configData: configData,
             registerCustomAppServices: services =>
             {
@@ -292,7 +292,7 @@ public class TelemetryConfigurationTests
 
         var intervalToUse = 5_000;
         var timeoutToUse = 4_000;
-        await using var app = AppBuilder.Build(
+        await using var app = await AppBuilder.Build(
             configData: configData,
             registerCustomAppServices: services =>
             {

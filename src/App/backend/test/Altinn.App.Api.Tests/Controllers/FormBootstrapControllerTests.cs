@@ -324,8 +324,8 @@ public class FormBootstrapControllerTests
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
                 appMetadata
                     ?? new ApplicationMetadata("org/app")
                     {

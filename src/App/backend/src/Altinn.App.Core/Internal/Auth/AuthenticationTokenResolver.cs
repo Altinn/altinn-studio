@@ -91,7 +91,7 @@ internal class AuthenticationTokenResolver : IAuthenticationTokenResolver
         CancellationToken cancellationToken
     )
     {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         string formattedScopes = MaskinportenClient.GetFormattedScopes(request.Scopes);
         string url =
             $"{_localtestBaseUrl}/Home/GetTestOrgToken?org={appMetadata.Org}&orgNumber=991825827&authenticationLevel=3&scopes={Uri.EscapeDataString(formattedScopes)}";

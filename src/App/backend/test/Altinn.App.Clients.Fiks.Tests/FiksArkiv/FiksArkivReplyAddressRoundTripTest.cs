@@ -209,8 +209,8 @@ public class FiksArkivReplyAddressRoundTripTest
     private static void PrepareForPayloadGeneration(TestFixture fixture, Mock<IInstanceDataMutator> dataMutator)
     {
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/unit-testing")
                 {
                     Title = new Dictionary<string, string?> { ["nb"] = "Unit testing" },

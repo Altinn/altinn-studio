@@ -638,7 +638,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     var defaultDataType = appMetadata.DataTypes.Single(dt => dt.Id == "default");
                     defaultDataType.AppLogic.ShadowFields = new() { Prefix = "SF_", SaveToDataType = saveToDataType };

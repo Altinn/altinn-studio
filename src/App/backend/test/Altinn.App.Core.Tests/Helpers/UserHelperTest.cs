@@ -21,9 +21,9 @@ public class UserHelperTest
         public IProfileClient ProfileClientMock => App.Services.GetRequiredService<IProfileClient>();
         public IAltinnPartyClient AltinnPartyClientMock => App.Services.GetRequiredService<IAltinnPartyClient>();
 
-        public static Fixture Create(ClaimsPrincipal userPrincipal, string? partyCookieValue = null)
+        public static async Task<Fixture> Create(ClaimsPrincipal userPrincipal, string? partyCookieValue = null)
         {
-            var app = AppBuilder.Build(overrideAltinnAppServices: services =>
+            var app = await AppBuilder.Build(overrideAltinnAppServices: services =>
             {
                 var httpContextMock = new Mock<HttpContext>();
                 httpContextMock.Setup(x => x.Request.Cookies["AltinnPartyId"]).Returns(partyCookieValue);
@@ -50,7 +50,7 @@ public class UserHelperTest
         // Arrange
         const int authLevel = 3;
         var userPrincipal = TestAuthentication.GetUserPrincipal(userId, partyId, authLevel);
-        await using var fixture = Fixture.Create(userPrincipal);
+        await using var fixture = await Fixture.Create(userPrincipal);
         var userHelper = new UserHelper(
             profileClient: fixture.ProfileClientMock,
             altinnPartyClientService: fixture.AltinnPartyClientMock,
@@ -91,7 +91,7 @@ public class UserHelperTest
         const int userId = 1001;
         const int authLevel = 3;
         var userPrincipal = TestAuthentication.GetUserPrincipal(userId, default, authLevel);
-        await using var fixture = Fixture.Create(userPrincipal);
+        await using var fixture = await Fixture.Create(userPrincipal);
         var userHelper = new UserHelper(
             profileClient: fixture.ProfileClientMock,
             altinnPartyClientService: fixture.AltinnPartyClientMock,
@@ -127,7 +127,7 @@ public class UserHelperTest
     {
         // Arrange
         var userPrincipal = TestAuthentication.GetUserPrincipal(default, default);
-        await using var fixture = Fixture.Create(userPrincipal);
+        await using var fixture = await Fixture.Create(userPrincipal);
         var userHelper = new UserHelper(
             profileClient: fixture.ProfileClientMock,
             altinnPartyClientService: fixture.AltinnPartyClientMock,

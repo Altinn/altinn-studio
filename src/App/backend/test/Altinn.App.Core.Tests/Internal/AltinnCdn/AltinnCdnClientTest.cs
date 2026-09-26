@@ -34,7 +34,7 @@ public class AltinnCdnClientTest
     private static Mock<IAppMetadata> CreateAppMetadataMock(string org)
     {
         var mock = new Mock<IAppMetadata>();
-        mock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata($"{org}/app") { Org = org });
+        mock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata($"{org}/app") { Org = org });
         return mock;
     }
 

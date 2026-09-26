@@ -67,7 +67,7 @@ internal sealed class SignatureHashValidator(
             processReader.GetAltinnTaskExtension(taskId)?.SignatureConfiguration
             ?? throw new ApplicationConfigException("Signing configuration not found in AltinnTaskExtension");
 
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
 
         List<SigneeContext> signeeContextsResults = await signingService.GetSigneeContexts(
             dataAccessor,

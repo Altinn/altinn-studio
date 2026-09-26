@@ -113,7 +113,7 @@ public class UnlockTaskDataTests
         var instance = CreateInstance("Task_1");
         ApplicationMetadata applicationMetadata = CreateApplicationMetadata(instance.AppId);
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
         var mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
         StorageInstanceMutationRequest? capturedMutation = null;
@@ -236,7 +236,7 @@ public class UnlockTaskDataTests
         var instance = CreateInstance("Task_1");
         ApplicationMetadata applicationMetadata = CreateApplicationMetadata(instance.AppId);
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
         var command = new UnlockTaskData(appMetadataMock.Object);
@@ -258,7 +258,7 @@ public class UnlockTaskDataTests
         // Arrange
         var instance = CreateInstance("Task_1");
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ThrowsAsync(new Exception("Unlock failed"));
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Throws(new Exception("Unlock failed"));
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
         var command = new UnlockTaskData(appMetadataMock.Object);

@@ -1,56 +1,50 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.logic.MetaData
 {
+    /// <summary>
+    /// Wraps the built-in <see cref="IAppMetadata"/> and switches PDF creation off unless the request carries the
+    /// "createPdf" cookie. See Program.cs for how it replaces the built-in registration.
+    /// </summary>
     public class CustomMetaData : IAppMetadata
     {
-        private readonly AppMetadata _internal;
+        private readonly IAppMetadata _inner;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomMetaData(
-            IOptions<AppSettings> settings,
-            IFrontendFeatures frontendFeatures,
-            IServiceProvider serviceProvider,
-            IHttpContextAccessor httpContextAccessor
-        )
+        public CustomMetaData(IAppMetadata inner, IHttpContextAccessor httpContextAccessor)
         {
-            _internal = new AppMetadata(settings, frontendFeatures, serviceProvider);
+            _inner = inner;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ApplicationMetadata> GetApplicationMetadata()
+        public ApplicationMetadata ApplicationMetadata
         {
-            var result = await _internal.GetApplicationMetadata();
-
-            // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
-            // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
-            // and it seems like process/next will fail if too many PDFs are generated at the same time.
-            var shouldCreatePdf =
-                _httpContextAccessor.HttpContext != null
-                && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
-
-            if (!shouldCreatePdf)
+            get
             {
-                foreach (var dt in result.DataTypes)
+                var result = _inner.ApplicationMetadata;
+
+                // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
+                // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
+                // and it seems like process/next will fail if too many PDFs are generated at the same time.
+                var shouldCreatePdf =
+                    _httpContextAccessor.HttpContext != null
+                    && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
+
+                if (!shouldCreatePdf)
                 {
-                    dt.EnablePdfCreation = false;
+                    foreach (var dt in result.DataTypes)
+                    {
+                        dt.EnablePdfCreation = false;
+                    }
                 }
+
+                return result;
             }
-
-            return result;
         }
 
-        public Task<string> GetApplicationXACMLPolicy()
-        {
-            return _internal.GetApplicationXACMLPolicy();
-        }
+        public string XacmlPolicy => _inner.XacmlPolicy;
 
-        public Task<string> GetApplicationBPMNProcess()
-        {
-            return _internal.GetApplicationBPMNProcess();
-        }
+        public string ProcessDefinition => _inner.ProcessDefinition;
     }
 }

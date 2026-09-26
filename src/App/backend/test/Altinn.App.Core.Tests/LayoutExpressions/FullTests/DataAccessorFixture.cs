@@ -62,7 +62,7 @@ public sealed class DataAccessorFixture
     private DataAccessorFixture(ITestOutputHelper outputHelper)
     {
         MutationClientMock = DataClientMock.As<IInstanceMutationClient>();
-        AppMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(ApplicationMetadata);
+        AppMetadataMock.Setup(a => a.ApplicationMetadata).Returns(ApplicationMetadata);
         ServiceCollection.AddSingleton(AppResourcesMock.Object);
         ServiceCollection.AddSingleton(AppMetadataMock.Object);
         ServiceCollection.AddSingleton(Options.Create(FrontEndSettings));

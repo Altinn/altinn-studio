@@ -19,7 +19,6 @@ void RegisterCustomAppServices(
     services.AddTransient<IAppOptionsProvider, IndustryOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
-    services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, RandomAction>();
     services.AddTransient<IDataListProvider, PersonListProvider>();
     services.AddTransient<IOnTaskEndingHandler, PrefillSharedPerson>();
@@ -50,6 +49,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
+
+    // Wrap the built-in IAppMetadata registered above, so that PDF creation can be switched off per request.
+    // The built-in implementation is internal, so it is created from its registration rather than constructed.
+    ServiceDescriptor builtInAppMetadata = services.Single(d => d.ServiceType == typeof(IAppMetadata));
+    services.Remove(builtInAppMetadata);
+    services.AddSingleton<IAppMetadata>(sp => new CustomMetaData(
+        (IAppMetadata)ActivatorUtilities.CreateInstance(sp, builtInAppMetadata.ImplementationType!),
+        sp.GetRequiredService<IHttpContextAccessor>()
+    ));
 
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>

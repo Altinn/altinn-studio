@@ -111,7 +111,7 @@ internal sealed class FiksArkivInstanceClient : IFiksArkivInstanceClient
 
     private async Task<HttpClient> GetAuthenticatedStorageClient(CancellationToken cancellationToken)
     {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
 
         HttpClient client = _httpClientFactory.CreateClient();
         client.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);

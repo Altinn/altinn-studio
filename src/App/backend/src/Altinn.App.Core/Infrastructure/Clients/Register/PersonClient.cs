@@ -80,7 +80,7 @@ public class PersonClient : IPersonClient
 
     private async Task AddAuthHeaders(HttpRequestMessage request, StorageAuthenticationMethod? authenticationMethod)
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string issuer = application.Org;
         string appName = application.AppIdentifier.App;
         request.Headers.Add(

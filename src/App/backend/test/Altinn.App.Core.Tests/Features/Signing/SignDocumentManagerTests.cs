@@ -36,8 +36,8 @@ public sealed class SignDocumentManagerTests : IDisposable
         _serviceProvider = services.BuildServiceProvider();
 
         _appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/app")
                 {
                     DataTypes = [new DataType { Id = SignatureDataTypeId, ActionRequiredToRead = "restricted-read" }],

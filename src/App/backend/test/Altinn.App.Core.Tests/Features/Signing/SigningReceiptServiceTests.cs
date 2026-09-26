@@ -100,7 +100,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
             Org = "brg",
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         DataElement signedElement = new()
         {

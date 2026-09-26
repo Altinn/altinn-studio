@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,8 +38,8 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
 
         _appMetadataMock = new Mock<IAppMetadata>();
         _appMetadataMock
-            .Setup(s => s.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(s => s.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata(id: "ttd/test") { PartyTypesAllowed = new PartyTypesAllowed { Person = true } }
             );
 
@@ -54,6 +55,12 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
 
             services.AddSingleton(_authorizationClientMock.Object);
             services.AddSingleton(_appMetadataMock.Object);
+            // The authentication context reads the party types from the app files, not from IAppMetadata
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app =>
+                    app.PartyTypesAllowed = new PartyTypesAllowed { Person = true }
+                )
+            );
         };
     }
 

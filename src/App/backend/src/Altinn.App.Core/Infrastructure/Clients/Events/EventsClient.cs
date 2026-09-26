@@ -87,7 +87,7 @@ public class EventsClient : IEventsClient
             SpecVersion = "1.0",
             Source = new Uri($"{baseUrl}instances/{instance.Id}"),
         };
-        Application app = await _appMetadata.GetApplicationMetadata();
+        Application app = _appMetadata.ApplicationMetadata;
         string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(

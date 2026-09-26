@@ -548,8 +548,21 @@ public sealed partial class AppFixture : IAsyncDisposable
             return;
 
         var scenarioDirectory = GetScenarioDir(name, scenario);
-        var targetDirectory = Path.Join(generatedDirectory, "App", "scenario-overrides");
-        CopyDirectory(scenarioDirectory, targetDirectory, static _ => false);
+        var appDirectory = Path.Join(generatedDirectory, "App");
+
+        // The app reads its config files once at startup, so the scenario config must be in place before the
+        // app process starts. The services are compiled by the app itself when it registers its services.
+        var configDirectory = Path.Join(scenarioDirectory, "config");
+        if (Directory.Exists(configDirectory))
+            CopyDirectory(configDirectory, Path.Join(appDirectory, "config"), static _ => false);
+
+        var servicesDirectory = Path.Join(scenarioDirectory, "services");
+        if (Directory.Exists(servicesDirectory))
+            CopyDirectory(
+                servicesDirectory,
+                Path.Join(appDirectory, "scenario-overrides", "services"),
+                static _ => false
+            );
     }
 
     private static void PatchApplicationId(string metadataPath, string appId)

@@ -348,7 +348,7 @@ public sealed class SubFormTests : IClassFixture<DataAnnotationsTestFixture>, ID
         _services.AddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
 
         _services.AddFakeLoggingWithXunit(output);
-        _appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
+        _appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(_applicationMetadata);
         _appResourcesMock
             .Setup(ar => ar.GetLayoutModelForFolder(TaskId))
             .Returns(new LayoutModel([_mainLayoutComponent, _subLayoutComponent], null));

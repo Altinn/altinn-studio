@@ -64,7 +64,7 @@ public class CommonTaskFinalizationTests
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         var appModelMock = new Mock<IAppModel>();
         var layoutInitMock = new Mock<ILayoutEvaluatorStateInitializer>();

@@ -313,8 +313,8 @@ public class WorkflowCallbackStateCarryTests
     {
         var appMetadata = new Mock<IAppMetadata>();
         appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         return appMetadata.Object;
     }
 }

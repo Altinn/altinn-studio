@@ -42,7 +42,7 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
         string? httpContent = null;
         try
         {
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
 
             var uri = _platformSettings.ApiNotificationEndpoint.TrimEnd('/') + $"/orders/{notificationOrderId}/cancel";
 

@@ -43,7 +43,7 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         CommonTaskInitializationPayload payload
     )
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = instanceDataMutator.Instance;
         string taskId = instance.Process.CurrentTask.ElementId;

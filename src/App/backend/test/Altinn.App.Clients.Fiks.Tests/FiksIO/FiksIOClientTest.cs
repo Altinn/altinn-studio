@@ -368,7 +368,7 @@ public class FiksIOClientTest
         fixture.FiksIOClientFactoryMock.Verify();
         externalFiksIOClientMock1.Verify();
         externalFiksIOClientMock2.Verify();
-        fixture.AppMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Exactly(2));
+        fixture.AppMetadataMock.VerifyGet(x => x.ApplicationMetadata, Times.Exactly(2));
         Assert.Same(externalFiksIOClientMock2.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
     }
 

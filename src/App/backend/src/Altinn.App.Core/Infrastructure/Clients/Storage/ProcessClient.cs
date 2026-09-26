@@ -4,12 +4,12 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -20,8 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// </summary>
 public class ProcessClient : IProcessClient
 {
-    private readonly AppSettings _appSettings;
-    private readonly ILogger<ProcessClient> _logger;
+    private readonly AppFilesAccessor _appFiles;
     private readonly HttpClient _client;
     private readonly Telemetry? _telemetry;
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
@@ -35,9 +34,8 @@ public class ProcessClient : IProcessClient
     /// <param name="serviceProvider">The service provider.</param>
     public ProcessClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
-        _appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+        _appFiles = serviceProvider.GetRequiredService<AppFilesAccessor>();
         _authenticationTokenResolver = serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
-        _logger = serviceProvider.GetRequiredService<ILogger<ProcessClient>>();
         _telemetry = serviceProvider.GetService<Telemetry>();
 
         var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
@@ -52,26 +50,7 @@ public class ProcessClient : IProcessClient
     public Stream GetProcessDefinition()
     {
         using var activity = _telemetry?.StartGetProcessDefinitionActivity();
-        string bpmnFilePath = Path.Join(
-            _appSettings.AppBasePath,
-            _appSettings.ConfigurationFolder,
-            _appSettings.ProcessFolder,
-            _appSettings.ProcessFileName
-        );
-
-        try
-        {
-            Stream processModel = File.OpenRead(bpmnFilePath);
-
-            return processModel;
-        }
-        catch (Exception processDefinitionException)
-        {
-            _logger.LogError(
-                $"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}"
-            );
-            throw;
-        }
+        return new MemoryAsStream(_appFiles.Current.ProcessDefinition);
     }
 
     /// <inheritdoc />

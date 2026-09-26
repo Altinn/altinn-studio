@@ -47,7 +47,7 @@ public class ProfileClientTests
                 },
             },
         };
-        appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(appMetadata);
         services.AddSingleton(appMetadataMock.Object);
 
         var tokenGenerator = new Mock<IAccessTokenGenerator>();

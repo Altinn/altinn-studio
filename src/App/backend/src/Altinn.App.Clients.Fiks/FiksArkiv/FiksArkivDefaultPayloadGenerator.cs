@@ -67,7 +67,7 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         // unambiguous, offset-qualified timestamps regardless of the offset the caller used.
         DateTimeOffset referenceTime = executionReferenceTime.ToUniversalTime();
         var instance = dataAccessor.Instance;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var documentCreator = appMetadata.AppIdentifier.Org;
         var archiveDocuments = await GetArchiveDocuments(dataAccessor, cancellationToken);
         var defaultDocumentTitle = await _fiksArkivConfigResolver.GetApplicationTitle(cancellationToken);

@@ -139,7 +139,7 @@ internal sealed class WorkflowCallbackStateService
             StorageAuthenticationMethod.ServiceOwner()
         );
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
         foreach (FormDataEntry entry in callbackState.FormData)
         {

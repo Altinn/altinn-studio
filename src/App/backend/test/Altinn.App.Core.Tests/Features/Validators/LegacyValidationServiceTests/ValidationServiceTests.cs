@@ -169,7 +169,7 @@ public sealed class ValidationServiceTests : IDisposable
         _appModelMock.Setup(a => a.GetModelType(typeof(MyModel).FullName!)).Returns(typeof(MyModel));
         _serviceCollection.AddSingleton(_appMetadataMock.Object);
         _serviceCollection.AddSingleton(_translationServiceMock.Object);
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_defaultAppMetadata);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(_defaultAppMetadata);
         _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
         _serviceCollection.AddSingleton(_dataElementAccessCheckerMock.Object);
         _serviceCollection.AddSingleton(_hostEnvironmentMock.Object);

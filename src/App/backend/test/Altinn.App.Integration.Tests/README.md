@@ -192,7 +192,7 @@ Generated apps are written to `_testapps/generated/`, which is ignored by git.
 2. Ensure localtest is running through `studioctl env up --detach`.
 3. Copy the requested test app to `_testapps/generated/{app}-fNNNN`.
 4. Patch `applicationmetadata.json` to use a unique app id.
-5. Copy scenario overrides and shared harness code.
+5. Copy scenario `config` into `App/config`, scenario `services` into `App/scenario-overrides/services`, and the shared harness code. The app reads its config files once at startup, so overrides must be in place before the process starts.
 6. Start the app with `studioctl run --mode process --detach --random-host-port --json`.
 7. Run requests through localtest at `http://local.altinn.cloud:8000`.
 8. Stop the app process and delete the generated app folder on fixture disposal.

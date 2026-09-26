@@ -15,7 +15,7 @@ internal static class TaskDataLockStatusHelper
         bool locked
     )
     {
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
         HashSet<string> connectedDataTypeIds = applicationMetadata
             .DataTypes.Where(dataType => dataType.TaskId == taskId)
             .Select(dataType => dataType.Id)

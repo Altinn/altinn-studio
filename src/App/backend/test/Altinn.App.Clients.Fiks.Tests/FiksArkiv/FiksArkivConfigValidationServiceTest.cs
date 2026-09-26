@@ -32,7 +32,7 @@ public class FiksArkivConfigValidationServiceTest
             instanceClientMock,
             out var processTasks
         );
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         await fixture.FiksArkivConfigValidationService.StartAsync(CancellationToken.None);
@@ -198,8 +198,8 @@ public class FiksArkivConfigValidationServiceTest
             useDefaultFiksArkivSettings: false
         );
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/test-app")
                 {
                     DataTypes =

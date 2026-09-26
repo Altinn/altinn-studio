@@ -1,142 +1,114 @@
 using System.Text;
-using System.Text.Json;
-using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.App;
 
 /// <summary>
-/// Default implementation of IAppMetadata
+/// Serves the app's configuration files from the current <see cref="AppFiles"/> snapshot, with the runtime values
+/// added to the application metadata.
 /// </summary>
-public class AppMetadata : IAppMetadata
+internal sealed class AppMetadata : IAppMetadata
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true,
-    };
-
-    private readonly AppSettings _settings;
+    private readonly AppFilesAccessor _appFiles;
     private readonly IFrontendFeatures _frontendFeatures;
     private readonly IExternalApiFactory? _externalApiFactory;
-    private readonly Telemetry? _telemetry;
-    private ApplicationMetadata? _application;
+    private volatile CachedApplicationMetadata? _cached;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AppMetadata"/> class.
-    /// </summary>
-    /// <param name="settings">The app repository settings.</param>
-    /// <param name="frontendFeatures">Application features service</param>
+    /// <param name="appFiles">The app resource files</param>
+    /// <param name="frontendFeatures">The feature flags the frontend reads from the application metadata</param>
     /// <param name="serviceProvider">A way to resolve internal services</param>
-    /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public AppMetadata(
-        IOptions<AppSettings> settings,
+        AppFilesAccessor appFiles,
         IFrontendFeatures frontendFeatures,
-        IServiceProvider? serviceProvider = null,
-        Telemetry? telemetry = null
+        IServiceProvider? serviceProvider = null
     )
     {
-        _settings = settings.Value;
+        _appFiles = appFiles;
         _frontendFeatures = frontendFeatures;
-        _telemetry = telemetry;
         _externalApiFactory = serviceProvider?.GetRequiredService<IExternalApiFactory>();
     }
 
     /// <inheritdoc />
-    /// <exception cref="System.Text.Json.JsonException">Thrown if deserialization fails</exception>
-    /// <exception cref="System.IO.FileNotFoundException">Thrown if applicationmetadata.json file not found</exception>
-    public async Task<ApplicationMetadata> GetApplicationMetadata()
+    public ApplicationMetadata ApplicationMetadata
     {
-        using var activity = _telemetry?.StartGetApplicationMetadataActivity();
-        // Cache application metadata
-        if (_application != null)
+        get
         {
-            return _application;
-        }
-
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.ConfigurationFolder,
-            _settings.ApplicationMetadataFileName
-        );
-        try
-        {
-            if (File.Exists(filename))
+            // Cached until the app files are reloaded or the feature flags change. The flags are compared by
+            // reference first and by content when the reference differs, so an IFrontendFeatures that builds a new
+            // dictionary on every read does not force a parse on every read.
+            AppFiles files = _appFiles.Current;
+            IReadOnlyDictionary<string, bool> features = _frontendFeatures.GetDictionary();
+            CachedApplicationMetadata? cached = _cached;
+            if (cached is not null && ReferenceEquals(cached.Source, files))
             {
-                using FileStream fileStream = File.OpenRead(filename);
-                var application = await JsonSerializer.DeserializeAsync<ApplicationMetadata>(
-                    fileStream,
-                    _jsonSerializerOptions
-                );
-                if (application == null)
+                if (ReferenceEquals(cached.Features, features))
                 {
-                    throw new ApplicationConfigException(
-                        $"Deserialization returned null, Could indicate problems with deserialization of {filename}"
-                    );
+                    return cached.Metadata;
                 }
 
-                application.Features = new Dictionary<string, bool>(
-                    _frontendFeatures.GetDictionary(),
-                    StringComparer.Ordinal
-                );
-                application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
-                application.OnEntry ??= new OnEntry { Show = "new-instance" };
-                application.OnEntry.Show ??= "new-instance";
-
-                _application = application;
-
-                return _application;
+                if (cached.FeaturesHash == HashFeatures(features) && SameFeatures(cached.Metadata.Features, features))
+                {
+                    _cached = cached with { Features = features };
+                    return cached.Metadata;
+                }
             }
 
-            throw new ApplicationConfigException($"Unable to locate application metadata file: {filename}");
-        }
-        catch (JsonException ex)
-        {
-            throw new ApplicationConfigException(
-                $"Something went wrong when parsing application metadata file: {filename}",
-                ex
-            );
+            // A copy of its own, since the runtime values are added to it
+            ApplicationMetadata application = ApplicationMetadataParser.Parse(files);
+            application.Features = new Dictionary<string, bool>(features, StringComparer.Ordinal);
+            application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
+            application.OnEntry ??= new OnEntry { Show = "new-instance" };
+            application.OnEntry.Show ??= "new-instance";
+
+            _cached = new CachedApplicationMetadata(files, features, HashFeatures(features), application);
+            return application;
         }
     }
 
     /// <inheritdoc />
-    public async Task<string> GetApplicationXACMLPolicy()
-    {
-        using var activity = _telemetry?.StartGetApplicationXACMLPolicyActivity();
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.ConfigurationFolder,
-            _settings.AuthorizationFolder,
-            _settings.ApplicationXACMLPolicyFileName
-        );
-        if (File.Exists(filename))
-        {
-            return await File.ReadAllTextAsync(filename, Encoding.UTF8);
-        }
-
-        throw new FileNotFoundException($"XACML file {filename} not found");
-    }
+    public string XacmlPolicy => Encoding.UTF8.GetString(_appFiles.Current.XacmlPolicy.Span);
 
     /// <inheritdoc />
-    public async Task<string> GetApplicationBPMNProcess()
+    public string ProcessDefinition => Encoding.UTF8.GetString(_appFiles.Current.ProcessDefinition.Span);
+
+    /// <summary>
+    /// A hash of the flags that does not depend on their order.
+    /// </summary>
+    private static int HashFeatures(IReadOnlyDictionary<string, bool> features)
     {
-        using var activity = _telemetry?.StartGetApplicationBPMNProcessActivity();
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.ConfigurationFolder,
-            _settings.ProcessFolder,
-            _settings.ProcessFileName
-        );
-        if (File.Exists(filename))
+        int hash = features.Count;
+        foreach (var (name, enabled) in features)
         {
-            return await File.ReadAllTextAsync(filename, Encoding.UTF8);
+            hash ^= HashCode.Combine(name, enabled);
         }
 
-        throw new ApplicationConfigException($"Unable to locate application process file: {filename}");
+        return hash;
     }
+
+    private static bool SameFeatures(Dictionary<string, bool>? cached, IReadOnlyDictionary<string, bool> features)
+    {
+        if (cached is null || cached.Count != features.Count)
+        {
+            return false;
+        }
+
+        foreach (var (name, enabled) in features)
+        {
+            if (!cached.TryGetValue(name, out bool cachedEnabled) || cachedEnabled != enabled)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private sealed record CachedApplicationMetadata(
+        AppFiles Source,
+        IReadOnlyDictionary<string, bool> Features,
+        int FeaturesHash,
+        ApplicationMetadata Metadata
+    );
 }

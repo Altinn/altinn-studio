@@ -76,7 +76,7 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
             throw new JsonException("Missing 'orgs' property in Altinn CDN response");
         }
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         // Only deserialize the org we care about - other orgs with bad data won't affect us
         if (!orgsElement.TryGetProperty(appMetadata.Org, out var orgElement))

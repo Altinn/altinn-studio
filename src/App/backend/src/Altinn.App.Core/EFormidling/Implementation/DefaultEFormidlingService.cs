@@ -316,7 +316,7 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         CancellationToken cancellationToken = default
     )
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
         Instance instance = dataAccessor.Instance;
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);

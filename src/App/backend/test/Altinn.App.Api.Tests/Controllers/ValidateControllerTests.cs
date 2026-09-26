@@ -46,8 +46,8 @@ public class ValidateControllerTests
         var mutationClientMock = _dataClientMock.As<IInstanceMutationClient>();
 
         _appMetadataMock
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata($"{Org}/{App}") { DataTypes = [] });
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(new ApplicationMetadata($"{Org}/{App}") { DataTypes = [] });
 
         _services.AddSingleton(_instanceClientMock.Object);
         _services.AddSingleton(_metadataInstanceClientMock.Object);

@@ -85,7 +85,7 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
     /// <inheritdoc />
     public async Task<ProblemDetails?> GetReaderProblem(Instance instance, DataElement dataElement)
     {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         DataType dataType =
             appMetadata.DataTypes.FirstOrDefault(x =>
                 x.Id.Equals(dataElement.DataType, StringComparison.OrdinalIgnoreCase)

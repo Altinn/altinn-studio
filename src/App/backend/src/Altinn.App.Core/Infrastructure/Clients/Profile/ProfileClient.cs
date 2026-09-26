@@ -94,7 +94,7 @@ public class ProfileClient : IProfileClient
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,
@@ -139,7 +139,7 @@ public class ProfileClient : IProfileClient
         JwtToken token = await GetAuthTokenResolver()
             .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         StringContent content = new(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
         using HttpResponseMessage response = await _client.PostAsync(
             token,
@@ -180,7 +180,7 @@ public class ProfileClient : IProfileClient
         string endpointUrl = $"users/byuuid/{userUuid}";
         JwtToken token = await GetAuthTokenResolver().GetAccessToken(_defaultAuthenticationMethod, cancellationToken);
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         using HttpResponseMessage response = await _client.GetAsync(
             token,
             endpointUrl,

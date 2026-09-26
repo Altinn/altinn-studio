@@ -63,7 +63,6 @@ using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
-using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Implementation;
@@ -75,7 +74,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
 using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
@@ -146,26 +144,17 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationContext();
     }
 
-    private static void AddApplicationIdentifier(IServiceCollection services)
+    /// <summary>
+    /// Registers the app's <see cref="Models.AppIdentifier"/> from the loaded <c>config/applicationmetadata.json</c>. It is
+    /// read from the file rather than through <see cref="IAppMetadata"/>, whose application metadata is enriched with
+    /// the ids of the app's <c>IExternalApiClient</c> implementations: constructing those to ask for their ids would
+    /// resolve the <see cref="Models.AppIdentifier"/> they may inject, which is this registration, without end.
+    /// </summary>
+    internal static void AddApplicationIdentifier(IServiceCollection services)
     {
         services.AddSingleton(sp =>
-        {
-            string appIdentifier = GetApplicationId();
-            return new AppIdentifier(appIdentifier);
-        });
-    }
-
-    private static string GetApplicationId()
-    {
-        string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
-        JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-
-        var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
-
-        return id
-            ?? throw new KeyNotFoundException(
-                "Could not find id in applicationmetadata.json. Please ensure the file is well formed and contains a key for `id`"
-            );
+            ApplicationMetadataParser.Parse(sp.GetRequiredService<AppFilesAccessor>().Current).AppIdentifier
+        );
     }
 
     /// <summary>
@@ -186,8 +175,9 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IPDP, PDPAppSI>();
         services.TryAddTransient<IPrefill, PrefillSI>();
         services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
-        services.TryAddSingleton<IAppResources, AppResourcesSI>();
+        // AppFilesAccessor itself is registered and loaded by AddAltinnAppServices, which awaits AppFilesDI.AddAppFiles
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
+        services.TryAddSingleton<IAppResources, AppResourcesSI>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
