@@ -1,0 +1,48 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "sign-header",
+        "type": "Heading",
+        "size": "L",
+        "textResourceBindings": {
+          "title": "sign.title"
+        }
+      },
+      {
+        "id": "sign-body",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "sign.body"
+        }
+      },
+      {
+        "id": "sign-buttons",
+        "type": "ButtonGroup",
+        "children": [
+          "sign-reject",
+          "sign-sign"
+        ]
+      },
+      {
+        "id": "sign-reject",
+        "type": "ActionButton",
+        "textResourceBindings": {
+          "title": "sign.reject"
+        },
+        "action": "reject",
+        "buttonStyle": "secondary"
+      },
+      {
+        "id": "sign-sign",
+        "type": "ActionButton",
+        "textResourceBindings": {
+          "title": "sign.sign"
+        },
+        "action": "sign",
+        "buttonStyle": "primary"
+      }
+    ]
+  }
+}
