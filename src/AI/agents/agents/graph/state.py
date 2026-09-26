@@ -151,20 +151,9 @@ class AgentState(BaseModel):
     conversation_history: list[ConversationMessage] = Field(default_factory=list)  # Previous Q&A pairs
     form_spec: FormSpec | None = None  # Structured spec extracted from attachments by spec agent
     general_plan: dict[str, Any] | None = None  # Goal-centric high level plan (LLM only)
-    tool_plan: list[dict[str, Any]] | None = None  # Ordered list of tools to execute
-    tool_results: list[dict[str, Any]] | None = None  # Outputs from executed tools
-    implementation_plan: dict[str, Any] | None = None  # Detailed plan from planning tool
-    repo_facts: dict[str, Any] | None = None  # Repository facts from scanning
-    planning_guidance: str | None = None  # Legacy field (will be replaced by implementation_plan)
-    patch_data: dict[str, Any] | None = None  # Generated patch data
     assistant_response: dict[str, Any] | None = None  # Response from assistant node (chat mode)
     step_plan: list[str] = []  # Legacy field, kept for compatibility
-    plan_step: Any | None = None  # Validated structured plan (avoid forward ref)
     changed_files: list[str] = []
     verify_notes: list[str] = []
     tests_passed: bool | None = None
     next_action: Literal["plan", "scan", "spec", "act", "verify", "review", "stop"] = "plan"
-    limits: dict[str, Any] = {
-        "max_files": 50,
-        "max_lines": 2000,
-    }  # Altinn apps need multiple files (layout, resources, models)
