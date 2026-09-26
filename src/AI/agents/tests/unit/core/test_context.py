@@ -57,16 +57,6 @@ class TestMode:
 
 
 class TestOptionalSections:
-    def test_repo_facts_omitted_when_absent(self):
-        prompt = build_system_prompt(_base_ctx())
-        assert "Repo facts" not in prompt
-
-    def test_repo_facts_rendered_when_present(self):
-        prompt = build_system_prompt(_base_ctx(repo_facts={"layouts": ["a", "b", "c"], "model": "Form"}))
-        assert "Repo facts" in prompt
-        assert "layouts" in prompt
-        assert "Form" in prompt
-
     def test_form_spec_omitted_when_absent(self):
         prompt = build_system_prompt(_base_ctx())
         assert "Form spec" not in prompt
@@ -79,14 +69,9 @@ class TestOptionalSections:
 
 class TestStableOrdering:
     def test_sections_in_documented_order(self):
-        prompt = build_system_prompt(
-            _base_ctx(
-                repo_facts={"x": 1},
-                form_spec_summary="FORM SPEC: y",
-            )
-        )
+        prompt = build_system_prompt(_base_ctx(form_spec_summary="FORM SPEC: y"))
         # identity → principles → anatomy → rules → tool-use → session →
-        # repo facts → form spec → final answer
+        # form spec → final answer
         order = [
             "Altinity",
             "Operating principles",
@@ -94,7 +79,6 @@ class TestStableOrdering:
             "Critical rules",
             "Working with tools",
             "Session",
-            "Repo facts",
             "Form spec",
             "Final response",
         ]

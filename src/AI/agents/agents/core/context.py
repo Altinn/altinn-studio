@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Any
 
 from shared.utils.spotlight import FORM_SPEC_TAG, wrap_untrusted
 
@@ -192,7 +191,6 @@ class SessionContext:
     repo_path: str
     user_goal: str
     allow_app_changes: bool
-    repo_facts: dict[str, Any] | None = None
     form_spec_summary: str | None = None
     developer: str = ""
     org: str = ""
@@ -230,27 +228,9 @@ def build_system_prompt(ctx: SessionContext, skill_listing: str | None = None) -
     ]
     sections.append("\n".join(session_lines))
 
-    if ctx.repo_facts:
-        sections.append("## Repo facts\n" + _format_repo_facts(ctx.repo_facts))
-
     if ctx.form_spec_summary:
         sections.append("## Form spec\n" + wrap_untrusted(ctx.form_spec_summary.strip(), FORM_SPEC_TAG))
 
     sections.append(_FINAL_ANSWER if ctx.allow_app_changes else _FINAL_ANSWER_READ_ONLY)
 
     return "\n\n".join(sections)
-
-
-def _format_repo_facts(facts: dict[str, Any]) -> str:
-    """Render the repo_facts dict as bullet points."""
-    lines: list[str] = []
-    for key, value in facts.items():
-        if isinstance(value, (list, tuple)):
-            preview = ", ".join(str(v) for v in value[:5])
-            suffix = f", … ({len(value)} total)" if len(value) > 5 else ""
-            lines.append(f"- {key}: {preview}{suffix}")
-        elif isinstance(value, dict):
-            lines.append(f"- {key}: {len(value)} keys")
-        else:
-            lines.append(f"- {key}: {value}")
-    return "\n".join(lines)
