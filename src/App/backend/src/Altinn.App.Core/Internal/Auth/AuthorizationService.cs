@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Internal.Auth;
 /// <summary>
 /// Service that handles authorization. Uses AuthorizationClient to communicate with authorization component. Makes authorization decisions in app context possible
 /// </summary>
-public class AuthorizationService : IAuthorizationService
+internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IAuthorizationClient _authorizationClient;
     private readonly IAuthenticationContext _authenticationContext;

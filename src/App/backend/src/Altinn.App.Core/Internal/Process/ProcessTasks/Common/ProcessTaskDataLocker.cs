@@ -7,7 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <inheritdoc/>
-public class ProcessTaskDataLocker : IProcessTaskDataLocker
+internal sealed class ProcessTaskDataLocker : IProcessTaskDataLocker
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;

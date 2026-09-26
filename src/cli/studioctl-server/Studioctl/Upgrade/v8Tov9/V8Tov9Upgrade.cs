@@ -841,7 +841,8 @@ internal static class V8Tov9Upgrade
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
-    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
+    /// the service classes that are internal in v9 and must be reached through their interfaces.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -871,7 +872,8 @@ internal static class V8Tov9Upgrade
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
-                new RemovedAppResourcesApiDetector(pristineView).Detect()
+                new RemovedAppResourcesApiDetector(pristineView).Detect(),
+                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect()
             );
 
             return ReportMigrationResult(

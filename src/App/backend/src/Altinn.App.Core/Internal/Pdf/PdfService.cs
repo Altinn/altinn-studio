@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// <summary>
 /// Service for handling the creation and storage of receipt Pdf.
 /// </summary>
-public class PdfService : IPdfService
+internal sealed class PdfService : IPdfService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPdfGeneratorClient _pdfGeneratorClient;

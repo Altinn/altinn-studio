@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Internal.Validation;
 /// <summary>
 /// Validates files according to the registered IFileValidation interfaces
 /// </summary>
-public class FileValidationService : IFileValidationService
+internal sealed class FileValidationService : IFileValidationService
 {
     private readonly IFileValidatorFactory _fileValidatorFactory;
     private readonly Telemetry? _telemetry;

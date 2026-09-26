@@ -77,6 +77,13 @@ public sealed class SemanticDetectionTests : IDisposable
                     byte[] GetText(string org, string app, string textResource);
                 }
 
+                public sealed class AppMetadata : IAppMetadata
+                {
+                    public System.Threading.Tasks.Task<object> GetApplicationMetadata() => System.Threading.Tasks.Task.FromResult(new object());
+                    public System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy() => System.Threading.Tasks.Task.FromResult("");
+                    public System.Threading.Tasks.Task<string> GetApplicationBPMNProcess() => System.Threading.Tasks.Task.FromResult("");
+                }
+
                 public class AppResourcesSI : IAppResources
                 {
                     public object GetApplication() => new();
@@ -491,7 +498,7 @@ public sealed class SemanticDetectionTests : IDisposable
     }
 
     [Fact]
-    public void AppResourcesSI_OnlyTheAltinnTypeIsReported()
+    public void InternalizedServiceTypes_OnlyTheAltinnTypesAreReported()
     {
         _app.Write(
             "logic/Wrapper.cs",
@@ -499,20 +506,27 @@ public sealed class SemanticDetectionTests : IDisposable
             using Altinn.App.Core.Internal.App;
 
             public class AppResourcesSI { }
+            public class AppMetadata { }
 
             public class Wrapper
             {
                 public Wrapper(AppResourcesSI own, Altinn.App.Core.Internal.App.AppResourcesSI altinn) { }
+                public Wrapper(AppMetadata own, Altinn.App.Core.Internal.App.AppMetadata altinn) { }
             }
             """
         );
 
-        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+        var semantic = new InternalizedServiceTypeDetector(SemanticScanner()).Detect();
 
-        // The app's own class of the same name is not the internalized one; only the Altinn type is reported.
-        var lines = semantic.Warnings.Where(static w => w.Contains("Wrapper.cs:")).ToList();
-        Assert.Single(lines);
-        Assert.Contains("Wrapper.cs:7: AppResourcesSI", lines[0]);
+        // The app's own classes of the same names are not the internalized ones; only the Altinn types are
+        // reported, each with the interface to inject instead.
+        Assert.Equal(
+            [
+                "logic/Wrapper.cs:8: AppResourcesSI (implements IAppResources)",
+                "logic/Wrapper.cs:9: AppMetadata (implements IAppMetadata)",
+            ],
+            semantic.Warnings.Where(static w => w.Contains("Wrapper.cs:")).Select(static w => w.Replace('\\', '/'))
+        );
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

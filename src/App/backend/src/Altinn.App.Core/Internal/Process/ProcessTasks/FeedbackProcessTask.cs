@@ -3,7 +3,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <summary>
 /// Represents the process task responsible for waiting for feedback from application owner.
 /// </summary>
-public class FeedbackProcessTask : IProcessTask
+internal sealed class FeedbackProcessTask : IProcessTask
 {
     /// <inheritdoc/>
     public string Type => "feedback";

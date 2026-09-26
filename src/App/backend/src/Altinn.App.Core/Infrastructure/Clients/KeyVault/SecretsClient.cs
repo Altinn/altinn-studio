@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault;
 /// <summary>
 /// Class that handles integration with Azure Key Vault
 /// </summary>
-public class SecretsClient : ISecretsClient
+internal sealed class SecretsClient : ISecretsClient
 {
     private readonly string _vaultUri;
     private readonly AzureServiceTokenProvider _azureServiceTokenProvider;

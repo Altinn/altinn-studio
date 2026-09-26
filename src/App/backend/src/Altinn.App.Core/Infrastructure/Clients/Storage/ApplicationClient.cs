@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// Client for retrieving application for Altinn Platform
 /// </summary>
-public class ApplicationClient : IApplicationClient
+internal sealed class ApplicationClient : IApplicationClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;

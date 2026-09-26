@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Class responsible for returning correct implementation of <see cref="IProcessExclusiveGateway"/> for a given gateway
 /// </summary>
-public class ExclusiveGatewayFactory
+internal sealed class ExclusiveGatewayFactory
 {
     /// <summary>
     /// Name of the default logic for exclusive gateways

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Core.Features.Options;
 
 /// <inheritdoc/>
-public class AppOptionsFileHandler : IAppOptionsFileHandler
+internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
     {

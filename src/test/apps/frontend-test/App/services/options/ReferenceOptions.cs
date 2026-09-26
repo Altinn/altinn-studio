@@ -16,7 +16,7 @@ namespace Altinn.App.services.options
         /// This is the default app options implementation and will resolve static
         /// json files in the options folder of the app. As the id is used to resolve
         /// the file name, this particular Id=Default will be replaced run-time by
-        /// the <see cref="AppOptionsFactory"/> when providing the class.
+        /// the library's options factory when providing the class.
         /// </summary>
         public string Id { get; internal set; } = "references";
 

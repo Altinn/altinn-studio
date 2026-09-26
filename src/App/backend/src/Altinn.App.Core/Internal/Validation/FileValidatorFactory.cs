@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.Validation;
 /// <summary>
 /// Factory class that resolves the correct file validators to run on against a <see cref="DataType"/>.
 /// </summary>
-public class FileValidatorFactory : IFileValidatorFactory
+internal sealed class FileValidatorFactory : IFileValidatorFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 

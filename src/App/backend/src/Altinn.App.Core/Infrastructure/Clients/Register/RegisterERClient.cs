@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// <summary>
 /// A client for retrieving ER data from Altinn Platform.
 /// </summary>
-public class RegisterERClient : IOrganizationClient
+internal sealed class RegisterERClient : IOrganizationClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;

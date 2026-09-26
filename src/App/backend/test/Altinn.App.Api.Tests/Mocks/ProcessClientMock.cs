@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
-public class ProcessClientMock : IProcessClient
+internal sealed class ProcessClientMock : IProcessClient
 {
     private readonly ILogger<ProcessClient> _logger;
     private readonly Telemetry? _telemetry;

@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// Represents an implementation of <see cref="IPersonClient"/> that will call the Register
 /// component to retrieve person information.
 /// </summary>
-public class PersonClient : IPersonClient
+internal sealed class PersonClient : IPersonClient
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
