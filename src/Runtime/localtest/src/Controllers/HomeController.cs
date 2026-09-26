@@ -30,6 +30,9 @@ namespace LocalTest.Controllers
     {
         private static readonly Version BrowserRoutingAppVersion = new(9, 0, 0, 0);
         private static readonly TimeSpan LocalAppViewTimeout = TimeSpan.FromSeconds(5);
+
+        /// <summary>The app chosen at the last login, preselected on the home page while it runs.</summary>
+        private const string AppSelectCookieName = "Localtest_App_Select";
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
@@ -94,6 +97,7 @@ namespace LocalTest.Controllers
                 model.TestUsers = await GetTestUsersAndPartiesSelectList(cancellationToken);
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 model.SelectRedirectApp();
+                model.SelectRememberedApp(Request.Cookies[AppSelectCookieName]);
                 var selectedApp =
                     model.TestApps.FirstOrDefault(app => app.Selected)
                     ?? (model.TestApps.Count == 1 ? model.TestApps.First() : null);
@@ -157,6 +161,11 @@ namespace LocalTest.Controllers
                     startAppModel.PartyId,
                     startAppModel.UserSelect
                 );
+            }
+
+            if (!string.IsNullOrWhiteSpace(startAppModel.AppPathSelection))
+            {
+                RememberAppSelection(startAppModel.AppPathSelection);
             }
 
             if (action.Equals("reauthenticate"))
@@ -556,6 +565,30 @@ namespace LocalTest.Controllers
         {
             SelectListItem item = new SelectListItem() { Value = path, Text = app.Id };
             return item;
+        }
+
+        /// <summary>
+        /// Remembers the app chosen at login, so the home page can preselect it next time — the same
+        /// convenience the user and party selection already has.
+        /// </summary>
+        private void RememberAppSelection(string appPath)
+        {
+            CookieBuilder appSelectCookieBuilder = new RequestPathBaseCookieBuilder
+            {
+                Name = AppSelectCookieName,
+                SameSite = SameSiteMode.Lax,
+                HttpOnly = false,
+                SecurePolicy = CookieSecurePolicy.None,
+                IsEssential = true,
+                Domain = _generalSettings.Hostname,
+                MaxAge = TimeSpan.FromDays(365),
+            };
+            new ChunkingCookieManager().AppendResponseCookie(
+                HttpContext,
+                appSelectCookieBuilder.Name,
+                appPath,
+                appSelectCookieBuilder.Build(HttpContext)
+            );
         }
 
         /// <summary>
