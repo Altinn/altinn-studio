@@ -5,6 +5,7 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import type { SerializedComponent } from '../../types/SerializedComponent';
 
 export const useFormLayoutsQuery = (
   org: string,
@@ -19,7 +20,7 @@ export const useFormLayoutsQuery = (
   return useQuery({
     queryKey: [QueryKey.FormLayouts, org, app, layoutSetName],
     queryFn: () =>
-      getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
+      getFormLayouts<SerializedComponent>(org, app, layoutSetName).then((formLayouts) => {
         return convertExternalLayoutsToInternalFormat(formLayouts, layoutSetDatatype);
       }),
     enabled: Boolean(layoutSetName),

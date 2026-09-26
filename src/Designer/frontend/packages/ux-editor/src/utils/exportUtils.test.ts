@@ -1,6 +1,6 @@
 import { ExportUtils } from './exportUtils';
 import type { IFormLayouts } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResources } from 'app-shared/types/global';
 import type { ExportForm } from '../types/ExportForm';
 import type { FormComponent } from '../types/FormComponent';
@@ -15,7 +15,6 @@ describe('generateExportFormFormat', () => {
   };
   const component1: FormComponent<ComponentType.Input> = {
     id: 'component1',
-    itemType: 'COMPONENT',
     type: ComponentType.Input,
     dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
@@ -27,14 +26,13 @@ describe('generateExportFormFormat', () => {
 
   const component2: FormComponent<ComponentType.RadioButtons> = {
     id: 'component2',
-    itemType: 'COMPONENT',
     type: ComponentType.RadioButtons,
     dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
     textResourceBindings: {
       title: 'title2',
     },
     optionsId: 'optionList1',
-    mapping: {
+    queryParameters: {
       test: 'test',
     },
   };
@@ -42,9 +40,7 @@ describe('generateExportFormFormat', () => {
   const baseContainerMock: FormContainer = {
     id: '__base__',
     index: 0,
-    itemType: 'CONTAINER',
     type: null,
-    pageIndex: null,
   };
 
   const generateMockInternalFormLayouts = (
@@ -261,7 +257,7 @@ describe('generateExportFormFormat', () => {
 
     expect(result.pages[0].components[0]).not.toHaveProperty('required');
     expect(result.pages[0].components[0]).not.toHaveProperty('readOnly');
-    expect(result.pages[0].components[1]).not.toHaveProperty('mapping');
+    expect(result.pages[0].components[1]).not.toHaveProperty('queryParameters');
   });
 
   it('should include all properties when includeRestProperties is true', () => {
@@ -280,13 +276,12 @@ describe('generateExportFormFormat', () => {
 
     expect(result.pages[0].components[0]).toHaveProperty('required');
     expect(result.pages[0].components[0]).toHaveProperty('readOnly');
-    expect(result.pages[0].components[1]).toHaveProperty('mapping');
+    expect(result.pages[0].components[1]).toHaveProperty('queryParameters');
   });
 
   it('should return empty array for text resource binding if no text resource bindings are set for component', () => {
     const componentWithoutTextResourceBindings: FormComponent<ComponentType.Input> = {
       id: 'component1',
-      itemType: 'COMPONENT',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'simpleBinding', dataType: '' } },
       textResourceBindings: {},
@@ -312,7 +307,6 @@ describe('generateExportFormFormat', () => {
   it('should not crash when optionsId is missing from optionListsData (e.g. dynamic option lists)', () => {
     const dropdownWithMissingOptions: FormComponent<ComponentType.Dropdown> = {
       id: 'dropdown1',
-      itemType: 'COMPONENT',
       type: ComponentType.Dropdown,
       dataModelBindings: { simpleBinding: { field: 'field1', dataType: '' } },
       textResourceBindings: { title: 'title1' },
