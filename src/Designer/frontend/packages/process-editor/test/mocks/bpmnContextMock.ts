@@ -21,6 +21,8 @@ export const mockBpmnContextValue: BpmnContextProps = {
   setBpmnDetails: jest.fn(),
   modelerRef: mockModelerRef as any,
   isReloadingRef: { current: false },
+  reloadCountRef: { current: 0 },
+  enqueueProcessChange: (change) => change(),
   isInitialized: true,
   setIsInitialized: jest.fn(),
 };
@@ -47,7 +49,7 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   allDataModelIds: [],
   addLayoutSet: jest.fn(),
   deleteLayoutSet: jest.fn(),
-  mutateLayoutSetId: jest.fn(),
+  mutateLayoutSetId: jest.fn().mockResolvedValue(undefined),
   mutateDataTypes: jest.fn(),
   saveBpmn: jest.fn(),
   getSavedBpmn: jest.fn(),

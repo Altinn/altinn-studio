@@ -19,6 +19,10 @@ export type BpmnContextProps = {
   initialBpmnXml: string;
   /** True while the saved process is imported into the modeler, whose shape events are then not user edits. */
   isReloadingRef: MutableRefObject<boolean>;
+  /** Counts the completed reloads of the saved process. A reload replaces every edit made before it. */
+  reloadCountRef: MutableRefObject<number>;
+  /** Runs a change to the saved process after the changes enqueued before it, and settles with it. */
+  enqueueProcessChange: (change: () => Promise<void>) => Promise<void>;
 };
 
 export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
@@ -43,6 +47,14 @@ export const BpmnContextProvider = ({
 
   const modelerRef = useRef<Modeler | null>(null);
   const isReloadingRef = useRef<boolean>(false);
+  const reloadCountRef = useRef<number>(0);
+  const lastProcessChangeRef = useRef<Promise<void>>(Promise.resolve());
+
+  const enqueueProcessChange = (change: () => Promise<void>): Promise<void> => {
+    const processChange = lastProcessChangeRef.current.then(change);
+    lastProcessChangeRef.current = processChange.catch(() => {});
+    return processChange;
+  };
 
   const getUpdatedXml = async (): Promise<string> => {
     if (!modelerRef.current) {
@@ -70,6 +82,8 @@ export const BpmnContextProvider = ({
         setIsInitialized,
         initialBpmnXml,
         isReloadingRef,
+        reloadCountRef,
+        enqueueProcessChange,
       }}
     >
       {children}
