@@ -1,5 +1,6 @@
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
+using Microsoft.CodeAnalysis;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
@@ -71,6 +72,97 @@ public sealed class AppResourcesParameterNameMigrationTests : IDisposable
         Assert.Equal(source, migrated);
         Assert.Empty(result.Messages);
     }
+
+    [Fact]
+    public void Renames_the_argument_on_a_null_conditional_call()
+    {
+        var (migrated, result) = Migrate(
+            """
+            using Altinn.App.Core.Internal.App;
+            public class Handler(IAppResources? appResources)
+            {
+                public string? Run() => appResources?.GetXsdSchema(modelId: "model");
+            }
+            """
+        );
+
+        Assert.Contains("appResources?.GetXsdSchema(dataTypeId: \"model\")", migrated);
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Single(result.Warnings, w => w.Contains("GetXsdSchema(modelId:) -> GetXsdSchema(dataTypeId:)"));
+    }
+
+    [Fact]
+    public void Recognizes_receivers_declared_nullable_qualified_or_through_an_alias()
+    {
+        var (migrated, _) = Migrate(
+            """
+            using Altinn.App.Core.Internal.App;
+            public class Handler
+            {
+                private readonly IAppResources? _nullable;
+                private readonly Altinn.App.Core.Internal.App.IAppResources _qualified;
+                public global::Altinn.App.Core.Internal.App.IAppResources? Aliased { get; init; }
+
+                public Handler(Altinn.App.Core.Internal.App.IAppResources qualified, IAppResources? nullable)
+                {
+                    _qualified = qualified;
+                    _nullable = nullable;
+                }
+
+                public string Run()
+                {
+                    var a = _nullable!.GetModelJsonSchema(modelId: "model");
+                    var b = _qualified.GetXsdSchema(modelId: "model");
+                    var c = this.Aliased!.GetPrefillJson(dataModelName: "model");
+                    return a + b + c;
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("modelId", migrated);
+        Assert.DoesNotContain("dataModelName", migrated);
+        Assert.Equal(3, migrated.Split("dataTypeId:").Length - 1);
+    }
+
+    [Fact]
+    public void Renames_the_argument_on_a_null_conditional_call_with_a_semantic_model()
+    {
+        _app.Write(
+            "logic/Handler.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+            public class Handler(IAppResources? appResources)
+            {
+                public string? Run() => appResources?.GetPrefillJson(dataModelName: "model");
+            }
+            """
+        );
+        var scanner = SemanticScannerFactory.CreateScanner(Path.Combine(_app.Root, "App"), _coreStub.Value);
+        Assert.True(scanner.HasSemanticModels);
+
+        var result = new AppResourcesParameterNameMigration(scanner).Migrate();
+
+        Assert.Contains("appResources?.GetPrefillJson(dataTypeId: \"model\")", _app.Read("logic/Handler.cs"));
+        Assert.False(result.RequiresManualFollowUp);
+    }
+
+    private static readonly Lazy<MetadataReference> _coreStub = new(static () =>
+        SemanticScannerFactory.EmitStubAssembly(
+            "Altinn.App.Core",
+            """
+            namespace Altinn.App.Core.Internal.App
+            {
+                public interface IAppResources
+                {
+                    string GetModelJsonSchema(string modelId);
+                    string? GetXsdSchema(string modelId);
+                    string? GetPrefillJson(string dataModelName = "ServiceModel");
+                }
+            }
+            """
+        )
+    );
 
     [Fact]
     public void Is_idempotent()

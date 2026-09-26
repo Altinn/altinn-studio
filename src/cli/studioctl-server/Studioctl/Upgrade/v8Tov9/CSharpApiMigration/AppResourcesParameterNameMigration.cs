@@ -8,7 +8,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// Renames the argument in calls that pass the model parameter of <c>IAppResources.GetModelJsonSchema</c>,
 /// <c>GetXsdSchema</c> (<c>modelId:</c>) and <c>GetPrefillJson</c> (<c>dataModelName:</c>) by name, since v9 names
 /// the parameter <c>dataTypeId</c> on all three. A call that passes the argument positionally is unaffected and
-/// left alone.
+/// left alone. A null-conditional call (<c>resources?.GetXsdSchema(modelId: ...)</c>) is rewritten like any other.
 /// </summary>
 /// <remarks>
 /// Receivers are matched by their declared type within the file, as a field, parameter, property or local typed
@@ -51,10 +51,12 @@ internal sealed class AppResourcesParameterNameMigration
             var renames = new Dictionary<NameColonSyntax, string>();
             foreach (var invocation in file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
+                var receiver = DeclaredTypeReceiverClassifier.ReceiverOf(invocation, out var name);
                 if (
-                    invocation.Expression is not MemberAccessExpressionSyntax memberAccess
-                    || !_oldParameterByMethod.TryGetValue(memberAccess.Name.Identifier.Text, out var oldName)
-                    || !receivers.IsOfType(memberAccess.Expression)
+                    receiver is null
+                    || name is null
+                    || !_oldParameterByMethod.TryGetValue(name.Identifier.Text, out var oldName)
+                    || !receivers.IsOfType(receiver)
                 )
                 {
                     continue;
@@ -66,8 +68,8 @@ internal sealed class AppResourcesParameterNameMigration
                     {
                         renames[nameColon] =
                             $"{file.RelativePath}:{file.GetLine(invocation)}: "
-                            + $"{memberAccess.Name.Identifier.Text}({oldName}:) -> "
-                            + $"{memberAccess.Name.Identifier.Text}({NewParameterName}:)";
+                            + $"{name.Identifier.Text}({oldName}:) -> "
+                            + $"{name.Identifier.Text}({NewParameterName}:)";
                     }
                 }
             }
