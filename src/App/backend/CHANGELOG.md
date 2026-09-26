@@ -15,8 +15,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: `AppSettings.RequiredValidation`, `ExpressionValidation` and `RemoveHiddenData` now default to `true`. Required fields and expression validations are therefore checked on the backend as well as the frontend, and data from hidden components is removed before a task completes. Previously each of these was off unless the app opted in. If your app is not ready for that behavior, set the corresponding key to `false` under `AppSettings` in `appsettings.json` while you adapt.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
+
+### Removed
+
+- Breaking: remove unused `AppSettings.BaseResourceFolderContainer` and `AppSettings.DefaultBootstrapUrl`. Neither was read by the app libraries. Delete them from any `appsettings.json` that still lists them.
 
 ## [9.0.0-preview.6] - 2026-09-18
 

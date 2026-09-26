@@ -64,17 +64,6 @@ public class AppSettings
     public string AuthorizationFolder { get; set; } = "authorization/";
 
     /// <summary>
-    /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
-    /// </summary>
-    // TODO: can this be removed?
-    // Env var being set is ServiceRepositorySettings__BaseResourceFolderContainer, but this prop is not used anywhere
-#nullable disable
-    [Obsolete("This is not used, and will be removed in the next major version")]
-    public string BaseResourceFolderContainer { get; set; }
-
-#nullable restore
-
-    /// <summary>
     /// Gets or sets The name of the FormLayout json file Name
     /// </summary>
     public string FormLayoutJSONFileName { get; set; } = "FormLayout.json";
@@ -133,12 +122,6 @@ public class AppSettings
     /// Gets or sets styles config file name for the app.
     /// </summary>
     public string ServiceStylesConfigFileName { get; set; } = "Styles.json";
-
-    /// <summary>
-    /// Gets or sets default Bootstrap url
-    /// </summary>
-    public string DefaultBootstrapUrl { get; set; } =
-        "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
 
     /// <summary>
     /// Gets or sets the frontend asset URL used by the generated controller index page.
@@ -200,19 +183,22 @@ public class AppSettings
 #nullable restore
 
     /// <summary>
-    /// Enable the functionality to load layout in backend and remove data from hidden components before task completion
+    /// Enable the functionality to load layout in backend and remove data from hidden components before task completion.
+    /// Enabled by default.
     /// </summary>
-    public bool RemoveHiddenData { get; set; }
+    public bool RemoveHiddenData { get; set; } = true;
 
     /// <summary>
-    /// Enable the functionality to load layout in backend and validate required fields as defined in the layout
+    /// Enable the functionality to load layout in backend and validate required fields as defined in the layout.
+    /// Enabled by default. When a component is marked as required using expressions, that is evaluated on the backend.
     /// </summary>
-    public bool RequiredValidation { get; set; }
+    public bool RequiredValidation { get; set; } = true;
 
     /// <summary>
-    /// Enable the functionality to run expression validation in backend
+    /// Enable the functionality to run expression validation in backend.
+    /// Enabled by default.
     /// </summary>
-    public bool ExpressionValidation { get; set; }
+    public bool ExpressionValidation { get; set; } = true;
 
     /// <summary>
     /// Enable the functionality to validate form data against corresponding XSD if present

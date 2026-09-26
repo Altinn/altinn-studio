@@ -15,12 +15,9 @@ namespace Altinn.App.Core.Configuration
         public string ApplicationMetadataFileName { get; set; }
         public string ApplicationXACMLPolicyFileName { get; init; }
         public string AuthorizationFolder { get; set; }
-        [System.Obsolete("This is not used, and will be removed in the next major version")]
-        public string BaseResourceFolderContainer { get; set; }
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public string CalculationConfigurationFileName { get; set; }
         public string ConfigurationFolder { get; set; }
-        public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
         public bool EnforceDataTypeTaskId { get; set; }
