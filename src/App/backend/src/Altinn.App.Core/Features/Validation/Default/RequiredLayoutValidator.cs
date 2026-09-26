@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validator that runs the required rules in the layout
 /// </summary>
-public class RequiredLayoutValidator : IValidator
+internal sealed class RequiredLayoutValidator : IValidator
 {
     private readonly IAppResources _appResources;
 

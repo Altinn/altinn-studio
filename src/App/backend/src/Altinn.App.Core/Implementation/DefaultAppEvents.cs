@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// Default handling of instance events
 /// </summary>
-public class DefaultAppEvents : IAppEvents
+internal sealed class DefaultAppEvents : IAppEvents
 {
     private readonly ILogger<DefaultAppEvents> _logger;
     private readonly IAppMetadata _appMetadata;

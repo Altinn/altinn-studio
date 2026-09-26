@@ -36,7 +36,7 @@ internal static class ProfileClientDI
 /// <summary>
 /// A client for retrieving profiles from Altinn Platform.
 /// </summary>
-public class ProfileClient : IProfileClient
+internal sealed class ProfileClient : IProfileClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;

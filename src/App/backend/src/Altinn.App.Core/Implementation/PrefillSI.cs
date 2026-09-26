@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 namespace Altinn.App.Core.Implementation;
 
 /// <inheritdoc/>
-public class PrefillSI : IPrefill
+internal sealed class PrefillSI : IPrefill
 {
     private readonly ILogger _logger;
     private readonly IAppResources _appResourcesService;

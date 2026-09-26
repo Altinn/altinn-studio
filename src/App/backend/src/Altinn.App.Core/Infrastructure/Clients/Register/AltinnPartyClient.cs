@@ -21,7 +21,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// <summary>
 /// A client for retrieving register data from Altinn Platform.
 /// </summary>
-public class AltinnPartyClient : IAltinnPartyClient
+internal sealed class AltinnPartyClient : IAltinnPartyClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;

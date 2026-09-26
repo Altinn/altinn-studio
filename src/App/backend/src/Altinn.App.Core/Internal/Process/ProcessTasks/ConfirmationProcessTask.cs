@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// <summary>
 /// Represents the process task responsible for collecting user confirmation.
 /// </summary>
-public class ConfirmationProcessTask : IProcessTask
+internal sealed class ConfirmationProcessTask : IProcessTask
 {
     /// <inheritdoc/>
     public string Type => AltinnTaskTypes.Confirmation;

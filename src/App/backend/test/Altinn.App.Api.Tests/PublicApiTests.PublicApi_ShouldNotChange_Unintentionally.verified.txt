@@ -877,11 +877,6 @@ namespace Altinn.App.Api.Infrastructure.Middleware
 }
 namespace Altinn.App.Api.Infrastructure.Telemetry
 {
-    public class CustomTelemetryInitializer : Microsoft.ApplicationInsights.Extensibility.ITelemetryInitializer
-    {
-        public CustomTelemetryInitializer() { }
-        public void Initialize(Microsoft.ApplicationInsights.Channel.ITelemetry telemetry) { }
-    }
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class HealthTelemetryFilter : Microsoft.ApplicationInsights.Extensibility.ITelemetryProcessor
     {

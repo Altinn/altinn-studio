@@ -1,29 +1,26 @@
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.logic.MetaData
 {
+    /// <summary>
+    /// Wraps the library's <see cref="IAppMetadata"/> and turns off PDF generation unless the request
+    /// carries the "createPdf" cookie. See <c>Program.cs</c> for how the wrapper is registered.
+    /// </summary>
     public class CustomMetaData : IAppMetadata
     {
-        private readonly AppMetadata _internal;
+        private readonly IAppMetadata _inner;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomMetaData(
-            IOptions<AppSettings> settings,
-            IFrontendFeatures frontendFeatures,
-            IServiceProvider serviceProvider,
-            IHttpContextAccessor httpContextAccessor
-        )
+        public CustomMetaData(IAppMetadata inner, IHttpContextAccessor httpContextAccessor)
         {
-            _internal = new AppMetadata(settings, frontendFeatures, serviceProvider);
+            _inner = inner;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApplicationMetadata> GetApplicationMetadata()
         {
-            var result = await _internal.GetApplicationMetadata();
+            var result = await _inner.GetApplicationMetadata();
 
             // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
             // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
@@ -45,12 +42,12 @@ namespace Altinn.App.logic.MetaData
 
         public Task<string> GetApplicationXACMLPolicy()
         {
-            return _internal.GetApplicationXACMLPolicy();
+            return _inner.GetApplicationXACMLPolicy();
         }
 
         public Task<string> GetApplicationBPMNProcess()
         {
-            return _internal.GetApplicationBPMNProcess();
+            return _inner.GetApplicationBPMNProcess();
         }
     }
 }

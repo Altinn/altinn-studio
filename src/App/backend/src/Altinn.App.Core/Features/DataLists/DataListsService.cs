@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.DataLists;
 /// <summary>
 /// Service for handling datalists.
 /// </summary>
-public class DataListsService : IDataListsService
+internal sealed class DataListsService : IDataListsService
 {
     private readonly DataListsFactory _dataListsFactory;
     private readonly InstanceDataListsFactory _instanceDataListsFactory;

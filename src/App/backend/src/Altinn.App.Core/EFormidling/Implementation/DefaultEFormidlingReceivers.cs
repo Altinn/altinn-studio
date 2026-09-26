@@ -7,7 +7,7 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 /// <summary>
 /// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers"/>
 /// </summary>
-public class DefaultEFormidlingReceivers : IEFormidlingReceivers
+internal sealed class DefaultEFormidlingReceivers : IEFormidlingReceivers
 {
     /// <inheritdoc />
     public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig)

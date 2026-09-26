@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Options;
 /// <summary>
 /// Service for handling app options aka code lists.
 /// </summary>
-public class AppOptionsService : IAppOptionsService
+internal sealed class AppOptionsService : IAppOptionsService
 {
     private readonly AppOptionsFactory _appOptionsFactory;
     private readonly InstanceAppOptionsFactory _instanceAppOptionsFactory;

@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Internal.Validation;
 /// <summary>
 /// Main validation service that encapsulates all validation logic
 /// </summary>
-public class ValidationService : IValidationService
+internal sealed class ValidationService : IValidationService
 {
     private readonly IValidatorFactory _validatorFactory;
     private readonly ITranslationService _translationService;

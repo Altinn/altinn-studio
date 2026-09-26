@@ -17,7 +17,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// Implementation of <see cref="ISignClient"/> that sends signing requests to platform
 /// </summary>
-public class SignClient : ISignClient
+internal sealed class SignClient : ISignClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly HttpClient _client;

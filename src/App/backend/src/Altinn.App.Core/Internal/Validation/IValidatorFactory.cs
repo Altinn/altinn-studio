@@ -25,7 +25,7 @@ public interface IValidatorFactory
 /// <summary>
 /// Implementation of <see cref="IValidatorFactory"/> that takes IEnumerable of validators in constructor from the service provider.
 /// </summary>
-public class ValidatorFactory : IValidatorFactory
+internal sealed class ValidatorFactory : IValidatorFactory
 {
     private readonly IOptions<GeneralSettings> _generalSettings;
     private readonly IAppMetadata _appMetadata;

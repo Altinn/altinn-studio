@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// The app implementation of the process service.
 /// </summary>
-public class ProcessClient : IProcessClient
+internal sealed class ProcessClient : IProcessClient
 {
     private readonly AppSettings _appSettings;
     private readonly ILogger<ProcessClient> _logger;
