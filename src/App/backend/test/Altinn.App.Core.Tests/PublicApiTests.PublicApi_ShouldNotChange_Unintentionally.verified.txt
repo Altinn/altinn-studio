@@ -3227,11 +3227,6 @@ namespace Altinn.App.Core.Internal.App
         public ApplicationConfigException(string? message) { }
         public ApplicationConfigException(string? message, System.Exception? innerException) { }
     }
-    public class FrontendFeatures : Altinn.App.Core.Internal.App.IFrontendFeatures
-    {
-        public FrontendFeatures(Microsoft.FeatureManagement.IFeatureManager featureManager) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> GetFrontendFeatures() { }
-    }
     public interface IAppEvents
     {
         System.Threading.Tasks.Task OnEndAppEvent(string endEvent, Altinn.Platform.Storage.Interface.Models.Instance instance);
@@ -3285,7 +3280,10 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IFrontendFeatures
     {
+        System.Collections.Generic.IReadOnlyDictionary<string, bool> GetDictionary();
+        [System.Obsolete("The flags are in memory. Use GetDictionary() or IsEnabled(feature).")]
         System.Threading.Tasks.Task<System.Collections.Generic.Dictionary<string, bool>> GetFrontendFeatures();
+        bool IsEnabled(string feature);
     }
 }
 namespace Altinn.App.Core.Internal.AppModel

@@ -44,7 +44,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
     {
         appFrontendAssetBaseUrl ??= $"/{org}/{app}/altinn-app-frontend";
 
-        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
+        var featureToggles = _frontendFeatures.GetDictionary();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
         var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
 
