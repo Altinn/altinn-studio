@@ -77,6 +77,14 @@ public sealed class SemanticDetectionTests : IDisposable
                     byte[] GetText(string org, string app, string textResource);
                 }
 
+                public class AppResourcesSI : IAppResources
+                {
+                    public object GetApplication() => new();
+                    public object GetApplicationXACMLPolicy() => new();
+                    public object GetApplicationBPMNProcess() => new();
+                    public byte[] GetText(string org, string app, string textResource) => [];
+                }
+
                 public interface IAppMetadata
                 {
                     System.Threading.Tasks.Task<object> GetApplicationMetadata();
@@ -480,6 +488,31 @@ public sealed class SemanticDetectionTests : IDisposable
         var callLines = semantic.Warnings.Where(static w => w.Contains("Uploader.cs:")).ToList();
         Assert.Single(callLines);
         Assert.Contains("Uploader.cs:8: UpdateBinaryData", callLines[0]);
+    }
+
+    [Fact]
+    public void AppResourcesSI_OnlyTheAltinnTypeIsReported()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class AppResourcesSI { }
+
+            public class Wrapper
+            {
+                public Wrapper(AppResourcesSI own, Altinn.App.Core.Internal.App.AppResourcesSI altinn) { }
+            }
+            """
+        );
+
+        var semantic = new RemovedAppResourcesApiDetector(SemanticScanner()).Detect();
+
+        // The app's own class of the same name is not the internalized one; only the Altinn type is reported.
+        var lines = semantic.Warnings.Where(static w => w.Contains("Wrapper.cs:")).ToList();
+        Assert.Single(lines);
+        Assert.Contains("Wrapper.cs:7: AppResourcesSI", lines[0]);
     }
 
     // --- Scanner.Update keeps semantic models current --------------------------------------------

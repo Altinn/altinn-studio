@@ -2903,43 +2903,6 @@ namespace Altinn.App.Core.Helpers.Serialization
 }
 namespace Altinn.App.Core.Implementation
 {
-    public class AppResourcesSI : Altinn.App.Core.Internal.App.IAppResources
-    {
-        public AppResourcesSI(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.AspNetCore.Hosting.IWebHostEnvironment hostingEnvironment, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public string? GetCalculationConfiguration(string dataTypeId) { }
-        public string GetClassRefForLogicDataType(string dataType) { }
-        public System.Threading.Tasks.Task<string?> GetFooter() { }
-        public Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings() { }
-        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
-        public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
-        public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder) { }
-        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
-        public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId) { }
-        [System.Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", true)]
-        public Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId) { }
-        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
-            " the same as the task ID.", true)]
-        public object? GetLayoutSets() { }
-        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
-            " the same as the task ID.", true)]
-        public string? GetLayoutSetsString() { }
-        public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder) { }
-        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
-        public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
-        public string? GetLayoutSettingsStringForFolder(string folder) { }
-        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
-        public string? GetLayoutSettingsStringForSet(string layoutSetId) { }
-        [System.Obsolete("Use GetLayoutsInFolder instead", true)]
-        public string GetLayoutsForSet(string layoutSetId) { }
-        public string GetLayoutsInFolder(string folderId) { }
-        public string GetModelJsonSchema(string modelId) { }
-        public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
-        public byte[] GetText(string org, string app, string textResource) { }
-        public System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language) { }
-        public Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration() { }
-        public string? GetValidationConfiguration(string dataTypeId) { }
-        public string? GetXsdSchema(string modelId) { }
-    }
     public class DefaultAppEvents : Altinn.App.Core.Internal.App.IAppEvents
     {
         public DefaultAppEvents(Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Implementation.DefaultAppEvents> logger, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient) { }
@@ -3266,13 +3229,13 @@ namespace Altinn.App.Core.Internal.App
         [System.Obsolete("Use GetLayoutsInFolder instead", true)]
         string GetLayoutsForSet(string layoutSetId);
         string GetLayoutsInFolder(string folderId);
-        string GetModelJsonSchema(string modelId);
-        string? GetPrefillJson(string dataModelName = "ServiceModel");
+        string GetModelJsonSchema(string dataTypeId);
+        string? GetPrefillJson(string dataTypeId = "ServiceModel");
         byte[] GetText(string org, string app, string textResource);
         System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.TextResource?> GetTexts(string org, string app, string language);
         Altinn.App.Core.Models.UiConfiguration? GetUiConfiguration();
         string? GetValidationConfiguration(string dataTypeId);
-        string? GetXsdSchema(string modelId);
+        string? GetXsdSchema(string dataTypeId);
     }
     public interface IApplicationClient
     {
