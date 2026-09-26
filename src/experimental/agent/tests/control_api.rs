@@ -6,7 +6,9 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
+    control_api::{
+        AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
+    },
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -24,6 +26,7 @@ struct IgnoreNotifications;
 
 struct FakeAuthentication;
 struct FakeSshAccess;
+struct FakeVncAccess;
 
 impl SshAccessApi for FakeSshAccess {
     fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::ssh::AccessInfo, Error>> {
@@ -41,6 +44,24 @@ impl SshAccessApi for FakeSshAccess {
                 known_hosts_file: "/home/me/.agent/ssh/known_hosts".into(),
                 config_file: "/home/me/.agent/ssh/config".into(),
                 proxy_command: "/usr/local/bin/agentctl ssh-proxy agent/worker".into(),
+            })
+        })
+    }
+}
+
+impl VncAccessApi for FakeVncAccess {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::vnc::AccessInfo, Error>> {
+        Box::pin(async move {
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(agent::vnc::AccessInfo {
+                kind: "vnc".into(),
+                agent: name.into(),
+                agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+                guest_port: 5900,
+                web_guest_port: Some(6080),
+                forward_command: "/usr/local/bin/agentctl port-forward agent/worker :5900".into(),
             })
         })
     }
@@ -333,6 +354,7 @@ fn api() -> ApiFixture {
             upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(FakeSshAccess),
+        Rc::new(FakeVncAccess),
         changes.clone(),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));

@@ -1,0 +1,18 @@
+[Unit]
+Description=Window manager and panel for the Agent desktop
+Before=multi-user.target
+After=agent-desktop-display.service
+Requires=agent-desktop-display.service
+
+[Service]
+Type=exec
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+EnvironmentFile=/etc/agent-desktop.conf
+ExecStart=/usr/local/libexec/agent-desktop-session
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

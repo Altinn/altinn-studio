@@ -1,0 +1,32 @@
+#!/bin/sh
+# The desktop's browser: the Playwright Chromium the image already carries. --disable-gpu and
+# --use-gl=swiftshader are left out because they measured no faster here. --disable-dev-shm-usage
+# keeps shared memory in the /tmp the Agent sizes. --force-renderer-accessibility fills in the
+# tree `desktop tree` reads; without it Chromium exposes only its window frames.
+set -eu
+
+# Chromium's trust in the Agent CA is imported in the background after boot. Wait a little for it,
+# then start regardless: an untrusted page is better than no browser.
+ready=${AGENT_BROWSER_CA_READY_FILE:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/chromium-ca-ready}
+if [ ! -e "$ready" ]; then
+    echo "chromium: waiting for the Agent CA bundle to be imported" >&2
+    attempts=0
+    while [ ! -e "$ready" ] && [ "$attempts" -lt 600 ]; do
+        sleep 0.1
+        attempts=$((attempts + 1))
+    done
+    [ -e "$ready" ] || echo "chromium: the CA import has not finished; certificate errors may follow" >&2
+fi
+
+for candidate in /opt/ms-playwright/chromium-*/chrome-linux*/chrome; do
+    [ -x "$candidate" ] && exec "$candidate" \
+        --no-first-run \
+        --no-default-browser-check \
+        --password-store=basic \
+        --disable-infobars \
+        --disable-dev-shm-usage \
+        --force-renderer-accessibility \
+        "$@"
+done
+echo "chromium: no Playwright Chromium build found under /opt/ms-playwright" >&2
+exit 1

@@ -64,19 +64,21 @@ fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock
 
 type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
 
-/// Wires SSH access over the database-held host keys and the `agentctl`
-/// installed beside this daemon, which the generated client configuration
-/// dials Agents through.
-fn ssh_access(
+/// Wires SSH and VNC access around the `agentctl` installed beside this
+/// daemon, which generated SSH client configuration and reported forwarding
+/// commands dial Agents through. SSH keeps its host keys in the database; VNC
+/// holds no key material and generates no client configuration.
+fn access(
     home: &ControlPlaneHome,
     database: &persistence::Database,
     store: Rc<dyn agent::control_plane::AgentStore>,
-) -> Result<Rc<agent::ssh::Access>, Error> {
+) -> Result<(Rc<agent::ssh::Access>, Rc<agent::vnc::Access>), Error> {
     let agentd = std::env::current_exe()?;
     let sibling = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
     let agentctl = agent::ssh::stable_agentctl_path(&sibling, std::env::var_os("PATH").as_deref());
     let host_keys: Rc<dyn agent::ssh::HostKeyStore> = Rc::new(database.clone());
-    Ok(Rc::new(agent::ssh::Access::new(home, agentctl, host_keys, store)))
+    let ssh = agent::ssh::Access::new(home, agentctl.clone(), host_keys, store.clone());
+    Ok((Rc::new(ssh), Rc::new(agent::vnc::Access::new(agentctl, store))))
 }
 
 /// Logs recoverable reconciliation errors for one durable resource kind.
@@ -153,11 +155,12 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_wakeup.clone(),
         Rc::new(|error| tracing::error!(%error, "Session notification scan failed")),
     ));
-    let ssh = ssh_access(&home, &database, store.clone())?;
+    let (ssh, vnc) = access(&home, &database, store.clone())?;
     let reconciler = Rc::new(
         Reconciler::new(store.clone(), sandboxes.clone(), provisioning.clone())
             .with_session_notifier(session_notifier)
-            .with_ssh_access(ssh.clone()),
+            .with_ssh_access(ssh.clone())
+            .with_vnc_access(vnc.clone()),
     );
     let (controller, wakeup) = Controller::new(
         store.clone(),
@@ -183,6 +186,7 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         executions,
         sessions,
         ssh,
+        vnc,
         changes,
         Rc::new(|error| tracing::error!(%error, "Control API connection failed")),
     ));

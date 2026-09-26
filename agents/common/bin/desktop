@@ -1,0 +1,530 @@
+#!/usr/bin/env bash
+# Drives the Agent's X11 desktop: observe it, point at it, type into it.
+#
+#   desktop <command> [arguments]
+#   desktop help
+#
+# Coordinates are always in the pixels of the screenshot this helper last sent, never in display
+# pixels; when the display is larger than the screenshot budget the helper scales them back itself.
+# Captures settle before they are written, so a screenshot never shows a half-drawn frame.
+set -euo pipefail
+# Without this, a failure inside `$(...)` is ignored: a capture whose ffmpeg failed would still be
+# reported with a path to a file that does not exist.
+shopt -s inherit_errexit
+
+# The image points DISPLAY at the Agent's own desktop; DESKTOP_DISPLAY overrides it for a second
+# screen or a test harness.
+display=${DESKTOP_DISPLAY:-${DISPLAY:-:1}}
+captures=${DESKTOP_CAPTURES:-/tmp/desktop}
+# Anthropic's 1568-tile image budget at 28 px tiles, inside OpenAI's recommended 1440-1600 band.
+# A screenshot at this size costs about 1.5k image tokens; a larger one is downscaled to fit, and
+# a model that clicks on a server-resized image misses its target.
+budget_width=${DESKTOP_MAX_WIDTH:-1456}
+budget_height=${DESKTOP_MAX_HEIGHT:-819}
+# ffmpeg's mjpeg scale: -q:v 7 encodes at JPEG quality 75, the quality Anthropic's reference
+# implementation sends. Lower numbers are better quality and larger files.
+jpeg_quality=${DESKTOP_JPEG_QUALITY:-7}
+# A capture is taken to be settled once two consecutive frames are byte-identical. mjpeg output is
+# deterministic, so the second identical frame is itself the screenshot and costs nothing extra.
+settle_attempts=${DESKTOP_SETTLE_ATTEMPTS:-8}
+settle_interval=${DESKTOP_SETTLE_INTERVAL:-0.1}
+keep_captures=${DESKTOP_KEEP_CAPTURES:-200}
+
+export DISPLAY=$display
+# xdotool decodes the text it types with the locale's character set, and refuses a multi-byte
+# sequence under the POSIX locale: without this, `type` cannot enter æ, ø or å.
+export LC_ALL=${LC_ALL:-C.UTF-8}
+
+json=false
+fail() { echo "desktop: $*" >&2; exit 1; }
+
+self=$(readlink -f -- "${BASH_SOURCE[0]}")
+# Runs one desktop command as its own process. Bash ignores `set -e` in a function called from an
+# `if`, `||` or `!` context, and every command ends in `sync_x`, which always succeeds, so a failed
+# xdotool call inside such a context would report success. A fresh process has errexit back, and a
+# `fail` in it cannot end the caller before the caller has cleaned up.
+run_command() {
+    if $json; then "$self" --json "$@"; else "$self" "$@"; fi
+}
+
+# Captures are JPEG: the settle loop takes two byte-identical frames as proof that the screen has
+# stopped changing, and that only holds for one deterministic encoder.
+require_jpeg_path() {
+    case $1 in
+        *.jpg | *.jpeg) ;;
+        *) fail "--out must name a .jpg file, got '$1'" ;;
+    esac
+}
+
+usage() {
+    cat <<'USAGE'
+desktop <command> [arguments]
+
+Observe
+  screenshot [--out PATH]        capture the display, settled, within the screenshot budget
+  zoom X Y W H [--out PATH]      capture one region at native resolution
+  windows                        list mapped windows with geometry, class and title
+  tree [APPLICATION]             what is showing, as an accessibility tree with click boxes
+  cursor                         print the pointer position
+  display                        print display geometry and the screenshot budget
+
+Point
+  move X Y                       move the pointer
+  click [X Y]                    left click, optionally after moving
+  right-click [X Y]              right click
+  middle-click [X Y]             middle click
+  double-click [X Y]             double click
+  triple-click [X Y]             triple click
+  mouse-down [BUTTON]            press and hold a button (default 1)
+  mouse-up [BUTTON]              release a button (default 1)
+  drag X1 Y1 X2 Y2               press at the first point, move, release at the second
+  scroll up|down|left|right [N]  scroll N steps (default 3) at the pointer
+
+Type
+  type TEXT                      type literal text, including æøå
+  key KEYSYM [--repeat N]        press an X11 key combination, for example ctrl+s or Page_Down
+  hold-key KEYSYM COMMAND...     hold a modifier while running another desktop command
+
+Windows and session
+  focus WINDOW                   raise and focus a window by id or title substring
+  resize WIDTH HEIGHT            resize the display with RandR
+  wait SECONDS                   pause
+
+Batch
+  batch [--no-screenshot]        read one command per line from stdin and run them in order
+
+Options
+  --json                         machine-readable output, where a command supports it
+USAGE
+}
+
+# --- geometry ---------------------------------------------------------------------------------
+
+display_geometry() {
+    xdpyinfo | awk '/dimensions:/ { print $2; exit }'
+}
+
+# Prints "display_width display_height sent_width sent_height". The sent size is the display size
+# reduced to fit the budget; the model addresses the sent size and never does this arithmetic.
+geometry() {
+    local geometry width height
+    geometry=$(display_geometry) || fail "cannot read display $display"
+    width=${geometry%x*}
+    height=${geometry#*x}
+    awk -v w="$width" -v h="$height" -v bw="$budget_width" -v bh="$budget_height" 'BEGIN {
+        scale = 1
+        if (w > bw) scale = bw / w
+        if (h > bh && bh / h < scale) scale = bh / h
+        printf "%d %d %d %d\n", w, h, int(w * scale + 0.5), int(h * scale + 0.5)
+    }'
+}
+
+# Maps a coordinate from sent-screenshot pixels to display pixels.
+to_display() {
+    local value=$1 sent=$2 actual=$3
+    awk -v v="$value" -v s="$sent" -v a="$actual" 'BEGIN { printf "%d\n", (s == a) ? v : int(v * a / s + 0.5) }'
+}
+
+require_integer() {
+    case $1 in
+        '' | *[!0-9-]*) fail "$2 must be an integer, got '$1'" ;;
+    esac
+}
+
+# --- capture ----------------------------------------------------------------------------------
+
+grab() {
+    # grab OUTPUT REGION_SIZE REGION_OFFSET [SCALE_WIDTH SCALE_HEIGHT]
+    local output=$1 size=$2 offset=$3 scale_width=${4:-} scale_height=${5:-}
+    local filter=()
+    [ -n "$scale_width" ] && filter=(-vf "scale=${scale_width}:${scale_height}:flags=bilinear")
+    ffmpeg -hide_banner -loglevel error -y \
+        -f x11grab -draw_mouse 1 -video_size "$size" -i "${display}.0+${offset}" \
+        -frames:v 1 "${filter[@]}" -q:v "$jpeg_quality" "$output"
+}
+
+# Captures repeatedly until two consecutive frames are identical, so the file never holds a
+# half-drawn frame. Returns the number of frames it took.
+capture_settled() {
+    local output=$1 size=$2 offset=$3 scale_width=${4:-} scale_height=${5:-}
+    local previous='' current attempt
+    local scratch="${output%.*}.settling.jpg"
+    for ((attempt = 1; attempt <= settle_attempts; attempt++)); do
+        grab "$scratch" "$size" "$offset" "$scale_width" "$scale_height" || fail "cannot capture display $display"
+        current=$(cksum <"$scratch" | cut -d' ' -f1)
+        if [ "$current" = "$previous" ]; then
+            mv -f "$scratch" "$output"
+            echo "$attempt"
+            return 0
+        fi
+        previous=$current
+        sleep "$settle_interval"
+    done
+    mv -f "$scratch" "$output"
+    echo "$attempt"
+}
+
+new_capture_path() {
+    mkdir -p "$captures"
+    # /tmp is a tmpfs a build also uses. Keep recent captures readable and let the rest go, so a
+    # long session, or a loop that screenshots more than it should, cannot fill it.
+    # `find` rather than `ls` on a glob: with no capture yet the glob matches nothing, `ls` exits 2,
+    # and under pipefail and inherit_errexit that would end every first screenshot silently.
+    find "$captures" -maxdepth 1 -name '*.jpg' -printf '%T@ %p\n' | sort -rn \
+        | tail -n +"$keep_captures" | cut -d' ' -f2- | xargs -r -d '\n' rm -f --
+    printf '%s/%s-%s-%04d.jpg\n' "$captures" "$1" "$(date +%Y%m%d-%H%M%S)" "$((RANDOM % 10000))"
+}
+
+report_capture() {
+    local path=$1 width=$2 height=$3 frames=$4 note=${5:-}
+    if $json; then
+        printf '{"path":"%s","width":%d,"height":%d,"frames":%d,"bytes":%d}\n' \
+            "$path" "$width" "$height" "$frames" "$(stat -c %s "$path")"
+    else
+        printf '%s (%dx%d, %d bytes)%s\n' "$path" "$width" "$height" "$(stat -c %s "$path")" "$note"
+    fi
+}
+
+command_screenshot() {
+    local out=''
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --out) out=${2:?--out needs a path}; require_jpeg_path "$2"; shift 2 ;;
+            *) fail "screenshot: unexpected argument '$1'" ;;
+        esac
+    done
+    local actual_width actual_height sent_width sent_height note='' frames
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    [ -n "$out" ] || out=$(new_capture_path screen)
+    mkdir -p "$(dirname "$out")"
+    if [ "$sent_width" != "$actual_width" ]; then
+        frames=$(capture_settled "$out" "${actual_width}x${actual_height}" "0,0" "$sent_width" "$sent_height")
+        note=" — display is ${actual_width}x${actual_height}; coordinates are in these ${sent_width}x${sent_height} pixels"
+    else
+        frames=$(capture_settled "$out" "${actual_width}x${actual_height}" "0,0")
+    fi
+    report_capture "$out" "$sent_width" "$sent_height" "$frames" "$note"
+}
+
+command_zoom() {
+    local x=$1 y=$2 w=$3 h=$4; shift 4
+    local out=''
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --out) out=${2:?--out needs a path}; require_jpeg_path "$2"; shift 2 ;;
+            *) fail "zoom: unexpected argument '$1'" ;;
+        esac
+    done
+    for pair in "x:$x" "y:$y" "w:$w" "h:$h"; do require_integer "${pair#*:}" "zoom ${pair%%:*}"; done
+    local actual_width actual_height sent_width sent_height
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    x=$(to_display "$x" "$sent_width" "$actual_width")
+    y=$(to_display "$y" "$sent_height" "$actual_height")
+    w=$(to_display "$w" "$sent_width" "$actual_width")
+    h=$(to_display "$h" "$sent_height" "$actual_height")
+    (( x >= 0 && y >= 0 && x < actual_width && y < actual_height && w > 0 && h > 0 )) \
+        || fail "zoom: region must start inside the display"
+    (( x + w <= actual_width )) || w=$((actual_width - x))
+    (( y + h <= actual_height )) || h=$((actual_height - y))
+    [ -n "$out" ] || out=$(new_capture_path zoom)
+    mkdir -p "$(dirname "$out")"
+    local frames
+    frames=$(capture_settled "$out" "${w}x${h}" "${x},${y}")
+    report_capture "$out" "$w" "$h" "$frames" " — region at native resolution"
+}
+
+# --- observation ------------------------------------------------------------------------------
+
+# Reads the window list from the EWMH property the window manager maintains. wmctrl reads the same
+# property but segfaults on an empty list, and xdotool and xprop are needed here regardless.
+window_ids() {
+    xprop -root _NET_CLIENT_LIST 2>/dev/null | sed 's/.*# //; s/,//g'
+}
+
+window_class() {
+    xprop -id "$1" WM_CLASS 2>/dev/null | sed 's/.*, "//; s/".*//'
+}
+
+# The accessibility tree is read through AT-SPI, which has no shell binding; a small Python program
+# walks it. It is given the geometry so that its boxes are in the same pixels as a screenshot.
+command_tree() {
+    local actual_width actual_height sent_width sent_height
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    local arguments=("$actual_width" "$actual_height" "$sent_width" "$sent_height")
+    $json && arguments+=(--json)
+    "${DESKTOP_TREE:-/usr/local/libexec/agent-desktop-tree}" "${arguments[@]}" "$@"
+}
+
+command_windows() {
+    local active id class title
+    active=$(xdotool getactivewindow 2>/dev/null || echo 0)
+    local actual_width actual_height sent_width sent_height
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    $json && printf '[\n'
+    local first=true
+    for id in $(window_ids); do
+        local WINDOW X Y WIDTH HEIGHT SCREEN geometry
+        # A window can close between listing and inspecting it; it is then simply not listed.
+        geometry=$(xdotool getwindowgeometry --shell "$id" 2>/dev/null) || continue
+        eval "$geometry"
+        class=$(window_class "$id") || continue
+        title=$(xdotool getwindowname "$id" 2>/dev/null || echo '')
+        local x y w h
+        x=$(to_display "$X" "$actual_width" "$sent_width")
+        y=$(to_display "$Y" "$actual_height" "$sent_height")
+        w=$(to_display "$WIDTH" "$actual_width" "$sent_width")
+        h=$(to_display "$HEIGHT" "$actual_height" "$sent_height")
+        if $json; then
+            $first || printf ',\n'
+            first=false
+            printf '  {"id":"%s","active":%s,"x":%d,"y":%d,"width":%d,"height":%d,"class":"%s","title":%s}' \
+                "$id" "$([ "$WINDOW" = "$active" ] && echo true || echo false)" \
+                "$x" "$y" "$w" "$h" "$class" "$(printf '%s' "$title" | sed 's/\\/\\\\/g; s/"/\\"/g; s/^/"/; s/$/"/')"
+        else
+            printf '%s %-22s %4d,%-4d %4dx%-4d %s%s\n' "$id" "${class:0:22}" "$x" "$y" "$w" "$h" \
+                "$([ "$WINDOW" = "$active" ] && echo '* ' || echo '  ')" "$title"
+        fi
+    done
+    $json && printf '\n]\n'
+    return 0
+}
+
+command_cursor() {
+    local x y actual_width actual_height sent_width sent_height
+    eval "$(xdotool getmouselocation --shell)"
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    x=$(to_display "$X" "$actual_width" "$sent_width")
+    y=$(to_display "$Y" "$actual_height" "$sent_height")
+    if $json; then printf '{"x":%d,"y":%d}\n' "$x" "$y"; else printf '%d %d\n' "$x" "$y"; fi
+}
+
+command_display() {
+    local actual_width actual_height sent_width sent_height
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    if $json; then
+        printf '{"display":"%s","width":%d,"height":%d,"sentWidth":%d,"sentHeight":%d}\n' \
+            "$display" "$actual_width" "$actual_height" "$sent_width" "$sent_height"
+    else
+        printf 'display %s is %dx%d; screenshots are sent at %dx%d\n' \
+            "$display" "$actual_width" "$actual_height" "$sent_width" "$sent_height"
+    fi
+}
+
+# --- input ------------------------------------------------------------------------------------
+
+# Blocks until the X server has processed everything sent before it, so the next command in a batch
+# does not race the one before it. A request that needs a reply is a round trip by definition.
+sync_x() { xdotool getactivewindow >/dev/null 2>&1 || true; }
+
+move_pointer() {
+    local actual_width actual_height sent_width sent_height x y
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    require_integer "$1" "x"; require_integer "$2" "y"
+    x=$(to_display "$1" "$sent_width" "$actual_width")
+    y=$(to_display "$2" "$sent_height" "$actual_height")
+    xdotool mousemove -- "$x" "$y"
+}
+
+command_click() {
+    local button=$1; shift
+    local repeat=1
+    case $button in triple) button=1; repeat=3 ;; double) button=1; repeat=2 ;; esac
+    if [ $# -eq 2 ]; then move_pointer "$1" "$2"; elif [ $# -ne 0 ]; then fail "click takes X and Y, or nothing"; fi
+    xdotool click --repeat "$repeat" --delay 60 "$button"
+    sync_x
+}
+
+command_move() { [ $# -eq 2 ] || fail "move takes X and Y"; move_pointer "$1" "$2"; sync_x; }
+
+command_mouse_button() {
+    local action=$1 button=${2:-1}
+    require_integer "$button" "button"
+    xdotool "$action" "$button"
+    sync_x
+}
+
+command_drag() {
+    [ $# -eq 4 ] || fail "drag takes X1 Y1 X2 Y2"
+    move_pointer "$1" "$2"
+    xdotool mousedown 1
+    # Intermediate motion: applications that track drags ignore a single jump.
+    local actual_width actual_height sent_width sent_height step
+    read -r actual_width actual_height sent_width sent_height < <(geometry)
+    for step in 1 2 3; do
+        xdotool mousemove -- \
+            "$(awk -v a="$1" -v b="$3" -v s="$step" -v sw="$sent_width" -v aw="$actual_width" \
+                'BEGIN { printf "%d", int((a + (b - a) * s / 4) * aw / sw + 0.5) }')" \
+            "$(awk -v a="$2" -v b="$4" -v s="$step" -v sh="$sent_height" -v ah="$actual_height" \
+                'BEGIN { printf "%d", int((a + (b - a) * s / 4) * ah / sh + 0.5) }')"
+    done
+    move_pointer "$3" "$4"
+    xdotool mouseup 1
+    sync_x
+}
+
+command_scroll() {
+    local direction=$1 steps=${2:-3} button
+    require_integer "$steps" "scroll steps"
+    case $direction in
+        up) button=4 ;; down) button=5 ;; left) button=6 ;; right) button=7 ;;
+        *) fail "scroll direction must be up, down, left or right" ;;
+    esac
+    xdotool click --repeat "$steps" --delay 40 "$button"
+    sync_x
+}
+
+command_type() {
+    [ $# -ge 1 ] || fail "type takes the text to enter"
+    xdotool type --delay 12 -- "$*"
+    sync_x
+}
+
+command_key() {
+    local repeat=1 keys=()
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --repeat) repeat=${2:?--repeat needs a count}; shift 2 ;;
+            *) keys+=("$1"); shift ;;
+        esac
+    done
+    [ ${#keys[@]} -ge 1 ] || fail "key takes an X11 key combination such as ctrl+s or Page_Down"
+    require_integer "$repeat" "--repeat"
+    # --clearmodifiers releases modifiers a person or a stray keydown left pressed, but under
+    # hold-key the held modifier is the point, so it is kept.
+    local clear=(--clearmodifiers)
+    [ -z "${DESKTOP_HOLDING:-}" ] || clear=()
+    xdotool key "${clear[@]}" --repeat "$repeat" --delay 40 -- "${keys[@]}"
+    sync_x
+}
+
+command_hold_key() {
+    local keysym=$1; shift
+    [ $# -ge 1 ] || fail "hold-key takes a keysym and a desktop command to run while it is held"
+    xdotool keydown -- "$keysym"
+    local status=0
+    DESKTOP_HOLDING=$keysym run_command "$@" || status=$?
+    xdotool keyup -- "$keysym"
+    sync_x
+    return "$status"
+}
+
+# --- windows and session ------------------------------------------------------------------------
+
+command_focus() {
+    [ $# -ge 1 ] || fail "focus takes a window id or a title substring"
+    local target=$* id match=''
+    case $target in
+        0x*) match=$target ;;
+        *)
+            for id in $(window_ids); do
+                local title; title=$(xdotool getwindowname "$id" 2>/dev/null || echo '')
+                case ${title,,} in *"${target,,}"*) match=$id; break ;; esac
+            done
+            ;;
+    esac
+    [ -n "$match" ] || fail "no window matches '$target'"
+    # Never --sync here: xdotool blocks indefinitely when the window manager declines the request.
+    xdotool windowactivate "$match"
+    sync_x
+    echo "focused $match $(xdotool getwindowname "$match" 2>/dev/null || true)"
+}
+
+command_resize() {
+    [ $# -eq 2 ] || fail "resize takes WIDTH and HEIGHT"
+    require_integer "$1" "width"; require_integer "$2" "height"
+    local output mode="$1x$2"
+    output=$(xrandr | awk '/ connected/ { print $1; exit }')
+    if ! xrandr --output "$output" --mode "$mode" 2>/dev/null; then
+        fail "resize: $mode is not a mode of $output; available: $(xrandr | awk '/^ +[0-9]+x[0-9]+/ { printf "%s ", $1 }')"
+    fi
+    command_display
+}
+
+command_wait() {
+    [ $# -eq 1 ] || fail "wait takes a number of seconds"
+    case $1 in '' | *[!0-9.]*) fail "wait takes a number of seconds, got '$1'" ;; esac
+    sleep "$1"
+}
+
+# --- batch ----------------------------------------------------------------------------------------
+
+command_batch() {
+    local screenshot=true
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --no-screenshot) screenshot=false; shift ;;
+            *) fail "batch: unexpected argument '$1'" ;;
+        esac
+    done
+    local -a lines=()
+    local line
+    while IFS= read -r line || [ -n "$line" ]; do lines+=("$line"); done
+    local failed=false index=0
+    for line in "${lines[@]}"; do
+        index=$((index + 1))
+        # A batch line is split on whitespace, with no quoting and no shell expansion: text a batch
+        # line carries can come from the screen, and the screen is untrusted. The two commands whose
+        # last argument is free text take the rest of the line verbatim instead.
+        local -a words=()
+        read -r -a words <<<"$line"
+        # Blank lines, however indented, and comments are not actions.
+        [ ${#words[@]} -gt 0 ] || continue
+        [[ ${words[0]} != '#'* ]] || continue
+        if $failed; then
+            printf '%2d %s\n   Not executed: an earlier computer action in this turn failed.\n' "$index" "$line"
+            continue
+        fi
+        printf '%2d %s\n' "$index" "$line"
+        case ${words[0]} in
+            type | focus)
+                local rest=${line#*"${words[0]}"}
+                rest=${rest# }
+                # A bare `type` or `focus` has no argument, which the command itself refuses.
+                if [ -n "$rest" ]; then words=("${words[0]}" "$rest"); else words=("${words[0]}"); fi
+                ;;
+        esac
+        if ! run_command "${words[@]}" 2>&1 | sed 's/^/   /'; then failed=true; fi
+    done
+    if $screenshot; then command_screenshot; fi
+    $failed && return 1
+    return 0
+}
+
+# --- dispatch ---------------------------------------------------------------------------------
+
+dispatch() {
+    [ $# -ge 1 ] || { usage; return 64; }
+    local command=$1; shift
+    case $command in
+        screenshot) command_screenshot "$@" ;;
+        zoom) [ $# -ge 4 ] || fail "zoom takes X Y W H"; command_zoom "$@" ;;
+        windows) command_windows ;;
+        tree) command_tree "$@" ;;
+        cursor) command_cursor ;;
+        display) command_display ;;
+        move) command_move "$@" ;;
+        click) command_click 1 "$@" ;;
+        right-click) command_click 3 "$@" ;;
+        middle-click) command_click 2 "$@" ;;
+        double-click) command_click double "$@" ;;
+        triple-click) command_click triple "$@" ;;
+        mouse-down) command_mouse_button mousedown "$@" ;;
+        mouse-up) command_mouse_button mouseup "$@" ;;
+        drag) command_drag "$@" ;;
+        scroll) [ $# -ge 1 ] || fail "scroll takes a direction"; command_scroll "$@" ;;
+        type) command_type "$@" ;;
+        key) command_key "$@" ;;
+        hold-key) [ $# -ge 2 ] || fail "hold-key takes a keysym and a command"; command_hold_key "$@" ;;
+        focus) command_focus "$@" ;;
+        resize) command_resize "$@" ;;
+        wait) command_wait "$@" ;;
+        batch) command_batch "$@" ;;
+        help | --help | -h) usage ;;
+        *) fail "unknown command '$command'; run 'desktop help'" ;;
+    esac
+}
+
+# --json is a global option and is only recognized before the command, so that `type --json` and a
+# batch line carrying the same text stay literal.
+if [ "${1:-}" = --json ]; then json=true; shift; fi
+dispatch "$@"

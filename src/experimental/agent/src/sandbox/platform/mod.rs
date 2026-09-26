@@ -3,6 +3,7 @@
 pub(crate) mod files;
 mod linux;
 pub(crate) mod linux_ssh;
+pub(crate) mod linux_vnc;
 
 use ::sandbox::execution::ExecutionSpec;
 

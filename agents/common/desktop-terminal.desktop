@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Terminal
+Comment=A terminal with the Agent's Session environment
+Exec=desktop-terminal
+Icon=/usr/share/pixmaps/terminal-tango.svg
+Terminal=false
+Categories=System;TerminalEmulator;

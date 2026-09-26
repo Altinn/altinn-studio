@@ -25,6 +25,10 @@ const PODMAN: &str = "/usr/bin/podman";
 const SETUP_STDERR_LINES: usize = 3;
 const SYSTEMD_READY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
 const SYSTEMD_READY_POLL: std::time::Duration = std::time::Duration::from_secs(1);
+/// `systemctl`, the only supported guest service manager today.
+pub(super) const SYSTEMCTL: &str = "/usr/bin/systemctl";
+/// Present exactly when systemd is the running init; the marker systemd documents for this purpose.
+pub(super) const SYSTEMD_RUNNING: &str = "/run/systemd/system";
 // Podman reads these files when it creates containers. The default mount also
 // reaches Buildah RUN containers and exposes the guest's superset bundle at a
 // path no distro package owns. Distro trust paths are populated by an OCI hook
@@ -501,23 +505,52 @@ async fn sync_home(sandbox: &SandboxHandle, archive: Vec<u8>) -> Result<(), Erro
 /// # Errors
 ///
 /// Returns an error when the Execution cannot start or exits unsuccessfully.
-pub(crate) async fn run_checked<const N: usize>(
+pub(crate) async fn run_checked<S: AsRef<str>>(
     sandbox: &SandboxHandle,
     executable: &str,
-    args: [&str; N],
+    args: impl IntoIterator<Item = S>,
 ) -> Result<(), Error> {
+    let args: Vec<String> = args.into_iter().map(|arg| arg.as_ref().to_owned()).collect();
     let output = sandbox
-        .run_execution(ExecutionSpec::command(
-            SandboxPath::new(executable),
-            args.into_iter().map(str::to_owned),
-        ))
+        .run_execution(ExecutionSpec::command(SandboxPath::new(executable), args.clone()))
         .await?;
     checked_output(executable, &args, &output)
 }
 
+/// Runs `test <test> <path>` in the guest: whether the path exists in the tested form.
+///
+/// # Errors
+///
+/// Returns an error when the Execution cannot start or `test` fails for any
+/// reason other than the path being absent.
+pub(super) async fn path_exists(sandbox: &SandboxHandle, test: &str, path: &str) -> Result<bool, Error> {
+    let output = sandbox
+        .run_execution(ExecutionSpec::command(
+            SandboxPath::new("/usr/bin/test"),
+            [test.to_owned(), path.to_owned()],
+        ))
+        .await?;
+    match output.status.code {
+        0 => Ok(true),
+        1 => Ok(false),
+        code => Err(Error::SandboxSetup(format!(
+            "presence check `test {test} {path}` exited with code {code}"
+        ))),
+    }
+}
+
+/// Whether the guest has `systemctl` and runs systemd as its init.
+///
+/// # Errors
+///
+/// Returns an error when either presence check cannot run.
+pub(super) async fn systemd_available(sandbox: &SandboxHandle) -> Result<bool, Error> {
+    Ok(path_exists(sandbox, "-x", SYSTEMCTL).await? && path_exists(sandbox, "-d", SYSTEMD_RUNNING).await?)
+}
+
 fn checked_output(
     executable: &str,
-    args: &[&str],
+    args: &[impl AsRef<str>],
     output: &::sandbox::execution::ExecutionOutput,
 ) -> Result<(), Error> {
     if output.status.success() {
@@ -541,7 +574,7 @@ fn checked_output(
     };
     Err(Error::SandboxSetup(format!(
         "command `{executable} {}` exited with code {}{detail}",
-        args.join(" "),
+        args.iter().map(AsRef::as_ref).collect::<Vec<_>>().join(" "),
         output.status.code
     )))
 }

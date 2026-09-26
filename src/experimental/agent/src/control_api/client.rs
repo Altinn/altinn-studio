@@ -11,9 +11,9 @@ use super::protocol::{
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
     METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams, ReadMessage, Request,
-    ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
-    SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
+    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -210,6 +210,15 @@ impl Client {
     /// Returns an error when the Agent is unknown, deleting, or declares no SSH access.
     pub async fn ssh_access(&self, name: &str) -> Result<crate::ssh::AccessInfo, Error> {
         self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }).await
+    }
+
+    /// Describes how to reach an Agent's desktop over VNC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no VNC access.
+    pub async fn vnc_access(&self, name: &str) -> Result<crate::vnc::AccessInfo, Error> {
+        self.call(METHOD_VNC_ACCESS, NameParams { name: name.into() }).await
     }
 
     /// Requests deletion of an Agent and its owned sandbox.

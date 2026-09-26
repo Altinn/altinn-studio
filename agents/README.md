@@ -12,6 +12,10 @@ Choose an Agent and, optionally, a variant:
 | `full` `nested`          | Full published image, reduced to fit inside another Agent            |
 | `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
 | `full` `worktree`        | Full published image with the current checkout mounted read-write    |
+| `desktop` default        | Full image plus a graphical desktop, and a fresh checkout            |
+| `desktop` `nested`       | Desktop published image, reduced to fit inside another Agent         |
+| `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
+| `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
 Install the released Agent CLI on Linux or macOS:
 
@@ -93,7 +97,8 @@ agentctl apply --wait
 `--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
 returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal Agent. From either Agent directory, select a
+Use `agents/minimal` and `agent/altinn-minimal` for the minimal Agent, and `agents/desktop` and
+`agent/altinn-desktop` for the desktop one. From any Agent directory, select a
 repository-owned variant with `agentctl apply --variant nested`, `--variant nested-build`, or `--variant worktree`.
 
 To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
@@ -167,6 +172,55 @@ hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an 
 published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the loopback-only server
 policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
 SSH access; delete it and re-apply to pick up the current image.
+
+## Desktop access
+
+The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also
+a VNC server, the openbox window manager, a panel, and the same Chromium the Agent's Playwright
+tooling uses. The Agent drives it with the `desktop` helper and its `computer-use` skill; a person
+watches or takes over over VNC.
+
+The desktop publishes itself on a Unix socket inside the Sandbox and opens no port of its own. The
+image also ships the units that bridge a port to it and serve it in a browser, disabled; the
+platform turns them on when the Agent declares the capability, and off when it stops:
+
+```yaml
+spec:
+  access:
+    - type: ssh
+    - type: vnc
+```
+
+The published `desktop` variants declare both. Remove the `vnc` entry and re-apply and the Agent
+keeps its screen with nothing listening: `agentd` disables the units and checks that they stopped,
+and the image's smoke test checks that the desktop itself opens no VNC port. The browser viewer
+accepts only its own pages, so another website open in the same browser cannot reach the desktop.
+
+In a browser, with nothing to install:
+
+```sh
+agentctl vnc --web --open agent/altinn-desktop
+```
+
+Or with a VNC client of your own:
+
+```sh
+agentctl vnc agent/altinn-desktop   # prints vnc://127.0.0.1:<port> for your viewer
+```
+
+Both hold the forward open until interrupted on a free local port they print. `--port` picks a
+fixed one, and
+`agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them
+directly. Which viewer the browser gets, and at what URL, is the image's to decide: `--web`
+forwards the port and opens its root, and an image that carries no browser viewer is reported as
+such rather than forwarded to a port that serves nothing. The forward carries an unauthenticated RFB stream, which is safe for the same
+reason the Agent's other loopback ports are: it never leaves the Sandbox except through the
+forward you just opened. `access` decides what the platform offers rather than what the Agent may
+do in its own Sandbox: the Agent has `sudo` and could turn the same units on itself. You share the
+Agent's keyboard and pointer, so agree with it about who is driving before you start clicking.
+
+An Agent created from an image older than this feature reports that its image cannot provide VNC
+access; delete it and re-apply to pick up the current image.
 
 Delete the Agent and its Sandbox:
 

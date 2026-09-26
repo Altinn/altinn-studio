@@ -1,0 +1,14 @@
+apiVersion: agents.platform/v1alpha1
+kind: AgentVariant
+extends: agent.nested.yaml
+
+metadata:
+  name: altinn-desktop-nested-build
+
+spec:
+  sandbox:
+    image:
+      type: build
+      context: ..
+      dockerfile: Dockerfile
+      target: desktop
