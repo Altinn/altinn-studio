@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "9766b2fc3ce5",
-    "code": "c848f8d clean",
-    "dataset": "115 items be00f7b53c3b",
+    "code": "2b286b2 clean",
+    "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260925T180628Z-remove-dead-benchmark-code-ba6b",
-  "label": "remove dead benchmark code",
-  "recorded_at": "2026-09-25T18:10:48+00:00",
-  "why": "Removed unused benchmark code"
+  "check_id": "20260926T062830Z-remove-semantic-query-extraction-rerun-83fb",
+  "label": "remove semantic query extraction rerun",
+  "recorded_at": "2026-09-26T06:33:45+00:00",
+  "why": "Removed the unused semantic query extraction and the Planner/query dataset"
 }

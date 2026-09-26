@@ -91,7 +91,7 @@ BEHAVIOR: tuple[tuple[str, str, str], ...] = (
     (
         "agents/services/*",
         "code",
-        "a gate, the semantic query or the client",
+        "a gate or the client that calls the model",
     ),
     (
         "agents/workflows/*",

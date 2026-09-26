@@ -1,4 +1,4 @@
-"""The planner's two remaining call sites: spec extraction and semantic query."""
+"""The planner's remaining call site: spec extraction."""
 
 from __future__ import annotations
 
@@ -101,52 +101,10 @@ def spec_field_count(*, output: Any = None, expected_output: Any = None, **_: An
     ]
 
 
-def query_terms(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """Does the search query carry the terms that would retrieve the right docs."""
-    expected = (expected_output or {}).get("any_of")
-    if not expected:
-        return []
-    text = ((output or {}).get("text") or "").lower()
-    hits = [group for group in expected if any(word.lower() in text for group in [group] for word in group)]
-    return [
-        Evaluation(
-            name="query_terms",
-            value=round(len(hits) / len(expected), 4),
-            data_type="NUMERIC",
-            comment=f"{len(hits)}/{len(expected)} concept(s) named in {text[:56]!r}",
-        )
-    ]
-
-
-def query_is_a_query(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """A search query, not a sentence or an answer."""
-    if not (expected_output or {}).get("any_of"):
-        return []
-    text = ((output or {}).get("text") or "").strip()
-    words = text.split()
-    problems = []
-    if not words:
-        problems.append("empty")
-    if len(words) > 12:
-        problems.append(f"{len(words)} words, expected a short query")
-    if text.endswith((".", "?", "!")) or text.startswith(("I ", "Jeg ", "The user")):
-        problems.append("reads as prose rather than a query")
-    return [
-        Evaluation(
-            name="query_is_a_query",
-            value=0.0 if problems else 1.0,
-            data_type="BOOLEAN",
-            comment="; ".join(problems) if problems else f"{len(words)} terms",
-        )
-    ]
-
-
 ITEM_EVALUATORS = [
     spec_parses,
     spec_label_coverage,
     spec_field_count,
-    query_terms,
-    query_is_a_query,
 ]
 
 
@@ -234,8 +192,6 @@ def _attachments(names: list[str]) -> list[Any]:
 
 
 SCORE_NAMES = (
-    "query_is_a_query",
-    "query_terms",
     "spec_field_count",
     "spec_label_coverage",
     "spec_parses",

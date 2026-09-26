@@ -11,7 +11,6 @@ prompts/
 ├── __init__.py
 ├── intake_planning.md           # System prompts (static)
 ├── spec_extraction.md
-├── semantic_query_extraction.md
 ├── intent_security.md
 ├── goal_suggestions.md
 ├── scope_check.md
@@ -19,8 +18,7 @@ prompts/
 ├── llm-as-a-judge/              # Langfuse-managed evaluator prompts
 └── templates/                   # User prompts (with variables)
     ├── intake_planning_user.md
-    ├── spec_extraction_user.md
-    └── semantic_query_user.md
+    └── spec_extraction_user.md
 ```
 
 ## Format
@@ -115,17 +113,15 @@ code, whether it is a system prompt in `prompts/` or a user template in
 get_prompt_with_langfuse("intake_planning")
 ```
 
-| Local file                          | Langfuse prompt name        |
-| ----------------------------------- | --------------------------- |
-| `intake_planning.md`                | `intake_planning`           |
-| `spec_extraction.md`                | `spec_extraction`           |
-| `semantic_query_extraction.md`      | `semantic_query_extraction` |
-| `intent_security.md`                | `intent_check`              |
-| `goal_suggestions.md`               | `goal_suggestions`          |
-| `scope_check.md`                    | `scope_check`               |
-| `templates/intake_planning_user.md` | `intake_planning_user`      |
-| `templates/spec_extraction_user.md` | `spec_extraction_user`      |
-| `templates/semantic_query_user.md`  | `semantic_query_user`       |
+| Local file                          | Langfuse prompt name   |
+| ----------------------------------- | ---------------------- |
+| `intake_planning.md`                | `intake_planning`      |
+| `spec_extraction.md`                | `spec_extraction`      |
+| `intent_security.md`                | `intent_check`         |
+| `goal_suggestions.md`               | `goal_suggestions`     |
+| `scope_check.md`                    | `scope_check`          |
+| `templates/intake_planning_user.md` | `intake_planning_user` |
+| `templates/spec_extraction_user.md` | `spec_extraction_user` |
 
 `intent_security.md` is the one file whose name differs from the prompt it
 serves. Pass `local_path` when the two diverge, and add the pair to
@@ -184,7 +180,6 @@ The Langfuse SDK caches prompts internally (default 60s TTL).
 
 - `intake_planning.md` - Initial high-level plan from user request
 - `spec_extraction.md` - Extract a structured spec from attachments
-- `semantic_query_extraction.md` - Extract technical concepts for semantic search
 - `intent_security.md` - Security-focused intent parsing
 - `goal_suggestions.md` - Generate clear goal examples from unclear input
 - `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
@@ -193,4 +188,3 @@ The Langfuse SDK caches prompts internally (default 60s TTL).
 
 - `templates/intake_planning_user.md` - User goal → High-level plan
 - `templates/spec_extraction_user.md` - User goal → Structured spec
-- `templates/semantic_query_user.md` - User input → Semantic search query

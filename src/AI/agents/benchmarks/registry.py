@@ -137,20 +137,6 @@ EVALS = (
         ),
     ),
     Eval(
-        name="Planner/query",
-        kind="planner",
-        file="planner_query.jsonl",
-        prompt="semantic_query_extraction",
-        user_template="semantic_query_user",
-        summary=(
-            "Real chat questions from production turned into a search query. The "
-            "retrieval step feeds the query straight into a search, so prose or a "
-            "refusal here silently degrades every answer that depends on it. Scored on "
-            "the concepts named rather than the wording, since any phrasing that names "
-            "them retrieves the same documents."
-        ),
-    ),
-    Eval(
         name="Benchmarks/forms",
         kind="e2e",
         summary=(

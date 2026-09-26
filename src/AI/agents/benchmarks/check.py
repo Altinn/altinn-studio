@@ -99,7 +99,7 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         return (
             task,
             PLANNER_EVALUATORS,
-            ["spec_parses", "spec_label_coverage", "spec_field_count", "query_terms", "query_is_a_query"],
+            ["spec_parses", "spec_label_coverage", "spec_field_count"],
             model,
         )
 
