@@ -409,7 +409,7 @@ const common = {
       .addExample({ label: '', value: '' }),
   IQueryParameters: () =>
     new CG.obj()
-      .additionalProperties(new CG.expr(ExprVal.String))
+      .additionalProperties(new CG.expr(ExprVal.String).setFallback(''))
       .setTitle('Query parameters', 'Spørringsparametere')
       .setDescription(
         'A mapping of query string parameters to values. Will be appended to the URL when fetching options.',
@@ -440,6 +440,7 @@ const common = {
       new CG.prop(
         'label',
         new CG.expr(ExprVal.String)
+          .setFallback('')
           .setTitle('Label', 'Ledetekst')
           .setDescription(
             'A label of the option displayed in Radio- and Checkbox groups. Can be plain text, a text resource binding, or a dynamic expression.',
@@ -538,7 +539,7 @@ const common = {
       new CG.prop(
         'optionFilter',
         new CG.expr(ExprVal.Boolean)
-          .optional()
+          .optional({ default: true })
           .setTitle('Filter options (using an expression)', 'Filtrer alternativer med et uttrykk')
           .setDescription(
             'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
@@ -565,7 +566,7 @@ const common = {
       new CG.prop(
         'colSpan',
         new CG.expr(ExprVal.Number)
-          .optional()
+          .optional({ default: 1 })
           .setTitle('Column span', 'Kolonnespenn')
           .setDescription(
             'Number of columns this cell should span. Defaults to 1 if not set.',
@@ -972,7 +973,7 @@ const common = {
       new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
-          .optional()
+          .optional({ default: 'navigation.form_pages' })
           .setTitle('Navigation title', 'Navigasjonstittel')
           .setDescription(
             'Overrides the default "Skjemasider" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.',
@@ -1134,7 +1135,7 @@ const common = {
 
   PatternFormatProps: () =>
     new CG.obj(
-      new CG.prop('format', new CG.expr(ExprVal.String)),
+      new CG.prop('format', new CG.expr(ExprVal.String).setFallback('')),
       new CG.prop('mask', new CG.union(new CG.str(), new CG.arr(new CG.str())).optional()),
       new CG.prop('allowEmptyFormatting', new CG.bool().optional()),
       new CG.prop('patternChar', new CG.str().optional()),
@@ -1143,9 +1144,9 @@ const common = {
     new CG.obj(
       new CG.prop(
         'thousandSeparator',
-        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional(),
+        new CG.union(new CG.expr(ExprVal.Boolean), new CG.expr(ExprVal.String)).optional({ default: false }),
       ),
-      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional()),
+      new CG.prop('decimalSeparator', new CG.expr(ExprVal.String).optional({ default: '.' })),
       new CG.prop('allowedDecimalSeparators', new CG.arr(new CG.str()).optional()),
       new CG.prop('thousandsGroupStyle', new CG.enum('thousand', 'lakh', 'wan', 'none').optional()),
       new CG.prop('decimalScale', new CG.num().optional()),
@@ -1285,6 +1286,15 @@ export function getSourceForCommon(
   impl.exportAs(key);
   implementationsCache[cacheKey] = impl;
   return impl;
+}
+
+export function getCommonTypeSources() {
+  return Object.keys(common)
+    .sort()
+    .map((key) => ({
+      key,
+      source: getSourceForCommon(key as ValidCommonKeys),
+    }));
 }
 
 export function generateAllCommonTypes(map: { [key: string]: ComponentConfig }) {

@@ -7,6 +7,7 @@ import { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSy
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import { GenerateRaw } from 'src/codegen/dataTypes/GenerateRaw';
 import { GenerateUnion } from 'src/codegen/dataTypes/GenerateUnion';
+import { generateExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import { ExprVal } from 'src/features/expressions/types';
 import type { DescribableCodeGenerator, MaybeOptionalCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CompBehaviors, RequiredComponentConfig } from 'src/codegen/Config';
@@ -179,7 +180,7 @@ export class ComponentConfig {
                 'referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
               'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
             )
-            .optional(),
+            .optional({ default: true }),
         ),
       );
     }
@@ -362,6 +363,14 @@ export class ComponentConfig {
   public generateSerializedType(): string {
     this.beforeFinalizing();
     return `export type Comp${this.typeSymbol}Serialized = ${this.inner.toTypeScriptDefinition(undefined)};`;
+  }
+
+  public generateExpressionDescriptors(): string {
+    this.beforeFinalizing();
+    if (!this.type) {
+      throw new Error('Component type must be set before generating expression descriptors');
+    }
+    return generateExpressionDescriptors(this.type, this.inner);
   }
 
   public generateRuntimeConfigFile(): string {

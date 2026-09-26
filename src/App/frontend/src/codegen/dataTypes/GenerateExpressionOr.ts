@@ -1,9 +1,10 @@
-import type { PropertyValueDefinition } from '@app/layout-contract';
+import type { ExprValToActual, PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { ExprVal } from 'src/features/expressions/types';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 const toTsMap: { [key in ExprVal]: string } = {
   [ExprVal.Any]: 'ExprValToActualOrExpr<ExprVal.Any>',
@@ -25,22 +26,44 @@ const toSchemaMap: { [key in ExprVal]: JSONSchema7 } = {
   [ExprVal.Object]: { $ref: 'expression.schema.v1.json#/definitions/object' },
 };
 
-type TypeMap<Val extends ExprVal> = Val extends ExprVal.Boolean
-  ? boolean
-  : Val extends ExprVal.Number
-    ? number
-    : Val extends ExprVal.String
-      ? string
-      : never;
-
 /**
  * Generates a type that can be either a pure boolean, number, or string, or an expression that evaluates to
  * one of those types. Be sure you implement support for evaluating the expression as well, because adding
  * this type will not automatically add support for evaluating the expression as well.
  */
-export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGenerator<TypeMap<Val>> {
+export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGenerator<ExprValToActual<Val>> {
   constructor(public readonly valueType: Val) {
     super();
+  }
+
+  private expressionFallback?: ExprValToActual<Val>;
+
+  /** Required expressions need a value to return when evaluation fails. */
+  setFallback(value: ExprValToActual<Val>): this {
+    this.ensureMutable();
+    this.expressionFallback = value;
+    return this;
+  }
+
+  getExpressionFallback(): ExprValToActual<Val> | undefined {
+    if (this.internal.optional) {
+      this.assertNoExplicitFallback();
+    }
+    const fallback = this.internal.optional ? this.internal.optional.default : this.expressionFallback;
+    if (!this.internal.optional && fallback === undefined) {
+      throw new Error(`Expression ${this.getName() ?? this.valueType} needs an explicit fallback in its declaration`);
+    }
+    return fallback;
+  }
+
+  assertNoExplicitFallback(): void {
+    if (this.expressionFallback !== undefined) {
+      throw new Error(`Optional expression ${this.getName() ?? this.valueType} cannot have an explicit fallback`);
+    }
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return [{ path: [], returnType: this.valueType, defaultValue: this.getExpressionFallback() }];
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {

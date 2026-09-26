@@ -8,6 +8,7 @@ import { getSourceForCommon, isSerializedCommonType } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
 import type { ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 /**
  * Generates an import statement for a common type (one of those defined in Common.ts).
@@ -67,6 +68,10 @@ export class GenerateCommonImport<T extends ValidCommonKeys>
     }
 
     return [];
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return getSourceForCommon(this.key).expressionDescriptors();
   }
 
   toTypeScript(): string {

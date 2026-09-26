@@ -2,7 +2,9 @@ import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
+import { prefixExpressionDescriptors } from 'src/codegen/ExpressionDescriptors';
 import type { CodeGenerator, Extract } from 'src/codegen/CodeGenerator';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 /**
  * Generates an array with inner items of the given type
@@ -26,6 +28,10 @@ export class GenerateArray<Inner extends CodeGenerator<any>> extends Describable
     this.ensureMutable();
     this._maxItems = maxItems;
     return this;
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return prefixExpressionDescriptors('items', this.innerType.expressionDescriptors());
   }
 
   toTypeScriptDefinition(symbol: string | undefined): string {
