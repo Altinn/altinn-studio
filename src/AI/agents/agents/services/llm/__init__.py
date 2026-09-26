@@ -10,7 +10,6 @@ from .intent_parser import (
 )
 from .llm_client import LLMClient, parse_intent_with_llm, suggest_goals_with_llm
 from .scope_checker import ScopeCheckResult, check_scope_async
-from .semantic_query import extract_semantic_query
 
 __all__ = [
     "GATE_FAILED_ACTION",
@@ -20,7 +19,6 @@ __all__ = [
     "ParsedIntent",
     "ScopeCheckResult",
     "check_scope_async",
-    "extract_semantic_query",
     "parse_intent_async",
     "parse_intent_with_llm",
     "suggest_goal_correction",

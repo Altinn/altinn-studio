@@ -87,19 +87,19 @@ def test_no_em_dashes_anywhere_in_the_manifest():
 
 
 def test_agent_prompt_requires_evidence():
-    behavior = manifest.by_id("query.names-needed-concepts")
+    behavior = manifest.by_id("intake.classifies-the-request")
     with pytest.raises(AssertionError):
         behavior.agent_prompt(())
 
 
 def test_agent_prompt_carries_the_evidence_it_is_given():
-    behavior = manifest.by_id("query.names-needed-concepts")
-    prompt = behavior.agent_prompt(("query-vedlegg fell from 1.0 to 0.5",))
-    assert "query-vedlegg fell from 1.0 to 0.5" in prompt
+    behavior = manifest.by_id("intake.classifies-the-request")
+    prompt = behavior.agent_prompt(("intake-create_form fell from 1.0 to 0.5",))
+    assert "intake-create_form fell from 1.0 to 0.5" in prompt
     assert behavior.fix.acceptance in prompt
     assert behavior.blind in prompt
-    assert manifest.component("query").where in prompt
-    assert "build.references-resolve" in prompt
+    assert manifest.component("intake").where in prompt
+    assert "intake.plan-is-runnable" in prompt
 
 
 def test_agent_prompt_forbids_gaming_the_check():
