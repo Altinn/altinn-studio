@@ -70,6 +70,23 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "signature",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "taskId": "Task_Sign",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 0,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {

@@ -61,6 +61,7 @@ type Levers = {
   attempts?: 1 | 2 | 3 | 5;
   endState?: 'success' | 'failure' | 'failureThenSuccess' | 'waitExpired';
   serviceView?: 'default' | 'layout';
+  next?: 'task2' | 'sign';
   deferrals?: 0 | 1 | 3;
   deferDelayMs?: 2000 | 5000;
 };
@@ -104,6 +105,10 @@ const leverLabels = {
     default: 'Standard venteside',
     layout: 'Egendefinert layout',
   },
+  next: {
+    task2: 'Task 2',
+    sign: 'Signering',
+  },
   deferrals: {
     0: '0 – ingen utsettelser',
     1: '1 utsettelse',
@@ -117,7 +122,7 @@ const leverLabels = {
 
 // path is applied first so it reveals the delayMs/attempts/endState dropdowns (all hidden while path
 // is "none") before we try to fill them.
-function fillLevers({ path, delayMs, attempts, endState, serviceView, deferrals, deferDelayMs }: Levers) {
+function fillLevers({ path, delayMs, attempts, endState, serviceView, next, deferrals, deferDelayMs }: Levers) {
   cy.get('#finishedLoading').should('exist');
   if (path !== undefined) {
     cy.dsSelect('#path', leverLabels.path[path]);
@@ -133,6 +138,9 @@ function fillLevers({ path, delayMs, attempts, endState, serviceView, deferrals,
   }
   if (serviceView !== undefined) {
     cy.dsSelect('#serviceView', leverLabels.serviceView[serviceView]);
+  }
+  if (next !== undefined) {
+    cy.dsSelect('#next', leverLabels.next[next]);
   }
   if (deferrals !== undefined) {
     cy.dsSelect('#deferrals', leverLabels.deferrals[deferrals]);
@@ -563,6 +571,27 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: /Task 2/, timeout: 45000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('processing (post-commit): a session parked on Task_Service follows the process on to a signing task', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    captureInstanceRoot().as('instanceRoot');
+    fillLevers({ path: 'postCommit', delayMs: 15000, next: 'sign' });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then((root) =>
+      cy.visit(`${root}/Task_Service`),
+    );
+    workflowLoader().should('be.visible');
+
+    // Same shape as the Task_2 case above, but the committed task is a signing task. A signing task
+    // renders through its ui folder, so a url still naming Task_Service must resolve Task_Service's
+    // own type while the navigation lands - resolving the current task's raw type instead threw
+    // "Unknown task type: signing" and replaced the whole app with the error page.
+    cy.findByRole('heading', { name: 'Signering', timeout: 45000 }).should('be.visible');
+    cy.findByRole('button', { name: 'Signer' }).should('be.visible');
+    cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
+    cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
   });
 
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {
