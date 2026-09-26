@@ -153,19 +153,19 @@ class TestCancelRacingDelivery:
         """A cancel arriving mid-send must not overtake the event being sent."""
         sink = _sink_with_session()
         cancel_thread: list[threading.Thread] = []
-        original_get_buffer = sink._get_or_create_buffer
+        buffer = sink._developer_buffers[DEVELOPER]
+        original_append = buffer.append
 
-        def cancel_midway(session_id: str):
-            buffer = original_get_buffer(session_id)
+        def cancel_midway(event: AgentEvent):
             if not cancel_thread:
                 thread = threading.Thread(target=sink.cancel_session, args=(SESSION_ID,))
                 cancel_thread.append(thread)
                 thread.start()
                 # Long enough for an unlocked delivery to lose the race.
                 thread.join(timeout=CANCEL_RACE_WINDOW_SECONDS)
-            return buffer
+            original_append(event)
 
-        sink._get_or_create_buffer = cancel_midway
+        buffer.append = cancel_midway
         sink.send(_event("status", message="Skanner repo"))
         cancel_thread[0].join(timeout=CANCEL_COMPLETION_TIMEOUT_SECONDS)
 

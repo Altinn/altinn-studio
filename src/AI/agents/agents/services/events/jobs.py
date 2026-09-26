@@ -18,8 +18,8 @@ log = logging.getLogger(__name__)
 PROGRESS_EVENT_TYPES = frozenset({"status", "assistant_message_chunk", "permission_request", "plan_proposed"})
 
 
-class _SessionBuffer:
-    """Thread-safe event buffer for a single session with async notification."""
+class _EventBuffer:
+    """Thread-safe event buffer for a single developer with async notification."""
 
     def __init__(self):
         self.events: list[AgentEvent] = []
@@ -78,17 +78,15 @@ class EventSink:
     """Central event bus.
 
     Design:
-    - Every event is appended to a per-session buffer (thread-safe).
-    - Every event is also appended to a per-developer buffer so that the
-      WebSocket can stream all events for a developer regardless of which
-      session is currently active.
+    - Every event is appended to the buffer of the developer that owns the
+      session (thread-safe). The WebSocket can then stream all events for a
+      developer regardless of which session is currently active.
     - WebSocket consumers read from the developer buffer at their own pace.
     - No callbacks, no stale references, full reconnection support.
     """
 
     def __init__(self):
-        self._buffers: dict[str, _SessionBuffer] = {}
-        self._developer_buffers: dict[str, _SessionBuffer] = {}
+        self._developer_buffers: dict[str, _EventBuffer] = {}
         self._buf_lock = threading.Lock()
         # Reentrant so a caller can hold it across send()/add_to_conversation_history().
         self._state_lock = threading.RLock()  # Protects _session_status, _cancelled, _conversation_history
@@ -108,8 +106,6 @@ class EventSink:
         """Set the main event loop (called once at startup)."""
         self._main_loop = loop
         with self._buf_lock:
-            for buf in self._buffers.values():
-                buf.set_main_loop(loop)
             for buf in self._developer_buffers.values():
                 buf.set_main_loop(loop)
 
@@ -123,7 +119,7 @@ class EventSink:
         with self._buf_lock:
             self._session_to_developer[session_id] = developer
             if developer not in self._developer_buffers:
-                buf = _SessionBuffer()
+                buf = _EventBuffer()
                 if self._main_loop:
                     buf.set_main_loop(self._main_loop)
                 self._developer_buffers[developer] = buf
@@ -132,7 +128,7 @@ class EventSink:
     # --- event publishing (called from any thread) ----------------------------
 
     def send(self, event: AgentEvent):
-        """Append *event* to the session buffer and the developer buffer. Thread-safe."""
+        """Append *event* to the developer buffer of its session. Thread-safe."""
         log.info(f"📨 EventSink.send: type={event.type}, session={event.session_id}")
 
         # Update session status cache
@@ -159,8 +155,6 @@ class EventSink:
                 }
 
             # A cancel landing after the check would order this event last.
-            self._get_or_create_buffer(event.session_id).append(event)
-
             with self._buf_lock:
                 developer = self._session_to_developer.get(event.session_id)
                 dev_buf = self._developer_buffers.get(developer) if developer else None
@@ -168,23 +162,6 @@ class EventSink:
                 dev_buf.append(event)
 
     # --- event consumption (called from WebSocket handler) --------------------
-
-    def get_events_since(self, session_id: str, index: int) -> list[AgentEvent]:
-        """Return events for *session_id* from *index* onward."""
-        buf = self._buffers.get(session_id)
-        if buf is None:
-            return []
-        return buf.get_events_since(index)
-
-    def event_count(self, session_id: str) -> int:
-        """Return total number of buffered events for *session_id*."""
-        buf = self._buffers.get(session_id)
-        return len(buf) if buf else 0
-
-    async def wait_for_events(self, session_id: str, known_count: int, timeout: float = 30.0) -> bool:
-        """Block (async) until buffer has more than *known_count* events, or timeout."""
-        buf = self._get_or_create_buffer(session_id)
-        return await buf.wait_for_new(known_count, timeout)
 
     def get_developer_events_since(self, developer: str, index: int) -> list[AgentEvent]:
         """Return all events for *developer* from *index* onward."""
@@ -209,14 +186,6 @@ class EventSink:
             return False
         return await buf.wait_for_new(known_count, timeout)
 
-    # --- legacy subscribe (kept for backward compat, now a no-op) -------------
-
-    def subscribe(self, session_id: str, cb):
-        """No-op — kept so existing callers don't break.
-
-        WebSocket delivery is now handled by the buffer-polling model.
-        """
-
     # --- session status -------------------------------------------------------
 
     def get_session_status(self, session_id: str) -> dict[str, Any] | None:
@@ -233,8 +202,6 @@ class EventSink:
                 "status": "running",
                 "started_at": datetime.now(UTC).isoformat(),
             }
-        # Pre-create the buffer so events can be buffered immediately
-        self._get_or_create_buffer(session_id)
 
     # --- cancellation ---------------------------------------------------------
 
@@ -316,22 +283,6 @@ class EventSink:
         """Get the conversation history for a session."""
         with self._state_lock:
             return list(self._conversation_history.get(session_id, []))
-
-    def clear_conversation_history(self, session_id: str):
-        """Clear the conversation history for a session."""
-        with self._state_lock:
-            self._conversation_history.pop(session_id, None)
-
-    # --- internals ------------------------------------------------------------
-
-    def _get_or_create_buffer(self, session_id: str) -> _SessionBuffer:
-        with self._buf_lock:
-            if session_id not in self._buffers:
-                buf = _SessionBuffer()
-                if self._main_loop:
-                    buf.set_main_loop(self._main_loop)
-                self._buffers[session_id] = buf
-            return self._buffers[session_id]
 
 
 sink = EventSink()
