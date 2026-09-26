@@ -1,4 +1,7 @@
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
@@ -110,10 +113,26 @@ internal sealed class InternalizedServiceTypeDetector
         + "replacement. Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
+    private readonly IReadOnlySet<string> _projectGlobalNamespaces;
+    private readonly Lazy<IReadOnlySet<string>> _sourceGlobalNamespaces;
 
-    public InternalizedServiceTypeDetector(CSharpSourceScanner scanner)
+    /// <param name="scanner">The app's C# source.</param>
+    /// <param name="projectGlobalNamespaces">
+    /// Namespaces the project file imports everywhere (implicit usings and <c>&lt;Using Include&gt;</c>
+    /// items), which the syntax-only fallback has to count as imported in every file.
+    /// </param>
+    public InternalizedServiceTypeDetector(
+        CSharpSourceScanner scanner,
+        IReadOnlySet<string>? projectGlobalNamespaces = null
+    )
     {
         _scanner = scanner;
+        _projectGlobalNamespaces = projectGlobalNamespaces ?? new HashSet<string>(StringComparer.Ordinal);
+        _sourceGlobalNamespaces = new Lazy<IReadOnlySet<string>>(() =>
+            _scanner
+                .Files.SelectMany(static file => ImportedNamespaces(file, globalOnly: true))
+                .ToHashSet(StringComparer.Ordinal)
+        );
     }
 
     public MigrationResult Detect()
@@ -129,12 +148,12 @@ internal sealed class InternalizedServiceTypeDetector
         return WarnOnlyDetector.Report(Summary, matches);
     }
 
-    private static IEnumerable<CSharpApiMatch> SyntaxMatches(ScannedCSharpFile file)
+    private IEnumerable<CSharpApiMatch> SyntaxMatches(ScannedCSharpFile file)
     {
-        var importedNamespaces = _types
-            .Values.Select(static type => type.Namespace)
-            .Distinct(StringComparer.Ordinal)
-            .Where(ns => CSharpSyntaxQueries.UsingNamespaces(file, ns).Any())
+        // A `global using` anywhere in the app and the project file's imports reach this file too.
+        var importedNamespaces = ImportedNamespaces(file, globalOnly: false)
+            .Concat(_sourceGlobalNamespaces.Value)
+            .Concat(_projectGlobalNamespaces)
             .ToHashSet(StringComparer.Ordinal);
 
         var importedNames = _types
@@ -142,8 +161,14 @@ internal sealed class InternalizedServiceTypeDetector
             .Select(static pair => pair.Key)
             .ToHashSet(StringComparer.Ordinal);
 
+        // TypeReferences leaves base-list names to TypesImplementing, so both are needed to see a
+        // class that derives from an internalized one as well as one that injects or constructs it.
         IEnumerable<CSharpApiMatch> bareReferences =
-            importedNames.Count == 0 ? [] : CSharpSyntaxQueries.TypeReferences(file, importedNames);
+            importedNames.Count == 0
+                ? []
+                : CSharpSyntaxQueries
+                    .TypesImplementing(file, importedNames)
+                    .Concat(CSharpSyntaxQueries.TypeReferences(file, importedNames));
 
         // A fully qualified reference names the namespace itself, so it is unambiguous without a using.
         var qualifiedReferences = _types
@@ -156,9 +181,40 @@ internal sealed class InternalizedServiceTypeDetector
         return bareReferences.Concat(qualifiedReferences);
     }
 
+    /// <summary>
+    /// The namespaces a file's plain <c>using</c> directives import (aliases and static imports are not
+    /// namespace imports), optionally only the <c>global</c> ones, which apply to every file in the project.
+    /// </summary>
+    private static IEnumerable<string> ImportedNamespaces(ScannedCSharpFile file, bool globalOnly)
+    {
+        foreach (var directive in file.Root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+        {
+            if (directive.Alias is not null || directive.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
+            {
+                continue;
+            }
+
+            if (globalOnly && !directive.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
+            {
+                continue;
+            }
+
+            if (directive.Name?.ToString() is { } name)
+            {
+                yield return name.StartsWith("global::", StringComparison.Ordinal) ? name["global::".Length..] : name;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Appends the interface to inject. A base-list match from <see cref="CSharpSyntaxQueries.TypesImplementing"/>
+    /// is shaped <c>"Derived : Base"</c>, so the internalized name is the part after the colon.
+    /// </summary>
     private static CSharpApiMatch WithReplacement(CSharpApiMatch match)
     {
-        var replacement = _types[match.Symbol].Interface;
+        var separator = match.Symbol.LastIndexOf(" : ", StringComparison.Ordinal);
+        var typeName = separator < 0 ? match.Symbol : match.Symbol[(separator + 3)..];
+        var replacement = _types[typeName].Interface;
         var symbol = replacement is null ? match.Symbol : $"{match.Symbol} (implements {replacement})";
         return match with { Symbol = symbol };
     }

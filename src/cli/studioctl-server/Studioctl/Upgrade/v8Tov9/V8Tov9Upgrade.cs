@@ -873,7 +873,7 @@ internal static class V8Tov9Upgrade
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
                 new RemovedAppResourcesApiDetector(pristineView).Detect(),
-                new InternalizedServiceTypeDetector(pristineView).Detect()
+                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect()
             );
 
             return ReportMigrationResult(

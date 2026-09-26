@@ -2256,6 +2256,55 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void InternalizedServiceTypeDetector_WithoutSemanticModel_SeesGlobalAndProjectImports()
+    {
+        // The importing directive lives in another file (a `global using`) or in the project file, so the
+        // usage file itself has no `using` at all - the fallback still has to treat the names as imported.
+        _app.Write("GlobalUsings.cs", "global using Altinn.App.Core.Implementation;");
+        _app.Write(
+            "logic/Consumer.cs",
+            """
+            public class Consumer
+            {
+                public Consumer(AppResourcesSI resources, AppOptionsService options) { }
+            }
+            """
+        );
+        var projectNamespaces = new HashSet<string>(StringComparer.Ordinal) { "Altinn.App.Core.Features.Options" };
+
+        var result = new InternalizedServiceTypeDetector(Scanner(), projectNamespaces).Detect();
+
+        Assert.Equal(
+            [
+                "logic/Consumer.cs:3: AppOptionsService (implements IAppOptionsService)",
+                "logic/Consumer.cs:3: AppResourcesSI (implements IAppResources)",
+            ],
+            result.Warnings.Where(w => w.Contains("Consumer.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
+    public void InternalizedServiceTypeDetector_WithoutSemanticModel_FlagsAnInternalClassUsedAsBaseType()
+    {
+        _app.Write(
+            "logic/CustomOptions.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class CustomOptions : AppOptionsService
+            {
+            }
+            """
+        );
+
+        var result = new InternalizedServiceTypeDetector(Scanner()).Detect();
+
+        Assert.Equal(
+            ["logic/CustomOptions.cs:2: CustomOptions : AppOptionsService (implements IAppOptionsService)"],
+            result.Warnings.Where(w => w.Contains("CustomOptions.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
     public void InternalizedServiceTypeDetector_WithoutSemanticModel_NeedsTheNamespaceImportedOrSpelledOut()
     {
         // Without a semantic model, a bare `DataClient` in a file that never imports the class's namespace
