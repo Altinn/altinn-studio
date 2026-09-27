@@ -1,12 +1,6 @@
 ﻿{
   Activities: [
     {
-      Name: ApplicationMetadata.Client.Get,
-      IdFormat: W3C,
-      Events: {Scrubbed},
-      HasParent: true
-    },
-    {
       Name: GET {org}/{app}/api/v1/profile/user,
       Kind: Server,
       IdFormat: W3C,
