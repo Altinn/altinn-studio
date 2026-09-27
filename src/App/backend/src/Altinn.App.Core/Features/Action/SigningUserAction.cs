@@ -91,7 +91,7 @@ internal class SigningUserAction : IUserAction
             currentTask.Id
         );
 
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         AltinnSignatureConfiguration signatureConfiguration =
             currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration
             ?? throw new ApplicationConfigException(

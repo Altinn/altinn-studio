@@ -27,41 +27,38 @@ namespace Altinn.App.logic.MetaData
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ApplicationMetadata> GetApplicationMetadata()
+        public ApplicationMetadata ApplicationMetadata
         {
-            var metadata = await _inner.GetApplicationMetadata();
-
-            // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
-            // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
-            // and it seems like process/next will fail if too many PDFs are generated at the same time.
-            var shouldCreatePdf =
-                _httpContextAccessor.HttpContext != null
-                && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
-
-            if (shouldCreatePdf)
+            get
             {
-                return metadata;
+                var metadata = _inner.ApplicationMetadata;
+
+                // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
+                // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
+                // and it seems like process/next will fail if too many PDFs are generated at the same time.
+                var shouldCreatePdf =
+                    _httpContextAccessor.HttpContext != null
+                    && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
+
+                if (shouldCreatePdf)
+                {
+                    return metadata;
+                }
+
+                // The inner service hands out one shared instance, so the per-request change is made on a copy.
+                var filtered = DeepCopy(metadata);
+                foreach (var dt in filtered.DataTypes)
+                {
+                    dt.EnablePdfCreation = false;
+                }
+
+                return filtered;
             }
-
-            // The inner service hands out one cached instance, so the per-request change is made on a copy.
-            var filtered = DeepCopy(metadata);
-            foreach (var dt in filtered.DataTypes)
-            {
-                dt.EnablePdfCreation = false;
-            }
-
-            return filtered;
         }
 
-        public Task<string> GetApplicationXACMLPolicy()
-        {
-            return _inner.GetApplicationXACMLPolicy();
-        }
+        public string XacmlPolicy => _inner.XacmlPolicy;
 
-        public Task<string> GetApplicationBPMNProcess()
-        {
-            return _inner.GetApplicationBPMNProcess();
-        }
+        public string ProcessDefinition => _inner.ProcessDefinition;
 
         private static ApplicationMetadata DeepCopy(ApplicationMetadata metadata)
         {

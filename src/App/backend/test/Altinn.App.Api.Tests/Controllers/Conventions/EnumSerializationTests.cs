@@ -37,8 +37,8 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
 
         _appMetadataMock = new Mock<IAppMetadata>();
         _appMetadataMock
-            .Setup(s => s.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(s => s.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata(id: "ttd/test") { PartyTypesAllowed = new PartyTypesAllowed { Person = true } }
             );
 

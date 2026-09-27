@@ -44,7 +44,7 @@ public sealed class ApplicationIdentifierRegistrationTests : IDisposable
 
         // Resolving the enriched metadata constructs the client, which resolves the identifier, which must not
         // come back through the metadata
-        var metadata = await provider.GetRequiredService<IAppMetadata>().GetApplicationMetadata();
+        var metadata = provider.GetRequiredService<IAppMetadata>().ApplicationMetadata;
 
         Assert.Equal("app", provider.GetRequiredService<AppIdentifier>().App);
         Assert.Equal(["client-of-app"], metadata.ExternalApiIds ?? []);

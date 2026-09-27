@@ -146,7 +146,7 @@ internal sealed class FiksIOClient : IFiksIOClient
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         var fiksIOSettings = _fiksIOSettings.CurrentValue;
-        var appMeta = await _appMetadata.GetApplicationMetadata().WaitAsync(cancellationToken);
+        var appMeta = _appMetadata.ApplicationMetadata;
 
         var apiHostUri = GetUri(fiksIOSettings.ApiHost);
         var amqpHostUri = GetUri(fiksIOSettings.AmqpHost);

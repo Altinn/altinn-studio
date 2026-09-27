@@ -1174,7 +1174,7 @@ public class FormBootstrapServiceTests
             .Setup(x => x.GetLayoutSettingsForFolder(uiFolder))
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
-        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
         _metadataDataClient
             .Setup(x =>
                 x.GetDataBytesWithExpectedBlobVersionId(
@@ -1260,7 +1260,7 @@ public class FormBootstrapServiceTests
             .Setup(x => x.GetLayoutSettingsForFolder(uiFolder))
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
-        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
         _appOptionsFileHandler
             .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
