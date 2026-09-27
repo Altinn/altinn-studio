@@ -131,28 +131,11 @@ class EventSink:
         """Append *event* to the developer buffer of its session. Thread-safe."""
         log.info(f"📨 EventSink.send: type={event.type}, session={event.session_id}")
 
-        # Update session status cache
         with self._state_lock:
             if event.type in PROGRESS_EVENT_TYPES and event.session_id in self._cancelled:
                 log.info(f"🛑 Dropping {event.type} for cancelled session {event.session_id}")
                 return
-            if event.type == "status":
-                started = self._session_started_monotonic.get(event.session_id)
-                if started is not None:
-                    event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
-            if event.type == "assistant_message":
-                event.data.setdefault("eventId", uuid.uuid4().hex)
-                self._session_status.setdefault(event.session_id, {"status": "running"})
-                self._session_status[event.session_id]["last_message"] = event.data
-            elif event.type == "done":
-                existing = self._session_status.get(event.session_id, {})
-                self._session_status[event.session_id] = {
-                    "status": "done",
-                    "success": event.data.get("success", True),
-                    "completed_at": datetime.now(UTC).isoformat(),
-                    "data": event.data,
-                    "last_message": existing.get("last_message"),
-                }
+            self._record(event)
 
             # A cancel landing after the check would order this event last.
             with self._buf_lock:
@@ -160,6 +143,37 @@ class EventSink:
                 dev_buf = self._developer_buffers.get(developer) if developer else None
             if dev_buf is not None:
                 dev_buf.append(event)
+
+    def _record(self, event: AgentEvent):
+        """Stamp *event* and update the session status cache."""
+        match event.type:
+            case "status":
+                self._stamp_elapsed(event)
+                if event.data.get("done"):
+                    self._mark_finished(event, "done")
+            case "assistant_message":
+                event.data.setdefault("eventId", uuid.uuid4().hex)
+                self._session_status.setdefault(event.session_id, {"status": "running"})
+                self._session_status[event.session_id]["last_message"] = event.data
+            case "done":
+                self._mark_finished(event, "done")
+            case "error" if event.data.get("done") and event.session_id not in self._cancelled:
+                self._mark_finished(event, "error")
+
+    def _stamp_elapsed(self, event: AgentEvent):
+        started = self._session_started_monotonic.get(event.session_id)
+        if started is not None:
+            event.data.setdefault("elapsed_ms", int((time.monotonic() - started) * 1000))
+
+    def _mark_finished(self, event: AgentEvent, status: str):
+        existing = self._session_status.get(event.session_id, {})
+        self._session_status[event.session_id] = {
+            "status": status,
+            "success": event.data.get("success", status == "done"),
+            "completed_at": datetime.now(UTC).isoformat(),
+            "data": event.data,
+            "last_message": existing.get("last_message"),
+        }
 
     # --- event consumption (called from WebSocket handler) --------------------
 
