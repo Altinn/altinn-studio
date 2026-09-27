@@ -189,6 +189,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -813,10 +816,33 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Renames the model argument of the IAppResources schema and prefill methods to dataTypeId where a call
+    /// passes it by name.
+    /// </summary>
+    static async Task<int> MigrateAppResourcesParameterNames(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppResources parameter names");
+        try
+        {
+            var result = new AppResourcesParameterNameMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppResources calls pass the model parameter by its old name",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppResources parameter names", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
-    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
+    /// the service classes that are internal in v9 and must be reached through their interfaces.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -846,7 +872,8 @@ internal static class V8Tov9Upgrade
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
-                new RemovedAppResourcesApiDetector(pristineView).Detect()
+                new RemovedAppResourcesApiDetector(pristineView).Detect(),
+                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect()
             );
 
             return ReportMigrationResult(

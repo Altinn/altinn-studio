@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on data in Altinn Platform.
 /// </summary>
-public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
+internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
 {
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger _logger;
