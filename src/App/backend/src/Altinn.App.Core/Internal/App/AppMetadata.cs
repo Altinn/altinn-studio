@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Internal.App;
 /// <summary>
 /// Default implementation of IAppMetadata
 /// </summary>
-public class AppMetadata : IAppMetadata
+internal sealed class AppMetadata : IAppMetadata
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

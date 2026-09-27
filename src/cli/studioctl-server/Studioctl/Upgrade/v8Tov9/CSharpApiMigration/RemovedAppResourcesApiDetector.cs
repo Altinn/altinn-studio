@@ -21,10 +21,6 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// header the way <c>HttpRequest.CreateContentStream()</c> did - porting the call site means deciding
 /// what filename (if any) to pass, so this is reported rather than guessed.
 /// </item>
-/// <item>
-/// The <c>AppResourcesSI</c> class is internal. An app that constructed it, or declared a field or parameter
-/// with the class as its type, has to inject <c>IAppResources</c> instead.
-/// </item>
 /// </list>
 /// <c>GetApplicationXACMLPolicy</c>/<c>GetApplicationBPMNProcess</c> share their exact name and arity
 /// with the still-current <c>IAppMetadata</c> replacement, so telling the removed call from a
@@ -36,7 +32,6 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 internal sealed class RemovedAppResourcesApiDetector
 {
     private const string AppResourcesTypeName = "IAppResources";
-    private const string AppResourcesImplementationTypeName = "AppResourcesSI";
     private const string DataClientTypeName = "IDataClient";
     private const string HttpRequestTypeName = "HttpRequest";
     private const string UpdateBinaryDataMethodName = "UpdateBinaryData";
@@ -56,11 +51,6 @@ internal sealed class RemovedAppResourcesApiDetector
         UpdateBinaryDataMethodName,
     };
 
-    private static readonly IReadOnlySet<string> _internalizedTypeNames = new HashSet<string>(StringComparer.Ordinal)
-    {
-        AppResourcesImplementationTypeName,
-    };
-
     private const string AppResourcesSummary =
         "IAppResources.GetApplication()/GetApplicationXACMLPolicy()/GetApplicationBPMNProcess() are removed "
         + "in v9. Use IAppMetadata.GetApplicationMetadata()/GetApplicationXACMLPolicy()/GetApplicationBPMNProcess() "
@@ -73,11 +63,6 @@ internal sealed class RemovedAppResourcesApiDetector
         + "instead: pass new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), Request.ContentType, a "
         + "filename (the old overload read one from the request's Content-Disposition header - decide whether "
         + "this call site needs one), and Request.Body as the stream. Call sites found:";
-
-    private const string InternalizedTypeSummary =
-        "The AppResourcesSI class is internal in v9. Inject IAppResources instead; code that constructed the "
-        + "class or declared a field or parameter with it as the type must use the interface from the container. "
-        + "Usages found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -111,16 +96,9 @@ internal sealed class RemovedAppResourcesApiDetector
                 : SyntaxUpdateBinaryDataMatches(file)
         );
 
-        var internalizedTypeMatches = _scanner.Files.SelectMany(file =>
-            file.SemanticModel is { } semanticModel
-                ? CSharpSemanticQueries.AltinnTypeReferences(file, semanticModel, _internalizedTypeNames)
-                : CSharpSyntaxQueries.TypeReferences(file, _internalizedTypeNames)
-        );
-
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(AppResourcesSummary, appResourcesMatches),
-            WarnOnlyDetector.Report(UpdateBinaryDataSummary, updateBinaryDataMatches),
-            WarnOnlyDetector.Report(InternalizedTypeSummary, internalizedTypeMatches)
+            WarnOnlyDetector.Report(UpdateBinaryDataSummary, updateBinaryDataMatches)
         );
     }
 

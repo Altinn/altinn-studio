@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// <summary>
 /// Utility class for collecting all the services from DI that are needed to initialize <see cref="LayoutEvaluatorState" />
 /// </summary>
-public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
+internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 {
     // Dependency injection properties (set in ctor)
     private readonly IAppResources _appResources;
