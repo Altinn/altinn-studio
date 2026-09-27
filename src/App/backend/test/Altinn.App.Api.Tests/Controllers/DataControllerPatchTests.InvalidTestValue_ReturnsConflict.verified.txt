@@ -1,6 +1,21 @@
 ﻿{
   Activities: [
     {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ApplicationMetadata.Client.Get,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
       Name: Data.Patch,
       IdFormat: W3C,
       Tags: [

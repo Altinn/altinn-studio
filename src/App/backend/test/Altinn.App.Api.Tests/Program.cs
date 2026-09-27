@@ -37,14 +37,20 @@ using Microsoft.OpenApi;
 // External interfaces like Platform related services, Authentication, Authorization
 // external api's etc. should be mocked.
 
+// WebApplicationFactory passes the content root a test selects with UseContentRoot as a command line argument.
+// Its own guess (the solution folder plus the project name) does not exist, so only an existing folder is used.
+string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
+        ContentRootPath = Directory.Exists(contentRootFromArgs) ? contentRootFromArgs : null,
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",
     }
 );
+
 builder.WebHost.UseDefaultServiceProvider(
     (context, options) =>
     {
@@ -79,8 +85,6 @@ foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variab
 {
     builder.Configuration[key] = value;
 }
-
-// AppConfigurationCache.Disable = true;
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
@@ -117,7 +121,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<DataClientMock>();
     services.AddTransient<IDataClientWithStorageMetadata>(sp =>
