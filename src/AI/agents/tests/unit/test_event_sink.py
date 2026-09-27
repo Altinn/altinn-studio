@@ -224,6 +224,41 @@ class TestSessionStatus:
 
         assert _session_status(sink)["status"] == "running"
 
+    def test_progress_status_leaves_the_session_running(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", message="Skanner repo"))
+
+        assert _session_status(sink)["status"] == "running"
+
+    def test_terminal_status_marks_the_session_as_done(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.deliver_unless_cancelled(
+            SESSION_ID,
+            [
+                _event("assistant_message", content="Utenfor det jeg kan hjelpe med"),
+                _event("status", done=True, success=True, status="completed"),
+            ],
+        )
+
+        status = _session_status(sink)
+        assert status["status"] == "done"
+        assert status["success"] is True
+        assert status["last_message"]["content"] == "Utenfor det jeg kan hjelpe med"
+
+    def test_failed_terminal_status_marks_the_session_as_done_without_success(self):
+        sink = _sink_with_session()
+        sink.mark_session_started(SESSION_ID)
+
+        sink.send(_event("status", done=True, success=False, status="failed"))
+
+        status = _session_status(sink)
+        assert status["status"] == "done"
+        assert status["success"] is False
+
     def test_cancelled_session_keeps_the_cancelled_status(self):
         sink = _sink_with_session()
         sink.mark_session_started(SESSION_ID)
