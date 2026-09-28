@@ -7,8 +7,8 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Api.Infrastructure.RateLimiting;
 
 /// <summary>
-/// Limits how many PDF previews can be generated for an instance per minute, since each one renders the instance
-/// in the PDF generator.
+/// Limits how many PDF previews the app generates across all instances, since each one renders an instance in the
+/// PDF generator. See <see cref="PdfGeneratorSettings.PreviewRateLimit"/>.
 /// </summary>
 internal sealed class PdfPreviewRateLimiterPolicy(IOptions<PdfGeneratorSettings> settings) : IRateLimiterPolicy<string>
 {
@@ -29,16 +29,21 @@ internal sealed class PdfPreviewRateLimiterPolicy(IOptions<PdfGeneratorSettings>
 
     public RateLimitPartition<string> GetPartition(HttpContext httpContext)
     {
-        string instanceGuid = httpContext.Request.RouteValues["instanceGuid"]?.ToString() ?? string.Empty;
-        int permitLimit = settings.Value.PreviewRequestsPerMinute;
-        if (permitLimit <= 0)
+        PdfPreviewRateLimitSettings limit = settings.Value.PreviewRateLimit;
+        if (limit.PermitLimit <= 0)
         {
-            return RateLimitPartition.GetNoLimiter(instanceGuid);
+            return RateLimitPartition.GetNoLimiter(Name);
         }
 
+        // A single partition, so previews of all instances share the limit
         return RateLimitPartition.GetFixedWindowLimiter(
-            instanceGuid,
-            _ => new FixedWindowRateLimiterOptions { PermitLimit = permitLimit, Window = TimeSpan.FromMinutes(1) }
+            Name,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = limit.PermitLimit,
+                Window = limit.Window,
+                QueueLimit = limit.QueueLimit,
+            }
         );
     }
 }
