@@ -41,7 +41,7 @@ describe('SelectDataTypes', () => {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+    await user.click(await findOption(dataTypeToConnect));
 
     await waitFor(() =>
       expect(mutateDataTypesMock).toHaveBeenCalledWith({
@@ -85,8 +85,7 @@ describe('SelectDataTypes', () => {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.clear(suggestionInput);
-    await user.type(suggestionInput, `${dataTypeToConnect}{Enter}`);
+    await user.click(await findOption(dataTypeToConnect));
 
     await waitFor(() =>
       expect(mutateDataTypesMock).toHaveBeenCalledWith({
@@ -134,8 +133,7 @@ describe('SelectDataTypes', () => {
       name: textMock('process_editor.configuration_panel_set_data_model_label'),
     });
     await user.click(suggestionInput);
-    await user.clear(suggestionInput);
-    await user.type(suggestionInput, `${existingDataType}{Enter}`);
+    await user.click(await findOption(existingDataType));
 
     expect(mutateDataTypesMock).not.toHaveBeenCalled();
   });
@@ -174,6 +172,8 @@ describe('SelectDataTypes', () => {
     expect(description).toBeInTheDocument();
   });
 });
+
+const findOption = (name: string) => screen.findByRole('option', { name, hidden: true });
 
 const renderSelectDataTypes = (
   props: Partial<SelectDataTypesProps> = {},
