@@ -2065,15 +2065,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-theme@npm:1.11.0":
-  version: 1.11.0
-  resolution: "@digdir/designsystemet-theme@npm:1.11.0"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:^1.11.0"
-  checksum: 10/a7e6d2ce36cd358d97424388e0c1b32e03d300a1b169a7b0b236d100b406df09e6cd09111efa8615b838ce85b7dcb06fe332ade63f7ce9c7fe8b024bf47c6b4a
-  languageName: node
-  linkType: hard
-
 "@digdir/designsystemet-types@npm:1.21.0":
   version: 1.21.0
   resolution: "@digdir/designsystemet-types@npm:1.21.0"
@@ -2085,13 +2076,6 @@ __metadata:
   version: 1.23.0
   resolution: "@digdir/designsystemet-types@npm:1.23.0"
   checksum: 10/3805a00e1e9ecdd9d0774d8ee1070015fab636d732dcc64ab05463778468e84da015f3c4c44bf191b45a368e78617335323960560b67da55f2ee8bd912fd6207
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-types@npm:^1.11.0":
-  version: 1.13.2
-  resolution: "@digdir/designsystemet-types@npm:1.13.2"
-  checksum: 10/9277d3d84bb146aa79ffa6eeab8388b389c9cdb5a896702033ad42eb3065a1370fa2c7f884186fdb513b26a62060250c4e8f13bc3daf3fd89cc71910599ba997
   languageName: node
   linkType: hard
 
@@ -5885,7 +5869,6 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.1"
     "@digdir/designsystemet-css": "npm:1.23.0"
     "@digdir/designsystemet-react": "npm:1.23.0"
-    "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:10.5.7"
     "@storybook/addon-links": "npm:10.5.7"
     "@storybook/builder-vite": "npm:10.5.7"

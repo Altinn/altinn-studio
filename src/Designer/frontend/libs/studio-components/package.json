@@ -13,7 +13,6 @@
   "dependencies": {
     "@digdir/designsystemet-css": "1.23.0",
     "@digdir/designsystemet-react": "1.23.0",
-    "@digdir/designsystemet-theme": "1.11.0",
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
