@@ -2,6 +2,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -12,16 +13,19 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
+using IAppMetadata = Altinn.App.Core.Internal.App.IAppMetadata;
 using IAppResources = Altinn.App.Core.Internal.App.IAppResources;
 
 namespace Altinn.App.Api.Tests.Controllers;
@@ -43,6 +47,10 @@ public class PdfControllerTests
     private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IProcessReader> _processReader = new();
+    private readonly Mock<IAppMetadata> _appMetadata = new();
+    private readonly Mock<IInstanceClientWithStorageMetadata> _instanceClientWithStorageMetadata;
+    private readonly Mock<IDataClientWithStorageMetadata> _dataClientWithStorageMetadata;
+    private readonly Mock<IInstanceMutationClient> _mutationClient;
 
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -53,8 +61,25 @@ public class PdfControllerTests
     private readonly Mock<ILogger<PdfService>> _logger = new();
     private readonly Mock<ITranslationService> _translationService = new();
 
+    private Instance _instance =>
+        new()
+        {
+            Org = _org,
+            AppId = $"{_org}/{_app}",
+            Id = $"{_partyId}/{_instanceId}",
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = _taskId } },
+            Data =
+            [
+                new DataElement() { Id = ModelDataElementId, DataType = "model" },
+                new DataElement() { Id = SubformDataElementId, DataType = "subform-model" },
+            ],
+        };
+
     public PdfControllerTests()
     {
+        _instanceClientWithStorageMetadata = _instanceClient.As<IInstanceClientWithStorageMetadata>();
+        _dataClientWithStorageMetadata = _dataClient.As<IDataClientWithStorageMetadata>();
+        _mutationClient = _dataClient.As<IInstanceMutationClient>();
         _instanceClient
             .Setup(a =>
                 a.GetInstance(
@@ -66,22 +91,20 @@ public class PdfControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Returns(
-                Task.FromResult(
-                    new Instance()
-                    {
-                        Org = _org,
-                        AppId = $"{_org}/{_app}",
-                        Id = $"{_partyId}/{_instanceId}",
-                        Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = _taskId } },
-                        Data =
-                        [
-                            new DataElement() { Id = ModelDataElementId, DataType = "model" },
-                            new DataElement() { Id = SubformDataElementId, DataType = "subform-model" },
-                        ],
-                    }
+            .ReturnsAsync(() => _instance);
+        _instanceClientWithStorageMetadata
+            .Setup(a =>
+                a.GetInstanceWithStorageMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
                 )
-            );
+            )
+            .ReturnsAsync(() => new InstanceWithStorageMetadata(_instance, StorageVersionMetadata.Empty));
+        _appMetadata.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata($"{_org}/{_app}"));
 
         _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
     }
@@ -103,6 +126,32 @@ public class PdfControllerTests
             _appResources.Object
         );
         return pdfService;
+    }
+
+    private PdfController NewPdfController(IPdfService pdfService)
+    {
+        var services = new ServiceCollection();
+        services.AddTransient<ModelSerializationService>();
+        services.AddTransient<InstanceDataUnitOfWorkInitializer>();
+        services.AddSingleton(Options.Create(new FrontEndSettings()));
+        services.AddSingleton(_instanceClientWithStorageMetadata.Object);
+        services.AddSingleton(_dataClientWithStorageMetadata.Object);
+        services.AddSingleton(_mutationClient.Object);
+        services.AddSingleton(_appMetadata.Object);
+        services.AddSingleton(_translationService.Object);
+        services.AddSingleton(_appResources.Object);
+        services.AddSingleton(_appModel.Object);
+
+        return new PdfController(
+            _instanceClient.Object,
+            _pdfFormatter.Object,
+            _appResources.Object,
+            _appModel.Object,
+            _dataClient.Object,
+            pdfService,
+            _processReader.Object,
+            services.BuildServiceProvider()
+        );
     }
 
     [Fact]
@@ -129,15 +178,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService,
-            _processReader.Object
-        );
+        var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
         using (
@@ -198,15 +239,7 @@ public class PdfControllerTests
             authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            pdfService,
-            _processReader.Object
-        );
+        var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
         using (
@@ -293,6 +326,24 @@ public class PdfControllerTests
             );
     }
 
+    [Fact]
+    public async Task Request_For_Subform_Pdf_Service_Task_Should_Only_Render_The_Subform()
+    {
+        // Like the service task, a subform PDF task renders its subform, even if the task has a PDF configuration too
+        SetupSubformPdfTask(autoPdfTaskIds: ["Task_1"]);
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: "Task_SubformPdf",
+            dataElementId: new Guid(SubformDataElementId)
+        );
+
+        result.Should().BeOfType<FileStreamResult>();
+        requestBody
+            .Should()
+            .Contain($"/Task_SubformPdf/subform/subform-component/{SubformDataElementId}/?pdf=1")
+            .And.NotContain("task=Task_1");
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData(ModelDataElementId)]
@@ -340,7 +391,7 @@ public class PdfControllerTests
         requestBody.Should().BeNull();
     }
 
-    private void SetupSubformPdfTask()
+    private void SetupSubformPdfTask(List<string>? autoPdfTaskIds = null)
     {
         _processReader
             .Setup(x => x.GetFlowElement("Task_SubformPdf"))
@@ -353,6 +404,9 @@ public class PdfControllerTests
                         TaskExtension = new()
                         {
                             TaskType = "subformPdf",
+                            PdfConfiguration = autoPdfTaskIds is null
+                                ? null
+                                : new() { AutoPdfTaskIds = autoPdfTaskIds },
                             SubformPdfConfiguration = new()
                             {
                                 SubformComponentId = "subform-component",
@@ -384,14 +438,8 @@ public class PdfControllerTests
             _platformSettingsOptions,
             BuildAuthenticationTokenResolver().Object
         );
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions),
-            _processReader.Object
+        var pdfController = NewPdfController(
+            NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions)
         );
 
         string? requestBody = null;

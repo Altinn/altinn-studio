@@ -8,11 +8,13 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -31,6 +33,8 @@ public class PdfController : ControllerBase
     private readonly IDataClient _dataClient;
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -42,6 +46,7 @@ public class PdfController : ControllerBase
     /// <param name="dataClient">The data client</param>
     /// <param name="pdfService">The PDF service</param>
     /// <param name="processReader">The process reader</param>
+    /// <param name="serviceProvider">The service provider, for the app library's internal services</param>
     public PdfController(
         IInstanceClient instanceClient,
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -50,7 +55,8 @@ public class PdfController : ControllerBase
         IAppModel appModel,
         IDataClient dataClient,
         IPdfService pdfService,
-        IProcessReader processReader
+        IProcessReader processReader,
+        IServiceProvider serviceProvider
     )
     {
         _instanceClient = instanceClient;
@@ -60,6 +66,8 @@ public class PdfController : ControllerBase
         _dataClient = dataClient;
         _pdfService = pdfService;
         _processReader = processReader;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <summary>
@@ -88,16 +96,18 @@ public class PdfController : ControllerBase
     )
     {
         CancellationToken cancellationToken = HttpContext?.RequestAborted ?? CancellationToken.None;
-        var instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            cancellationToken
-        );
+        InstanceWithStorageMetadata fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                cancellationToken
+            );
+        Instance instance = fetchedInstance.Instance;
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
-        if (instance == null || currentTaskId == null)
+        if (currentTaskId == null)
         {
             return NotFound("Did not find instance or task");
         }
@@ -105,11 +115,9 @@ public class PdfController : ControllerBase
         if (taskId is null)
         {
             Stream pdfContent = await _pdfService.GeneratePreviewPdf(
-                instance,
+                await InitDataAccessor(fetchedInstance, currentTaskId),
                 currentTaskId,
-                autoGeneratePdfForTaskIds: null,
-                subformPdfContext: null,
-                cancellationToken
+                cancellationToken: cancellationToken
             );
             return new FileStreamResult(pdfContent, "application/pdf");
         }
@@ -121,37 +129,58 @@ public class PdfController : ControllerBase
 
         // Render the task the same way its PDF service task would
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
-        if (taskExtension?.TaskType is not ("pdf" or "subformPdf"))
+        if (taskExtension?.TaskType == "pdf")
+        {
+            Stream pdfPreview = await _pdfService.GeneratePreviewPdf(
+                await InitDataAccessor(fetchedInstance, taskId),
+                taskId,
+                taskExtension.PdfConfiguration?.AutoPdfTaskIds,
+                cancellationToken
+            );
+            return new FileStreamResult(pdfPreview, "application/pdf");
+        }
+
+        if (taskExtension?.TaskType != "subformPdf")
         {
             return BadRequest("taskId must identify a PDF or subform PDF service task");
         }
 
-        List<string>? autoGeneratePdfForTaskIds = taskExtension?.PdfConfiguration?.AutoPdfTaskIds;
-        SubformPdfContext? subformPdfContext = null;
-        if (taskExtension?.SubformPdfConfiguration is { } subformPdfConfiguration)
+        // Like the service task, only render a subform of the configured data type
+        ValidAltinnSubformPdfConfiguration subformConfig = (
+            taskExtension.SubformPdfConfiguration
+            ?? throw new ApplicationConfigException(
+                "The subformPdfConfig node is missing in the subform pdf process task configuration."
+            )
+        ).Validate();
+        string? subformId = dataElementId?.ToString();
+        DataElement? subform = instance.Data.Find(element => element.Id == subformId);
+        if (subform is null || subform.DataType != subformConfig.SubformDataTypeId)
         {
-            // Like the service task, only render a subform of the configured data type
-            ValidAltinnSubformPdfConfiguration subformConfig = subformPdfConfiguration.Validate();
-            string? subformId = dataElementId?.ToString();
-            DataElement? subform = instance.Data.Find(element => element.Id == subformId);
-            if (subform is null || subform.DataType != subformConfig.SubformDataTypeId)
-            {
-                return BadRequest(
-                    $"dataElementId must be the id of a data element of type {subformConfig.SubformDataTypeId}"
-                );
-            }
-
-            subformPdfContext = new SubformPdfContext(subformConfig.SubformComponentId, subform.Id);
+            return BadRequest(
+                $"dataElementId must be the id of a data element of type {subformConfig.SubformDataTypeId}"
+            );
         }
 
-        Stream previewContent = await _pdfService.GeneratePreviewPdf(
-            instance,
+        Stream subformPreview = await _pdfService.GenerateSubformPreviewPdf(
+            await InitDataAccessor(fetchedInstance, taskId),
             taskId,
-            autoGeneratePdfForTaskIds,
-            subformPdfContext,
+            new SubformPdfContext(subformConfig.SubformComponentId, subform.Id),
             cancellationToken
         );
-        return new FileStreamResult(previewContent, "application/pdf");
+        return new FileStreamResult(subformPreview, "application/pdf");
+    }
+
+    private async Task<IInstanceDataAccessor> InitDataAccessor(
+        InstanceWithStorageMetadata fetchedInstance,
+        string taskId
+    )
+    {
+        return await _instanceDataUnitOfWorkInitializer.Init(
+            fetchedInstance.Instance,
+            fetchedInstance.Metadata,
+            taskId,
+            language: null
+        );
     }
 
     /// <summary>

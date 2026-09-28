@@ -146,6 +146,39 @@ internal sealed class PdfService : IPdfService
 
     /// <inheritdoc/>
     public async Task<Stream> GeneratePreviewPdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        List<string>? autoGeneratePdfForTaskIds = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await GeneratePreviewPdfInternal(
+            dataAccessor.Instance,
+            taskId,
+            autoGeneratePdfForTaskIds,
+            subformPdfContext: null,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc/>
+    public async Task<Stream> GenerateSubformPreviewPdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        SubformPdfContext subformPdfContext,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await GeneratePreviewPdfInternal(
+            dataAccessor.Instance,
+            taskId,
+            autoGeneratePdfForTaskIds: null,
+            subformPdfContext,
+            cancellationToken
+        );
+    }
+
+    private async Task<Stream> GeneratePreviewPdfInternal(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds,

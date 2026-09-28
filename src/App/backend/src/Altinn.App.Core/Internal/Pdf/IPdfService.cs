@@ -62,19 +62,32 @@ public interface IPdfService
     );
 
     /// <summary>
-    /// Generate a preview PDF of a task in the instance's process, marked as a preview in its footer. The task does not
-    /// have to be the current task, so a PDF service task can be previewed before the instance reaches it.
+    /// Generate a preview of the PDF a task produces, marked as a preview in its footer. The task does not have to be
+    /// the current task, so a PDF service task can be previewed before the instance reaches it.
     /// </summary>
-    /// <param name="instance">The instance details.</param>
-    /// <param name="taskId">The task to preview, such as the current task.</param>
+    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
+    /// <param name="taskId">The task to preview, such as the current task or a PDF service task.</param>
     /// <param name="autoGeneratePdfForTaskIds">The tasks to auto-generate the PDF from, as configured on a PDF service task.</param>
-    /// <param name="subformPdfContext">The subform to preview, when previewing a subform PDF service task.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GeneratePreviewPdf(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
-        List<string>? autoGeneratePdfForTaskIds,
-        SubformPdfContext? subformPdfContext,
-        CancellationToken cancellationToken
+        List<string>? autoGeneratePdfForTaskIds = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Generate a preview of the PDF a subform PDF service task produces for one subform, marked as a preview in its
+    /// footer. The instance does not have to have reached the task.
+    /// </summary>
+    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
+    /// <param name="taskId">The subform PDF service task to preview.</param>
+    /// <param name="subformPdfContext">The subform to preview.</param>
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
+    Task<Stream> GenerateSubformPreviewPdf(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        SubformPdfContext subformPdfContext,
+        CancellationToken cancellationToken = default
     );
 }
