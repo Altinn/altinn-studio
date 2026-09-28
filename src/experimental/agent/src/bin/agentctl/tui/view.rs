@@ -8,10 +8,11 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP, HELP_HINTS, HelpSection, Hint,
-    Modal, MouseAction, NEW_SESSION_HINTS, PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SELECTION_HINTS,
-    SessionField, Tone, TreeRowId, View, harness_label,
+    App, CONFIRM_DELETE_HINTS, CONFIRM_SSH_SETUP_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP,
+    HELP_HINTS, HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS, PORT_FORWARD_HINTS,
+    Row as TreeRow, RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View, harness_label,
 };
+use super::open::{MenuEntry, OpenMenu, OpenTarget};
 
 /// Background of the selected row; without color it is drawn reversed instead.
 const SELECTION: Color = Color::Rgb(52, 58, 70);
@@ -259,6 +260,12 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     }
     if app.discovering {
         spans.push(Span::styled(" · scanning manifests…", Style::new().fg(Color::Cyan)));
+    }
+    if let Some((agent, target)) = app.opening.first() {
+        spans.push(Span::styled(
+            format!(" · opening {} on {agent}…", target.label()),
+            Style::new().fg(Color::Cyan),
+        ));
     }
     frame.render_widget(Line::from(spans), area);
 }
@@ -802,9 +809,98 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::CreateAgent(form) => render_create_agent(frame, area, form, hit_map),
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
         Modal::Help => render_help(frame, area, hit_map),
+        Modal::Open(menu) => render_open(frame, area, menu, hit_map),
+        Modal::ConfirmSshSetup { include, then, .. } => {
+            render_confirm_ssh_setup(frame, area, include, *then, hit_map);
+        }
         // Typed in the footer, so the tree and the Session's turns stay in view.
         Modal::Filter | Modal::Prompt(_) => {}
     }
+}
+
+/// The ways into one Agent, one per row; an unavailable one shows why instead of its key.
+fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut HitMap) {
+    let title = format!(" open {} ", menu.agent);
+    let width = usize::from(FORM_WIDTH.saturating_sub(4));
+    let mut form = Form::new(&title, Color::Cyan, &OPEN_HINTS);
+    for (index, item) in menu.items.iter().enumerate() {
+        let label = item.entry.label();
+        if item.unavailable.is_some() {
+            form = form.row(note_line(&format!("  {label}")));
+            continue;
+        }
+        let selected = index == menu.selected;
+        let marker = if selected { "▸ " } else { "  " };
+        let key = item.entry.key().map_or_else(String::new, |key| key.to_string());
+        let fill = width.saturating_sub(2 + Line::from(label.as_str()).width() + key.len() + 1);
+        let style = if selected {
+            Style::new().fg(Color::Cyan)
+        } else {
+            Style::new()
+        };
+        form = form.row(Line::from(vec![
+            Span::styled(marker, Style::new().fg(Color::Cyan)),
+            Span::styled(label, style),
+            Span::raw(" ".repeat(fill)),
+            Span::styled(key, Style::new().fg(Color::Cyan)),
+        ]));
+    }
+    // Below the rows, where there is room to read them: each reason once, wrapped.
+    for (labels, reason) in menu.unavailable_reasons() {
+        form = form.row(Line::default());
+        for row in wrap(&format!("{}: {reason}", labels.join(", ")), width) {
+            form = form.row(note_line(&row));
+        }
+    }
+    if menu.items.iter().any(|item| item.entry == MenuEntry::SetUpSsh) {
+        form = form
+            .row(Line::default())
+            .row(Line::from(Span::styled(
+                "Editors need a line in ~/.ssh/config;",
+                Style::new().fg(Color::Yellow),
+            )))
+            .row(Line::from(Span::styled(
+                "you are asked before it is added.",
+                Style::new().fg(Color::Yellow),
+            )));
+    }
+    let target = form.render(frame, area, FORM_WIDTH, hit_map);
+    for (index, item) in menu.items.iter().enumerate() {
+        if item.unavailable.is_none() {
+            hit_map.click(
+                line_area(target, index),
+                HitTarget::Action(MouseAction::ChooseOpen(index)),
+            );
+        }
+    }
+}
+
+/// Shows the exact line SSH setup adds, and where, before anything is written.
+fn render_confirm_ssh_setup(
+    frame: &mut Frame,
+    area: Rect,
+    include: &agent::ssh::UserInclude,
+    then: Option<OpenTarget>,
+    hit_map: &mut HitMap,
+) {
+    let file = abbreviate_home(&include.user_config.display().to_string());
+    let mut form = Form::new(" set up SSH ", Color::Cyan, &CONFIRM_SSH_SETUP_HINTS)
+        .row(Line::from("Editors reach Agents through your OpenSSH config."))
+        .row(Line::from(format!("Add this line at the top of {file}?")))
+        .row(Line::default())
+        .row(Line::from(Span::styled(
+            format!("  {}", include.line),
+            Style::new().fg(Color::Cyan),
+        )))
+        .row(Line::default())
+        .row(note_line("Existing lines are kept. It is added once for every"))
+        .row(note_line("Agent, and new Agents need nothing more."));
+    if let Some(target) = then {
+        form = form
+            .row(Line::default())
+            .row(Line::from(format!("Then: {}.", target.label())));
+    }
+    form.render(frame, area, FORM_WIDTH, hit_map);
 }
 
 /// Every key, grouped by where it applies, in two columns over the current view.
@@ -1381,7 +1477,7 @@ mod tests {
         assert_eq!(
             footer(&terminal),
             [
-                "enter attach · p prompt · a archive · d delete · s describe · y yaml",
+                "enter attach · p prompt · o open… · a archive · d delete · s describe · y yaml",
                 "n new session · c new agent",
                 "? help · tab needs you · / filter · A show archived · F forwards · q quit",
             ]
@@ -1401,8 +1497,8 @@ mod tests {
         assert_eq!(
             footer(&terminal),
             [
-                "enter fold · n new session · e exec · f forward · d delete · p provisioning",
-                "s describe · y yaml · z all · c new agent",
+                "enter fold · n new session · o open… · e exec · f forward · d delete",
+                "p provisioning · s describe · y yaml · z all · c new agent",
                 "? help · tab needs you · / filter · A hide archived · F forwards · q quit",
             ]
         );
@@ -1423,8 +1519,8 @@ mod tests {
         draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
         let lines = text.lines().rev().take(3).map(str::trim_end).collect::<Vec<_>>();
-        assert_eq!(lines[2], "enter fold · n new session · e exec");
-        assert_eq!(lines[1], "f forward · d delete · …");
+        assert_eq!(lines[2], "enter fold · n new session · o open…");
+        assert_eq!(lines[1], "e exec · f forward · d delete · …");
         assert!(lines.iter().all(|line| line.chars().count() <= 40));
     }
 
@@ -2202,5 +2298,85 @@ mod tests {
         );
         assert_eq!(abbreviate("/srv/code", None), "/srv/code");
         assert_eq!(abbreviate("/srv/code", Some("")), "/srv/code");
+    }
+
+    fn ssh_menu_app(setup: super::super::open::SshSetup) -> App {
+        let mut app = tree_app(1);
+        let mut agents = std::mem::take(&mut app.agents);
+        agents[0].spec.access = vec![agent::AccessSpec::Ssh {}];
+        app.apply_snapshot(agents, Vec::new());
+        app.ssh_setup = setup;
+        app.ssh_include = Some(agent::ssh::UserInclude {
+            user_config: "/tmp/user/.ssh/config".into(),
+            line: "Include ~/.agent/ssh/config".into(),
+        });
+        app.selection = Some(TreeRowId::Agent("agent-00".into()));
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('o'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        app
+    }
+
+    #[test]
+    fn the_open_menu_lists_keys_reasons_and_the_setup_note() {
+        let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
+        let mut terminal = Terminal::new(TestBackend::new(80, 20)).expect("test terminal");
+        let hit_map = draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains(" open agent-00 "), "{text}");
+        let shell = text
+            .lines()
+            .find(|line| line.contains("Shell in the Sandbox"))
+            .expect("shell row");
+        assert!(
+            shell.contains("▸") && shell.trim_end().trim_end_matches('│').trim_end().ends_with('e'),
+            "{shell}"
+        );
+        assert!(text.contains("Zed: not found on PATH (zed, zeditor)"), "{text}");
+        assert!(text.contains("Set up SSH for editors"), "{text}");
+        assert!(text.contains("Editors need a line in ~/.ssh/config;"), "{text}");
+        assert!(
+            text.lines().skip(1).all(|line| !line.contains("agentctl ")),
+            "below the title, the menu offers keys, not commands:\n{text}"
+        );
+
+        let (row, _) = text
+            .lines()
+            .enumerate()
+            .find(|(_, line)| line.contains("SSH shell"))
+            .expect("SSH shell row");
+        let column = u16::try_from(text.lines().nth(row).expect("row").find("SSH").expect("label")).expect("column");
+        let target = hit_map.click_at(column, u16::try_from(row).expect("row"));
+        assert!(
+            matches!(target, Some(HitTarget::Action(MouseAction::ChooseOpen(_)))),
+            "{target:?}"
+        );
+        let Some(HitTarget::Action(action)) = target else {
+            unreachable!()
+        };
+        assert!(matches!(app.on_mouse(action), super::super::app::Action::Open { .. }));
+    }
+
+    #[test]
+    fn ssh_setup_shows_the_exact_line_and_file_before_writing() {
+        let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('c'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(80, 20)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains(" set up SSH "), "{text}");
+        assert!(
+            text.contains("Add this line at the top of /tmp/user/.ssh/config?"),
+            "{text}"
+        );
+        assert!(text.contains("  Include ~/.agent/ssh/config"), "{text}");
+        assert!(text.contains("Then: VS Code, Remote-SSH."), "{text}");
+        assert!(text.contains("enter add · esc back"), "{text}");
     }
 }
