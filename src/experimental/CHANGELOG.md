@@ -12,6 +12,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.7] - 2026-09-28
+
 ### Added
 
 - `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
