@@ -18,6 +18,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` reports code that injects `IFeatureManager` or calls `AddFeatureManagement()`, which the v9 app libraries no longer register, reads of the removed `AppSettings.AppBasePath` and folder settings, and references to the `FrontendFeatures` and `Altinn.App.Core.Internal.Language.ApplicationLanguage` classes, which are internal in v9 as well, with what to use instead.
 - `studioctl app upgrade v9` points out `AppSettings` keys in the appsettings files that v9 no longer reads, and app files and folders whose names differ only in case from the names v9 reads, since v9 matches names case-sensitively on every operating system.
 
+### Fixed
+
+- `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
+
 ## [0.1.0-preview.27] - 2026-09-23
 
 ### Added
