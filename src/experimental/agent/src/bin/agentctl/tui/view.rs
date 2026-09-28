@@ -12,7 +12,7 @@ use super::app::{
     HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS, PORT_FORWARD_HINTS, Row as TreeRow,
     RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View, harness_label,
 };
-use super::open::{MenuEntry, OpenMenu, OpenTarget};
+use super::open::{MenuEntry, OpenMenu, OpenTarget, WhenReady};
 
 /// Background of the selected row; without color it is drawn reversed instead.
 const SELECTION: Color = Color::Rgb(52, 58, 70);
@@ -546,7 +546,21 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
 fn render_detail(frame: &mut Frame, area: Rect, detail: &super::app::Detail, hit_map: &mut HitMap) {
     let block = Block::bordered().title(format!(" {} — q back · ↑/↓ scroll ", detail.title));
     let inner = block.inner(area);
-    let rows = wrapped(&detail.lines, inner.width);
+    // First, where it stays in view above the pass's output while it waits.
+    let mut lines = detail
+        .then
+        .map(|then| {
+            vec![
+                format!(
+                    "When Ready: {}. Going back with q cancels it.",
+                    WhenReady::label(Some(then))
+                ),
+                String::new(),
+            ]
+        })
+        .unwrap_or_default();
+    lines.extend(detail.lines.iter().cloned());
+    let rows = wrapped(&lines, inner.width);
     let limit = rows.len().saturating_sub(usize::from(inner.height));
     detail.scroll_limit.set(Some(limit));
     let scroll = detail.scroll.min(limit);
@@ -1016,6 +1030,27 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
     }
 }
 
+/// The create form's "When ready" picker over what the selected manifest offers.
+fn when_ready_row(form: &super::app::CreateForm, detail_width: usize) -> Line<'static> {
+    let choices = form.when_ready_choices();
+    let chosen = choices
+        .iter()
+        .position(|choice| *choice == form.when_ready)
+        .unwrap_or_default();
+    labeled(
+        "When ready",
+        form.field == CreateField::WhenReady,
+        picker(
+            &WhenReady::label(form.when_ready),
+            form.field == CreateField::WhenReady,
+            chosen,
+            choices.len(),
+            "",
+            detail_width,
+        ),
+    )
+}
+
 /// What an empty selection field resolves to: the manifest default or the harness's own.
 fn selection_hint(manifest_default: Option<&str>) -> String {
     manifest_default.map_or_else(
@@ -1087,20 +1122,26 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 form.field == CreateField::EnvironmentFile,
                 "default: .env beside manifest",
             ),
-        ));
+        ))
+        .row(when_ready_row(form, detail_width));
     let target = widget.render(frame, area, CREATE_AGENT_FORM_WIDTH, hit_map);
     for (row, field) in [
         (0, CreateField::Agent),
         (1, CreateField::Variant),
         (2, CreateField::Name),
         (3, CreateField::EnvironmentFile),
+        (4, CreateField::WhenReady),
     ] {
         hit_map.click(
             line_area(target, row),
             HitTarget::Action(MouseAction::FocusCreateField(field)),
         );
     }
-    for (row, field) in [(0, CreateField::Agent), (1, CreateField::Variant)] {
+    for (row, field) in [
+        (0, CreateField::Agent),
+        (1, CreateField::Variant),
+        (4, CreateField::WhenReady),
+    ] {
         map_picker_targets(
             line_area(target, row),
             MouseAction::SelectCreate { field, delta: -1 },
@@ -2419,5 +2460,26 @@ mod tests {
             // The form pads one cell inside its border; the cell before that is the last one text uses.
             assert_eq!(inside[border - 2], ' ', "cut off at the border:\n{line}");
         }
+    }
+
+    #[test]
+    fn a_waiting_choice_is_named_above_the_provisioning_output() {
+        let mut app = App::new();
+        let mut detail = super::super::app::Detail::text(
+            "agent/desk provisioning".into(),
+            (1..=40).map(|line| format!("output {line}")).collect(),
+        );
+        detail.then = Some(WhenReady::StartSession);
+        app.detail = Some(detail);
+        let mut terminal = Terminal::new(TestBackend::new(80, 12)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(
+            text.lines()
+                .nth(2)
+                .is_some_and(|line| line.contains("When Ready: start a Session. Going back with q cancels it.")),
+            "{text}"
+        );
     }
 }

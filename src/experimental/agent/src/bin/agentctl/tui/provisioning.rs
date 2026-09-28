@@ -6,7 +6,7 @@ use agent::{
     progress::{AgentProgress, OutputPosition},
     resources::Revision,
 };
-use sandbox::progress::{ProgressCursor, Update};
+use sandbox::progress::{OperationStatus, ProgressCursor, Update};
 
 use crate::format;
 
@@ -56,6 +56,18 @@ impl Followed {
     }
 
     /// The Agent's readiness and failure class, then its latest pass.
+    /// Whether the Agent is Ready with no pass running: what the provisioning
+    /// view's next steps, its keys and a waiting "When ready" choice all go by.
+    pub(crate) fn ready(&self) -> bool {
+        self.latest.as_ref().is_some_and(|latest| {
+            latest.status.is_ready()
+                && latest
+                    .provisioning
+                    .as_ref()
+                    .is_none_or(|provisioning| *provisioning.progress.status() != OperationStatus::Running)
+        })
+    }
+
     pub(crate) fn lines(&self) -> Vec<String> {
         let Some(latest) = &self.latest else {
             return vec!["Waiting for agentd…".to_owned()];
@@ -67,6 +79,12 @@ impl Followed {
                 self.output.iter().map(String::as_str),
             )),
             None => lines.push("Provisioning: no pass since agentd started".to_owned()),
+        }
+        if self.ready() {
+            lines.extend([
+                String::new(),
+                "Ready. Start a Session, or open it in a shell, editor or desktop.".to_owned(),
+            ]);
         }
         lines
     }
@@ -165,5 +183,46 @@ mod tests {
                 sequence: 0
             })
         );
+    }
+
+    #[test]
+    fn a_ready_agent_ends_with_what_to_do_next() {
+        let mut followed = Followed::default();
+        followed.apply(
+            serde_json::from_value(serde_json::json!({
+                "revision": pass(1),
+                "status": {"conditions": [{"type": "Ready", "status": "True"}]},
+            }))
+            .expect("test reply"),
+        );
+
+        assert!(followed.ready());
+        assert_eq!(
+            followed.lines().last().map(String::as_str),
+            Some("Ready. Start a Session, or open it in a shell, editor or desktop.")
+        );
+    }
+
+    #[test]
+    fn a_ready_agent_with_a_pass_running_is_not_ready_yet() {
+        let mut progress = sandbox::progress::Progress::new();
+        progress.apply(&ProgressEvent::PhaseStarted {
+            phase: SandboxPhase::ImageResolve.phase(),
+        });
+        let mut followed = Followed::default();
+        followed.apply(
+            serde_json::from_value(serde_json::json!({
+                "revision": pass(2),
+                "status": {"conditions": [{"type": "Ready", "status": "True"}]},
+                "provisioning": {"pass": pass(2), "progress": progress},
+            }))
+            .expect("test reply"),
+        );
+
+        assert!(
+            !followed.ready(),
+            "a re-applied Agent keeps Ready=True while its pass runs"
+        );
+        assert!(followed.lines().iter().all(|line| !line.starts_with("Ready.")));
     }
 }

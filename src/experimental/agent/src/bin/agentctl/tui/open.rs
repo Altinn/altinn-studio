@@ -5,7 +5,7 @@
 
 use std::path::{Path, PathBuf};
 
-use agent::{Agent, Condition, ConditionStatus};
+use agent::{AccessSpec, Agent, Condition, ConditionStatus};
 
 use crate::launch::Editor;
 
@@ -97,6 +97,53 @@ impl MenuEntry {
             Self::Open(target) => Some(target.key()),
             Self::SetUpSsh => None,
         }
+    }
+}
+
+/// What a new Agent does once it is Ready, when something was chosen for it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum WhenReady {
+    /// Starts a Session on the default harness and attaches to it.
+    StartSession,
+    /// Opens one of the open menu's targets.
+    Open(OpenTarget),
+}
+
+impl WhenReady {
+    /// A choice as the create form's picker names it, short enough to fit it;
+    /// no choice follows provisioning, as the form did before the choice existed.
+    pub(crate) fn label(choice: Option<Self>) -> String {
+        match choice {
+            None => "follow progress".into(),
+            Some(Self::StartSession) => "start a Session".into(),
+            Some(Self::Open(OpenTarget::Shell)) => "open a shell".into(),
+            Some(Self::Open(OpenTarget::Editor(editor))) => format!("open {}", editor.label()),
+            Some(Self::Open(OpenTarget::Desktop(_))) => "open the desktop".into(),
+            Some(Self::Open(target)) => target.label(),
+        }
+    }
+
+    /// The choices for an Agent declaring `access`, in picker order: only
+    /// what the open menu would then offer.
+    pub(crate) fn choices(access: &[AccessSpec], environment: &Environment) -> Vec<Option<Self>> {
+        let mut choices = vec![None, Some(Self::StartSession), Some(Self::Open(OpenTarget::Shell))];
+        if access.contains(&AccessSpec::Ssh {}) {
+            choices.extend(
+                Editor::ALL
+                    .into_iter()
+                    .filter(|editor| editor_unavailable(*editor, environment).is_none())
+                    .map(|editor| Some(Self::Open(OpenTarget::Editor(editor)))),
+            );
+        }
+        if access.contains(&AccessSpec::Vnc {}) {
+            choices.push(Some(Self::Open(OpenTarget::Desktop(DesktopViewer::Browser))));
+        }
+        choices
+    }
+
+    /// Whether the choice needs the SSH setup editors need.
+    pub(crate) const fn needs_include(self) -> bool {
+        matches!(self, Self::Open(target) if target.needs_include())
     }
 }
 
@@ -569,6 +616,37 @@ mod tests {
             Some("http://127.0.0.1:53817/"),
         );
         assert_eq!(lines[1], "  desktop    open at http://127.0.0.1:53817/");
+    }
+
+    #[test]
+    fn when_ready_offers_only_what_the_manifest_declares_and_this_machine_can_open() {
+        let environment = local(&[]);
+        assert_eq!(
+            WhenReady::choices(&[], &environment),
+            [
+                None,
+                Some(WhenReady::StartSession),
+                Some(WhenReady::Open(OpenTarget::Shell))
+            ]
+        );
+        assert_eq!(
+            WhenReady::choices(&[AccessSpec::Ssh {}, AccessSpec::Vnc {}], &environment)[3..],
+            [
+                Some(WhenReady::Open(OpenTarget::Editor(Editor::VsCode))),
+                Some(WhenReady::Open(OpenTarget::Desktop(DesktopViewer::Browser))),
+            ],
+            "Zed has no launcher here"
+        );
+    }
+
+    #[test]
+    fn when_ready_labels_fit_the_picker() {
+        let every = WhenReady::choices(&[AccessSpec::Ssh {}, AccessSpec::Vnc {}], &local(&Editor::ALL));
+        assert_eq!(every.len(), 6);
+        for choice in every {
+            let label = WhenReady::label(choice);
+            assert!(label.chars().count() <= 18, "{label:?}");
+        }
     }
 
     #[test]

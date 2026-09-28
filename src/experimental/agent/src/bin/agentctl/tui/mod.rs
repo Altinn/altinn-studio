@@ -52,6 +52,8 @@ enum Input {
     Provisioning {
         agent: String,
         lines: Vec<String>,
+        /// The Agent is Ready with no pass running.
+        ready: bool,
     },
     TranscriptLoaded {
         agent: String,
@@ -182,11 +184,17 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
-        let input = tokio::select! {
-            event = events.next() => Input::Event(event),
-            Some(input) = background.recv() => input,
-            // Times in state and elapsed step times move without new input.
-            _ = redraw.tick() => continue,
+        // A new Agent that just became Ready does what was chosen for it
+        // before any more input is read.
+        let input = if let Some(action) = app.take_ready_then() {
+            Input::Then(action)
+        } else {
+            tokio::select! {
+                event = events.next() => Input::Event(event),
+                Some(input) = background.recv() => input,
+                // Times in state and elapsed step times move without new input.
+                _ = redraw.tick() => continue,
+            }
         };
         let action = match input {
             Input::Resources(Ok(resources)) => {
@@ -199,8 +207,8 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.connection_error = Some(error);
                 continue;
             }
-            Input::Provisioning { agent, lines } => {
-                app.provisioning_followed(&agent, lines);
+            Input::Provisioning { agent, lines, ready } => {
+                app.provisioning_followed(&agent, lines, ready);
                 continue;
             }
             Input::TranscriptLoaded { agent, session, turns } => {
@@ -292,8 +300,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 manifest,
                 name,
                 env_file,
+                when_ready,
                 form,
-            } => create(&mut app, client, manifest, name, env_file, form).await,
+            } => create(&mut app, client, manifest, name, env_file, when_ready, form).await,
             Action::CreateForward { agent, spec, replace } => {
                 if let Some(id) = replace {
                     forwards.remove(id);
@@ -496,18 +505,18 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
         let mut followed = provisioning::Followed::default();
         loop {
             let (after, output) = followed.position();
-            let lines = match client.agent_progress(&agent, after, output).await {
+            let (lines, ready) = match client.agent_progress(&agent, after, output).await {
                 Ok(progress) => {
                     followed.apply(progress);
-                    followed.lines()
+                    (followed.lines(), followed.ready())
                 }
                 Err(error) => {
                     tokio::time::sleep(RECONNECT_INTERVAL).await;
-                    vec![format!("Cannot follow provisioning: {error}")]
+                    (vec![format!("Cannot follow provisioning: {error}")], false)
                 }
             };
             let agent = agent.clone();
-            if inputs.send(Input::Provisioning { agent, lines }).is_err() {
+            if inputs.send(Input::Provisioning { agent, lines, ready }).is_err() {
                 return;
             }
         }
@@ -732,13 +741,13 @@ fn manifest_candidates_blocking(current_directory: Option<&Path>, agents: &[Agen
             candidates[index].add_equivalent_path(path);
             continue;
         }
-        let name = match manifest::resolve(&path) {
-            Ok(resolved) => Ok(resolved.agent.metadata.name),
-            Err(error) if recorded || path.exists() => Err(error.to_string()),
+        let (name, access) = match manifest::resolve(&path) {
+            Ok(resolved) => (Ok(resolved.agent.metadata.name), resolved.agent.spec.access),
+            Err(error) if recorded || path.exists() => (Err(error.to_string()), Vec::new()),
             Err(_) => continue,
         };
         seen.insert(canonical, candidates.len());
-        candidates.push(ManifestCandidate::new(path, name));
+        candidates.push(ManifestCandidate::new(path, name).with_access(access));
     }
     candidates
 }
@@ -798,10 +807,11 @@ async fn create(
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
+    when_ready: Option<open::WhenReady>,
     mut form: CreateForm,
 ) {
     match create_agent(client, manifest, name, env_file).await {
-        Ok(applied) => app.agent_applied(applied),
+        Ok(applied) => app.agent_applied(applied, when_ready),
         Err(error) => {
             form.error = Some(error.to_string());
             app.modal = Some(Modal::CreateAgent(form));

@@ -13,7 +13,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sandbox::progress::{OperationStatus, Progress};
 use time::OffsetDateTime;
 
-use super::open::{Environment, MenuEntry, OpenMenu, OpenTarget, SshSetup};
+use super::open::{Environment, MenuEntry, OpenMenu, OpenTarget, SshSetup, WhenReady};
 use crate::{format, forward::ForwardSpec};
 
 /// Output lines of a failed pass the Agent side panel shows.
@@ -117,6 +117,20 @@ pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
 const DETAIL_HINTS: [Hint; 2] = [
     Hint::display("j/k", "scroll"),
     Hint::key("q", "back", KeyCode::Char('q')),
+];
+
+/// Hints of a provisioning view whose Agent is Ready: what to do next.
+const DETAIL_READY_HINTS: [Hint; 4] = [
+    Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
+    Hint::display("j/k", "scroll"),
+    Hint::key("q", "back", KeyCode::Char('q')),
+];
+
+/// Hints of a provisioning view whose "When ready" choice waits: leaving cancels it.
+const DETAIL_WAITING_HINTS: [Hint; 2] = [
+    Hint::display("j/k", "scroll"),
+    Hint::key("q", "back and cancel", KeyCode::Char('q')),
 ];
 
 const FORWARD_VIEW_HINTS: [Hint; 4] = [
@@ -337,6 +351,11 @@ pub(crate) struct Detail {
     /// Agent whose provisioning the detail follows; its lines are replaced as
     /// progress arrives.
     pub(crate) follows: Option<String>,
+    /// The followed Agent is Ready with no pass running.
+    pub(crate) ready: bool,
+    /// What happens once the followed Agent is Ready. It lives only as long as
+    /// the view, so leaving the view cancels it and it cannot outlive its Agent.
+    pub(crate) then: Option<WhenReady>,
     /// Furthest scroll that still fills the view, recorded by the last draw,
     /// which wraps long lines into more rows than `lines` has.
     pub(crate) scroll_limit: Cell<Option<usize>>,
@@ -359,6 +378,8 @@ impl Detail {
             lines,
             scroll: 0,
             follows: None,
+            ready: false,
+            then: None,
             scroll_limit: Cell::new(None),
         }
     }
@@ -369,6 +390,8 @@ impl Detail {
             lines: vec!["Waiting for agentd…".to_owned()],
             scroll: 0,
             follows: Some(agent),
+            ready: false,
+            then: None,
             scroll_limit: Cell::new(None),
         }
     }
@@ -398,6 +421,9 @@ pub(crate) enum Modal {
         agent: String,
         include: agent::ssh::UserInclude,
         then: Option<OpenTarget>,
+        /// Asked from the open menu, which declining returns to; otherwise
+        /// asked for a new Agent's "When ready" choice, which declining drops.
+        menu: bool,
     },
 }
 
@@ -595,6 +621,8 @@ pub(crate) struct ManifestCandidate {
     pub(crate) name: Result<String, String>,
     /// Other path spellings discovered for the same canonical file.
     equivalent_paths: Vec<PathBuf>,
+    /// Access capabilities the manifest declares, which decide what "When ready" offers.
+    pub(crate) access: Vec<agent::AccessSpec>,
 }
 
 impl ManifestCandidate {
@@ -603,7 +631,13 @@ impl ManifestCandidate {
             path,
             name,
             equivalent_paths: Vec::new(),
+            access: Vec::new(),
         }
+    }
+
+    pub(crate) fn with_access(mut self, access: Vec<agent::AccessSpec>) -> Self {
+        self.access = access;
+        self
     }
 
     pub(crate) fn add_equivalent_path(&mut self, path: PathBuf) {
@@ -656,10 +690,17 @@ pub(crate) enum CreateField {
     Variant,
     Name,
     EnvironmentFile,
+    WhenReady,
 }
 
 impl CreateField {
-    const ORDER: [Self; 4] = [Self::Agent, Self::Variant, Self::Name, Self::EnvironmentFile];
+    const ORDER: [Self; 5] = [
+        Self::Agent,
+        Self::Variant,
+        Self::Name,
+        Self::EnvironmentFile,
+        Self::WhenReady,
+    ];
 
     fn next(self) -> Self {
         let index = Self::ORDER.iter().position(|field| *field == self).unwrap_or_default();
@@ -681,6 +722,10 @@ pub(crate) struct CreateForm {
     pub(crate) field: CreateField,
     pub(crate) name: String,
     pub(crate) env_file: String,
+    /// What happens once the Agent is Ready; always one of [`Self::when_ready_choices`].
+    pub(crate) when_ready: Option<WhenReady>,
+    /// This machine's editors, which decide what "When ready" can open.
+    pub(crate) environment: Environment,
     pub(crate) error: Option<String>,
 }
 
@@ -727,8 +772,19 @@ impl CreateForm {
             field: CreateField::Agent,
             name: String::new(),
             env_file: String::new(),
+            when_ready: None,
+            environment: Environment::default(),
             error: None,
         }
+    }
+
+    /// What the selected manifest can do once Ready, in picker order.
+    pub(crate) fn when_ready_choices(&self) -> Vec<Option<WhenReady>> {
+        let access = self
+            .candidate()
+            .map(|candidate| candidate.access.as_slice())
+            .unwrap_or_default();
+        WhenReady::choices(access, &self.environment)
     }
 
     pub(crate) fn agent(&self) -> Option<&AgentDefinition> {
@@ -784,7 +840,7 @@ impl CreateForm {
                     CreateField::EnvironmentFile => {
                         self.env_file.pop();
                     }
-                    CreateField::Agent | CreateField::Variant => {}
+                    CreateField::Agent | CreateField::Variant | CreateField::WhenReady => {}
                 }
                 self.error = None;
             }
@@ -821,7 +877,19 @@ impl CreateForm {
                 let length = self.agent().map_or(0, |agent| agent.variants.len());
                 self.variant = wrapped_index(self.variant, length, delta);
             }
+            CreateField::WhenReady => {
+                let choices = self.when_ready_choices();
+                let current = choices
+                    .iter()
+                    .position(|choice| *choice == self.when_ready)
+                    .unwrap_or_default();
+                self.when_ready = choices[wrapped_index(current, choices.len(), delta)];
+            }
             CreateField::Name | CreateField::EnvironmentFile => return,
+        }
+        // Another manifest may not offer the choice; then the Agent just follows its progress.
+        if !self.when_ready_choices().contains(&self.when_ready) {
+            self.when_ready = None;
         }
         self.error = None;
     }
@@ -844,6 +912,7 @@ impl CreateForm {
             manifest: candidate.path.clone(),
             name,
             env_file: (!self.env_file.is_empty()).then(|| PathBuf::from(&self.env_file)),
+            when_ready: self.when_ready,
             form: self.clone(),
         })
     }
@@ -1027,6 +1096,7 @@ pub(crate) enum Action {
         manifest: PathBuf,
         name: String,
         env_file: Option<PathBuf>,
+        when_ready: Option<WhenReady>,
         form: CreateForm,
     },
     Exec {
@@ -1700,18 +1770,41 @@ impl App {
         Action::None
     }
 
+    /// Scrolls or closes a detail view. A provisioning view whose Agent is
+    /// Ready also leads to a new Session (`n`) or the open menu (`o`).
     fn detail_key(&mut self, key: KeyEvent) {
         let Some(detail) = self.detail.as_mut() else {
             return;
         };
+        let ready = detail.follows.clone().filter(|_| detail.ready);
         match key.code {
             KeyCode::Esc | KeyCode::Char('q') => self.detail = None,
             KeyCode::Down | KeyCode::Char('j') => detail.scroll_by(1),
             KeyCode::Up | KeyCode::Char('k') => detail.scroll_by(-1),
             KeyCode::PageDown => detail.scroll_by(10),
             KeyCode::PageUp => detail.scroll_by(-10),
+            KeyCode::Char('n') => {
+                if let Some(group) = ready.and_then(|agent| self.group_of(&agent)) {
+                    self.detail = None;
+                    self.open_new_session(group);
+                }
+            }
+            KeyCode::Char('o') => {
+                if let Some(agent) = ready {
+                    self.detail = None;
+                    self.open_menu(&agent);
+                }
+            }
             _ => {}
         }
+    }
+
+    fn group_of(&self, agent: &str) -> Option<usize> {
+        self.groups.iter().position(|group| {
+            self.agents
+                .get(group.agent)
+                .is_some_and(|found| found.metadata.name == agent)
+        })
     }
 
     fn modal_key(&mut self, key: KeyEvent) -> Action {
@@ -1775,9 +1868,12 @@ impl App {
                     Action::None
                 }
             },
-            Some(Modal::ConfirmSshSetup { agent, include, then }) => {
-                self.confirm_ssh_setup_key(agent, include, then, key)
-            }
+            Some(Modal::ConfirmSshSetup {
+                agent,
+                include,
+                then,
+                menu,
+            }) => self.confirm_ssh_setup_key(agent, include, then, menu, key),
             Some(Modal::Filter) => {
                 match key.code {
                     KeyCode::Enter => return Action::None,
@@ -1836,12 +1932,17 @@ impl App {
                 .map(agent::Provenance::manifest_or_default),
             None => None,
         };
-        self.modal = Some(Modal::CreateAgent(CreateForm::new(candidates, manifest.as_deref())));
+        let mut form = CreateForm::new(candidates, manifest.as_deref());
+        form.environment = self.environment.clone();
+        self.modal = Some(Modal::CreateAgent(form));
     }
 
     /// Shows an Agent this TUI just created, ahead of the watch reply that will
     /// report it, selects it and follows its provisioning.
-    pub(crate) fn agent_applied(&mut self, agent: Agent) {
+    ///
+    /// The provisioning view carries `when_ready` until the Agent is Ready. A
+    /// choice that needs the missing SSH setup asks for it now, not at Ready.
+    pub(crate) fn agent_applied(&mut self, agent: Agent, when_ready: Option<WhenReady>) {
         let name = agent.metadata.name.clone();
         let mut agents = std::mem::take(&mut self.agents);
         agents.retain(|existing| existing.metadata.name != name);
@@ -1849,7 +1950,21 @@ impl App {
         let sessions = std::mem::take(&mut self.sessions);
         self.apply_snapshot(agents, sessions);
         self.selection = Some(TreeRowId::Agent(name.clone()));
-        self.detail = Some(Detail::provisioning(name));
+        let mut detail = Detail::provisioning(name.clone());
+        detail.then = when_ready;
+        self.detail = Some(detail);
+        if let Some(include) = self
+            .ssh_include
+            .clone()
+            .filter(|_| when_ready.is_some_and(WhenReady::needs_include) && self.ssh_setup == SshSetup::Missing)
+        {
+            self.modal = Some(Modal::ConfirmSshSetup {
+                agent: name,
+                include,
+                then: None,
+                menu: false,
+            });
+        }
     }
 
     /// The selected Session whose turns need loading: newly selected, or with
@@ -1991,7 +2106,7 @@ impl App {
     }
 
     /// Replaces the lines of the detail following `agent`'s provisioning.
-    pub(crate) fn provisioning_followed(&mut self, agent: &str, lines: Vec<String>) {
+    pub(crate) fn provisioning_followed(&mut self, agent: &str, lines: Vec<String>, ready: bool) {
         if let Some(detail) = self
             .detail
             .as_mut()
@@ -1999,9 +2114,52 @@ impl App {
         {
             detail.scroll = detail.scroll.min(lines.len().saturating_sub(1));
             detail.lines = lines;
+            detail.ready = ready;
             // The next draw measures the new lines.
             detail.scroll_limit.set(None);
         }
+    }
+
+    /// Takes the provisioning view's "When ready" choice once its Agent is
+    /// Ready, while no form is open for it to interrupt.
+    pub(crate) fn take_ready_then(&mut self) -> Option<Action> {
+        if self.modal.is_some() {
+            return None;
+        }
+        let detail = self.detail.as_mut().filter(|detail| detail.ready)?;
+        let then = detail.then.take()?;
+        let agent = detail.follows.clone()?;
+        match then {
+            WhenReady::StartSession => self.start_session(&agent),
+            WhenReady::Open(target) => Some(self.choose(agent, MenuEntry::Open(target))),
+        }
+    }
+
+    /// Starts a Session named `main`, or the first free `main-N`, on the
+    /// Agent's default harness with its manifest defaults.
+    fn start_session(&self, agent: &str) -> Option<Action> {
+        let harness = self
+            .agents
+            .iter()
+            .find(|candidate| candidate.metadata.name == agent)?
+            .spec
+            .default_harness()?
+            .kind;
+        let taken = |name: &str| {
+            self.sessions
+                .iter()
+                .any(|session| session.agent == agent && session.name.as_str() == name)
+        };
+        // One more name than the Sessions there are is always free.
+        let name = std::iter::once("main".to_owned())
+            .chain((2..=self.sessions.len() + 2).map(|number| format!("main-{number}")))
+            .find(|name| !taken(name))?;
+        Some(Action::CreateSession {
+            agent: agent.to_owned(),
+            session: SessionName::new(name).ok()?,
+            harness,
+            model_selection: ModelSelection::default(),
+        })
     }
 
     /// Applies one key to the open menu: moving, choosing by row or by the item's own key.
@@ -2027,12 +2185,14 @@ impl App {
         Action::None
     }
 
-    /// Applies one key to the SSH setup question; declining returns to the menu.
+    /// Applies one key to the SSH setup question. Declining returns to the
+    /// open menu, or, for a new Agent, leaves it following its progress.
     fn confirm_ssh_setup_key(
         &mut self,
         agent: String,
         include: agent::ssh::UserInclude,
         then: Option<OpenTarget>,
+        menu: bool,
         key: KeyEvent,
     ) -> Action {
         match key.code {
@@ -2040,12 +2200,29 @@ impl App {
                 include,
                 then: then.map(|target| (agent, target)),
             },
-            KeyCode::Esc | KeyCode::Char('n' | 'q') => {
+            KeyCode::Esc | KeyCode::Char('n' | 'q') if menu => {
                 self.open_menu(&agent);
                 Action::None
             }
+            KeyCode::Esc | KeyCode::Char('n' | 'q') => {
+                if let Some(then) = self.detail.as_mut().and_then(|detail| detail.then.take()) {
+                    self.notice = Some((
+                        format!(
+                            "SSH is not set up, so {agent} will not {} when Ready",
+                            WhenReady::label(Some(then))
+                        ),
+                        Instant::now(),
+                    ));
+                }
+                Action::None
+            }
             _ => {
-                self.modal = Some(Modal::ConfirmSshSetup { agent, include, then });
+                self.modal = Some(Modal::ConfirmSshSetup {
+                    agent,
+                    include,
+                    then,
+                    menu,
+                });
                 Action::None
             }
         }
@@ -2075,6 +2252,7 @@ impl App {
                     agent,
                     include,
                     then: target,
+                    menu: true,
                 });
                 Action::None
             }
@@ -2321,8 +2499,12 @@ impl App {
                 Modal::ConfirmSshSetup { .. } => &CONFIRM_SSH_SETUP_HINTS,
             };
         }
-        if self.detail.is_some() {
-            return &DETAIL_HINTS;
+        if let Some(detail) = &self.detail {
+            return match (detail.ready, detail.then.is_some()) {
+                (_, true) => &DETAIL_WAITING_HINTS,
+                (true, false) if detail.follows.is_some() => &DETAIL_READY_HINTS,
+                _ => &DETAIL_HINTS,
+            };
         }
         if self.view == View::Forwards {
             return &FORWARD_VIEW_HINTS;
@@ -3734,7 +3916,7 @@ mod tests {
     #[test]
     fn a_created_agent_is_shown_and_selected_before_the_watch_reports_it() {
         let mut app = populated();
-        app.agent_applied(agent("analyst"));
+        app.agent_applied(agent("analyst"), None);
         assert_eq!(app.selected_index(), Some(0));
         assert_eq!(app.agents.len(), 3);
 
@@ -4068,11 +4250,11 @@ mod tests {
     #[test]
     fn a_created_agents_provisioning_is_followed_until_its_detail_closes() {
         let mut app = populated();
-        app.agent_applied(agent("analyst"));
+        app.agent_applied(agent("analyst"), None);
         assert_eq!(app.followed_agent(), Some("analyst"));
 
-        app.provisioning_followed("worker", vec!["stale".into()]);
-        app.provisioning_followed("analyst", vec!["Ready:      True".into()]);
+        app.provisioning_followed("worker", vec!["stale".into()], false);
+        app.provisioning_followed("analyst", vec!["Ready:      True".into()], false);
         assert_eq!(
             app.detail.as_ref().map(|detail| detail.lines.clone()),
             Some(vec!["Ready:      True".into()])
@@ -4451,5 +4633,164 @@ mod tests {
             app.agent_panel_lines("desk")
                 .contains(&"  desktop    open at http://127.0.0.1:50001/".to_owned())
         );
+    }
+
+    fn desktop_candidate(name: &str) -> ManifestCandidate {
+        ManifestCandidate::new(PathBuf::from(format!("/agents/{name}/agent.yaml")), Ok(name.to_owned()))
+            .with_access(vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}])
+    }
+
+    fn desk() -> Agent {
+        let mut desk = agent("desk");
+        desk.spec.access = vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}];
+        desk
+    }
+
+    const VS_CODE: WhenReady = WhenReady::Open(OpenTarget::Editor(crate::launch::Editor::VsCode));
+
+    #[test]
+    fn the_create_form_offers_what_its_manifest_can_do_when_ready() {
+        let plain = ManifestCandidate::new(PathBuf::from("/agents/plain/agent.yaml"), Ok("plain".to_owned()));
+        let mut form = CreateForm::new(vec![desktop_candidate("desk"), plain], None);
+        for _ in 0..4 {
+            form.key(key(KeyCode::Tab), &[]);
+        }
+        assert_eq!(form.field, CreateField::WhenReady);
+        assert_eq!(form.when_ready, None, "following progress by default");
+        form.key(key(KeyCode::Left), &[]);
+        let last = *form.when_ready_choices().last().expect("choices");
+        assert_eq!(form.when_ready, last, "the picker wraps");
+        assert_eq!(
+            last,
+            Some(WhenReady::Open(OpenTarget::Desktop(
+                super::super::open::DesktopViewer::Browser
+            )))
+        );
+        let Some(Action::CreateAgent { when_ready, .. }) = form.key(key(KeyCode::Enter), &[]) else {
+            panic!("expected CreateAgent");
+        };
+        assert_eq!(when_ready, last);
+
+        // A manifest without the desktop does not keep a desktop choice.
+        form.field = CreateField::Agent;
+        form.key(key(KeyCode::Right), &[]);
+        assert_eq!(form.when_ready, None);
+    }
+
+    #[test]
+    fn a_choice_waits_in_the_provisioning_view_and_runs_once_ready() {
+        let mut app = App::new();
+        app.ssh_setup = SshSetup::Installed;
+        app.agent_applied(desk(), Some(VS_CODE));
+        assert_eq!(app.take_ready_then(), None, "still provisioning");
+        assert_eq!(app.hints(), &DETAIL_WAITING_HINTS);
+
+        app.provisioning_followed("desk", vec!["Ready:      True".into()], true);
+        app.modal = Some(Modal::Help);
+        assert_eq!(app.take_ready_then(), None, "an open form is not interrupted");
+        app.modal = None;
+        assert_eq!(
+            app.take_ready_then(),
+            Some(Action::Open {
+                agent: "desk".into(),
+                target: OpenTarget::Editor(crate::launch::Editor::VsCode),
+            })
+        );
+        assert_eq!(app.take_ready_then(), None, "it runs once");
+        assert_eq!(app.hints(), &DETAIL_READY_HINTS);
+    }
+
+    #[test]
+    fn leaving_the_provisioning_view_cancels_the_choice() {
+        let mut app = App::new();
+        app.agent_applied(desk(), Some(WhenReady::StartSession));
+        app.on_key(key(KeyCode::Char('q')));
+        assert!(app.detail.is_none());
+
+        // Readiness reported later has no view left to act on.
+        app.provisioning_followed("desk", Vec::new(), true);
+        assert_eq!(app.take_ready_then(), None);
+    }
+
+    #[test]
+    fn an_editor_choice_asks_for_ssh_setup_at_create_and_declining_follows_progress() {
+        let mut app = App::new();
+        app.ssh_setup = SshSetup::Missing;
+        app.ssh_include = Some(agent::ssh::UserInclude {
+            user_config: "/tmp/user/.ssh/config".into(),
+            line: "Include ~/.agent/ssh/config".into(),
+        });
+        app.agent_applied(desk(), Some(VS_CODE));
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { menu: false, .. })));
+
+        app.on_key(key(KeyCode::Esc));
+        assert!(app.modal.is_none(), "no menu to return to");
+        assert_eq!(app.detail.as_ref().and_then(|detail| detail.then), None);
+        assert_eq!(
+            app.notice.as_ref().map(|(text, _)| text.as_str()),
+            Some("SSH is not set up, so desk will not open VS Code when Ready")
+        );
+    }
+
+    #[test]
+    fn an_editor_choice_set_up_at_create_opens_without_asking_again() {
+        let mut app = App::new();
+        app.ssh_setup = SshSetup::Missing;
+        app.ssh_include = Some(agent::ssh::UserInclude {
+            user_config: "/tmp/user/.ssh/config".into(),
+            line: "Include ~/.agent/ssh/config".into(),
+        });
+        app.agent_applied(desk(), Some(VS_CODE));
+        let Action::SetUpSsh { include, then } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected SetUpSsh");
+        };
+        assert_eq!(app.ssh_set_up(Ok(include.user_config), then, Instant::now()), None);
+
+        app.provisioning_followed("desk", Vec::new(), true);
+        assert!(
+            matches!(app.take_ready_then(), Some(Action::Open { .. })),
+            "no second question"
+        );
+    }
+
+    #[test]
+    fn starting_a_session_when_ready_picks_a_free_main_name() {
+        let mut app = App::new();
+        app.agent_applied(desk(), Some(WhenReady::StartSession));
+        app.apply_snapshot(
+            vec![ready_agent("desk")],
+            vec![session("desk", "main", "working"), session("desk", "main-2", "idle")],
+        );
+        app.provisioning_followed("desk", Vec::new(), true);
+        let Some(Action::CreateSession {
+            agent,
+            session,
+            harness,
+            ..
+        }) = app.take_ready_then()
+        else {
+            panic!("expected CreateSession");
+        };
+        assert_eq!((agent.as_str(), session.as_str()), ("desk", "main-3"));
+        assert_eq!(harness, Harness::ClaudeCode);
+    }
+
+    #[test]
+    fn a_ready_provisioning_view_leads_to_a_session_or_the_menu() {
+        let mut app = App::new();
+        app.agent_applied(ready_agent("desk"), None);
+        app.on_key(key(KeyCode::Char('n')));
+        assert!(app.modal.is_none(), "n does nothing before the view reports Ready");
+
+        app.provisioning_followed("desk", Vec::new(), true);
+        app.on_key(key(KeyCode::Char('n')));
+        assert!(matches!(app.modal, Some(Modal::NewSession(_))));
+        assert!(app.detail.is_none());
+
+        app.modal = None;
+        app.detail = Some(Detail::provisioning("desk".into()));
+        app.provisioning_followed("desk", Vec::new(), true);
+        app.on_key(key(KeyCode::Char('o')));
+        assert!(matches!(&app.modal, Some(Modal::Open(menu)) if menu.agent == "desk"));
     }
 }

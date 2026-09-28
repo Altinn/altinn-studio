@@ -175,7 +175,8 @@ SSH access; delete it and re-apply to pick up the current image.
 
 In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or over SSH, or to copy its SSH alias.
 The TUI offers to add the `Include` above when an editor needs it. Editors open only where the TUI can show windows;
-set `AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong.
+set `AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong. When creating an Agent with `c`,
+"When ready" picks what opens once provisioning finishes, as long as its provisioning view stays open.
 
 ## Desktop access
 
