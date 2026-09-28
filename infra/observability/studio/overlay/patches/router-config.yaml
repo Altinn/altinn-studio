@@ -10,10 +10,10 @@ spec:
         # Queue and retry here, not per gateway, so a retried export picks its gateway from the
         # current ring instead of being dropped with a gateway that has left it.
         timeout: 10s # two gateways during a rollout, each within the per-gateway 5s default
-        retry_on_failure: # usual defaults; unset, they are 0 here (0.161.0): retry at once, forever
+        retry_on_failure: # set in full: unset values are 0 here (0.161.0), retrying at once, forever
           enabled: true
           initial_interval: 5s # also the DNS resolver's default refresh interval
-          randomization_factor: 0.5
+          randomization_factor: 0.5 # this, multiplier and max_interval are the Collector defaults
           multiplier: 1.5
           max_interval: 30s
           max_elapsed_time: 60s # a rollout needs seconds; also limits a batch that crashes gateways
