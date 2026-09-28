@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Altinn.Studio.Designer.Controllers.Admin;
 
@@ -14,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/v1/admin/reports/{org}/{env}")]
-public class ReportsController(IReportService reportService, IMemoryCache memoryCache) : ControllerBase
+public class ReportsController(IReportService reportService) : ControllerBase
 {
     [HttpPost("send")]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
@@ -31,14 +30,14 @@ public class ReportsController(IReportService reportService, IMemoryCache memory
 
     [HttpGet("data")]
     [AllowAnonymous]
-    public IActionResult GetReportData([FromQuery] string token)
+    public async Task<IActionResult> GetReportData(
+        string org,
+        string env,
+        [FromQuery] string token,
+        CancellationToken cancellationToken
+    )
     {
-        var cacheKey = $"reportData:{token}";
-        if (!memoryCache.TryGetValue(cacheKey, out ReportData? reportData) || reportData is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(reportData);
+        ReportData? reportData = await reportService.GetReportDataAsync(org, env, token, cancellationToken);
+        return reportData is null ? NotFound() : Ok(reportData);
     }
 }

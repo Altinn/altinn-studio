@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -11,20 +12,21 @@ using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ReportService(
     IRuntimeGatewayClient runtimeGatewayClient,
     IAppResourcesService appResourcesService,
-    IMemoryCache memoryCache,
+    IDistributedCache distributedCache,
     INotificationService notificationService,
     GeneralSettings generalSettings
 ) : IReportService
 {
     private const int MinutesPerDay = 24 * 60;
     private const int MaxConcurrentAppMetadataRequests = 4;
+    private const string ReportDataCacheKeyPrefix = "reportData:";
 
     private const string FailedProcessNextRequests = "failed_process_next_requests";
     private const string FailedInstanceCreationRequests = "failed_instance_creation_requests";
@@ -33,6 +35,12 @@ public class ReportService(
 
     private static readonly CultureInfo s_norwegianCulture = CultureInfo.GetCultureInfo("nb-NO");
     private static readonly TimeZoneInfo s_norwegianTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Oslo");
+
+    // The PDF renderer fetches the report data while the report is generated, possibly from another replica.
+    private static readonly DistributedCacheEntryOptions s_reportDataCacheOptions = new()
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2),
+    };
 
     public async Task GenerateReportPdfAsync(
         string org,
@@ -108,7 +116,13 @@ public class ReportService(
         };
 
         var token = Guid.NewGuid().ToString("N");
-        memoryCache.Set($"reportData:{token}", reportData, TimeSpan.FromMinutes(2));
+        string cacheKey = ReportDataCacheKeyPrefix + token;
+        await distributedCache.SetStringAsync(
+            cacheKey,
+            JsonSerializer.Serialize(reportData),
+            s_reportDataCacheOptions,
+            cancellationToken
+        );
 
         var renderUrl =
             $"{generalSettings.BaseUrl}/admin/reports/render?token={token}&org={org}&env={environment}&frequency={frequencyStr}";
@@ -121,7 +135,16 @@ public class ReportService(
             FormatAppSummaries(appReports)
         );
 
-        byte[] pdf = await runtimeGatewayClient.GeneratePdfAsync(org, altinnEnvironment, renderUrl, cancellationToken);
+        byte[] pdf;
+        try
+        {
+            pdf = await runtimeGatewayClient.GeneratePdfAsync(org, altinnEnvironment, renderUrl, cancellationToken);
+        }
+        finally
+        {
+            await distributedCache.RemoveAsync(cacheKey, CancellationToken.None);
+        }
+
         await notificationService.NotifyReportContactPointsAsync(
             org,
             altinnEnvironment,
@@ -130,6 +153,26 @@ public class ReportService(
             pdf,
             cancellationToken
         );
+    }
+
+    public async Task<ReportData?> GetReportDataAsync(
+        string org,
+        string environment,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string? serializedReportData = await distributedCache.GetStringAsync(
+            ReportDataCacheKeyPrefix + token,
+            cancellationToken
+        );
+        if (serializedReportData is null)
+        {
+            return null;
+        }
+
+        ReportData? reportData = JsonSerializer.Deserialize<ReportData>(serializedReportData);
+        return reportData?.Org == org && reportData.Environment == environment ? reportData : null;
     }
 
     private async Task<IReadOnlyDictionary<string, string?>> GetAppLibVersionsAsync(
