@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - The PDF preview in the app developer tools can now show what a PDF or subform PDF service task will produce before the instance reaches that task. For a subform PDF, choose which subform to preview. `GET .../pdf/preview` accepts an optional `taskId` and, for a subform PDF service task, a `dataElementId`.
+- `GET .../pdf/preview` is now in the app's OpenAPI documentation, so integrations can preview PDFs without the app frontend. It allows 10 previews per instance per minute by default, and further requests get 429 Too Many Requests with a `Retry-After` header. Change the limit with `PdfGeneratorSettings:PreviewRequestsPerMinute`, or set it to 0 to turn it off.
 - The live `workflow` status on process reads now includes `failedAttempts` while a transition is processing: how many attempts of its current step in a row have failed and are being retried automatically. It also includes `resumedAt` when the transition has been resumed, because a resume reruns the transition and keeps its original `startedAt`. The app frontend uses it to tell the user when a transition is having trouble, rather than showing an unexplained long wait.
 
 ### Changed

@@ -1,3 +1,4 @@
+using Altinn.App.Api.Infrastructure.RateLimiting;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -11,6 +12,7 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Altinn.App.Api.Controllers;
 
@@ -73,7 +75,8 @@ public class PdfController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [ApiExplorerSettings(IgnoreApi = true)]
+    [ProducesResponseType(typeof(void), StatusCodes.Status429TooManyRequests)]
+    [EnableRateLimiting(PdfPreviewRateLimiterPolicy.Name)]
     [HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
     public async Task<ActionResult> GetPdfPreview(
         [FromRoute] string org,

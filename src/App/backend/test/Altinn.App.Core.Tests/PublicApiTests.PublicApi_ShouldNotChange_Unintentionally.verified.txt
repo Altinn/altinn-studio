@@ -3649,6 +3649,7 @@ namespace Altinn.App.Core.Internal.Pdf
         public PdfGeneratorSettings() { }
         public string AppPdfPagePathTemplate { get; set; }
         public bool DisplayFooter { get; set; }
+        public int PreviewRequestsPerMinute { get; set; }
         public string WaitForSelector { get; set; }
         public int WaitForTime { get; set; }
     }

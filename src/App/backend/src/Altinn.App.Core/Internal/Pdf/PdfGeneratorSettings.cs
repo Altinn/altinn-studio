@@ -29,4 +29,11 @@ public class PdfGeneratorSettings
     /// Shows a footer on each page in the PDF with the date, altinn-reference, page number and total pages.
     /// </summary>
     public bool DisplayFooter { get; set; }
+
+    /// <summary>
+    /// The number of PDF previews that can be generated for an instance per minute. Further requests get
+    /// 429 Too Many Requests until the minute is over. Each running copy of the app counts in memory. Set to 0 to
+    /// turn the limit off. Default is 10.
+    /// </summary>
+    public int PreviewRequestsPerMinute { get; set; } = 10;
 }
