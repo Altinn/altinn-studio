@@ -235,7 +235,7 @@ describe('StudioExpression', () => {
     );
     expect(input).toHaveValue(typedString);
     await user.tab();
-    expect(input).toHaveValue(expressionToString(['equals', 1, 1]));
+    expect(input).toHaveValue(expressionToString([GeneralRelationOperator.Equals, 1, 1]));
   });
 
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
