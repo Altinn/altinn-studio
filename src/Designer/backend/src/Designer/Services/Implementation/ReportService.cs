@@ -2,47 +2,47 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Models.Metrics;
-using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class ReportService(
     IRuntimeGatewayClient runtimeGatewayClient,
     IAppResourcesService appResourcesService,
-    IDistributedCache distributedCache,
-    INotificationService notificationService,
-    GeneralSettings generalSettings
+    INotificationService notificationService
 ) : IReportService
 {
     private const int MinutesPerDay = 24 * 60;
     private const int MaxConcurrentAppMetadataRequests = 4;
-    private const string ReportDataCacheKeyPrefix = "reportData:";
 
-    private const string FailedProcessNextRequests = "failed_process_next_requests";
-    private const string FailedInstanceCreationRequests = "failed_instance_creation_requests";
-    private const string ProcessesStarted = "altinn_app_lib_processes_started";
-    private const string ProcessesEnded = "altinn_app_lib_processes_ended";
+    private const string FailedProcessNextMetric = "failed_process_next_requests";
+    private const string FailedInstanceCreationMetric = "failed_instance_creation_requests";
+    private const string ProcessesStartedMetric = "altinn_app_lib_processes_started";
+    private const string ProcessesEndedMetric = "altinn_app_lib_processes_ended";
+
+    private const string NoAppsText = "Ingen publiserte apper ble funnet i miljøet.";
+
+    private static readonly IReadOnlyList<string> s_appTableHeaders =
+    [
+        "App",
+        "Versjon",
+        "App-bibliotek",
+        "Feilende process/next",
+        "Feilende instansieringer",
+        "Påbegynte instanser",
+        "Fullførte instanser",
+    ];
 
     private static readonly CultureInfo s_norwegianCulture = CultureInfo.GetCultureInfo("nb-NO");
     private static readonly TimeZoneInfo s_norwegianTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Oslo");
 
-    // The PDF renderer fetches the report data while the report is generated, possibly from another replica.
-    private static readonly DistributedCacheEntryOptions s_reportDataCacheOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2),
-    };
-
-    public async Task GenerateReportPdfAsync(
+    public async Task SendReportAsync(
         string org,
         string environment,
         ReportFrequency frequency,
@@ -60,12 +60,10 @@ public class ReportService(
             rangeMinutes,
             cancellationToken
         );
-
-        IReadOnlyList<ReportApp> apps = reportMetrics.Apps;
         IReadOnlyDictionary<string, string?> appLibVersions = await GetAppLibVersionsAsync(
             org,
             environment,
-            apps,
+            reportMetrics.Apps,
             cancellationToken
         );
 
@@ -78,101 +76,41 @@ public class ReportService(
             StringComparer.OrdinalIgnoreCase
         );
 
-        string frequencyStr = frequency.ToString().ToLowerInvariant();
-
-        List<AppReportData> appReports =
+        List<AppSummary> appSummaries =
         [
-            .. apps.Select(app => new AppReportData
-                {
-                    AppName = app.Name,
-                    Version = app.Version,
-                    AppLibVersion = appLibVersions.GetValueOrDefault(app.Name),
-                    Metrics = metricsByApp[app.Name],
-                    ErrorMetrics =
-                    [
-                        .. errorMetricsByApp[app.Name]
-                            .Select(e => new AppErrorMetric
-                            {
-                                Name = e.Name,
-                                Timestamps = e.Timestamps,
-                                Counts = e.Counts,
-                                BucketSize = e.BucketSize,
-                                LogsUrl = e.LogsUrl,
-                            }),
-                    ],
-                })
-                .OrderByDescending(a =>
-                    a.Metrics.Any(m => m.Timestamps.Any()) || a.ErrorMetrics.Any(e => e.Timestamps.Any())
-                ),
+            .. reportMetrics
+                .Apps.Select(app => new AppSummary(
+                    app.Name,
+                    app.Version,
+                    appLibVersions.GetValueOrDefault(app.Name),
+                    SumCounts(errorMetricsByApp[app.Name], FailedProcessNextMetric),
+                    SumCounts(errorMetricsByApp[app.Name], FailedInstanceCreationMetric),
+                    SumCounts(metricsByApp[app.Name], ProcessesStartedMetric),
+                    SumCounts(metricsByApp[app.Name], ProcessesEndedMetric)
+                ))
+                .OrderByDescending(app => app.HasActivity)
+                .ThenBy(app => app.Name, StringComparer.Ordinal),
         ];
 
-        var reportData = new ReportData
-        {
-            Org = org,
-            Environment = environment,
-            From = from,
-            To = to,
-            Apps = appReports,
-        };
-
-        var token = Guid.NewGuid().ToString("N");
-        string cacheKey = ReportDataCacheKeyPrefix + token;
-        await distributedCache.SetStringAsync(
-            cacheKey,
-            JsonSerializer.Serialize(reportData),
-            s_reportDataCacheOptions,
-            cancellationToken
-        );
-
-        var renderUrl =
-            $"{generalSettings.BaseUrl}/admin/reports/render?token={token}&org={org}&env={environment}&frequency={frequencyStr}";
-
+        string frequencyName = frequency.ToString().ToLowerInvariant();
         var payload = new NotificationPayload(
-            $"report-{org}-{environment}-{frequencyStr}-{to:yyyyMMdd_HHmmss}",
-            "Altinn Studio - periodisk rapport",
+            $"report-{org}-{environment}-{frequencyName}-{to:yyyyMMdd_HHmmss}",
+            $"Altinn Studio - {GetReportName(frequency)}",
             [("Organisasjon", org), ("Miljø", environment), ("Periode", FormatPeriod(from, to))],
             [],
-            FormatAppSummaries(appReports)
+            Body: appSummaries.Count == 0 ? NoAppsText : "",
+            Table: appSummaries.Count == 0
+                ? null
+                : new NotificationTable(s_appTableHeaders, [.. appSummaries.Select(app => app.ToRow())])
         );
-
-        byte[] pdf;
-        try
-        {
-            pdf = await runtimeGatewayClient.GeneratePdfAsync(org, altinnEnvironment, renderUrl, cancellationToken);
-        }
-        finally
-        {
-            await distributedCache.RemoveAsync(cacheKey, CancellationToken.None);
-        }
 
         await notificationService.NotifyReportContactPointsAsync(
             org,
             altinnEnvironment,
             frequency,
             payload,
-            pdf,
             cancellationToken
         );
-    }
-
-    public async Task<ReportData?> GetReportDataAsync(
-        string org,
-        string environment,
-        string token,
-        CancellationToken cancellationToken = default
-    )
-    {
-        string? serializedReportData = await distributedCache.GetStringAsync(
-            ReportDataCacheKeyPrefix + token,
-            cancellationToken
-        );
-        if (serializedReportData is null)
-        {
-            return null;
-        }
-
-        ReportData? reportData = JsonSerializer.Deserialize<ReportData>(serializedReportData);
-        return reportData?.Org == org && reportData.Environment == environment ? reportData : null;
     }
 
     private async Task<IReadOnlyDictionary<string, string?>> GetAppLibVersionsAsync(
@@ -239,37 +177,45 @@ public class ReportService(
     private static string FormatDateTime(DateTimeOffset value) =>
         TimeZoneInfo.ConvertTime(value, s_norwegianTimeZone).ToString("d.M.yyyy, HH:mm:ss", s_norwegianCulture);
 
-    private static string FormatAppSummaries(IEnumerable<AppReportData> appReports) =>
-        string.Join("\n\n", appReports.Select(FormatAppSummary));
+    private static string GetReportName(ReportFrequency frequency) =>
+        frequency switch
+        {
+            ReportFrequency.Daily => "daglig rapport",
+            ReportFrequency.Weekly => "ukentlig rapport",
+            ReportFrequency.Monthly => "månedlig rapport",
+            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null),
+        };
 
-    private static string FormatAppSummary(AppReportData appReport) =>
-        $"""
-            *{appReport.AppName}*{FormatAppVersions(appReport)}
-            • `{FormatCount(GetErrorCount(appReport, FailedProcessNextRequests))}` feilende process/next
-            • `{FormatCount(GetErrorCount(appReport, FailedInstanceCreationRequests))}` feilende instansieringer
-            • `{FormatCount(GetMetricCount(appReport, ProcessesStarted))}` påbegynte instanser
-            • `{FormatCount(GetMetricCount(appReport, ProcessesEnded))}` fullførte instanser
-            """;
+    private static double SumCounts(IEnumerable<Metric> metrics, string metricName) =>
+        metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
 
-    private static string FormatAppVersions(AppReportData appReport)
+    private static double SumCounts(IEnumerable<AllAppsErrorMetric> metrics, string metricName) =>
+        metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
+
+    private static string FormatCount(double count) => count.ToString("#,0.##", s_norwegianCulture);
+
+    private sealed record AppSummary(
+        string Name,
+        string? Version,
+        string? AppLibVersion,
+        double FailedProcessNextRequests,
+        double FailedInstanceCreationRequests,
+        double ProcessesStarted,
+        double ProcessesEnded
+    )
     {
-        List<string> parts = [];
-        if (!string.IsNullOrEmpty(appReport.Version))
-        {
-            parts.Add($"versjon {appReport.Version}");
-        }
-        if (!string.IsNullOrEmpty(appReport.AppLibVersion))
-        {
-            parts.Add($"app-bibliotek {appReport.AppLibVersion}");
-        }
-        return parts.Count > 0 ? $" ({string.Join(", ", parts)})" : "";
+        public bool HasActivity =>
+            FailedProcessNextRequests + FailedInstanceCreationRequests + ProcessesStarted + ProcessesEnded > 0;
+
+        public IReadOnlyList<string?> ToRow() =>
+            [
+                Name,
+                Version,
+                AppLibVersion,
+                FormatCount(FailedProcessNextRequests),
+                FormatCount(FailedInstanceCreationRequests),
+                FormatCount(ProcessesStarted),
+                FormatCount(ProcessesEnded),
+            ];
     }
-
-    private static double GetErrorCount(AppReportData appReport, string metricName) =>
-        appReport.ErrorMetrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
-
-    private static double GetMetricCount(AppReportData appReport, string metricName) =>
-        appReport.Metrics.Where(metric => metric.Name == metricName).SelectMany(metric => metric.Counts).Sum();
-
-    private static string FormatCount(double count) => count.ToString("0.##", CultureInfo.InvariantCulture);
 }

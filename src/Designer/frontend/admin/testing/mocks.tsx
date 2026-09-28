@@ -9,7 +9,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
-import { ConsentProvider } from 'app-shared/utils/consent';
 
 type ProviderData = {
   queries?: Partial<ServicesContextProps>;
@@ -25,7 +24,7 @@ export function renderWithProviders(
       <MemoryRouter initialEntries={initialEntries}>
         <FeatureFlagsProvider>
           <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-            <ConsentProvider>{children}</ConsentProvider>
+            {children}
           </ServicesContextProvider>
         </FeatureFlagsProvider>
       </MemoryRouter>
@@ -43,7 +42,7 @@ export function renderHookWithProviders<T>(
       <MemoryRouter initialEntries={initialEntries}>
         <FeatureFlagsProvider>
           <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-            <ConsentProvider>{children}</ConsentProvider>
+            {children}
           </ServicesContextProvider>
         </FeatureFlagsProvider>
       </MemoryRouter>

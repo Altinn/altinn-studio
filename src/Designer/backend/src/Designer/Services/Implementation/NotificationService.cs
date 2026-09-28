@@ -27,6 +27,9 @@ internal sealed class NotificationService(
 ) : INotificationService
 {
     private const int SlackSectionTextLimit = 3000;
+    private const string EmptyCellPlaceholder = "–";
+    private const string EmailTableHeaderStyle = "text-align: left; border-bottom: 2px solid #999";
+    private const string EmailTableCellStyle = "border-bottom: 1px solid #ddd";
 
     public async Task NotifyInternalAsync(
         string org,
@@ -90,7 +93,7 @@ internal sealed class NotificationService(
         List<Task> notificationTasks = contactPoints
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, attachments: null, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
                 )
             )
             .ToList();
@@ -103,7 +106,6 @@ internal sealed class NotificationService(
         AltinnEnvironment environment,
         ReportFrequency frequency,
         NotificationPayload payload,
-        byte[]? pdfBytes,
         CancellationToken cancellationToken
     )
     {
@@ -131,12 +133,11 @@ internal sealed class NotificationService(
             return;
         }
 
-        IReadOnlyList<EmailAttachment>? attachments = BuildPdfAttachments(payload, pdfBytes);
         List<Task> notificationTasks = contactPoints
             .Where(cp => cp.ReportFrequency == frequency)
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, attachments, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
                 )
             )
             .ToList();
@@ -148,7 +149,6 @@ internal sealed class NotificationService(
         ContactPointEntity contactPoint,
         ContactMethodEntity method,
         NotificationPayload payload,
-        IReadOnlyList<EmailAttachment>? attachments,
         CancellationToken cancellationToken
     )
     {
@@ -172,7 +172,6 @@ internal sealed class NotificationService(
                         FormatTitle(payload),
                         FormatEmailBody(payload),
                         EmailContentType.Html,
-                        attachments: attachments,
                         cancellationToken: cancellationToken
                     );
                     break;
@@ -200,12 +199,6 @@ internal sealed class NotificationService(
         }
     }
 
-    // The PDF is encoded once and shared by every delivery so large reports are not duplicated per recipient.
-    private static IReadOnlyList<EmailAttachment>? BuildPdfAttachments(NotificationPayload payload, byte[]? pdfBytes) =>
-        pdfBytes is null
-            ? null
-            : [new EmailAttachment { Filename = $"{payload.Id}.pdf", Data = Convert.ToBase64String(pdfBytes) }];
-
     private static string FormatEmailBody(NotificationPayload payload)
     {
         string title = FormatTitle(payload);
@@ -224,6 +217,7 @@ internal sealed class NotificationService(
                 </tbody>
             </table>
             {body}
+            {FormatEmailTable(payload.Table)}
             <table cellpadding="4">
                 <tbody>
                 <tr>
@@ -238,11 +232,46 @@ internal sealed class NotificationService(
             """;
     }
 
+    private static string FormatEmailTable(NotificationTable? table)
+    {
+        if (table is null)
+        {
+            return "";
+        }
+
+        string headerCells = string.Concat(
+            table.Headers.Select(header =>
+                $"<th style=\"{EmailTableHeaderStyle}\">{WebUtility.HtmlEncode(header)}</th>"
+            )
+        );
+        IEnumerable<string> rows = table.Rows.Select(row =>
+            "<tr>"
+            + string.Concat(
+                row.Select(cell =>
+                    $"<td style=\"{EmailTableCellStyle}\">{WebUtility.HtmlEncode(string.IsNullOrEmpty(cell) ? EmptyCellPlaceholder : cell)}</td>"
+                )
+            )
+            + "</tr>"
+        );
+        return $"""
+            <table cellpadding="6" cellspacing="0" style="border-collapse: collapse">
+                <thead><tr>{headerCells}</tr></thead>
+                <tbody>
+                    {string.Join("\n", rows)}
+                </tbody>
+            </table>
+            """;
+    }
+
     private static string FormatSmsBody(NotificationPayload payload)
     {
         string fields = string.Join("\n", payload.Fields.Select(f => $"{f.Label}: {f.Value}"));
         string body = string.IsNullOrWhiteSpace(payload.Body) ? "" : $"\n\n{payload.Body}";
-        return $"{payload.Title}\n\n{fields}{body}";
+        string table = string.Join(
+            "\n\n",
+            FormatTableRows(payload.Table, name => name, (header, value) => $"{header}: {value}")
+        );
+        return $"{payload.Title}\n\n{fields}{body}{(table.Length > 0 ? $"\n\n{table}" : "")}";
     }
 
     private static SlackMessage FormatSlackMessage(NotificationPayload payload)
@@ -267,8 +296,13 @@ internal sealed class NotificationService(
             new() { Type = "context", Elements = infoElements },
         };
 
+        string table = string.Join(
+            "\n\n",
+            FormatTableRows(payload.Table, name => $"*{name}*", (header, value) => $"• {header}: `{value}`")
+        );
         blocks.AddRange(
             SplitSlackSections(payload.Body)
+                .Concat(SplitSlackSections(table))
                 .Select(section => new SlackBlock
                 {
                     Type = "section",
@@ -281,6 +315,29 @@ internal sealed class NotificationService(
         }
 
         return new SlackMessage { Text = $"{titlePrefix}{fallbackValues} - *{payload.Title}*", Blocks = blocks };
+    }
+
+    // Renders each table row as a block of text: the row name followed by one line per non-empty cell.
+    private static IEnumerable<string> FormatTableRows(
+        NotificationTable? table,
+        Func<string, string> formatName,
+        Func<string, string, string> formatCell
+    )
+    {
+        if (table is null)
+        {
+            yield break;
+        }
+
+        foreach (IReadOnlyList<string?> row in table.Rows)
+        {
+            IEnumerable<string> cells = table
+                .Headers.Zip(row)
+                .Skip(1)
+                .Where(cell => !string.IsNullOrEmpty(cell.Second))
+                .Select(cell => formatCell(cell.First, cell.Second!));
+            yield return string.Join("\n", cells.Prepend(formatName(row.Count > 0 ? row[0] ?? "" : "")));
+        }
     }
 
     private static string FormatTitle(NotificationPayload payload) =>

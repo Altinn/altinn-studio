@@ -21,14 +21,10 @@ const formatTooltipTitle = (startMs: number, bucketSizeInMs: number): string[] =
   return [dateHeader, `${formatTime(startDate)} – ${formatTime(endDate)}`];
 };
 
-const minutesPerHour = 60;
-const hoursPerDay = 24;
-const millisecondsPerMinute = 60 * 1000;
-
 export const getChartOptions = (bucketSize: number, range: number): ChartOptions<'bar'> => {
-  const dayInMinutes = hoursPerDay * minutesPerHour;
-  const bucketSizeInMs = bucketSize * millisecondsPerMinute;
-  const rangeInMs = range * millisecondsPerMinute;
+  const minuteInMs = 60 * 1000;
+  const bucketSizeInMs = bucketSize * minuteInMs;
+  const rangeInMs = range * minuteInMs;
   const now = Date.now();
   const max = Math.ceil(now / bucketSizeInMs) * bucketSizeInMs;
   const min = Math.floor((now - rangeInMs) / bucketSizeInMs) * bucketSizeInMs;
@@ -64,8 +60,6 @@ export const getChartOptions = (bucketSize: number, range: number): ChartOptions
           },
         },
         time: {
-          unit:
-            bucketSize >= dayInMinutes ? 'day' : bucketSize >= minutesPerHour ? 'hour' : 'minute',
           displayFormats: {
             minute: 'HH:mm',
             hour: 'HH:mm',
