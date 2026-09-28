@@ -82,21 +82,3 @@ export const reportMetricsRoute = (req, res) => {
   );
   res.json({ apps: APPS, metrics, errorMetrics });
 };
-
-// Minimal valid single-page PDF so the caller gets real application/pdf bytes.
-const DUMMY_PDF = Buffer.from(
-  `%PDF-1.4
-1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
-2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
-3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj
-trailer<</Root 1 0 R>>
-%%EOF`,
-  'utf-8',
-);
-
-export const generatePdfRoute = (req, res) => {
-  console.log(
-    `PDF generation requested: url=${sanitizeForLog(req.body?.url)} waitFor=${sanitizeForLog(req.body?.waitFor)}`,
-  );
-  res.status(200).contentType('application/pdf').send(DUMMY_PDF);
-};

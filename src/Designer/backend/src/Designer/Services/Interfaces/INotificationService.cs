@@ -26,7 +26,6 @@ public interface INotificationService
         AltinnEnvironment environment,
         ReportFrequency frequency,
         NotificationPayload payload,
-        byte[]? pdfBytes,
         CancellationToken cancellationToken
     );
 }

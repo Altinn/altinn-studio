@@ -46,12 +46,7 @@ public class PeriodicReportJob(IContactPointsRepository contactPointsRepository,
 
             try
             {
-                await reportService.GenerateReportPdfAsync(
-                    target.Org,
-                    target.Environment,
-                    frequency,
-                    cancellationToken
-                );
+                await reportService.SendReportAsync(target.Org, target.Environment, frequency, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

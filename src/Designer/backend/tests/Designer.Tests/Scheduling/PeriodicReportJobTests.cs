@@ -30,13 +30,11 @@ public class PeriodicReportJobTests
         await CreateJob().Execute(CreateContext(ReportFrequency.Weekly));
 
         _reportService.Verify(
-            service =>
-                service.GenerateReportPdfAsync("skd", "prod", ReportFrequency.Weekly, It.IsAny<CancellationToken>()),
+            service => service.SendReportAsync("skd", "prod", ReportFrequency.Weekly, It.IsAny<CancellationToken>()),
             Times.Once
         );
         _reportService.Verify(
-            service =>
-                service.GenerateReportPdfAsync("ttd", "tt02", ReportFrequency.Weekly, It.IsAny<CancellationToken>()),
+            service => service.SendReportAsync("ttd", "tt02", ReportFrequency.Weekly, It.IsAny<CancellationToken>()),
             Times.Once
         );
         _reportService.VerifyNoOtherCalls();
@@ -50,15 +48,14 @@ public class PeriodicReportJobTests
             .ReturnsAsync([new ReportTarget("skd", "prod"), new ReportTarget("ttd", "tt02")]);
         _reportService
             .Setup(service =>
-                service.GenerateReportPdfAsync("skd", "prod", ReportFrequency.Daily, It.IsAny<CancellationToken>())
+                service.SendReportAsync("skd", "prod", ReportFrequency.Daily, It.IsAny<CancellationToken>())
             )
             .ThrowsAsync(new HttpRequestException("gateway unavailable"));
 
         await CreateJob().Execute(CreateContext(ReportFrequency.Daily));
 
         _reportService.Verify(
-            service =>
-                service.GenerateReportPdfAsync("ttd", "tt02", ReportFrequency.Daily, It.IsAny<CancellationToken>()),
+            service => service.SendReportAsync("ttd", "tt02", ReportFrequency.Daily, It.IsAny<CancellationToken>()),
             Times.Once
         );
     }
@@ -72,7 +69,7 @@ public class PeriodicReportJobTests
             .ReturnsAsync([new ReportTarget("skd", "prod"), new ReportTarget("ttd", "tt02")]);
         _reportService
             .Setup(service =>
-                service.GenerateReportPdfAsync("skd", "prod", ReportFrequency.Daily, It.IsAny<CancellationToken>())
+                service.SendReportAsync("skd", "prod", ReportFrequency.Daily, It.IsAny<CancellationToken>())
             )
             .Callback(cancellationTokenSource.Cancel)
             .ThrowsAsync(new OperationCanceledException());
@@ -83,12 +80,7 @@ public class PeriodicReportJobTests
 
         _reportService.Verify(
             service =>
-                service.GenerateReportPdfAsync(
-                    "ttd",
-                    "tt02",
-                    It.IsAny<ReportFrequency>(),
-                    It.IsAny<CancellationToken>()
-                ),
+                service.SendReportAsync("ttd", "tt02", It.IsAny<ReportFrequency>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
     }

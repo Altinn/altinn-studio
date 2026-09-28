@@ -77,10 +77,4 @@ public interface IRuntimeGatewayClient
         bool isUndeploy,
         CancellationToken cancellationToken
     );
-    Task<byte[]> GeneratePdfAsync(
-        string org,
-        AltinnEnvironment environment,
-        string renderUrl,
-        CancellationToken cancellationToken
-    );
 }

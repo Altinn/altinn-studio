@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
@@ -18,8 +17,7 @@ public class NotificationOrder
         string subject,
         string body,
         EmailContentType contentType = EmailContentType.Plain,
-        SendingTime sendingTimePolicy = SendingTime.Anytime,
-        IReadOnlyList<EmailAttachment>? attachments = null
+        SendingTime sendingTimePolicy = SendingTime.Anytime
     )
     {
         return new()
@@ -37,7 +35,6 @@ public class NotificationOrder
                         Body = body,
                         ContentType = contentType,
                         SendingTimePolicy = sendingTimePolicy,
-                        Attachments = attachments,
                     },
                 },
             },
@@ -119,22 +116,6 @@ public class EmailSettings
     [JsonPropertyName("sendingTimePolicy")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public SendingTime SendingTimePolicy { get; set; }
-
-    [JsonPropertyName("attachments")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyList<EmailAttachment>? Attachments { get; set; }
-}
-
-public class EmailAttachment
-{
-    [JsonPropertyName("filename")]
-    public required string Filename { get; set; }
-
-    [JsonPropertyName("data")]
-    public required string Data { get; set; }
-
-    [JsonPropertyName("contentType")]
-    public string ContentType { get; set; } = "application/pdf";
 }
 
 public class SmsSettings

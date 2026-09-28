@@ -14,6 +14,7 @@ import type { QueryClientConfig } from '@tanstack/react-query';
 import { PageRoutes } from './routes/PageRoutes';
 import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { ConsentProvider } from 'app-shared/utils/consent';
+import { ConsentBanner } from 'app-shared/components';
 import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 const loggerConfig: LoggerConfig = {
@@ -57,6 +58,7 @@ root.render(
         <LoggerContextProvider config={loggerConfig}>
           <PostHogContextProvider>
             <ConsentProvider>
+              <ConsentBanner />
               <PageRoutes />
             </ConsentProvider>
           </PostHogContextProvider>

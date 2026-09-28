@@ -214,29 +214,4 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     private record TriggerReconcileRequest(bool IsUndeploy);
-
-    /// <inheritdoc />
-    public async Task<byte[]> GeneratePdfAsync(
-        string org,
-        AltinnEnvironment environment,
-        string renderUrl,
-        CancellationToken cancellationToken
-    )
-    {
-        using var client = _httpClientFactory.CreateClient("runtime-gateway");
-        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
-        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/pdf";
-
-        var request = new PdfGenerateRequest(renderUrl);
-        using var response = await HttpClientJsonExtensions.PostAsJsonAsync(
-            client,
-            requestUrl,
-            request,
-            cancellationToken
-        );
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsByteArrayAsync(cancellationToken);
-    }
-
-    private record PdfGenerateRequest(string Url);
 }

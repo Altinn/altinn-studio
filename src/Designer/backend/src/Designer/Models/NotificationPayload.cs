@@ -8,5 +8,6 @@ public sealed record NotificationPayload(
     IReadOnlyList<(string Label, string Value)> Fields,
     IReadOnlyList<(string Url, string Label)> Links,
     string Body = "",
-    string Emoji = ""
+    string Emoji = "",
+    NotificationTable? Table = null
 );

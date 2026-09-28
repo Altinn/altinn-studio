@@ -1,6 +1,7 @@
 .metric {
   border: none;
   padding: var(--ds-size-4) var(--ds-size-8) var(--ds-size-6) var(--ds-size-10);
+  white-space: nowrap;
   font-size: var(--ds-size-4);
 }
 
@@ -11,8 +12,7 @@
 
 .heading {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--ds-size-1) var(--ds-size-4);
+  gap: var(--ds-size-4);
   justify-content: space-between;
   align-items: center;
   padding-left: var(--ds-size-2);
@@ -26,12 +26,12 @@
 }
 
 .count {
-  font-size: 1.6em;
+  font-size: 1.2rem;
   font-weight: bold;
 }
 
 .link {
-  margin-left: auto;
+  margin-left: var(--ds-size-2);
   padding: var(--ds-size-1) var(--ds-size-2);
   text-decoration: underline;
   white-space: nowrap;
@@ -50,11 +50,6 @@
 }
 
 .chart {
-  height: var(--metric-chart-height, 150px);
+  height: 150px;
   width: 100%;
-  overflow: hidden;
-}
-
-.chart canvas {
-  max-width: 100%;
 }
