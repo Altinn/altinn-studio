@@ -7,13 +7,22 @@ spec:
     exporters:
       load_balancing/traces:
         routing_key: traceID
-        # Retry and queue here rather than per gateway: a failed export then goes back through the
-        # hash ring, so data meant for a gateway that is going away reaches one that is running.
-        # The per-gateway exporters have no queue or retries of their own, so a failure reaches
-        # this level instead of being dropped when that gateway leaves the ring.
+        # Retry and queue here rather than per gateway. With a queue of its own, a per-gateway
+        # exporter (protocol.otlp) accepts a batch at once and then retries it against the same
+        # gateway, and drops it when that gateway leaves the ring. Without one, a failed send comes
+        # back to this level, and each retry picks the gateway from the current ring.
         #
         # Every retry setting is spelled out. In Collector 0.161.0 this exporter leaves unset ones at
-        # zero rather than at the usual defaults, and zero means retrying at once, forever.
+        # zero rather than at the usual defaults, and zero means retrying at once, forever. The
+        # values are those usual defaults, which the per-gateway exporters used before: the first
+        # retry after 5s, the DNS resolver's default interval, so the ring has had a chance to drop
+        # a departed gateway; then backing off to 30s, and giving up after 5 minutes.
+        #
+        # The timeout bounds one attempt, which sends to each gateway the batch hashes to one after
+        # another, each within the per-gateway exporter's default 5s. 10s covers the two gateways
+        # that exist side by side during a rollout; raise it with the gateway's replica count.
+        #
+        # The queue keeps its defaults: in memory, 1,000 batches, as one per-gateway queue had.
         timeout: 10s
         retry_on_failure:
           enabled: true
