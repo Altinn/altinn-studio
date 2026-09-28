@@ -19,6 +19,8 @@ from agents.core import LoopContext, UpgradeAppToV9Tool, VerifyChangesTool
 from agents.core.tool import Tool
 from agents.core.tools import upgrade_app_tool
 
+from .git_repo import create_committed_repo, git, write_files
+
 _SUCCESS_PAYLOAD = {"message": "", "exitCode": 0, "output": "", "error": "", "steps": []}
 _EXIT_ERROR = 1
 _V8_APP_FILES = {"App/App.csproj": "v8", "App/ui/layout-sets.json": "{}"}
@@ -89,33 +91,13 @@ def _stub_upgrade_that_edits_repo(monkeypatch, edit_repo: Callable[[], None], ex
     monkeypatch.setattr("agents.core.tools.upgrade_app_tool._run_studioctl_upgrade", fake_run)
 
 
-def _write_files(repo: Path, files: dict[str, str]) -> None:
-    for relative_path, content in files.items():
-        file_path = repo / relative_path
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(content, encoding="utf-8")
-
-
-def _git(repo: Path, *args: str) -> None:
-    subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
-
-
-def _create_committed_repo(repo: Path, files: dict[str, str]) -> Path:
-    _write_files(repo, files)
-    _git(repo, "init")
-    _git(repo, "config", "core.autocrlf", "false")
-    _git(repo, "add", "-A")
-    _git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-m", "v8 app")
-    return repo
-
-
 def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[], None]:
     """Mimics studioctl: change the app, then stage every change."""
 
     def upgrade() -> None:
-        _write_files(repo, {"App/App.csproj": "v9"})
+        write_files(repo, {"App/App.csproj": "v9"})
         (repo / "App/ui/layout-sets.json").unlink()
-        _git(repo, "add", "-A")
+        git(repo, "add", "-A")
 
     return upgrade
 
@@ -178,7 +160,7 @@ class TestUpgradeAppToV9:
         assert ctx.extras["changed_files"] == {"App/config/process/process.bpmn"}
 
     async def test_unsupported_version_is_error_and_records_nothing(self, monkeypatch, tmp_path: Path):
-        repo = _create_committed_repo(tmp_path, _V8_APP_FILES)
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
         _stub_studioctl(
             monkeypatch,
             _studioctl_result(
@@ -200,7 +182,7 @@ class TestUpgradeAppToV9:
         assert "changed_files" not in ctx.extras
 
     async def test_hard_error_is_error(self, monkeypatch, tmp_path: Path):
-        repo = _create_committed_repo(tmp_path, _V8_APP_FILES)
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
         _stub_studioctl(
             monkeypatch,
             _studioctl_result(
@@ -220,7 +202,7 @@ class TestUpgradeAppToV9:
         assert "boom" in result.content
 
     async def test_success_records_deleted_files_as_changed(self, monkeypatch, tmp_path: Path):
-        repo = _create_committed_repo(tmp_path, _V8_APP_FILES)
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
         _stub_upgrade_that_edits_repo(
             monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
         )
@@ -231,7 +213,7 @@ class TestUpgradeAppToV9:
         assert ctx.extras["changed_files"] == {"App/App.csproj", "App/ui/layout-sets.json"}
 
     async def test_verify_changes_passes_after_an_upgrade_that_deleted_files(self, monkeypatch, tmp_path: Path):
-        repo = _create_committed_repo(tmp_path, _V8_APP_FILES)
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
         _stub_upgrade_that_edits_repo(
             monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
         )
@@ -243,10 +225,10 @@ class TestUpgradeAppToV9:
         assert not verify_result.is_error
 
     async def test_failed_upgrade_discards_its_partial_changes(self, monkeypatch, tmp_path: Path):
-        repo = _create_committed_repo(tmp_path, _V8_APP_FILES)
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
 
         def fail_halfway() -> None:
-            _write_files(repo, {"App/App.csproj": "v9", "App/ui/Task_1/Settings.json": "{}"})
+            write_files(repo, {"App/App.csproj": "v9", "App/ui/Task_1/Settings.json": "{}"})
 
         _stub_upgrade_that_edits_repo(monkeypatch, fail_halfway, exit_code=_EXIT_ERROR)
 
