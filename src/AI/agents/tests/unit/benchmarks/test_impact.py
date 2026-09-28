@@ -479,18 +479,6 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
     assert "evaluators" in capsys.readouterr().out
 
 
-def test_the_base_ref_comes_from_the_command_line(monkeypatch):
-    import io
-
-    asked: list[str] = []
-    monkeypatch.setattr("sys.argv", ["impact", "--against=abc123"])
-    monkeypatch.setattr("sys.stdin", io.StringIO("README.md\n"))
-    monkeypatch.setattr(impact, "git_reader", lambda against: asked.append(against))
-
-    assert impact._main() == 0
-    assert asked == ["abc123"]
-
-
 def test_an_app_version_profile_invalidates_the_baseline():
     """The v8 and v9 prompt text is in the profiles, not in `agents/core/context.py`."""
     for path in ("agents/altinn/app_version/v8.py", "agents/altinn/app_version/v9.py"):

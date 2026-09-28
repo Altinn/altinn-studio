@@ -333,15 +333,13 @@ def _main() -> int:
 
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
     strict = "--strict" in sys.argv
-    against_flag = "--against="
-    against = next((a[len(against_flag) :] for a in sys.argv[1:] if a.startswith(against_flag)), "origin/main")
     if args:
         changed = args
     elif not sys.stdin.isatty():
         changed = [line.strip() for line in sys.stdin if line.strip()]
     else:
         diff = subprocess.run(
-            ("git", "diff", "--name-only", f"{against}...HEAD"),
+            ("git", "diff", "--name-only", "origin/main...HEAD"),
             capture_output=True,
             text=True,
             check=False,
@@ -349,12 +347,12 @@ def _main() -> int:
         if diff.returncode != 0:
             print(
                 "Could not work out what changed, so this gate proves nothing:\n"
-                + (diff.stderr.strip() or f"git diff {against}...HEAD failed"),
+                + (diff.stderr.strip() or "git diff origin/main...HEAD failed"),
                 file=sys.stderr,
             )
             return 1
         changed = [line for line in diff.stdout.splitlines() if line.strip()]
-    return report(changed, strict=strict, before=git_reader(against))
+    return report(changed, strict=strict, before=git_reader("origin/main"))
 
 
 if __name__ == "__main__":
