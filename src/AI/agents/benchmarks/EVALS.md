@@ -294,12 +294,21 @@ python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline 
 | `benchmarks/datasets/*` | dataset | **re-baseline**, the items every score is computed over |
 | `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators | **re-baseline**, how something is scored |
 | `agents/core/context.py` | actor_prompt | **re-baseline**, the actor's system prompt |
+| `agents/altinn/app_version/v*.py` | actor_prompt | **re-baseline**, the prompt text of one app version |
+| `agents/skills/*` | tools | **re-baseline**, the skill text and the skill listing |
 | `agents/prompts/*` | prompts | **re-baseline**, a published prompt |
 | `agents/core/tools/*`, `agents/core/registry.py` | tools | **re-baseline**, the schemas the actor is shown |
 | `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*` | code | check, the baseline stays valid |
 | `shared/config/base_config.py` | models | check, the baseline stays valid |
 | `benchmarks/manifest.py` | manifest | check, declaring a behavior changes no score |
 | anything else, and all tests | | nothing |
+
+The gate compares the Python AST of a changed `.py` file with the file at the merge base.
+If only module or function docstrings, comments or formatting change, the file moves no
+axis. A change to a class docstring moves the axis, because pydantic copies it into the
+input schema of a tool. The `actor_prompt` and `tools` digests hash the text for every app
+version profile. The `actor_prompt` digest also hashes the skill listing, and the `tools`
+digest hashes the skill text.
 
 A test asserts every declared path still exists, so a rule cannot rot into one that
 silently matches nothing. Another asserts every yardstick axis is one a comparison actually

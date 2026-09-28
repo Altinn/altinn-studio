@@ -159,13 +159,14 @@ def _sampling_value(value: object) -> str:
 
 
 def _actor_prompt_digest() -> str | None:
-    """A hash of the actor's static system prompt."""
+    """A hash of the actor's static system prompt, for every app version, and the skill listing."""
     try:
-        from agents.altinn.app_version import V8_PROFILE
+        from agents.altinn.app_version import APP_VERSION_PROFILES
         from agents.core.context import stable_prefix_sections
+        from agents.core.skills import discover_skills, format_skill_listing
 
-        # The benchmark items run against v8 apps.
-        sections = stable_prefix_sections(V8_PROFILE)
+        sections = [section for profile in APP_VERSION_PROFILES for section in stable_prefix_sections(profile)]
+        sections.append(format_skill_listing(discover_skills()))
     except Exception:
         return None
     payload = "\n\n".join(sections).encode()
@@ -173,14 +174,21 @@ def _actor_prompt_digest() -> str | None:
 
 
 def _tools_digest() -> str | None:
-    """A hash of every tool schema the actor is shown."""
+    """A hash of every tool schema the actor is shown, and of the skill text for every app version."""
     try:
+        from agents.altinn.app_version import APP_VERSION_PROFILES
+        from agents.core.skills import discover_skills
         from agents.graph.nodes.agentic_loop_node import _build_registry
 
-        schema = _build_registry().to_schema()
+        skills = discover_skills()
+        schema = _build_registry(skills).to_schema()
+        skill_text = {
+            profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
+            for profile in APP_VERSION_PROFILES
+        }
     except Exception:
         return None
-    payload = json.dumps(schema, sort_keys=True).encode()
+    payload = json.dumps({"schema": schema, "skills": skill_text}, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 

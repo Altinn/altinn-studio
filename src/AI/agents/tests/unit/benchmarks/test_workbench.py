@@ -910,10 +910,13 @@ def test_the_actor_prompt_digest_tracks_what_the_agent_sends():
     """Digesting a copy of the prompt would drift; it digests the function the agent calls."""
     import hashlib
 
-    from agents.altinn.app_version import V8_PROFILE
+    from agents.altinn.app_version import APP_VERSION_PROFILES
     from agents.core.context import stable_prefix_sections
+    from agents.core.skills import discover_skills, format_skill_listing
 
-    expected = hashlib.sha256("\n\n".join(stable_prefix_sections(V8_PROFILE)).encode()).hexdigest()[:12]
+    sections = [section for profile in APP_VERSION_PROFILES for section in stable_prefix_sections(profile)]
+    sections.append(format_skill_listing(discover_skills()))
+    expected = hashlib.sha256("\n\n".join(sections).encode()).hexdigest()[:12]
     assert provenance.collect().actor_prompt == expected
 
 

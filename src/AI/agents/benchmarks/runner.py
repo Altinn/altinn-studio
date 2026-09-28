@@ -338,7 +338,7 @@ def cmd_impact(args: argparse.Namespace) -> None:
         if not changed:
             status = subprocess.run(("git", "status", "--porcelain"), capture_output=True, text=True, check=False)
             changed = [line[3:] for line in status.stdout.splitlines() if line.strip()]
-    sys.exit(impact.report(changed, strict=args.strict))
+    sys.exit(impact.report(changed, strict=args.strict, before=impact.git_reader(args.against)))
 
 
 def cmd_behaviors(args: argparse.Namespace) -> None:

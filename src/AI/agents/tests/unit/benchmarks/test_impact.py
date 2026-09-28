@@ -150,6 +150,11 @@ def test_every_rule_says_why_in_words_a_reviewer_can_use():
 class TestTheFailureTellsYouWhatToDo:
     """CI shows a job log and nothing else, so the message has to carry it all."""
 
+    @pytest.fixture(autouse=True)
+    def _paths_alone_decide(self, monkeypatch):
+        """The paths are unchanged in this checkout, so a source comparison finds nothing."""
+        monkeypatch.setattr(impact, "git_reader", lambda _against: None)
+
     def _run_impact(self, paths, tmp_path, strict=True):
         import argparse
         import contextlib
@@ -208,6 +213,8 @@ class TestTheGateRunsWithoutDependencies:
         import ast
 
         allowed = {
+            "ast",
+            "collections",
             "fnmatch",
             "dataclasses",
             "json",
@@ -465,7 +472,137 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
     import io
 
     monkeypatch.setattr("sys.argv", ["impact", "--strict"])
+    monkeypatch.setattr(impact, "git_reader", lambda _against: None)
     monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/benchmarks/gates.py\n"))
 
     assert impact._main() == 1
     assert "evaluators" in capsys.readouterr().out
+
+
+def test_the_base_ref_comes_from_the_command_line(monkeypatch):
+    import io
+
+    asked: list[str] = []
+    monkeypatch.setattr("sys.argv", ["impact", "--against=abc123"])
+    monkeypatch.setattr("sys.stdin", io.StringIO("README.md\n"))
+    monkeypatch.setattr(impact, "git_reader", lambda against: asked.append(against))
+
+    assert impact._main() == 0
+    assert asked == ["abc123"]
+
+
+def test_an_app_version_profile_invalidates_the_baseline():
+    """The v8 and v9 prompt text is in the profiles, not in `agents/core/context.py`."""
+    for path in ("agents/altinn/app_version/v8.py", "agents/altinn/app_version/v9.py"):
+        found = impact.analyze([path])
+        assert found.needs_rebaseline, path
+        assert found.axes == ("actor_prompt",), path
+
+
+def test_the_other_app_version_files_stay_code():
+    found = impact.analyze(["agents/altinn/app_version/detection.py"])
+    assert not found.needs_rebaseline
+    assert found.axes == ("code",)
+
+
+def test_a_skill_file_invalidates_the_baseline():
+    for path in (
+        "agents/skills/altinn-policy/SKILL.md",
+        "agents/skills/altinn-planning/v9.md",
+        "agents/skills/altinn-docs/llms.txt",
+    ):
+        found = impact.analyze([path])
+        assert found.needs_rebaseline, path
+        assert found.axes == ("tools",), path
+
+
+def test_the_skills_readme_is_not_a_skill():
+    assert impact.analyze(["agents/skills/README.md"]).hits == ()
+
+
+class TestOnlyTheCodeTheActorSeesCounts:
+    """A docstring, a comment or a format change must not require a new baseline."""
+
+    PATH = "agents/core/tools/file_tool.py"
+    SOURCE = '''\
+"""Module docstring."""
+
+from pydantic import BaseModel
+
+
+class Args(BaseModel):
+    """Copied into the input schema."""
+
+    path: str
+
+
+def run(args):
+    """Function docstring."""
+    return args.path  # a comment
+'''
+
+    def _analyze(self, new_source, old_source=SOURCE):
+        return impact.analyze(
+            [self.PATH],
+            before=lambda _path: old_source,
+            after=lambda _path: new_source,
+        )
+
+    def test_a_module_docstring_change_moves_no_axis(self):
+        found = self._analyze(self.SOURCE.replace("Module docstring.", "New text."))
+        assert found.hits == ()
+        assert found.docs_only == (self.PATH,)
+        assert any(self.PATH in line for line in found.explain())
+
+    def test_a_function_docstring_change_moves_no_axis(self):
+        assert self._analyze(self.SOURCE.replace("Function docstring.", "New text.")).hits == ()
+
+    def test_a_removed_function_docstring_moves_no_axis(self):
+        assert self._analyze(self.SOURCE.replace('    """Function docstring."""\n', "")).hits == ()
+
+    def test_a_comment_or_format_change_moves_no_axis(self):
+        changed = self.SOURCE.replace("  # a comment", "").replace("return args.path", "return (args.path)")
+        assert self._analyze(changed).hits == ()
+
+    def test_a_class_docstring_change_moves_the_axis(self):
+        """Pydantic copies a class docstring into the tool's input schema."""
+        found = self._analyze(self.SOURCE.replace("Copied into the input schema.", "New text."))
+        assert found.axes == ("tools",)
+
+    def test_a_code_change_moves_the_axis(self):
+        found = self._analyze(self.SOURCE.replace("return args.path", "return args"))
+        assert found.axes == ("tools",)
+
+    def test_a_new_file_moves_the_axis(self):
+        assert self._analyze(self.SOURCE, old_source=None).axes == ("tools",)
+
+    def test_a_deleted_file_moves_the_axis(self):
+        assert self._analyze(None).axes == ("tools",)
+
+    def test_a_file_that_does_not_parse_moves_the_axis(self):
+        assert self._analyze(self.SOURCE + "def (:\n").axes == ("tools",)
+
+    def test_a_docstring_change_in_a_behavior_file_needs_no_check(self):
+        found = impact.analyze(
+            ["agents/core/loop.py"],
+            before=lambda _path: '"""Old."""\n',
+            after=lambda _path: '"""New."""\n',
+        )
+        assert not found.needs_check
+
+    def test_a_markdown_file_is_never_compared_as_code(self):
+        found = impact.analyze(
+            ["agents/prompts/scope_check.md"],
+            before=lambda _path: "same",
+            after=lambda _path: "same",
+        )
+        assert found.axes == ("prompts",)
+
+    def test_the_git_reader_reads_the_file_at_the_merge_base(self):
+        read = impact.git_reader("HEAD")
+        assert read is not None
+        assert read("benchmarks/impact.py") is not None
+        assert read("benchmarks/no_such_file.py") is None
+
+    def test_an_unknown_base_ref_gives_no_reader(self):
+        assert impact.git_reader("no-such-ref-for-this-test") is None
