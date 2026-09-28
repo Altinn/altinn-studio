@@ -155,6 +155,7 @@ internal sealed class PdfService : IPdfService
         return await GeneratePreviewPdfInternal(
             dataAccessor.Instance,
             taskId,
+            dataAccessor.Language,
             autoGeneratePdfForTaskIds,
             subformPdfContext: null,
             cancellationToken
@@ -172,6 +173,7 @@ internal sealed class PdfService : IPdfService
         return await GeneratePreviewPdfInternal(
             dataAccessor.Instance,
             taskId,
+            dataAccessor.Language,
             autoGeneratePdfForTaskIds: null,
             subformPdfContext,
             cancellationToken
@@ -181,6 +183,7 @@ internal sealed class PdfService : IPdfService
     private async Task<Stream> GeneratePreviewPdfInternal(
         Instance instance,
         string taskId,
+        string? requestedLanguage,
         List<string>? autoGeneratePdfForTaskIds,
         SubformPdfContext? subformPdfContext,
         CancellationToken cancellationToken
@@ -188,11 +191,7 @@ internal sealed class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        var queries = httpContext?.Request.Query;
-        var auth = _authenticationContext.Current;
-
-        var language = GetOverriddenLanguage(queries) ?? await auth.GetLanguage();
+        string language = requestedLanguage ?? await _authenticationContext.Current.GetLanguage();
 
         return await GeneratePdfContent(
             instance,

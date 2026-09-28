@@ -5122,6 +5122,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The language of the preview, such as nb or en. Defaults to the user's language.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {

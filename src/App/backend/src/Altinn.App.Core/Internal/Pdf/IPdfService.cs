@@ -63,7 +63,8 @@ public interface IPdfService
 
     /// <summary>
     /// Generate a preview of the PDF a task produces, marked as a preview in its footer. The task does not have to be
-    /// the current task, so a PDF service task can be previewed before the instance reaches it.
+    /// the current task, so a PDF service task can be previewed before the instance reaches it. The preview is in the
+    /// language of the data accessor, or in the user's language if it has none.
     /// </summary>
     /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
     /// <param name="taskId">The task to preview, such as the current task or a PDF service task.</param>
@@ -78,7 +79,8 @@ public interface IPdfService
 
     /// <summary>
     /// Generate a preview of the PDF a subform PDF service task produces for one subform, marked as a preview in its
-    /// footer. The instance does not have to have reached the task.
+    /// footer. The instance does not have to have reached the task. The preview is in the language of the data
+    /// accessor, or in the user's language if it has none.
     /// </summary>
     /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
     /// <param name="taskId">The subform PDF service task to preview.</param>

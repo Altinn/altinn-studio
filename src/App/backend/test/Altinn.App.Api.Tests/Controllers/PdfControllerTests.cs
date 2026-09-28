@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -363,6 +364,25 @@ public class PdfControllerTests
         requestBody.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData("en", "lang=en")]
+    [InlineData(null, "lang=nn")]
+    public async Task Preview_Should_Be_In_The_Requested_Language_Or_The_Users(string? language, string expected)
+    {
+        _authenticationContext
+            .Setup(s => s.Current)
+            .Returns(
+                TestAuthentication.GetUserAuthentication(
+                    profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+                )
+            );
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: null, language: language);
+
+        result.Should().BeOfType<FileStreamResult>();
+        requestBody.Should().Contain(expected);
+    }
+
     [Fact]
     public async Task Request_For_Unknown_Task_Should_Return_NotFound()
     {
@@ -419,8 +439,9 @@ public class PdfControllerTests
     }
 
     private async Task<(ActionResult Result, string? RequestBody)> GetPdfPreview(
-        string taskId,
-        Guid? dataElementId = null
+        string? taskId,
+        Guid? dataElementId = null,
+        string? language = null
     )
     {
         IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
@@ -469,7 +490,8 @@ public class PdfControllerTests
             _partyId,
             _instanceId,
             taskId,
-            dataElementId
+            dataElementId,
+            language
         );
         return (result, requestBody);
     }

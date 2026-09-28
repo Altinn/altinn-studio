@@ -79,6 +79,7 @@ public class PdfController : ControllerBase
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="taskId">The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.</param>
     /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
+    /// <param name="language">The language of the preview, such as nb or en. Defaults to the user's language.</param>
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
@@ -92,7 +93,8 @@ public class PdfController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromQuery] string? taskId = null,
-        [FromQuery] Guid? dataElementId = null
+        [FromQuery] Guid? dataElementId = null,
+        [FromQuery] string? language = null
     )
     {
         CancellationToken cancellationToken = HttpContext?.RequestAborted ?? CancellationToken.None;
@@ -115,7 +117,7 @@ public class PdfController : ControllerBase
         if (taskId is null)
         {
             Stream pdfContent = await _pdfService.GeneratePreviewPdf(
-                await InitDataAccessor(fetchedInstance, currentTaskId),
+                await InitDataAccessor(fetchedInstance, currentTaskId, language),
                 currentTaskId,
                 cancellationToken: cancellationToken
             );
@@ -132,7 +134,7 @@ public class PdfController : ControllerBase
         if (taskExtension?.TaskType == "pdf")
         {
             Stream pdfPreview = await _pdfService.GeneratePreviewPdf(
-                await InitDataAccessor(fetchedInstance, taskId),
+                await InitDataAccessor(fetchedInstance, taskId, language),
                 taskId,
                 taskExtension.PdfConfiguration?.AutoPdfTaskIds,
                 cancellationToken
@@ -162,7 +164,7 @@ public class PdfController : ControllerBase
         }
 
         Stream subformPreview = await _pdfService.GenerateSubformPreviewPdf(
-            await InitDataAccessor(fetchedInstance, taskId),
+            await InitDataAccessor(fetchedInstance, taskId, language),
             taskId,
             new SubformPdfContext(subformConfig.SubformComponentId, subform.Id),
             cancellationToken
@@ -172,14 +174,15 @@ public class PdfController : ControllerBase
 
     private async Task<IInstanceDataAccessor> InitDataAccessor(
         InstanceWithStorageMetadata fetchedInstance,
-        string taskId
+        string taskId,
+        string? language
     )
     {
         return await _instanceDataUnitOfWorkInitializer.Init(
             fetchedInstance.Instance,
             fetchedInstance.Metadata,
             taskId,
-            language: null
+            language
         );
     }
 
