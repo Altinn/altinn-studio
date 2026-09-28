@@ -3,6 +3,7 @@ import type { RenderHookResult } from '@testing-library/react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { UseBpmnEditorResult } from './useBpmnEditor';
 import { useBpmnEditor } from './useBpmnEditor';
+import { useUpdateLayoutSetId } from './useUpdateLayoutSetId';
 import type { BpmnContextProps, BpmnContextProviderProps } from '../contexts/BpmnContext';
 import { BpmnContextProvider, useBpmnContext } from '../contexts/BpmnContext';
 import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
@@ -350,6 +351,82 @@ describe('useBpmnEditor', () => {
     expect(result.current.metadataFormRef.current).toBe(nextMetadata);
   });
 
+  it('Starts a save only after the previous save has completed', async () => {
+    const firstSave = withResolvers<void>();
+    const saveBpmn = jest.fn().mockReturnValueOnce(firstSave.promise).mockResolvedValue(undefined);
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+
+    await act(async () => {
+      eventListeners.triggerEvent('commandStack.changed');
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    expect(saveBpmn).toHaveBeenCalledTimes(1);
+
+    await act(async () => firstSave.resolve());
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledTimes(2));
+  });
+
+  it('Does not save an edit made before a rejected task id change was reloaded', async () => {
+    const saveBpmn = jest.fn().mockRejectedValueOnce(new Error('Bad request'));
+    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
+    const { result } = await setupWithBpmnContext({
+      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
+    });
+    result.current.metadataFormRef.current = { taskIdChange };
+
+    await act(async () => {
+      eventListeners.triggerEvent('commandStack.changed');
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+
+    await waitFor(() => expect(importXML).toHaveBeenLastCalledWith(savedXml));
+    expect(saveBpmn).toHaveBeenCalledTimes(1);
+    expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange });
+  });
+
+  it('Does not save an edit made while a layout set rename and its reload run, and saves the edits after them', async () => {
+    const rename = withResolvers<void>();
+    const mutateLayoutSetId = jest.fn().mockReturnValue(rename.promise);
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
+    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
+    const { result } = await setupWithBpmnContext({
+      bpmnApiContextProps: { saveBpmn, getSavedBpmn, mutateLayoutSetId },
+    });
+
+    await act(async () => {
+      result.current.updateLayoutSetId(layoutSetId, 'NamedTask');
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    expect(mutateLayoutSetId).toHaveBeenCalledTimes(1);
+
+    await act(async () => rename.resolve());
+    await waitFor(() => expect(importXML).toHaveBeenLastCalledWith(savedXml));
+    expect(saveBpmn).not.toHaveBeenCalled();
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledTimes(1));
+  });
+
+  it('Saves an edit made while a layout set rename runs when the rename fails', async () => {
+    const rename = withResolvers<void>();
+    const mutateLayoutSetId = jest
+      .fn()
+      .mockReturnValue(rename.promise.then(() => Promise.reject(new Error('Conflict'))));
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
+    const { result } = await setupWithBpmnContext({
+      bpmnApiContextProps: { saveBpmn, mutateLayoutSetId },
+    });
+
+    await act(async () => {
+      result.current.updateLayoutSetId(layoutSetId, 'NamedTask');
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    expect(saveBpmn).not.toHaveBeenCalled();
+
+    await act(async () => rename.resolve());
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledTimes(1));
+  });
+
   it('Resets the modeler ref when the callback is called with null', async () => {
     const { result } = await setupWithBpmnContext();
     const { modelerRef } = result.current.bpmnContext;
@@ -427,11 +504,19 @@ type UseBpmnEditorAndContextResult = {
   bpmnEditor: UseBpmnEditorResult;
   bpmnContext: Partial<BpmnContextProps>;
   metadataFormRef: React.MutableRefObject<MetadataForm>;
+  updateLayoutSetId: ReturnType<typeof useUpdateLayoutSetId>;
 };
 
 const useBpmnEditorAndContext = (): UseBpmnEditorAndContextResult => {
   const bpmnEditor = useBpmnEditor();
   const bpmnContext = useBpmnContext();
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
-  return { bpmnEditor, bpmnContext, metadataFormRef };
+  const updateLayoutSetId = useUpdateLayoutSetId();
+  return { bpmnEditor, bpmnContext, metadataFormRef, updateLayoutSetId };
 };
+
+function withResolvers<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
+  let resolve: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => (resolve = resolvePromise));
+  return { promise, resolve };
+}

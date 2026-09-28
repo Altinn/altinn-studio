@@ -15,6 +15,7 @@ const select = jest.fn();
 const importXML = jest.fn();
 const getSavedBpmn = jest.fn();
 const isReloadingRef = { current: false };
+const reloadCountRef = { current: 0 };
 const modeler = {
   importXML,
   get: (name: string) =>
@@ -27,12 +28,14 @@ describe('useReloadSavedProcess', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     isReloadingRef.current = false;
+    reloadCountRef.current = 0;
     importXML.mockResolvedValue({ warnings: [] });
     getSavedBpmn.mockResolvedValue(savedXml);
     (useBpmnContext as jest.Mock).mockReturnValue({
       modelerRef: { current: modeler },
       setBpmnDetails,
       isReloadingRef,
+      reloadCountRef,
     });
     (useBpmnApiContext as jest.Mock).mockReturnValue({ getSavedBpmn });
   });
@@ -43,6 +46,7 @@ describe('useReloadSavedProcess', () => {
     expect(importXML).toHaveBeenCalledWith(savedXml);
     expect(setBpmnDetails).toHaveBeenCalledWith(null);
     expect(select).toHaveBeenCalledWith(taskElement);
+    expect(reloadCountRef.current).toBe(1);
   });
 
   it('marks the editor as reloading only while the saved process is imported', async () => {
@@ -77,6 +81,7 @@ describe('useReloadSavedProcess', () => {
     expect(importXML).not.toHaveBeenCalled();
     expect(setBpmnDetails).not.toHaveBeenCalled();
     expect(select).not.toHaveBeenCalled();
+    expect(reloadCountRef.current).toBe(0);
   });
 
   it('stops reloading and selects nothing when the import fails', async () => {
@@ -86,6 +91,7 @@ describe('useReloadSavedProcess', () => {
 
     expect(isReloadingRef.current).toBe(false);
     expect(select).not.toHaveBeenCalled();
+    expect(reloadCountRef.current).toBe(0);
   });
 });
 

@@ -45,7 +45,7 @@ export const ProcessEditor = (): JSX.Element => {
     refetch: refetchBpmn,
   } = useBpmnQuery(org, app);
   const { mutateAsync: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
+  const { mutateAsync: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
     useUpdateLayoutSetIdMutation(org, app);
   const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
     org,
