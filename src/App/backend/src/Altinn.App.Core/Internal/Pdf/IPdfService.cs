@@ -39,7 +39,7 @@ public interface IPdfService
         List<string>? autoGeneratePdfForTaskIds = null,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
-    ) => throw new NotImplementedException();
+    );
 
     /// <summary>
     /// Generate a PDF for a subform and store it via the instance data mutator.
@@ -51,14 +51,14 @@ public interface IPdfService
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     /// <returns>The created binary data change representing the deferred PDF.</returns>
-    internal Task<BinaryDataChange> GenerateAndStoreSubformPdf(
+    Task<BinaryDataChange> GenerateAndStoreSubformPdf(
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey,
         SubformPdfContext subformPdfContext,
         List<KeyValueEntry>? metadata = null,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
-    ) => throw new NotImplementedException();
+    );
 
     /// <summary>
     /// Generate a PDF of what the user can currently see from the given instance of an app.
@@ -68,51 +68,34 @@ public interface IPdfService
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken);
 
-    /// <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" select="summary"/>
-    /// <param name="instance">
-    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='instance']"/>
-    /// </param>
-    /// <param name="taskId">
-    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='taskId']"/>
-    /// </param>
-    /// <param name="cancellationToken">
-    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='cancellationToken']"/>
-    /// </param>
-    /// <param name="isPreview">Indicates whether the PDF is a preview version.</param>
+    /// <summary>
+    /// Generate a PDF using an existing instance data accessor.
+    /// </summary>
+    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
+    /// <param name="taskId">The task id for which the PDF is generated</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
+    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GeneratePdf(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
-        bool isPreview,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Generate a PDF using an existing instance data accessor.
-    /// </summary>
-    internal Task<Stream> GeneratePdf(
-        IInstanceDataAccessor dataAccessor,
-        string taskId,
-        bool isPreview,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    ) => GeneratePdf(dataAccessor.Instance, taskId, isPreview, authenticationMethod, cancellationToken);
-
-    /// <summary>
-    /// Generate a preview PDF of a task in the instance's process. Unlike <see cref="GeneratePdf(Instance, string, bool, StorageAuthenticationMethod?, CancellationToken)"/>,
-    /// the task does not have to be the current task, so a PDF service task can be previewed before the instance reaches it.
+    /// Generate a preview PDF of a task in the instance's process, marked as a preview in its footer. The task does not
+    /// have to be the current task, so a PDF service task can be previewed before the instance reaches it.
     /// </summary>
     /// <param name="instance">The instance details.</param>
-    /// <param name="taskId">The task to preview.</param>
+    /// <param name="taskId">The task to preview, such as the current task.</param>
     /// <param name="autoGeneratePdfForTaskIds">The tasks to auto-generate the PDF from, as configured on a PDF service task.</param>
     /// <param name="subformPdfContext">The subform to preview, when previewing a subform PDF service task.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
-    internal Task<Stream> GeneratePreviewPdf(
+    Task<Stream> GeneratePreviewPdf(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds,
         SubformPdfContext? subformPdfContext,
         CancellationToken cancellationToken
-    ) => throw new NotImplementedException();
+    );
 }

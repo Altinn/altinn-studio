@@ -1096,7 +1096,7 @@ public class PdfServiceTests
         };
 
         // Act
-        await target.GeneratePdf(instance, "Task_1", isPreview: false, cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(

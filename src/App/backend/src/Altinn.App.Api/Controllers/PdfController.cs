@@ -104,11 +104,12 @@ public class PdfController : ControllerBase
 
         if (taskId is null)
         {
-            Stream pdfContent = await _pdfService.GeneratePdf(
+            Stream pdfContent = await _pdfService.GeneratePreviewPdf(
                 instance,
                 currentTaskId,
-                true,
-                cancellationToken: cancellationToken
+                autoGeneratePdfForTaskIds: null,
+                subformPdfContext: null,
+                cancellationToken
             );
             return new FileStreamResult(pdfContent, "application/pdf");
         }

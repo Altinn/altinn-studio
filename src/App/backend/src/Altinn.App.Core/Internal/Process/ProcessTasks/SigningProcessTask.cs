@@ -87,7 +87,6 @@ internal sealed class SigningProcessTask : IProcessTask
             await using Stream pdfStream = await _pdfService.GeneratePdf(
                 dataMutator,
                 taskId,
-                false,
                 cancellationToken: cancellationToken
             );
             using var memoryStream = new MemoryStream();

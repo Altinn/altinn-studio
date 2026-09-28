@@ -145,13 +145,7 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(
-        Instance instance,
-        string taskId,
-        bool isPreview,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken)
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
@@ -165,10 +159,10 @@ internal sealed class PdfService : IPdfService
             instance,
             taskId,
             language,
-            isPreview,
+            isPreview: false,
             null,
             null,
-            authenticationMethod,
+            authenticationMethod: null,
             dataAccessor: null,
             includeTaskIdInUrl: false,
             cancellationToken
@@ -176,15 +170,9 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken)
-    {
-        return await GeneratePdf(instance, taskId, false, cancellationToken: cancellationToken);
-    }
-
-    async Task<Stream> IPdfService.GeneratePdf(
+    public async Task<Stream> GeneratePdf(
         IInstanceDataAccessor dataAccessor,
         string taskId,
-        bool isPreview,
         StorageAuthenticationMethod? authenticationMethod,
         CancellationToken cancellationToken
     )
@@ -202,7 +190,7 @@ internal sealed class PdfService : IPdfService
             instance,
             taskId,
             language,
-            isPreview,
+            isPreview: false,
             null,
             null,
             authenticationMethod,
@@ -212,7 +200,8 @@ internal sealed class PdfService : IPdfService
         );
     }
 
-    async Task<Stream> IPdfService.GeneratePreviewPdf(
+    /// <inheritdoc/>
+    public async Task<Stream> GeneratePreviewPdf(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds,
@@ -237,7 +226,8 @@ internal sealed class PdfService : IPdfService
             autoGeneratePdfForTaskIds,
             authenticationMethod: null,
             dataAccessor: null,
-            includeTaskIdInUrl: true,
+            // The frontend renders the current task by default, so only another task goes in the URL
+            includeTaskIdInUrl: taskId != instance.Process?.CurrentTask?.ElementId,
             cancellationToken
         );
     }
