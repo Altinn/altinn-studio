@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"altinn.studio/releaser/internal/changelog"
 )
@@ -30,6 +32,13 @@ const MaxEntryWords = 60
 
 // entryExcerptWords is how many words of a too-long entry the error quotes.
 const entryExcerptWords = 8
+
+var (
+	// pullRequestLinkPattern matches a pull request reference such as [#1234](https://...).
+	pullRequestLinkPattern = regexp.MustCompile(`\[#\d+\]\([^)\s]*\)`)
+	// linkTargetPattern matches the target of a Markdown link, the (https://...) after its text.
+	linkTargetPattern = regexp.MustCompile(`\]\([^)\s]*\)`)
+)
 
 // ValidationRequest describes inputs for changelog validation.
 type ValidationRequest struct {
@@ -255,6 +264,20 @@ func loadChangelogAtMergeBase(
 	return loadBaseChangelog(ctx, git, mergeBase, changelogPath)
 }
 
+// entryWords returns the words of an entry as a reader counts them: pull request
+// links, link targets, list markers and punctuation on their own are left out.
+func entryWords(text string) []string {
+	text = pullRequestLinkPattern.ReplaceAllString(text, "")
+	text = linkTargetPattern.ReplaceAllString(text, "]")
+	var words []string
+	for field := range strings.FieldsSeq(text) {
+		if strings.IndexFunc(field, func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) }) >= 0 {
+			words = append(words, field)
+		}
+	}
+	return words
+}
+
 // validateEntryLengths fails on every [Unreleased] entry in cl that is not in
 // previous's [Unreleased] and has more than MaxEntryWords words.
 func validateEntryLengths(previous, cl *changelog.Changelog) error {
@@ -268,7 +291,7 @@ func validateEntryLengths(previous, cl *changelog.Changelog) error {
 			if _, ok := existing[changelogEntryKey{category: category.Name, text: text}]; ok {
 				continue
 			}
-			words := strings.Fields(text)
+			words := entryWords(text)
 			if len(words) <= MaxEntryWords {
 				continue
 			}

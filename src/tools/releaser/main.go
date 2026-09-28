@@ -382,7 +382,8 @@ generated changelogs (node_modules, .nuget, _testapps, etc.) are skipped.
 
 Structural errors fail (category order, invalid categories, version ordering,
 duplicate versions). With a range, so do [Unreleased] entries longer than 60
-words that are new or changed since -head diverged from -base. Release-policy
+words that are new or changed since -head diverged from -base; pull request
+links and link targets are not counted. Release-policy
 semantics are not enforced here; use
 'validate-changelog' for a specific component's release readiness.
 

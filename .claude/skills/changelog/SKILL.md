@@ -30,8 +30,15 @@ know what changed for them and whether they must act.
 - **Fixed** entries describe the symptom the reader saw, not the cause.
 - **Breaking** changes start with `Breaking:` and say what breaks and what to do, in one clause. Step-by-step migration
   belongs in the documentation (`altinn-studio-docs`); link to it. Say so when `studioctl app upgrade` handles it.
-- **One bullet per entry.** `src/experimental/CHANGELOG.md` wraps at 120 columns with two-space continuation lines;
-  the other changelogs keep each entry on one line. No nested lists.
+- **End with the references in parentheses**: the documentation link first, when there is one, then every pull request
+  the entry covers: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/pull/1234))`.
+  Pull request links do not count toward the word limit.
+- **Sub-bullets only for one feature with several separate parts** the reader acts on, such as the migrations
+  `studioctl app upgrade v9` gains in a release. The top line must stand on its own. Use one level, at most five short
+  sub-bullets, and put each reference on the line it belongs to. The word limit counts the whole entry, sub-bullets
+  included. Everything else is a single bullet.
+- **Line wrapping:** `src/experimental/CHANGELOG.md` wraps at 120 columns with two-space continuation lines; the other
+  changelogs do not wrap.
 
 Before you finish, read the entry as someone who has only the changelog: can they tell what changed for them and
 whether they need to do anything? Delete every clause that does not help with that.
@@ -45,7 +52,8 @@ notice after upgrading, not from what you did:
 2. If your harness can start a subagent, give a fresh one only this skill, the pull request title and description, and
    the diff of the surface readers touch (commands, public API, configuration, documentation), and have it draft the
    entry. Otherwise, write the entry before rereading the implementation.
-3. Merge it with any related `[Unreleased]` entry.
+3. Merge it with any related `[Unreleased]` entry, keeping that entry's pull request links. Add this pull request's
+   link once it is open.
 4. Commit, then check every changelog you changed with
    `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
 
@@ -54,7 +62,8 @@ notice after upgrading, not from what you did:
 Entries written one pull request at a time repeat each other. Before a release, tidy `[Unreleased]` in its own pull
 request:
 
-- Merge entries about the same feature. Twelve entries about `studioctl app upgrade v9` become one or two.
+- Merge entries about the same feature, keeping all their pull request links. Twelve entries about
+  `studioctl app upgrade v9` become one or two.
 - Drop entries for something added and fixed within the same release: readers never saw the problem.
 - Move entries to the right section and cut them to the rules above. Move migration detail to the documentation.
 
@@ -65,19 +74,20 @@ least one entry that came from `[Unreleased]` unchanged.
 
 ## Examples
 
+Each "Better" block shows an entry exactly as it goes into the changelog.
+
 Too long, with implementation detail (221 words):
 
 > `studioctl app maskinporten set|show|remove` stores the Maskinporten client an app uses when it runs locally - for
 > testing a real integration, such as a Fiks Arkiv shipment against the Fiks test environment, with a real client.
 > studioctl provisions the stored client to the app the way Studio does when the app is deployed, so the app never
-> reads Maskinporten credentials from its own configuration and there is no configuration section to get right. Run
-> `set` on its own and it asks for the three values one by one ... A running app picks up a stored client without a
-> restart.
+> reads Maskinporten credentials from its own configuration and there is no configuration section to get right. ...
 
 Better:
 
-> `studioctl app maskinporten set|show|remove` stores a Maskinporten client for local runs, so you can test real
-> integrations such as Fiks Arkiv locally. The app receives it the same way a deployed app does.
+```markdown
+- `studioctl app maskinporten set|show|remove` stores a Maskinporten client for local runs, so you can test real integrations such as Fiks Arkiv locally. The app receives it the same way a deployed app does. ([#20451](https://github.com/Altinn/altinn-studio/pull/20451))
+```
 
 Explains the mechanism instead of the effect:
 
@@ -87,21 +97,25 @@ Explains the mechanism instead of the effect:
 
 Better:
 
-> The app loads its files in `config/`, `models/`, `options/` and `ui/` at startup, and refuses to start if
-> `config/applicationmetadata.json` is missing or any file is invalid JSON, listing every problem. File and folder
-> names are case-sensitive on every operating system. In `Development`, edits apply without a restart.
+```markdown
+- The app loads its files in `config/`, `models/`, `options/` and `ui/` at startup, and refuses to start if `config/applicationmetadata.json` is missing or any file is invalid JSON, listing every problem. File and folder names are case-sensitive on every operating system. In `Development`, edits apply without a restart. ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+```
 
 Several entries for one feature:
 
 > - `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a
 >   global using, ...
 > - `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods ...
-> - `studioctl app upgrade v9` reports references to the app library's service classes that are internal in v9, ...
+> - `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: ...
 
-Better, as one entry for the rewrites and one for what the upgrade reports:
+Better, as one entry with sub-bullets:
 
-> `studioctl app upgrade v9` enables implicit usings and removes the `using` directives this makes redundant. It also
-> rewrites awaited `IAppMetadata` reads and renamed `IAppResources` arguments to the v9 API.
+```markdown
+- `studioctl app upgrade v9` rewrites more app code to the v9 API:
+  - enables implicit usings and removes the `using` directives this makes redundant ([#20690](https://github.com/Altinn/altinn-studio/pull/20690))
+  - rewrites awaited `IAppMetadata` reads to the new properties ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+  - renames `IAppResources` arguments passed by their old name ([#20745](https://github.com/Altinn/altinn-studio/pull/20745))
+```
 
 A fix described by its cause:
 
@@ -109,4 +123,6 @@ A fix described by its cause:
 
 Better, by its symptom:
 
-> `studioctl app run` no longer times out with "no matching app metadata endpoint was discovered" on macOS 27.
+```markdown
+- `studioctl app run` no longer times out with "no matching app metadata endpoint was discovered" on macOS 27. ([#20613](https://github.com/Altinn/altinn-studio/pull/20613))
+```

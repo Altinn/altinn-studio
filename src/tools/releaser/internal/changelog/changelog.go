@@ -389,6 +389,7 @@ func extractEntriesFromDiff(diffContent, changelogPath string) ([]Entry, error) 
 
 	var entries []Entry
 	var currentCategory string
+	inEntry := false
 
 	scanner := bufio.NewScanner(strings.NewReader(diffSection))
 	for scanner.Scan() {
@@ -415,6 +416,13 @@ func extractEntriesFromDiff(diffContent, changelogPath string) ([]Entry, error) 
 			contentLine = line
 		}
 
+		// An added indented line directly below an added entry continues it.
+		if inEntry && strings.HasPrefix(line, "+") && isContinuationLine(contentLine) {
+			entries[len(entries)-1].Text += "\n" + contentLine
+			continue
+		}
+		inEntry = false
+
 		if versionPattern.MatchString(contentLine) {
 			currentCategory = ""
 			continue
@@ -438,6 +446,7 @@ func extractEntriesFromDiff(diffContent, changelogPath string) ([]Entry, error) 
 				Category: currentCategory,
 				Text:     matches[1],
 			})
+			inEntry = true
 		}
 	}
 

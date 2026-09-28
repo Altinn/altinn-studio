@@ -45,6 +45,7 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("counts continuation lines toward the word limit", testStructureLongWrappedEntryFails)
 	t.Run("ignores a long entry that is unchanged since the merge base", testStructureLongExistingEntryPasses)
 	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
+	t.Run("does not count pull request links or link targets", testStructureLinksNotCounted)
 }
 
 func changelogWithEntry(entry string) string {
@@ -98,6 +99,19 @@ func testStructureLongExistingEntryPasses(t *testing.T) {
 
 	if err := runStructureValidation(t, repo, base, head); err != nil {
 		t.Fatalf("RunStructureValidation() error = %v, want nil for an unchanged entry", err)
+	}
+}
+
+func testStructureLinksNotCounted(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	pr := "[#1234](https://github.com/Altinn/altinn-studio/pull/1234)"
+	entry := words(internal.MaxEntryWords-2) + " [the guide](https://docs.altinn.studio/some/page)\n" +
+		"  - (" + pr + ", " + pr + ", " + pr + ")"
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", changelogWithEntry(entry), "linked entry")
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want links left out of the word count", err)
 	}
 }
 

@@ -717,6 +717,33 @@ index aaa..bbb 100644
 +new
 `
 
+func TestParseWithDiff_ContinuationLines(t *testing.T) {
+	diff := `diff --git a/src/cli/CHANGELOG.md b/src/cli/CHANGELOG.md
+index 1111111..2222222 100644
+--- a/src/cli/CHANGELOG.md
++++ b/src/cli/CHANGELOG.md
+@@ -3,6 +3,9 @@
+ ## [Unreleased]
+
+ ### Added
++
++- Entry with parts:
++  - first part
++  - second part
+ - Existing entry
+   existing continuation
+`
+
+	cl, err := changelog.ParseWithDiff("", diff, testChangelogPath)
+	if err != nil {
+		t.Fatalf("ParseWithDiff() error = %v", err)
+	}
+	want := []changelog.Entry{{Category: "Added", Text: "Entry with parts:\n  - first part\n  - second part"}}
+	if !slices.Equal(cl.AddedEntries, want) {
+		t.Fatalf("ParseWithDiff() added entries = %q, want %q", cl.AddedEntries, want)
+	}
+}
+
 func TestParseWithDiff(t *testing.T) {
 	tests := []struct {
 		wantFirst  changelog.Entry

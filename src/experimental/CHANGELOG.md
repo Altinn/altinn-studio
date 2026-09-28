@@ -15,7 +15,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 ### Added
 
 - Altinn Agents include a `changelog` skill for writing and tidying changelog entries in the Altinn Studio
-  repository.
+  repository. ([#20760](https://github.com/Altinn/altinn-studio/pull/20760))
 
 ### Changed
 
