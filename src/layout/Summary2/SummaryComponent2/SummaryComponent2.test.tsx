@@ -80,6 +80,24 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('summary-single-value-component')).toBeInTheDocument();
   });
 
+  test('should expose the Summary2 component identifiers on rendered summary content', async () => {
+    await render({
+      summary2Config: {
+        type: 'Summary2',
+        hideEmptyFields: false,
+        id: 'Summary2',
+        target: {
+          id: 'Input',
+          type: 'component',
+        },
+      },
+    });
+
+    const summaryItem = screen.getByTestId('summary-single-value-component').closest('[data-componentid]');
+    expect(summaryItem).toHaveAttribute('data-componentid', 'mySummary2');
+    expect(summaryItem).toHaveAttribute('data-componentbaseid', 'mySummary2');
+  });
+
   test('should not render component if its set to hide if empty', async () => {
     await render({
       summary2Config: {

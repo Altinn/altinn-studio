@@ -97,12 +97,16 @@ interface SummaryFlexProps extends PropsWithChildren {
 function SummaryFlexInternal({ targetBaseId, children, className }: Omit<SummaryFlexProps, 'content'>) {
   const { pageBreak, grid, type } = useItemFor(targetBaseId);
   const indexedId = useIndexedId(targetBaseId);
+  const summary2BaseId = useSummaryProp('id');
+  const summary2NodeId = useSummaryProp('nodeId');
 
   return (
     <Flex
       item
       className={cn(pageBreakStyles(pageBreak), classes.summaryItem, className)}
       size={grid}
+      data-componentbaseid={summary2BaseId}
+      data-componentid={summary2NodeId}
       data-summary-target={indexedId}
       data-summary-target-type={type}
     >
