@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "9766b2fc3ce5",
-    "code": "48d44d8 clean",
+    "code": "c2579bd clean",
     "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260928T105313Z-support-v8-and-v9-apps-2a8d",
-  "label": "support v8 and v9 apps",
-  "recorded_at": "2026-09-28T10:58:53+00:00",
-  "why": "Agent supports v8 and v9 apps with a profile per app version"
+  "check_id": "20260928T124324Z-fast-verify-changes-892a",
+  "label": "fast verify_changes",
+  "recorded_at": "2026-09-28T12:48:27+00:00",
+  "why": "Fast verify_changes for nested v9 expressions and JSON files with a UTF-8 BOM, #20776"
 }
