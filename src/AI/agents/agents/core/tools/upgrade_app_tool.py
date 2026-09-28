@@ -18,7 +18,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.altinn.app_version import detect_app_version_profile
+from agents.altinn.app_version import V9_PROFILE, detect_app_version_profile
 from agents.core.tool import LoopContext, ToolResult
 
 from ._write_base import WriteToolMixin
@@ -30,10 +30,12 @@ _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
 
-_UPGRADED_MESSAGES = {
-    _EXIT_SUCCESS: "Upgraded the app to v9.",
-    _EXIT_MANUAL_ACTION_REQUIRED: "Upgraded the app to v9, but some steps need manual follow-up:",
-}
+_UPGRADED_EXIT_CODES = {_EXIT_SUCCESS, _EXIT_MANUAL_ACTION_REQUIRED}
+
+_UPGRADED_MESSAGE = "Upgraded the app to v9."
+_RERUN_MESSAGE = "The app was already on v9.  The upgrade ran again and made new changes."
+_MANUAL_FOLLOW_UP_MESSAGE = "Some steps need manual follow-up:"
+_NOTHING_TO_CHANGE_MESSAGE = "The app is up to date with this version of the upgrade, so nothing was changed."
 
 # The upgrade keeps this file when it holds back layout sets that need manual work.
 _LAYOUT_SETS_FILE = "App/ui/layout-sets.json"
@@ -105,9 +107,10 @@ class UpgradeAppToV9Tool(WriteToolMixin):
         "changes.\n\n"
         "WHEN: only when the user asks for the upgrade.  Never suggest it "
         "yourself; v9 is still a preview release.\n\n"
-        "PRECONDITION: the app must be on version 8 (otherwise the upgrade "
-        "is refused), and the working tree must be clean.  Prefer running "
-        "this before making other edits.\n\n"
+        "PRECONDITION: the app must be on version 8 or 9 (otherwise the "
+        "upgrade is refused), and the working tree must be clean.  On a v9 "
+        "app, the upgrade runs again and applies what newer versions of the "
+        "upgrade fix.  Prefer running this before making other edits.\n\n"
         "RESULT: the upgrade either completes or changes nothing.  A completed "
         "upgrade applies the changes on disk and stages them for commit; relay "
         "any manual follow-up steps to the user.  When it created files with "
@@ -147,18 +150,18 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
     steps = result.get("steps", [])
     summary = _summarize_steps(steps)
 
-    if exit_code in _UPGRADED_MESSAGES and not _held_back_layout_sets(ctx.repo_path):
+    if exit_code in _UPGRADED_EXIT_CODES and not _held_back_layout_sets(ctx.repo_path):
         return _upgraded_result(exit_code, summary, ctx)
 
     _restore_working_tree(ctx.repo_path)
 
-    if exit_code in _UPGRADED_MESSAGES:
+    if exit_code in _UPGRADED_EXIT_CODES:
         sections = [_HELD_BACK_MESSAGE, _summarize_todos(steps), _HELD_BACK_ROLLBACK_NOTE]
         return ToolResult(content="\n\n".join(sections), is_error=True)
 
     if exit_code == _EXIT_UNSUPPORTED_VERSION:
         return ToolResult(
-            content=(f"This app is not on version 8, so it cannot be upgraded to v9.\n\n{summary}"),
+            content=(f"This app is not on version 8 or 9, so it cannot be upgraded to v9.\n\n{summary}"),
             is_error=True,
         )
 
@@ -169,13 +172,26 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
 
 
 def _upgraded_result(exit_code: int, summary: str, ctx: LoopContext) -> ToolResult:
-    _record_changed_files(ctx)
-    sections = [_UPGRADED_MESSAGES[exit_code], summary]
+    changed_paths = _get_changed_paths(ctx.repo_path)
+    if not changed_paths:
+        return ToolResult(content=f"{_NOTHING_TO_CHANGE_MESSAGE}\n\n{summary}")
+
+    _record_changed_files(ctx, changed_paths)
+    was_on_v9 = ctx.app_version_profile is V9_PROFILE
+    sections = [_upgraded_headline(exit_code, was_on_v9), summary]
     todos = _todos_in_created_files(ctx.repo_path)
     if todos:
         sections.append("\n\n".join([_CREATED_FILES_WITH_TODOS_MESSAGE, *todos]))
-    sections.append(_switch_app_version_profile(ctx))
+    if not was_on_v9:
+        sections.append(_switch_app_version_profile(ctx))
     return ToolResult(content="\n\n".join(sections))
+
+
+def _upgraded_headline(exit_code: int, was_on_v9: bool) -> str:
+    headline = _RERUN_MESSAGE if was_on_v9 else _UPGRADED_MESSAGE
+    if exit_code == _EXIT_MANUAL_ACTION_REQUIRED:
+        return f"{headline}  {_MANUAL_FOLLOW_UP_MESSAGE}"
+    return headline
 
 
 def _held_back_layout_sets(repo_path: str) -> bool:
@@ -222,10 +238,7 @@ def _restore_working_tree(repo_path: str) -> None:
     subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True)
 
 
-def _record_changed_files(ctx: LoopContext) -> None:
-    paths = _get_changed_paths(ctx.repo_path)
-    if not paths:
-        return
+def _record_changed_files(ctx: LoopContext, paths: list[str]) -> None:
     changed: set[str] = ctx.extras.setdefault("changed_files", set())
     verified: set[str] = ctx.extras.setdefault("verified_files", set())
     changed.update(paths)

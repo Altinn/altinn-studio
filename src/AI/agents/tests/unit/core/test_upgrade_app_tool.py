@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
+from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import LoopContext, UpgradeAppToV9Tool, VerifyChangesTool
 from agents.core.tool import Tool
 from agents.core.tools import upgrade_app_tool
@@ -39,6 +39,7 @@ def _project_file(altinn_app_api_version: str) -> str:
 _V8_PROJECT_FILE = _project_file("8.7.0")
 _V9_PROJECT_FILE = _project_file("9.0.0-preview.4")
 _V8_APP_FILES = {"App/App.csproj": _V8_PROJECT_FILE, "App/ui/layout-sets.json": "{}"}
+_V9_APP_FILES = {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Settings.json": "{}"}
 _UNCONVERTED_RULE_TODO = (
     "Layout set 'form', rule 'hideAddress', component 'address': the condition could not be converted."
 )
@@ -51,11 +52,18 @@ def _fresh_upgrade_queue(monkeypatch):
     monkeypatch.setattr(upgrade_app_tool, "_upgrade_queue", upgrade_app_tool._UpgradeQueue())
 
 
-def _ctx(repo: Path, *, allow_app_changes: bool = True, statuses: list[str] | None = None) -> LoopContext:
+def _ctx(
+    repo: Path,
+    *,
+    allow_app_changes: bool = True,
+    statuses: list[str] | None = None,
+    app_version_profile: AppVersionProfile = V8_PROFILE,
+) -> LoopContext:
     ctx = LoopContext(
         session_id="s1",
         repo_path=str(repo),
         allow_app_changes=allow_app_changes,
+        app_version_profile=app_version_profile,
     )
     if statuses is not None:
         ctx.report_status = statuses.append
@@ -116,6 +124,16 @@ def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[
     def upgrade() -> None:
         write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE})
         (repo / "App/ui/layout-sets.json").unlink()
+        git(repo, "add", "-A")
+
+    return upgrade
+
+
+def _upgrade_that_fixes_a_v9_app(repo: Path) -> Callable[[], None]:
+    """Mimics a newer studioctl finding something to fix in an app that an earlier version upgraded."""
+
+    def upgrade() -> None:
+        write_files(repo, {"App/ui/Settings.json": '{"hideCloseButton": true}'})
         git(repo, "add", "-A")
 
     return upgrade
@@ -249,7 +267,7 @@ class TestUpgradeAppToV9:
         result = await _run(UpgradeAppToV9Tool(), ctx)
 
         assert result.is_error
-        assert "not on version 8" in result.content
+        assert "not on version 8 or 9" in result.content
         assert "changed_files" not in ctx.extras
 
     async def test_hard_error_is_error(self, monkeypatch, tmp_path: Path):
@@ -380,6 +398,48 @@ class TestUpgradeAppToV9:
         await _run(UpgradeAppToV9Tool(), ctx)
 
         assert ctx.app_version_profile is V8_PROFILE
+
+    async def test_rerun_on_a_v9_app_says_the_app_was_already_on_v9(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_fixes_a_v9_app(repo), exit_code=0)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo, app_version_profile=V9_PROFILE))
+
+        assert not result.is_error
+        assert "The app was already on v9." in result.content
+
+    async def test_rerun_on_a_v9_app_marks_the_fixed_files_changed_and_verified(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_fixes_a_v9_app(repo), exit_code=0)
+        ctx = _ctx(repo, app_version_profile=V9_PROFILE)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.extras["changed_files"] == {"App/ui/Settings.json"}
+        assert ctx.extras["verified_files"] == {"App/ui/Settings.json"}
+
+    async def test_rerun_on_a_v9_app_leaves_out_the_v9_rules_the_system_prompt_already_has(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_fixes_a_v9_app(repo), exit_code=0)
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo, app_version_profile=V9_PROFILE))
+
+        assert V9_PROFILE.ui_anatomy_prompt not in result.content
+
+    async def test_rerun_that_changes_nothing_says_the_app_is_up_to_date_and_records_nothing(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_studioctl(monkeypatch, _studioctl_result(_SUCCESS_PAYLOAD))
+        ctx = _ctx(repo, app_version_profile=V9_PROFILE)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert not result.is_error
+        assert "up to date with this version of the upgrade" in result.content
+        assert "changed_files" not in ctx.extras
 
     async def test_held_back_upgrade_discards_its_changes(self, monkeypatch, tmp_path: Path):
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
