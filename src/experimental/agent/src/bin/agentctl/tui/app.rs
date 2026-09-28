@@ -1177,7 +1177,7 @@ impl App {
     }
 
     fn session_matches(&self, session: &Session) -> bool {
-        let (_, _, state) = session_state(session);
+        let (_, _, state) = session_state(session.status.state);
         [
             session.name.as_str(),
             state,
@@ -1279,13 +1279,12 @@ impl App {
         };
         for session in &self.sessions {
             let count = match session.status.state {
-                _ if session.is_archived() => &mut counts.archived,
                 State::WaitingForInput => &mut counts.needs_you,
                 State::Working => &mut counts.working,
                 State::Starting => &mut counts.starting,
                 State::Idle => &mut counts.idle,
                 State::Failed => &mut counts.failed,
-                State::Archived => &mut counts.archived,
+                State::Archiving | State::Archived => &mut counts.archived,
             };
             *count += 1;
         }
@@ -2018,7 +2017,7 @@ impl App {
                 }
                 Row::Session { group, position } => {
                     let session = self.group_session(group, position)?;
-                    let (tone, marker, state) = session_state(session);
+                    let (tone, marker, state) = session_state(session.status.state);
                     let harness = harness_label(session.harness);
                     Some(RowView {
                         agent: false,
@@ -2172,22 +2171,20 @@ fn progress_summary(progress: &Progress) -> String {
     summary
 }
 
-/// Whether a Session waits for its user; nobody answers an archived one.
+/// Whether a Session waits for its user. An archived one never does: it reads
+/// Archiving until its harness stops, as nobody answers it.
 const fn needs_you(session: &Session) -> bool {
-    matches!(session.status.state, State::WaitingForInput) && !session.is_archived()
+    matches!(session.status.state, State::WaitingForInput)
 }
 
-/// A Session's tone, glyph and state label. An archived Session reads as
-/// archived even before its harness stops.
-const fn session_state(session: &Session) -> (Tone, &'static str, &'static str) {
-    if format::is_archiving(session) {
-        return (Tone::Gray, "_", "Archiving");
-    }
-    match session.status.state {
+/// A Session state's tone, glyph and label.
+const fn session_state(state: State) -> (Tone, &'static str, &'static str) {
+    match state {
         State::WaitingForInput => (Tone::Yellow, "!", "Needs you"),
         State::Working => (Tone::Green, "*", "Working"),
         State::Starting => (Tone::Cyan, "~", "Starting"),
         State::Idle => (Tone::Gray, "-", "Idle"),
+        State::Archiving => (Tone::Gray, "_", "Archiving"),
         State::Archived => (Tone::Gray, "_", "Archived"),
         State::Failed => (Tone::Red, "x", "Failed"),
     }
@@ -2230,7 +2227,7 @@ fn session_detail(session: &Session) -> Detail {
         format!("Harness:    {}", session.harness.as_str()),
         format!("Model:      {}", session.model_selection.model_str().unwrap_or("-")),
         format!("Effort:     {}", session.model_selection.effort_str().unwrap_or("-")),
-        format!("State:      {}", format::session_status(session)),
+        format!("State:      {}", format::session_state(session.status.state)),
         format!("Turns:      {}", session.status.reported.activity.turns),
         format!("Age:        {}", format::format_age(session.created_at)),
         format!(
@@ -2694,8 +2691,8 @@ mod tests {
     fn archived_sessions_are_hidden_until_shown_and_toggle_from_their_row() {
         let mut app = populated();
         let b1 = SessionName::new("b1").expect("name");
-        let archived = app.sessions.iter_mut().find(|session| session.name == b1).expect("b1");
-        archived.archived_at = Some(time::OffsetDateTime::UNIX_EPOCH);
+        let b1_session = app.sessions.iter_mut().find(|session| session.name == b1).expect("b1");
+        *b1_session = archived(b1_session.clone());
         app.rebuild();
         let b1_row = TreeRowId::Session {
             agent: "builder".into(),
@@ -2737,8 +2734,13 @@ mod tests {
         ));
     }
 
+    /// Archives a test Session as the daemon reports it: Archiving until its
+    /// harness has stopped.
     fn archived(mut session: Session) -> Session {
         session.archived_at = Some(time::OffsetDateTime::UNIX_EPOCH);
+        if session.status.state != State::Archived {
+            session.status.state = State::Archiving;
+        }
         session
     }
 
