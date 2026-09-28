@@ -14,7 +14,6 @@ know what changed for them and whether they must act.
 | `src/cli/CHANGELOG.md`                                | App developers using studioctl        | Commands, flags, output, environment variables, files studioctl writes, the local environment                        |
 | `src/App/backend/CHANGELOG.md`                        | App developers using the app packages | Public APIs, app configuration files and settings, HTTP endpoints, analyzers, telemetry names, what end users notice |
 | `src/App/fileanalyzers/CHANGELOG.md`, `codelists/...` | App developers using those packages   | Public APIs and configuration                                                                                        |
-| `src/experimental/CHANGELOG.md`                       | People running Altinn Agents          | `agentctl`, the Agent images and what an Agent can do                                                                |
 
 ## Rules
 
@@ -37,8 +36,7 @@ know what changed for them and whether they must act.
   `studioctl app upgrade v9` gains in a release. The top line must stand on its own. Use one level, at most five short
   sub-bullets, and put each reference on the line it belongs to. The word limit counts the whole entry, sub-bullets
   included. Everything else is a single bullet.
-- **Line wrapping:** `src/experimental/CHANGELOG.md` wraps at 120 columns with two-space continuation lines; the other
-  changelogs do not wrap.
+- **Do not wrap lines.** Only sub-bullets start a new line within an entry.
 
 Before you finish, read the entry as someone who has only the changelog: can they tell what changed for them and
 whether they need to do anything? Delete every clause that does not help with that.

@@ -12,11 +12,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
-### Added
-
-- Altinn Agents include a `changelog` skill for writing and tidying changelog entries in the Altinn Studio
-  repository. ([#20760](https://github.com/Altinn/altinn-studio/pull/20760))
-
 ### Changed
 
 - On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
