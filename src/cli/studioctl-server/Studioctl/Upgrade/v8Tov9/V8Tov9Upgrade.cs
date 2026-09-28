@@ -933,10 +933,13 @@ internal static class V8Tov9Upgrade
             FileUploadWithTagLayoutMigration.Apply(workspace);
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
+            var saveWhileTypingWarning = SaveWhileTypingMigration.Apply(workspace);
             ShowBackButtonMigrator.Apply(workspace);
             InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
+            if (saveWhileTypingWarning is not null)
+                messages.Warn(saveWhileTypingWarning);
             foreach (var issue in workspace.Conflicts)
                 messages.Todo($"{issue.FilePath}: {issue.Reason} Resolve the conflicting bindings before rerunning.");
             var deprecatedResult = new DeprecatedLayoutPropertiesMigrator(projectFolder).Apply(workspace);
