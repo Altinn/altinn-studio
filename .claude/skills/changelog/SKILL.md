@@ -64,14 +64,13 @@ entries as well.
 
 ## Examples
 
-Each "Better" block shows an entry exactly as it goes into the changelog.
+Each block shows entries exactly as they are written in the changelog. Long entries are cut short with `...`.
 
 Too long, with implementation detail (221 words):
 
-> `studioctl app maskinporten set|show|remove` stores the Maskinporten client an app uses when it runs locally - for
-> testing a real integration, such as a Fiks Arkiv shipment against the Fiks test environment, with a real client.
-> studioctl provisions the stored client to the app the way Studio does when the app is deployed, so the app never
-> reads Maskinporten credentials from its own configuration and there is no configuration section to get right. ...
+```markdown
+- `studioctl app maskinporten set|show|remove` stores the Maskinporten client an app uses when it runs locally - for testing a real integration, such as a Fiks Arkiv shipment against the Fiks test environment, with a real client. studioctl provisions the stored client to the app the way Studio does when the app is deployed, so the app never reads Maskinporten credentials from its own configuration and there is no configuration section to get right. ...
+```
 
 Better:
 
@@ -81,9 +80,9 @@ Better:
 
 Explains the mechanism instead of the effect:
 
-> The app's resource files under `config/`, `models/`, `options/` and `ui/` are now read into memory once when the app
-> starts. If `config/applicationmetadata.json` is missing, or any of these JSON files does not parse, the app refuses
-> to start and lists every file with a problem, where it previously failed the first request that needed the file. ...
+```markdown
+- The app's resource files under `config/`, `models/`, `options/` and `ui/` are now read into memory once when the app starts. If `config/applicationmetadata.json` is missing, or any of these JSON files does not parse, the app refuses to start and lists every file with a problem, where it previously failed the first request that needed the file. ...
+```
 
 Better:
 
@@ -93,10 +92,11 @@ Better:
 
 Several entries for one feature:
 
-> - `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a
->   global using, ...
-> - `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods ...
-> - `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: ...
+```markdown
+- `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, ...
+- `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods ...
+- `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: ...
+```
 
 Better, as one entry with sub-bullets:
 
@@ -109,7 +109,9 @@ Better, as one entry with sub-bullets:
 
 A fix described by its cause:
 
-> The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in macOS 27.
+```markdown
+- The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in macOS 27.
+```
 
 Better, by its symptom:
 
