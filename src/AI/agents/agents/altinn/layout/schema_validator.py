@@ -67,12 +67,40 @@ def validate_layout_json(
 
 def _build_schema_registry(schema: dict[str, Any], referenced_schemas: Mapping[str, dict[str, Any]]) -> Registry:
     schemas_by_uri = {**referenced_schemas, schema.get("$id", ""): schema}
-    resources = [
-        (uri, Resource.from_contents(contents, default_specification=DRAFT7))
-        for uri, contents in schemas_by_uri.items()
-        if uri
-    ]
+    resources = [(uri, _draft7_resource(contents)) for uri, contents in schemas_by_uri.items() if uri]
     return Registry(retrieve=_retrieve_referenced_schema).with_resources(resources)
+
+
+def _draft7_resource(contents: dict[str, Any]) -> Resource:
+    return Resource.from_contents(_check_function_name_first(contents), default_specification=DRAFT7)
+
+
+def _check_function_name_first(node: Any) -> Any:
+    """An expression function schema is a tuple that starts with the function name.
+
+    jsonschema evaluates every keyword of a subschema, also after the name
+    check has failed. So an `anyOf` over all functions descends into the
+    arguments of every function with a different name, and the time grows
+    exponentially with the nesting depth of the expression. Checking the name
+    first gives the same result and stops that descent.
+    """
+    if isinstance(node, list):
+        return [_check_function_name_first(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+    checked = {key: _check_function_name_first(value) for key, value in node.items()}
+    function_name = _tuple_function_name(checked)
+    if function_name is None:
+        return checked
+    name_matches = {"type": "array", "items": [{"const": function_name}]}
+    return {"if": name_matches, "then": checked, "else": False}
+
+
+def _tuple_function_name(schema: dict[str, Any]) -> str | None:
+    items = schema.get("items")
+    if isinstance(items, list) and items and isinstance(items[0], dict) and isinstance(items[0].get("const"), str):
+        return items[0]["const"]
+    return None
 
 
 def _reference_to_root(schema: dict[str, Any]) -> dict[str, Any]:
@@ -95,7 +123,7 @@ def _retrieve_referenced_schema(uri: str) -> Resource:
         if _EXPRESSION_SCHEMA_FILE_NAME not in uri:
             raise NoSuchResource(ref=uri) from exc
         contents = _EXPRESSION_SCHEMA_FALLBACK
-    return Resource.from_contents(contents, default_specification=DRAFT7)
+    return _draft7_resource(contents)
 
 
 def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[dict[str, Any]]:

@@ -27,9 +27,13 @@ function renderConfirmPopover(props: Partial<ConfirmPopoverProps> = {}) {
 }
 
 describe('ConfirmPopover', () => {
-  it('trigger the confirmation popover', () => {
+  it('trigger the confirmation popover', async () => {
+    const user = userEvent.setup();
     renderConfirmPopover();
     expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('popovertarget');
+    expect(screen.queryByRole('button', { name: confirmText })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByText(message)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: confirmText })).toBeInTheDocument();
   });

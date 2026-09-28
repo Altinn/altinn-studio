@@ -11,6 +11,7 @@ v9 tests read the in-repo v9 schema and use real git repos in tmp_path.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -366,8 +367,14 @@ def _v9_ctx(repo: Path, changed: set[str]) -> LoopContext:
     return ctx
 
 
-def _write_v9_layout(repo: Path, component: dict[str, Any]) -> None:
-    write_files(repo, {V9_LAYOUT_PATH: json.dumps({"data": {"layout": [component]}})})
+def _write_v9_layout(repo: Path, component: dict[str, Any], encoding: str = "utf-8") -> None:
+    layout_path = repo / V9_LAYOUT_PATH
+    layout_path.parent.mkdir(parents=True, exist_ok=True)
+    layout_path.write_text(json.dumps({"data": {"layout": [component]}}), encoding=encoding)
+
+
+def _is_blank(field: str) -> list:
+    return ["or", ["equals", ["dataModel", field], None], ["equals", ["dataModel", field], " "]]
 
 
 def _heading(component_type: str = "Heading", **properties: Any) -> dict[str, Any]:
@@ -402,6 +409,36 @@ class TestVerifyChangesInAV9App:
     async def test_accepts_an_expression_function_only_v9_has(self, tmp_path: Path):
         count_children = ["count", ["dataModel", "children"]]
         _write_v9_layout(tmp_path, _heading(hidden=["equals", count_children, 0]))
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert not result.is_error
+
+    async def test_validates_a_nested_expression_within_seconds(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading(hidden=["not", _is_blank("unit")]))
+
+        started = time.perf_counter()
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert time.perf_counter() - started < 5
+        assert not result.is_error
+
+    async def test_rejects_an_unknown_expression_function(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading(hidden=["isBlank", ["dataModel", "unit"]]))
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert result.is_error
+
+    async def test_rejects_an_expression_function_with_too_many_arguments(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading(hidden=["not", True, False]))
+
+        result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
+
+        assert result.is_error
+
+    async def test_accepts_a_layout_that_starts_with_a_bom(self, tmp_path: Path):
+        _write_v9_layout(tmp_path, _heading(), encoding="utf-8-sig")
 
         result = await _verify(_v9_ctx(tmp_path, {V9_LAYOUT_PATH}))
 

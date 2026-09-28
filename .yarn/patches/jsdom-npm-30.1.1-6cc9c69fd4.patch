@@ -1,8 +1,8 @@
 diff --git a/lib/jsdom/browser/Window.js b/lib/jsdom/browser/Window.js
-index 52d011cae61c3688ec64baa5cec411d55edbda9d..5b29f5af81331e49903514000959ea6e15b07ce6 100644
+index 296d6e7f2bb8acbddac3c6e348dc76213f9c80c6..89dff5177aacde5c2cb344ecd164920d24d7bce0 100644
 --- a/lib/jsdom/browser/Window.js
 +++ b/lib/jsdom/browser/Window.js
-@@ -507,7 +507,7 @@ function installOwnProperties(window, options) {
+@@ -469,7 +469,7 @@ function installOwnProperties(window, { settings, documentOptions, commonForOrig
      // [LegacyUnforgeable]:
      window: { configurable: false },
      document: { configurable: false },

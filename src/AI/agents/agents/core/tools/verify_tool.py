@@ -34,6 +34,9 @@ from shared.utils.langfuse_utils import trace_span
 
 from ._write_base import WriteToolMixin
 
+# App files can start with a UTF-8 BOM.
+_JSON_FILE_ENCODING = "utf-8-sig"
+
 
 class VerifyChangesArgs(BaseModel):
     """No inputs — verifies whatever the session has edited so far."""
@@ -254,7 +257,7 @@ def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
     by_language: dict[str, set[str]] = {}
     for path in sorted(texts_dir.glob("resource.*.json")):
         try:
-            parsed = json.loads(path.read_text(encoding="utf-8"))
+            parsed = json.loads(path.read_text(encoding=_JSON_FILE_ENCODING))
         except (OSError, json.JSONDecodeError):
             continue
         keys = {
@@ -272,7 +275,7 @@ def _all_layout_files(repo: Path) -> list[Path]:
 
 def _referenced_text_keys(layout_path: Path) -> set[str]:
     try:
-        parsed = json.loads(layout_path.read_text(encoding="utf-8"))
+        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
         return set()  # the schema validator owns unreadable layouts
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
@@ -291,7 +294,7 @@ def _referenced_text_keys(layout_path: Path) -> set[str]:
 def _read_page_order(settings_path: Path) -> list[str] | None:
     """Return `pages.order` from a layout-set Settings.json, or None."""
     try:
-        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        settings = json.loads(settings_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
         return None
     order = (settings.get("pages") or {}).get("order")
@@ -303,7 +306,7 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
 def _has_navigation_component(layout_path: Path) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
     try:
-        parsed = json.loads(layout_path.read_text(encoding="utf-8"))
+        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
         return True  # unreadable/invalid JSON is the schema validator's problem
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
@@ -353,7 +356,7 @@ _CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden
 def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
     """Validate a layout JSON in-process against the app version's layout schema."""
     try:
-        json_content = full_path.read_text(encoding="utf-8")
+        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -418,7 +421,7 @@ def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tup
     defaults to `nb` when the pattern doesn't match.
     """
     try:
-        resource_json = full_path.read_text(encoding="utf-8")
+        resource_json = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -471,7 +474,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
     `input.file_content` shape.
     """
     try:
-        json_content = full_path.read_text(encoding="utf-8")
+        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -493,7 +496,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
 def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Last-resort check — does the file parse as JSON?"""
     try:
-        with full_path.open("r", encoding="utf-8") as handle:
+        with full_path.open("r", encoding=_JSON_FILE_ENCODING) as handle:
             json.load(handle)
     except json.JSONDecodeError as exc:
         return False, [f"{file_path}: invalid JSON — {exc}"]
