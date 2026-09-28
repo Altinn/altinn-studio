@@ -1014,11 +1014,7 @@ async fn vnc(
     let address = forward.local_address();
     // The image decides what its viewer port serves and where the root redirects, so the caller is
     // pointed at the root rather than a path this side would have to keep in step with it.
-    let url = if web {
-        format!("http://{address}/")
-    } else {
-        format!("vnc://{address}")
-    };
+    let url = launch::forward_url(address, guest_port);
     println!("Desktop of agent {agent:?} is at {url}");
     if web {
         println!("Open that address in a browser; nothing needs installing.");

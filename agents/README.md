@@ -237,6 +237,9 @@ forward you just opened. `access` decides what the platform offers rather than w
 do in its own Sandbox: the Agent has `sudo` and could turn the same units on itself. You share the
 Agent's keyboard and pointer, so agree with it about who is driving before you start clicking.
 
+In `agentctl tui`, `o` then `w` opens the desktop in the browser and `o` then `v` in a VNC client. The forward
+closes when the TUI quits; `q` asks first.
+
 An Agent created from an image older than this feature reports that its image cannot provide VNC
 access; delete it and re-apply to pick up the current image.
 
