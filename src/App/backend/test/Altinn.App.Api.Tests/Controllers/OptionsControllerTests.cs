@@ -517,7 +517,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         providerMock.Verify();
     }
 
-    // Creates DefaultAppOptionsProvider through AppOptionsFactory
+    // The options come from the app files, since no IAppOptionsProvider has this id
     [Fact]
     public async Task GetInstance_ShouldWorkWithFileSourceFromAppOptionsProvider()
     {

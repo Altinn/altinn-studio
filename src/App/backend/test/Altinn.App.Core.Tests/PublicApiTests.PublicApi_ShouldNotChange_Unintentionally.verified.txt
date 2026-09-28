@@ -1923,21 +1923,12 @@ namespace Altinn.App.Core.Features.Options
             "b**{creatorOrg}**{codeListId}**{version})")]
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAltinn3CodeList(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string optionId, string org, string codeListId, string? version = null) { }
     }
-    public class DefaultAppOptionsProvider : Altinn.App.Core.Features.IAppOptionsProvider
-    {
-        public DefaultAppOptionsProvider(string id, System.IServiceProvider serviceProvider) { }
-        public string Id { get; }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetAppOptionsAsync(string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs) { }
-    }
-    public interface IAppOptionsFileHandler
-    {
-        System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>?> ReadOptionsFromFileAsync(string optionId);
-    }
     public interface IAppOptionsService
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptionsAsync(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
         bool IsInstanceAppOptionsProviderRegistered(string optionId);
+        bool IsStatic(string optionId);
     }
 }
 namespace Altinn.App.Core.Features.Payment.Exceptions

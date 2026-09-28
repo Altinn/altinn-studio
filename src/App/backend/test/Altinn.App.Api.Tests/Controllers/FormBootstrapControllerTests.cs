@@ -349,7 +349,6 @@ public class FormBootstrapControllerTests
         implementationServices.AddAppImplementationFactory();
         implementationServices.AddSingleton(Mock.Of<IValidationService>());
         implementationServices.AddSingleton(Mock.Of<IFormDataReader>());
-        implementationServices.AddSingleton(Mock.Of<IAppOptionsFileHandler>());
         var implementationServiceProvider = implementationServices.BuildServiceProvider();
         var appImplementationFactory = implementationServiceProvider.GetRequiredService<AppImplementationFactory>();
 

@@ -334,14 +334,7 @@ public static class ServiceCollectionExtensions
     private static void AddAppOptions(IServiceCollection services)
     {
         // Main service for interacting with options
-        services.TryAddTransient<IAppOptionsService, AppOptionsService>();
-
-        // Services related to application options
-        services.TryAddTransient<AppOptionsFactory>();
-        services.TryAddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
-
-        // Services related to instance aware and secure app options
-        services.TryAddTransient<InstanceAppOptionsFactory>();
+        services.TryAddSingleton<IAppOptionsService, AppOptionsService>();
 
         // Services related to Altinn 3 library code list
         services.AddHttpClient<IAltinn3LibraryCodeListApiClient, Altinn3LibraryCodeListApiClient>();

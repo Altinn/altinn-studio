@@ -32,8 +32,6 @@ internal sealed class InternalizedServiceTypeDetector
         ["AppResourcesSI"] = new("Altinn.App.Core.Implementation", "IAppResources"),
         ["AltinnPartyClient"] = new("Altinn.App.Core.Infrastructure.Clients.Register", "IAltinnPartyClient"),
         ["AppMetadata"] = new("Altinn.App.Core.Internal.App", "IAppMetadata"),
-        ["AppOptionsFactory"] = new("Altinn.App.Core.Features.Options", null),
-        ["AppOptionsFileHandler"] = new("Altinn.App.Core.Features.Options", "IAppOptionsFileHandler"),
         ["AppOptionsService"] = new("Altinn.App.Core.Features.Options", "IAppOptionsService"),
         ["ApplicationClient"] = new("Altinn.App.Core.Infrastructure.Clients.Storage", "IApplicationClient"),
         ["AuthenticationClient"] = new(
@@ -65,7 +63,6 @@ internal sealed class InternalizedServiceTypeDetector
         ["FileValidationService"] = new("Altinn.App.Core.Internal.Validation", "IFileValidationService"),
         ["FileValidatorFactory"] = new("Altinn.App.Core.Internal.Validation", "IFileValidatorFactory"),
         ["FormBootstrapService"] = new("Altinn.App.Core.Features.Bootstrap", null),
-        ["InstanceAppOptionsFactory"] = new("Altinn.App.Core.Features.Options", null),
         ["InstanceDataListsFactory"] = new("Altinn.App.Core.Features.DataLists", null),
         ["InstanceEventClient"] = new("Altinn.App.Core.Infrastructure.Clients.Storage", "IInstanceEventClient"),
         ["JoinedAppOptionsProvider"] = new("Altinn.App.Core.Features.Options", "IAppOptionsProvider"),

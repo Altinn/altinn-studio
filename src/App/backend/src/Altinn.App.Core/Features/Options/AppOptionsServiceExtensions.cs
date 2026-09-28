@@ -12,12 +12,12 @@ public static class AppOptionsServiceExtensions
     /// </summary>
     public static void AddJoinedAppOptions(this IServiceCollection services, string id, params string[] subLists)
     {
+        // The providers are resolved when the options are requested, not when the service is constructed, so
+        // there is no cycle in resolving the service that resolves this provider.
         services.AddTransient<IAppOptionsProvider>(sp => new JoinedAppOptionsProvider(
             id,
             subLists,
-            sp.GetRequiredService<AppOptionsFactory>
+            sp.GetRequiredService<IAppOptionsService>()
         ));
-        // Note the missing () on GetRequiredService in order to inject a function that captures the service collection
-        // to lazily initialize the option provider list to avoid a cyclic dependency.
     }
 }

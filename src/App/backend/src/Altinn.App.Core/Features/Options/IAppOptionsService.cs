@@ -34,6 +34,15 @@ public interface IAppOptionsService
     );
 
     /// <summary>
+    /// Whether the options with this id are the same whatever key/value pairs are passed, so a form can load them
+    /// once without any. That is the case for a list the app ships as <c>options/{optionId}.json</c> and does not
+    /// override with an <see cref="IAppOptionsProvider"/>; a provider may use the key/value pairs, so its lists
+    /// are not static.
+    /// </summary>
+    /// <param name="optionId">The id of the options list</param>
+    bool IsStatic(string optionId);
+
+    /// <summary>
     /// Checks whether a specific instance app options provider exists for the given optionId
     /// </summary>
     /// <param name="optionId">Id/OptionId defined in the IInstanceAppOptionsProvider</param>

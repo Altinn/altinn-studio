@@ -36,7 +36,6 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppOptionsService> _appOptionsService = new();
-    private readonly Mock<IAppOptionsFileHandler> _appOptionsFileHandler = new();
     private readonly Mock<IValidationService> _validationService = new();
     private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly IAppModel _appModel = new AppModelMock<DummyModel>();
@@ -56,6 +55,18 @@ public class FormBootstrapServiceTests
         _metadataDataClient = _dataClient.As<IDataClientWithStorageMetadata>();
         _mutationClient = _dataClient.As<IInstanceMutationClient>();
         _metadataInstanceClient = _instanceClient.As<IInstanceClientWithStorageMetadata>();
+    }
+
+    /// <summary>
+    /// Makes the options service report the list as static, the way it does for an <c>options/{optionId}.json</c>,
+    /// and serve these options for it.
+    /// </summary>
+    private void SetupStaticOptions(string optionId, List<AppOption> options)
+    {
+        _appOptionsService.Setup(x => x.IsStatic(optionId)).Returns(true);
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync(optionId, It.IsAny<string?>(), It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(new AppOptions { Options = options });
     }
 
     private FormBootstrapService CreateService(IAppModel? appModel = null) =>
@@ -99,7 +110,6 @@ public class FormBootstrapServiceTests
         );
         services.AddSingleton(_validationService.Object);
         services.AddSingleton(_formDataReader.Object);
-        services.AddSingleton(_appOptionsFileHandler.Object);
         services.AddSingleton(_dataProcessor.Object);
         services.AddAppImplementationFactory();
         return services.BuildServiceProvider();
@@ -576,9 +586,7 @@ public class FormBootstrapServiceTests
         };
         SetupMocks(appMetadata, staticOptions: dynamicReference);
 
-        _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
-            .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
+        SetupStaticOptions("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
 
         var service = CreateService();
 
@@ -586,9 +594,10 @@ public class FormBootstrapServiceTests
 
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
         Assert.Single(result.StaticOptions["fileBased"].Options);
+        // The file makes the list static, and the values still come through the service without the parameters
         _appOptionsService.Verify(
-            x => x.GetOptionsAsync("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
-            Times.Never
+            x => x.GetOptionsAsync("fileBased", "nb", It.Is<Dictionary<string, string>>(d => d.Count == 0)),
+            Times.Once
         );
     }
 
@@ -607,9 +616,7 @@ public class FormBootstrapServiceTests
             }
         );
 
-        _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
-            .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
+        SetupStaticOptions("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
         _appOptionsService
             .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
@@ -1187,10 +1194,6 @@ public class FormBootstrapServiceTests
                 )
             )
             .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
-        _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
-            .ReturnsAsync((List<AppOption>?)null);
-
         _appOptionsService
             .Setup(x =>
                 x.GetOptionsAsync(
@@ -1261,9 +1264,6 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
-        _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
-            .ReturnsAsync((List<AppOption>?)null);
         _appOptionsService
             .Setup(x =>
                 x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())

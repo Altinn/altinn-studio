@@ -2,6 +2,7 @@ using System.Text;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
@@ -96,9 +97,10 @@ public sealed class AppFilesPollerTests : IDisposable
         var frontendFeatures = new Mock<IFrontendFeatures>();
         frontendFeatures.Setup(f => f.GetDictionary()).Returns(new Dictionary<string, bool>());
         var appMetadata = new AppMetadata(accessor, frontendFeatures.Object);
-        var options = new AppOptionsFileHandler(accessor);
+        using var serviceProvider = new ServiceCollection().AddAppImplementationFactory().BuildServiceProvider();
+        var options = new AppOptionsService(accessor, serviceProvider);
         Assert.Equal("Før", (appMetadata.ApplicationMetadata).Title["nb"]);
-        Assert.Equal("Norge", Assert.Single((await options.ReadOptionsFromFileAsync("land"))!).Label);
+        Assert.Equal("Norge", Assert.Single((await options.GetOptionsAsync("land", null, [])).Options!).Label);
 
         WriteFile("config/applicationmetadata.json", """{ "id": "ttd/app", "title": { "nb": "Etter" } }""");
         WriteFile("options/land.json", """[{ "value": "SE", "label": "Sverige" }]""");
@@ -106,7 +108,7 @@ public sealed class AppFilesPollerTests : IDisposable
 
         // AppMetadata caches the parsed file, but only for as long as the snapshot it was parsed from is current
         Assert.Equal("Etter", (appMetadata.ApplicationMetadata).Title["nb"]);
-        Assert.Equal("Sverige", Assert.Single((await options.ReadOptionsFromFileAsync("land"))!).Label);
+        Assert.Equal("Sverige", Assert.Single((await options.GetOptionsAsync("land", null, [])).Options!).Label);
     }
 
     [Fact]

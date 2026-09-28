@@ -8,23 +8,19 @@ namespace Altinn.App.Core.Features.Options;
 internal sealed class JoinedAppOptionsProvider : IAppOptionsProvider
 {
     private readonly IEnumerable<string> _subOptions;
-    private readonly Func<AppOptionsFactory> _appOptionsFactory;
+    private readonly IAppOptionsService _appOptionsService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="id">The option id used in layouts to reference this code list</param>
     /// <param name="subOptions">A list of other options to include</param>
-    /// <param name="appOptionsFactory">A function that delays the initialization of the factory to use to get the sub options</param>
-    public JoinedAppOptionsProvider(
-        string id,
-        IEnumerable<string> subOptions,
-        Func<AppOptionsFactory> appOptionsFactory
-    )
+    /// <param name="appOptionsService">The service that resolves the sub options</param>
+    public JoinedAppOptionsProvider(string id, IEnumerable<string> subOptions, IAppOptionsService appOptionsService)
     {
         Id = id;
         _subOptions = subOptions;
-        _appOptionsFactory = appOptionsFactory;
+        _appOptionsService = appOptionsService;
     }
 
     /// <inheritdoc />
@@ -33,15 +29,11 @@ internal sealed class JoinedAppOptionsProvider : IAppOptionsProvider
     /// <inheritdoc />
     public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
     {
-        // The app options factory is delayed to avoid circular dependencies
-        var appOptionsFactory = _appOptionsFactory();
         // Get options for all subOptions ids
         (string Id, AppOptions AppOption)[] appOptions = await Task.WhenAll(
             _subOptions.Select(async optionId =>
-            {
-                var p = appOptionsFactory.GetOptionsProvider(optionId);
-                return (p.Id, AppOption: await p.GetAppOptionsAsync(language, keyValuePairs));
-            })
+                (optionId, AppOption: await _appOptionsService.GetOptionsAsync(optionId, language, keyValuePairs))
+            )
         );
 
         // Flatten all options to a single list

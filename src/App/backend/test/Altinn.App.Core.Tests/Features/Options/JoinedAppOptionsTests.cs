@@ -1,8 +1,11 @@
+using System.Text;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Tests.Internal.App;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,7 +17,6 @@ public class JoinedAppOptionsTests
     private readonly Mock<IAppOptionsProvider> _neverUsedOptionsProviderMock = new(MockBehavior.Strict);
     private readonly Mock<IAppOptionsProvider> _countryAppOptionsMock = new(MockBehavior.Strict);
     private readonly Mock<IAppOptionsProvider> _sentinelOptionsProviderMock = new(MockBehavior.Strict);
-    private readonly Mock<IAppOptionsFileHandler> _fileHandlerMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
 
     private readonly string _language = LanguageConst.Nb;
@@ -47,8 +49,10 @@ public class JoinedAppOptionsTests
             );
         _serviceCollection.AddSingleton(_sentinelOptionsProviderMock.Object);
 
-        // Registrer a mocked default handler
-        _serviceCollection.AddSingleton(_fileHandlerMock.Object);
+        // An app without any option files, so an id without a provider has no options
+        _serviceCollection.AddSingleton(
+            new AppFilesAccessor(new AppFiles(Encoding.UTF8.GetBytes(TestAppFiles.MinimalApplicationMetadata)))
+        );
 
         // This provider should never be used and cause an error if it is
         _neverUsedOptionsProviderMock.Setup(p => p.Id).Returns("never-used");
@@ -56,9 +60,7 @@ public class JoinedAppOptionsTests
 
         _serviceCollection.AddHttpClient<IAltinn3LibraryCodeListApiClient, Altinn3LibraryCodeListApiClient>();
         _serviceCollection.AddHybridCache();
-        _serviceCollection.AddSingleton<AppOptionsFactory>();
-        _serviceCollection.AddSingleton<InstanceAppOptionsFactory>();
-        _serviceCollection.AddSingleton<AppOptionsService>();
+        _serviceCollection.AddSingleton<IAppOptionsService, AppOptionsService>();
     }
 
     [Fact]
@@ -67,8 +69,7 @@ public class JoinedAppOptionsTests
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var factory = sp.GetRequiredService<AppOptionsFactory>();
-        IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
+        IAppOptionsProvider optionsProvider = sp.GetServices<IAppOptionsProvider>().Single(p => p.Id == "country");
 
         optionsProvider.Should().BeOfType<JoinedAppOptionsProvider>();
         optionsProvider.Id.Should().Be("country");
@@ -87,7 +88,7 @@ public class JoinedAppOptionsTests
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var appOptionsService = sp.GetRequiredService<AppOptionsService>();
+        var appOptionsService = sp.GetRequiredService<IAppOptionsService>();
 
         var options = await appOptionsService.GetOptionsAsync("country", _language, new());
 
@@ -105,7 +106,7 @@ public class JoinedAppOptionsTests
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var appOptionsService = sp.GetRequiredService<AppOptionsService>();
+        var appOptionsService = sp.GetRequiredService<IAppOptionsService>();
 
         // Fetch the country options (now without sentinel)
         var options = await appOptionsService.GetOptionsAsync("country", _language, new());
@@ -127,7 +128,7 @@ public class JoinedAppOptionsTests
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "sentinel");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var appOptionsService = sp.GetRequiredService<AppOptionsService>();
+        var appOptionsService = sp.GetRequiredService<IAppOptionsService>();
 
         var parameters = new Dictionary<string, string> { { "key", "value" } };
 
@@ -147,11 +148,10 @@ public class JoinedAppOptionsTests
     [Fact]
     public async Task JoinWithMissingProvider_ThrowsExceptionToWarnAboutMissconfiguration()
     {
-        _fileHandlerMock.Setup(p => p.ReadOptionsFromFileAsync("missing")).ReturnsAsync((List<AppOption>)null!);
         _serviceCollection.AddJoinedAppOptions("country", "country-no-sentinel", "missing");
 
         using var sp = _serviceCollection.BuildStrictServiceProvider();
-        var appOptionsService = sp.GetRequiredService<AppOptionsService>();
+        var appOptionsService = sp.GetRequiredService<IAppOptionsService>();
 
         var action = new Func<Task>(async () => await appOptionsService.GetOptionsAsync("country", _language, new()));
         var exception = await action.Should().ThrowAsync<KeyNotFoundException>();

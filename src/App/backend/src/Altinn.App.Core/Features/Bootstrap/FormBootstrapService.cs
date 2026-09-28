@@ -34,7 +34,6 @@ internal sealed class FormBootstrapService
     private readonly IAppMetadata _appMetadata;
     private readonly IAppOptionsService _appOptionsService;
     private readonly IServiceProvider _serviceProvider;
-    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IValidationService _validationService;
     private readonly IFormDataReader _formDataReader;
     private readonly IAppModel _appModel;
@@ -60,7 +59,6 @@ internal sealed class FormBootstrapService
         _appMetadata = appMetadata;
         _appOptionsService = appOptionsService;
         _serviceProvider = serviceProvider;
-        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _validationService = serviceProvider.GetRequiredService<IValidationService>();
         _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
         _appModel = appModel;
@@ -398,36 +396,32 @@ internal sealed class FormBootstrapService
     )
     {
         _ = cancellationToken;
-        var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
         var result = new Dictionary<string, StaticOptionSet>();
         var tasks = optionsAnalysis.AllReferencedOptionIds.Select(async optionsId =>
         {
             try
             {
                 var isStaticallyConfigured = optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId);
-                var optionsFromFile = await appOptionsFileHandler.ReadOptionsFromFileAsync(optionsId);
-                var isPlainJsonFile = optionsFromFile is not null;
-
-                if (!isStaticallyConfigured && !isPlainJsonFile)
+                // A static list never varies with the query parameters, so it is included even when a component
+                // passes some
+                if (!isStaticallyConfigured && !_appOptionsService.IsStatic(optionsId))
                 {
                     return (optionsId, null);
                 }
 
-                var options = optionsFromFile;
-                string? downstreamParameters = null;
-                if (options is null)
-                {
-                    var appOptions = await GetAppOptions(optionsId, language, [], instanceIdentifier);
-                    options = appOptions?.Options;
-                    var encodedParameters = appOptions?.Parameters.ToUrlEncodedNameValueString(',');
-                    downstreamParameters = string.IsNullOrEmpty(encodedParameters) ? null : encodedParameters;
-                }
+                var appOptions = await GetAppOptions(optionsId, language, [], instanceIdentifier);
+                var encodedParameters = appOptions?.Parameters.ToUrlEncodedNameValueString(',');
+                var downstreamParameters = string.IsNullOrEmpty(encodedParameters) ? null : encodedParameters;
 
                 return (
                     optionsId,
-                    options is null
+                    appOptions?.Options is null
                         ? null
-                        : new StaticOptionSet { Options = options, DownstreamParameters = downstreamParameters }
+                        : new StaticOptionSet
+                        {
+                            Options = appOptions.Options,
+                            DownstreamParameters = downstreamParameters,
+                        }
                 );
             }
             catch (Exception ex)
