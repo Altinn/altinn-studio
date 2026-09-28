@@ -165,6 +165,8 @@ describe('MultipleSelect', () => {
     const { container } = render({ values: ['norsk', 'svensk'], alertOnChange: true, onChange });
 
     removeSelected('svensk');
+    // Keep a reference while the popover is open, since cancelling hides it.
+    const confirmButton = screen.getByRole('button', { name: 'Confirm' });
 
     // The cancel label resolves from the text resources ('general.cancel' → 'Cancel' in en).
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -172,7 +174,7 @@ describe('MultipleSelect', () => {
     expect(getPopover(container)).not.toHaveTextContent('Are you sure you want to delete');
 
     // The suspended change is dropped, so confirming afterwards does not apply it either.
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    fireEvent.click(confirmButton);
     expect(onChange).not.toHaveBeenCalled();
   });
 

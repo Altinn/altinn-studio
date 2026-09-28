@@ -11,9 +11,9 @@ export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) => {
   }
 
   return (
-    <span aria-label={langAsString('general.required')}>
-      {' '}
-      {langAsNonProcessedString('form_filler.required_label')}
-    </span>
+    <>
+      <span aria-hidden='true'> {langAsNonProcessedString('form_filler.required_label')}</span>
+      <span className='sr-only'> {langAsString('general.required')}</span>
+    </>
   );
 };
