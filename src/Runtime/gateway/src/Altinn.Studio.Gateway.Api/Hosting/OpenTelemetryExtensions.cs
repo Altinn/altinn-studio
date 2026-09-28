@@ -11,6 +11,7 @@ internal static class OpenTelemetryExtensions
 {
     public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpContextAccessor();
         builder
             .Services.AddOpenTelemetry()
             .WithTracing(tracing =>
@@ -18,6 +19,7 @@ internal static class OpenTelemetryExtensions
                 tracing
                     .AddSource(ServiceTelemetry.Source.Name)
                     .AddProcessor(new AlwaysSampleTagProcessor())
+                    .AddProcessor(sp => new CallerAbortedSpanProcessor(sp.GetRequiredService<IHttpContextAccessor>()))
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;

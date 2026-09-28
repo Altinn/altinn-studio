@@ -1,4 +1,5 @@
 using Altinn.Studio.Gateway.Api.Authentication;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.Designer;
@@ -30,24 +31,29 @@ internal static class DesignerClientRegistration
                     }
                 )
                 .UseMaskinportenAuth()
-                .AddStandardResilienceHandler(options =>
-                {
-                    options.Retry.MaxRetryAttempts = 3;
-                    options.Retry.UseJitter = true;
-                    options.Retry.ShouldHandle = args =>
-                        ValueTask.FromResult(
-                            args.Outcome switch
-                            {
-                                { Exception: not null } => true,
-                                { Result.StatusCode: >= System.Net.HttpStatusCode.InternalServerError } => true,
-                                _ => false,
-                            }
-                        );
-                });
+                .AddStandardResilienceHandler(ConfigureResilience);
         }
 
         services.AddSingleton<DesignerClient>();
 
         return services;
+    }
+
+    internal static void ConfigureResilience(HttpStandardResilienceOptions options)
+    {
+        options.Retry.MaxRetryAttempts = 3;
+        options.Retry.UseJitter = true;
+        options.Retry.ShouldHandle = args =>
+            ValueTask.FromResult(
+                args.Outcome switch
+                {
+                    // The caller gave up (e.g. Grafana closed the webhook request), so this is not a transient failure.
+                    { Exception: OperationCanceledException }
+                        when args.Context.CancellationToken.IsCancellationRequested => false,
+                    { Exception: not null } => true,
+                    { Result.StatusCode: >= System.Net.HttpStatusCode.InternalServerError } => true,
+                    _ => false,
+                }
+            );
     }
 }
