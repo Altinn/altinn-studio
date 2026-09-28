@@ -4,10 +4,8 @@ using System.Text.Json.Nodes;
 namespace Altinn.Studio.Cli.Upgrade.Frontend.Fev3Tov4.LayoutRewriter.Mutators;
 
 /// <summary>
-/// Converts boolean saveWhileTyping to a number, since v4 only accepts a timeout in milliseconds.
-/// true meant the default and is removed; false has no numeric equivalent, so it becomes a long timeout.
-/// The replaced false values are reported in one warning from <see cref="GetWarning"/> rather than
-/// per component, so an app with many of them does not get the same explanation repeated.
+/// Converts boolean saveWhileTyping, which v4 ignores: true (the default) is removed and false becomes
+/// a long timeout, reported in one warning from <see cref="GetWarning"/>.
 /// </summary>
 internal sealed class SaveWhileTypingMutator : ILayoutMutator
 {
@@ -43,14 +41,13 @@ internal sealed class SaveWhileTypingMutator : ILayoutMutator
                 return new ReplaceResult() { Component = component };
             case JsonValueKind.False:
                 component["saveWhileTyping"] = DisabledSaveWhileTypingTimeout;
-                _disabledComponents.Add($"{type} {component["id"]}");
+                _disabledComponents.Add($"{type} '{component["id"]}'");
                 return new ReplaceResult() { Component = component };
             default:
                 return new SkipResult();
         }
     }
 
-    /// <returns>The warning about replaced false values, or null when there were none.</returns>
     public string? GetWarning() =>
         _disabledComponents.Count == 0
             ? null

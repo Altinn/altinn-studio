@@ -4,20 +4,12 @@ using System.Text.Json.Nodes;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
-/// Converts boolean <c>saveWhileTyping</c> values, which v3 accepted and v4 silently ignores, to the
-/// number of milliseconds the frontend now expects. <c>true</c> meant the default and is removed;
-/// <c>false</c> has no numeric equivalent, so it becomes a long timeout and produces a warning.
+/// Converts boolean <c>saveWhileTyping</c>, which v4 ignores: <c>true</c> (the default) is removed and
+/// <c>false</c> becomes a long timeout, reported in one warning.
 /// </summary>
 internal static class SaveWhileTypingMigration
 {
     private const int DisabledSaveWhileTypingTimeout = 4000;
-
-    private static readonly HashSet<string> _componentsWithSaveWhileTyping = new(StringComparer.Ordinal)
-    {
-        "Address",
-        "Input",
-        "TextArea",
-    };
 
     public static async Task<string?> Migrate(string projectFolder)
     {
@@ -30,7 +22,6 @@ internal static class SaveWhileTypingMigration
         return warning;
     }
 
-    /// <returns>The warning about replaced <c>false</c> values, or <c>null</c> when there were none.</returns>
     internal static string? Apply(LayoutMigrationWorkspace workspace)
     {
         var disabledComponents = new List<DisabledComponent>();
@@ -38,11 +29,7 @@ internal static class SaveWhileTypingMigration
         return disabledComponents.Count == 0 ? null : DisabledWarning(disabledComponents);
     }
 
-    /// <summary>
-    /// Explains the replaced <c>false</c> values once and lists every affected component, so an app
-    /// with many of them gets one warning instead of the same explanation repeated per component.
-    /// Only file names are shown, since a later step moves layout-set folders to task folders.
-    /// </summary>
+    // File names only, since a later step moves layout-set folders to task folders.
     private static string DisabledWarning(List<DisabledComponent> disabledComponents)
     {
         var locations = disabledComponents
@@ -93,7 +80,7 @@ internal static class SaveWhileTypingMigration
         if (
             component["type"] is not JsonValue typeValue
             || !typeValue.TryGetValue<string>(out var type)
-            || !_componentsWithSaveWhileTyping.Contains(type)
+            || type is not ("Address" or "Input" or "TextArea")
             || component["saveWhileTyping"] is not JsonValue saveWhileTyping
         )
         {

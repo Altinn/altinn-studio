@@ -27,7 +27,7 @@ public sealed class SaveWhileTypingMutatorTests
         Assert.Empty(first.Warnings);
         var warning = _mutator.GetWarning();
         Assert.NotNull(warning);
-        Assert.Contains("Input first, Address second", warning, StringComparison.Ordinal);
+        Assert.Contains("Input 'first', Address 'second'", warning, StringComparison.Ordinal);
     }
 
     private ReplaceResult Mutate(string id, string type, bool saveWhileTyping) =>
