@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.ContactPoints;
+using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -106,6 +107,25 @@ public class ContactPointRepository(DesignerdbContext dbContext) : IContactPoint
     {
         cancellationToken.ThrowIfCancellationRequested();
         await dbContext.ContactPoints.Where(p => p.Org == org && p.Id == id).ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ReportTarget>> GetReportTargetsAsync(
+        ReportFrequency frequency,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var subscriptions = await dbContext
+            .ContactPoints.AsNoTracking()
+            .Where(p => p.IsActive && p.ReportFrequency == (int)frequency)
+            .Select(p => new { p.Org, p.Environments })
+            .ToListAsync(cancellationToken);
+        return subscriptions
+            .SelectMany(p => p.Environments.Select(environment => new ReportTarget(p.Org, environment)))
+            .Distinct()
+            .OrderBy(target => target.Org, StringComparer.Ordinal)
+            .ThenBy(target => target.Environment, StringComparer.Ordinal)
+            .ToList();
     }
 
     public async Task<IReadOnlyList<ContactPointEntity>> GetActiveReportContactPointsAsync(
