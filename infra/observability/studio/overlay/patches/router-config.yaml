@@ -7,40 +7,26 @@ spec:
     exporters:
       load_balancing/traces:
         routing_key: traceID
-        # Retry and queue here rather than per gateway. With a queue of its own, a per-gateway
-        # exporter (protocol.otlp) accepts a batch at once and then retries it against the same
-        # gateway, and drops it when that gateway leaves the ring. Without one, a failed send comes
-        # back to this level, and each retry picks the gateway from the current ring.
-        #
-        # Every retry setting is spelled out. In Collector 0.161.0 this exporter leaves unset ones at
-        # zero rather than at the usual defaults, and zero means retrying at once, forever. The
-        # values are those usual defaults, which the per-gateway exporters used before: the first
-        # retry after 5s, the DNS resolver's default interval, so the ring has had a chance to drop
-        # a departed gateway; then backing off to 30s, and giving up after 5 minutes.
-        #
-        # The timeout bounds one attempt, which sends to each gateway the batch hashes to one after
-        # another, each within the per-gateway exporter's default 5s. 10s covers the two gateways
-        # that exist side by side during a rollout; raise it with the gateway's replica count.
-        #
-        # The queue keeps its defaults: in memory, 1,000 batches, as one per-gateway queue had.
-        timeout: 10s
-        retry_on_failure:
+        # Queue and retry here, not per gateway, so a retried export picks its gateway from the
+        # current ring instead of being dropped with a gateway that has left it.
+        timeout: 10s # two gateways during a rollout, each within the per-gateway 5s default
+        retry_on_failure: # usual defaults; unset, they are 0 here (0.161.0): retry at once, forever
           enabled: true
-          initial_interval: 5s
+          initial_interval: 5s # also the DNS resolver's default refresh interval
           randomization_factor: 0.5
           multiplier: 1.5
           max_interval: 30s
           max_elapsed_time: 300s
         sending_queue:
-          enabled: true
+          enabled: true # in memory, 1,000 batches
         protocol:
           otlp:
             tls:
               insecure: true
             retry_on_failure:
-              enabled: false
+              enabled: false # a failure goes back to the retry above
             sending_queue:
-              enabled: false
+              enabled: false # a queue here would accept the batch and tie it to one gateway
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.observability.svc.cluster.local
@@ -49,7 +35,7 @@ spec:
       nop: {}
       load_balancing/logs:
         routing_key: traceID
-        # Same as load_balancing/traces.
+        # Same settings as load_balancing/traces.
         timeout: 10s
         retry_on_failure:
           enabled: true
