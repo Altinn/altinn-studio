@@ -270,10 +270,19 @@ func parseContent(cl *Changelog, content string) error {
 	var preamble strings.Builder
 	var currentSection *Section
 	var currentCategory *Category
+	inEntry := false
 	validator := newCategoryValidator()
 
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		// An indented line directly below an entry continues it: a wrapped line or a nested list.
+		if inEntry && isContinuationLine(line) {
+			last := len(currentCategory.Entries) - 1
+			currentCategory.Entries[last] += "\n" + line
+			continue
+		}
+		inEntry = false
 
 		if unreleasedPattern.MatchString(line) {
 			if currentSection != nil && currentCategory != nil {
@@ -337,6 +346,7 @@ func parseContent(cl *Changelog, content string) error {
 		if matches := listItemPattern.FindStringSubmatch(line); matches != nil {
 			if currentCategory != nil {
 				currentCategory.Entries = append(currentCategory.Entries, matches[1])
+				inEntry = true
 			}
 			continue
 		}
@@ -359,6 +369,10 @@ func parseContent(cl *Changelog, content string) error {
 
 	cl.Preamble = strings.TrimRight(preamble.String(), "\n")
 	return nil
+}
+
+func isContinuationLine(line string) bool {
+	return (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) && strings.TrimSpace(line) != ""
 }
 
 // extractEntriesFromDiff parses a git diff and extracts changelog entries that were added.

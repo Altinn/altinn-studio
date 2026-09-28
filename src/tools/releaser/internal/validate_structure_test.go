@@ -41,6 +41,72 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("skips vendored changelogs", testStructureSkipsVendored)
 	t.Run("validates all tracked changelogs when no range given", testStructureValidatesAllTracked)
 	t.Run("reports every broken changelog", testStructureReportsMultiple)
+	t.Run("fails on a new entry over the word limit", testStructureLongNewEntryFails)
+	t.Run("counts continuation lines toward the word limit", testStructureLongWrappedEntryFails)
+	t.Run("ignores a long entry that is unchanged since the merge base", testStructureLongExistingEntryPasses)
+	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
+}
+
+func changelogWithEntry(entry string) string {
+	return "# Changelog\n\n## [Unreleased]\n\n### Added\n\n- " + entry + "\n"
+}
+
+func words(n int) string {
+	return strings.TrimSpace(strings.Repeat("word ", n))
+}
+
+func testStructureLongNewEntryFails(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		changelogWithEntry(words(internal.MaxEntryWords+1)), "long entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
+	if !strings.Contains(err.Error(), "src/cli/CHANGELOG.md") {
+		t.Fatalf("error = %v, want it to name the offending changelog", err)
+	}
+}
+
+func testStructureLongWrappedEntryFails(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	half := words(internal.MaxEntryWords/2 + 1)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		changelogWithEntry(half+"\n  "+half), "long wrapped entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
+}
+
+func testStructureLongExistingEntryPasses(t *testing.T) {
+	long := words(internal.MaxEntryWords + 1)
+	repo := createStudioctlWorkflowRepo(t, changelogWithEntry(long))
+	base := revParseHead(t, repo)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- `+long+`
+
+### Fixed
+
+- A new fix
+`, "add fix")
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil for an unchanged entry", err)
+	}
+}
+
+func testStructureLongEntryWithoutRangePasses(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, changelogWithEntry(words(internal.MaxEntryWords+1)))
+
+	if err := runStructureValidation(t, repo, "", ""); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil without a range", err)
+	}
 }
 
 func testStructureValidPasses(t *testing.T) {

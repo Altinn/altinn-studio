@@ -213,6 +213,48 @@ func TestParse_CompactCategorySpacing(t *testing.T) {
 	}
 }
 
+func TestParse_ContinuationLines(t *testing.T) {
+	content := `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Wrapped entry that
+  continues here
+- Entry with a nested list:
+  - first
+  - second
+- Single line
+
+## [1.0.0] - 2024-01-01
+
+### Fixed
+
+- Released entry
+    continued
+`
+
+	cl, err := changelog.Parse(content)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	want := []string{
+		"Wrapped entry that\n  continues here",
+		"Entry with a nested list:\n  - first\n  - second",
+		"Single line",
+	}
+	if got := cl.Unreleased.Categories[0].Entries; !slices.Equal(got, want) {
+		t.Fatalf("Parse() unreleased entries = %q, want %q", got, want)
+	}
+	if got := cl.Versions[0].Categories[0].Entries; !slices.Equal(got, []string{"Released entry\n    continued"}) {
+		t.Fatalf("Parse() released entries = %q", got)
+	}
+	if got := cl.String(); got != content {
+		t.Fatalf("String() does not round-trip continuation lines:\n%s", got)
+	}
+}
+
 func TestPromote(t *testing.T) {
 	fixedDate := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
 
