@@ -7,10 +7,31 @@ spec:
     exporters:
       load_balancing/traces:
         routing_key: traceID
+        # Retry and queue here rather than per gateway: a failed export then goes back through the
+        # hash ring, so data meant for a gateway that is going away reaches one that is running.
+        # The per-gateway exporters have no queue or retries of their own, so a failure reaches
+        # this level instead of being dropped when that gateway leaves the ring.
+        #
+        # Every retry setting is spelled out. In Collector 0.161.0 this exporter leaves unset ones at
+        # zero rather than at the usual defaults, and zero means retrying at once, forever.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
         protocol:
           otlp:
             tls:
               insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
@@ -19,10 +40,25 @@ spec:
       nop: {}
       load_balancing/logs:
         routing_key: traceID
+        # Same as load_balancing/traces.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
         protocol:
           otlp:
             tls:
               insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
         resolver:
           dns:
             hostname: otel-gateway-collector-headless.runtime-obs.svc.cluster.local
