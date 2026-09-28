@@ -25,6 +25,11 @@ spec:
         matchLabels:
           altinn.studio/otel-collector: otel-gateway
   config:
+    extensions:
+      # The operator derives the readiness and liveness probes from this extension, so a pod counts
+      # as ready only once the Collector is running, and a rollout keeps the old pod until then.
+      health_check:
+        endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost
     receivers:
       otlp:
         protocols:
@@ -134,3 +139,5 @@ spec:
       batch:
         send_batch_size: 1024
         timeout: 5s
+    service:
+      extensions: [health_check]

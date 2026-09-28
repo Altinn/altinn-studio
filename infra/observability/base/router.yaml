@@ -25,6 +25,11 @@ spec:
         matchLabels:
           altinn.studio/otel-collector: otel-router
   config:
+    extensions:
+      # The operator derives the readiness and liveness probes from this extension, so a pod counts
+      # as ready only once the Collector is running, and a rollout keeps the old pod until then.
+      health_check:
+        endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost
     receivers:
       otlp:
         protocols:
@@ -226,3 +231,5 @@ spec:
               - delete_key(log.attributes, "telemetry.sdk.version")
               - delete_key(resource.attributes, "telemetry.sdk.version")
       batch: {}
+    service:
+      extensions: [health_check]
