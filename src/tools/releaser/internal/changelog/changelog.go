@@ -23,8 +23,6 @@ var (
 	ErrVersionNotFound    = errors.New("version not found in changelog")
 	ErrInvalidVersion     = errors.New("invalid version format")
 	ErrVersionExists      = errors.New("version already exists in changelog")
-	ErrNoChangelogInDiff  = errors.New("no CHANGELOG.md changes found in diff")
-	ErrNoEntriesInDiff    = errors.New("no changelog entries found in diff")
 	ErrInvalidCategory    = errors.New("invalid changelog category")
 	ErrCategoryOrder      = errors.New("categories not in standard order")
 	ErrDuplicateVersion   = errors.New("duplicate released version in changelog")
@@ -54,10 +52,9 @@ type Entry struct {
 
 // Changelog represents a parsed Keep a Changelog format document.
 type Changelog struct {
-	Preamble     string     // content before first section (title, description)
-	Unreleased   *Section   // [Unreleased] section, nil if missing
-	Versions     []*Section // released versions in document order (newest first)
-	AddedEntries []Entry    // entries from diff (only if ParseWithDiff used)
+	Preamble   string     // content before first section (title, description)
+	Unreleased *Section   // [Unreleased] section, nil if missing
+	Versions   []*Section // released versions in document order (newest first)
 }
 
 // Version header patterns.
@@ -123,31 +120,16 @@ func (v *categoryValidator) validate(categoryName string) error {
 
 // Parse parses changelog content into an AST representation.
 func Parse(content string) (*Changelog, error) {
-	return ParseWithDiff(content, "", "")
-}
-
-// ParseWithDiff parses changelog content and also extracts added entries from a git diff.
-// The changelogPath is needed to locate the changelog section in the diff.
-// The diff parameter can be empty string if no diff analysis is needed.
-func ParseWithDiff(content, diff, changelogPath string) (*Changelog, error) {
 	cl := &Changelog{
-		Preamble:     "",
-		Unreleased:   nil,
-		Versions:     nil,
-		AddedEntries: nil,
+		Preamble:   "",
+		Unreleased: nil,
+		Versions:   nil,
 	}
 	if err := parseContent(cl, content); err != nil {
 		return nil, err
 	}
 	if err := validateVersionSections(cl.Versions); err != nil {
 		return nil, err
-	}
-	if diff != "" && changelogPath != "" {
-		entries, err := extractEntriesFromDiff(diff, changelogPath)
-		if err != nil && !errors.Is(err, ErrNoChangelogInDiff) && !errors.Is(err, ErrNoEntriesInDiff) {
-			return nil, err
-		}
-		cl.AddedEntries = entries
 	}
 	return cl, nil
 }
@@ -375,101 +357,6 @@ func isContinuationLine(line string) bool {
 	return (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) && strings.TrimSpace(line) != ""
 }
 
-// extractEntriesFromDiff parses a git diff and extracts changelog entries that were added.
-//
-//nolint:gocognit,gocyclo,cyclop // Diff parsing requires sequential state machine logic
-func extractEntriesFromDiff(diffContent, changelogPath string) ([]Entry, error) {
-	changelogStart := findChangelogSection(diffContent, changelogPath)
-	if changelogStart == -1 {
-		return nil, ErrNoChangelogInDiff
-	}
-
-	diffSection := diffContent[changelogStart:]
-	changelogDiffPrefix := "diff --git a/" + changelogPath
-
-	var entries []Entry
-	var currentCategory string
-	inEntry := false
-
-	scanner := bufio.NewScanner(strings.NewReader(diffSection))
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		if strings.HasPrefix(line, "diff --git") && !strings.HasPrefix(line, changelogDiffPrefix) {
-			break
-		}
-
-		if strings.HasPrefix(line, "@@") || strings.HasPrefix(line, "---") || strings.HasPrefix(line, "+++") ||
-			strings.HasPrefix(line, "index ") || strings.HasPrefix(line, "diff --git") {
-			continue
-		}
-
-		var contentLine string
-		switch {
-		case strings.HasPrefix(line, "+"):
-			contentLine = strings.TrimPrefix(line, "+")
-		case strings.HasPrefix(line, "-"):
-			contentLine = strings.TrimPrefix(line, "-")
-		case strings.HasPrefix(line, " "):
-			contentLine = strings.TrimPrefix(line, " ")
-		default:
-			contentLine = line
-		}
-
-		// An added indented line directly below an added entry continues it.
-		if inEntry && strings.HasPrefix(line, "+") && isContinuationLine(contentLine) {
-			entries[len(entries)-1].Text += "\n" + contentLine
-			continue
-		}
-		inEntry = false
-
-		if versionPattern.MatchString(contentLine) {
-			currentCategory = ""
-			continue
-		}
-
-		if matches := categoryPattern.FindStringSubmatch(contentLine); matches != nil {
-			currentCategory = matches[1]
-			continue
-		}
-
-		if !strings.HasPrefix(line, "+") {
-			continue
-		}
-
-		if currentCategory == "" {
-			continue
-		}
-
-		if matches := listItemPattern.FindStringSubmatch(contentLine); matches != nil {
-			entries = append(entries, Entry{
-				Category: currentCategory,
-				Text:     matches[1],
-			})
-			inEntry = true
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("scan diff: %w", err)
-	}
-
-	if len(entries) == 0 {
-		return nil, ErrNoEntriesInDiff
-	}
-
-	return entries, nil
-}
-
-// findChangelogSection returns the index where the changelog diff section starts, or -1 if not found.
-func findChangelogSection(diffContent, changelogPath string) int {
-	pattern := "diff --git a/" + changelogPath
-	if idx := strings.Index(diffContent, pattern); idx != -1 {
-		return idx
-	}
-	return -1
-}
-
 // HasVersion checks if the changelog contains a specific version.
 func (c *Changelog) HasVersion(version string) bool {
 	return c.GetVersion(version) != nil
@@ -566,8 +453,7 @@ func (c *Changelog) Promote(version string, date time.Time) (*Changelog, error) 
 			Date:       time.Time{},
 			Categories: nil,
 		},
-		Versions:     nil, // Set below
-		AddedEntries: c.AddedEntries,
+		Versions: nil, // Set below
 	}
 
 	newVersion := &Section{
@@ -698,10 +584,9 @@ func (c *Changelog) InsertEntries(entries []Entry) (*Changelog, error) {
 	}
 
 	newCl := &Changelog{
-		Preamble:     c.Preamble,
-		Unreleased:   cloneSection(c.Unreleased),
-		Versions:     versions,
-		AddedEntries: c.AddedEntries,
+		Preamble:   c.Preamble,
+		Unreleased: cloneSection(c.Unreleased),
+		Versions:   versions,
 	}
 
 	byCategory := make(map[string][]string)
@@ -774,6 +659,31 @@ func (c *Changelog) String() string {
 	return strings.TrimRight(b.String(), "\n") + "\n"
 }
 
+// Entries returns every entry in the changelog in document order, [Unreleased] first.
+func (c *Changelog) Entries() []Entry {
+	entries := c.Unreleased.Entries()
+	for _, section := range c.Versions {
+		entries = append(entries, section.Entries()...)
+	}
+	return entries
+}
+
+// NewEntries returns the entries in head that are not in base, in head's order.
+// An entry whose text changed counts as new.
+func NewEntries(base, head []Entry) []Entry {
+	existing := make(map[Entry]struct{}, len(base))
+	for _, entry := range base {
+		existing[entry] = struct{}{}
+	}
+	var added []Entry
+	for _, entry := range head {
+		if _, ok := existing[entry]; !ok {
+			added = append(added, entry)
+		}
+	}
+	return added
+}
+
 func (c *Changelog) latestVersion(matches func(*semver.Version) bool) (*semver.Version, error) {
 	var best *semver.Version
 	hasReleased := false
@@ -796,6 +706,20 @@ func (c *Changelog) latestVersion(matches func(*semver.Version) bool) (*semver.V
 		return nil, ErrNoMatchingVersion
 	}
 	return best, nil
+}
+
+// Entries returns every entry in the section in document order. A nil section has none.
+func (s *Section) Entries() []Entry {
+	if s == nil {
+		return nil
+	}
+	var entries []Entry
+	for _, category := range s.Categories {
+		for _, text := range category.Entries {
+			entries = append(entries, Entry{Category: category.Name, Text: text})
+		}
+	}
+	return entries
 }
 
 // IsUnreleased returns true if this is the [Unreleased] section.

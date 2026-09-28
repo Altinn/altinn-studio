@@ -254,14 +254,20 @@ func loadChangelogAtMergeBase(
 	if err != nil {
 		return nil, fmt.Errorf("git merge-base: %w", err)
 	}
-	code, err := git.runExitCode(ctx, "cat-file", "-e", mergeBase+":"+changelogPath)
+	return loadChangelogAt(ctx, git, mergeBase, changelogPath)
+}
+
+// loadChangelogAt returns the changelog at a revision, or an empty changelog
+// when the file does not exist there.
+func loadChangelogAt(ctx context.Context, git *GitCLI, revision, changelogPath string) (*changelog.Changelog, error) {
+	code, err := git.runExitCode(ctx, "cat-file", "-e", revision+":"+changelogPath)
 	if err != nil {
 		return nil, fmt.Errorf("git cat-file: %w", err)
 	}
 	if code != 0 {
-		return &changelog.Changelog{Preamble: "", Unreleased: nil, Versions: nil, AddedEntries: nil}, nil
+		return &changelog.Changelog{Preamble: "", Unreleased: nil, Versions: nil}, nil
 	}
-	return loadBaseChangelog(ctx, git, mergeBase, changelogPath)
+	return loadBaseChangelog(ctx, git, revision, changelogPath)
 }
 
 // entryWords returns the words of an entry as a reader counts them: pull request
@@ -281,29 +287,20 @@ func entryWords(text string) []string {
 // validateEntryLengths fails on every [Unreleased] entry in cl that is not in
 // previous's [Unreleased] and has more than MaxEntryWords words.
 func validateEntryLengths(previous, cl *changelog.Changelog) error {
-	if cl.Unreleased == nil {
-		return nil
-	}
-	existing := sectionEntrySet(previous.Unreleased)
 	var errs []error
-	for _, category := range cl.Unreleased.Categories {
-		for _, text := range category.Entries {
-			if _, ok := existing[changelogEntryKey{category: category.Name, text: text}]; ok {
-				continue
-			}
-			words := entryWords(text)
-			if len(words) <= MaxEntryWords {
-				continue
-			}
-			errs = append(errs, fmt.Errorf(
-				"%w: %s entry %q has %d words, the limit is %d; see .claude/skills/changelog/SKILL.md",
-				ErrEntryTooLong,
-				category.Name,
-				strings.Join(words[:entryExcerptWords], " ")+" ...",
-				len(words),
-				MaxEntryWords,
-			))
+	for _, entry := range changelog.NewEntries(previous.Unreleased.Entries(), cl.Unreleased.Entries()) {
+		words := entryWords(entry.Text)
+		if len(words) <= MaxEntryWords {
+			continue
 		}
+		errs = append(errs, fmt.Errorf(
+			"%w: %s entry %q has %d words, the limit is %d",
+			ErrEntryTooLong,
+			entry.Category,
+			strings.Join(words[:entryExcerptWords], " ")+" ...",
+			len(words),
+			MaxEntryWords,
+		))
 	}
 	return errors.Join(errs...)
 }
@@ -431,14 +428,10 @@ func loadBaseChangelog(
 }
 
 func validateHasNewUnreleasedEntries(baseChangelog, headChangelog *changelog.Changelog) error {
-	baseUnreleasedEntries := sectionEntrySet(baseChangelog.Unreleased)
-	headUnreleasedEntries := sectionEntrySet(headChangelog.Unreleased)
-	for entry := range headUnreleasedEntries {
-		if _, exists := baseUnreleasedEntries[entry]; !exists {
-			return nil
-		}
+	if len(changelog.NewEntries(baseChangelog.Unreleased.Entries(), headChangelog.Unreleased.Entries())) == 0 {
+		return ErrNoNewUnreleasedEntries
 	}
-	return ErrNoNewUnreleasedEntries
+	return nil
 }
 
 func isReleasePromotionDiff(baseChangelog, headChangelog *changelog.Changelog) (bool, error) {

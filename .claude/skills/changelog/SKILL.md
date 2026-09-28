@@ -1,19 +1,13 @@
 ---
 name: changelog
-description: Write and edit CHANGELOG.md entries in this repository as release notes for the people who use the product. Use when adding or changing a changelog entry, when a pull request needs one, or when tidying the Unreleased section before a release.
+description: Write and edit CHANGELOG.md entries in this repository as release notes for the people who use the product. Use when adding or changing a changelog entry, when a pull request needs one, or when preparing a release's changelog.
 ---
 
 # Changelog entries
 
 A changelog is release notes for the people who use the product. Pull request titles and descriptions are for the
-people who review the code. Do not copy one into the other: a reviewer needs to know how and why, a user needs to
-know what changed for them and whether they must act.
-
-| Changelog                                             | Readers                               | What they see and touch                                                                                              |
-| ----------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `src/cli/CHANGELOG.md`                                | App developers using studioctl        | Commands, flags, output, environment variables, files studioctl writes, the local environment                        |
-| `src/App/backend/CHANGELOG.md`                        | App developers using the app packages | Public APIs, app configuration files and settings, HTTP endpoints, analyzers, telemetry names, what end users notice |
-| `src/App/fileanalyzers/CHANGELOG.md`, `codelists/...` | App developers using those packages   | Public APIs and configuration                                                                                        |
+people who review the code. Do not copy one into the other: a reviewer needs to know how and why, a reader of the
+changelog needs to know what changed for them and whether they must act.
 
 ## Rules
 
@@ -21,14 +15,15 @@ know what changed for them and whether they must act.
   rewrite that entry instead of adding another. No entry for refactors, tests or CI: apply the `skip-changelog` label.
 - **Short.** One or two sentences, 40 words or fewer as a rule. `releaser validate-changelogs` fails a new or changed
   `[Unreleased]` entry over 60 words.
-- **Start with what the reader touches**, such as the command, API or setting, then say what they can do now or what
-  changed for them.
-- **Name exact identifiers** the reader types or reads. Give two or three representative examples, not an inventory.
+- **Lead with what changed for the reader**, then say what they can do now or what they must do.
+- **Use the names readers know**, written exactly as they appear in the product, so the entry can be searched. Give a
+  few examples rather than a complete list.
 - **Leave out** how it is implemented, why it was designed that way, internal components, and what used to happen,
   unless the reader must act on it.
 - **Fixed** entries describe the symptom the reader saw, not the cause.
-- **Breaking** changes start with `Breaking:` and say what breaks and what to do, in one clause. Step-by-step migration
-  belongs in the documentation (`altinn-studio-docs`); link to it. Say so when `studioctl app upgrade` handles it.
+- **Breaking changes, deprecations and removals** say what to do instead, and breaking changes start with `Breaking:`.
+  Step-by-step migration belongs in the documentation (`altinn-studio-docs`); link to it. Say so when a tool, such as
+  `studioctl app upgrade`, makes the change for the reader.
 - **End with the references in parentheses**: the documentation link first, when there is one, then every pull request
   the entry covers: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/pull/1234))`.
   Pull request links do not count toward the word limit.
@@ -48,27 +43,24 @@ notice after upgrading, not from what you did:
 
 1. Decide whether the change is visible to the changelog's readers at all. If not, use the `skip-changelog` label.
 2. If your harness can start a subagent, give a fresh one only this skill, the pull request title and description, and
-   the diff of the surface readers touch (commands, public API, configuration, documentation), and have it draft the
-   entry. Otherwise, write the entry before rereading the implementation.
+   the diff of what the reader sees or uses, and have it draft the entry. Otherwise, write the entry before rereading
+   the implementation.
 3. Merge it with any related `[Unreleased]` entry, keeping that entry's pull request links. Add this pull request's
    link once it is open.
 4. Commit, then check every changelog you changed with
    `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
 
-## Tidying before a release
+## Preparing a release
 
-Entries written one pull request at a time repeat each other. Before a release, tidy `[Unreleased]` in its own pull
-request:
+Read the entries being released together. If they follow the rules above, promote them as they are. Otherwise, fix
+them in the promotion pull request:
 
-- Merge entries about the same feature, keeping all their pull request links. Twelve entries about
-  `studioctl app upgrade v9` become one or two.
+- Merge entries about the same feature, keeping all their pull request links.
 - Drop entries for something added and fixed within the same release: readers never saw the problem.
-- Move entries to the right section and cut them to the rules above. Move migration detail to the documentation.
+- Cut entries to the rules above, and move migration detail to the documentation.
 
-Then open the promotion pull request as usual. Keep it a pure promotion: `releaser validate-changelog` recognizes it
-by the `[Unreleased]` entries it carries over unchanged. For a new stable `X.Y.0`, `releaser prepare` folds every
-`X.Y.0-preview.N` section into the release. Tidy that combined section in the promotion pull request, and leave at
-least one entry that came from `[Unreleased]` unchanged.
+For a new stable `X.Y.0`, `releaser prepare` folds every `X.Y.0-preview.N` section into the release, so read those
+entries as well.
 
 ## Examples
 

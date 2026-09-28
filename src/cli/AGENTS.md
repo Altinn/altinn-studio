@@ -61,13 +61,11 @@ Invariants:
 
 - **Every PR with a user-visible studioctl change** (new commands/flags, behavior changes,
   fixes, bumps of the pinned images) **must add an entry to `CHANGELOG.md`** under `## [Unreleased]`,
-  using the Keep a Changelog categories (Added/Changed/Fixed/…) and written as the `changelog` skill
-  describes. CI enforces this:
+  using the Keep a Changelog categories (Added/Changed/Fixed/…). CI enforces this:
   `.github/workflows/cli-changelog.yaml` fails PRs that change studioctl code without a new
   `[Unreleased]` entry. For changes with no user-visible effect (refactors, test-only or
   CI-only work), apply the `skip-changelog` label instead. The structure of any changed
   changelog is validated separately (`.github/workflows/changelog.yml`).
-- Before a release, tidy `[Unreleased]` in its own PR as the `changelog` skill describes.
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
   section and label the PR `release/studioctl`; merging it triggers
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`

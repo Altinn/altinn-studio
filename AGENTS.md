@@ -97,9 +97,9 @@ stack (see `README.md`).
 
 ## Conventions across the repo
 
-- **Changelogs:** Changelog entries are release notes for the people who use the product, not a
-  summary of the pull request. Follow the `changelog` skill (`.claude/skills/changelog`) when
-  adding, editing or tidying an entry.
+- **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
+  functionality in clear language, and omit implementation details that do not affect product use.
+  Technical language is appropriate when it helps users understand or adopt the change.
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
   the product is **British English** for the English values and checked **Norwegian** (bokmål and
