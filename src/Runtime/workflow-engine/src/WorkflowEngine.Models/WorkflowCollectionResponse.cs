@@ -140,6 +140,15 @@ public sealed record CollectionHeadStatus
     public DateTimeOffset? CreatedAt { get; init; }
 
     /// <summary>
+    /// Gets when the head workflow was last resumed, if it has been. Resume reruns a workflow in
+    /// place and keeps <see cref="CreatedAt"/>, so a consumer measuring how long the current run has
+    /// taken starts from this instead when it is set.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
+
+    /// <summary>
     /// Gets the waiting step's own words for what it is waiting for — its most recent deferral
     /// reason (<see cref="Step.LastDeferReason"/>). Populated only while <see cref="Status"/> is
     /// <see cref="PersistentItemStatus.Waiting"/> and the deferring command gave a reason, so a
@@ -148,4 +157,16 @@ public sealed record CollectionHeadStatus
     [JsonPropertyName("waitingReason")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? WaitingReason { get; init; }
+
+    /// <summary>
+    /// Gets how many consecutive attempts of the head's current step (its first step that has not
+    /// completed) have failed and been scheduled for retry — that step's
+    /// <see cref="Step.RequeueCount"/>. It stays put while a retry attempt executes and returns to
+    /// zero when the step defers or is resumed, so a consumer can tell a failing step apart from a
+    /// slow one. Nullable for the same additive-contract reason as <see cref="StepsCompleted"/>;
+    /// always populated by the engine.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
 }

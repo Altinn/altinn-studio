@@ -9,6 +9,7 @@ import {
   branchStatusPath,
   branchesPath,
   currentBranchPath,
+  dataModelGenerationStatusPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelPrefillPath,
@@ -164,6 +165,7 @@ export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplat
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelPrefill = (owner: string, app: string, modelPath: string) => get<PrefillConfig>(dataModelPrefillPath(owner, app, modelPath));
+export const getDataModelGenerationStatus = (owner: string, app: string, modelPath: string) => get<boolean>(dataModelGenerationStatusPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
 export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsJsonPath(owner, app));
 export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));

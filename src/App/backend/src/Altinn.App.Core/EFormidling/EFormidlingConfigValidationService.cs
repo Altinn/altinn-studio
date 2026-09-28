@@ -71,7 +71,7 @@ internal sealed class EFormidlingConfigValidationService : IHostedService
                 return;
             }
 
-            appMetadata = await services.GetRequiredService<IAppMetadata>().GetApplicationMetadata();
+            appMetadata = services.GetRequiredService<IAppMetadata>().ApplicationMetadata;
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
         }
         catch (Exception e)

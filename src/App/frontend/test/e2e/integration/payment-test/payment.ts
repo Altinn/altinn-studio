@@ -23,7 +23,7 @@ describe('Payment', () => {
 
   describe('Successful payment', () => {
     beforeEach(() => {
-      cy.findByRole('button', { name: /Til betaling/ }).click();
+      cy.findByRole('button', { name: /Til betaling/ }).clickAndWaitForProcessNext();
       cy.intercept({
         method: 'GET',
         url: '**/ttd/payment-test/instances/**/**/payment*',
@@ -31,11 +31,11 @@ describe('Payment', () => {
 
       // TODO: This should be removed once we have a more realistic payment provider that pushes the process for us
       cy.findByText('Du har betalt!').should('be.visible');
-      cy.findByRole('button', { name: /Neste/ }).click();
+      cy.url().should('match', /\/Task_2\/payment$/);
+      cy.findByRole('button', { name: /Neste/ }).clickAndWaitForProcessNext();
     });
 
     it('should redirect to the payment page, then the successpage', () => {
-      cy.url().should('match', /\/Task_2\/payment$/);
       cy.url().should('match', /\/ProcessEnd$/);
     });
     it('The PDF receipt should be visible', () => {
@@ -46,7 +46,7 @@ describe('Payment', () => {
 
   describe('Failed payment', () => {
     beforeEach(() => {
-      cy.findByRole('button', { name: /Til betaling/ }).click();
+      cy.findByRole('button', { name: /Til betaling/ }).clickAndWaitForProcessNext();
     });
 
     it('Should display an alert telling the user that the payment failed', () => {

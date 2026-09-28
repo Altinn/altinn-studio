@@ -36,9 +36,7 @@ async def _chat(adapter: OpenAIAdapter, completion) -> tuple[dict, dict]:
     span = MagicMock()
     with patch("agents.core.llm_adapter.trace_generation") as traced:
         traced.return_value.__enter__.return_value = span
-        assistant = await adapter.chat(
-            messages=MESSAGES, system_prompt="s", tool_schemas=[]
-        )
+        assistant = await adapter.chat(messages=MESSAGES, system_prompt="s", tool_schemas=[])
     return assistant.usage, span.update.call_args.kwargs["usage_details"]
 
 

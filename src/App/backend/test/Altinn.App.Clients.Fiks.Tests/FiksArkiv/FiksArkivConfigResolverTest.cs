@@ -110,8 +110,8 @@ public class FiksArkivConfigResolverTest
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
 
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata(appId)
                 {
                     Title = new Dictionary<string, string?> { [LanguageConst.Nb] = appTitle },
@@ -413,7 +413,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetInstanceReference(instance);
@@ -449,7 +449,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetRecipientParty(instance, recipient);

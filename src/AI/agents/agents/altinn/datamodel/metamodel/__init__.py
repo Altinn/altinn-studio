@@ -1,14 +1,14 @@
 """Metamodel module for Altinn Studio data modeling."""
 
-from .enums import ElementType, BaseValueType, SchemaValueType, CompatibleXsdType
+from .enums import BaseValueType, CompatibleXsdType, ElementType, SchemaValueType
 from .model_metadata import ElementMetadata, ModelMetadata, Restriction
 
 __all__ = [
-    'ElementType',
-    'BaseValueType',
-    'SchemaValueType',
-    'CompatibleXsdType',
-    'ElementMetadata',
-    'ModelMetadata',
-    'Restriction',
+    "BaseValueType",
+    "CompatibleXsdType",
+    "ElementMetadata",
+    "ElementType",
+    "ModelMetadata",
+    "Restriction",
+    "SchemaValueType",
 ]

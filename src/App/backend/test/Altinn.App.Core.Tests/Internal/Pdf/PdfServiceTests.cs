@@ -1130,7 +1130,7 @@ public class PdfServiceTests
 
         var dataType = new DataType() { Id = "Model" };
         var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
-        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        mockAppMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", dataType);
         var layoutModel = new LayoutModel([uiFolderComponent], null);

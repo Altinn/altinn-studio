@@ -1105,16 +1105,20 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn managed_release_version_comes_from_the_active_package() {
-        use std::os::unix::fs::PermissionsExt as _;
-
         let temporary = tempfile::TempDir::new().expect("temporary directory");
         let release = temporary.path().join(format!("v2.3.4-preview.1-{}", package_target()));
         fs::create_dir(&release).expect("release");
-        for binary in ["agentctl", "agentd"] {
-            let path = release.join(binary);
-            fs::write(&path, format!("#!/bin/sh\necho '{binary} v2.3.4-preview.1'\n")).expect("binary");
-            fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).expect("permissions");
-        }
+        // A child process writes the executables. A descriptor this process
+        // opened for writing leaks into any child another test is forking
+        // until that child execs, and executing the file meanwhile fails with
+        // ETXTBSY ("Text file busy").
+        let written = Command::new("/bin/sh")
+            .arg("-c")
+            .arg(r#"for binary in agentctl agentd; do printf '#!/bin/sh\necho "%s v2.3.4-preview.1"\n' "$binary" > "$binary" && chmod 755 "$binary" || exit; done"#)
+            .current_dir(&release)
+            .status()
+            .expect("write binaries");
+        assert!(written.success());
 
         assert_eq!(
             managed_release_version(&release).expect("managed version"),

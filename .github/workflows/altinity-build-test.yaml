@@ -36,6 +36,14 @@ jobs:
       working-directory: src/AI/agents
       run: pip install -r requirements.txt -r requirements-dev.txt
 
+    - name: Lint
+      working-directory: src/AI/agents
+      run: ruff check --output-format=github .
+
+    - name: Check formatting
+      working-directory: src/AI/agents
+      run: ruff format --check .
+
     - name: Run Altinity unit tests
       working-directory: src/AI/agents
       run: python -m pytest

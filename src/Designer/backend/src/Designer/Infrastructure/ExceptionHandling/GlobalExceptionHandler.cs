@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.AppDist;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -48,6 +49,7 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
                 StatusCode: >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
             } httpException => httpException.StatusCode,
             NotFoundHttpRequestException => HttpStatusCode.NotFound,
+            AppDistSourceException or AppDistArtifactException => HttpStatusCode.BadGateway,
             _ => HttpStatusCode.InternalServerError,
         };
 }

@@ -14,7 +14,7 @@ describe('Double signing', () => {
 
     cy.get(appFrontend.signingTest.incomeField).type('4567');
 
-    cy.get(appFrontend.signingTest.submitButton).should('not.be.disabled').click();
+    cy.get(appFrontend.signingTest.submitButton).should('not.be.disabled').clickAndWaitForProcessNext();
     cy.get(appFrontend.signingTest.noAccessPanel).should('exist').and('be.visible');
 
     cy.visualTesting('signing:accountant');
@@ -42,7 +42,7 @@ describe('Double signing', () => {
 
     cy.get(appFrontend.signingTest.incomeField).type('4567');
 
-    cy.get(appFrontend.signingTest.submitButton).should('not.be.disabled').click();
+    cy.get(appFrontend.signingTest.submitButton).should('not.be.disabled').clickAndWaitForProcessNext();
     cy.get(appFrontend.signingTest.managerConfirmPanel).should('exist').and('be.visible');
     cy.get(appFrontend.signingTest.incomeSummary).should('contain.text', '4 567 000 NOK');
 

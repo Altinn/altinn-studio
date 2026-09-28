@@ -25,6 +25,12 @@ describe('Regular expression validation on decimal subform data', () => {
     fillInput('#Input-Name', 'Per');
     fillInput('#Input-Age', '28');
 
+    cy.changeLayout((component) => {
+      if (component.type === 'NavigationButtons') {
+        component.validateOnNext = { page: 'current', show: [] };
+      }
+    });
+
     cy.get('#subform-subform-mopeder-add-button').click();
     fillInput('#moped-regno', 'ABC123');
     fillInput('#moped-merke', 'Digdir');
@@ -82,11 +88,6 @@ describe('Regular expression validation on decimal subform data', () => {
 
     cy.get('#custom-button-subform-bok-cancelButton').click();
     cy.get('#subform-subform-boker-table').should('be.visible');
-    cy.changeLayout((component) => {
-      if (component.type === 'NavigationButtons') {
-        component.validateOnNext = { page: 'current', show: [] };
-      }
-    });
     cy.findByRole('button', { name: /^Neste$/ }).click();
     cy.url().should('include', '/Task_1/oppsummering');
     cy.findByRole('button', { name: /^Send inn$/i }).click();

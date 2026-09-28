@@ -86,9 +86,7 @@ class TestStartAgentRateLimiting:
 
     def test_rejects_a_missing_developer_header_with_400(self, tmp_path):
         with _stubbed_agent_start(tmp_path):
-            response = TestClient(app).post(
-                START_PATH, json=_start_payload(), headers={"X-Api-Key": "test-key"}
-            )
+            response = TestClient(app).post(START_PATH, json=_start_payload(), headers={"X-Api-Key": "test-key"})
 
         assert response.status_code == 400
 

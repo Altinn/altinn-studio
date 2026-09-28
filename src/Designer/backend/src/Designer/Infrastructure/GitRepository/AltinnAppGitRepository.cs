@@ -916,7 +916,13 @@ public class AltinnAppGitRepository : AltinnGitRepository
             throw new NotFoundHttpRequestException("Bpmn file not found.");
         }
 
-        return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        // A copy in memory, so a caller that keeps the stream, such as a response being sent, does not keep the file
+        // open while a save replaces it.
+        using Stream processDefinitionFile = OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        MemoryStream processDefinition = new();
+        processDefinitionFile.CopyTo(processDefinition);
+        processDefinition.Position = 0;
+        return processDefinition;
     }
 
     public Definitions GetProcessDefinitions()
@@ -1138,7 +1144,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// Determines whether a layout set folder of exactly this name exists. Matching by exact name makes a
     /// case-insensitive file system behave like Linux.
     /// </summary>
-    private bool LayoutSetFolderExistsByExactName(string layoutSetName)
+    public bool LayoutSetFolderExistsByExactName(string layoutSetName)
     {
         if (!DirectoryExistsByRelativePath(LayoutsFolderName))
         {

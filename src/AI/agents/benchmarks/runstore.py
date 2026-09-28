@@ -6,7 +6,7 @@ import json
 import re
 import secrets
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from benchmarks.provenance import Provenance
@@ -169,7 +169,7 @@ def _pointer_for(directory: Path | None) -> Path:
 
 def new_name(label: str) -> str:
     """Unique by construction, so two runs cannot merge."""
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     slug = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-") or "run"
     return f"{stamp}-{slug}-{secrets.token_hex(2)}"
 
@@ -177,13 +177,11 @@ def new_name(label: str) -> str:
 def save(run: Run, *, directory: Path | None = None, overwrite: bool = False) -> Path:
     """A saved run is evidence, so overwriting one is opt-in."""
     assert NAME_PATTERN.match(run.name), f"{run.name!r} is not a run name"
-    target = (directory or RUNS_DIR)
+    target = directory or RUNS_DIR
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{run.name}.json"
     assert overwrite or not path.exists(), f"{path} already exists, so a run would be overwritten"
-    path.write_text(
-        json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    path.write_text(json.dumps(run.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
 
 
@@ -231,13 +229,11 @@ def baseline(*, directory: Path | None = None, pointer: Path | None = None) -> R
         from benchmarks import remote
 
         return remote.fetch(found.check_id)
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
-def previous(
-    current: Run | None, *, directory: Path | None = None, pointer: Path | None = None
-) -> Run | None:
+def previous(current: Run | None, *, directory: Path | None = None, pointer: Path | None = None) -> Run | None:
     """The candidate before this one, from the local cache only."""
     from benchmarks import baseline as pointer_file
 
@@ -297,9 +293,7 @@ def set_baseline(
     )
 
 
-def series(
-    *, directory: Path | None = None, pointer: Path | None = None
-) -> tuple[Run | None, Run | None, Run | None]:
+def series(*, directory: Path | None = None, pointer: Path | None = None) -> tuple[Run | None, Run | None, Run | None]:
     """Baseline, previous candidate, current candidate."""
     local = all_runs(directory=directory)
     current = local[0] if local else None

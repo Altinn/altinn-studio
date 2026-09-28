@@ -31,6 +31,7 @@ export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
     modelPath,
     saveOnly,
   })}`; // Get, Put, Delete
+export const dataModelGenerationStatusPath = (org, app, modelPath) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/generation-status?${s({ modelPath })}`; // Get
 export const dataTypePath = (org, app, dataModelName) => `${apiBasePath}/${org}/${app}/datamodels/datamodel/${dataModelName}/dataType`; // Get, Put
 export const dataModelsJsonPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/json`; // Get
 export const dataModelsXsdPath = (org, app) => `${apiBasePath}/${org}/${app}/datamodels/xsd`; // Get

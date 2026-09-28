@@ -3,14 +3,13 @@ use std::{
     collections::{BTreeMap, HashMap},
     path::{Path, PathBuf},
     rc::Rc,
-    time::Instant,
 };
 
 use microsandbox::sandbox::{PullPolicy, SandboxStatus};
 use sandbox::progress::SandboxProgress;
 use sandbox::{
     Error, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode, RootFilesystemModeSet, Sandbox,
-    SandboxFeature, SandboxId, SandboxName, SandboxPhase, SandboxResources, SandboxState,
+    SandboxFeature, SandboxId, SandboxName, SandboxResources, SandboxState,
     backend::{CreateSandboxRequest, SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer,
     mount::{Mount, MountKind, MountKindSet},
@@ -198,10 +197,9 @@ impl MicrosandboxProvider {
                 runtime_change = true;
             }
             if runtime_change {
-                let started = Instant::now();
                 let step = progress.start_step(UPDATE_RUNTIME_RESOURCES).await;
                 modification.restart().apply().await.map_err(error::microsandbox)?;
-                step.complete(started.elapsed()).await;
+                step.complete().await;
             }
         }
 
@@ -235,10 +233,9 @@ impl MicrosandboxProvider {
             for (name, value) in &environment {
                 modification = modification.env(name, value);
             }
-            let started = Instant::now();
             let step = progress.start_step(UPDATE_RUNTIME_ENVIRONMENT).await;
             modification.apply().await.map_err(error::microsandbox)?;
-            step.complete(started.elapsed()).await;
+            step.complete().await;
         }
 
         record.environment = environment;
@@ -247,10 +244,9 @@ impl MicrosandboxProvider {
     }
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
-        let started = Instant::now();
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         let record = self.state.sandbox_by_id(id).await?;
         self.client.local().set_network_controlled(
             &record.runtime_name,
@@ -262,10 +258,9 @@ impl MicrosandboxProvider {
         let _running = match self.runtime_handle(&record.runtime_name).await? {
             Some(handle) if map_state(handle.status_snapshot()) == SandboxState::Running => return Ok(()),
             Some(handle) => {
-                let started = Instant::now();
                 let step = progress.start_step(START_RUNTIME).await;
                 let running = handle.start_detached().await.map_err(error::microsandbox)?;
-                step.complete(started.elapsed()).await;
+                step.complete().await;
                 running
             }
             None => Box::pin(self.create_runtime(&record, progress)).await?,
@@ -317,16 +312,14 @@ impl MicrosandboxProvider {
         record: &SandboxRecord,
         progress: &SandboxProgress,
     ) -> Result<microsandbox::Sandbox, Error> {
-        let started = Instant::now();
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
         let image = self.cached_image_reference(&record.image.manifest_digest).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
-            let started = Instant::now();
             let step = progress.start_step(MATERIALIZE_DIRECT_ROOT_IMAGE).await;
             self.materialize_direct_root_image(&image).await?;
-            step.complete(started.elapsed()).await;
+            step.complete().await;
         }
         let mut builder = Client::sandbox_builder(&record.runtime_name, image, record.resources)?
             .pull_policy(PullPolicy::Never)
@@ -346,12 +339,11 @@ impl MicrosandboxProvider {
         for mount in mounts {
             builder = mount.apply(builder);
         }
-        let started = Instant::now();
         let step = progress.start_step(CREATE_RUNTIME).await;
         let runtime = Box::pin(self.client.scope(builder.create_detached()))
             .await
             .map_err(error::microsandbox)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(runtime)
     }
 
@@ -517,19 +509,18 @@ impl SandboxBackend for MicrosandboxProvider {
     }
 
     fn create(&self, request: CreateSandboxRequest) -> PendingOperation<'_, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxCreate, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move {
-                let started = Instant::now();
                 let step = progress.start_step(RECORD_SANDBOX).await;
                 let sandbox = self.create_record(request).await?;
-                step.complete(started.elapsed()).await;
+                step.complete().await;
                 Ok(sandbox)
             })
         })
     }
 
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.update_sandbox_resources(id, resources, &progress).await })
         })
     }
@@ -539,7 +530,7 @@ impl SandboxBackend for MicrosandboxProvider {
         id: &'a SandboxId,
         environment: BTreeMap<String, String>,
     ) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.update_sandbox_environment(id, environment, &progress).await })
         })
     }
@@ -559,9 +550,7 @@ impl SandboxBackend for MicrosandboxProvider {
     }
 
     fn start<'a>(&'a self, id: &'a SandboxId) -> PendingOperation<'a, ()> {
-        PendingOperation::run(SandboxPhase::SandboxStart, move |progress| {
-            Box::pin(async move { self.start_sandbox(id, &progress).await })
-        })
+        PendingOperation::run(move |progress| Box::pin(async move { self.start_sandbox(id, &progress).await }))
     }
 
     fn stop<'a>(&'a self, id: &'a SandboxId) -> LocalFuture<'a, Result<(), Error>> {

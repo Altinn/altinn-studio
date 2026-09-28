@@ -63,7 +63,7 @@ internal sealed class PaymentProcessTask : IProcessTask
 
         if (_hostEnvironment.IsDevelopment())
         {
-            ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+            ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
         }
 

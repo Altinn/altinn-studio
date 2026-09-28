@@ -132,6 +132,20 @@ public interface ISchemaModelService
     );
 
     /// <summary>
+    /// Checks whether the generated model files are out of date with the stored JSON schema,
+    /// which is the case when the schema has been saved without generating model files since.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="relativeFilePath">Relative path to the file.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>True if the model files need to be generated again.</returns>
+    Task<bool> AreModelFilesOutOfDate(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string relativeFilePath,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the dataType for a given model.
     /// </summary>
     Task<DataType> GetModelDataType(string org, string app, string modelId);

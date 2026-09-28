@@ -5,7 +5,11 @@
     <AssemblyName>Altinn.App</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <Using Include="Altinn.App.Core.Features" />
+  </ItemGroup>
 
 
   <ItemGroup>

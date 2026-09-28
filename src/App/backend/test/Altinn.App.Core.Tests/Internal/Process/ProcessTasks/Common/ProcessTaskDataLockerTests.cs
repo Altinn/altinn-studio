@@ -44,7 +44,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Unlock(taskId, instance);
@@ -84,7 +84,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Lock(taskId, instance);
@@ -124,7 +124,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Unlock(taskId, instance);
@@ -164,7 +164,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Lock(taskId, instance);

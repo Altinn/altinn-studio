@@ -50,9 +50,7 @@ class AppModel:
         return out
 
     def input_components(self) -> list[dict]:
-        return [
-            c for c in self.ordered_components() if c.get("type") in INPUT_COMPONENT_TYPES
-        ]
+        return [c for c in self.ordered_components() if c.get("type") in INPUT_COMPONENT_TYPES]
 
     def title_of(self, component: dict) -> str | None:
         """Resolve a component's title binding to its nb text, if any."""

@@ -59,7 +59,7 @@ internal sealed class NotificationService : INotificationService
         InstanceOwner instanceOwner = instance.InstanceOwner;
         string language = await DetermineLanguage(instanceOwner, instantiationNotification.Language, cancellationToken);
         AltinnCdnOrgName? serviceOwnerName = await _cdnClient.GetOrgNameByAppId(instance.AppId, cancellationToken);
-        ApplicationMetadata? appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata? appMetadata = _appMetadata.ApplicationMetadata;
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance.AppId));
         Uri callBackUri = CallbackUrlWithAuth(instance, baseUrl);
 

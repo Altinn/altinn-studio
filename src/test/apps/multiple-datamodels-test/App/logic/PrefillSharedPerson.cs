@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.sharedperson;

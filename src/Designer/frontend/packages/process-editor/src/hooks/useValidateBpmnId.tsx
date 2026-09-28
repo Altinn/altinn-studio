@@ -2,12 +2,21 @@ import { useTaskIds } from './useTaskIds';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import { StringUtils } from '@studio/pure-functions';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { isLayoutSetNamedAfterTask } from '../utils/processEditorUtils';
 
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
-  const { bpmnDetails } = useBpmnContext();
+  const { bpmnDetails, appVersion } = useBpmnContext();
+  const { layoutSets } = useBpmnApiContext();
+  const { validateLayoutSetName } = useValidateLayoutSetName();
   const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
+  const hasLayoutSetNamedAfterTask =
+    isLayoutSetNamedAfterTask(appVersion) &&
+    !!layoutSets?.some((layoutSet) => layoutSet.id === bpmnDetails.id);
+
   const validateBpmnTaskId = (newId: string): string => {
     const errorMessages = {
       unique: t('process_editor.validation_error.id_not_unique'),
@@ -42,6 +51,11 @@ export const useValidateBpmnTaskId = () => {
       if (rule.condition) {
         return errorMessages[rule.name];
       }
+    }
+
+    // Renaming the task renames its layout set, so the new id must also be a valid layout set name.
+    if (hasLayoutSetNamedAfterTask) {
+      return validateLayoutSetName(newId, layoutSets, bpmnDetails.id);
     }
 
     return '';

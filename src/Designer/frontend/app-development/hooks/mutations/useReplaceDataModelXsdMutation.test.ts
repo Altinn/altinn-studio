@@ -42,7 +42,7 @@ describe('useReplaceDataModelXsdMutation', () => {
 
     await renderHook(queryClient);
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(5);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(6);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.DataModelsJson, org, app],
     });
@@ -57,6 +57,9 @@ describe('useReplaceDataModelXsdMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.JsonSchema, org, app, modelPath],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DataModelGenerationStatus, org, app, modelPath],
     });
   });
 });
