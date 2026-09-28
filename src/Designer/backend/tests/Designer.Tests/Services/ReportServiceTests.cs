@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,10 +9,14 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Models.Metrics;
+using Altinn.Studio.Designer.Models.Reports;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -68,7 +73,6 @@ public class ReportServiceTests
                 }
             );
 
-        using var memoryCache = new MemoryCache(new MemoryCacheOptions());
         appResourcesService
             .Setup(service => service.GetApplicationMetadata("ttd", "tt02", "app-one", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ApplicationMetadata("ttd/app-one") { AltinnNugetVersion = "8.5.3.108" });
@@ -76,12 +80,10 @@ public class ReportServiceTests
             .Setup(service => service.GetApplicationMetadata("ttd", "tt02", "app-two", It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("app is unreachable"));
 
-        var service = new ReportService(
+        var service = CreateService(
             runtimeGatewayClient.Object,
             appResourcesService.Object,
-            memoryCache,
-            notificationService.Object,
-            new GeneralSettings { HostName = "localhost" }
+            notificationService.Object
         );
 
         await service.GenerateReportPdfAsync("ttd", "tt02", ReportFrequency.Daily);
@@ -107,6 +109,124 @@ public class ReportServiceTests
             capturedPayload.Body
         );
     }
+
+    [Fact]
+    public async Task GetReportDataAsync_ShouldServeReportDataOnlyWhileThePdfIsRendered()
+    {
+        var runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
+        ReportService service = null;
+        string token = null;
+        ReportData dataDuringRendering = null;
+        ReportData dataForOtherEnvironment = null;
+
+        runtimeGatewayClient
+            .Setup(client =>
+                client.GetReportMetricsAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BuildReportMetrics());
+        runtimeGatewayClient
+            .Setup(client =>
+                client.GeneratePdfAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns<string, AltinnEnvironment, string, CancellationToken>(
+                async (_, _, renderUrl, cancellationToken) =>
+                {
+                    token = QueryHelpers.ParseQuery(new Uri(renderUrl).Query)["token"];
+                    dataDuringRendering = await service.GetReportDataAsync("ttd", "tt02", token, cancellationToken);
+                    dataForOtherEnvironment = await service.GetReportDataAsync(
+                        "ttd",
+                        "production",
+                        token,
+                        cancellationToken
+                    );
+                    return [1, 2, 3];
+                }
+            );
+        service = CreateService(
+            runtimeGatewayClient.Object,
+            new Mock<IAppResourcesService>().Object,
+            new Mock<INotificationService>().Object
+        );
+
+        await service.GenerateReportPdfAsync("ttd", "tt02", ReportFrequency.Daily);
+
+        Assert.NotNull(dataDuringRendering);
+        Assert.Equal("ttd", dataDuringRendering.Org);
+        Assert.Equal("tt02", dataDuringRendering.Environment);
+        Assert.Equal(["app-one", "app-two"], dataDuringRendering.Apps.Select(app => app.AppName).Order());
+        Assert.Null(dataForOtherEnvironment);
+        Assert.Null(await service.GetReportDataAsync("ttd", "tt02", token));
+    }
+
+    [Fact]
+    public async Task GenerateReportPdfAsync_WhenPdfGenerationFails_ShouldRemoveReportData()
+    {
+        var runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
+        string token = null;
+
+        runtimeGatewayClient
+            .Setup(client =>
+                client.GetReportMetricsAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BuildReportMetrics());
+        runtimeGatewayClient
+            .Setup(client =>
+                client.GeneratePdfAsync(
+                    "ttd",
+                    AltinnEnvironment.FromName("tt02"),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, AltinnEnvironment, string, CancellationToken>(
+                (_, _, renderUrl, _) => token = QueryHelpers.ParseQuery(new Uri(renderUrl).Query)["token"]
+            )
+            .ThrowsAsync(new HttpRequestException("pdf generation failed"));
+        var service = CreateService(
+            runtimeGatewayClient.Object,
+            new Mock<IAppResourcesService>().Object,
+            new Mock<INotificationService>().Object
+        );
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            service.GenerateReportPdfAsync("ttd", "tt02", ReportFrequency.Daily)
+        );
+
+        Assert.NotNull(token);
+        Assert.Null(await service.GetReportDataAsync("ttd", "tt02", token));
+    }
+
+    private static ReportService CreateService(
+        IRuntimeGatewayClient runtimeGatewayClient,
+        IAppResourcesService appResourcesService,
+        INotificationService notificationService,
+        IDistributedCache distributedCache = null
+    ) =>
+        new(
+            runtimeGatewayClient,
+            appResourcesService,
+            distributedCache ?? CreateDistributedCache(),
+            notificationService,
+            new GeneralSettings { HostName = "localhost" }
+        );
+
+    private static MemoryDistributedCache CreateDistributedCache() =>
+        new(Options.Create(new MemoryDistributedCacheOptions()));
 
     private static ReportMetrics BuildReportMetrics() =>
         new()
