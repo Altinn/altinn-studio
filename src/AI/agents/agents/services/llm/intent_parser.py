@@ -1,11 +1,14 @@
 """Intent parsing and validation for user goals"""
-# TODO: Not sure if this is necessary at all 
+
+# TODO: Not sure if this is necessary at all
 import asyncio
-from typing import Dict, List, Optional
-from shared.models import AgentAttachment
+
 from pydantic import BaseModel
-from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
+
+from shared.models import AgentAttachment
 from shared.utils.logging_utils import get_logger
+
+from .llm_client import parse_intent_with_llm, suggest_goals_with_llm
 
 log = get_logger(__name__)
 
@@ -14,37 +17,41 @@ MINIMUM_INTENT_CONFIDENCE = 0.30
 # `action` when the classifier never ran, as opposed to answering "unsafe".
 GATE_FAILED_ACTION = "error"
 
+
 class ParsedIntent(BaseModel):
     """Structured representation of user intent"""
+
     action: str  # add, remove, update, move
     component: str  # field, layout, validation, etc.
     target: str  # specific target like "layout main", "field totalWeight"
-    details: Dict[str, str] = {}  # additional details like type, binding
+    details: dict[str, str] = {}  # additional details like type, binding
     confidence: float = 0.0  # confidence in parsing (0-1)
     safe: bool = True  # whether this intent is considered safe
-    reason: Optional[str] = None  # reason if not safe or low confidence
+    reason: str | None = None  # reason if not safe or low confidence
+
 
 class IntentParsingError(Exception):
     pass
 
-async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
+
+async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
     """Parse user goal into structured intent using LLM with safety checks"""
-    
+
     # Quick safety check before LLM processing
     is_safe, safety_reason = _validate_goal_safety_quick(goal)
     if not is_safe:
         return ParsedIntent(
             action="blocked",
-            component="unknown", 
+            component="unknown",
             target=goal,
             safe=False,
             confidence=1.0,  # We're certain it's unsafe
-            reason=safety_reason
+            reason=safety_reason,
         )
-    
+
     try:
         result = await parse_intent_with_llm(goal, attachments=attachments)
-        
+
         # Validate LLM response structure
         parsed = ParsedIntent(
             action=result.get("action", "unknown"),
@@ -53,19 +60,19 @@ async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachme
             details=result.get("details", {}),
             confidence=max(0.0, min(1.0, result.get("confidence", 0.0))),  # Clamp to [0,1]
             safe=result.get("safe", False),
-            reason=result.get("reason")
+            reason=result.get("reason"),
         )
-        
+
         # Additional validation - ensure confidence makes sense
         if parsed.action == "unknown" and parsed.confidence > 0.5:
             parsed.confidence = 0.5  # Cap confidence for unknown actions
-            
+
         # Log if the intent parser marked something unsafe (should only be security threats now)
         if not parsed.safe:
             log.warning(f"Intent parser flagged goal as unsafe: {parsed.reason}")
-            
+
         return parsed
-        
+
     except Exception as e:
         log.error(f"LLM intent parsing failed: {e}")
         return ParsedIntent(
@@ -74,10 +81,11 @@ async def parse_intent_async(goal: str, attachments: Optional[List[AgentAttachme
             target=goal,
             safe=False,
             confidence=0.0,
-            reason=f"Intent parsing failed: {str(e)}"
+            reason=f"Intent parsing failed: {e!s}",
         )
 
-def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None) -> ParsedIntent:
+
+def parse_intent(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
     """Synchronous wrapper for intent parsing - requires working LLM"""
     try:
         # Check if we're already in an async context
@@ -98,10 +106,11 @@ def parse_intent(goal: str, attachments: Optional[List[AgentAttachment]] = None)
         log.error(f"Intent parsing failed: {e}")
         raise
 
-def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
+
+def _validate_goal_safety_quick(goal: str) -> tuple[bool, str | None]:
     """Quick safety check for dangerous keywords before LLM processing"""
     goal_lower = goal.lower().strip()
-    
+
     # Hard safety blocks - focus on truly destructive or security-sensitive patterns
     dangerous_patterns = [
         "drop database",
@@ -116,7 +125,7 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
         "shutdown production",
         "kill process",
         "disable auth",
-        "exfiltrate"
+        "exfiltrate",
     ]
 
     for pattern in dangerous_patterns:
@@ -125,32 +134,27 @@ def _validate_goal_safety_quick(goal: str) -> tuple[bool, Optional[str]]:
 
     return True, None
 
-async def suggest_goal_correction(
-    goal: str, rejection_reason: Optional[str] = None
-) -> List[str]:
+
+async def suggest_goal_correction(goal: str, rejection_reason: str | None = None) -> list[str]:
     """Suggest goals the user could ask for instead of the rejected one.
 
     Never raises: a rejection must not turn into a generic error because the
     suggestions could not be produced.
     """
     try:
-        candidates = await asyncio.to_thread(
-            suggest_goals_with_llm, goal, rejection_reason
-        )
+        candidates = await asyncio.to_thread(suggest_goals_with_llm, goal, rejection_reason)
     except Exception as e:
         log.warning(f"Could not generate goal suggestions: {e}")
         return []
     return await _drop_suggestions_the_gate_would_reject(candidates)
 
 
-async def _drop_suggestions_the_gate_would_reject(candidates: List[str]) -> List[str]:
+async def _drop_suggestions_the_gate_would_reject(candidates: list[str]) -> list[str]:
     """Offering a suggestion the gate rejects sends the user round in a circle."""
     if not candidates:
         return []
-    verdicts = await asyncio.gather(
-        *(_would_be_accepted(candidate) for candidate in candidates)
-    )
-    kept = [candidate for candidate, ok in zip(candidates, verdicts) if ok]
+    verdicts = await asyncio.gather(*(_would_be_accepted(candidate) for candidate in candidates))
+    kept = [candidate for candidate, ok in zip(candidates, verdicts, strict=False) if ok]
     if len(kept) != len(candidates):
         log.info(f"Dropped {len(candidates) - len(kept)} suggestion(s) the gate would reject")
     return kept

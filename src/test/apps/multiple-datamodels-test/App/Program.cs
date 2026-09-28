@@ -1,18 +1,12 @@
 using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.logic;
 using Altinn.App.logic.DataProcessing;
 using Altinn.App.logic.MetaData;
 using Altinn.App.Options;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 
 void RegisterCustomAppServices(
@@ -25,7 +19,6 @@ void RegisterCustomAppServices(
     services.AddTransient<IAppOptionsProvider, IndustryOptionsProvider>();
     services.AddTransient<IDataProcessor, DataProcessor>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
-    services.AddTransient<IAppMetadata, CustomMetaData>();
     services.AddTransient<IUserAction, RandomAction>();
     services.AddTransient<IDataListProvider, PersonListProvider>();
     services.AddTransient<IOnTaskEndingHandler, PrefillSharedPerson>();
@@ -57,12 +50,37 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
 
+    // The library's IAppMetadata implementation is internal and registered with TryAdd, so the wrapper
+    // that turns off PDF generation is layered on top of it after the library services are registered.
+    DecorateAppMetadata(services);
+
     // Add Swagger support (Swashbuckle)
     services.AddSwaggerGen(c =>
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
         StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
     });
+}
+
+void DecorateAppMetadata(IServiceCollection services)
+{
+    ServiceDescriptor libraryAppMetadata = services.Single(descriptor => descriptor.ServiceType == typeof(IAppMetadata));
+    Type libraryImplementation =
+        libraryAppMetadata.ImplementationType
+        ?? throw new InvalidOperationException("Expected the library to register IAppMetadata by implementation type.");
+
+    services.Remove(libraryAppMetadata);
+    services.Add(ServiceDescriptor.Describe(libraryImplementation, libraryImplementation, libraryAppMetadata.Lifetime));
+    services.Add(
+        ServiceDescriptor.Describe(
+            typeof(IAppMetadata),
+            serviceProvider => new CustomMetaData(
+                (IAppMetadata)serviceProvider.GetRequiredService(libraryImplementation),
+                serviceProvider.GetRequiredService<IHttpContextAccessor>()
+            ),
+            libraryAppMetadata.Lifetime
+        )
+    );
 }
 
 void ConfigureWebHostBuilder(IWebHostBuilder builder)

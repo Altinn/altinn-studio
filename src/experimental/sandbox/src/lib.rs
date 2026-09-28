@@ -30,8 +30,8 @@ pub use name::{Hostname, InvalidHostname, InvalidSandboxName, MAX_SANDBOX_NAME_B
 pub use path::SandboxPath;
 pub use platform::Platform;
 pub use progress::{
-    OperationEvent, OutputStream, PendingOperation, PendingSandbox, PhaseOutcome, ProgressUnit, SandboxEvent,
-    SandboxPhase, StepId,
+    MeasuredStep, OperationEvent, Outcome, OutputStream, PendingOperation, PendingSandbox, Phase, PhaseSpan,
+    ProgressEvent, ProgressReporter, ProgressStep, ProgressUnit, SandboxPhase, SandboxProgress, StepId,
 };
 pub use resource::{ByteQuantity, CpuQuantity, ParseQuantityError};
 pub use root_filesystem::{RootFilesystem, RootFilesystemMode, RootFilesystemModeSet};

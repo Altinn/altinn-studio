@@ -124,8 +124,7 @@ class Behavior:
     def measured_by(self) -> str:
         if self.source == "judge":
             return (
-                f"{self.evaluator} {self.judge_version}, an LLM judge. Only comparable "
-                f"while the judge version matches."
+                f"{self.evaluator} {self.judge_version}, an LLM judge. Only comparable while the judge version matches."
             )
         if self.source == "render":
             return f"{self.evaluator}, a real browser loading the generated page."
@@ -166,13 +165,6 @@ COMPONENTS = (
         name="Spec extraction",
         where="agents/workflows/spec/pipeline.py::run_spec_pipeline",
         does="Reads an uploaded document and produces a form specification.",
-        role="planner",
-    ),
-    Component(
-        id="query",
-        name="Semantic query",
-        where="agents/services/llm/semantic_query.py::extract_semantic_query",
-        does="Writes the retrieval query the agent uses to look up component docs.",
         role="planner",
     ),
     Component(
@@ -310,8 +302,7 @@ BEHAVIORS = (
         text="Declines a goal it cannot plan",
         checks="Nothing checks this today.",
         blind=(
-            "Everything. The planner currently invents plausible steps for an impossible "
-            "goal and no eval would notice."
+            "Everything. The planner currently invents plausible steps for an impossible goal and no eval would notice."
         ),
         fix=Fix(
             kind="gap",
@@ -351,8 +342,7 @@ BEHAVIORS = (
                 "the eval gap. Report it before adding items."
             ),
             acceptance=(
-                "Multi-turn items in the dataset, or a filed issue if the gate is not called "
-                "after the first turn."
+                "Multi-turn items in the dataset, or a filed issue if the gate is not called after the first turn."
             ),
         ),
     ),
@@ -558,46 +548,8 @@ BEHAVIORS = (
                 "3. Add a field type assertion, either to this evaluator or as a separate "
                 "behavior, so label presence stops standing in for correctness."
             ),
-            acceptance=(
-                "A written finding naming the label and classifying it, and field types "
-                "asserted somewhere."
-            ),
+            acceptance=("A written finding naming the label and classifying it, and field types asserted somewhere."),
         ),
-    ),
-    Behavior(
-        id="query.names-needed-concepts",
-        component="query",
-        text="Names the concepts needed to retrieve the right components",
-        checks=(
-            "The query the agent writes for itself contains the terms retrieval needs to find "
-            "the correct component docs. A request about attachments must name an attachment term."
-        ),
-        blind=(
-            "The lists of expected terms were authored rather than derived, and loosened "
-            "after seeing results. That is exactly how an expectation gets "
-            "fitted to an outcome. Trust the direction, treat the exact number as soft until "
-            "the term lists are reviewed by someone who did not write them."
-        ),
-        eval="Planner/query",
-        evaluator="query_terms",
-        metric="mean",
-        fix=Fix(
-            kind="regression",
-            title="Review the expectations before touching the agent",
-            task=(
-                "1. Start with the eval, not the agent. Decide whether the expected-term list "
-                "encodes what retrieval actually needs, ideally by checking which terms "
-                "retrieve the right docs. Record the reasoning in datasets/README.md.\n"
-                "2. Only if the expectation holds up, investigate the prompt. A candidate from "
-                "a different model family may not infer phrasing the previous one did.\n"
-                "3. Prefer changing the prompt over changing the expected terms."
-            ),
-            acceptance=(
-                "Back to the baseline score with the term list unchanged, or a written justification for a "
-                "changed list reviewed by someone who did not write the original."
-            ),
-        ),
-        see=("build.references-resolve",),
     ),
     Behavior(
         id="actor.picks-allowed-tool",
@@ -671,8 +623,8 @@ BEHAVIORS = (
         checks=(
             "On a replayed turn that wrote layouts, every component of a type the item names "
             "carries the property value that item requires. One pairing is declared today: a "
-            "Datepicker bound to a string with \"format\": \"date\" has to set "
-            "\"timeStamp\": false, and the item declares the value, not just the property."
+            'Datepicker bound to a string with "format": "date" has to set '
+            '"timeStamp": false, and the item declares the value, not just the property.'
         ),
         blind=(
             "One pairing on one item, so it is a tripwire for a known defect rather than "
@@ -790,8 +742,7 @@ BEHAVIORS = (
         component="build",
         text="The build workflow finishes and reports success",
         checks=(
-            "The agent's session reaches status done with success set, rather than failing or "
-            "running out of time."
+            "The agent's session reaches status done with success set, rather than failing or running out of time."
         ),
         blind=(
             "It cannot tell a fast failure from a hang. A session that fails in two seconds "
@@ -816,8 +767,7 @@ BEHAVIORS = (
                 "are the only ones not version controlled."
             ),
             acceptance=(
-                "A recorded time to terminal state next to this score, and at least eight "
-                "committed e2e items."
+                "A recorded time to terminal state next to this score, and at least eight committed e2e items."
             ),
         ),
         see=("build.reaches-terminal-state",),
@@ -926,10 +876,7 @@ BEHAVIORS = (
         id="build.has-the-requested-fields",
         component="build",
         text="Every field the request asks for is present",
-        checks=(
-            "Each field title the rubric expects is matched against the titles of the app's "
-            "input components."
-        ),
+        checks=("Each field title the rubric expects is matched against the titles of the app's input components."),
         blind=(
             "Titles only, and loosely: either string containing the other counts as a match, "
             "and the component's type is never read. So a request for an attachment answered "
@@ -955,8 +902,7 @@ BEHAVIORS = (
                 "only the rubric entry is specific."
             ),
             acceptance=(
-                "An item whose request implies one upload component and whose app uses the "
-                "other scoring below 1.0."
+                "An item whose request implies one upload component and whose app uses the other scoring below 1.0."
             ),
         ),
         see=("build.matches-the-request",),
@@ -1030,7 +976,6 @@ BEHAVIORS = (
                 "optionsId names a code list that does not exist."
             ),
         ),
-        see=("query.names-needed-concepts",),
     ),
     Behavior(
         id="build.matches-the-request",
@@ -1068,25 +1013,21 @@ BEHAVIORS = (
         blind=(
             "An e2e run pushes branches to whatever BENCH_REPO_URL points at, so the "
             "starting state is one developer's repo and the result is not reproducible on "
-            "another machine. The replacement is written but not wired: base_app.py "
-            "materializes the app template from this repository, using git ls-files so no "
-            "build artifact can leak in, and fixtures/ holds overlays expressed as diffs "
-            "from that template. agent_task.py still clones the remote repo instead."
+            "another machine. agent_task.py clones the remote repo to get the starting state."
         ),
         fix=Fix(
             kind="gap",
-            title="Wire base_app into the e2e task so a run does not depend on one developer's repo",
+            title="Start the e2e task from the in-repo app template so a run does not depend on one developer's repo",
             task=(
-                "1. Replace the clone of BENCH_REPO_URL as the starting state with "
-                "base_app.materialize_base_app, which copies the in-repo app template.\n"
+                "1. Replace the clone of BENCH_REPO_URL as the starting state with a copy of "
+                "the app template in this repository. Copy only the files that git ls-files "
+                "lists, so no build artifact can leak in.\n"
                 "2. Keep the remote push, because the render check needs a real Gitea branch. "
                 "What changes is where the starting state comes from, not where the result "
                 "goes.\n"
-                "3. Once wired, record the app template version as a run axis in "
+                "3. Then record the app template version as a run axis in "
                 "provenance.py, and delete BENCH_REPO_URL from the axes a comparison has to "
-                "trust.\n"
-                "4. base_app.py and fixtures/ exist and are tested. If this is not going to "
-                "be wired, delete both rather than leaving a module nothing imports."
+                "trust."
             ),
             acceptance=(
                 "An e2e run reproducible on a machine that has only this repository, and the "

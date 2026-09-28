@@ -1,8 +1,8 @@
 {
   "axes": {
-    "actor_prompt": "07e319515e6a",
-    "code": "3811d8c clean",
-    "dataset": "115 items be00f7b53c3b",
+    "actor_prompt": "9766b2fc3ce5",
+    "code": "b47a73d clean",
+    "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260922T131717Z-rename-altinity-to-assistant-10c6",
-  "label": "rename Altinity to assistant",
-  "recorded_at": "2026-09-22T13:23:31+00:00",
-  "why": "session branch prefix renamed; tool, prompt and dataset digests identical to the previous baseline"
+  "check_id": "20260927T071041Z-remove-dead-graph-state-3da0",
+  "label": "remove dead graph state",
+  "recorded_at": "2026-09-27T07:14:59+00:00",
+  "why": "Removed dead graph state and layout validator code"
 }

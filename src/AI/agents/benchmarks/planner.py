@@ -1,4 +1,4 @@
-"""The planner's two remaining call sites: spec extraction and semantic query."""
+"""The planner's remaining call site: spec extraction."""
 
 from __future__ import annotations
 
@@ -27,11 +27,7 @@ def _first_json_object(text: str) -> dict[str, Any] | None:
 
 
 def spec_labels(spec: dict[str, Any]) -> list[str]:
-    return [
-        str(field.get("label") or "")
-        for page in spec.get("pages") or []
-        for field in page.get("fields") or []
-    ]
+    return [str(field.get("label") or "") for page in spec.get("pages") or [] for field in page.get("fields") or []]
 
 
 def _shortened(label: str) -> str:
@@ -58,9 +54,7 @@ def spec_parses(*, output: Any = None, expected_output: Any = None, **_: Any) ->
     ]
 
 
-def spec_label_coverage(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def spec_label_coverage(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """How much of the form it actually found."""
     expected = (expected_output or {}).get("labels")
     if not expected:
@@ -76,9 +70,7 @@ def spec_label_coverage(
             )
         ]
     found = [_shortened(label) for label in spec_labels(spec)]
-    missing = [
-        label for label in expected if not any(_shortened(label) in f or f in _shortened(label) for f in found)
-    ]
+    missing = [label for label in expected if not any(_shortened(label) in f or f in _shortened(label) for f in found)]
     return [
         Evaluation(
             name="spec_label_coverage",
@@ -90,9 +82,7 @@ def spec_label_coverage(
     ]
 
 
-def spec_field_count(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def spec_field_count(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Roughly the right number of fields, not exactly."""
     expected = (expected_output or {}).get("field_count")
     if not expected:
@@ -111,52 +101,10 @@ def spec_field_count(
     ]
 
 
-def query_terms(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """Does the search query carry the terms that would retrieve the right docs."""
-    expected = (expected_output or {}).get("any_of")
-    if not expected:
-        return []
-    text = ((output or {}).get("text") or "").lower()
-    hits = [group for group in expected if any(word.lower() in text for group in [group] for word in group)]
-    return [
-        Evaluation(
-            name="query_terms",
-            value=round(len(hits) / len(expected), 4),
-            data_type="NUMERIC",
-            comment=f"{len(hits)}/{len(expected)} concept(s) named in {text[:56]!r}",
-        )
-    ]
-
-
-def query_is_a_query(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """A search query, not a sentence or an answer."""
-    if not (expected_output or {}).get("any_of"):
-        return []
-    text = ((output or {}).get("text") or "").strip()
-    words = text.split()
-    problems = []
-    if not words:
-        problems.append("empty")
-    if len(words) > 12:
-        problems.append(f"{len(words)} words, expected a short query")
-    if text.endswith((".", "?", "!")) or text.startswith(("I ", "Jeg ", "The user")):
-        problems.append("reads as prose rather than a query")
-    return [
-        Evaluation(
-            name="query_is_a_query",
-            value=0.0 if problems else 1.0,
-            data_type="BOOLEAN",
-            comment="; ".join(problems) if problems else f"{len(words)} terms",
-        )
-    ]
-
-
 ITEM_EVALUATORS = [
     spec_parses,
     spec_label_coverage,
     spec_field_count,
-    query_terms,
-    query_is_a_query,
 ]
 
 
@@ -228,8 +176,7 @@ def _attachments(names: list[str]) -> list[Any]:
         path = ASSETS_DIR / name
         if not path.is_file():
             raise FileNotFoundError(
-                f"{name!r} is not in {ASSETS_DIR}. Spec extraction needs the file, so "
-                "the asset has to be present."
+                f"{name!r} is not in {ASSETS_DIR}. Spec extraction needs the file, so the asset has to be present."
             )
         data = path.read_bytes()
         built.append(
@@ -243,9 +190,8 @@ def _attachments(names: list[str]) -> list[Any]:
         )
     return built
 
+
 SCORE_NAMES = (
-    "query_is_a_query",
-    "query_terms",
     "spec_field_count",
     "spec_label_coverage",
     "spec_parses",

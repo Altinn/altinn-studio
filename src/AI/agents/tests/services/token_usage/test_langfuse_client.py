@@ -1,10 +1,7 @@
-import json
-
 import httpx
-
-from services.token_usage.langfuse_client import _as_trace_payload
 import pytest
 
+from services.token_usage.langfuse_client import _as_trace_payload
 from shared.utils.langfuse_public_api import (
     MAX_PAGES,
     PAGE_SIZE,
@@ -23,9 +20,7 @@ class TestFetchObservations:
         assert cursors == [None]
 
     async def test_follows_the_cursor_across_pages(self):
-        client, cursors = _create_client_mock(
-            [(_rows(PAGE_SIZE), "CUR1"), (_rows(2), None)]
-        )
+        client, cursors = _create_client_mock([(_rows(PAGE_SIZE), "CUR1"), (_rows(2), None)])
 
         items = await fetch_observations(client, {})
 
@@ -41,13 +36,10 @@ class TestFetchObservations:
         assert items == []
         assert cursors == [None]
 
-
     async def test_hitting_the_page_cap_raises_instead_of_truncating(self):
         """A caller that deletes or reports on the result cannot tell a partial
         list from a complete one."""
-        client, _ = _create_client_mock(
-            [(_rows(PAGE_SIZE), f"CUR{i}") for i in range(MAX_PAGES)]
-        )
+        client, _ = _create_client_mock([(_rows(PAGE_SIZE), f"CUR{i}") for i in range(MAX_PAGES)])
 
         with pytest.raises(ObservationsTruncated):
             await fetch_observations(client, {})
@@ -93,11 +85,7 @@ def _create_client_mock(pages) -> tuple[httpx.AsyncClient, list]:
     def handler(request: httpx.Request) -> httpx.Response:
         seen_cursors.append(request.url.params.get("cursor"))
         rows, cursor = remaining.pop(0) if remaining else ([], None)
-        return httpx.Response(
-            200, json={"data": rows, "meta": {"cursor": cursor} if cursor else {}}
-        )
+        return httpx.Response(200, json={"data": rows, "meta": {"cursor": cursor} if cursor else {}})
 
-    client = httpx.AsyncClient(
-        base_url="https://langfuse.test", transport=httpx.MockTransport(handler)
-    )
+    client = httpx.AsyncClient(base_url="https://langfuse.test", transport=httpx.MockTransport(handler))
     return client, seen_cursors

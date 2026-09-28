@@ -8,11 +8,12 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS_EVENT,
-    METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
-    METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification, ReadMessage, Request, Response,
-    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
-    ShutdownResult, read_message,
+    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams, ReadMessage, Request,
+    ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
+    SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -54,7 +55,7 @@ impl Client {
     ///
     /// Returns an error when the daemon is unavailable or protocol-incompatible.
     pub async fn health(&self) -> Result<DaemonInfo, Error> {
-        self.call(METHOD_HEALTH, serde_json::json!({}), None).await
+        self.call(METHOD_HEALTH, serde_json::json!({})).await
     }
 
     /// Requires a daemon built with this client's application protocol and version.
@@ -81,7 +82,6 @@ impl Client {
                 ShutdownParams {
                     reason: "upgrade".into(),
                 },
-                None,
             )
             .await?;
         Ok(result.warnings)
@@ -93,7 +93,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn apply(&self, request: control_plane::ApplyRequest) -> Result<Agent, Error> {
-        self.call(METHOD_APPLY, request, None).await
+        self.call(METHOD_APPLY, request).await
     }
 
     /// Gets an Agent resource by name.
@@ -102,7 +102,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.call(METHOD_GET, NameParams { name: name.into() }, None).await
+        self.call(METHOD_GET, NameParams { name: name.into() }).await
     }
 
     /// Lists every active Agent.
@@ -111,7 +111,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or storage fails.
     pub async fn list_agents(&self) -> Result<Vec<Agent>, Error> {
-        self.call(METHOD_LIST, serde_json::json!({}), None).await
+        self.call(METHOD_LIST, serde_json::json!({})).await
     }
 
     /// Resolves the closest persisted Agent source directory containing `directory`.
@@ -133,15 +133,15 @@ impl Client {
         directory: std::path::PathBuf,
         variant: Option<crate::AgentVariantName>,
     ) -> Result<Agent, Error> {
-        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant }, None)
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant })
             .await
     }
 
     /// Converges an Agent and resolves its exact transient Execution target.
     ///
     /// `wait` decides whether the call returns after one reconciliation pass or
-    /// follows background retries until Ready; a progress sink independently
-    /// opts in to streamed provisioning events.
+    /// waits through background retries until Ready. Follow progress alongside
+    /// with [`Self::agent_progress`].
     ///
     /// # Errors
     ///
@@ -151,18 +151,56 @@ impl Client {
         &self,
         name: &str,
         wait: WaitPolicy,
-        progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<crate::sandbox::ExecutionTarget, Error> {
         self.call(
             METHOD_EXECUTION_ENSURE,
             ExecutionEnsureParams {
                 name: name.into(),
-                progress: progress.is_some(),
                 follow: wait == WaitPolicy::UntilReady,
             },
-            progress,
         )
         .await
+    }
+
+    /// Waits for a change after `after`, then returns the Agent's stored status
+    /// and the progress of its latest pass. Without a revision, or with one
+    /// from an earlier daemon process, it returns at once; with a current one
+    /// it may return the unchanged state after a keepalive interval. When
+    /// `output` names the latest pass, only output after it is included.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing or the call fails.
+    pub async fn agent_progress(
+        &self,
+        name: &str,
+        after: Option<crate::resources::Revision>,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> Result<crate::progress::AgentProgress, Error> {
+        self.call(
+            METHOD_PROGRESS,
+            ProgressParams {
+                name: name.into(),
+                after,
+                output,
+            },
+        )
+        .await
+    }
+
+    /// Waits for an Agent or Session to change after `after`, then returns
+    /// every Agent and Session. Without a revision, or with one from an earlier
+    /// daemon process, it returns the current state at once; with a current
+    /// revision it may return the unchanged state after a keepalive interval.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or daemon reads fail.
+    pub async fn watch_resources(
+        &self,
+        after: Option<crate::resources::Revision>,
+    ) -> Result<crate::resources::Resources, Error> {
+        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after }).await
     }
 
     /// Describes how to reach an Agent over SSH.
@@ -171,8 +209,7 @@ impl Client {
     ///
     /// Returns an error when the Agent is unknown, deleting, or declares no SSH access.
     pub async fn ssh_access(&self, name: &str) -> Result<crate::ssh::AccessInfo, Error> {
-        self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }, None)
-            .await
+        self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }).await
     }
 
     /// Requests deletion of an Agent and its owned sandbox.
@@ -181,7 +218,7 @@ impl Client {
     ///
     /// Returns an error when transport, protocol validation, or the control-plane operation fails.
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }, None).await?;
+        let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
         Ok(())
     }
 
@@ -203,7 +240,6 @@ impl Client {
                 credential,
                 imported,
             },
-            None,
         )
         .await
     }
@@ -213,9 +249,8 @@ impl Client {
     /// `request` selects the harness, model, effort and first prompt of a
     /// Session this call creates; see [`sessions::Service::ensure`] for the
     /// precedence against manifest defaults. `wait` decides whether the call
-    /// returns after one Agent reconciliation pass or follows background
-    /// retries until Ready; a progress sink independently opts in to streamed
-    /// provisioning events.
+    /// returns after one Agent reconciliation pass or waits through background
+    /// retries until Ready. Follow progress alongside with [`Self::agent_progress`].
     ///
     /// # Errors
     ///
@@ -227,7 +262,6 @@ impl Client {
         name: sessions::SessionName,
         request: sessions::SessionRequest,
         wait: WaitPolicy,
-        progress: Option<&mut dyn FnMut(crate::progress::Event)>,
     ) -> Result<sessions::AttachTarget, Error> {
         self.call(
             METHOD_SESSION_ENSURE,
@@ -237,10 +271,8 @@ impl Client {
                 harness: request.harness,
                 model_selection: request.model_selection,
                 initial_prompt: request.initial_prompt,
-                progress: progress.is_some(),
                 follow: wait == WaitPolicy::UntilReady,
             },
-            progress,
         )
         .await
     }
@@ -273,7 +305,6 @@ impl Client {
                     wait,
                     timeout,
                 },
-                None,
             )
             .await?;
         Ok(())
@@ -297,7 +328,6 @@ impl Client {
                 name,
                 last,
             },
-            None,
         )
         .await
     }
@@ -315,7 +345,54 @@ impl Client {
                 name,
                 harness: None,
             },
-            None,
+        )
+        .await
+    }
+
+    /// Requests release of one Session: its harness is stopped and the Session
+    /// is removed, freeing its name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing, or the release pass fails.
+    pub async fn delete_session(&self, agent: &str, name: sessions::SessionName) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_DELETE,
+                SessionParams {
+                    agent: agent.into(),
+                    name,
+                    harness: None,
+                },
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Archives or unarchives one Session and returns it as recorded. Archiving
+    /// stops its harness until it is unarchived; the Session keeps its name and
+    /// conversation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing or the pass fails.
+    pub async fn set_session_archived(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        archived: bool,
+    ) -> Result<sessions::Session, Error> {
+        self.call(
+            if archived {
+                METHOD_SESSION_ARCHIVE
+            } else {
+                METHOD_SESSION_UNARCHIVE
+            },
+            SessionParams {
+                agent: agent.into(),
+                name,
+                harness: None,
+            },
         )
         .await
     }
@@ -331,17 +408,11 @@ impl Client {
             SessionListParams {
                 agent: agent.map(str::to_owned),
             },
-            None,
         )
         .await
     }
 
-    async fn call<P: Serialize, R: DeserializeOwned>(
-        &self,
-        method: &str,
-        params: P,
-        mut progress: Option<&mut dyn FnMut(crate::progress::Event)>,
-    ) -> Result<R, Error> {
+    async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {
         let id = self.next_id.get().wrapping_add(1);
         self.next_id.set(id);
         let request = Request {
@@ -357,40 +428,24 @@ impl Client {
         stream.flush().await?;
 
         let mut stream = BufReader::new(stream);
-        loop {
-            let line = match read_message(&mut stream).await? {
-                ReadMessage::Complete(line) => line,
-                ReadMessage::EndOfStream | ReadMessage::TooLarge => {
-                    return Err(Error::Invalid("invalid Agent Control API response".into()));
-                }
-            };
-            let value: serde_json::Value = serde_json::from_slice(&line)?;
-            if value.get("id").is_none() {
-                // A well-formed notification this client does not understand is
-                // skipped: rendering is best effort and must never fail the call.
-                let notification: Notification = serde_json::from_value(value)?;
-                if notification.jsonrpc == JSON_RPC_VERSION
-                    && notification.method == METHOD_PROGRESS_EVENT
-                    && let Ok(event) = serde_json::from_value(notification.params)
-                    && let Some(progress) = progress.as_deref_mut()
-                {
-                    progress(event);
-                }
-                continue;
-            }
-            let response: Response = serde_json::from_value(value)?;
-            if response.jsonrpc != JSON_RPC_VERSION || response.id != id {
+        let line = match read_message(&mut stream).await? {
+            ReadMessage::Complete(line) => line,
+            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
                 return Err(Error::Invalid("invalid Agent Control API response".into()));
             }
-            if let Some(error) = response.error {
-                return Err(Error::Rpc(error));
-            }
-            return serde_json::from_value(
-                response
-                    .result
-                    .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
-            )
-            .map_err(Error::from);
+        };
+        let response: Response = serde_json::from_slice(&line)?;
+        if response.jsonrpc != JSON_RPC_VERSION || response.id != id {
+            return Err(Error::Invalid("invalid Agent Control API response".into()));
         }
+        if let Some(error) = response.error {
+            return Err(Error::Rpc(error));
+        }
+        serde_json::from_value(
+            response
+                .result
+                .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
+        )
+        .map_err(Error::from)
     }
 }

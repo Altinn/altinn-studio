@@ -7,6 +7,7 @@ import { setTimeout } from "node:timers/promises";
 
 const script = await readFile(process.argv[2], "utf8");
 const observationScript = await readFile(process.argv[3], "utf8");
+const stopScript = await readFile(process.argv[4], "utf8");
 const directory = await mkdtemp(join(tmpdir(), "tmux-delivery-"));
 const socket = join(directory, "socket");
 const received = join(directory, "received");
@@ -47,7 +48,17 @@ try {
   const future = Date.now() / 1000 + 60;
   await utimes(transcript, future, future);
   assert.equal(observe(transcript), "0 0", "recent transcript keeps a quiet terminal active");
-  console.log("tmux: submissions stay separate, cleanup succeeds, and transcript freshness counts as activity");
+
+  const stop = (target, environment = env) =>
+    spawn("/bin/sh", ["-c", stopScript, "stop", target], { env: environment, stdio: "inherit" });
+  const exited = (child) => new Promise((resolve) => child.on("exit", resolve));
+  tmux("new-session", "-d", "-s", "stoppable", "sleep 600");
+  assert.equal(await exited(stop("=stoppable")), 0);
+  assert.equal(tmux("list-sessions", "-F", "#{session_name}").trim(), "input", "the stopped Session is gone");
+  assert.equal(await exited(stop("=stoppable")), 0, "an already stopped Session is stopped");
+  const noServer = { ...process.env, TMUX: `${join(directory, "no-server")},0,0` };
+  assert.equal(await exited(stop("=stoppable", noServer)), 0, "a stopped server has no Session left");
+  console.log("tmux: submissions stay separate, cleanup succeeds, transcript freshness counts as activity, and stopping is idempotent");
 } finally {
   tmux("kill-server");
   await rm(directory, { recursive: true, force: true });

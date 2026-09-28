@@ -5,7 +5,7 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Error, control_plane, control_plane::WaitPolicy};
 
 use super::Assignment;
 
@@ -39,14 +39,9 @@ impl ExecutionService {
     /// Returns an error when the Agent is missing, deleting, or invalid; with
     /// [`WaitPolicy::FirstPass`] also when the single pass fails or leaves the
     /// Agent without a ready materialized Sandbox.
-    pub async fn ensure(
-        &self,
-        name: &str,
-        wait: WaitPolicy,
-        progress: Option<Reporter>,
-    ) -> Result<ExecutionTarget, Error> {
+    pub async fn ensure(&self, name: &str, wait: WaitPolicy) -> Result<ExecutionTarget, Error> {
         let record = self.load_active(name).await?;
-        self.convergence.converge(record.id, wait, progress.as_ref()).await?;
+        self.convergence.converge(record.id, wait).await?;
         self.target(record.id, name).await
     }
 

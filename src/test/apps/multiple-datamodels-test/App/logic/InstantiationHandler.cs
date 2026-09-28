@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Models;
 using Altinn.App.Models.modell1;

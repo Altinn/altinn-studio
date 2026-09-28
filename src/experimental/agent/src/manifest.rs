@@ -769,6 +769,15 @@ pub struct Status {
     /// Normalized readiness conditions.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub conditions: Vec<Condition>,
+    /// Classification of the reconciliation pass that recorded these
+    /// conditions, when it failed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure: Option<crate::FailureKind>,
+    /// Provisioning of the latest pass while it runs or after it failed.
+    /// Projected onto API responses from the daemon's in-memory state; stores
+    /// scrub it, so it is never persisted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub progress: Option<crate::progress::Provisioning>,
     /// Local origin of the desired state. Projected onto API responses from
     /// the stored Agent record; stores scrub it, so it is never persisted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -776,7 +785,7 @@ pub struct Status {
 }
 
 impl Status {
-    /// Creates reconciler-observed state; provenance stays API-projected.
+    /// Creates reconciler-observed state; progress and provenance stay API-projected.
     #[must_use]
     pub const fn observed(
         observed_generation: u64,
@@ -787,6 +796,8 @@ impl Status {
             observed_generation,
             sandbox,
             conditions,
+            failure: None,
+            progress: None,
             provenance: None,
         }
     }
@@ -795,7 +806,30 @@ impl Status {
         self.observed_generation == 0
             && self.sandbox.is_none()
             && self.conditions.is_empty()
+            && self.failure.is_none()
+            && self.progress.is_none()
             && self.provenance.is_none()
+    }
+
+    /// Carries each condition's transition time forward from `previous`, the
+    /// stored status being replaced, and stamps `now` on conditions whose
+    /// status or reason changed.
+    ///
+    /// A message-only change is not a transition, so a retry that reports a
+    /// different error detail keeps the time the condition entered its state.
+    pub fn stamp_transitions(&mut self, previous: &Self, now: OffsetDateTime) {
+        for condition in &mut self.conditions {
+            let earlier = previous
+                .conditions
+                .iter()
+                .find(|earlier| earlier.kind == condition.kind);
+            condition.last_transition_time = match earlier {
+                Some(earlier) if earlier.status == condition.status && earlier.reason == condition.reason => {
+                    earlier.last_transition_time
+                }
+                _ => Some(now),
+            };
+        }
     }
 
     /// Returns the `Ready` condition when the reconciler has reported one.
@@ -808,6 +842,18 @@ impl Status {
     #[must_use]
     pub fn is_ready(&self) -> bool {
         Condition::any_ready(&self.conditions)
+    }
+
+    /// Returns the failure detail when desired state must change before
+    /// another pass can succeed.
+    #[must_use]
+    pub fn invalid(&self) -> Option<String> {
+        if self.failure != Some(crate::FailureKind::Invalid) {
+            return None;
+        }
+        self.ready_condition()
+            .or_else(|| self.conditions.first())
+            .map(Condition::detail)
     }
 }
 
@@ -884,8 +930,11 @@ impl Provenance {
 }
 
 /// One aspect of observed Agent state.
+///
+/// Like [`Status`], unknown fields are tolerated, so a client or store reader
+/// can read conditions written by a newer control plane.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct Condition {
     /// Stable condition type.
     #[serde(rename = "type")]
@@ -898,6 +947,15 @@ pub struct Condition {
     /// Optional human-readable detail.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub message: String,
+    /// When `status` or `reason` last changed. Stamped by the store; absent on
+    /// conditions recorded before transition times were tracked, until their
+    /// next transition.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub last_transition_time: Option<OffsetDateTime>,
 }
 
 /// Truth value of an Agent condition.

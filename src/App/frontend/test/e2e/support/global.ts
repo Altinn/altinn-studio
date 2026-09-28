@@ -189,6 +189,9 @@ declare global {
        */
       clickAndGone(): Chainable<null>;
 
+      /** Click a process action and wait for its successful process/next response. */
+      clickAndWaitForProcessNext(): Chainable<number>;
+
       /**
        * Replace all non-breaking spaces with normal spaces in the subject
        */

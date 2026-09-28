@@ -28,7 +28,6 @@ using Json.Patch;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 
 namespace Altinn.App.Api.Controllers;
@@ -48,7 +47,7 @@ public class DataController : ControllerBase
     private readonly IAppModel _appModel;
     private readonly IAppMetadata _appMetadata;
     private readonly IPrefill _prefillService;
-    private readonly IFeatureManager _featureManager;
+    private readonly IFrontendFeatures _frontendFeatures;
     private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -70,7 +69,7 @@ public class DataController : ControllerBase
         IAppModel appModel,
         IPrefill prefillService,
         IAppMetadata appMetadata,
-        IFeatureManager featureManager,
+        IFrontendFeatures frontendFeatures,
         InternalPatchService patchService,
         ModelSerializationService modelDeserializer,
         IAuthenticationContext authenticationContext,
@@ -85,7 +84,7 @@ public class DataController : ControllerBase
         _appModel = appModel;
         _appMetadata = appMetadata;
         _prefillService = prefillService;
-        _featureManager = featureManager;
+        _frontendFeatures = frontendFeatures;
         _patchService = patchService;
         _modelDeserializer = modelDeserializer;
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
@@ -146,14 +145,14 @@ public class DataController : ControllerBase
         // Special case for compatibility with old clients
         if (response.Error is DataPostErrorResponse fileValidationError)
         {
-            return BadRequest(await GetErrorDetails(fileValidationError.UploadValidationIssues));
+            return BadRequest(GetErrorDetails(fileValidationError.UploadValidationIssues));
         }
         if (response.Error.Status == StatusCodes.Status400BadRequest)
         {
             // Old clients will expect BadRequest to have a list of issues or a string
             // not problem details.
             return BadRequest(
-                await GetErrorDetails([
+                GetErrorDetails([
                     new ValidationIssueWithSource
                     {
                         Description = response.Error.Detail,
@@ -434,9 +433,9 @@ public class DataController : ControllerBase
     /// and the developer need to opt in to the new behavior. Json object are by default
     /// returned as part of file validation which is a new feature.
     /// </summary>
-    private async Task<object> GetErrorDetails(List<ValidationIssueWithSource> errors)
+    private object GetErrorDetails(List<ValidationIssueWithSource> errors)
     {
-        return await _featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse)
+        return _frontendFeatures.IsEnabled(FeatureFlags.JsonObjectInDataResponse)
             ? errors
             : string.Join(";", errors.Select(x => x.Description));
     }
@@ -1045,7 +1044,7 @@ public class DataController : ControllerBase
         if (!validationRestrictionSuccess)
         {
             return BadRequest(
-                await GetErrorDetails(
+                GetErrorDetails(
                     errors
                         .Select(e => ValidationIssueWithSource.FromIssue(e, "DataRestrictionValidation", false))
                         .ToList()

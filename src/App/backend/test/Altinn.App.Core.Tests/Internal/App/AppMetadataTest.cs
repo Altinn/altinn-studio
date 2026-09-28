@@ -7,8 +7,8 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
 using Moq;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -28,10 +28,7 @@ public class AppMetadataTest
     [Fact]
     public async Task GetApplicationMetadata_desrializes_file_from_disk()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+        Dictionary<string, bool> enabledFrontendFeatures = [];
         TelemetrySink telemetrySink = new();
 
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
@@ -84,9 +81,7 @@ public class AppMetadataTest
     {
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
         Mock<IFrontendFeatures> appFeaturesMock = new();
-        appFeaturesMock
-            .Setup(af => af.GetFrontendFeatures())
-            .ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
+        appFeaturesMock.Setup(af => af.GetDictionary()).Returns(new Dictionary<string, bool>() { { "footer", true } });
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings), null, appFeaturesMock.Object);
         ApplicationMetadata expected = new("tdd/bestilling")
         {
@@ -125,7 +120,7 @@ public class AppMetadataTest
         };
         var actual = await appMetadata.GetApplicationMetadata();
         var actual2 = await appMetadata.GetApplicationMetadata();
-        appFeaturesMock.Verify(af => af.GetFrontendFeatures());
+        appFeaturesMock.Verify(af => af.GetDictionary());
         appFeaturesMock.VerifyAll();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -135,10 +130,7 @@ public class AppMetadataTest
     [Fact]
     public async Task GetApplicationMetadata_onEntry_InstanceSelection_DefaultSelectedOption_read_legacy_value_if_new_not_set()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+        Dictionary<string, bool> enabledFrontendFeatures = [];
 
         AppSettings appSettings = GetAppSettings(
             "AppMetadata",
@@ -199,10 +191,7 @@ public class AppMetadataTest
     [Fact]
     public async Task GetApplicationMetadata_onEntry_supports_new_option()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+        Dictionary<string, bool> enabledFrontendFeatures = [];
 
         AppSettings appSettings = GetAppSettings("AppMetadata", "onentry-new-selectoptions.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
@@ -259,10 +248,7 @@ public class AppMetadataTest
     [Fact]
     public async Task GetApplicationMetadata_onEntry_prefer_new_option()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        IFrontendFeatures frontendFeatures = new FrontendFeatures(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+        Dictionary<string, bool> enabledFrontendFeatures = [];
 
         AppSettings appSettings = GetAppSettings(
             "AppMetadata",
@@ -323,10 +309,7 @@ public class AppMetadataTest
     [Fact]
     public async Task GetApplicationMetadata_logo_can_instantiate_with_source_and_DisplayAppOwnerNameInHeader()
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-        FrontendFeatures frontendFeatures = new(featureManagerMock.Object);
-        Dictionary<string, bool> enabledFrontendFeatures = await frontendFeatures.GetFrontendFeatures();
+        Dictionary<string, bool> enabledFrontendFeatures = [];
 
         AppSettings appSettings = GetAppSettings("AppMetadata", "logo-org-source.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
@@ -514,9 +497,6 @@ public class AppMetadataTest
         TelemetrySink? telemetrySink = null
     )
     {
-        var featureManagerMock = new Mock<IFeatureManager>();
-        featureManagerMock.Setup(m => m.GetFeatureNamesAsync()).Returns(AsyncEnumerable.Empty<string>());
-
         if (externalApiFactory is null)
         {
             var _externalApiFactoryMock = new Mock<IExternalApiFactory>();
@@ -534,7 +514,7 @@ public class AppMetadataTest
         {
             return new AppMetadata(
                 appsettings,
-                new FrontendFeatures(featureManagerMock.Object),
+                new FrontendFeatures(new ConfigurationBuilder().Build()),
                 serviceProvider.Object,
                 telemetrySink.Object
             );
