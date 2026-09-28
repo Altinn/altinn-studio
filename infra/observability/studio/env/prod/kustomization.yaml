@@ -15,3 +15,14 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 2
+  # The backend runs in this cluster, so the gateway reaches the proxy directly rather
+  # than leaving the cluster through the public endpoint and the load balancer.
+  - target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+      name: otel-gateway
+    patch: |-
+      - op: replace
+        path: /spec/config/exporters/otlp_http~1victoria/endpoint
+        value: http://observability-proxy.observability.svc.cluster.local/internal/observability/otlp
