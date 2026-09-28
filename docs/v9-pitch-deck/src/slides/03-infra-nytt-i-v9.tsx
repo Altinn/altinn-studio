@@ -17,7 +17,7 @@ const FEATURES: Feature[] = [
   {
     icon: 'shield',
     eyebrow: 'Maskinporten',
-    title: 'Satt opp for deg',
+    title: 'Automatisk integrasjon',
     body: 'Plattformen lager Maskinporten-klienten til appen og tar seg av den. Du slipper å håndtere nøkler.',
   },
   {
