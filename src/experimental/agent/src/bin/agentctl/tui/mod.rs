@@ -1,4 +1,5 @@
 mod app;
+mod open;
 mod provisioning;
 mod terminal;
 mod view;
@@ -29,6 +30,7 @@ use agent::manifest::MANIFEST_FILE;
 use app::{
     Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
 };
+use open::{OpenTarget, SshSetup};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
@@ -63,6 +65,14 @@ enum Input {
     ArchiveChanged(Session),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
+    /// An action a finished step leads to, run in turn with the input already waiting.
+    Then(Action),
+    /// A background open finished: the notice to show, or why it failed.
+    Opened {
+        agent: String,
+        target: OpenTarget,
+        result: Result<String, String>,
+    },
 }
 
 /// Sends the event loop what background work finished.
@@ -150,8 +160,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         return Err(Error::Invalid("tui requires an interactive local terminal".into()).into());
     }
     let mut app = App::new();
+    app.environment = open::Environment::detect();
+    app.ssh_include = agent::ssh::UserInclude::for_home(home).ok();
     let mut forwards = ActiveForwards::default();
     let (inputs, mut background) = tokio::sync::mpsc::unbounded_channel();
+    app.ssh_setup = SshSetup::check(app.ssh_include.as_ref());
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -219,6 +232,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.manifests_discovered(candidates);
                 continue;
             }
+            Input::Then(action) => action,
+            Input::Opened { agent, target, result } => {
+                app.opened(&agent, target, result, Instant::now());
+                continue;
+            }
             Input::Event(None) => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
@@ -283,6 +301,34 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             Action::Prompt(form) => {
                 app.prompting += 1;
                 spawn_prompt(home.socket_path(), inputs.clone(), form);
+            }
+            Action::Open {
+                agent,
+                target: OpenTarget::Editor(editor),
+            } => {
+                if app.start_opening(&agent, OpenTarget::Editor(editor), Instant::now()) {
+                    let launcher = app.environment.launcher(editor).map(Path::to_path_buf);
+                    spawn_open_editor(home.socket_path(), inputs.clone(), agent, editor, launcher);
+                }
+            }
+            Action::Open {
+                agent,
+                target: OpenTarget::CopyAlias,
+            } => {
+                let alias = agent::ssh::alias(&agent);
+                terminal::copy_to_clipboard(&alias)?;
+                app.notice = Some((format!("copied {alias}"), Instant::now()));
+            }
+            Action::SetUpSsh { include, then } => {
+                // One line in one small file: written at once, so nothing can
+                // ask for the setup again while it is being written.
+                let result = include
+                    .install()
+                    .map(|_| include.user_config.clone())
+                    .map_err(|error| error.to_string());
+                if let Some(next) = app.ssh_set_up(result, then, Instant::now()) {
+                    let _ = inputs.send(Input::Then(next));
+                }
             }
             action => {
                 drop(events);
@@ -405,6 +451,35 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
             }
         }
     })
+}
+
+/// Opens an editor on the Agent once it is Ready, so the editor's first
+/// connection does not wait behind provisioning and time out.
+fn spawn_open_editor(
+    socket_path: PathBuf,
+    inputs: Inputs,
+    agent: String,
+    editor: crate::launch::Editor,
+    launcher: Option<PathBuf>,
+) {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let result = async {
+            client
+                .ensure_execution(&agent, WaitPolicy::UntilReady)
+                .await
+                .map_err(|error| error.to_string())?;
+            let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
+            let launch = editor
+                .launch(launcher.as_deref(), &access.alias, &access.working_directory)
+                .ok_or_else(|| editor.missing_launcher().unwrap_or_default())?;
+            launch.start().await?;
+            Ok(format!("opening {} on {agent}", editor.label()))
+        }
+        .await;
+        let target = OpenTarget::Editor(editor);
+        let _ = inputs.send(Input::Opened { agent, target, result });
+    });
 }
 
 /// Loads the most recent turns of the selected Session.
@@ -642,7 +717,15 @@ async fn suspended(
             };
             attach(home, client, &agent, session, request).await
         }
-        Action::Exec { agent } => exec(home, client, &agent).await,
+        Action::Exec { agent }
+        | Action::Open {
+            agent,
+            target: OpenTarget::Shell,
+        } => exec(home, client, &agent).await,
+        Action::Open {
+            agent,
+            target: OpenTarget::SshShell,
+        } => ssh_shell(client, &agent).await,
         _ => Ok(()),
     };
     tui.resume()?;
@@ -689,6 +772,39 @@ async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(
             "terminal execution returned an unsupported outcome".into(),
         )),
     }
+}
+
+/// Runs OpenSSH against the Agent's generated alias until it exits.
+///
+/// Unlike `agentctl ssh`, this waits for the client rather than replacing the
+/// process, which is the TUI's.
+async fn ssh_shell(client: &Client, agent: &str) -> Result<(), Error> {
+    let wait = Wait::start();
+    wait.until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
+        .await?;
+    let access = client.ssh_access(agent).await?;
+    // Awaited, not waited on: the TUI's forwards and watch share this thread.
+    let status = tokio::process::Command::new(crate::ssh_client_executable())
+        .args(crate::ssh_client_arguments(&access))
+        .status()
+        .await
+        .map_err(|error| Error::Invalid(crate::ssh_client_failure(&error)))?;
+    // 255 is OpenSSH's own failure; any other status is the remote shell's last command.
+    if status.code() == Some(255) {
+        // Returning to the TUI clears the screen, and with it what ssh printed about why.
+        eprint!(
+            "\nssh to {} ended with an OpenSSH error. Press Enter to return to agentctl. ",
+            access.alias
+        );
+        let mut line = String::new();
+        let _ =
+            tokio::io::AsyncBufReadExt::read_line(&mut tokio::io::BufReader::new(tokio::io::stdin()), &mut line).await;
+        return Err(Error::Invalid(format!(
+            "ssh to {} ended with an OpenSSH error",
+            access.alias
+        )));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

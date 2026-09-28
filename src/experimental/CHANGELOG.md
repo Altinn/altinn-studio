@@ -12,6 +12,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- In the terminal UI, `o` opens an Agent in a shell, VS Code, Zed or over SSH, setting up SSH when needed. The side panel shows how to connect to the selected Agent. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl ssh-info` also reports the directory editors open. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+
 ## [0.1.0-preview.8] - 2026-09-30
 
 ### Changed
