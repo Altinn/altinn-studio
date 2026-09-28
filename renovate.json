@@ -139,10 +139,6 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
-      "matchFileNames": ["frontend/testing/cypress/**"],
-      "ignoreDeps": ["yarn"]
-    },
-    {
       "matchFileNames": ["src/Designer/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in Designer"
