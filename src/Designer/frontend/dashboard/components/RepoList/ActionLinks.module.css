@@ -10,12 +10,7 @@
 
 .giteaIcon {
   --ds-icon-size: var(--ds-size-8);
-  padding-top: var(--ds-size-1);
   color: var(--ds-color-success-text-default);
-}
-
-.editButton {
-  padding-top: var(--ds-size-2);
 }
 
 .akselIcon {
