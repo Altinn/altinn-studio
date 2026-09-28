@@ -38,7 +38,7 @@ def _prompt_file(prompt_name: str) -> Path:
         return found[0]
     if not found:
         raise FileNotFoundError(f"Prompt file not found: {PROMPTS_DIR / f'{prompt_name}.md'}")
-    listed = ", ".join(str(path.relative_to(PROMPTS_DIR)) for path in found)
+    listed = ", ".join(path.relative_to(PROMPTS_DIR).as_posix() for path in found)
     raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
 
 
