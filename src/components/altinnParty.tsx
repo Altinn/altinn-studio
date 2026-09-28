@@ -17,12 +17,13 @@ export interface IAltinnPartyProps {
   party: IParty;
   onSelectParty: (party: IParty) => void;
   showSubUnits: boolean;
+  initiallyExpanded?: boolean;
 }
 
-export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnPartyProps) {
+export function AltinnParty({ party, onSelectParty, showSubUnits, initiallyExpanded = false }: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
-  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
+  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(initiallyExpanded);
   const isOrg = party.partyTypeName === PartyType.Organisation;
 
   function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
