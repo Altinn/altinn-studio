@@ -63,13 +63,13 @@ public class PdfController : ControllerBase
     }
 
     /// <summary>
-    /// Generate a preview of the PDF for the current task, or for another task in the process
+    /// Generate a preview of the PDF for the current task, or for a PDF or subform PDF service task in the process
     /// </summary>
     /// <param name="org">unique identifier of the organization responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="taskId">The task to preview, such as a PDF service task the instance has not reached yet. Defaults to the current task.</param>
+    /// <param name="taskId">The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.</param>
     /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]

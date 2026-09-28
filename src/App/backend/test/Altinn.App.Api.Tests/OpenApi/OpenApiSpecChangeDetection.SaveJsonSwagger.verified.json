@@ -5066,7 +5066,7 @@
         "tags": [
           "Pdf"
         ],
-        "summary": "Generate a preview of the PDF for the current task, or for another task in the process",
+        "summary": "Generate a preview of the PDF for the current task, or for a PDF or subform PDF service task in the process",
         "parameters": [
           {
             "name": "org",
@@ -5109,7 +5109,7 @@
           {
             "name": "taskId",
             "in": "query",
-            "description": "The task to preview, such as a PDF service task the instance has not reached yet. Defaults to the current task.",
+            "description": "The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.",
             "schema": {
               "type": "string"
             }
