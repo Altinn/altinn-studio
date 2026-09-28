@@ -233,6 +233,7 @@ pub(crate) const fn session_state(state: agent::sessions::State) -> &'static str
         agent::sessions::State::Working => "Working",
         agent::sessions::State::WaitingForInput => "WaitingForInput",
         agent::sessions::State::Idle => "Idle",
+        agent::sessions::State::Archiving => "Archiving",
         agent::sessions::State::Archived => "Archived",
         agent::sessions::State::Failed => "Failed",
     }
@@ -382,6 +383,8 @@ mod tests {
             "WaitingForInput"
         );
         assert_eq!(session_state(agent::sessions::State::Idle), "Idle");
+        assert_eq!(session_state(agent::sessions::State::Archiving), "Archiving");
+        assert_eq!(session_state(agent::sessions::State::Archived), "Archived");
         assert_eq!(session_state(agent::sessions::State::Failed), "Failed");
     }
 }
