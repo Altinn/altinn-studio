@@ -68,6 +68,12 @@ impl Followed {
             )),
             None => lines.push("Provisioning: no pass since agentd started".to_owned()),
         }
+        if latest.status.is_ready() {
+            lines.extend([
+                String::new(),
+                "Ready. Start a Session, or open it in a shell, editor or desktop.".to_owned(),
+            ]);
+        }
         lines
     }
 }
@@ -164,6 +170,23 @@ mod tests {
                 pass: pass(2),
                 sequence: 0
             })
+        );
+    }
+
+    #[test]
+    fn a_ready_agent_ends_with_what_to_do_next() {
+        let mut followed = Followed::default();
+        followed.apply(
+            serde_json::from_value(serde_json::json!({
+                "revision": pass(1),
+                "status": {"conditions": [{"type": "Ready", "status": "True"}]},
+            }))
+            .expect("test reply"),
+        );
+
+        assert_eq!(
+            followed.lines().last().map(String::as_str),
+            Some("Ready. Start a Session, or open it in a shell, editor or desktop.")
         );
     }
 }

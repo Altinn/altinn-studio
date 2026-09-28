@@ -265,6 +265,12 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap)
     if app.opening > 0 {
         spans.push(Span::styled(" · opening…", Style::new().fg(Color::Cyan)));
     }
+    if let Some(pending) = app.pending.first() {
+        spans.push(Span::styled(
+            format!(" · {} when {} is ready", pending.then.short_label(), pending.agent),
+            Style::new().fg(Color::Cyan),
+        ));
+    }
     frame.render_widget(Line::from(spans), area);
 }
 
@@ -876,7 +882,14 @@ fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut Hit
 fn render_confirm_quit(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
     let mut form = Form::new(" quit ", Color::Cyan, &CONFIRM_QUIT_HINTS)
         .row(Line::from("Quit agentctl tui?"))
-        .row(note_line("These forwards close with it:"));
+        .row(note_line("These end with it:"));
+    for pending in &app.pending {
+        form = form.row(Line::from(vec![
+            Span::styled("  waiting  ", Style::new().fg(Color::Cyan)),
+            Span::raw(format!("{} when ready", pending.then.short_label())),
+            Span::styled(format!("  {}", pending.agent), Style::new().fg(Color::DarkGray)),
+        ]));
+    }
     for entry in &app.forwards {
         form = form.row(Line::from(vec![
             Span::styled(
@@ -1021,6 +1034,27 @@ fn render_new_session(frame: &mut Frame, area: Rect, form: &super::app::SessionF
     }
 }
 
+/// The create form's "When ready" picker over what the selected manifest offers.
+fn when_ready_row(form: &super::app::CreateForm, detail_width: usize) -> Line<'static> {
+    let choices = form.when_ready_choices();
+    let chosen = choices
+        .iter()
+        .position(|choice| *choice == form.when_ready)
+        .unwrap_or_default();
+    labeled(
+        "When ready",
+        form.field == CreateField::WhenReady,
+        picker(
+            &form.when_ready.label(),
+            form.field == CreateField::WhenReady,
+            chosen,
+            choices.len(),
+            "",
+            detail_width,
+        ),
+    )
+}
+
 /// What an empty selection field resolves to: the manifest default or the harness's own.
 fn selection_hint(manifest_default: Option<&str>) -> String {
     manifest_default.map_or_else(
@@ -1093,19 +1127,25 @@ fn render_create_agent(frame: &mut Frame, area: Rect, form: &super::app::CreateF
                 "default: .env beside manifest",
             ),
         ));
+    widget = widget.row(when_ready_row(form, detail_width));
     let target = widget.render(frame, area, CREATE_AGENT_FORM_WIDTH, hit_map);
     for (row, field) in [
         (0, CreateField::Agent),
         (1, CreateField::Variant),
         (2, CreateField::Name),
         (3, CreateField::EnvironmentFile),
+        (4, CreateField::WhenReady),
     ] {
         hit_map.click(
             line_area(target, row),
             HitTarget::Action(MouseAction::FocusCreateField(field)),
         );
     }
-    for (row, field) in [(0, CreateField::Agent), (1, CreateField::Variant)] {
+    for (row, field) in [
+        (0, CreateField::Agent),
+        (1, CreateField::Variant),
+        (4, CreateField::WhenReady),
+    ] {
         map_picker_targets(
             line_area(target, row),
             MouseAction::SelectCreate { field, delta: -1 },

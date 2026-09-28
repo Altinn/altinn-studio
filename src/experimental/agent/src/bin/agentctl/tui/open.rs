@@ -5,7 +5,7 @@
 
 use std::path::{Path, PathBuf};
 
-use agent::{Agent, Condition, ConditionStatus};
+use agent::{AccessSpec, Agent, Condition, ConditionStatus};
 
 use crate::launch::Editor;
 
@@ -85,6 +85,59 @@ impl OpenTarget {
     /// configuration, which then needs the generated one included.
     pub(crate) const fn needs_include(self) -> bool {
         matches!(self, Self::Editor(_) | Self::CopyAlias)
+    }
+}
+
+/// What happens once an Agent created in this TUI is Ready.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) enum WhenReady {
+    /// Nothing more: the provisioning view stays, as it does without a choice.
+    #[default]
+    Follow,
+    /// Starts a Session on the default harness and attaches to it.
+    StartSession,
+    /// Opens one of the open menu's targets.
+    Open(OpenTarget),
+}
+
+impl WhenReady {
+    /// The choice as the create form's picker names it, short enough to fit it.
+    pub(crate) fn label(self) -> String {
+        match self {
+            Self::Follow => "follow progress".into(),
+            Self::StartSession => "start a Session".into(),
+            Self::Open(target) => format!("open {}", Self::Open(target).short_label()),
+        }
+    }
+
+    /// What will happen, as the header names it while it waits.
+    pub(crate) fn short_label(self) -> String {
+        match self {
+            Self::Follow => "nothing".into(),
+            Self::StartSession => "a Session".into(),
+            Self::Open(OpenTarget::Shell) => "a shell".into(),
+            Self::Open(OpenTarget::Editor(editor)) => editor.label().into(),
+            Self::Open(OpenTarget::Desktop(_)) => "the desktop".into(),
+            Self::Open(target) => target.label(),
+        }
+    }
+
+    /// The choices for an Agent declaring `access`, in picker order: only
+    /// what the open menu would then offer.
+    pub(crate) fn choices(access: &[AccessSpec], environment: &Environment) -> Vec<Self> {
+        let mut choices = vec![Self::Follow, Self::StartSession, Self::Open(OpenTarget::Shell)];
+        if access.contains(&AccessSpec::Ssh {}) {
+            choices.extend(
+                Editor::ALL
+                    .into_iter()
+                    .filter(|editor| editor_unavailable(*editor, environment).is_none())
+                    .map(|editor| Self::Open(OpenTarget::Editor(editor))),
+            );
+        }
+        if access.contains(&AccessSpec::Vnc {}) {
+            choices.push(Self::Open(OpenTarget::Desktop(DesktopViewer::Browser)));
+        }
+        choices
     }
 }
 
@@ -499,6 +552,40 @@ mod tests {
         let local = "127.0.0.1:53817".parse().expect("address");
         assert_eq!(DesktopViewer::Browser.url(local), "http://127.0.0.1:53817/");
         assert_eq!(DesktopViewer::VncClient.url(local), "vnc://127.0.0.1:53817");
+    }
+
+    #[test]
+    fn when_ready_labels_fit_the_picker() {
+        let every = WhenReady::choices(&[AccessSpec::Ssh {}, AccessSpec::Vnc {}], &local(&Editor::ALL));
+        assert_eq!(every.len(), 6);
+        for choice in every {
+            assert!(choice.label().chars().count() <= 18, "{:?}", choice.label());
+        }
+        assert_eq!(
+            WhenReady::Open(OpenTarget::Desktop(DesktopViewer::Browser)).label(),
+            "open the desktop"
+        );
+    }
+
+    #[test]
+    fn when_ready_offers_only_what_the_manifest_declares_and_this_machine_can_open() {
+        let environment = local(&[]);
+        assert_eq!(
+            WhenReady::choices(&[], &environment),
+            [
+                WhenReady::Follow,
+                WhenReady::StartSession,
+                WhenReady::Open(OpenTarget::Shell)
+            ]
+        );
+        assert_eq!(
+            WhenReady::choices(&[AccessSpec::Ssh {}, AccessSpec::Vnc {}], &environment)[3..],
+            [
+                WhenReady::Open(OpenTarget::Editor(Editor::VsCode)),
+                WhenReady::Open(OpenTarget::Desktop(DesktopViewer::Browser)),
+            ],
+            "Zed has no launcher here"
+        );
     }
 
     #[test]

@@ -187,97 +187,103 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
-        let input = tokio::select! {
-            event = events.next() => Input::Event(event),
-            Some(input) = background.recv() => input,
-            // Times in state and elapsed step times move without new input.
-            _ = redraw.tick() => continue,
-        };
-        let action = match input {
-            Input::Resources(Ok(resources)) => {
-                app.connection_error = None;
-                app.apply_snapshot(resources.agents, resources.sessions);
-                continue;
-            }
-            Input::Resources(Err(error)) => {
-                app.connection_error = Some(error);
-                continue;
-            }
-            Input::Provisioning { agent, lines } => {
-                app.provisioning_followed(&agent, lines);
-                continue;
-            }
-            Input::TranscriptLoaded { agent, session, turns } => {
-                app.transcript_loaded(&agent, &session, turns);
-                continue;
-            }
-            Input::PromptSent(form, result) => {
-                app.prompting = app.prompting.saturating_sub(1);
-                if let Err(error) = result {
-                    app.prompt_failed(form, error);
+        // An Agent created here that just became Ready does what was chosen for
+        // it before any more input is read.
+        let action = if let Some(action) = app.take_ready_pending(Instant::now()) {
+            action
+        } else {
+            let input = tokio::select! {
+                event = events.next() => Input::Event(event),
+                Some(input) = background.recv() => input,
+                // Times in state and elapsed step times move without new input.
+                _ = redraw.tick() => continue,
+            };
+            match input {
+                Input::Resources(Ok(resources)) => {
+                    app.connection_error = None;
+                    app.apply_snapshot(resources.agents, resources.sessions);
+                    continue;
                 }
-                continue;
-            }
-            Input::SessionChangeFailed(error) => {
-                app.error = Some(error);
-                continue;
-            }
-            Input::ArchiveChanged(session) => {
-                app.archive_changed(session, Instant::now());
-                continue;
-            }
-            Input::ForwardCreated(outcome) => {
-                mouse.reset();
-                forward_created(&mut app, &mut forwards, outcome);
-                continue;
-            }
-            Input::ManifestsDiscovered(candidates) => {
-                mouse.reset();
-                app.manifests_discovered(candidates);
-                continue;
-            }
-            Input::SshSetupChecked(setup) => {
-                app.ssh_setup = setup;
-                continue;
-            }
-            Input::SshSetUp(result, then) => app.ssh_set_up(result, then, Instant::now()),
-            Input::Opened(result) => {
-                app.opened(result, Instant::now());
-                continue;
-            }
-            Input::DesktopForwarded { agent, viewer, forward } => {
-                app.opening = app.opening.saturating_sub(1);
-                match forward {
-                    Ok(forward) => {
-                        let url = viewer.url(forward.local_address());
-                        forwards.push(agent, forward, Some(viewer.forward_label()));
-                        app.set_forwards(forwards.entries());
-                        hand_over(&mut app, &url)?;
+                Input::Resources(Err(error)) => {
+                    app.connection_error = Some(error);
+                    continue;
+                }
+                Input::Provisioning { agent, lines } => {
+                    app.provisioning_followed(&agent, lines);
+                    continue;
+                }
+                Input::TranscriptLoaded { agent, session, turns } => {
+                    app.transcript_loaded(&agent, &session, turns);
+                    continue;
+                }
+                Input::PromptSent(form, result) => {
+                    app.prompting = app.prompting.saturating_sub(1);
+                    if let Err(error) = result {
+                        app.prompt_failed(form, error);
                     }
-                    Err(error) => app.error = Some(error),
+                    continue;
                 }
-                continue;
-            }
-            Input::Event(None) => {
-                tui.restore()?;
-                return Ok(ExitCode::SUCCESS);
-            }
-            Input::Event(Some(Err(error))) => {
-                tui.restore()?;
-                return Err(Error::from(error).into());
-            }
-            Input::Event(Some(Ok(Event::Key(key)))) if key.kind == KeyEventKind::Press => {
-                mouse.reset();
-                if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
+                Input::SessionChangeFailed(error) => {
+                    app.error = Some(error);
+                    continue;
+                }
+                Input::ArchiveChanged(session) => {
+                    app.archive_changed(session, Instant::now());
+                    continue;
+                }
+                Input::ForwardCreated(outcome) => {
+                    mouse.reset();
+                    forward_created(&mut app, &mut forwards, outcome);
+                    continue;
+                }
+                Input::ManifestsDiscovered(candidates) => {
+                    mouse.reset();
+                    app.manifests_discovered(candidates);
+                    continue;
+                }
+                Input::SshSetupChecked(setup) => {
+                    app.ssh_setup = setup;
+                    continue;
+                }
+                Input::SshSetUp(result, then) => app.ssh_set_up(result, then, Instant::now()),
+                Input::Opened(result) => {
+                    app.opened(result, Instant::now());
+                    continue;
+                }
+                Input::DesktopForwarded { agent, viewer, forward } => {
+                    app.opening = app.opening.saturating_sub(1);
+                    match forward {
+                        Ok(forward) => {
+                            let url = viewer.url(forward.local_address());
+                            forwards.push(agent, forward, Some(viewer.forward_label()));
+                            app.set_forwards(forwards.entries());
+                            hand_over(&mut app, &url)?;
+                        }
+                        Err(error) => app.error = Some(error),
+                    }
+                    continue;
+                }
+                Input::Event(None) => {
                     tui.restore()?;
                     return Ok(ExitCode::SUCCESS);
                 }
-                app.on_key(key)
-            }
-            Input::Event(Some(Ok(Event::Mouse(event)))) => mouse.action(event, &hit_map, &mut app, Instant::now()),
-            Input::Event(Some(Ok(_))) => {
-                mouse.reset();
-                continue;
+                Input::Event(Some(Err(error))) => {
+                    tui.restore()?;
+                    return Err(Error::from(error).into());
+                }
+                Input::Event(Some(Ok(Event::Key(key)))) if key.kind == KeyEventKind::Press => {
+                    mouse.reset();
+                    if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
+                        tui.restore()?;
+                        return Ok(ExitCode::SUCCESS);
+                    }
+                    app.on_key(key)
+                }
+                Input::Event(Some(Ok(Event::Mouse(event)))) => mouse.action(event, &hit_map, &mut app, Instant::now()),
+                Input::Event(Some(Ok(_))) => {
+                    mouse.reset();
+                    continue;
+                }
             }
         };
         match action {
@@ -305,8 +311,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 manifest,
                 name,
                 env_file,
+                when_ready,
                 form,
-            } => create(&mut app, client, manifest, name, env_file, form).await,
+            } => create(&mut app, client, manifest, name, env_file, when_ready, form).await,
             Action::CreateForward { agent, spec, replace } => {
                 if let Some(id) = replace {
                     forwards.remove(id);
@@ -720,13 +727,13 @@ fn manifest_candidates_blocking(current_directory: Option<&Path>, agents: &[Agen
             candidates[index].add_equivalent_path(path);
             continue;
         }
-        let name = match manifest::resolve(&path) {
-            Ok(resolved) => Ok(resolved.agent.metadata.name),
-            Err(error) if recorded || path.exists() => Err(error.to_string()),
+        let (name, access) = match manifest::resolve(&path) {
+            Ok(resolved) => (Ok(resolved.agent.metadata.name), resolved.agent.spec.access),
+            Err(error) if recorded || path.exists() => (Err(error.to_string()), Vec::new()),
             Err(_) => continue,
         };
         seen.insert(canonical, candidates.len());
-        candidates.push(ManifestCandidate::new(path, name));
+        candidates.push(ManifestCandidate::new(path, name).with_access(access));
     }
     candidates
 }
@@ -786,10 +793,11 @@ async fn create(
     manifest: PathBuf,
     name: String,
     env_file: Option<PathBuf>,
+    when_ready: open::WhenReady,
     mut form: CreateForm,
 ) {
     match create_agent(client, manifest, name, env_file).await {
-        Ok(applied) => app.agent_applied(applied),
+        Ok(applied) => app.agent_applied(applied, when_ready),
         Err(error) => {
             form.error = Some(error.to_string());
             app.modal = Some(Modal::CreateAgent(form));

@@ -174,7 +174,8 @@ policy and systemd unit. An Agent created from an image older than this feature 
 SSH access; delete it and re-apply to pick up the current image.
 
 In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or over SSH, or to copy its SSH alias.
-The TUI offers to add the `Include` above when an editor needs it.
+The TUI offers to add the `Include` above when an editor needs it. When creating an Agent with `c`, "When ready"
+picks what opens once provisioning finishes.
 
 ## Desktop access
 
