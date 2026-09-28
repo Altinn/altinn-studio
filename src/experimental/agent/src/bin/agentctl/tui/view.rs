@@ -8,9 +8,9 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CONFIRM_SSH_SETUP_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP,
-    HELP_HINTS, HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS, PORT_FORWARD_HINTS,
-    Row as TreeRow, RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View, harness_label,
+    App, CONFIRM_HINTS, CONFIRM_SSH_SETUP_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP, HELP_HINTS,
+    HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS, PORT_FORWARD_HINTS, Row as TreeRow,
+    RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View, harness_label,
 };
 use super::open::{MenuEntry, OpenMenu, OpenTarget};
 
@@ -181,7 +181,7 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
         // A form carries its own hints, so the footer stays empty below it.
         Some(modal) => {
             hit_map.clear();
-            render_modal(frame, body, modal, &mut hit_map);
+            render_modal(frame, body, app, modal, &mut hit_map);
         }
         None => render_footer(frame, footer, app, &mut hit_map),
     }
@@ -510,6 +510,10 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         .map(|entry| {
             let mut spans = vec![
                 Span::styled("⇄ ", Style::new().fg(Color::Cyan)),
+                Span::styled(
+                    format!("{:<8}", entry.label().unwrap_or_default()),
+                    Style::new().fg(Color::Cyan),
+                ),
                 Span::raw(format!("{} → {}", entry.local, entry.guest_port)),
                 Span::styled(format!("  {}", entry.agent), Style::new().fg(Color::DarkGray)),
             ];
@@ -791,16 +795,16 @@ fn hint_width(hint: &Hint) -> u16 {
     u16::try_from(Line::from(format!("{} {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
 }
 
-fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
+fn render_modal(frame: &mut Frame, area: Rect, app: &App, modal: &Modal, hit_map: &mut HitMap) {
     match modal {
         Modal::ConfirmDelete { agent, sessions } => {
-            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+            Form::new(" delete ", Color::Red, &CONFIRM_HINTS)
                 .row(Line::from(format!("Delete agent {agent}?")))
                 .row(note_line(&format!("{sessions} session(s) will be deleted with it.")))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
         Modal::ConfirmDeleteSession { agent, session } => {
-            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+            Form::new(" delete ", Color::Red, &CONFIRM_HINTS)
                 .row(Line::from(format!("Delete session {agent}/{session}?")))
                 .row(note_line("Its harness is stopped and the Session is removed."))
                 .render(frame, area, FORM_WIDTH, hit_map);
@@ -810,6 +814,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
         Modal::Help => render_help(frame, area, hit_map),
         Modal::Open(menu) => render_open(frame, area, menu, hit_map),
+        Modal::ConfirmQuit => render_confirm_quit(frame, area, app, hit_map),
         Modal::ConfirmSshSetup { include, then, .. } => {
             render_confirm_ssh_setup(frame, area, include, *then, hit_map);
         }
@@ -873,6 +878,24 @@ fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut Hit
             );
         }
     }
+}
+
+/// Lists the forwards that close with the TUI before it quits.
+fn render_confirm_quit(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
+    let mut form = Form::new(" quit ", Color::Cyan, &CONFIRM_HINTS)
+        .row(Line::from("Quit agentctl tui?"))
+        .row(note_line("These forwards close with it:"));
+    for entry in &app.forwards {
+        form = form.row(Line::from(vec![
+            Span::styled(
+                format!("  {:<8} ", entry.label().unwrap_or_default()),
+                Style::new().fg(Color::Cyan),
+            ),
+            Span::raw(format!("{} → {}", entry.local, entry.guest_port)),
+            Span::styled(format!("  {}", entry.agent), Style::new().fg(Color::DarkGray)),
+        ]));
+    }
+    form.render(frame, area, FORM_WIDTH, hit_map);
 }
 
 /// Shows the exact line SSH setup adds, and where, before anything is written.
@@ -2321,7 +2344,7 @@ mod tests {
     #[test]
     fn the_open_menu_lists_keys_reasons_and_the_setup_note() {
         let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
-        let mut terminal = Terminal::new(TestBackend::new(80, 20)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(80, 30)).expect("test terminal");
         let hit_map = draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
 
@@ -2378,5 +2401,23 @@ mod tests {
         assert!(text.contains("  Include ~/.agent/ssh/config"), "{text}");
         assert!(text.contains("Then: VS Code, Remote-SSH."), "{text}");
         assert!(text.contains("enter add · esc back"), "{text}");
+    }
+
+    #[test]
+    fn no_help_row_runs_into_the_overlay_border() {
+        let mut app = triage_app();
+        app.modal = Some(Modal::Help);
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        for line in text.lines().filter(|line| line.contains("│ ")) {
+            let inside: Vec<char> = line.chars().collect();
+            let border = inside
+                .iter()
+                .rposition(|character| *character == '│')
+                .expect("right border");
+            // The form pads one cell inside its border; the cell before that is the last one text uses.
+            assert_eq!(inside[border - 2], ' ', "cut off at the border:\n{line}");
+        }
     }
 }

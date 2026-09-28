@@ -161,6 +161,25 @@ async fn run_detached(program: &OsStr, arguments: &[String]) -> Result<(), Strin
     }
 }
 
+/// The address that opens a forward listening at `local` to `guest_port`: a
+/// VNC client for the desktop's RFB port, a browser for anything else.
+pub(crate) fn forward_url(local: impl std::fmt::Display, guest_port: u16) -> String {
+    if guest_port == agent::vnc::GUEST_PORT {
+        format!("vnc://{local}")
+    } else {
+        format!("http://{local}/")
+    }
+}
+
+/// Names a forward to one of the desktop's ports, however it was made.
+pub(crate) const fn forward_label(guest_port: u16) -> Option<&'static str> {
+    match guest_port {
+        agent::vnc::WEB_GUEST_PORT => Some("desktop"),
+        agent::vnc::GUEST_PORT => Some("vnc"),
+        _ => None,
+    }
+}
+
 /// Why an application started here would not appear in front of the person,
 /// when it would not. `AGENTCTL_OPEN=launch` or `copy` overrides the guess.
 ///
@@ -248,6 +267,19 @@ mod tests {
                 .find(|(name, _)| *name == variable)
                 .map(|(_, value)| OsString::from(value))
         }
+    }
+
+    #[test]
+    fn forwards_open_in_the_application_for_their_guest_port() {
+        assert_eq!(forward_url("127.0.0.1:53817", 5900), "vnc://127.0.0.1:53817");
+        assert_eq!(forward_url("127.0.0.1:53817", 6080), "http://127.0.0.1:53817/");
+    }
+
+    #[test]
+    fn forwards_to_the_desktop_are_named_by_their_port() {
+        assert_eq!(forward_label(6080), Some("desktop"));
+        assert_eq!(forward_label(5900), Some("vnc"));
+        assert_eq!(forward_label(3000), None);
     }
 
     #[test]

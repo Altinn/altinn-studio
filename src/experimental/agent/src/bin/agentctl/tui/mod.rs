@@ -30,7 +30,7 @@ use agent::manifest::MANIFEST_FILE;
 use app::{
     Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
 };
-use open::{OpenTarget, SshSetup};
+use open::{DesktopViewer, OpenTarget, SshSetup};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
@@ -67,11 +67,10 @@ enum Input {
     ManifestsDiscovered(Vec<ManifestCandidate>),
     /// An action a finished step leads to, run before more input is read.
     Then(Action),
-    /// A background open finished: the notice to show, or why it failed.
+    /// A background open finished; `waiting` is what it ends the wait for.
     Opened {
-        agent: String,
-        target: OpenTarget,
-        result: Result<String, String>,
+        waiting: Option<(String, OpenTarget)>,
+        outcome: Result<OpenOutcome, String>,
     },
 }
 
@@ -192,6 +191,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         let action = match input {
             Input::Resources(Ok(resources)) => {
                 app.connection_error = None;
+                forwards.prune(&resources.agents);
                 app.apply_snapshot(resources.agents, resources.sessions);
                 continue;
             }
@@ -233,8 +233,20 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 continue;
             }
             Input::Then(action) => action,
-            Input::Opened { agent, target, result } => {
-                app.opened(&agent, target, result, Instant::now());
+            Input::Opened { waiting, outcome } => {
+                let result = match outcome {
+                    Ok(opened) => {
+                        if let Some((agent, forward)) = opened.forward {
+                            forwards.push(agent, forward);
+                        }
+                        if let Some(url) = &opened.copy {
+                            terminal::copy_to_clipboard(url)?;
+                        }
+                        Ok(opened.notice)
+                    }
+                    Err(error) => Err(error),
+                };
+                app.opened(waiting, result, Instant::now());
                 continue;
             }
             Input::Event(None) => {
@@ -304,11 +316,16 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
             Action::Open {
                 agent,
-                target: OpenTarget::Editor(editor),
+                target: target @ OpenTarget::Editor(editor),
             } => {
-                if app.start_opening(&agent, OpenTarget::Editor(editor), Instant::now()) {
+                if app.start_opening(&agent, target, Instant::now()) {
                     let launcher = app.environment.launcher(editor).map(Path::to_path_buf);
-                    spawn_open_editor(home.socket_path(), inputs.clone(), agent, editor, launcher);
+                    let outside = Outside::Editor {
+                        agent: agent.clone(),
+                        editor,
+                        launcher,
+                    };
+                    spawn_open(home, inputs.clone(), Some((agent, target)), outside, None);
                 }
             }
             Action::Open {
@@ -329,6 +346,27 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 if let Some(next) = app.ssh_set_up(result, then, Instant::now()) {
                     let _ = inputs.send(Input::Then(next));
                 }
+            }
+            Action::Open {
+                agent,
+                target: target @ OpenTarget::Desktop(viewer),
+            } => {
+                if app.start_opening(&agent, target, Instant::now()) {
+                    // An Agent's desktop already forwarded is opened again rather than twice.
+                    let outside = forwards.desktop(&agent, viewer).map_or_else(
+                        || Outside::Desktop {
+                            agent: agent.clone(),
+                            viewer,
+                        },
+                        Outside::Url,
+                    );
+                    let copy = app.environment.launch_blocked.clone();
+                    spawn_open(home, inputs.clone(), Some((agent, target)), outside, copy);
+                }
+            }
+            Action::OpenUrl(url) => {
+                let copy = app.environment.launch_blocked.clone();
+                spawn_open(home, inputs.clone(), None, Outside::Url(url), copy);
             }
             action => {
                 drop(events);
@@ -355,6 +393,29 @@ impl ActiveForwards {
 
     fn remove(&mut self, id: u64) {
         self.active.retain(|(entry, _, _)| *entry != id);
+    }
+
+    /// Stops forwards whose Sandbox their Agent no longer has: the Agent was
+    /// deleted, or re-created under the same name with a Sandbox of its own.
+    fn prune(&mut self, agents: &[Agent]) {
+        self.active.retain(|(_, name, forward)| {
+            agents.iter().any(|agent| {
+                agent.metadata.name == *name
+                    && agent.status.sandbox.as_ref().and_then(agent::sandbox::Assignment::id)
+                        == forward.assignment().id()
+            })
+        });
+    }
+
+    /// The address that opens the Agent's forward to `viewer`, while it still serves.
+    fn desktop(&self, agent: &str, viewer: DesktopViewer) -> Option<String> {
+        self.active
+            .iter()
+            .map(|(_, name, forward)| (name, forward))
+            .find(|(name, forward)| {
+                *name == agent && forward.spec().guest_port == viewer.guest_port() && !forward.finished()
+            })
+            .map(|(_, forward)| crate::launch::forward_url(forward.local_address(), forward.spec().guest_port))
     }
 
     fn entries(&self) -> Vec<ForwardEntry> {
@@ -453,33 +514,116 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
     })
 }
 
-/// Opens an editor on the Agent once it is Ready, so the editor's first
-/// connection does not wait behind provisioning and time out.
-fn spawn_open_editor(
-    socket_path: PathBuf,
+/// What `o` opens outside this terminal.
+enum Outside {
+    Editor {
+        agent: String,
+        editor: crate::launch::Editor,
+        launcher: Option<PathBuf>,
+    },
+    /// The Agent's desktop, through a new forward.
+    Desktop { agent: String, viewer: DesktopViewer },
+    /// An address, such as a forward's that is already open.
+    Url(String),
+}
+
+/// What a background open leaves for the event loop.
+struct OpenOutcome {
+    notice: String,
+    /// A forward the open started, for the TUI to hold, with its Agent.
+    forward: Option<(String, PortForward)>,
+    /// An address to copy instead of opening, since this terminal cannot show windows.
+    copy: Option<String>,
+}
+
+/// Opens `outside` once its Agent is Ready, so an editor's first connection
+/// does not wait behind provisioning and time out, and ends the wait for
+/// `waiting`. With `copy` set, the reason nothing can open here, an address
+/// is copied instead.
+fn spawn_open(
+    home: &ControlPlaneHome,
     inputs: Inputs,
-    agent: String,
-    editor: crate::launch::Editor,
-    launcher: Option<PathBuf>,
+    waiting: Option<(String, OpenTarget)>,
+    outside: Outside,
+    copy: Option<String>,
 ) {
+    let home_path = home.path().to_path_buf();
+    let socket_path = home.socket_path();
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
-        let result = async {
-            client
-                .ensure_execution(&agent, WaitPolicy::UntilReady)
+        let outcome = async {
+            let (launch, what, forward) = match outside {
+                Outside::Editor {
+                    agent,
+                    editor,
+                    launcher,
+                } => {
+                    client
+                        .ensure_execution(&agent, WaitPolicy::UntilReady)
+                        .await
+                        .map_err(|error| error.to_string())?;
+                    let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
+                    let launch = editor
+                        .launch(launcher.as_deref(), &access.alias, &access.working_directory)
+                        .ok_or_else(|| format!("{} has no launcher on this machine", editor.label()))?;
+                    (launch, format!("{} on {agent}", editor.label()), None)
+                }
+                Outside::Desktop { agent, viewer } => {
+                    let forward = desktop_forward(&client, home_path, &agent, viewer).await?;
+                    let url = crate::launch::forward_url(forward.local_address(), forward.spec().guest_port);
+                    (crate::launch::Launch::Url(url.clone()), url, Some((agent, forward)))
+                }
+                Outside::Url(url) => (crate::launch::Launch::Url(url.clone()), url, None),
+            };
+            if let (crate::launch::Launch::Url(url), Some(reason)) = (&launch, copy) {
+                let notice = format!("copied {url}: {reason}");
+                let copy = Some(url.clone());
+                return Ok(OpenOutcome { notice, forward, copy });
+            }
+            launch
+                .start()
                 .await
-                .map_err(|error| error.to_string())?;
-            let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
-            let launch = editor
-                .launch(launcher.as_deref(), &access.alias, &access.working_directory)
-                .ok_or_else(|| editor.missing_launcher().unwrap_or_default())?;
-            launch.start().await?;
-            Ok(format!("opening {} on {agent}", editor.label()))
+                .map_err(|error| format!("could not open {what}: {error}"))?;
+            let notice = format!("opening {what}");
+            Ok(OpenOutcome {
+                notice,
+                forward,
+                copy: None,
+            })
         }
         .await;
-        let target = OpenTarget::Editor(editor);
-        let _ = inputs.send(Input::Opened { agent, target, result });
+        let _ = inputs.send(Input::Opened { waiting, outcome });
     });
+}
+
+/// Forwards the Agent's desktop to a free local port once it is Ready. The
+/// browser viewer's port is known only after a pass has seen what the image
+/// declares, so it is read after converging.
+async fn desktop_forward(
+    client: &Client,
+    home: PathBuf,
+    agent: &str,
+    viewer: DesktopViewer,
+) -> Result<PortForward, String> {
+    let target = client
+        .ensure_execution(agent, WaitPolicy::UntilReady)
+        .await
+        .map_err(|error| error.to_string())?;
+    let access = client.vnc_access(agent).await.map_err(|error| error.to_string())?;
+    let guest_port = match viewer {
+        DesktopViewer::Browser => access
+            .web_guest_port
+            .ok_or_else(|| format!("the image of {agent} serves no browser viewer; open it in a VNC client"))?,
+        DesktopViewer::VncClient => access.guest_port,
+    };
+    let spec = ForwardSpec {
+        address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+        local_port: 0,
+        guest_port,
+    };
+    PortForward::start(home, target.sandbox, spec)
+        .await
+        .map_err(|error| error.to_string())
 }
 
 /// Loads the most recent turns of the selected Session.
@@ -1120,5 +1264,74 @@ mod tests {
         assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
         assert_eq!(mouse.action(wheel(0, 1), &hit_map, &mut app, now), Action::None);
         assert_eq!(app.detail.as_ref().map(|detail| detail.scroll), Some(1));
+    }
+
+    fn materialized(id: &str) -> agent::sandbox::Assignment {
+        serde_json::from_value(serde_json::json!({
+            "state": "materialized",
+            "provider": "memory",
+            "id": id,
+        }))
+        .expect("test assignment")
+    }
+
+    async fn forward(assignment: &agent::sandbox::Assignment, guest_port: u16) -> PortForward {
+        let spec = ForwardSpec::parse(&format!("127.0.0.1:0:{guest_port}")).expect("spec");
+        let home = tempfile::tempdir().expect("home");
+        PortForward::start(home.path().to_path_buf(), assignment.clone(), spec)
+            .await
+            .expect("forward binds")
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn forwards_end_with_the_sandbox_they_dial() {
+        let first = materialized("00000000-0000-0000-0000-00000000000a");
+        let second = materialized("00000000-0000-0000-0000-00000000000b");
+        let mut forwards = ActiveForwards::default();
+        forwards.push("desk".into(), forward(&first, agent::vnc::WEB_GUEST_PORT).await);
+        let mut desk = recorded_agent("desk", None);
+        desk.status.sandbox = Some(first);
+
+        forwards.prune(std::slice::from_ref(&desk));
+        assert!(
+            forwards.desktop("desk", DesktopViewer::Browser).is_some(),
+            "same Sandbox"
+        );
+        assert!(
+            forwards.desktop("desk", DesktopViewer::VncClient).is_none(),
+            "another viewer"
+        );
+
+        desk.status.sandbox = Some(second.clone());
+        forwards.prune(std::slice::from_ref(&desk));
+        assert!(
+            forwards.entries().is_empty(),
+            "re-created under the same name, so the old forward is dead"
+        );
+
+        forwards.push("desk".into(), forward(&second, 3000).await);
+        forwards.prune(&[]);
+        assert!(forwards.entries().is_empty(), "the Agent is gone");
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn an_edited_desktop_forward_is_still_the_desktop() {
+        let assignment = materialized("00000000-0000-0000-0000-00000000000a");
+        let mut forwards = ActiveForwards::default();
+        forwards.push("desk".into(), forward(&assignment, agent::vnc::WEB_GUEST_PORT).await);
+        let id = forwards.entries()[0].id;
+        forwards.remove(id);
+        let mut app = App::new();
+        app.creating = 1;
+        let spec = ForwardSpec::parse("127.0.0.1:0:6080").expect("spec");
+        let edited = forward(&assignment, agent::vnc::WEB_GUEST_PORT).await;
+
+        forward_created(&mut app, &mut forwards, ("desk".into(), spec, Some(id), Ok(edited)));
+
+        assert_eq!(forwards.entries()[0].label(), Some("desktop"));
+        assert!(
+            forwards.desktop("desk", DesktopViewer::Browser).is_some(),
+            "o w finds it again"
+        );
     }
 }
