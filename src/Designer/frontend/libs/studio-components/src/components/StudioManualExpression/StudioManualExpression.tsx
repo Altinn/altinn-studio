@@ -23,14 +23,6 @@ export const StudioManualExpression = ({
   const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
   const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
-  const [previousExpression, setPreviousExpression] = useState<Expression>(givenExpression);
-
-  if (givenExpression !== previousExpression) {
-    setPreviousExpression(givenExpression);
-    if (!representsExpression(expressionString, givenExpression)) {
-      setExpressionString(initialExpressionString);
-    }
-  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
@@ -46,7 +38,7 @@ export const StudioManualExpression = ({
   };
 
   const handleBlur = (): void => {
-    if (isStringValidAsExpression(expressionString)) {
+    if (isValid) {
       setExpressionString(expressionToString(stringToExpression(expressionString)));
     }
   };
@@ -65,7 +57,3 @@ export const StudioManualExpression = ({
     />
   );
 };
-
-const representsExpression = (str: string, expression: Expression): boolean =>
-  isStringValidAsExpression(str) &&
-  JSON.stringify(stringToExpression(str)) === JSON.stringify(expression);
