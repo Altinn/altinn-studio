@@ -58,6 +58,11 @@ internal static class HandleMetrics
         CancellationToken cancellationToken
     )
     {
+        if (range < 1 || range > AzureMonitorClient.MaxReportRange)
+        {
+            return TypedResults.BadRequest($"range must be between 1 and {AzureMonitorClient.MaxReportRange}.");
+        }
+
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
             metricsClientSettings.CurrentValue.Provider
         );

@@ -19,6 +19,9 @@ internal sealed class AzureMonitorClient(
 ) : IMetricsClient
 {
     private const int MaxRange = 10080;
+
+    // Periodic reports cover up to 30 days, the monthly report window.
+    internal const int MaxReportRange = 30 * 24 * 60;
     private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -256,7 +259,7 @@ internal sealed class AzureMonitorClient(
     public async Task<IEnumerable<Metric>> GetMetrics(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
 
         var names = MetricNames;
 
@@ -297,7 +300,7 @@ internal sealed class AzureMonitorClient(
     )
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
