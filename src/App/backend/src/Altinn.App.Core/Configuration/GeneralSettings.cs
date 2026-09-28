@@ -39,8 +39,6 @@ public class GeneralSettings
     /// </summary>
     public bool DisableLocaltestValidation { get; set; }
 
-    internal bool DisableAppConfigurationCache { get; set; }
-
     internal bool IsTest { get; set; }
 
     /// <summary>

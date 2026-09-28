@@ -165,7 +165,7 @@ internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateIni
         Debug.Assert(layouts is not null);
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataAccessor = new SingleDataElementAccessor(
             instance,
             dataElement,

@@ -920,7 +920,7 @@ public class DataController : ControllerBase
 
     private async Task<DataType?> GetDataType(DataElement element)
     {
-        Application application = await _appMetadata.GetApplicationMetadata();
+        Application application = _appMetadata.ApplicationMetadata;
         return application.DataTypes.Find(e => e.Id == element.DataType);
     }
 
@@ -1279,7 +1279,7 @@ public class DataController : ControllerBase
     {
         try
         {
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
             InstanceWithStorageMetadata? fetchedInstance =
                 await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                     app,
@@ -1379,7 +1379,7 @@ public class DataController : ControllerBase
                 };
             }
 
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
             var dataType = application.DataTypes.Find(e => e.Id == dataTypeId);
 
             if (dataType is null)

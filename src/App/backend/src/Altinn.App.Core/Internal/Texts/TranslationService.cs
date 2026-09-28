@@ -269,7 +269,7 @@ internal sealed class TranslationService : ITranslationService
 
             if (_appMetadata is not null)
             {
-                var appMetadata = await _appMetadata.GetApplicationMetadata();
+                var appMetadata = _appMetadata.ApplicationMetadata;
                 if (appMetadata?.Title?.Count > 0)
                 {
                     return appMetadata.Title.TryGetValue(language, out var title)

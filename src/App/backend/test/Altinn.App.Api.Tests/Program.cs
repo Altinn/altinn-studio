@@ -7,7 +7,6 @@ using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -37,14 +36,20 @@ using Microsoft.OpenApi;
 // External interfaces like Platform related services, Authentication, Authorization
 // external api's etc. should be mocked.
 
+// WebApplicationFactory passes the content root a test selects with UseContentRoot as a command line argument.
+// Its own guess (the solution folder plus the project name) does not exist, so only an existing folder is used.
+string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
+        ContentRootPath = Directory.Exists(contentRootFromArgs) ? contentRootFromArgs : null,
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",
     }
 );
+
 builder.WebHost.UseDefaultServiceProvider(
     (context, options) =>
     {
@@ -67,7 +72,6 @@ builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
     options.RequestCollectionOptions.InjectResponseHeaders = false
 );
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
-builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
@@ -79,8 +83,6 @@ foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variab
 {
     builder.Configuration[key] = value;
 }
-
-// AppConfigurationCache.Disable = true;
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
@@ -117,8 +119,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddTransient<IAppMetadata, AppMetadataMock>();
-    services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<DataClientMock>();
     services.AddTransient<IDataClientWithStorageMetadata>(sp =>
         (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()

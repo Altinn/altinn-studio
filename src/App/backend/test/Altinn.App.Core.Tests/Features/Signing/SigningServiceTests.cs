@@ -1208,7 +1208,7 @@ public sealed class SigningServiceTests : IDisposable
                     "Task_1"
                 )
             );
-        _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
         _signingDelegationService
             .Setup(x =>
                 x.DelegateSigneeRights(
@@ -1306,9 +1306,7 @@ public sealed class SigningServiceTests : IDisposable
 
         _altinnCdnClient.Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>())).ReturnsAsync(orgDetails);
 
-        _appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd" });
+        _appMetadata.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/app") { Org = "ttd" });
 
         _altinnPartyClient
             .Setup(x =>
