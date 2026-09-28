@@ -149,8 +149,8 @@ public class DefaultEFormidlingServiceTests
             .ReturnsAsync(ReadOnlyMemory<byte>.Empty);
 
         appMetadata
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(a => a.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("ttd/test-app")
                 {
                     Org = "ttd",
@@ -207,7 +207,7 @@ public class DefaultEFormidlingServiceTests
         var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
-        fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
+        fixture.Mock<IAppMetadata>().VerifyGet(a => a.ApplicationMetadata);
         fixture
             .Mock<IEFormidlingReceivers>()
             .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));
@@ -365,7 +365,7 @@ public class DefaultEFormidlingServiceTests
         var result = defaultEformidlingService.SendEFormidlingShipment(dataAccessor.Object, TestConfiguration);
 
         // Assert
-        fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
+        fixture.Mock<IAppMetadata>().VerifyGet(a => a.ApplicationMetadata);
         fixture
             .Mock<IEFormidlingReceivers>()
             .Verify(er => er.GetEFormidlingReceivers(dataAccessor.Object, It.IsAny<string?>()));

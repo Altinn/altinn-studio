@@ -115,6 +115,8 @@ pub enum LifecycleState {
     Running,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The harness is stopped and stays stopped until the Session is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -135,6 +137,11 @@ pub enum State {
     WaitingForInput,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The Session was archived, but its harness has not stopped yet: a turn
+    /// in progress is finishing, or stopping it failed and is retried.
+    Archiving,
+    /// The Session was archived: its harness is stopped until it is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -167,41 +174,94 @@ pub struct Status {
 }
 
 impl Status {
-    /// Combines the two halves and derives the Session state.
+    /// Combines the two halves of a Session that is not archived and whose
+    /// lifecycle change time is unknown; see [`Status::observed`].
     #[must_use]
     pub const fn new(lifecycle: Lifecycle, reported: Reported) -> Self {
-        let state = match lifecycle.state {
-            LifecycleState::Failed => State::Failed,
-            LifecycleState::Idle => State::Idle,
-            LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
-            // A start report always folds to `Working`, so an `Unknown` phase means
-            // the current launch has not reported yet, even when an earlier launch
-            // left a native ID behind for resumption.
-            LifecycleState::Running if reported.harness_session_id.is_none() => State::Starting,
-            LifecycleState::Running => match reported.activity.phase {
-                Phase::Unknown => State::Starting,
-                Phase::WaitingForInput => State::WaitingForInput,
-                Phase::Working => State::Working,
-            },
+        Self::observed(lifecycle, reported, None, None)
+    }
+
+    /// Derives the Session state, and when it was entered, from both halves,
+    /// when the lifecycle state last changed and when the Session was archived.
+    ///
+    /// An archived Session is Archived once its harness has stopped and
+    /// Archiving until then, since the archive was requested. An unarchived
+    /// Session whose harness an archive stopped is Idle, as unarchiving never
+    /// launches it. One whose stop failed may still run, so its reports decide
+    /// until the reconciler settles it. Any other state is entered when the
+    /// activity phase changed while the harness runs and reports, otherwise
+    /// when the lifecycle state changed.
+    #[must_use]
+    pub const fn observed(
+        lifecycle: Lifecycle,
+        reported: Reported,
+        lifecycle_since: Option<time::OffsetDateTime>,
+        archived_at: Option<time::OffsetDateTime>,
+    ) -> Self {
+        let lifecycle_archived = matches!(lifecycle.state, LifecycleState::Archived);
+        let stop_failed = lifecycle_archived && lifecycle.failure.is_some();
+        let (state, state_since) = match archived_at {
+            Some(_) if lifecycle_archived && !stop_failed => (State::Archived, lifecycle_since),
+            Some(since) => (State::Archiving, Some(since)),
+            None if stop_failed => Self::entered(Self::running_state(&reported), &reported, lifecycle_since),
+            None if lifecycle_archived => (State::Idle, lifecycle_since),
+            None => Self::entered(
+                Self::harness_state_of(&lifecycle, &reported),
+                &reported,
+                lifecycle_since,
+            ),
         };
         Self {
             state,
-            state_since: None,
+            state_since,
             lifecycle,
             reported,
         }
     }
 
-    /// Sets when the Session entered its state: the activity phase's change
-    /// while the harness runs and reports, otherwise `lifecycle_since`, when
-    /// the lifecycle state last changed.
+    /// The state the harness itself is in, whether or not the Session is
+    /// archived: what an upgrade must not interrupt.
     #[must_use]
-    pub const fn entered(mut self, lifecycle_since: Option<time::OffsetDateTime>) -> Self {
-        self.state_since = match self.state {
-            State::Working | State::WaitingForInput => self.reported.activity.phase_since,
-            State::Starting | State::Idle | State::Failed => lifecycle_since,
-        };
-        self
+    pub const fn harness_state(&self) -> State {
+        Self::harness_state_of(&self.lifecycle, &self.reported)
+    }
+
+    const fn harness_state_of(lifecycle: &Lifecycle, reported: &Reported) -> State {
+        match lifecycle.state {
+            LifecycleState::Failed => State::Failed,
+            LifecycleState::Idle => State::Idle,
+            LifecycleState::Archived => State::Archived,
+            LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
+            LifecycleState::Running => Self::running_state(reported),
+        }
+    }
+
+    /// A running harness's state from its reports. A start report always
+    /// folds to `Working`, so an `Unknown` phase means the current launch has
+    /// not reported yet, even when an earlier launch left a native ID behind
+    /// for resumption.
+    const fn running_state(reported: &Reported) -> State {
+        if reported.harness_session_id.is_none() {
+            return State::Starting;
+        }
+        match reported.activity.phase {
+            Phase::Unknown => State::Starting,
+            Phase::WaitingForInput => State::WaitingForInput,
+            Phase::Working => State::Working,
+        }
+    }
+
+    const fn entered(
+        state: State,
+        reported: &Reported,
+        lifecycle_since: Option<time::OffsetDateTime>,
+    ) -> (State, Option<time::OffsetDateTime>) {
+        match state {
+            State::Working | State::WaitingForInput => (state, reported.activity.phase_since),
+            State::Starting | State::Idle | State::Archiving | State::Archived | State::Failed => {
+                (state, lifecycle_since)
+            }
+        }
     }
 }
 
@@ -233,6 +293,23 @@ impl Lifecycle {
         Self {
             state: LifecycleState::Idle,
             failure: None,
+        }
+    }
+
+    /// A stopped harness of an archived Session.
+    #[must_use]
+    pub const fn archived() -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: None,
+        }
+    }
+
+    /// An archived Session whose harness could not be stopped yet.
+    pub fn archived_with(failure: impl Into<String>) -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: Some(failure.into()),
         }
     }
 
@@ -365,6 +442,22 @@ pub struct Session {
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    /// When release was requested. A marked Session is no longer listed or
+    /// resolvable by name; the reconciler stops its harness and then removes it.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub deletion_timestamp: Option<OffsetDateTime>,
+    /// When archiving was requested. The reconciler stops the harness of an
+    /// archived Session and never relaunches it until it is unarchived.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub archived_at: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -377,8 +470,23 @@ pub struct Session {
 }
 
 impl Session {
+    /// Whether release of this Session has been requested.
+    #[must_use]
+    pub const fn is_deleting(&self) -> bool {
+        self.deletion_timestamp.is_some()
+    }
+
+    /// Whether archiving this Session has been requested.
+    #[must_use]
+    pub const fn is_archived(&self) -> bool {
+        self.archived_at.is_some()
+    }
+
     /// Describes why an operation cannot use this Session's running harness.
     pub(crate) fn not_running_error(&self) -> Error {
+        if self.is_archived() {
+            return self.archived_error();
+        }
         let detail = self
             .status
             .lifecycle
@@ -388,10 +496,16 @@ impl Session {
                 LifecycleState::Starting => "its lifecycle is starting",
                 LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
+                LifecycleState::Archived => "its harness was stopped when it was archived",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
             });
         Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+
+    /// Refuses an operation on an archived Session, whatever its harness does.
+    pub(crate) fn archived_error(&self) -> Error {
+        Error::Invalid(format!("Session \"{}\" is archived", self.name))
     }
 }
 
@@ -512,6 +626,27 @@ pub trait SessionStore: SessionReports {
     /// Requests that an Idle Session become active and returns the new desired revision.
     fn activate_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<u64, Error>>;
 
+    /// Atomically records the first release request for one named Session of an
+    /// active Agent incarnation, and returns it as marked.
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Records whether one named Session of an active Agent incarnation should be
+    /// archived, keeping the first archive time, and returns it as recorded.
+    fn set_session_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+        archived: bool,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Removes a marked Session once its harness has been released. Everything
+    /// keyed to the Session, including its activity reports, goes with it.
+    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
+
     /// Resolves a ready Session into a terminal attachment target.
     fn session_attach_target(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<AttachTarget, Error>>;
 
@@ -590,6 +725,87 @@ mod tests {
     use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
 
     #[test]
+    fn an_archived_session_is_refused_as_archived_whatever_its_harness_does() {
+        let session = |archived_at| super::Session {
+            id: "dd4cdbaf-9ea0-477e-96dd-bbd6b1e4f7dc".parse().expect("Session ID"),
+            agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+            agent: "worker".into(),
+            name: "s1".to_string().try_into().expect("Session name"),
+            harness: crate::harness::test_harness(),
+            model_selection: crate::ModelSelection::default(),
+            created_at: time::OffsetDateTime::UNIX_EPOCH,
+            deletion_timestamp: None,
+            archived_at,
+            status: Status::new(Lifecycle::running(), Reported::default()),
+            activation_generation: 0,
+            observed_activation_generation: 0,
+        };
+        let refused = session(Some(time::OffsetDateTime::UNIX_EPOCH))
+            .not_running_error()
+            .to_string();
+        assert!(
+            refused.ends_with("Session \"s1\" is archived"),
+            "an archive that arrives while a prompt waits for input readiness: {refused}"
+        );
+        assert!(
+            session(None)
+                .not_running_error()
+                .to_string()
+                .contains("has not reported readiness")
+        );
+    }
+
+    #[test]
+    fn an_archive_decides_the_state_over_the_harness() {
+        let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+        let working = Reported {
+            harness_session_id: Some("native".into()),
+            harness_transcript_path: None,
+            activity: Activity {
+                phase: Phase::Working,
+                phase_since: Some(at(1)),
+                ..Activity::default()
+            },
+        };
+        let status =
+            |lifecycle: Lifecycle, archived_at| Status::observed(lifecycle, working.clone(), Some(at(2)), archived_at);
+
+        let archiving = status(Lifecycle::running(), Some(at(3)));
+        assert_eq!(archiving.state, State::Archiving, "the turn is finishing");
+        assert_eq!(archiving.state_since, Some(at(3)), "since the archive was requested");
+        assert_eq!(archiving.harness_state(), State::Working, "the harness still works");
+        assert_eq!(
+            status(Lifecycle::archived_with("unreachable"), Some(at(3))).state,
+            State::Archiving,
+            "a stop that failed is retried"
+        );
+        let archived = status(Lifecycle::archived(), Some(at(3)));
+        assert_eq!((archived.state, archived.state_since), (State::Archived, Some(at(2))));
+        for lifecycle in [Lifecycle::idle(), Lifecycle::failed("boom")] {
+            assert_eq!(
+                status(lifecycle, Some(at(3))).state,
+                State::Archiving,
+                "until a pass records the harness as stopped"
+            );
+        }
+        assert_eq!(
+            status(Lifecycle::archived(), None).state,
+            State::Idle,
+            "unarchived before the reconciler settles it"
+        );
+        let unarchived_after_failed_stop = status(Lifecycle::archived_with("unreachable"), None);
+        assert_eq!(
+            (
+                unarchived_after_failed_stop.state,
+                unarchived_after_failed_stop.state_since
+            ),
+            (State::Working, Some(at(1))),
+            "the harness a failed stop left running reports for itself"
+        );
+        assert_eq!(status(Lifecycle::running(), None).state, State::Working);
+    }
+
+    #[test]
     fn a_session_entered_its_state_when_the_half_that_decides_it_changed() {
         let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
         let reported = Reported {
@@ -601,13 +817,13 @@ mod tests {
                 ..Activity::default()
             },
         };
-        let waiting = Status::new(Lifecycle::running(), reported.clone()).entered(Some(at(1)));
+        let waiting = Status::observed(Lifecycle::running(), reported.clone(), Some(at(1)), None);
         assert_eq!(
             waiting.state_since,
             Some(at(10)),
             "a running Session is in its activity phase"
         );
-        let failed = Status::new(Lifecycle::failed("boom"), reported).entered(Some(at(20)));
+        let failed = Status::observed(Lifecycle::failed("boom"), reported, Some(at(20)), None);
         assert_eq!(failed.state_since, Some(at(20)), "otherwise the lifecycle decides");
     }
 

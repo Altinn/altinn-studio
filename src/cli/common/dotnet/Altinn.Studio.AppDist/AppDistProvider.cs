@@ -120,12 +120,15 @@ public sealed class AppDistProvider : IAppDistProvider, IDisposable
 
     public void Dispose() => _ownedHttpClient?.Dispose();
 
+    internal int FetchGateCount => _fetchGates.Count;
+
     private async Task<bool> EnsureLayer(string version, AppDistLayer layer, CancellationToken ct)
     {
         if (await _store.Contains(version, layer, ct))
             return true;
 
-        var gate = _fetchGates.GetOrAdd((version, layer), static _ => new SemaphoreSlim(1, 1));
+        var key = (version, layer);
+        var gate = _fetchGates.GetOrAdd(key, static _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync(ct);
         try
         {
@@ -137,11 +140,11 @@ public sealed class AppDistProvider : IAppDistProvider, IDisposable
                 return false;
 
             await _store.Write(version, layer, files, ct);
-            _fetchGates.TryRemove((version, layer), out _);
             return true;
         }
         finally
         {
+            _fetchGates.TryRemove(KeyValuePair.Create(key, gate));
             gate.Release();
         }
     }

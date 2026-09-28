@@ -16,12 +16,16 @@ pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
 pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
+pub(crate) const METHOD_VNC_ACCESS: &str = "agents.v1.vncAccess";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
+pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
+pub(crate) const METHOD_SESSION_ARCHIVE: &str = "sessions.v1.archive";
+pub(crate) const METHOD_SESSION_UNARCHIVE: &str = "sessions.v1.unarchive";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;

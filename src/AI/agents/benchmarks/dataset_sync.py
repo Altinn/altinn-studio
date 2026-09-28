@@ -67,18 +67,10 @@ MESSAGE_BUILDERS = {
 
 def render_input(dataset: Dataset, item: dict[str, Any]) -> dict[str, Any]:
     """The item input as uploaded."""
-    if dataset.kind == "planner":
+    if dataset.kind in ("planner", "generation"):
         return item["input"]
     if dataset.kind == "prompt" and item["input"].get("user_message"):
         return item["input"]
-    if dataset.kind == "generation":
-        from .generation import as_chat_messages
-
-        # `chat_messages` feeds a chat-prompt placeholder; `conversation` is the SDK path.
-        return {
-            **item["input"],
-            "chat_messages": as_chat_messages(item["input"]["conversation"]),
-        }
     build = MESSAGE_BUILDERS[dataset.prompt]
     return {**item["input"], "user_message": build(item)}
 

@@ -268,7 +268,7 @@ public class ExpressionsExclusiveGatewayTests
             .Returns(new UiConfiguration { Folders = folders, Settings = null });
         var appMetadata = new ApplicationMetadata(AppId) { DataTypes = dataTypes };
         var modelSerializationService = new ModelSerializationService(_appModel.Object);
-        _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);
+        _appMetadata.Setup(m => m.ApplicationMetadata).Returns(appMetadata).Verifiable(Times.AtLeastOnce);
         if (formData != null)
         {
             _dataClient

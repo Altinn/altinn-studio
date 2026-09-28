@@ -9,8 +9,9 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
-    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, ProgressParams,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
     ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
     SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
@@ -211,6 +212,15 @@ impl Client {
         self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }).await
     }
 
+    /// Describes how to reach an Agent's desktop over VNC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no VNC access.
+    pub async fn vnc_access(&self, name: &str) -> Result<crate::vnc::AccessInfo, Error> {
+        self.call(METHOD_VNC_ACCESS, NameParams { name: name.into() }).await
+    }
+
     /// Requests deletion of an Agent and its owned sandbox.
     ///
     /// # Errors
@@ -339,6 +349,54 @@ impl Client {
     pub async fn get_session(&self, agent: &str, name: sessions::SessionName) -> Result<sessions::Session, Error> {
         self.call(
             METHOD_SESSION_GET,
+            SessionParams {
+                agent: agent.into(),
+                name,
+                harness: None,
+            },
+        )
+        .await
+    }
+
+    /// Requests release of one Session: its harness is stopped and the Session
+    /// is removed, freeing its name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing, or the release pass fails.
+    pub async fn delete_session(&self, agent: &str, name: sessions::SessionName) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_DELETE,
+                SessionParams {
+                    agent: agent.into(),
+                    name,
+                    harness: None,
+                },
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Archives or unarchives one Session and returns it as recorded. Archiving
+    /// stops its harness until it is unarchived; the Session keeps its name and
+    /// conversation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing or the pass fails.
+    pub async fn set_session_archived(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        archived: bool,
+    ) -> Result<sessions::Session, Error> {
+        self.call(
+            if archived {
+                METHOD_SESSION_ARCHIVE
+            } else {
+                METHOD_SESSION_UNARCHIVE
+            },
             SessionParams {
                 agent: agent.into(),
                 name,

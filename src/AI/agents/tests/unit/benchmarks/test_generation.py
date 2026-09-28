@@ -29,6 +29,12 @@ def _output(*calls, text="", stop_reason="tool_use"):
     ).as_output()
 
 
+def _decision_output(decision):
+    """A dataset decision, as in `expectedOutput`, in the shape the task returns."""
+    calls = [(call["tool"], json.loads(call["arguments_json"])) for call in decision.get("tool_calls") or []]
+    return _output(*calls, stop_reason="end_turn" if decision.get("done") else "tool_use")
+
+
 class TestReplayingTheConversation:
     def test_a_user_turn_is_plain_text(self):
         message = message_from_item({"role": "user", "text": "legg til et felt"})
@@ -329,137 +335,6 @@ class TestTheTaskEndToEnd:
             await GenerationTask()(item={"input": {"conversation": []}})
 
 
-class TestTheUiVariant:
-    """Prompt Experiments cannot pass tools, so the UI path uses text and JSON."""
-
-    def test_the_goal_becomes_a_langfuse_variable(self):
-        from benchmarks.generation import ui_system_prompt
-
-        prompt = ui_system_prompt()
-
-        assert "{{goal}}" in prompt
-        assert "__GOAL__" not in prompt
-
-    def test_the_rest_of_the_prompt_is_what_the_agent_runs(self):
-        from benchmarks.generation import actor_system_prompt, ui_system_prompt
-
-        real = actor_system_prompt("some goal")
-        ui = ui_system_prompt()
-
-        # These must survive verbatim, or the experiment tests a prompt nobody runs.
-        assert real.split("\n\n")[0] in ui
-
-    def test_it_fails_loudly_if_the_goal_stops_being_verbatim(self, monkeypatch):
-        """The templating depends on the sentinel surviving prompt composition."""
-        from benchmarks import generation
-
-        monkeypatch.setattr(generation, "actor_system_prompt", lambda *a, **k: "no goal here")
-
-        with pytest.raises(RuntimeError, match="no longer carries the goal"):
-            generation.ui_system_prompt()
-
-    def test_the_catalog_is_rendered_with_argument_schemas(self):
-        from benchmarks.generation import render_tool_catalog
-
-        text = render_tool_catalog()
-
-        assert "### read_file" in text
-        assert "### edit_file" in text
-        assert "input_schema" in text or "properties" in text
-
-    def test_a_prior_turn_is_written_in_the_answer_contract(self):
-        """Claude imitated a transcript notation instead of answering when the two
-        differed, so the previous turns are examples of the contract now."""
-        import json
-
-        from benchmarks.generation import DECISION_SCHEMA, as_chat_messages
-
-        messages = as_chat_messages(
-            [{"role": "assistant", "tool_calls": [{"id": "t1", "name": "read_file", "input": {"path": "a.json"}}]}]
-        )
-
-        decision = json.loads(messages[0]["content"])
-        assert set(decision) == set(DECISION_SCHEMA["required"])
-        assert decision["tool_calls"][0]["tool"] == "read_file"
-        assert json.loads(decision["tool_calls"][0]["arguments_json"]) == {"path": "a.json"}
-        assert decision["done"] is False
-
-    def test_a_prior_final_answer_is_marked_done(self):
-        import json
-
-        from benchmarks.generation import as_chat_messages
-
-        messages = as_chat_messages([{"role": "assistant", "text": "ferdig"}])
-
-        assert json.loads(messages[0]["content"])["done"] is True
-
-    def test_no_transcript_notation_leaks_into_a_turn(self):
-        """The notation is what the model copied; it must not appear at all."""
-        from benchmarks.dataset_sync import load_datasets, render_input
-
-        dataset = next(d for d in load_datasets() if d.kind == "generation")
-
-        for item in dataset.items:
-            for message in render_input(dataset, item)["chat_messages"]:
-                if message["role"] == "assistant":
-                    assert "[tool_call]" not in message["content"], item["id"]
-
-    def test_a_stubbed_result_becomes_readable_text(self):
-        from benchmarks.generation import as_chat_messages
-
-        messages = as_chat_messages([{"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "{}"}]}])
-
-        assert messages[0]["content"] == "[tool_result]: {}"
-
-    def test_an_error_result_is_marked_as_one(self):
-        from benchmarks.generation import as_chat_messages
-
-        messages = as_chat_messages(
-            [{"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "nope", "is_error": True}]}]
-        )
-
-        assert "[tool_result err]" in messages[0]["content"]
-
-    def test_every_message_has_a_role_and_content(self):
-        """A placeholder takes plain chat messages; anything else is dropped by the
-        provider without an error."""
-        from benchmarks.dataset_sync import load_datasets, render_input
-
-        dataset = next(d for d in load_datasets() if d.kind == "generation")
-
-        for item in dataset.items:
-            for message in render_input(dataset, item)["chat_messages"]:
-                assert set(message) == {"role", "content"}, item["id"]
-                assert message["role"] in {"user", "assistant"}
-                assert message["content"]
-
-
-class TestBothPathsScoreTheSame:
-    def test_a_ui_decision_maps_onto_the_sdk_output_shape(self):
-        from benchmarks.generation import tool_choice, ui_output_as_tool_calls
-
-        output = ui_output_as_tool_calls({"tool": "verify_changes", "arguments": {}, "done": False, "text": ""})
-
-        assert tool_choice(output=output, expected_output={"tool": "verify_changes"})[0].value == 1.0
-
-    def test_a_done_decision_has_no_tool_call(self):
-        from benchmarks.generation import stopped_cleanly, ui_output_as_tool_calls
-
-        output = ui_output_as_tool_calls({"tool": None, "arguments": {}, "done": True, "text": "ferdig"})
-
-        assert output["tool_calls"] == []
-        assert stopped_cleanly(output=output, expected_output={"stop": True})[0].value == 1.0
-
-    def test_a_ui_decision_is_checked_for_forbidden_tools_too(self):
-        from benchmarks.generation import forbidden_tools, ui_output_as_tool_calls
-
-        output = ui_output_as_tool_calls({"tool": "commit_session_branch", "arguments": {}, "done": False, "text": ""})
-
-        scores = forbidden_tools(output=output, expected_output={"forbidden_tools": ["commit_session_branch"]})
-
-        assert scores[0].value == 0.0
-
-
 class TestAllowedTools:
     """A turn usually has more than one defensible next step. Naming one tool
     scored both models as failing for choosing a reasonable alternative."""
@@ -522,7 +397,7 @@ class TestExpectedOutputMirrorsTheAnswer:
     def test_the_canonical_answer_satisfies_its_own_rule(self):
         """A canonical answer that its own rule would fail is a broken item."""
         from benchmarks.dataset_sync import load_datasets
-        from benchmarks.generation import ITEM_EVALUATORS, ui_output_as_tool_calls
+        from benchmarks.generation import ITEM_EVALUATORS
 
         datasets = [d for d in load_datasets() if d.kind == "generation"]
         assert datasets
@@ -533,7 +408,7 @@ class TestExpectedOutputMirrorsTheAnswer:
                     # A regression item fails its own rule by design; covered below.
                     continue
                 expected = item["expectedOutput"]
-                output = ui_output_as_tool_calls(expected)
+                output = _decision_output(expected)
                 for evaluator in ITEM_EVALUATORS:
                     for score in evaluator(output=output, expected_output=expected) or []:
                         want = "correct" if score.name == "gen_failure_mode" else 1.0
@@ -614,48 +489,6 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
         )
 
         assert calls == []
-
-
-class TestArgumentsTravelEncoded:
-    """`additionalProperties: false` permits no keys, so arguments travel encoded."""
-
-    def test_the_schema_declares_no_free_form_object(self):
-        from benchmarks.generation import DECISION_SCHEMA
-
-        for name, spec in DECISION_SCHEMA["properties"].items():
-            assert spec["type"] != "object", name
-
-    def test_every_property_is_required_as_strict_mode_demands(self):
-        from benchmarks.generation import DECISION_SCHEMA
-
-        assert set(DECISION_SCHEMA["required"]) == set(DECISION_SCHEMA["properties"])
-
-    def test_the_encoded_form_is_decoded(self):
-        from benchmarks.generation import decoded_arguments
-
-        assert decoded_arguments({"arguments_json": '{"path": "a.json"}'}) == {"path": "a.json"}
-
-    def test_a_run_from_before_the_change_still_decodes(self):
-        from benchmarks.generation import decoded_arguments
-
-        assert decoded_arguments({"arguments": {"path": "b.json"}}) == {"path": "b.json"}
-
-    def test_unparseable_arguments_do_not_crash_a_run(self):
-        from benchmarks.generation import decoded_arguments
-
-        assert decoded_arguments({"arguments_json": "not json"}) == {}
-        assert decoded_arguments({"arguments_json": '"a string"'}) == {}
-
-    def test_the_json_check_reads_content_out_of_the_encoded_form(self):
-        """gen_json_parses is the only scorer that needs the argument values, and
-        it is what new-layout-is-valid-json exists for."""
-        from benchmarks.generation import json_arguments_parse, ui_output_as_tool_calls
-
-        good = ui_output_as_tool_calls({"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1}"}'})
-        bad = ui_output_as_tool_calls({"tool": "write_file", "arguments_json": '{"content": "{\\"a\\": 1,}"}'})
-
-        assert json_arguments_parse(output=good)[0].value == 1.0
-        assert json_arguments_parse(output=bad)[0].value == 0.0
 
 
 class TestHarvestedItemsCarryTheirProvenance:
@@ -751,9 +584,9 @@ class TestRealTurnsCarrySeveralCalls:
         assert widest > 1
 
     def test_coverage_is_a_fraction_not_a_verdict(self):
-        from benchmarks.generation import required_tools, ui_output_as_tool_calls
+        from benchmarks.generation import required_tools
 
-        output = ui_output_as_tool_calls({"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}], "done": False})
+        output = _decision_output({"tool_calls": [{"tool": "edit_file", "arguments_json": "{}"}], "done": False})
 
         scores = required_tools(
             output=output,
@@ -765,9 +598,9 @@ class TestRealTurnsCarrySeveralCalls:
 
     def test_a_forbidden_call_anywhere_in_the_turn_is_caught(self):
         """It could be the fourth of five calls, not the first."""
-        from benchmarks.generation import forbidden_tools, ui_output_as_tool_calls
+        from benchmarks.generation import forbidden_tools
 
-        output = ui_output_as_tool_calls(
+        output = _decision_output(
             {
                 "tool_calls": [
                     {"tool": "read_file", "arguments_json": "{}"},
@@ -789,9 +622,9 @@ class TestFailureModeNamesTheProblem:
     """A boolean says a run is worse; a category says how."""
 
     def _mode(self, decision, rule):
-        from benchmarks.generation import failure_mode, ui_output_as_tool_calls
+        from benchmarks.generation import failure_mode
 
-        scores = failure_mode(output=ui_output_as_tool_calls(decision), expected_output={"rule": rule})
+        scores = failure_mode(output=_decision_output(decision), expected_output={"rule": rule})
         return scores[0].value
 
     def test_a_good_turn_is_correct(self):
@@ -978,10 +811,10 @@ _TIMESTAMP_RULE = {
 
 class TestContentPairings:
     def _score(self, calls, rule):
-        from benchmarks.generation import content_pairings, ui_output_as_tool_calls
+        from benchmarks.generation import content_pairings
 
         return content_pairings(
-            output=ui_output_as_tool_calls({"tool_calls": calls, "done": False}),
+            output=_decision_output({"tool_calls": calls, "done": False}),
             expected_output={"rule": rule},
         )
 
@@ -1058,13 +891,13 @@ class TestContentPairings:
 
     def test_the_source_run_scores_zero_on_its_own_regression_item(self):
         from benchmarks.dataset_sync import load_datasets
-        from benchmarks.generation import content_pairings, ui_output_as_tool_calls
+        from benchmarks.generation import content_pairings
 
         dataset = next(d for d in load_datasets() if d.name == "Loop/traces")
         item = next(i for i in dataset.items if i["id"] == "convert-writes-layouts-with-valid-datepickers")
         expected = item["expectedOutput"]
 
-        scores = content_pairings(output=ui_output_as_tool_calls(expected), expected_output=expected)
+        scores = content_pairings(output=_decision_output(expected), expected_output=expected)
 
         assert scores[0].value == 0.0
         assert scores[0].comment.startswith("0/2 Datepicker(s)")

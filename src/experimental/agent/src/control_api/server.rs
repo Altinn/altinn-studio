@@ -15,11 +15,11 @@ use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ENSURE, METHOD_SESSION_GET,
-    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams,
-    PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
-    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response,
-    read_message,
+    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
+    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
+    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -162,6 +162,17 @@ pub trait SessionApi {
         last: Option<usize>,
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
 
+    /// Requests release of one Session; see [`sessions::Service::delete`].
+    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>>;
+
+    /// Archives or unarchives one Session; see [`sessions::Service::set_archived`].
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
+
     /// Lists Sessions whose work or terminal attachment prevents an upgrade.
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
 }
@@ -209,6 +220,19 @@ impl SessionApi for sessions::Service {
         Box::pin(async move { Self::list(self, agent).await })
     }
 
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+        Box::pin(async move { Self::set_archived(self, agent, name, archived).await })
+    }
+
+    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { Self::delete(self, agent, name).await })
+    }
+
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>> {
         Box::pin(Self::upgrade_readiness(self))
     }
@@ -242,6 +266,18 @@ pub trait SshAccessApi {
 
 impl SshAccessApi for crate::ssh::Access {
     fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::ssh::AccessInfo, Error>> {
+        Box::pin(async move { Self::describe(self, name).await })
+    }
+}
+
+/// VNC access descriptors exposed through the local control API.
+pub trait VncAccessApi {
+    /// Describes the VNC access of a named Agent.
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::vnc::AccessInfo, Error>>;
+}
+
+impl VncAccessApi for crate::vnc::Access {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::vnc::AccessInfo, Error>> {
         Box::pin(async move { Self::describe(self, name).await })
     }
 }
@@ -327,6 +363,7 @@ pub struct Server {
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
+    vnc: Rc<dyn VncAccessApi>,
     changes: Changes,
     on_error: ErrorHandler,
     lifecycle: Lifecycle,
@@ -335,12 +372,17 @@ pub struct Server {
 impl Server {
     /// Creates an Agent Control API server.
     #[must_use]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "each API the server dispatches to is wired explicitly at the daemon boundary"
+    )]
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
+        vnc: Rc<dyn VncAccessApi>,
         changes: Changes,
         on_error: ErrorHandler,
     ) -> Self {
@@ -350,6 +392,7 @@ impl Server {
             executions,
             sessions,
             ssh,
+            vnc,
             changes,
             on_error,
             lifecycle: Lifecycle::default(),
@@ -456,12 +499,16 @@ impl Server {
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
+            METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
+            METHOD_SESSION_DELETE => self.handle_session_delete(request.id, request.params).await,
+            METHOD_SESSION_ARCHIVE => self.handle_session_archive(request.id, request.params, true).await,
+            METHOD_SESSION_UNARCHIVE => self.handle_session_archive(request.id, request.params, false).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -601,6 +648,14 @@ impl Server {
         result_response(id, resources.await)
     }
 
+    async fn handle_vnc_access(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.vnc.describe(&params.name).await)
+    }
+
     async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
@@ -678,6 +733,29 @@ impl Server {
         result_response(id, self.sessions.get(&params.agent, &params.name).await)
     }
 
+    async fn handle_session_delete(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.sessions
+                .delete(&params.agent, &params.name)
+                .await
+                .map(|()| serde_json::json!({})),
+        )
+    }
+
+    async fn handle_session_archive(&self, id: u64, value: Value, archived: bool) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.sessions.set_archived(&params.agent, &params.name, archived).await,
+        )
+    }
+
     async fn handle_session_list(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<SessionListParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
@@ -703,6 +781,9 @@ fn is_mutating(method: &str) -> bool {
             | METHOD_AUTH_LOGIN
             | METHOD_SESSION_ENSURE
             | METHOD_SESSION_PROMPT
+            | METHOD_SESSION_DELETE
+            | METHOD_SESSION_ARCHIVE
+            | METHOD_SESSION_UNARCHIVE
     )
 }
 

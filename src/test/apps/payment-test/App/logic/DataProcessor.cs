@@ -1,11 +1,7 @@
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Data;
 
 namespace Altinn.App.logic

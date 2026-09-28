@@ -26,7 +26,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         {
             services.AddSingleton(_authorizationClientMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.PartyTypesAllowed = new PartyTypesAllowed
                     {
@@ -104,7 +104,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.PromptForParty = "always";
                 })
@@ -164,7 +164,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     // No promptForParty set (default)
                     appMetadata.PromptForParty = null;
@@ -284,7 +284,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.PromptForParty = "never";
                 })
@@ -399,7 +399,7 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     appMetadata.PartyTypesAllowed = new PartyTypesAllowed
                     {

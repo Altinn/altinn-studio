@@ -267,6 +267,10 @@ struct FakeRuntime {
     fail_observe_once: Cell<bool>,
     attached: Cell<bool>,
     stop_calls: Cell<usize>,
+    fail_stop_once: Cell<bool>,
+    stops_failing: Cell<bool>,
+    /// Seconds since the harness's last terminal or transcript activity.
+    idle_seconds: Cell<u64>,
     fail_start: Cell<bool>,
     delivery_delay: Cell<Duration>,
     fail_transcript: Cell<bool>,
@@ -289,6 +293,9 @@ impl Default for FakeRuntime {
             fail_observe_once: Cell::new(false),
             attached: Cell::new(false),
             stop_calls: Cell::new(0),
+            fail_stop_once: Cell::new(false),
+            stops_failing: Cell::new(false),
+            idle_seconds: Cell::new(0),
             fail_start: Cell::new(false),
             delivery_delay: Cell::new(Duration::ZERO),
             fail_transcript: Cell::new(false),
@@ -334,7 +341,7 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         let observation = if self.present.get() {
             agent::sessions::Observation::Alive {
                 attached: self.attached.get(),
-                idle_seconds: 0,
+                idle_seconds: self.idle_seconds.get(),
             }
         } else {
             agent::sessions::Observation::Missing
@@ -373,6 +380,9 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         _sandbox: &'a SandboxHandle,
     ) -> LocalFuture<'a, Result<(), Error>> {
         self.stop_calls.set(self.stop_calls.get() + 1);
+        if self.fail_stop_once.replace(false) || self.stops_failing.get() {
+            return Box::pin(async { Err(Error::Session("injected stop failure".into())) });
+        }
         self.present.set(false);
         Box::pin(async { Ok(()) })
     }
@@ -1027,6 +1037,27 @@ async fn upgrade_preflight_reports_work_and_terminal_attachments() {
             .blockers,
         ["session/worker/s1 (working)"]
     );
+
+    harness
+        .database
+        .set_session_archived("worker", &harness.session.name, true)
+        .await
+        .expect("archive");
+    assert_eq!(
+        harness
+            .service
+            .upgrade_readiness()
+            .await
+            .expect("archiving blockers")
+            .blockers,
+        ["session/worker/s1 (working)"],
+        "an archive waiting for the turn does not let an upgrade cut it short"
+    );
+    harness
+        .database
+        .set_session_archived("worker", &harness.session.name, false)
+        .await
+        .expect("unarchive");
 
     harness.report(agent::sessions::ActivityEvent::TurnCompleted).await;
     assert!(
@@ -2379,8 +2410,8 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
     assert!(commands.iter().any(|spec| matches!(
         spec.program(),
         Program::Command { executable, args }
-            if executable.as_str() == "/usr/bin/tmux"
-                && args.first().is_some_and(|argument| argument == "kill-session")
+            if executable.as_str() == "/bin/sh"
+                && args.iter().any(|argument| argument.contains("/usr/bin/tmux kill-session"))
     )));
     assert!(commands.iter().any(|spec| {
         matches!(
@@ -2666,5 +2697,549 @@ async fn queued_deliveries_do_not_expire_and_remain_serialized() {
     first.await.expect("task").expect("first delivery");
     second.await.expect("task").expect("second delivery");
     assert_eq!(harness.runtime.sent.borrow().as_slice(), ["first", "second"]);
+    harness.finish();
+}
+
+/// A Session marked for deletion is released by the Session controller: the
+/// harness is stopped first, and only a successful stop removes the Session.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_stops_its_harness_before_the_session_is_removed() {
+    const TOKEN: &str = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    database
+        .mark_session_deleting("worker", &name)
+        .await
+        .expect("mark deleting");
+
+    runtime.fail_stop_once.set(true);
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect_err("a harness that cannot be stopped fails the release");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("the Session survives a failed release")
+            .is_deleting(),
+        "the request survives so a later pass retries it"
+    );
+
+    reconciler.reconcile(session.id).await.expect("release");
+    assert_eq!(runtime.stop_calls.get(), 2);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    assert!(database.list_all_sessions().await.expect("sessions").is_empty());
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("reconciling a removed Session is a no-op");
+    assert_eq!(runtime.stop_calls.get(), 2);
+}
+
+/// Nothing is left to stop when the Sandbox that held the harness is gone, so
+/// the Session is removed without touching a Sandbox.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_whose_sandbox_is_gone_still_removes_it() {
+    const TOKEN: &str = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let owner = database.get(session.agent_id).await.expect("Agent record");
+    database
+        .update_status(session.agent_id, owner.agent.metadata.generation, Status::default())
+        .await
+        .expect("Agent without a materialized Sandbox");
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+
+    database
+        .mark_session_deleting("worker", &SessionName::new("s1").expect("name"))
+        .await
+        .expect("mark deleting");
+    reconciler.reconcile(session.id).await.expect("release");
+
+    assert_eq!(runtime.stop_calls.get(), 0);
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+}
+
+/// `delete` hides the Session immediately and returns once the controller has
+/// released it, and the operations that address a Session by name stop finding it.
+#[tokio::test(flavor = "local")]
+async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once() {
+    const TOKEN: &str = "abababab-abab-4bab-8bab-abababababab";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes));
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            sandboxes.clone(),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(
+        session_store.clone(),
+        sandboxes,
+        runtime.clone(),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        session_wakeup,
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    assert_eq!(service.list(None).await.expect("sessions").len(), 1);
+    service.delete("worker", &name).await.expect("delete Session");
+
+    assert_eq!(runtime.stop_calls.get(), 1, "the harness is stopped, not left running");
+    assert!(matches!(service.get("worker", &name).await, Err(Error::NotFound)));
+    assert!(service.list(None).await.expect("sessions").is_empty());
+    assert!(matches!(
+        service.turns("worker", &name, None).await,
+        Err(Error::NotFound)
+    ));
+    assert!(matches!(database.get_session(session.id).await, Err(Error::NotFound)));
+    assert!(matches!(service.delete("worker", &name).await, Err(Error::NotFound)));
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+/// A delete whose harness cannot be stopped yet reports that it is still
+/// pending, rather than looking like it was refused.
+#[tokio::test(flavor = "local")]
+async fn a_delete_that_cannot_stop_the_harness_yet_reports_that_it_is_pending() {
+    const TOKEN: &str = "bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.stops_failing.set(true);
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes));
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            sandboxes.clone(),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, _| {}),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(
+        session_store.clone(),
+        sandboxes,
+        runtime.clone(),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        session_wakeup,
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    let pending = service.delete("worker", &name).await.expect_err("the stop failed");
+    assert!(
+        pending
+            .to_string()
+            .contains("is marked for deletion and will be retried"),
+        "{pending}"
+    );
+    assert!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("still marked")
+            .is_deleting()
+    );
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+async fn turn_completed(database: &persistence::Database, session: &agent::sessions::Session, token: &str) {
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token.parse().expect("launch token"),
+            uuid::Uuid::new_v4(),
+            agent::sessions::ActivityEvent::WaitingForInput,
+            time::OffsetDateTime::now_utc(),
+        )
+        .await
+        .expect("turn completed");
+}
+
+/// Archiving waits for the turn in progress, then stops the harness and keeps
+/// it stopped; unarchiving leaves it stopped until the next attach.
+#[tokio::test(flavor = "local")]
+async fn archiving_waits_for_the_turn_and_keeps_the_harness_stopped_until_attached() {
+    const TOKEN: &str = "acacacac-acac-4cac-8cac-acacacacacac";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let name = SessionName::new("s1").expect("name");
+    let state = || async { database.get_session(session.id).await.expect("Session").status.state };
+
+    assert_eq!(state().await, agent::sessions::State::Working);
+    database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive");
+    reconciler.reconcile(session.id).await.expect("archive pass");
+    assert_eq!(runtime.stop_calls.get(), 0, "a turn in progress is not cut short");
+    assert_eq!(
+        state().await,
+        agent::sessions::State::Archiving,
+        "archived, with its harness still finishing the turn"
+    );
+
+    turn_completed(&database, &session, TOKEN).await;
+    reconciler.reconcile(session.id).await.expect("archive pass");
+    assert_eq!(runtime.stop_calls.get(), 1, "the harness stops once the turn has ended");
+    assert_eq!(state().await, agent::sessions::State::Archived);
+    reconciler.reconcile(session.id).await.expect("periodic pass");
+    assert_eq!(runtime.stop_calls.get(), 1, "an archived Session is left alone");
+
+    database
+        .set_session_archived("worker", &name, false)
+        .await
+        .expect("unarchive");
+    assert_eq!(
+        state().await,
+        agent::sessions::State::Idle,
+        "Idle at once, before the reconciler settles its lifecycle"
+    );
+    reconciler.reconcile(session.id).await.expect("unarchive pass");
+    assert_eq!(state().await, agent::sessions::State::Idle);
+    assert!(runtime.launches.borrow().is_empty(), "unarchiving launches nothing");
+
+    runtime.ready_without_report.set(true);
+    database.activate_session(session.id).await.expect("attach");
+    reconciler.reconcile(session.id).await.expect("attach pass");
+    assert_eq!(
+        runtime.launches.borrow().as_slice(),
+        [(Some("native-0".to_owned()), None)],
+        "the first attach after unarchiving resumes the conversation"
+    );
+}
+
+/// An archive whose harness could not be stopped stays archived, so
+/// unarchiving it never falls through to relaunching the harness.
+#[tokio::test(flavor = "local")]
+async fn unarchiving_after_a_failed_archive_does_not_relaunch_the_harness() {
+    const TOKEN: &str = "adadadad-adad-4dad-8dad-adadadadadad";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    turn_completed(&database, &session, TOKEN).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let name = SessionName::new("s1").expect("name");
+
+    database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive");
+    runtime.fail_stop_once.set(true);
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect_err("a harness that cannot be stopped fails the pass");
+    let failed = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        failed.status.state,
+        agent::sessions::State::Archiving,
+        "archived, with a harness that may still run"
+    );
+    assert!(failed.status.lifecycle.failure.is_some());
+
+    database
+        .set_session_archived("worker", &name, false)
+        .await
+        .expect("unarchive");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::WaitingForInput,
+        "until the pass, the harness the failed stop left running reports for itself, not Idle"
+    );
+    reconciler.reconcile(session.id).await.expect("unarchive pass");
+    let adopted = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        adopted.status.lifecycle.state,
+        agent::sessions::LifecycleState::Running,
+        "a harness the failed stop left running is adopted"
+    );
+    assert!(runtime.launches.borrow().is_empty());
+
+    database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive again");
+    runtime.fail_stop_once.set(true);
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect_err("the stop fails again");
+    runtime.present.set(false);
+    database
+        .set_session_archived("worker", &name, false)
+        .await
+        .expect("unarchive again");
+    reconciler.reconcile(session.id).await.expect("unarchive pass");
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Idle,
+        "with the harness gone, the Session is Idle"
+    );
+    assert!(runtime.launches.borrow().is_empty());
+}
+
+/// A Session that only looks mid-turn is archived at once: its harness has
+/// exited, or it has been quiet too long to be working.
+#[tokio::test(flavor = "local")]
+async fn archiving_does_not_wait_for_a_turn_that_is_not_happening() {
+    const TOKEN: &str = "afafafaf-afaf-4faf-8faf-afafafafafaf";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    let name = SessionName::new("s1").expect("name");
+    let state = || async { database.get_session(session.id).await.expect("Session").status.state };
+    // Working, as a never-prompted Claude Code Session reads after its start report.
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &TOKEN.parse().expect("launch token"),
+            uuid::Uuid::new_v4(),
+            agent::sessions::ActivityEvent::TurnStarted,
+            time::OffsetDateTime::now_utc() - time::Duration::hours(1),
+        )
+        .await
+        .expect("an old report");
+    assert_eq!(state().await, agent::sessions::State::Working);
+
+    runtime.idle_seconds.set(3_600);
+    database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive");
+    reconciler.reconcile(session.id).await.expect("archive pass");
+    assert_eq!(runtime.stop_calls.get(), 1, "a quiet harness is not mid-turn");
+    assert_eq!(state().await, agent::sessions::State::Archived);
+}
+
+/// Through the service, an archived Session cannot be attached until it is
+/// unarchived, and the first attach after that works.
+#[tokio::test(flavor = "local")]
+async fn an_archived_session_is_attached_again_only_after_unarchiving() {
+    const TOKEN: &str = "aeaeaeae-aeae-4eae-8eae-aeaeaeaeaeae";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    turn_completed(&database, &session, TOKEN).await;
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    let runtime = Rc::new(FakeRuntime::default());
+    let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+        agent_store.clone(),
+        Rc::new(NoopAgentReconcile),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
+    );
+    let sandboxes = Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes));
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            sandboxes.clone(),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
+    );
+    let agent_task = tokio::task::spawn_local(agent_controller.run());
+    let session_task = tokio::task::spawn_local(session_controller.run());
+    let service = agent::sessions::Service::new(
+        session_store.clone(),
+        sandboxes,
+        runtime.clone(),
+        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        session_wakeup,
+    );
+    let name = SessionName::new("s1").expect("name");
+    let attach = || {
+        service.ensure(
+            "worker",
+            &name,
+            agent::sessions::SessionRequest::default(),
+            WaitPolicy::FirstPass,
+        )
+    };
+
+    let archived = service.set_archived("worker", &name, true).await.expect("archive");
+    assert_eq!(archived.status.state, agent::sessions::State::Archived);
+    let refused = attach().await.expect_err("archived Sessions are not attached");
+    assert!(refused.to_string().contains("is archived"), "{refused}");
+    service
+        .set_archived("worker", &name, true)
+        .await
+        .expect("archiving again is safe");
+
+    let unarchived = service.set_archived("worker", &name, false).await.expect("unarchive");
+    assert_eq!(unarchived.status.state, agent::sessions::State::Idle);
+    runtime.ready_without_report.set(true);
+    attach().await.expect("the first attach after unarchiving works");
+
+    agent_task.abort();
+    session_task.abort();
+}
+
+/// A failed archive pass records the Session as archived, but a retry still
+/// waits for the harness's turn rather than reading that as the turn's end.
+#[tokio::test(flavor = "local")]
+async fn a_retried_archive_pass_still_waits_for_the_turn() {
+    const TOKEN: &str = "a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+    database
+        .set_session_archived("worker", &SessionName::new("s1").expect("name"), true)
+        .await
+        .expect("archive");
+    runtime.fail_observe_once.set(true);
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect_err("a failed observation fails the pass");
+
+    reconciler.reconcile(session.id).await.expect("retry");
+    assert_eq!(runtime.stop_calls.get(), 0, "the turn in progress is not cut short");
+    turn_completed(&database, &session, TOKEN).await;
+    reconciler.reconcile(session.id).await.expect("retry after the turn");
+    assert_eq!(runtime.stop_calls.get(), 1);
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Archived
+    );
+}
+
+/// A prompt waiting for its turn keeps waiting while an archive has not yet
+/// stopped the harness, and completes with the turn.
+#[tokio::test(flavor = "local")]
+async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
+    let directory = TempDir::new().expect("directory");
+    let harness = ServiceHarness::start(&directory, "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2").await;
+    let service = harness.service.clone();
+    let name = harness.session.name.clone();
+    let mut waiting = tokio::task::spawn_local(async move {
+        service
+            .prompt("worker", &name, "go", true, Some(Duration::from_secs(5)))
+            .await
+    });
+    harness.await_delivery(&mut waiting).await;
+    harness
+        .database
+        .set_session_archived("worker", &harness.session.name, true)
+        .await
+        .expect("archive");
+    harness
+        .database
+        .update_session_lifecycle(
+            harness.session.id,
+            agent::sessions::Lifecycle::archived_with("injected stop failure"),
+            0,
+        )
+        .await
+        .expect("a failed archive pass");
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    assert!(!waiting.is_finished(), "the turn is still running");
+
+    harness
+        .database
+        .apply_session_activity_for_launch(
+            harness.session.id,
+            &harness.token,
+            uuid::Uuid::new_v4(),
+            agent::sessions::ActivityEvent::TurnCompleted,
+            time::OffsetDateTime::now_utc(),
+        )
+        .await
+        .expect("turn completed");
+    waiting.await.expect("task").expect("the wait ends with the turn");
     harness.finish();
 }

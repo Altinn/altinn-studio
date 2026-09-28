@@ -220,7 +220,7 @@ internal sealed class EFormidlingClient : IEFormidlingClient
         var request = new HttpRequestMessage(method, requestUri) { Content = content };
         request.Headers.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         string platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
             applicationMetadata.Org,
             applicationMetadata.AppIdentifier.App

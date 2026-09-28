@@ -629,7 +629,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        3
+        5
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -734,7 +734,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -791,7 +791,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 3);
+    assert_eq!(schema_snapshot(&path).0, 5);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
@@ -832,7 +832,7 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 3);
+    assert_eq!(after.0, 5);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()
@@ -1311,6 +1311,94 @@ async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
 }
 
 #[test]
+fn a_deleted_session_is_marked_before_it_is_removed_and_frees_its_name() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let name = SessionName::new("s1").expect("session name");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+
+        let marked = store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert_eq!(marked.id, created.id);
+        let timestamp = marked.deletion_timestamp.expect("deletion timestamp");
+        assert_eq!(
+            store
+                .mark_session_deleting("worker", &name)
+                .await
+                .expect("repeated deletion is safe")
+                .deletion_timestamp,
+            Some(timestamp),
+            "the first request owns the deletion timestamp"
+        );
+
+        // Reconciliation still sees the Session it has to release, so a daemon
+        // restart between the request and the release cannot strand a harness.
+        assert!(
+            store
+                .get_session(created.id)
+                .await
+                .expect("marked Session")
+                .is_deleting()
+        );
+        assert!(
+            store
+                .list_all_sessions()
+                .await
+                .expect("sessions")
+                .iter()
+                .any(|session| session.id == created.id)
+        );
+        // The name stays taken until the harness is gone.
+        let reused = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect_err("the name is still taken");
+        assert!(reused.to_string().contains("is being deleted"), "{reused}");
+
+        store
+            .finalize_session_deletion(created.id)
+            .await
+            .expect("finalize deletion");
+        assert!(matches!(store.get_session(created.id).await, Err(Error::NotFound)));
+        assert!(matches!(
+            store.finalize_session_deletion(created.id).await,
+            Err(Error::Conflict)
+        ));
+        assert!(matches!(
+            store.mark_session_deleting("worker", &name).await,
+            Err(Error::NotFound)
+        ));
+
+        let replacement = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("the freed name is available again");
+        assert_ne!(replacement.id, created.id);
+    });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get::<_, i64>(0))
+            .expect("session count"),
+        1,
+        "the released Session leaves no row behind"
+    );
+}
+
+#[test]
 fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
     use agent::ssh::HostKeyStore as _;
 
@@ -1346,5 +1434,61 @@ fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
         store.delete_host_key(id).await.expect("delete");
         store.delete_host_key(id).await.expect("deleting twice is fine");
         assert!(store.load_host_key(id).await.expect("load").is_none());
+    });
+}
+
+#[test]
+fn archiving_a_session_is_recorded_once_and_survives_reopening() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    let name = SessionName::new("s1").expect("session name");
+    let (id, archived_at) = LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+        assert!(!created.is_archived());
+
+        let archived = store
+            .set_session_archived("worker", &name, true)
+            .await
+            .expect("archive");
+        let archived_at = archived.archived_at.expect("archive time");
+        assert_eq!(
+            store
+                .set_session_archived("worker", &name, true)
+                .await
+                .expect("archiving again is safe")
+                .archived_at,
+            Some(archived_at),
+            "the first request owns the archive time"
+        );
+        (created.id, archived_at)
+    });
+    drop(store);
+
+    let store = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let session = store.get_session(id).await.expect("archived Session");
+        assert_eq!(session.archived_at, Some(archived_at));
+        let unarchived = store
+            .set_session_archived("worker", &name, false)
+            .await
+            .expect("unarchive");
+        assert!(!unarchived.is_archived());
+
+        store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert!(matches!(
+            store.set_session_archived("worker", &name, true).await,
+            Err(Error::NotFound)
+        ));
     });
 }

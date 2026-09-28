@@ -13,7 +13,7 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    resources::Resources, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
+    resources::Resources, sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -57,6 +57,10 @@ enum Input {
         turns: Result<Vec<Turn>, String>,
     },
     PromptSent(PromptForm, Result<(), String>),
+    /// A background Session change failed; its success shows through the watch.
+    SessionChangeFailed(String),
+    /// A Session was archived or unarchived, as recorded.
+    ArchiveChanged(Session),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
@@ -160,6 +164,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.set_forwards(forwards.entries());
         follow.sync(app.followed_agent(), home.socket_path(), &inputs);
         app.side_panel = view::shows_side_panel(tui.width());
+        app.expire_notice(Instant::now());
         if let Some((agent, session)) = app.transcript_request() {
             spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
         }
@@ -194,6 +199,14 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 if let Err(error) = result {
                     app.prompt_failed(form, error);
                 }
+                continue;
+            }
+            Input::SessionChangeFailed(error) => {
+                app.error = Some(error);
+                continue;
+            }
+            Input::ArchiveChanged(session) => {
+                app.archive_changed(session, Instant::now());
                 continue;
             }
             Input::ForwardCreated(outcome) => {
@@ -258,6 +271,14 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.creating += 1;
                 spawn_create(home, inputs.clone(), agent, spec, replace);
             }
+            Action::DeleteSession { agent, session } => {
+                spawn_session_delete(home.socket_path(), inputs.clone(), agent, session);
+            }
+            Action::SetArchived {
+                agent,
+                session,
+                archived,
+            } => spawn_session_archive(home.socket_path(), inputs.clone(), agent, session, archived),
             Action::DeleteForward { id } => forwards.remove(id),
             Action::Prompt(form) => {
                 app.prompting += 1;
@@ -405,6 +426,31 @@ fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
             .await
             .map_err(|error| error.to_string());
         let _ = inputs.send(Input::PromptSent(form, result));
+    });
+}
+
+/// Deletes a Session off the event loop: the call returns only once its harness
+/// is stopped, and the watch removes the row.
+fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
+    tokio::task::spawn_local(async move {
+        if let Err(error) = Client::for_path(socket_path).delete_session(&agent, session).await {
+            let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
+        }
+    });
+}
+
+/// Archives or unarchives a Session off the event loop, which stopping its harness would block.
+fn spawn_session_archive(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName, archived: bool) {
+    tokio::task::spawn_local(async move {
+        let _ = inputs.send(
+            match Client::for_path(socket_path)
+                .set_session_archived(&agent, session, archived)
+                .await
+            {
+                Ok(session) => Input::ArchiveChanged(session),
+                Err(error) => Input::SessionChangeFailed(error.to_string()),
+            },
+        );
     });
 }
 

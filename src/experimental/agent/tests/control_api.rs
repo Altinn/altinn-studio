@@ -6,7 +6,9 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use agent::{
     Error,
-    control_api::{AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi},
+    control_api::{
+        AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
+    },
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
@@ -24,6 +26,7 @@ struct IgnoreNotifications;
 
 struct FakeAuthentication;
 struct FakeSshAccess;
+struct FakeVncAccess;
 
 impl SshAccessApi for FakeSshAccess {
     fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::ssh::AccessInfo, Error>> {
@@ -45,6 +48,24 @@ impl SshAccessApi for FakeSshAccess {
         })
     }
 }
+
+impl VncAccessApi for FakeVncAccess {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::vnc::AccessInfo, Error>> {
+        Box::pin(async move {
+            if name != "worker" {
+                return Err(Error::NotFound);
+            }
+            Ok(agent::vnc::AccessInfo {
+                kind: "vnc".into(),
+                agent: name.into(),
+                agent_id: "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID"),
+                guest_port: 5900,
+                web_guest_port: Some(6080),
+                forward_command: "/usr/local/bin/agentctl port-forward agent/worker :5900".into(),
+            })
+        })
+    }
+}
 struct FakeExecutions;
 /// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
 type SentMessage = (String, bool, Option<std::time::Duration>);
@@ -60,6 +81,8 @@ struct UpgradeGates {
 struct FakeSessions {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
+    archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -173,6 +196,47 @@ impl SessionApi for FakeSessions {
         })
     }
 
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<agent::sessions::Session, Error>> {
+        self.archived
+            .borrow_mut()
+            .push((agent.to_owned(), name.clone(), archived));
+        Box::pin(async move {
+            if agent != "worker" {
+                return Err(Error::NotFound);
+            }
+            let session = serde_json::json!({
+                "id": "00000000-0000-4000-8000-000000000001",
+                "agentId": "00000000-0000-4000-8000-000000000002",
+                "agent": agent,
+                "name": name,
+                "harness": "claudeCode",
+                "createdAt": "2026-09-25T00:00:00Z",
+                "archivedAt": archived.then_some("2026-09-25T00:00:01Z"),
+            });
+            Ok(serde_json::from_value(session).expect("archived Session"))
+        })
+    }
+
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a agent::sessions::SessionName,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.deleted.borrow_mut().push((agent.to_owned(), name.clone()));
+        Box::pin(async move {
+            if agent == "worker" {
+                Ok(())
+            } else {
+                Err(Error::NotFound)
+            }
+        })
+    }
+
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<agent::sessions::UpgradeReadiness, Error>> {
         let blockers = self.upgrade_blockers.borrow().clone();
         let warnings = self.upgrade_warnings.borrow().clone();
@@ -226,6 +290,8 @@ struct ApiFixture {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     changes: Changes,
+    deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
+    archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
     upgrade_warnings: Rc<RefCell<Vec<String>>>,
     upgrade_gates: Rc<UpgradeGates>,
@@ -267,6 +333,8 @@ fn api() -> ApiFixture {
     ));
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
+    let deleted = Rc::new(RefCell::new(Vec::new()));
+    let archived = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
     let changes = Changes::new();
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
@@ -279,11 +347,14 @@ fn api() -> ApiFixture {
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
+            deleted: deleted.clone(),
+            archived: archived.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
             upgrade_warnings: upgrade_warnings.clone(),
             upgrade_gates: upgrade_gates.clone(),
         }),
         Rc::new(FakeSshAccess),
+        Rc::new(FakeVncAccess),
         changes.clone(),
         Rc::new(move |error| observed_errors.borrow_mut().push(error.to_string())),
     ));
@@ -294,6 +365,8 @@ fn api() -> ApiFixture {
         ensured,
         sent,
         changes,
+        deleted,
+        archived,
         upgrade_blockers,
         upgrade_warnings,
         upgrade_gates,
@@ -385,6 +458,68 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
     let missing = fixture
         .client
         .prompt_session("ghost", name, "hello".into(), false, None)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_archive_and_unarchive_round_trip_and_report_a_missing_session() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    let archived = fixture
+        .client
+        .set_session_archived("worker", name.clone(), true)
+        .await
+        .expect("archive Session");
+    assert!(archived.is_archived());
+    let unarchived = fixture
+        .client
+        .set_session_archived("worker", name.clone(), false)
+        .await
+        .expect("unarchive Session");
+    assert!(!unarchived.is_archived());
+    assert_eq!(
+        fixture.archived.borrow().as_slice(),
+        [
+            ("worker".to_owned(), name.clone(), true),
+            ("worker".to_owned(), name.clone(), false)
+        ]
+    );
+
+    let missing = fixture
+        .client
+        .set_session_archived("ghost", name, true)
+        .await
+        .expect_err("unknown Agent");
+    match missing {
+        Error::Rpc(error) => assert_eq!(error.code, -32004),
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn session_deletion_round_trips_and_reports_a_missing_session() {
+    let fixture = api();
+    let name = agent::sessions::SessionName::new("s1").expect("name");
+
+    fixture
+        .client
+        .delete_session("worker", name.clone())
+        .await
+        .expect("delete Session");
+    assert_eq!(
+        fixture.deleted.borrow().as_slice(),
+        [("worker".to_owned(), name.clone())]
+    );
+
+    let missing = fixture
+        .client
+        .delete_session("ghost", name)
         .await
         .expect_err("unknown Agent");
     match missing {

@@ -108,7 +108,7 @@ internal sealed class RegisterClient : IRegisterClient
             authenticationMethod ?? _defaultAuthenticationMethod,
             cancellationToken
         );
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         var platformAccessToken = _accessTokenGenerator.GenerateAccessToken(
             application.Org,
             application.AppIdentifier.App

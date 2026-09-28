@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;

@@ -361,7 +361,7 @@ public partial class DataTagsController : ControllerBase
             };
         }
 
-        var applicationMetadata = await _applicationMetadata.GetApplicationMetadata();
+        var applicationMetadata = _applicationMetadata.ApplicationMetadata;
         var dataType = applicationMetadata.DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
         if (dataType is null)
         {

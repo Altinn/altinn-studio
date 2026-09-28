@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 3;
+pub(crate) const VERSION: u32 = 5;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -64,6 +64,14 @@ const SESSION_SELECTION_COLUMNS_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN effort TEXT;
 ";
 
+const SESSION_DELETION_COLUMN_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN deletion_timestamp INTEGER;
+";
+
+const SESSION_ARCHIVE_COLUMN_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN archived_at INTEGER;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -89,6 +97,18 @@ const MIGRATIONS: &[Migration] = &[
         name: "session model and effort",
         schema: &[SESSION_SELECTION_COLUMNS_SQL],
         apply: add_session_selections,
+    },
+    Migration {
+        version: 4,
+        name: "session deletion",
+        schema: &[SESSION_DELETION_COLUMN_SQL],
+        apply: add_session_deletion,
+    },
+    Migration {
+        version: 5,
+        name: "session archive",
+        schema: &[SESSION_ARCHIVE_COLUMN_SQL],
+        apply: add_session_archive,
     },
 ];
 
@@ -191,6 +211,28 @@ fn add_session_selections(transaction: &Transaction<'_>) -> Result<(), Error> {
             .map_err(database_error)?;
     }
     Ok(())
+}
+
+/// Adds the marker that requests a Session's release. Sessions from earlier
+/// schemas were never deletable, so every existing row starts unmarked.
+fn add_session_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 4)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_DELETION_COLUMN_SQL)
+        .map_err(database_error)
+}
+
+/// Adds the request to archive a Session. Sessions from earlier schemas were
+/// never archived, so every existing row starts active.
+fn add_session_archive(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 5)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_ARCHIVE_COLUMN_SQL)
+        .map_err(database_error)
 }
 
 fn migrate_agent_instructions(transaction: &Transaction<'_>) -> Result<(), Error> {
