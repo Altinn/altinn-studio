@@ -17,6 +17,7 @@ pub struct Reconciler {
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
     ssh: Option<Rc<crate::ssh::Access>>,
+    vnc: Option<Rc<crate::vnc::Access>>,
     provisioning: ProvisioningState,
 }
 
@@ -33,6 +34,7 @@ impl Reconciler {
             sandboxes,
             sessions: None,
             ssh: None,
+            vnc: None,
             provisioning,
         }
     }
@@ -41,6 +43,13 @@ impl Reconciler {
     #[must_use]
     pub fn with_ssh_access(mut self, ssh: Rc<crate::ssh::Access>) -> Self {
         self.ssh = Some(ssh);
+        self
+    }
+
+    /// Reconciles declared VNC access after the Sandbox is set up.
+    #[must_use]
+    pub fn with_vnc_access(mut self, vnc: Rc<crate::vnc::Access>) -> Self {
+        self.vnc = Some(vnc);
         self
     }
 
@@ -145,7 +154,7 @@ impl Reconciler {
             "SandboxRunning",
             "",
         )];
-        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
+        self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
@@ -158,9 +167,8 @@ impl Reconciler {
         Ok(())
     }
 
-    /// Reconciles declared SSH access and appends its condition. A failure is
-    /// recorded as the Agent's `Ready=False` before it is returned.
-    async fn reconcile_ssh(
+    /// Reconciles every access capability the platform offers, in order.
+    async fn reconcile_declared_access(
         &self,
         record: &AgentRecord,
         sandbox: &::sandbox::SandboxHandle,
@@ -168,32 +176,48 @@ impl Reconciler {
         conditions: &mut Vec<Condition>,
         observer: &SandboxObserver,
     ) -> Result<(), Error> {
-        let Some(ssh) = &self.ssh else {
-            return Ok(());
-        };
-        let phase = if record.agent.spec.ssh_access() {
-            Some(observer.reporter().start_phase(crate::progress::SSH_ACCESS).await)
+        if let Some(ssh) = &self.ssh {
+            let pass = ssh.reconcile(record, sandbox);
+            self.reconcile_access(SSH, pass, record, assignment, conditions, observer)
+                .await?;
+        }
+        if let Some(vnc) = &self.vnc {
+            let pass = vnc.reconcile(record, sandbox);
+            self.reconcile_access(VNC, pass, record, assignment, conditions, observer)
+                .await?;
+        }
+        Ok(())
+    }
+
+    /// Runs one access capability's pass and appends its condition. A failure
+    /// is recorded as the Agent's `Ready=False` before it is returned.
+    async fn reconcile_access(
+        &self,
+        kind: AccessKind,
+        pass: impl Future<Output = Result<bool, Error>>,
+        record: &AgentRecord,
+        assignment: &crate::sandbox::Assignment,
+        conditions: &mut Vec<Condition>,
+        observer: &SandboxObserver,
+    ) -> Result<(), Error> {
+        let phase = if (kind.declared)(&record.agent.spec) {
+            Some(observer.reporter().start_phase(kind.phase).await)
         } else {
             None
         };
-        match ssh.reconcile(record, sandbox).await {
+        match pass.await {
             Ok(true) => {
                 if let Some(phase) = phase {
                     phase.complete().await;
                 }
-                conditions.push(condition(
-                    Condition::SSH_READY,
-                    ConditionStatus::True,
-                    "ServerRunning",
-                    "",
-                ));
+                conditions.push(condition(kind.condition, ConditionStatus::True, kind.ready_reason, ""));
                 Ok(())
             }
             Ok(false) => Ok(()),
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 conditions.push(condition(
-                    Condition::SSH_READY,
+                    kind.condition,
                     ConditionStatus::False,
                     "ReconcileFailed",
                     &failure.message,
@@ -201,7 +225,7 @@ impl Reconciler {
                 conditions.push(condition(
                     Condition::READY,
                     ConditionStatus::False,
-                    "SshAccessFailed",
+                    kind.failed_reason,
                     &failure.message,
                 ));
                 let status = Status::observed(
@@ -221,6 +245,9 @@ impl Reconciler {
         self.sandboxes.release(record).await?;
         if let Some(ssh) = &self.ssh {
             ssh.remove(record).await?;
+        }
+        if let Some(vnc) = &self.vnc {
+            vnc.forget(record.id);
         }
         self.notify_sessions(record.id);
         self.store
@@ -297,6 +324,31 @@ impl crate::controller::Reconcile<crate::AgentId> for Reconciler {
         Box::pin(async move { Self::reconcile(self, id).await })
     }
 }
+
+/// How one access capability reports its pass in progress and conditions.
+struct AccessKind {
+    declared: fn(&crate::Spec) -> bool,
+    phase: ::sandbox::Phase,
+    condition: &'static str,
+    ready_reason: &'static str,
+    failed_reason: &'static str,
+}
+
+const SSH: AccessKind = AccessKind {
+    declared: crate::Spec::ssh_access,
+    phase: crate::progress::SSH_ACCESS,
+    condition: Condition::SSH_READY,
+    ready_reason: "ServerRunning",
+    failed_reason: "SshAccessFailed",
+};
+
+const VNC: AccessKind = AccessKind {
+    declared: crate::Spec::vnc_access,
+    phase: crate::progress::VNC_ACCESS,
+    condition: Condition::VNC_READY,
+    ready_reason: "BridgeListening",
+    failed_reason: "VncAccessFailed",
+};
 
 fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -> Condition {
     Condition {

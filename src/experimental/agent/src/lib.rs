@@ -19,6 +19,7 @@ pub mod sandbox;
 pub mod sessions;
 pub mod ssh;
 pub mod upgrade;
+pub mod vnc;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};

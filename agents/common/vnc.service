@@ -1,0 +1,17 @@
+[Unit]
+Description=VNC access proxy to the Agent desktop
+Documentation=https://github.com/Altinn/altinn-studio/tree/main/agents
+Requires=agent-vnc.socket
+After=agent-vnc.socket
+# Stopping the listener stops the proxy with it, so withdrawing access leaves nothing behind.
+PartOf=agent-vnc.socket
+
+[Service]
+EnvironmentFile=/etc/agent-desktop.conf
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd ${AGENT_DESKTOP_SOCKET}
+User=agent
+Group=agent
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+NoNewPrivileges=yes
