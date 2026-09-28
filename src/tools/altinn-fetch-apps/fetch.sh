@@ -41,12 +41,12 @@ function get_release() {
   local REPO
 
   if download_file_if_old "$CACHE_PROD" "$URL_PROD" "releases for $ORG/$APP"; then
-    FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_PROD" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+    FOUND=$(jq -r --arg version "$VERSION" 'first(.results[] | select(.tagName == $version) | .targetCommitish) // empty' "$CACHE_PROD") || true
   fi
   REPO="https://altinn.studio/repos/$ORG/$APP.git"
   if test -z "$FOUND"; then
     if download_file_if_old "$CACHE_DEV" "$URL_DEV" "releases for $ORG/$APP (in dev)"; then
-      FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_DEV" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+      FOUND=$(jq -r --arg version "$VERSION" 'first(.results[] | select(.tagName == $version) | .targetCommitish) // empty' "$CACHE_DEV") || true
     fi
     REPO="https://dev.altinn.studio/repos/$ORG/$APP.git"
   fi
@@ -104,6 +104,11 @@ for ORG in $ORGS; do
 
       FULL_KEY="$ORG-$ENV_KEY-$APP"
       TARGET_FOLDER="$TARGET/$FULL_KEY"
+
+      if test -z "$COMMIT"; then
+        echo " * Skipping $FULL_KEY: no release found for version $VERSION"
+        continue
+      fi
 
       if test -e "$TARGET_FOLDER/fetch-failed.txt"; then
         echo " * Unavailable: $ORG-$ENV_KEY-$APP"
