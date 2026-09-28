@@ -56,5 +56,6 @@ export const useAssistantTexts = (): AssistantTexts => {
       deny: t('ai_assistant.permission_prompt_deny'),
     },
     sourcesLabel: t('ai_assistant.sources_label'),
+    filesChangedLabel: t('ai_assistant.files_changed_label'),
   };
 };

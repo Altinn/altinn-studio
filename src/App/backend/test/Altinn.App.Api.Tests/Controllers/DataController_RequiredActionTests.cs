@@ -260,11 +260,19 @@ public class DataController_RequiredActionTests : ApiTestBase, IClassFixture<Web
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<ClaimsPrincipal>(),
                     It.IsAny<string>(),
-                    It.IsAny<string?>()
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(
-                (AppIdentifier app, InstanceIdentifier instance, ClaimsPrincipal user, string action, string? org) =>
+                (
+                    AppIdentifier app,
+                    InstanceIdentifier instance,
+                    ClaimsPrincipal user,
+                    string action,
+                    string? org,
+                    CancellationToken _
+                ) =>
                     action switch
                     {
                         null => true,

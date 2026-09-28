@@ -37,7 +37,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         _telemetry = telemetry;
     }
 
-    public async Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct)
+    public async Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken cancellationToken)
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(_orderType);
 
@@ -60,8 +60,8 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, ct);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {

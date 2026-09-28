@@ -17,12 +17,21 @@ public interface IPaymentProcessor
     /// <summary>
     /// Starts a payment process for the specified instance and order details.
     /// </summary>
-    public Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language);
+    public Task<PaymentDetails> StartPayment(
+        Instance instance,
+        OrderDetails orderDetails,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Terminate a payment for the specified instance and payment reference.
     /// </summary>
-    public Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation);
+    public Task<bool> TerminatePayment(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets the payment status for the specified instance and payment reference.
@@ -31,6 +40,7 @@ public interface IPaymentProcessor
         Instance instance,
         string paymentId,
         decimal expectedTotalIncVat,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     );
 }

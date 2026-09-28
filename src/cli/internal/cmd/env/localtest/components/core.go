@@ -37,7 +37,7 @@ func localtestImage(ctx *Options) resource.ImageResource {
 	return &resource.PulledImage{
 		Enabled:    nil,
 		Ref:        ctx.Images.Core.Localtest.Ref(),
-		PullPolicy: resource.PullIfNotPresent,
+		PullPolicy: pullPolicyFor(ctx.Images.Core.Localtest),
 	}
 }
 
@@ -67,7 +67,7 @@ func localtestContainer(ctx *Options) *ContainerSpec {
 				envtopology.BoundTopologyHostDir(ctx.Paths.DataDir),
 				envtopology.BoundTopologyContainerDir,
 			),
-			newVolume(filepath.Join(ctx.Paths.DataDir, "testdata"), "/testdata"),
+			// /testdata is baked into the localtest image, so it is not mounted from the host.
 			newVolume(LocaltestStoragePath(ctx.Paths.DataDir), "/AltinnPlatformLocal"),
 		},
 		ctx.Topology.LocaltestIngressHosts(),

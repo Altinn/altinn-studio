@@ -34,7 +34,6 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Hybrid" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.5.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.8.0" />
-    <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.4.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
@@ -74,6 +73,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="KS.Fiks.Arkiv.Models.V1" Version="1.0.10" />
-    <PackageVersion Include="KS.Fiks.IO.Client" Version="6.1.2" />
+    <PackageVersion Include="KS.Fiks.IO.Client" Version="7.0.3" />
   </ItemGroup>
 </Project>

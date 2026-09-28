@@ -17,6 +17,13 @@ public interface IOrderDetailsCalculator
     /// depends on instance or data properties.
     /// This method can be called multiple times for the same instance, in order to preview the price before payment starts.
     /// </remarks>
+    /// <param name="instance">The instance to calculate the order for</param>
+    /// <param name="language">The language requested by the user, if any</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The Payment order that contains information about the requested payment</returns>
-    Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language);
+    Task<OrderDetails> CalculateOrderDetails(
+        Instance instance,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
 }

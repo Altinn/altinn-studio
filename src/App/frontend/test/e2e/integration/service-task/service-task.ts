@@ -77,15 +77,16 @@ describe('Service task', () => {
     });
   });
 
-  it('successful service tasks produce both PDFs on the receipt', { retries: 0 }, () => {
+  it('successful service tasks produce all three PDFs on the receipt', { retries: 0 }, () => {
     startAppAndFillForm({ shouldFail: false });
 
     cy.findByText('Skjemaet er sendt inn').should('be.visible');
-    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 2);
+    cy.findAllByRole('link', { name: /\.pdf$/ }).should('have.length', 3);
     cy.findByRole('link', { name: /Autogenerert PDF av Task_Utfylling1 og Task_Utfylling2\.pdf$/ }).should(
       'be.visible',
     );
     cy.findByRole('link', { name: /PDF basert på layout-set\.pdf$/ }).should('be.visible');
+    cy.findByRole('link', { name: /Subform pdf Lykkeønsker fra et underskjema\.pdf$/ }).should('be.visible');
   });
 });
 
@@ -97,7 +98,7 @@ function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
 
   cy.get('#subform-Subform-z8we7d-add-button').click();
   cy.get('#finishedLoading').should('exist');
-  cy.findByRole('textbox', { name: 'Subform tekstfelt' }).type('Lykkeønsker fra et underskjema');
+  cy.findByRole('textbox', { name: 'Test 1' }).type('Lykkeønsker fra et underskjema');
   cy.findByRole('button', { name: 'Ferdig' }).click();
 
   cy.findByRole('textbox', { name: 'En tekst i Task_Utfylling1' }).should(
@@ -120,5 +121,15 @@ function startAppAndFillForm({ shouldFail }: { shouldFail: boolean }) {
     .findByRole('radio', { name: shouldFail ? 'Ja' : 'Nei' })
     .click();
   cy.waitUntilSaved();
+
+  // PDF generation can take longer than the UI assertion timeout. Wait for this
+  // transition to finish before checking its failure view or receipt.
+  cy.intercept('PUT', '**/process/next*').as('serviceTaskTransition');
   cy.findByRole('button', { name: 'Neste' }).click();
+  cy.wait('@serviceTaskTransition', { responseTimeout: 120_000 }).then(({ response }) => {
+    expect(response?.statusCode).to.equal(shouldFail ? 500 : 200);
+    if (shouldFail) {
+      expect(response?.body.workflowFailure?.kind).to.equal('stepFailed');
+    }
+  });
 }

@@ -71,7 +71,7 @@
     },
     profile: {
       userId: 1337,
-      userUuid: null,
+      userUuid: Guid_1,
       userName: SophieDDG,
       phoneNumber: 90001337,
       email: 1337@altinnstudiotestusers.com,

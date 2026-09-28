@@ -13,6 +13,7 @@ import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
+import { buildDocumentTitle } from 'app-development/utils/documentTitleUtils';
 
 /**
  * Displays the layout for the app development pages
@@ -22,6 +23,7 @@ export const PageLayout = (): React.ReactNode => {
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
+  const documentTitle = buildDocumentTitle(app);
 
   const {
     data: repoStatus,
@@ -33,14 +35,18 @@ export const PageLayout = (): React.ReactNode => {
 
   if (isRepoStatusPending || isUserPending) {
     return (
-      <StudioCenter>
-        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
-      </StudioCenter>
+      <>
+        <title>{documentTitle}</title>
+        <StudioCenter>
+          <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
+        </StudioCenter>
+      </>
     );
   }
 
   return (
     <>
+      <title>{documentTitle}</title>
       <PageHeaderContextProvider user={user}>
         <PageHeader
           showSubMenu={!repoStatus?.hasMergeConflict}

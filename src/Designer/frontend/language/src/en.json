@@ -465,7 +465,6 @@
   "schema_editor.boolean": "Yes/no",
   "schema_editor.combination": "Combination",
   "schema_editor.combination_inline_object_disclaimer": "Currently we only support references as sub schemas when combining schemas (allOf, anyOf and oneOf). Sub schemas that are not references will be displayed in the gray area above, but it will be possible to edit these in the editor yet.",
-  "schema_editor.confirm_deletion": "Yes, delete data model",
   "schema_editor.create_model_confirm_button": "Create model",
   "schema_editor.create_model_description": "Enter the name of the data model",
   "schema_editor.custom_props": "Externally defined properties",

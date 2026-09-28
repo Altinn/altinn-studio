@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query';
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
-import type { IDataModelReference, IMapping } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
@@ -308,6 +308,8 @@ function FormDataEffects() {
     s.data.manualSaveRequested,
   ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
+  const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
+  const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
@@ -323,8 +325,8 @@ function FormDataEffects() {
     throw error;
   }
 
-  // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
-  // event is used to warn the user when they try to navigate away from the page with unsaved changes.
+  // The data attribute tracks saveable changes for tests. The unload warning also includes invalid input,
+  // which cannot be saved and would be lost when leaving the page.
   useEffect(() => {
     clearTimeout(setUnsavedAttrTimeout.current);
     if (hasUnsavedChanges) {
@@ -335,14 +337,19 @@ function FormDataEffects() {
         setUnsavedAttrTimeout.current = undefined;
       }, 10);
     }
-    window.onbeforeunload = hasUnsavedChanges ? () => true : null;
+    window.onbeforeunload = shouldWarnBeforeUnload
+      ? (event) => {
+          event.preventDefault();
+          return true;
+        }
+      : null;
 
     return () => {
       clearTimeout(setUnsavedAttrTimeout.current);
       document.body.removeAttribute('data-unsaved-changes');
       window.onbeforeunload = null;
     };
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, shouldWarnBeforeUnload]);
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
@@ -463,6 +470,14 @@ function hasUnsavedChanges(state: FormStoreState) {
   return Object.values(state.data.models).some(
     ({ currentData, lastSavedData, debouncedCurrentData }) =>
       currentData !== lastSavedData || debouncedCurrentData !== lastSavedData,
+  );
+}
+
+export function hasInvalidFormData(state: FormStoreState): boolean {
+  return Object.values(state.data.models).some(({ invalidCurrentData }) =>
+    Object.values(dot.dot(invalidCurrentData)).some(
+      (value) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean',
+    ),
   );
 }
 
@@ -812,42 +827,6 @@ export const formDataHooks = {
       reference ? dot.pick(reference.field, v.data.models[reference.dataType]?.invalidDebouncedCurrentData) : undefined,
     );
   },
-
-  /**
-   * This returns an object that can be used to generate a query string for parts of the current form data.
-   * It is almost the same as usePickFreshStrings(), but with important differences:
-   *   1. The _keys_ in the input are expected to contain the data model paths, not the values. Mappings are reversed
-   *      in that sense.
-   *   2. The data is fetched from the debounced model, not the fresh/current one. That ensures queries that are
-   *      generated from this hook are more stable, and aren't re-fetched on every keystroke.
-   */
-  useMapping: <D extends 'string' | 'raw' = 'string'>(
-    mapping: IMapping | undefined,
-    defaultDataType: string | undefined,
-    dataAs?: D,
-  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
-    FormStore.raw.useMemoSelector((s) => {
-      const realDataAs = dataAs || 'string';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const out: any = {};
-      if (mapping && defaultDataType) {
-        for (const key of Object.keys(mapping)) {
-          const outputKey = mapping[key];
-          const value = dot.pick(key, s.data.models[defaultDataType]?.debouncedCurrentData);
-
-          if (realDataAs === 'raw') {
-            out[outputKey] = value;
-          } else if (typeof value === 'undefined' || value === null) {
-            out[outputKey] = '';
-          } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            out[outputKey] = String(value);
-          } else {
-            out[outputKey] = JSON.stringify(value);
-          }
-        }
-      }
-      return out;
-    }),
 
   /**
    * This returns the raw method for setting a value in the form data. This is useful if you want to

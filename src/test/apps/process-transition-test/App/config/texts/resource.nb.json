@@ -31,7 +31,7 @@
     },
     {
       "id": "path.help",
-      "value": "Styrer hvor i overgangen Task 1 → Task 2 scenarioet kjører – de andre valgene (forsinkelse, gjenprøvinger, sluttilstand, parkering) bestemmer hva som faktisk skjer der. «Etter commit» ruter overgangen via et behandlingssteg (service task)."
+      "value": "Styrer hvor i overgangen Task 1 → Task 2 scenarioet kjører – de andre valgene (forsinkelse, gjenprøvinger, sluttilstand, utsettelser) bestemmer hva som faktisk skjer der. «Etter commit» ruter overgangen via et behandlingssteg (service task)."
     },
     {
       "id": "path.none",
@@ -116,26 +116,6 @@
     {
       "id": "endState.failureThenSuccess",
       "value": "Feil, så suksess – behandlingen stopper, men «Prøv igjen» lykkes"
-    },
-    {
-      "id": "advance.title",
-      "value": "Videreføring etter suksess"
-    },
-    {
-      "id": "advance.help",
-      "value": "«Parker» lar prosessen bli stående på behandlingssteget etter at det har lykkes – slik en oppgave som venter på et eksternt svar ville gjort. Ventesiden vises til noen driver prosessen videre med en process/next: enten manuelt (se README for en kommando du kan lime inn i nettleserkonsollen), eller automatisk etter ca. 5 sekunder med «Parker og slipp» – som et eksternt callback som kommer av seg selv."
-    },
-    {
-      "id": "advance.auto",
-      "value": "Automatisk – prosessen går selv videre til Task 2"
-    },
-    {
-      "id": "advance.park",
-      "value": "Parker – prosessen blir stående til noen driver den videre"
-    },
-    {
-      "id": "advance.parkThenRelease",
-      "value": "Parker og slipp – kjører videre av seg selv etter ca. 5 sekunder"
     },
     {
       "id": "serviceView.title",

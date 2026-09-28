@@ -72,7 +72,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string idempotencyKey,
         string? collectionKey,
         WorkflowEnqueueRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string batchKey = CreateBatchKey(ns, idempotencyKey);
@@ -174,12 +174,16 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdateCollectionHeads(ns, collectionKey, currentCollectionHeads, createdWorkflows);
         }
 
-        await ProcessAvailableWorkflows(ct);
+        await ProcessAvailableWorkflows(cancellationToken);
 
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
 
-    public Task<WorkflowCollectionDetailResponse?> GetCollection(string ns, string key, CancellationToken ct = default)
+    public Task<WorkflowCollectionDetailResponse?> GetCollection(
+        string ns,
+        string key,
+        CancellationToken cancellationToken = default
+    )
     {
         if (!_collectionHeadsByKey.TryGetValue(CreateCollectionLookupKey(ns, key), out List<Guid>? headIds))
         {
@@ -222,12 +226,25 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<WorkflowCollectionDetailResponse?>(collection);
     }
 
+    public Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(
+            _workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns
+                ? ToWorkflowStatusResponse(workflow)
+                : null
+        );
+    }
+
     public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
         string ns,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         IEnumerable<StoredWorkflow> matching = _workflows.Values.Where(workflow => workflow.Namespace == ns);
@@ -256,7 +273,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult(result);
     }
 
-    public Task<CancelWorkflowResponse> CancelWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public Task<CancelWorkflowResponse> CancelWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
         {
@@ -271,7 +292,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid workflowId,
         bool cascade = false,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow))
@@ -290,13 +311,13 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 }
             }
 
-            await ProcessAvailableWorkflows(ct);
+            await ProcessAvailableWorkflows(cancellationToken);
         }
 
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
     }
 
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
     {
         bool abandoned = false;
         lock (_gate)
@@ -338,7 +359,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         if (abandoned)
         {
             // A workflow gated only by the abandoned one may have become runnable.
-            await ProcessAvailableWorkflows(ct);
+            await ProcessAvailableWorkflows(cancellationToken);
         }
 
         return abandoned;
@@ -348,7 +369,11 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     /// Mints idempotently on <c>(namespace, idempotencyKey)</c>, as the engine does. The fake models the
     /// address, not the rendezvous.
     /// </summary>
-    public Task<MailboxMintResult> MintMailbox(string ns, MailboxCreateRequest request, CancellationToken ct = default)
+    public Task<MailboxMintResult> MintMailbox(
+        string ns,
+        MailboxCreateRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         MailboxResponse mailbox = _mailboxesByIdempotencyKey.GetOrAdd(
             CreateBatchKey(ns, request.IdempotencyKey),
@@ -377,7 +402,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     /// <summary>
     /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
     /// </summary>
-    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken cancellationToken = default)
     {
         foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
         {
@@ -412,7 +437,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid mailboxId,
         MailboxDeliveryRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string deliveryKey = CreateBatchKey(mailboxId.ToString(), request.IdempotencyKey);

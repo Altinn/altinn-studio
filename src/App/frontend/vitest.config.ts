@@ -7,7 +7,6 @@ process.env.NODE_ENV = 'test';
 
 const repoNodeModules = path.resolve(import.meta.dirname, '../../..', 'node_modules');
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,

@@ -5,6 +5,7 @@ import {
   uiSchemaNodesMock,
   definitionNodeMock,
   fieldNode1Mock,
+  toggableNodeMock,
 } from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {
@@ -54,7 +55,7 @@ describe('SavableSchemaModel', () => {
   describe('deleteNodeAndSave', () => {
     it('Deletes a node, saves the model once and returns the object', () => {
       const savableSchema = setupSchema();
-      const { schemaPointer } = fieldNode1Mock;
+      const { schemaPointer } = toggableNodeMock;
       const result = savableSchema.deleteNodeAndSave(schemaPointer);
       expect(savableSchema.hasNode(schemaPointer)).toBe(false);
       expect(save).toHaveBeenCalledTimes(1);

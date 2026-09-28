@@ -67,14 +67,14 @@ internal sealed class PaymentProcessTask : IProcessTask
             AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
         }
 
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration);
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration, context.CancellationToken);
     }
 
     /// <inheritdoc/>
     public async Task End(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
@@ -86,9 +86,14 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
+        await using Stream pdfStream = await _pdfService.GeneratePdf(
+            dataMutator,
+            taskId,
+            false,
+            cancellationToken: cancellationToken
+        );
         using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, ct);
+        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
         dataMutator.AddBinaryDataElement(
@@ -107,7 +112,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate());
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate(), context.CancellationToken);
     }
 
     private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
@@ -138,7 +143,8 @@ internal sealed class PaymentProcessTask : IProcessTask
 
     private async Task CleanupAnyExistingPayment(
         IInstanceDataMutator dataMutator,
-        ValidAltinnPaymentConfiguration paymentConfiguration
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        CancellationToken cancellationToken
     )
     {
         DataElement? paymentDataElement = dataMutator
@@ -168,7 +174,11 @@ internal sealed class PaymentProcessTask : IProcessTask
                     .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
                 ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
 
-            bool success = await paymentProcessor.TerminatePayment(dataMutator.Instance, paymentInformation);
+            bool success = await paymentProcessor.TerminatePayment(
+                dataMutator.Instance,
+                paymentInformation,
+                cancellationToken
+            );
             string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
             if (!success)
             {

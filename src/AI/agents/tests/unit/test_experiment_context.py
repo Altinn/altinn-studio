@@ -17,12 +17,12 @@ from shared.models.experiment import (
 
 
 def _context(**overrides) -> ExperimentContext:
-    base = dict(
-        experimentId="exp-1",
-        experimentName="nightly-2026-08-21",
-        datasetId="ds-1",
-        itemId="item-1",
-    )
+    base = {
+        "experimentId": "exp-1",
+        "experimentName": "nightly-2026-08-21",
+        "datasetId": "ds-1",
+        "itemId": "item-1",
+    }
     base.update(overrides)
     return ExperimentContext(**base)
 
@@ -66,6 +66,7 @@ class TestRunnerWiring:
     def test_the_agent_stamps_the_attributes_on_the_root_span(self, monkeypatch):
         """Without this the trace is never part of the run."""
         from types import SimpleNamespace
+
         from agents.graph import runner
 
         recorded: dict[str, str] = {}
@@ -83,6 +84,7 @@ class TestRunnerWiring:
 
     def test_an_ordinary_run_stamps_nothing(self, monkeypatch):
         from types import SimpleNamespace
+
         from agents.graph import runner
 
         recorded: dict[str, str] = {}
@@ -99,6 +101,7 @@ class TestRunnerWiring:
     def test_run_once_actually_calls_it(self):
         """Guards the call site: the helper is useless if nothing invokes it."""
         import inspect
+
         from agents.graph import runner
 
         assert "_mark_as_experiment_item(state, root_span)" in inspect.getsource(runner.run_once)

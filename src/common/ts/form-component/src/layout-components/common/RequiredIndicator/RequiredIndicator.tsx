@@ -10,7 +10,7 @@ export interface IRequiredIndicatorProps {
  * `form_filler.required_label` text resource, so apps can still override the wording.
  */
 export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) => {
-  const { langAsNonProcessedString } = useTranslation();
+  const { langAsString, langAsNonProcessedString } = useTranslation();
   if (!required) {
     return null;
   }

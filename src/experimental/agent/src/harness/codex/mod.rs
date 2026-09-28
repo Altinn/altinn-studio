@@ -1,12 +1,12 @@
 //! `OpenAI` Codex CLI harness adapter.
 
-use std::io::Read as _;
+use std::{fmt::Write as _, io::Read as _};
 
 use sandbox::secret_store::SecretReference;
 
 use crate::{
     Error,
-    harness::{MediatedSecret, ProcessLaunch},
+    harness::{LaunchRequest, MediatedSecret, ProcessLaunch, shell_single_quoted},
     persistence,
 };
 
@@ -19,7 +19,7 @@ const PROVIDER: &str = "codex";
 const ACCESS_SECRET: &str = "codex-access-token";
 const REFRESH_SECRET: &str = "codex-refresh-token";
 const ACCOUNT_SECRET: &str = "codex-account-id";
-const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
+pub(super) const ACCESS_ENVIRONMENT: &str = "AGENT_CODEX_ACCESS_TOKEN";
 const ACCOUNT_ENVIRONMENT: &str = "AGENT_CODEX_ACCOUNT_ID";
 const ACCESS_PLACEHOLDER: &str = concat!(
     "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.",
@@ -34,6 +34,10 @@ pub(super) fn owns_secret(reference: &SecretReference) -> bool {
     reference.as_str() == ACCESS_SECRET
 }
 
+pub(super) async fn authentication_ready(database: &persistence::Database) -> Result<bool, Error> {
+    authentication::is_ready(database).await
+}
+
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
     if !authentication::is_ready(database).await? {
         return Err(Error::Invalid(
@@ -43,13 +47,15 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
     Ok(vec![
         MediatedSecret {
             environment: ACCESS_ENVIRONMENT,
-            placeholder: ACCESS_PLACEHOLDER,
+            placeholder: ACCESS_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
         MediatedSecret {
             environment: ACCOUNT_ENVIRONMENT,
-            placeholder: ACCOUNT_PLACEHOLDER,
+            // The account ID is visible in authenticated workspace discovery. Codex 0.156
+            // needs the selected ID locally to match that response before it can start.
+            placeholder: authentication::selected_account_id(database).await?,
             reference: SecretReference::from_opaque(ACCOUNT_SECRET),
             allowed_hosts: vec![CHATGPT_HOST.into()],
         },
@@ -59,6 +65,13 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
 pub(super) fn conflicts_with_managed_secret(name: &str, placeholder: Option<&str>) -> bool {
     matches!(name, ACCESS_ENVIRONMENT | ACCOUNT_ENVIRONMENT)
         || matches!(placeholder, Some(ACCESS_PLACEHOLDER | ACCOUNT_PLACEHOLDER))
+}
+
+pub(super) fn manages_environment(name: &str) -> bool {
+    matches!(
+        name,
+        ACCESS_ENVIRONMENT | ACCOUNT_ENVIRONMENT | "CODEX_HOME" | "CODEX_CA_CERTIFICATE"
+    )
 }
 
 /// Creates a separate `ChatGPT` login grant without reading the user's Codex home.
@@ -176,24 +189,35 @@ pub(super) fn input_ready_without_report(cursor_line: &str, title: &str) -> bool
         })
 }
 
-pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Option<&str>) -> ProcessLaunch {
-    let config = format!("{home}/.codex");
+pub(super) fn launch_linux(request: &LaunchRequest<'_>) -> ProcessLaunch {
+    let config = format!("{}/.codex", request.home);
     let flags = "--dangerously-bypass-approvals-and-sandbox --dangerously-bypass-hook-trust";
     // Launch-only overrides keep adapter-owned authentication and the fixed
     // Session root non-interactive without overwriting builder config.toml.
-    let configuration = format!(
-        "-c 'cli_auth_credentials_store=\"file\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+    // Inline rendering lets tmux retain conversation output in pane history.
+    // https://developers.openai.com/codex/config-reference
+    let mut configuration = format!(
+        "-c 'cli_auth_credentials_store=\"file\"' -c 'tui.alternate_screen=\"never\"' -c 'check_for_update_on_startup=false' -c 'tui.terminal_title=[\"session-id\"]' \
+         -c 'tui.status_line=[\"model-with-reasoning\",\"current-dir\",\"git-branch\",\"context-used\",\"weekly-limit\",\"codex-version\",\"fast-mode\"]' \
          -c 'projects.{}.trust_level=\"trusted\"'",
         crate::sandbox::platform::WORKING_DIRECTORY
     );
+    // Codex takes the model as `-m`; effort has no flag of its own and travels as the
+    // `model_reasoning_effort` config override. Validated selections need no TOML escaping.
+    if let Some(model) = &request.model_selection.model {
+        let _infallible = write!(configuration, " -m {}", shell_single_quoted(model.as_str()));
+    }
+    if let Some(effort) = &request.model_selection.effort {
+        let _infallible = write!(configuration, " -c 'model_reasoning_effort=\"{}\"'", effort.as_str());
+    }
     let base = format!("codex {flags} {configuration}");
     // A fresh conversation may start on a positional prompt; `--` keeps a prompt
     // that begins with `-` or names a subcommand (`resume`) positional.
-    let fresh = initial_prompt.map_or_else(
+    let fresh = request.initial_prompt.map_or_else(
         || base.clone(),
-        |message| format!("{base} -- {}", crate::harness::shell_single_quoted(message)),
+        |message| format!("{base} -- {}", shell_single_quoted(message)),
     );
-    let resume = resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
+    let resume = request.resume.and_then(|native| native.parse::<uuid::Uuid>().ok());
     let command = match resume {
         Some(native) => format!(
             "if /usr/bin/find {config}/sessions -type f \\( \
@@ -218,6 +242,22 @@ pub(super) fn launch_linux(home: &str, resume: Option<&str>, initial_prompt: Opt
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
+
+    use crate::harness::{Effort, LaunchRequest, Model, ModelSelection};
+
+    const UNSELECTED: ModelSelection = ModelSelection {
+        model: None,
+        effort: None,
+    };
+
+    fn request<'a>(resume: Option<&'a str>, initial_prompt: Option<&'a str>) -> LaunchRequest<'a> {
+        LaunchRequest {
+            home: "/home/agent",
+            resume,
+            initial_prompt,
+            model_selection: &UNSELECTED,
+        }
+    }
 
     #[test]
     fn input_readiness_waits_for_the_initialized_composer() {
@@ -248,9 +288,23 @@ mod tests {
     }
 
     #[test]
+    fn every_executed_launch_uses_inline_scrollback_once() {
+        for resume in [None, Some("160cdb4b-5997-464c-9d22-602786eb45d4")] {
+            let launch = super::launch_linux(&request(resume, None));
+            // Resume has two mutually exclusive commands: resume and fresh fallback.
+            let commands = launch.command.split("codex ").skip(1).collect::<Vec<_>>();
+            assert_eq!(commands.len(), if resume.is_some() { 2 } else { 1 });
+            for command in commands {
+                assert_eq!(command.matches("tui.alternate_screen=\"never\"").count(), 1);
+                assert!(!command.contains("raw_output_mode"));
+            }
+        }
+    }
+
+    #[test]
     fn resume_launch_requires_a_native_rollout() {
         let native = "160cdb4b-5997-464c-9d22-602786eb45d4";
-        let launch = super::launch_linux("/home/agent", Some(native), None);
+        let launch = super::launch_linux(&request(Some(native), None));
 
         assert!(launch.command.contains("/home/agent/.codex/sessions"));
         assert!(
@@ -282,14 +336,14 @@ mod tests {
 
     #[test]
     fn non_uuid_native_id_is_not_a_codex_resume_target() {
-        let launch = super::launch_linux("/home/agent", Some("opaque-harness-id"), None);
+        let launch = super::launch_linux(&request(Some("opaque-harness-id"), None));
 
         assert!(!launch.command.contains("codex resume"));
     }
 
     #[test]
     fn a_fresh_launch_passes_the_first_prompt_as_one_quoted_argument() {
-        let launch = super::launch_linux("/home/agent", None, Some("fix it's\nbroken"));
+        let launch = super::launch_linux(&request(None, Some("fix it's\nbroken")));
 
         assert!(
             // `--` keeps a prompt that starts with `-` or names a subcommand positional.
@@ -298,5 +352,34 @@ mod tests {
             launch.command
         );
         assert!(!launch.command.contains("codex resume"));
+    }
+
+    #[test]
+    fn launches_select_no_model_or_effort_unless_the_session_carries_them() {
+        let launch = super::launch_linux(&request(None, None));
+
+        assert!(!launch.command.contains(" -m "));
+        assert!(!launch.command.contains("model_reasoning_effort"));
+    }
+
+    #[test]
+    fn model_and_effort_apply_to_fresh_and_resumed_conversations() {
+        let selection = ModelSelection {
+            model: Some(Model::new("gpt-5.4-codex").expect("model")),
+            effort: Some(Effort::new("high").expect("effort")),
+        };
+        let launch = super::launch_linux(&LaunchRequest {
+            model_selection: &selection,
+            ..request(Some("160cdb4b-5997-464c-9d22-602786eb45d4"), Some("go"))
+        });
+
+        let selection = "-m 'gpt-5.4-codex' -c 'model_reasoning_effort=\"high\"'";
+        assert_eq!(launch.command.matches(selection).count(), 2, "{}", launch.command);
+        assert!(
+            launch
+                .command
+                .contains(&format!("{selection} 160cdb4b-5997-464c-9d22-602786eb45d4;"))
+        );
+        assert!(launch.command.contains(&format!("{selection} -- 'go'")));
     }
 }

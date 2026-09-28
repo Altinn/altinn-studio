@@ -14,9 +14,12 @@ mod secrets;
 mod sessions;
 
 /// Persistent Agent store backed by the shared control-plane database owner.
+///
+/// Every successful write to Agents or Sessions advances [`Database::changes`].
 #[derive(Clone)]
 pub struct Database {
     sender: tokio::sync::mpsc::Sender<Command>,
+    changes: crate::resources::Changes,
 }
 
 pub(crate) struct ProviderAccountWrite {
@@ -50,7 +53,16 @@ impl Database {
         ready_receiver
             .recv()
             .map_err(|_| Error::Database("database thread stopped during startup".into()))??;
-        Ok(Self { sender })
+        Ok(Self {
+            sender,
+            changes: crate::resources::Changes::new(),
+        })
+    }
+
+    /// Returns the change history advanced by every Agent and Session write.
+    #[must_use]
+    pub fn changes(&self) -> crate::resources::Changes {
+        self.changes.clone()
     }
 
     /// Applies pending schema migrations without starting a database owner thread.
@@ -68,13 +80,19 @@ impl Database {
 
     async fn request<T>(&self, build: impl FnOnce(oneshot::Sender<Result<T, Error>>) -> Command) -> Result<T, Error> {
         let (response, receiver) = oneshot::channel();
+        let command = build(response);
+        let observable = command.changes_resources();
         self.sender
-            .send(build(response))
+            .send(command)
             .await
             .map_err(|_| Error::Database("database thread stopped".into()))?;
-        receiver
+        let result = receiver
             .await
-            .map_err(|_| Error::Database("database thread dropped a response".into()))?
+            .map_err(|_| Error::Database("database thread dropped a response".into()))?;
+        if observable && result.is_ok() {
+            self.changes.bump();
+        }
+        result
     }
 
     pub(crate) async fn put_provider_account(&self, account: ProviderAccountWrite) -> Result<(), Error> {
@@ -164,15 +182,13 @@ impl crate::sessions::SessionStore for Database {
         &'a self,
         agent: &'a str,
         name: &'a crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<&'a str>,
+        new: crate::sessions::NewSession,
     ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
         Box::pin(async move {
             self.request(|response| Command::EnsureSession {
                 agent: agent.into(),
                 name: name.clone(),
-                harness,
-                initial_prompt: initial_prompt.map(str::to_owned),
+                new,
                 response,
             })
             .await
@@ -237,6 +253,45 @@ impl crate::sessions::SessionStore for Database {
 
     fn activate_session(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<u64, Error>> {
         Box::pin(async move { self.request(|response| Command::ActivateSession { id, response }).await })
+    }
+
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::MarkSessionDeleting {
+                agent: agent.into(),
+                name: name.clone(),
+                response,
+            })
+            .await
+        })
+    }
+
+    fn set_session_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a crate::sessions::SessionName,
+        archived: bool,
+    ) -> sandbox::LocalFuture<'a, Result<crate::sessions::Session, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::SetSessionArchived {
+                agent: agent.into(),
+                name: name.clone(),
+                archived,
+                response,
+            })
+            .await
+        })
+    }
+
+    fn finalize_session_deletion(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::FinalizeSessionDeletion { id, response })
+                .await
+        })
     }
 
     fn session_attach_target(
@@ -327,12 +382,12 @@ impl crate::control_plane::AgentStore for Database {
         id: AgentId,
         generation: u64,
         status: Status,
-    ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+    ) -> sandbox::LocalFuture<'_, Result<Status, Error>> {
         Box::pin(async move {
             self.request(|response| Command::UpdateStatus {
                 id,
                 generation,
-                status,
+                status: Box::new(status),
                 response,
             })
             .await
@@ -398,6 +453,45 @@ impl sandbox::secret_store::SecretStore for Database {
     }
 }
 
+impl crate::ssh::HostKeyStore for Database {
+    fn load_host_key(&self, id: AgentId) -> sandbox::LocalFuture<'_, Result<Option<Zeroizing<Vec<u8>>>, Error>> {
+        Box::pin(async move {
+            match self
+                .request(|response| Command::ResolveSecret {
+                    name: ssh_host_key_name(id),
+                    response,
+                })
+                .await
+            {
+                Ok(material) => Ok(Some(Zeroizing::new(material.expose().to_vec()))),
+                Err(Error::NotFound) => Ok(None),
+                Err(error) => Err(error),
+            }
+        })
+    }
+
+    fn store_host_key(&self, id: AgentId, key: Zeroizing<Vec<u8>>) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::SetSecret {
+                name: ssh_host_key_name(id),
+                value: key,
+                response,
+            })
+            .await
+        })
+    }
+
+    fn delete_host_key(&self, id: AgentId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::DeleteSecret {
+                name: ssh_host_key_name(id),
+                response,
+            })
+            .await
+        })
+    }
+}
+
 enum Command {
     Get {
         id: AgentId,
@@ -418,8 +512,8 @@ enum Command {
     UpdateStatus {
         id: AgentId,
         generation: u64,
-        status: Status,
-        response: oneshot::Sender<Result<(), Error>>,
+        status: Box<Status>,
+        response: oneshot::Sender<Result<Status, Error>>,
     },
     MarkDeleting {
         name: String,
@@ -433,6 +527,10 @@ enum Command {
     SetSecret {
         name: String,
         value: Zeroizing<Vec<u8>>,
+        response: oneshot::Sender<Result<(), Error>>,
+    },
+    DeleteSecret {
+        name: String,
         response: oneshot::Sender<Result<(), Error>>,
     },
     ReplaceAgentSecrets {
@@ -459,8 +557,7 @@ enum Command {
     EnsureSession {
         agent: String,
         name: crate::sessions::SessionName,
-        harness: crate::Harness,
-        initial_prompt: Option<String>,
+        new: crate::sessions::NewSession,
         response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
     GetSession {
@@ -488,6 +585,21 @@ enum Command {
     ActivateSession {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<u64, Error>>,
+    },
+    MarkSessionDeleting {
+        agent: String,
+        name: crate::sessions::SessionName,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
+    },
+    FinalizeSessionDeletion {
+        id: crate::sessions::SessionId,
+        response: oneshot::Sender<Result<(), Error>>,
+    },
+    SetSessionArchived {
+        agent: String,
+        name: crate::sessions::SessionName,
+        archived: bool,
+        response: oneshot::Sender<Result<crate::sessions::Session, Error>>,
     },
     GetAttachTarget {
         id: crate::sessions::SessionId,
@@ -530,6 +642,45 @@ enum Command {
         id: crate::sessions::SessionId,
         response: oneshot::Sender<Result<(), Error>>,
     },
+}
+
+impl Command {
+    /// Returns whether a successful execution changes an Agent or Session resource.
+    const fn changes_resources(&self) -> bool {
+        match self {
+            Self::Put { .. }
+            | Self::UpdateStatus { .. }
+            | Self::MarkDeleting { .. }
+            | Self::FinalizeDeletion { .. }
+            | Self::EnsureSession { .. }
+            | Self::UpdateSessionLifecycle { .. }
+            | Self::ActivateSession { .. }
+            | Self::MarkSessionDeleting { .. }
+            | Self::FinalizeSessionDeletion { .. }
+            | Self::SetSessionArchived { .. }
+            | Self::ClearSessionReport { .. }
+            | Self::RecordSessionStartForLaunch { .. }
+            | Self::ApplySessionActivityForLaunch { .. }
+            | Self::RecordSessionLaunch { .. } => true,
+            Self::Get { .. }
+            | Self::GetByName { .. }
+            | Self::List { .. }
+            | Self::SetSecret { .. }
+            | Self::DeleteSecret { .. }
+            | Self::ReplaceAgentSecrets { .. }
+            | Self::ResolveSecret { .. }
+            | Self::PutProviderAccount { .. }
+            | Self::ProviderAccountExists { .. }
+            | Self::ProviderAccountMetadata { .. }
+            | Self::GetSession { .. }
+            | Self::GetSessionByName { .. }
+            | Self::ListAllSessions { .. }
+            | Self::ListSessions { .. }
+            | Self::GetAttachTarget { .. }
+            | Self::GetSessionLaunchState { .. }
+            | Self::ResetSessionLaunchAttempts { .. } => false,
+        }
+    }
 }
 
 fn database_thread(
@@ -650,7 +801,7 @@ fn execute(connection: &mut Connection, command: Command) {
             status,
             response,
         } => {
-            let _ = response.send(agents::update_status(connection, id, generation, &status));
+            let _ = response.send(agents::update_status(connection, id, generation, *status));
         }
         Command::MarkDeleting { name, response } => {
             let _ = response.send(agents::mark_deleting(connection, &name));
@@ -661,6 +812,9 @@ fn execute(connection: &mut Connection, command: Command) {
             response,
         } => {
             let _ = response.send(agents::finalize_deletion(connection, id, generation));
+        }
+        Command::DeleteSecret { name, response } => {
+            let _ignored = response.send(secrets::delete_secret(connection, &name));
         }
         Command::SetSecret { name, value, response } => {
             let _ = response.send(secrets::set_secret(connection, &name, &value));
@@ -689,17 +843,10 @@ fn execute_session(connection: &mut Connection, command: Command) {
         Command::EnsureSession {
             agent,
             name,
-            harness,
-            initial_prompt,
+            new,
             response,
         } => {
-            let _ = response.send(sessions::ensure(
-                connection,
-                &agent,
-                &name,
-                harness,
-                initial_prompt.as_deref(),
-            ));
+            let _ = response.send(sessions::ensure(connection, &agent, &name, &new));
         }
         Command::GetSession { id, response } => {
             let _ = response.send(sessions::get(connection, id));
@@ -728,6 +875,20 @@ fn execute_session(connection: &mut Connection, command: Command) {
         }
         Command::ActivateSession { id, response } => {
             let _ = response.send(sessions::activate(connection, id));
+        }
+        Command::MarkSessionDeleting { agent, name, response } => {
+            let _ = response.send(sessions::mark_deleting(connection, &agent, &name));
+        }
+        Command::FinalizeSessionDeletion { id, response } => {
+            let _ = response.send(sessions::finalize_deletion(connection, id));
+        }
+        Command::SetSessionArchived {
+            agent,
+            name,
+            archived,
+            response,
+        } => {
+            let _ = response.send(sessions::set_archived(connection, &agent, &name, archived));
         }
         Command::GetAttachTarget { id, response } => {
             let _ = response.send(sessions::attach_target(connection, id));
@@ -822,6 +983,12 @@ fn agent_secret_prefix(id: AgentId) -> String {
     format!("agent/{id}/")
 }
 
+/// Secret row holding one incarnation's SSH host key. The name is outside the
+/// `agent/<id>/` prefix so that replacing the manifest's secrets keeps it.
+pub(crate) fn ssh_host_key_name(id: AgentId) -> String {
+    format!("agent-ssh/{id}/host-key")
+}
+
 fn agent_secret_name(id: AgentId, name: &str) -> String {
     format!("{}{name}", agent_secret_prefix(id))
 }
@@ -855,9 +1022,11 @@ mod tests {
         drop(open(&path).expect("current database"));
         for _ in 0..4 {
             let connection = Connection::open(&path).expect("database");
-            connection.pragma_update(None, "user_version", 1).expect("old version");
+            connection
+                .pragma_update(None, "user_version", super::schema::VERSION - 1)
+                .expect("old version");
             drop(connection);
-            Database::migrate(&path).expect("adopt expanded version 1 after backup");
+            Database::migrate(&path).expect("adopt the expanded previous version after backup");
         }
         let backups = std::fs::read_dir(directory.path().join("backups"))
             .expect("backups")

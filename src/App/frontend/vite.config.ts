@@ -3,9 +3,8 @@ import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 
-import { devEntryPlugin } from './scripts/vite/devEntryPlugin';
+import { devEntryPlugin } from './scripts/vite/devEntryPlugin.ts';
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
   const isDevBuild = mode === 'development';
 

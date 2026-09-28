@@ -100,7 +100,13 @@ public class SigningUserActionTests
 
             var signatureWasAdded = false;
             signClient
-                .Setup(x => x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()))
+                .Setup(x =>
+                    x.SignDataElements(
+                        It.IsAny<SignatureContext>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .Callback(() =>
                 {
                     signatureWasAdded = true;
@@ -230,7 +236,11 @@ public class SigningUserActionTests
         var fixture = Fixture.Create();
         fixture
             .SignClient.Setup(x =>
-                x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>())
+                x.SignDataElements(
+                    It.IsAny<SignatureContext>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ThrowsAsync(new PlatformHttpException(HttpStatusCode.OK, "Failed to sign dataelements"));
 
@@ -248,7 +258,12 @@ public class SigningUserActionTests
         );
         Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(result));
         fixture.SignClient.Verify(
-            x => x.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()),
+            x =>
+                x.SignDataElements(
+                    It.IsAny<SignatureContext>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -297,7 +312,8 @@ public class SigningUserActionTests
                         s =>
                             s.SignDataElements(
                                 It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
-                                It.IsAny<StorageAuthenticationMethod?>()
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<CancellationToken>()
                             ),
                         Times.Once
                     );
@@ -318,7 +334,8 @@ public class SigningUserActionTests
                         s =>
                             s.SignDataElements(
                                 It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
-                                It.IsAny<StorageAuthenticationMethod?>()
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<CancellationToken>()
                             ),
                         Times.Once
                     );
@@ -378,7 +395,8 @@ public class SigningUserActionTests
             s =>
                 s.SignDataElements(
                     It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
-                    It.IsAny<StorageAuthenticationMethod?>()
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -412,7 +430,8 @@ public class SigningUserActionTests
             s =>
                 s.SignDataElements(
                     It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
-                    It.IsAny<StorageAuthenticationMethod?>()
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
@@ -538,7 +557,13 @@ public class SigningUserActionTests
         if (platformHttpExceptionToThrow != null)
         {
             signingClientMock
-                .Setup(p => p.SignDataElements(It.IsAny<SignatureContext>(), It.IsAny<StorageAuthenticationMethod?>()))
+                .Setup(p =>
+                    p.SignDataElements(
+                        It.IsAny<SignatureContext>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ThrowsAsync(platformHttpExceptionToThrow);
         }
 

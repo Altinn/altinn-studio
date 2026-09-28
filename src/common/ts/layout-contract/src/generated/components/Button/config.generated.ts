@@ -1,17 +1,9 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import {
-  ComponentBase,
-  IButtonProps,
-  IMapping,
-} from '@app/layout-contract/generated/common.generated';
-
-export type ButtonMode = 'submit' | 'save' | 'instantiate';
+import { ComponentBase, IButtonProps } from '@app/layout-contract/generated/common.generated';
 
 export interface CompButtonExternal extends ComponentBase, IButtonProps {
   type: 'Button';
   textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> };
-  mode?: ButtonMode;
-  mapping?: IMapping;
   dataModelBindings?: undefined;
 }
 
@@ -43,4 +35,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: c9341840f1e67830b3bb6c69da41600c7e16604bcb852459df3f9769a13c60ef
+// Source hash: 676fa3f30616b5096b438c64ffb17d8ab3567ccf2058aa18eaf22984d1a45903

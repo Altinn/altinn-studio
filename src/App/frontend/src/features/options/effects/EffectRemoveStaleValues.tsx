@@ -20,7 +20,7 @@ interface Props {
 
 /**
  * If options has changed and the values no longer include the current value, we should clear the value.
- * This is especially useful when fetching options from an API with mapping, or when generating options
+ * This is especially useful when fetching options from an API with query parameters, or when generating options
  * from a repeating group. If the options changed and the selected option (or selected row in a repeating group)
  * is gone, we should not save stale/invalid data, so we clear it.
  */

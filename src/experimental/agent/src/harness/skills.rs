@@ -4,11 +4,9 @@
 //! discovers skills in its own user-level directory, so the adapter chooses the root and this
 //! module does the placement.
 
-use std::io::Cursor;
-
 use sandbox::{SandboxHandle, SandboxPath, execution::ExecutionSpec};
 
-use crate::Error;
+use crate::{Error, sandbox::platform::files::write_if_changed};
 
 /// One skill directory read on the host, keyed by its directory name.
 pub(crate) struct Skill {
@@ -23,15 +21,17 @@ pub(crate) struct SkillFile {
     pub(crate) contents: Vec<u8>,
 }
 
-/// Writes every skill below `root` as `root/<name>/<relative path>`, owned by the image user.
+/// Places every skill below `root` as `root/<name>/<relative path>`, owned by the image user.
 ///
-/// Directories are created as the image user. Runtime file transfer writes as the Sandbox
-/// supervisor, so exactly the written files are chowned afterwards: no recursive ownership walk.
+/// Harnesses watch their skill directories live, so a file whose contents are already in place
+/// is left alone rather than rewritten. Directories are created as the image user. Runtime file
+/// transfer writes as the Sandbox supervisor, so exactly the managed files are chowned
+/// afterwards: no recursive ownership walk.
 pub(super) async fn install_linux(sandbox: &SandboxHandle, root: &str, skills: &[Skill]) -> Result<(), Error> {
     for skill in skills {
         let target = format!("{root}/{}", skill.name);
         run_checked(sandbox, "/usr/bin/mkdir", ["-p".to_owned(), target.clone()]).await?;
-        let mut written = Vec::with_capacity(skill.files.len());
+        let mut managed = Vec::with_capacity(skill.files.len());
         for file in &skill.files {
             let path = format!("{target}/{}", file.relative_path);
             if let Some((parent, _)) = file.relative_path.rsplit_once('/') {
@@ -42,19 +42,14 @@ pub(super) async fn install_linux(sandbox: &SandboxHandle, root: &str, skills: &
                 )
                 .await?;
             }
-            sandbox
-                .write_file(
-                    &SandboxPath::new(path.clone()),
-                    Box::pin(Cursor::new(file.contents.clone())),
-                )
-                .await?;
-            written.push(path);
+            write_if_changed(sandbox, &path, &file.contents).await?;
+            managed.push(path);
         }
-        if written.is_empty() {
+        if managed.is_empty() {
             continue;
         }
         let mut chown = vec!["/usr/bin/chown".to_owned(), "agent:agent".to_owned()];
-        chown.extend(written);
+        chown.extend(managed);
         run_checked(sandbox, "/usr/bin/sudo", chown).await?;
     }
     Ok(())

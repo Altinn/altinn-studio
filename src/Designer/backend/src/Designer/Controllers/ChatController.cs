@@ -7,7 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/chat")]
-public class ChatController(IChatService chatService, IAltinityAgentClient altinityAgentClient) : ControllerBase
+public class ChatController(IChatService chatService, IAssistantServiceClient assistantClient) : ControllerBase
 {
     [HttpGet("threads")]
     public async Task<ActionResult<List<ChatThreadEntity>>> GetThreads(
@@ -146,7 +146,7 @@ public class ChatController(IChatService chatService, IAltinityAgentClient altin
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        await altinityAgentClient.SendFeedbackAsync(
+        await assistantClient.SendFeedbackAsync(
             editingContext.Developer,
             traceId,
             request.ThumbsUp,
@@ -166,7 +166,7 @@ public class ChatController(IChatService chatService, IAltinityAgentClient altin
     )
     {
         AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
-        await altinityAgentClient.ClearFeedbackAsync(editingContext.Developer, traceId, cancellationToken);
+        await assistantClient.ClearFeedbackAsync(editingContext.Developer, traceId, cancellationToken);
         await chatService.SetFeedbackAsync(traceId, null, editingContext, cancellationToken);
         return NoContent();
     }

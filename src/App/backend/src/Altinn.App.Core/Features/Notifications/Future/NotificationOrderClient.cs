@@ -35,7 +35,10 @@ internal sealed class NotificationOrderClient : INotificationOrderClient
         _telemetry = telemetry;
     }
 
-    public async Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken ct)
+    public async Task<NotificationOrderResponse> Order(
+        NotificationOrderRequest request,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(Telemetry.Notifications.OrderType.Future);
 
@@ -60,8 +63,8 @@ internal sealed class NotificationOrderClient : INotificationOrderClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, ct);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
             if (httpResponseMessage.IsSuccessStatusCode)
             {

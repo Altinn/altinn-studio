@@ -163,10 +163,6 @@ export const OUT_OF_SCOPE = [
     glob: '**/news.schema.json',
     reason: 'the JSON Schema for the news feed, not the news',
   },
-  {
-    glob: 'src/AI/agents/benchmarks/fixtures/**',
-    reason: 'benchmark fixtures: app overlays whose texts are test data, not product text',
-  },
 ];
 
 /**

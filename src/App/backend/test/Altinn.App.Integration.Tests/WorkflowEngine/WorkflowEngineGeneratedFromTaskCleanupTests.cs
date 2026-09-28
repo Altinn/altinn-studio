@@ -16,7 +16,7 @@ public class WorkflowEngineGeneratedFromTaskCleanupTests(ITestOutputHelper outpu
 {
     /// <summary>
     /// Drives a full loop through a process with a PDF service task and a reject back-flow:
-    /// Task_1 (data) → Task_Pdf (pdf, auto-advances) → Task_Confirm → reject → Task_1 → forward again → confirm → end.
+    /// Task_1 (data) → Task_Pdf (pdf) → Task_Confirm → reject → Task_1 → forward again → confirm → end.
     /// Verifies the generatedFromTask cleanup pipeline property on task re-entry:
     /// - the untagged autoCreated form data element survives re-entering Task_1 (same id, same content),
     /// - the PDF tagged with Task_Pdf survives the backward transition (it is only cleaned when Task_Pdf is re-entered),
@@ -67,7 +67,7 @@ public class WorkflowEngineGeneratedFromTaskCleanupTests(ITestOutputHelper outpu
         using var readPatchResponse = await patchResponse.Read<DataPatchResponseMultiple>();
         Assert.Equal(HttpStatusCode.OK, readPatchResponse.Response.StatusCode);
 
-        // Task_1 → Task_Pdf (generates tagged PDF post-commit and auto-advances) → Task_Confirm
+        // Task_1 → Task_Pdf (generates tagged PDF post-commit) → Task_Confirm
         using var firstNextResponse = await fixture.Instances.ProcessNext(token, instance);
         using var firstNext = await firstNextResponse.Read<AppProcessState>();
         Assert.Equal(HttpStatusCode.OK, firstNext.Response.StatusCode);

@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { CG } from 'src/codegen/CG';
@@ -26,5 +27,13 @@ export class GenerateDataModelBinding extends GenerateCommonImport<'IDataModelRe
     // objects. We rewrite incoming layouts to always be objects in LayoutsContext, so in practice this is always
     // an object internally.
     return this.rawBinding.toJsonSchema();
+  }
+
+  toComponentCatalog(): PropertyValueDefinition {
+    return { ...super.toComponentCatalog(), semanticType: 'dataModelBinding' };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { ...super.toComponentCatalogDefinition(), semanticType: 'dataModelBinding' };
   }
 }

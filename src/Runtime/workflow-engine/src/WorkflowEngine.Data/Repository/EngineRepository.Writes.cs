@@ -1921,6 +1921,7 @@ internal sealed partial class EngineRepository
                             heartbeat_at = NULL,
                             lease_token = NULL,
                             reclaim_count = 0,
+                            resumed_at = @now,
                             updated_at = @now
                         WHERE id = @id
                           AND namespace = @ns
@@ -1979,6 +1980,7 @@ internal sealed partial class EngineRepository
                                 heartbeat_at = NULL,
                                 lease_token = NULL,
                                 reclaim_count = 0,
+                                resumed_at = @now,
                                 updated_at = @now
                             FROM dependents d
                             WHERE w.id = d.id

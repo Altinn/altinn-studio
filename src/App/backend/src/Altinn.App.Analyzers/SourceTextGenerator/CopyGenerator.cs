@@ -61,7 +61,7 @@ internal static class CopyGenerator
         if (node.Properties.Count == 0)
         {
             // A class with no properties prints prettier without an empty initializer list
-            builder.Append("        return new();\r\n    }\r\n");
+            builder.Append("        return new();\n    }\n");
         }
         else
         {
@@ -79,15 +79,14 @@ internal static class CopyGenerator
                     property switch
                     {
                         { ListType: not null } =>
-                            $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\r\n",
-                        { Properties.Count: 0 } =>
-                            $"            {property.CSharpName} = data.{property.CSharpName},\r\n",
-                        _ => $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\r\n",
+                            $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\n",
+                        { Properties.Count: 0 } => $"            {property.CSharpName} = data.{property.CSharpName},\n",
+                        _ => $"            {property.CSharpName} = CopyRecursive(data.{property.CSharpName}),\n",
                     }
                 );
             }
 
-            builder.Append("        };\r\n    }\r\n");
+            builder.Append("        };\n    }\n");
         }
 
         foreach (var recursiveChild in node.Properties.Where(c => c.ListType is not null || !c.IsJsonValueType))

@@ -295,6 +295,7 @@ internal sealed class StudioctlAppProcess : IAsyncDisposable
     }
 
     public string AppDirectory { get; }
+
     public int ProcessId { get; }
     public Uri BaseUri { get; }
     public string? LogPath { get; }

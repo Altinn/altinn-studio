@@ -14,7 +14,7 @@ internal interface ISigningService
         IInstanceDataMutator instanceDataMutator,
         List<SigneeContext> signeeContexts,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -24,7 +24,7 @@ internal interface ISigningService
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
         int userId,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -33,7 +33,7 @@ internal interface ISigningService
     Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -42,7 +42,7 @@ internal interface ISigningService
     Task AbortRuntimeDelegatedSigning(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -52,6 +52,6 @@ internal interface ISigningService
     Task RevokeSigneeRightsOnTaskEnd(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

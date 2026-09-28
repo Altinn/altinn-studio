@@ -319,6 +319,7 @@ mod tests {
             source: image::ImageSource::Build {
                 context: PathBuf::from("context"),
                 dockerfile: PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: Platform::new("linux", "amd64"),
             manifest_digest: "sha256:1234".to_string(),

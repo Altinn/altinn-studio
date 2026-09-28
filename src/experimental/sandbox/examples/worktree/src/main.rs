@@ -100,6 +100,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             image: ImageSource::Build {
                 context: PathBuf::from(env!("CARGO_MANIFEST_DIR")),
                 dockerfile: PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: native_linux_platform(),
             resources: SandboxResources::new(

@@ -17,11 +17,42 @@ public static class HttpClientExtension
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static async Task<HttpResponseMessage> PostAsync(
+    public static Task<HttpResponseMessage> PostAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
         HttpContent? content,
+        string? platformAccessToken = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        httpClient.PostAsync(
+            authorizationToken,
+            requestUri,
+            content,
+            idempotencyKey: null,
+            platformAccessToken: platformAccessToken,
+            cancellationToken: cancellationToken
+        );
+
+    /// <summary>
+    /// Extension that adds an authorization header to the request and, when
+    /// <paramref name="idempotencyKey"/> is set, the <c>Idempotency-Key</c> header that lets the
+    /// receiving platform service recognize a repeated request as the same one.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient</param>
+    /// <param name="authorizationToken">the authorization token (jwt)</param>
+    /// <param name="requestUri">The request Uri</param>
+    /// <param name="content">The http content</param>
+    /// <param name="idempotencyKey">The key identifying this request across its retries, or null to send none</param>
+    /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A HttpResponseMessage</returns>
+    internal static async Task<HttpResponseMessage> PostAsync(
+        this HttpClient httpClient,
+        string authorizationToken,
+        string requestUri,
+        HttpContent? content,
+        Guid? idempotencyKey,
         string? platformAccessToken = null,
         CancellationToken cancellationToken = default
     )
@@ -39,6 +70,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
+        }
+
+        if (idempotencyKey.HasValue)
+        {
+            request.Headers.Add(Constants.General.IdempotencyKeyHeaderName, idempotencyKey.Value.ToString());
         }
 
         return await httpClient.SendAsync(request, cancellationToken);

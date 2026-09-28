@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -16,24 +15,18 @@ public class AppTemplate
     /// <summary>
     /// The template id, which is also its folder name.
     /// </summary>
-    [JsonPropertyName("id")]
     public required string Id { get; init; }
 
-    [JsonPropertyName("displayName")]
     public required string DisplayName { get; init; }
 
-    [JsonPropertyName("description")]
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
     /// Path to the template content, i.e. the folder holding App/, deployment/ and the loose files.
     /// </summary>
-    [JsonIgnore]
     public required string RootPath { get; init; }
 
-    [JsonIgnore]
     public string AppPath => Path.Combine(RootPath, AppFolderName);
 
-    [JsonIgnore]
     public string DeploymentPath => Path.Combine(RootPath, DeploymentFolderName);
 }

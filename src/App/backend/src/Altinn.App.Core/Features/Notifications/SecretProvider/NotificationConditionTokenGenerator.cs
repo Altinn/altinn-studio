@@ -16,7 +16,7 @@ internal interface INotificationConditionTokenGenerator
     /// <summary>
     /// Generates a signed JWT token for the given instance, valid for 31 days.
     /// </summary>
-    string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken ct = default);
+    string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken cancellationToken = default);
 }
 
 /// <inheritdoc />
@@ -24,7 +24,11 @@ internal sealed class NotificationConditionTokenGenerator(INotificationCondition
     : INotificationConditionTokenGenerator
 {
     /// <inheritdoc />
-    public string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken ct = default)
+    public string GenerateToken(
+        Guid instanceGuid,
+        Telemetry? telemetry = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = telemetry?.StartNotificationConditionTokenGenerateActivity(instanceGuid);
         AppCode appCode;

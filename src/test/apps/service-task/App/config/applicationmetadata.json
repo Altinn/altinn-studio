@@ -42,18 +42,6 @@
       "enabledFileValidators": []
     },
     {
-      "id": "subform-pdf",
-      "allowedContentTypes": [
-        "application/pdf"
-      ],
-      "maxCount": 0,
-      "minCount": 0,
-      "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false,
-      "enabledFileAnalysers": [],
-      "enabledFileValidators": []
-    },
-    {
       "id": "model",
       "allowedContentTypes": [
         "application/xml"
@@ -101,7 +89,7 @@
         "application/xml"
       ],
       "appLogic": {
-        "autoCreate": true,
+        "autoCreate": false,
         "classRef": "Altinn.App.Models.SubformModel.SubformModel",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,

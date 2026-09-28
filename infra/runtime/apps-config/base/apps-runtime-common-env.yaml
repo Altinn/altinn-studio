@@ -10,6 +10,14 @@ data:
   PlatformSettings__ApiPdf2Endpoint: http://pdf-generator.pdf.svc.cluster.local/pdf
   PlatformSettings__ApiWorkflowEngineEndpoint: http://workflow-engine-app.runtime-workflow-engine-app.svc.cluster.local/api/v1/
   GeneralSettings__ExternalAppBaseUrl: https://{org}.apps.{hostName}/{org}/{app}/
+  # Where the platform provisions an app's secrets, and what it calls each file. The app libraries require
+  # these and hardcode neither the directory nor the file names, so the values below are the contract: they
+  # must match what the operator writes - src/Runtime/operator/internal/maskinporten/client_state.go
+  # (JsonFileName) and src/Runtime/operator/internal/controller/appcodesync/controller.go (appCodesFileName).
+  # The same in every environment, because the chart mounts the secret at the same path everywhere.
+  RUNTIME_APP_SECRETS_DIR: /mnt/app-secrets
+  RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME: maskinporten-settings.json
+  RUNTIME_APP_SECRETS_APPCODES_FILENAME: app-codes.json
   PlatformFrontendSettings__PostalCodesUrl: https://altinncdn.no/postcodes/registry.json
   PlatformFrontendSettings__AltinnLogoUrl: https://altinncdn.no/img/Altinn-logo-blue.svg
   PlatformFrontendSettings__HelpCircleIllustrationUrl: https://altinncdn.no/img/illustration-help-circle.svg

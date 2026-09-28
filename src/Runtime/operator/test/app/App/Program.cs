@@ -1,9 +1,9 @@
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Maskinporten.Models;
 using App;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -69,7 +69,6 @@ app.MapGet("/ttd/localtestapp/token", async (
             return Results.Json(new { success = false, error = "Authority is empty in settings" });
         }
 
-        // Get JsonWebKey from settings (uses Jwk or JwkBase64)
         JsonWebKey jwk;
         try
         {
@@ -210,4 +209,51 @@ public class PostgresConfig
 {
     [JsonPropertyName("ConnectionString")]
     public string? ConnectionString { get; set; }
+}
+
+public class MaskinportenSettings
+{
+    [Required]
+    public string? Authority { get; set; }
+
+    [Required]
+    public string? ClientId { get; set; }
+
+    public MaskinportenJwk? Jwk { get; set; }
+
+    public JsonWebKey GetJsonWebKey() =>
+        Jwk?.ToJsonWebKey() ?? throw new InvalidOperationException("MaskinportenSettings.Jwk is missing");
+}
+
+public class MaskinportenJwk
+{
+    public string? Kty { get; set; }
+    public string? Use { get; set; }
+    public string? Kid { get; set; }
+    public string? Alg { get; set; }
+    public string? N { get; set; }
+    public string? E { get; set; }
+    public string? D { get; set; }
+    public string? P { get; set; }
+    public string? Q { get; set; }
+    public string? Qi { get; set; }
+    public string? Dp { get; set; }
+    public string? Dq { get; set; }
+
+    public JsonWebKey ToJsonWebKey() =>
+        new()
+        {
+            Kty = Kty,
+            Use = Use,
+            Kid = Kid,
+            Alg = Alg,
+            N = N,
+            E = E,
+            D = D,
+            P = P,
+            Q = Q,
+            QI = Qi,
+            DP = Dp,
+            DQ = Dq,
+        };
 }

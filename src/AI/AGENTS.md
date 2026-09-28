@@ -49,6 +49,10 @@ function processOrder(order: Order) {
 }
 ```
 
+### Python lint and format
+
+In `./agents`, Python code must pass `ruff check .` and `ruff format --check .`. Ruff configuration is in `pyproject.toml`. Do not add `# noqa` or ignored rules without a reason in a comment.
+
 ### Naming
 
 - **Functions use verbs**: `fetchUserProfile`, `calculateTotal`.

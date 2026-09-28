@@ -2,13 +2,12 @@ name: Designer Backend - dotnet format check
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/common/dotnet/**'
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-format.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +16,7 @@ concurrency:
 
 jobs:
   dotnet-format-check:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Format check
     runs-on: ubuntu-latest
     timeout-minutes: 5

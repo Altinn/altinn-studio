@@ -177,7 +177,7 @@ public class InstancesController : ControllerBase
                 org,
                 instanceOwnerPartyId,
                 instanceGuid,
-                ct: cancellationToken
+                cancellationToken: cancellationToken
             );
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
@@ -189,7 +189,7 @@ public class InstancesController : ControllerBase
                     instanceOwnerPartyId,
                     instanceGuid,
                     "read",
-                    ct: cancellationToken
+                    cancellationToken: cancellationToken
                 );
             }
 
@@ -260,7 +260,7 @@ public class InstancesController : ControllerBase
                 org,
                 instanceOwnerPartyId,
                 instanceGuid,
-                ct: cancellationToken
+                cancellationToken: cancellationToken
             );
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
@@ -272,7 +272,7 @@ public class InstancesController : ControllerBase
                     instanceOwnerPartyId,
                     instanceGuid,
                     "read",
-                    ct: cancellationToken
+                    cancellationToken: cancellationToken
                 );
             }
 
@@ -1360,6 +1360,7 @@ public class InstancesController : ControllerBase
     /// <param name="org">unique identifier of the organization responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>A list of light weight instance objects that contains instanceId, lastChanged and lastChangedBy (full name).</returns>
     [Authorize]
     [HttpGet("{instanceOwnerPartyId:int}/active")]
@@ -1368,7 +1369,8 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances(
         [FromRoute] string org,
         [FromRoute] string app,
-        int instanceOwnerPartyId
+        int instanceOwnerPartyId,
+        CancellationToken cancellationToken
     )
     {
         Dictionary<string, StringValues> queryParams = new()
@@ -1382,7 +1384,7 @@ public class InstancesController : ControllerBase
         List<Instance> activeInstances = await _instanceClient.GetInstances(
             queryParams,
             authenticationMethod: null,
-            CancellationToken.None
+            cancellationToken
         );
 
         if (activeInstances.Count == 0)
@@ -1398,7 +1400,10 @@ public class InstancesController : ControllerBase
         {
             if (lastChangedBy?.Length == 9)
             {
-                Organization? organization = await _orgClient.GetOrganization(lastChangedBy);
+                Organization? organization = await _orgClient.GetOrganization(
+                    lastChangedBy,
+                    cancellationToken: cancellationToken
+                );
                 if (organization is not null && !string.IsNullOrEmpty(organization.Name))
                 {
                     userAndOrgLookup.Add(lastChangedBy, organization.Name);
@@ -1406,7 +1411,10 @@ public class InstancesController : ControllerBase
             }
             else if (int.TryParse(lastChangedBy, out int lastChangedByInt))
             {
-                UserProfile? user = await _profileClient.GetUserProfile(lastChangedByInt);
+                UserProfile? user = await _profileClient.GetUserProfile(
+                    lastChangedByInt,
+                    cancellationToken: cancellationToken
+                );
                 if (user is not null && user.Party is not null && !string.IsNullOrEmpty(user.Party.Name))
                 {
                     userAndOrgLookup.Add(lastChangedBy, user.Party.Name);
@@ -1754,6 +1762,11 @@ public class InstancesController : ControllerBase
         return enforcementResult;
     }
 
+    /// <summary>
+    /// Resolves the instance owner party before an instance is created. These lookups are tied to the request
+    /// through <see cref="HttpContext.RequestAborted"/>; the creation writes that follow deliberately are not,
+    /// so a client that disconnects mid-way cannot leave a half-created instance behind.
+    /// </summary>
     private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
     {
         if (instanceOwner.PartyId != null)
@@ -1764,6 +1777,10 @@ public class InstancesController : ControllerBase
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
                     cancellationToken: this.HttpContext.RequestAborted
                 );
+            }
+            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e) when (e is not ServiceException)
             {
@@ -1783,7 +1800,10 @@ public class InstancesController : ControllerBase
             {
                 if (!string.IsNullOrEmpty(instanceOwner.ExternalIdentifier))
                 {
-                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(instanceOwner.ExternalIdentifier);
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(
+                        instanceOwner.ExternalIdentifier,
+                        this.HttpContext.RequestAborted
+                    );
                     if (partyId == null)
                     {
                         throw new ServiceException(
@@ -1799,13 +1819,17 @@ public class InstancesController : ControllerBase
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
                     lookupNumber = "personNumber";
-                    return await _altinnPartyClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                    return await _altinnPartyClient.LookupParty(
+                        new PartyLookup { Ssn = instanceOwner.PersonNumber },
+                        cancellationToken: this.HttpContext.RequestAborted
+                    );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                 {
                     lookupNumber = "organisationNumber";
                     return await _altinnPartyClient.LookupParty(
-                        new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
+                        new PartyLookup { OrgNo = instanceOwner.OrganisationNumber },
+                        cancellationToken: this.HttpContext.RequestAborted
                     );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.Username))
@@ -1814,7 +1838,7 @@ public class InstancesController : ControllerBase
                         ? instanceOwner.Username[6..]
                         : instanceOwner.Username;
                     var urn = $"{AltinnUrns.SelfIdentifiedEmail}:{UrlEncoder.Default.Encode(email)}";
-                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn);
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn, this.HttpContext.RequestAborted);
                     if (partyId == null)
                     {
                         throw new ServiceException(
@@ -1834,6 +1858,10 @@ public class InstancesController : ControllerBase
                         "Neither personNumber or organisationNumber has value in instanceOwner"
                     );
                 }
+            }
+            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -2025,7 +2053,9 @@ public class InstancesController : ControllerBase
         {
             try
             {
-                await _eventsClient.AddEvent(eventType, instance);
+                // Deliberately not tied to the request: the instance change is already committed, so a client
+                // that disconnects afterwards must not make us drop its event.
+                await _eventsClient.AddEvent(eventType, instance, cancellationToken: CancellationToken.None);
             }
             catch (Exception exception)
             {
@@ -2055,7 +2085,8 @@ public class InstancesController : ControllerBase
             presentationFields,
             instance.PresentationTexts,
             dataType,
-            data
+            data,
+            metadataPropertyName: "presentationFields"
         );
 
         if (updatedValues.Count > 0)
@@ -2077,7 +2108,13 @@ public class InstancesController : ControllerBase
         object data
     )
     {
-        var updatedValues = DataHelper.GetUpdatedDataValues(dataFields, instance.DataValues, dataType, data);
+        var updatedValues = DataHelper.GetUpdatedDataValues(
+            dataFields,
+            instance.DataValues,
+            dataType,
+            data,
+            metadataPropertyName: "dataFields"
+        );
 
         if (updatedValues.Count > 0)
         {

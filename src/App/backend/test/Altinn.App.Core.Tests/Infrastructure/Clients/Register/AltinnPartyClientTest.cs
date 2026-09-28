@@ -177,9 +177,11 @@ public class AltinnPartyClientTest
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => requestCallback?.Invoke(req))
+                .Callback<HttpRequestMessage, CancellationToken>(
+                    (req, cancellationToken) => requestCallback?.Invoke(req)
+                )
                 .ReturnsAsync(
-                    (HttpRequestMessage request, CancellationToken ct) =>
+                    (HttpRequestMessage request, CancellationToken cancellationToken) =>
                     {
                         return request.Method.Method switch
                         {

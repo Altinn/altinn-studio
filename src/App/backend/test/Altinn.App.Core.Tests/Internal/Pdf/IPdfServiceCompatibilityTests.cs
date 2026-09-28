@@ -54,10 +54,10 @@ public class IPdfServiceCompatibilityTests
         public Task GenerateAndStorePdf(
             IInstanceDataMutator instanceDataMutator,
             StorageAuthenticationMethod? authenticationMethod = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct) =>
+        public Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
         public Task<Stream> GeneratePdf(
@@ -65,10 +65,10 @@ public class IPdfServiceCompatibilityTests
             string taskId,
             bool isPreview,
             StorageAuthenticationMethod? authenticationMethod = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
-            Call = (instance, taskId, isPreview, authenticationMethod, ct);
+            Call = (instance, taskId, isPreview, authenticationMethod, cancellationToken);
             return Task.FromResult(result);
         }
     }

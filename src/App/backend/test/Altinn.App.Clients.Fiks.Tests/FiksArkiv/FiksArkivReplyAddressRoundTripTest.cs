@@ -219,7 +219,9 @@ public class FiksArkivReplyAddressRoundTripTest
         fixture
             .AuthenticationContextMock.Setup(x => x.Current)
             .Returns(TestAuthentication.GetServiceOwnerAuthentication());
-        fixture.PartyClientMock.Setup(x => x.GetParty(12345, null)).ReturnsAsync((Party?)null);
+        fixture
+            .PartyClientMock.Setup(x => x.GetParty(12345, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Party?)null);
         fixture
             .LayoutStateInitializerMock.Setup(x => x.Init(dataMutator.Object, "Task_1", null, null))
             .ReturnsAsync(

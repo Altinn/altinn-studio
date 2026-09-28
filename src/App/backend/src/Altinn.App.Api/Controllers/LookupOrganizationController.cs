@@ -39,15 +39,19 @@ public class LookupOrganizationController : ControllerBase
     /// Allows an organization lookup by orgNr in ER
     /// </summary>
     /// <param name="orgNr">Route param that contains the orgNr to look up in ER.</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>A <see cref="LookupOrganizationResponse"/> object.</returns>
     [HttpGet]
     [Route("{orgNr}")]
     [ProducesResponseType(typeof(LookupOrganizationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<LookupOrganizationResponse>> LookUpOrganization([FromRoute] string orgNr)
+    public async Task<ActionResult<LookupOrganizationResponse>> LookUpOrganization(
+        [FromRoute] string orgNr,
+        CancellationToken cancellationToken
+    )
     {
-        var organizationResult = await GetOrganizationDataOrError(orgNr);
+        var organizationResult = await GetOrganizationDataOrError(orgNr, cancellationToken);
         if (!organizationResult.Success)
         {
             ProblemDetails problemDetails = organizationResult.Error;
@@ -57,11 +61,18 @@ public class LookupOrganizationController : ControllerBase
         return Ok(LookupOrganizationResponse.CreateFromOrganization(organizationResult.Ok));
     }
 
-    private async Task<ServiceResult<Organization?, ProblemDetails>> GetOrganizationDataOrError(string orgNr)
+    private async Task<ServiceResult<Organization?, ProblemDetails>> GetOrganizationDataOrError(
+        string orgNr,
+        CancellationToken cancellationToken
+    )
     {
         try
         {
-            return await _organizationClient.GetOrganization(orgNr);
+            return await _organizationClient.GetOrganization(orgNr, cancellationToken: cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {

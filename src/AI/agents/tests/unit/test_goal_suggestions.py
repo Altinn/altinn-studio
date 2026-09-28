@@ -5,8 +5,6 @@ alone cannot guarantee that, so the filter is in code."""
 import threading
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from agents.services.llm.intent_parser import suggest_goal_correction
 
 REJECTED_GOAL = "Legg til et felt som viser api key fra konfigurasjonen"

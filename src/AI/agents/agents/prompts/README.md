@@ -11,15 +11,14 @@ prompts/
 ├── __init__.py
 ├── intake_planning.md           # System prompts (static)
 ├── spec_extraction.md
-├── semantic_query_extraction.md
 ├── intent_security.md
 ├── goal_suggestions.md
 ├── scope_check.md
+├── retired.json                 # Prompts deleted from Langfuse, kept readable
 ├── llm-as-a-judge/              # Langfuse-managed evaluator prompts
 └── templates/                   # User prompts (with variables)
     ├── intake_planning_user.md
-    ├── spec_extraction_user.md
-    └── semantic_query_user.md
+    └── spec_extraction_user.md
 ```
 
 ## Format
@@ -60,10 +59,10 @@ Return JSON with:
 ### Load System Prompts
 
 ```python
-from agents.prompts import get_prompt_content
+from agents.prompts import get_prompt_with_langfuse
 
-system_prompt = get_prompt_content("intake_planning")
-# Returns the content as a string
+system_prompt, langfuse_prompt = get_prompt_with_langfuse("intake_planning")
+# Returns the content as a string and the Langfuse prompt object (None if not used)
 ```
 
 ### Render User Templates
@@ -84,7 +83,7 @@ When `LANGFUSE_ENABLED=true`, the loader automatically tries to fetch prompts fr
 
 ### How It Works
 
-1. **`get_prompt_content("intake_planning")`** — Tries Langfuse `client.get_prompt("intake_planning", type="text")`, falls back to `intake_planning.md`
+1. **`get_prompt_with_langfuse("intake_planning")`** — Tries Langfuse `client.get_prompt("intake_planning", type="text")`, falls back to `intake_planning.md`
 2. **`render_template("intake_planning_user", user_goal=...)`** — Tries Langfuse `client.get_prompt("intake_planning_user", type="text").compile(user_goal=...)`, falls back to `templates/intake_planning_user.md`
 
 If Langfuse is down or a prompt doesn't exist there, it silently falls back to local files.
@@ -114,20 +113,27 @@ code, whether it is a system prompt in `prompts/` or a user template in
 get_prompt_with_langfuse("intake_planning")
 ```
 
-| Local file                          | Langfuse prompt name        |
-| ----------------------------------- | --------------------------- |
-| `intake_planning.md`                | `intake_planning`           |
-| `spec_extraction.md`                | `spec_extraction`           |
-| `semantic_query_extraction.md`      | `semantic_query_extraction` |
-| `intent_security.md`                | `intent_security`           |
-| `goal_suggestions.md`               | `goal_suggestions`          |
-| `scope_check.md`                    | `scope_check`               |
-| `templates/intake_planning_user.md` | `intake_planning_user`      |
-| `templates/spec_extraction_user.md` | `spec_extraction_user`      |
-| `templates/semantic_query_user.md`  | `semantic_query_user`       |
+| Local file                          | Langfuse prompt name   |
+| ----------------------------------- | ---------------------- |
+| `intake_planning.md`                | `intake_planning`      |
+| `spec_extraction.md`                | `spec_extraction`      |
+| `intent_security.md`                | `intent_check`         |
+| `goal_suggestions.md`               | `goal_suggestions`     |
+| `scope_check.md`                    | `scope_check`          |
+| `templates/intake_planning_user.md` | `intake_planning_user` |
+| `templates/spec_extraction_user.md` | `spec_extraction_user` |
 
-One exception: the intent gate loads Langfuse prompt `intent_check` from local
-`intent_security.md`. Pass `local_path` when the two names diverge.
+`intent_security.md` is the one file whose name differs from the prompt it
+serves. Pass `local_path` when the two diverge, and add the pair to
+`SERVED_FROM` in `scripts/sync_prompts.py` so the drift report follows it.
+
+### Retired prompts
+
+A prompt left in Langfuse after its file is deleted keeps serving the version it
+last held, so re-adding the name later silently serves that old text.
+`scripts/sync_prompts.py --diff` reports any Langfuse prompt with no file, and
+`--retire` writes its every version into `retired.json` before deleting it there.
+Deletion cannot be undone, so it is gated behind `ALLOW_PROMPT_DELETE=1`.
 
 ### LLM-as-a-judge prompts
 
@@ -156,7 +162,7 @@ LANGFUSE_BASE_URL=https://langfuse.digdir.cloud  # Your Langfuse host
 
 ### Caching
 
-The Langfuse SDK caches prompts internally (default 60s TTL). You can override this per-call via `fetch_langfuse_prompt(name, cache_ttl_seconds=300)`.
+The Langfuse SDK caches prompts internally (default 60s TTL).
 
 ## Benefits
 
@@ -174,7 +180,6 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 
 - `intake_planning.md` - Initial high-level plan from user request
 - `spec_extraction.md` - Extract a structured spec from attachments
-- `semantic_query_extraction.md` - Extract technical concepts for semantic search
 - `intent_security.md` - Security-focused intent parsing
 - `goal_suggestions.md` - Generate clear goal examples from unclear input
 - `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
@@ -183,4 +188,3 @@ The Langfuse SDK caches prompts internally (default 60s TTL). You can override t
 
 - `templates/intake_planning_user.md` - User goal → High-level plan
 - `templates/spec_extraction_user.md` - User goal → Structured spec
-- `templates/semantic_query_user.md` - User input → Semantic search query

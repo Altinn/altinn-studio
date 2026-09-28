@@ -13,7 +13,7 @@ Agent declares a suitable mediated secret. It is not intended for running Docker
 
 ```sh
 agentctl claude login
-agentctl apply -f agent.yaml --name agent-test --wait
+agentctl apply --name agent-test --wait
 agentctl get agent agent-test
 agentctl describe agent/agent-test
 agentctl wait --for=condition=Ready agent/agent-test --timeout=10m

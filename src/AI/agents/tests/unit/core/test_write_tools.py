@@ -22,7 +22,6 @@ from agents.core import (
     VerifyChangesTool,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
@@ -51,9 +50,7 @@ def _write_ctx(
 @pytest.fixture
 def permissive_schema(monkeypatch):
     """Layout schema fetch → empty schema (accepts any layout)."""
-    monkeypatch.setattr(
-        "agents.core.tools.verify_tool.get_layout_schema", lambda url: {}
-    )
+    monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
 
 
 # ---------------------------------------------------------------------------
@@ -156,9 +153,7 @@ class TestVerifyChanges:
         body = json.loads(result.content)
         assert any("no automated validator" in note for note in body["notes"])
 
-    async def test_multipage_layout_without_navigation_fails(
-        self, tmp_path: Path, permissive_schema
-    ):
+    async def test_multipage_layout_without_navigation_fails(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
         layouts_dir.mkdir(parents=True)
         settings = {"pages": {"order": ["Side1", "Side2"]}}
@@ -178,9 +173,7 @@ class TestVerifyChanges:
         assert any("NavigationButtons" in note for note in body["notes"])
         assert "verified_files" not in ctx.extras or not ctx.extras["verified_files"]
 
-    async def test_multipage_layout_with_navigation_passes(
-        self, tmp_path: Path, permissive_schema
-    ):
+    async def test_multipage_layout_with_navigation_passes(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
         layouts_dir.mkdir(parents=True)
         settings = {"pages": {"order": ["Side1", "Side2"]}}
@@ -203,9 +196,7 @@ class TestVerifyChanges:
 
         assert not result.is_error
 
-    async def test_single_page_layout_needs_no_navigation(
-        self, tmp_path: Path, permissive_schema
-    ):
+    async def test_single_page_layout_needs_no_navigation(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
         layouts_dir.mkdir(parents=True)
         settings = {"pages": {"order": ["Side1"]}}
@@ -221,9 +212,7 @@ class TestVerifyChanges:
 
         assert not result.is_error
 
-    async def test_page_outside_order_array_needs_no_navigation(
-        self, tmp_path: Path, permissive_schema
-    ):
+    async def test_page_outside_order_array_needs_no_navigation(self, tmp_path: Path, permissive_schema):
         layouts_dir = tmp_path / "App" / "ui" / "form" / "layouts"
         layouts_dir.mkdir(parents=True)
         settings = {"pages": {"order": ["Side1", "Side2"]}}
@@ -244,17 +233,13 @@ class TestVerifyChanges:
         layout_path.parent.mkdir(parents=True)
         layout_path.write_text('{"data": {}}', encoding="utf-8")
 
-        monkeypatch.setattr(
-            "agents.core.tools.verify_tool.get_layout_schema", lambda url: {}
-        )
+        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
             "agents.core.tools.verify_tool.validate_layout_json",
             lambda layout, schema: {
                 "status": "validation_failed",
                 "message": "Layout validation failed with 1 error(s)",
-                "validation_errors": [
-                    {"path": "$.data.layout", "message": "is required"}
-                ],
+                "validation_errors": [{"path": "$.data.layout", "message": "is required"}],
             },
         )
         ctx = _write_ctx(
@@ -268,16 +253,12 @@ class TestVerifyChanges:
         # A failed validation must NOT mark anything verified.
         assert ctx.extras.get("verified_files", set()) == set()
 
-    async def test_layout_failure_appends_altinn_layout_props_breadcrumb(
-        self, tmp_path: Path, monkeypatch
-    ):
+    async def test_layout_failure_appends_altinn_layout_props_breadcrumb(self, tmp_path: Path, monkeypatch):
         layout_path = tmp_path / "App" / "ui" / "layouts" / "P.json"
         layout_path.parent.mkdir(parents=True)
         layout_path.write_text('{"data": {"layout": []}}', encoding="utf-8")
 
-        monkeypatch.setattr(
-            "agents.core.tools.verify_tool.get_layout_schema", lambda url: {}
-        )
+        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
             "agents.core.tools.verify_tool.validate_layout_json",
             lambda layout, schema: {
@@ -311,9 +292,7 @@ class TestVerifyChanges:
         def boom(url):
             raise RuntimeError("CDN unreachable")
 
-        monkeypatch.setattr(
-            "agents.core.tools.verify_tool.get_layout_schema", boom
-        )
+        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", boom)
         ctx = _write_ctx(
             repo_path=str(tmp_path),
             changed={"App/ui/layouts/P.json"},
@@ -334,9 +313,7 @@ class TestVerifyChanges:
         assert "invalid JSON" in result.content
 
     async def test_no_changed_files_returns_error(self):
-        result = await VerifyChangesTool().run(
-            VerifyChangesTool.input_schema(), _write_ctx()
-        )
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), _write_ctx())
         assert result.is_error
         assert "No changed files" in result.content
 
@@ -351,9 +328,7 @@ class TestCommitSessionBranch:
         seen: dict[str, Any] = {}
 
         def fake_commit(message, repo_path, branch_name):
-            seen.setdefault("commits", []).append(
-                {"message": message, "repo_path": repo_path, "branch": branch_name}
-            )
+            seen.setdefault("commits", []).append({"message": message, "repo_path": repo_path, "branch": branch_name})
             return "abc12345"
 
         class FakeRepoManager:
@@ -374,7 +349,7 @@ class TestCommitSessionBranch:
 
         assert not result.is_error
         # Cached branch name persists across the session.
-        assert ctx.extras["session_branch"].startswith("altinity_session_")
+        assert ctx.extras["session_branch"].startswith("assistant_")
         # The auto-commit safety net keys off this flag.
         assert ctx.extras.get("session_committed") is True
 
@@ -392,9 +367,7 @@ class TestCommitSessionBranch:
         )
 
         tool = CommitSessionBranchTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"message": "x"}), _write_ctx()
-        )
+        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), _write_ctx())
         assert result.is_error
         assert "Nothing to commit" in result.content
 
@@ -414,9 +387,7 @@ class TestCommitSessionBranch:
         )
 
         tool = CommitSessionBranchTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"message": "x"}), _write_ctx()
-        )
+        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), _write_ctx())
         assert result.is_error
         assert "deadbeef" in result.content
         assert "rejected" in result.content.lower()
@@ -486,9 +457,127 @@ class TestCommitSessionBranch:
         )
 
         tool = CommitSessionBranchTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"message": "x"}), _write_ctx()
-        )
+        result = await tool.run(tool.input_schema.model_validate({"message": "x"}), _write_ctx())
         assert result.is_error
         assert "feedface" in result.content
         assert "gitea unreachable" in result.content
+
+
+class TestTextKeysResolve:
+    """A key with no entry renders as the key, and every file validates fine alone."""
+
+    def _app(self, tmp_path: Path, bindings: dict, resources: list[str]) -> Path:
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {"data": {"layout": [{"id": "submit", "type": "Button", "textResourceBindings": bindings}]}}
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        (texts / "resource.nb.json").write_text(
+            json.dumps({"language": "nb", "resources": [{"id": i, "value": i} for i in resources]}),
+            encoding="utf-8",
+        )
+        return layouts / "Side1.json"
+
+    async def _verify(self, tmp_path: Path):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/ui/form/layouts/Side1.json"})
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content), ctx
+
+    async def test_a_missing_key_fails_verification(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["appName"])
+
+        result, body, ctx = await self._verify(tmp_path)
+
+        assert result.is_error
+        assert not body["passed"]
+        assert any("app.button.submit" in note for note in body["notes"])
+        assert not ctx.extras.get("verified_files")
+
+    async def test_a_resolved_key_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {"title": "app.button.submit"}, ["app.button.submit"])
+
+        result, body, _ = await self._verify(tmp_path)
+
+        assert not result.is_error
+        assert body["passed"]
+
+    async def test_a_layout_with_no_bindings_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, {}, ["appName"])
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
+
+    async def test_an_app_with_no_text_files_is_not_blocked(self, tmp_path: Path, permissive_schema):
+        """Nothing to resolve against is the layout validator's problem, not ours."""
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [{"id": "submit", "type": "Button", "textResourceBindings": {"title": "app.button.submit"}}]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+
+        _, body, _ = await self._verify(tmp_path)
+
+        assert body["passed"]
+
+
+class TestTextKeysResolveInEveryLanguage:
+    """A key present in nb and missing in en renders as the key for English users,
+    and removing it from a resource file leaves every layout still pointing at it."""
+
+    def _app(self, tmp_path: Path, *, en_has_key: bool):
+        layouts = tmp_path / "App" / "ui" / "form" / "layouts"
+        layouts.mkdir(parents=True)
+        page = {
+            "data": {
+                "layout": [
+                    {
+                        "id": "submit",
+                        "type": "Button",
+                        "textResourceBindings": {"title": "app.button.submit"},
+                    }
+                ]
+            }
+        }
+        (layouts / "Side1.json").write_text(json.dumps(page), encoding="utf-8")
+        texts = tmp_path / "App" / "config" / "texts"
+        texts.mkdir(parents=True)
+        for language, has in (("nb", True), ("en", en_has_key)):
+            ids = ["app.button.submit"] if has else ["appName"]
+            (texts / f"resource.{language}.json").write_text(
+                json.dumps({"language": language, "resources": [{"id": i, "value": i} for i in ids]}),
+                encoding="utf-8",
+            )
+
+    async def _verify(self, tmp_path: Path, changed: set[str]):
+        ctx = _write_ctx(repo_path=str(tmp_path), changed=changed)
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+        return result, json.loads(result.content)
+
+    async def test_a_key_missing_from_one_language_fails(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert result.is_error
+        assert any("resource.en.json" in note for note in body["notes"])
+
+    async def test_every_language_having_it_passes(self, tmp_path: Path, permissive_schema):
+        self._app(tmp_path, en_has_key=True)
+
+        _, body = await self._verify(tmp_path, {"App/ui/form/layouts/Side1.json"})
+
+        assert body["passed"]
+
+    async def test_changing_a_resource_file_rechecks_untouched_layouts(self, tmp_path: Path, permissive_schema):
+        """The layout is unchanged, so a per-file check would never look at it."""
+        self._app(tmp_path, en_has_key=False)
+
+        result, body = await self._verify(tmp_path, {"App/config/texts/resource.en.json"})
+
+        assert result.is_error
+        assert any("Side1.json" in note for note in body["notes"])

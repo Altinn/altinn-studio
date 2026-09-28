@@ -53,12 +53,12 @@ internal sealed class NotificationService : INotificationService
         Instance instance,
         Party party,
         InstantiationNotification instantiationNotification,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         InstanceOwner instanceOwner = instance.InstanceOwner;
-        string language = await DetermineLanguage(instanceOwner, instantiationNotification.Language);
-        AltinnCdnOrgName? serviceOwnerName = await _cdnClient.GetOrgNameByAppId(instance.AppId, ct);
+        string language = await DetermineLanguage(instanceOwner, instantiationNotification.Language, cancellationToken);
+        AltinnCdnOrgName? serviceOwnerName = await _cdnClient.GetOrgNameByAppId(instance.AppId, cancellationToken);
         ApplicationMetadata? appMetadata = await _appMetadata.GetApplicationMetadata();
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance.AppId));
         Uri callBackUri = CallbackUrlWithAuth(instance, baseUrl);
@@ -73,7 +73,7 @@ internal sealed class NotificationService : INotificationService
             callBackUri
         );
 
-        NotificationOrderResponse orderResponse = await _notificationOrderClient.Order(orderRequest, ct);
+        NotificationOrderResponse orderResponse = await _notificationOrderClient.Order(orderRequest, cancellationToken);
 
         _logger.LogInformation(
             "Notification order created. OrderId: {OrderId}, ShipmentId: {ShipmentId}, Reference: {SendersReference}, ReminderCount: {ReminderCount}, ReminderShipmentIds: {ReminderShipmentIds}",
@@ -416,24 +416,34 @@ internal sealed class NotificationService : INotificationService
         return null;
     }
 
-    internal async Task<string> DetermineLanguage(InstanceOwner instanceOwner, string? requestedOrgLanguage)
+    internal async Task<string> DetermineLanguage(
+        InstanceOwner instanceOwner,
+        string? requestedOrgLanguage,
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(instanceOwner.PersonNumber) is false)
         {
-            UserProfile? personProfile = await _profileClient.GetUserProfile(instanceOwner.PersonNumber);
+            UserProfile? personProfile = await _profileClient.GetUserProfile(
+                instanceOwner.PersonNumber,
+                cancellationToken: cancellationToken
+            );
             return personProfile?.ProfileSettingPreference?.Language ?? LanguageConst.Nb;
         }
 
         if (string.IsNullOrWhiteSpace(instanceOwner.ExternalIdentifier) is false)
         {
-            Guid? partyGuid = await _altinnPartyClient.GetPartyUuidByUrn(instanceOwner.ExternalIdentifier);
+            Guid? partyGuid = await _altinnPartyClient.GetPartyUuidByUrn(
+                instanceOwner.ExternalIdentifier,
+                cancellationToken
+            );
             if (partyGuid is null)
             {
                 return LanguageConst.En;
             }
 
             // HACK: userUuid == partyGuid
-            UserProfile? userProfile = await _profileClient.GetUserProfile(partyGuid.Value);
+            UserProfile? userProfile = await _profileClient.GetUserProfile(partyGuid.Value, cancellationToken);
 
             return userProfile?.ProfileSettingPreference?.Language ?? LanguageConst.En;
         }

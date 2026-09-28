@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{AgentId, Error, Harness, sandbox};
+use crate::{AgentId, Error, Harness, ModelSelection, sandbox};
 
 pub use crate::controller::Reconcile;
 pub use activity::{Activity, ActivityEvent, Phase};
@@ -115,6 +115,8 @@ pub enum LifecycleState {
     Running,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The harness is stopped and stays stopped until the Session is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -135,6 +137,8 @@ pub enum State {
     WaitingForInput,
     /// The harness was deliberately stopped after inactivity.
     Idle,
+    /// The Session was archived: its harness is stopped until it is unarchived.
+    Archived,
     /// Reconciliation most recently failed.
     Failed,
 }
@@ -151,6 +155,13 @@ pub struct Status {
     /// Derived Session state; see [`State`].
     #[serde(default)]
     pub state: State,
+    /// When the Session entered `state`, from the half that decides it, when known.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        with = "time::serde::rfc3339::option"
+    )]
+    pub state_since: Option<time::OffsetDateTime>,
     /// Lifecycle observed by the reconciler.
     #[serde(default)]
     pub lifecycle: Lifecycle,
@@ -166,6 +177,7 @@ impl Status {
         let state = match lifecycle.state {
             LifecycleState::Failed => State::Failed,
             LifecycleState::Idle => State::Idle,
+            LifecycleState::Archived => State::Archived,
             LifecycleState::Starting | LifecycleState::Resuming => State::Starting,
             // A start report always folds to `Working`, so an `Unknown` phase means
             // the current launch has not reported yet, even when an earlier launch
@@ -179,9 +191,22 @@ impl Status {
         };
         Self {
             state,
+            state_since: None,
             lifecycle,
             reported,
         }
+    }
+
+    /// Sets when the Session entered its state: the activity phase's change
+    /// while the harness runs and reports, otherwise `lifecycle_since`, when
+    /// the lifecycle state last changed.
+    #[must_use]
+    pub const fn entered(mut self, lifecycle_since: Option<time::OffsetDateTime>) -> Self {
+        self.state_since = match self.state {
+            State::Working | State::WaitingForInput => self.reported.activity.phase_since,
+            State::Starting | State::Idle | State::Archived | State::Failed => lifecycle_since,
+        };
+        self
     }
 }
 
@@ -213,6 +238,23 @@ impl Lifecycle {
         Self {
             state: LifecycleState::Idle,
             failure: None,
+        }
+    }
+
+    /// A stopped harness of an archived Session.
+    #[must_use]
+    pub const fn archived() -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: None,
+        }
+    }
+
+    /// An archived Session whose harness could not be stopped yet.
+    pub fn archived_with(failure: impl Into<String>) -> Self {
+        Self {
+            state: LifecycleState::Archived,
+            failure: Some(failure.into()),
         }
     }
 
@@ -337,9 +379,30 @@ pub struct Session {
     pub name: SessionName,
     /// Immutable harness installation selected for this Session.
     pub harness: Harness,
+    /// Immutable model and effort level resolved when the Session was created:
+    /// the caller's request, then the installation's manifest defaults. Every
+    /// launch of the harness applies it; an unselected field leaves the harness default.
+    #[serde(default, skip_serializing_if = "ModelSelection::is_empty")]
+    pub model_selection: ModelSelection,
     /// First time the Session was requested.
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
+    /// When release was requested. A marked Session is no longer listed or
+    /// resolvable by name; the reconciler stops its harness and then removes it.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub deletion_timestamp: Option<OffsetDateTime>,
+    /// When archiving was requested. The reconciler stops the harness of an
+    /// archived Session and never relaunches it until it is unarchived.
+    #[serde(
+        default,
+        with = "time::serde::rfc3339::option",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub archived_at: Option<OffsetDateTime>,
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
@@ -352,6 +415,18 @@ pub struct Session {
 }
 
 impl Session {
+    /// Whether release of this Session has been requested.
+    #[must_use]
+    pub const fn is_deleting(&self) -> bool {
+        self.deletion_timestamp.is_some()
+    }
+
+    /// Whether archiving this Session has been requested.
+    #[must_use]
+    pub const fn is_archived(&self) -> bool {
+        self.archived_at.is_some()
+    }
+
     /// Describes why an operation cannot use this Session's running harness.
     pub(crate) fn not_running_error(&self) -> Error {
         let detail = self
@@ -363,10 +438,72 @@ impl Session {
                 LifecycleState::Starting => "its lifecycle is starting",
                 LifecycleState::Resuming => "its harness is resuming",
                 LifecycleState::Idle => "its lifecycle is idle",
+                LifecycleState::Archived => "it is archived",
                 LifecycleState::Failed => "its lifecycle failed without a recorded reason",
                 LifecycleState::Running => "its harness has not reported readiness",
             });
         Error::Invalid(format!("Session \"{}\" is not running: {detail}", self.name))
+    }
+}
+
+/// What a caller may choose when ensuring a Session. Every field is optional.
+///
+/// The selections apply only when the call creates the Session: an omitted
+/// harness, model or effort falls back to the Agent's default installation and
+/// that installation's manifest defaults, and the resolved values become the
+/// Session's immutable properties. For an existing Session, an explicit value
+/// that differs from the recorded one is rejected; omitted ones are ignored.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SessionRequest {
+    /// Harness installation to bind.
+    pub harness: Option<Harness>,
+    /// Model and effort level the harness launches with.
+    pub model_selection: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+/// Resolved, immutable selections recorded when a Session is created.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NewSession {
+    /// Harness installation the Session binds to.
+    pub harness: Harness,
+    /// Model and effort level the harness launches with, as requested or defaulted.
+    pub model_selection: ModelSelection,
+    /// The part of [`Self::model_selection`] the caller chose explicitly. When the
+    /// Session already exists, only these fields may conflict with what it recorded.
+    pub requested: ModelSelection,
+    /// First prompt, handed to the harness at its first launch without replay.
+    pub initial_prompt: Option<String>,
+}
+
+impl NewSession {
+    /// A Session bound to `harness` with every other selection left to the harness.
+    #[must_use]
+    pub const fn for_harness(harness: Harness) -> Self {
+        Self {
+            harness,
+            model_selection: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            requested: ModelSelection {
+                model: None,
+                effort: None,
+            },
+            initial_prompt: None,
+        }
+    }
+
+    /// Resolves `requested` against an installation's manifest `defaults`.
+    #[must_use]
+    pub fn resolved(harness: Harness, requested: ModelSelection, defaults: &ModelSelection) -> Self {
+        Self {
+            harness,
+            model_selection: requested.clone().or(defaults),
+            requested,
+            initial_prompt: None,
+        }
     }
 }
 
@@ -385,14 +522,17 @@ pub struct AttachTarget {
 pub trait SessionStore: SessionReports {
     /// Creates or gets one named Session for the active Agent incarnation.
     ///
-    /// `initial_prompt`, recorded only when the Session is created, is handed to
-    /// the harness at its first launch attempt, without automatic replay.
+    /// `new` is recorded only when the Session is created: its harness, model and
+    /// effort become the Session's immutable properties, and its initial prompt is
+    /// handed to the harness at the first launch attempt, without automatic replay.
+    /// An existing Session is returned as recorded, unless `new` names another
+    /// harness or its explicitly requested model or effort differs, so concurrent
+    /// creations cannot silently drop one caller's choice.
     fn ensure_session<'a>(
         &'a self,
         agent: &'a str,
         name: &'a SessionName,
-        harness: Harness,
-        initial_prompt: Option<&'a str>,
+        new: NewSession,
     ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
 
     /// Gets one Session by immutable identity.
@@ -422,6 +562,27 @@ pub trait SessionStore: SessionReports {
 
     /// Requests that an Idle Session become active and returns the new desired revision.
     fn activate_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<u64, Error>>;
+
+    /// Atomically records the first release request for one named Session of an
+    /// active Agent incarnation, and returns it as marked.
+    fn mark_session_deleting<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Records whether one named Session of an active Agent incarnation should be
+    /// archived, keeping the first archive time, and returns it as recorded.
+    fn set_session_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a SessionName,
+        archived: bool,
+    ) -> ::sandbox::LocalFuture<'a, Result<Session, Error>>;
+
+    /// Removes a marked Session once its harness has been released. Everything
+    /// keyed to the Session, including its activity reports, goes with it.
+    fn finalize_session_deletion(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
     /// Resolves a ready Session into a terminal attachment target.
     fn session_attach_target(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<AttachTarget, Error>>;
@@ -499,6 +660,28 @@ pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
+
+    #[test]
+    fn a_session_entered_its_state_when_the_half_that_decides_it_changed() {
+        let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+        let reported = Reported {
+            harness_session_id: Some("native".into()),
+            harness_transcript_path: None,
+            activity: Activity {
+                phase: Phase::WaitingForInput,
+                phase_since: Some(at(10)),
+                ..Activity::default()
+            },
+        };
+        let waiting = Status::new(Lifecycle::running(), reported.clone()).entered(Some(at(1)));
+        assert_eq!(
+            waiting.state_since,
+            Some(at(10)),
+            "a running Session is in its activity phase"
+        );
+        let failed = Status::new(Lifecycle::failed("boom"), reported).entered(Some(at(20)));
+        assert_eq!(failed.state_since, Some(at(20)), "otherwise the lifecycle decides");
+    }
 
     #[test]
     fn state_is_derived_from_both_halves() {

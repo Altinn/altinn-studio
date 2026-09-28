@@ -13,6 +13,10 @@ export const useBpmnMutation = (org: string, app: string) => {
     mutationFn: ({ form }: UseBpmnMutationPayload) => updateBpmnXml(org, app, form),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.FetchBpmn, org, app] });
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
+      // In v9 a task id change renames the task's layout set folder.
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
     },
   });
 };

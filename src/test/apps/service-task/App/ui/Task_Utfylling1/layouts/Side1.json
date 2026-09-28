@@ -28,15 +28,27 @@
       {
         "id": "Subform-z8we7d",
         "type": "Subform",
-        "layoutSet": "TestSubform",
+        "layoutSet": "Subform",
         "textResourceBindings": {
-          "title": "Side1.Subform-z8we7d.title"
+          "title": "Side1.Subform.title"
         },
         "tableColumns": [
           {
             "headerContent": "Side1.Input-bYOAVi.title",
             "cellContent": {
               "query": "property1"
+            }
+          },
+          {
+            "headerContent": "Side1.Input-fXTmSF.title",
+            "cellContent": {
+              "query": "property2"
+            }
+          },
+          {
+            "headerContent": "Side1.Input-RYcotn.title",
+            "cellContent": {
+              "query": "property3"
             }
           }
         ]

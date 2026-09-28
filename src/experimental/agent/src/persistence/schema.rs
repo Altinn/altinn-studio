@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 2;
+pub(crate) const VERSION: u32 = 5;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -59,6 +59,19 @@ const SESSION_ACTIVITY_REPORTS_SQL: &str = "
     );
 ";
 
+const SESSION_SELECTION_COLUMNS_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN model TEXT;
+    ALTER TABLE sessions ADD COLUMN effort TEXT;
+";
+
+const SESSION_DELETION_COLUMN_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN deletion_timestamp INTEGER;
+";
+
+const SESSION_ARCHIVE_COLUMN_SQL: &str = "
+    ALTER TABLE sessions ADD COLUMN archived_at INTEGER;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -78,6 +91,24 @@ const MIGRATIONS: &[Migration] = &[
         name: "session management",
         schema: &[SESSION_COLUMNS_SQL, SESSION_ACTIVITY_REPORTS_SQL],
         apply: add_session_management,
+    },
+    Migration {
+        version: 3,
+        name: "session model and effort",
+        schema: &[SESSION_SELECTION_COLUMNS_SQL],
+        apply: add_session_selections,
+    },
+    Migration {
+        version: 4,
+        name: "session deletion",
+        schema: &[SESSION_DELETION_COLUMN_SQL],
+        apply: add_session_deletion,
+    },
+    Migration {
+        version: 5,
+        name: "session archive",
+        schema: &[SESSION_ARCHIVE_COLUMN_SQL],
+        apply: add_session_archive,
     },
 ];
 
@@ -140,6 +171,67 @@ fn add_session_management(transaction: &Transaction<'_>) -> Result<(), Error> {
     transaction.execute_batch(SESSION_COLUMNS_SQL).map_err(database_error)?;
     transaction
         .execute_batch(SESSION_ACTIVITY_REPORTS_SQL)
+        .map_err(database_error)
+}
+
+/// Adds the model and effort a Session was created with. Sessions from earlier
+/// schemas never chose either; an adapter that hardcoded a launch model until now
+/// reports it, and that model is recorded for its existing Sessions so they keep
+/// launching on one known model once the choice is a Session property.
+fn add_session_selections(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 3)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_SELECTION_COLUMNS_SQL)
+        .map_err(database_error)?;
+    let harnesses = {
+        let mut statement = transaction
+            .prepare("SELECT DISTINCT harness FROM sessions WHERE model IS NULL")
+            .map_err(database_error)?;
+        statement
+            .query_map([], |row| row.get::<_, String>(0))
+            .map_err(database_error)?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(database_error)?
+    };
+    for value in harnesses {
+        let Some(model) = value
+            .parse::<crate::Harness>()
+            .ok()
+            .and_then(crate::harness::model_launched_before_selection)
+        else {
+            continue;
+        };
+        transaction
+            .execute(
+                "UPDATE sessions SET model = ?1 WHERE harness = ?2 AND model IS NULL",
+                rusqlite::params![model, value],
+            )
+            .map_err(database_error)?;
+    }
+    Ok(())
+}
+
+/// Adds the marker that requests a Session's release. Sessions from earlier
+/// schemas were never deletable, so every existing row starts unmarked.
+fn add_session_deletion(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 4)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_DELETION_COLUMN_SQL)
+        .map_err(database_error)
+}
+
+/// Adds the request to archive a Session. Sessions from earlier schemas were
+/// never archived, so every existing row starts active.
+fn add_session_archive(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 5)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(SESSION_ARCHIVE_COLUMN_SQL)
         .map_err(database_error)
 }
 

@@ -7,14 +7,11 @@ import {
   type StudioPageHeaderProps,
   type StudioProfileMenuGroup,
 } from '@studio/components';
-import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
-import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
-import { getRepositoryType } from 'app-shared/utils/repository';
+import { useTopBarMenuItems } from 'app-development/hooks/useTopBarMenuItems';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useSearchParams } from 'react-router-dom';
-import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { SETTINGS_BASENAME } from 'app-shared/constants';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 
@@ -38,14 +35,10 @@ export const PageHeaderContextProvider = ({
   user,
 }: Partial<PageHeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { flags } = useFeatureFlagsContext();
+  const { org } = useStudioEnvironmentParams();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
-  const isRepoOwnerOrg = useIsRepoOwnerOrg();
-
-  const repoType = getRepositoryType(org, app);
-  const menuItems = getFilteredTopBarMenu(repoType, isRepoOwnerOrg, flags);
+  const menuItems = useTopBarMenuItems();
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },

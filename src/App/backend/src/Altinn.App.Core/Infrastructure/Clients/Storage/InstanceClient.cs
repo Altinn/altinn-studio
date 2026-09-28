@@ -64,10 +64,17 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         int instanceOwnerPartyId,
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) =>
         (
-            await GetInstanceWithStorageMetadata(app, org, instanceOwnerPartyId, instanceId, authenticationMethod, ct)
+            await GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceId,
+                authenticationMethod,
+                cancellationToken
+            )
         ).Instance;
 
     /// <inheritdoc />
@@ -77,25 +84,35 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         int instanceOwnerPartyId,
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGetInstanceByGuidActivity(instanceId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceId}";
 
         string apiUrl = $"instances/{instanceIdentifier}";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
-        using HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: ct);
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            apiUrl,
+            cancellationToken: cancellationToken
+        );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(instance, response);
         }
         else
         {
             _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
-            throw await PlatformHttpException.Create(response, ct);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
     }
 
@@ -103,14 +120,14 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     public async Task<Instance> GetInstance(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
-    ) => (await GetInstanceWithStorageMetadata(instance, authenticationMethod, ct)).Instance;
+        CancellationToken cancellationToken = default
+    ) => (await GetInstanceWithStorageMetadata(instance, authenticationMethod, cancellationToken)).Instance;
 
     /// <inheritdoc />
     public async Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -125,7 +142,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             instanceOwnerPartyId,
             instanceGuid,
             authenticationMethod,
-            ct
+            cancellationToken
         );
     }
 
@@ -133,13 +150,13 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     public async Task<List<Instance>> GetInstances(
         Dictionary<string, StringValues> queryParams,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartGetInstancesActivity();
         var apiUrl = QueryHelpers.AddQueryString("instances", queryParams);
 
-        QueryResponse<Instance> queryResponse = await QueryInstances(apiUrl, authenticationMethod, ct);
+        QueryResponse<Instance> queryResponse = await QueryInstances(apiUrl, authenticationMethod, cancellationToken);
 
         if (queryResponse.Count == 0)
         {
@@ -149,7 +166,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
 
         while (!string.IsNullOrEmpty(queryResponse.Next))
         {
-            queryResponse = await QueryInstances(queryResponse.Next, authenticationMethod, ct);
+            queryResponse = await QueryInstances(queryResponse.Next, authenticationMethod, cancellationToken);
             instances.AddRange(queryResponse.Instances);
         }
         return instances;
@@ -158,24 +175,27 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     private async Task<QueryResponse<Instance>> QueryInstances(
         string url,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
         using var activity = _telemetry?.StartQueryInstancesActivity();
-        using HttpResponseMessage response = await _client.GetAsync(token, url, cancellationToken: ct);
+        using HttpResponseMessage response = await _client.GetAsync(token, url, cancellationToken: cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
             QueryResponse<Instance> queryResponse = await JsonSerializerPermissive.DeserializeAsync<
                 QueryResponse<Instance>
-            >(response.Content, ct);
+            >(response.Content, cancellationToken);
             return queryResponse;
         }
         else
         {
             _logger.LogError("Unable to query instances from Platform Storage");
-            throw await PlatformHttpException.Create(response, ct);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
     }
 
@@ -183,14 +203,17 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
     public async Task<Instance> UpdateProcess(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdateProcessActivity(instance);
         ProcessState processState = instance.Process;
 
         string apiUrl = $"instances/{instance.Id}/process";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         string processStateString = JsonConvert.SerializeObject(processState);
         _logger.LogInformation($"update process state: {processStateString}");
@@ -203,17 +226,20 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             // This app runs its own task-generated data cleanup at task start, so Storage must not
             // also prune elements generated from the entered task (which would race our own writes).
             skipTaskDataCleanup: true,
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(updatedInstance, response).Instance;
         }
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.Create(response, ct);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
     }
 
@@ -222,8 +248,16 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Instance instance,
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
-    ) => (await UpdateProcessAndEventsWithStorageMetadata(instance, events, authenticationMethod, ct: ct)).Instance;
+        CancellationToken cancellationToken = default
+    ) =>
+        (
+            await UpdateProcessAndEventsWithStorageMetadata(
+                instance,
+                events,
+                authenticationMethod,
+                cancellationToken: cancellationToken
+            )
+        ).Instance;
 
     /// <inheritdoc />
     public async Task<InstanceWithStorageMetadata> UpdateProcessAndEventsWithStorageMetadata(
@@ -231,7 +265,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdateProcessActivity(instance, events.Count);
@@ -241,7 +275,10 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             instanceEvent.InstanceId = instance.Id;
 
         string apiUrl = $"instances/{instance.Id}/process/instanceandevents";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         var update = new ProcessStateUpdate { State = processState, Events = events };
         string updateString = JsonConvert.SerializeObject(update);
@@ -254,20 +291,23 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             apiUrl,
             httpContent,
             preconditions,
-            ct,
+            cancellationToken,
             // This app runs its own task-generated data cleanup at task start, so Storage must not
             // also prune elements generated from the entered task (which would race our own writes).
             skipTaskDataCleanup: true
         );
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance updatedInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(updatedInstance, response);
         }
         else
         {
             _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-            throw await PlatformHttpException.Create(response, ct);
+            throw await PlatformHttpException.Create(response, cancellationToken);
         }
     }
 
@@ -277,8 +317,11 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         string app,
         Instance instanceTemplate,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
-    ) => (await CreateInstanceWithStorageMetadata(org, app, instanceTemplate, authenticationMethod, ct)).Instance;
+        CancellationToken cancellationToken = default
+    ) =>
+        (
+            await CreateInstanceWithStorageMetadata(org, app, instanceTemplate, authenticationMethod, cancellationToken)
+        ).Instance;
 
     /// <inheritdoc/>
     public async Task<InstanceWithStorageMetadata> CreateInstanceWithStorageMetadata(
@@ -286,19 +329,30 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         string app,
         Instance instanceTemplate,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartCreateInstanceActivity();
         string apiUrl = $"instances?appId={org}/{app}";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         StringContent content = new(JsonConvert.SerializeObject(instanceTemplate), Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: ct);
+        using HttpResponseMessage response = await _client.PostAsync(
+            token,
+            apiUrl,
+            content,
+            cancellationToken: cancellationToken
+        );
 
         if (response.IsSuccessStatusCode)
         {
-            Instance createdInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance createdInstance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             _telemetry?.InstanceCreated(createdInstance);
             return CreateInstanceResult(createdInstance, response);
         }
@@ -306,7 +360,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         _logger.LogError(
             $"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync(CancellationToken.None)}"
         );
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -314,28 +368,34 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         int instanceOwnerPartyId,
         Guid instanceGuid,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartCompleteConfirmationActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         using HttpResponseMessage response = await _client.PostAsync(
             token,
             apiUrl,
             new StringContent(string.Empty),
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             _telemetry?.InstanceCompleted(instance);
             return CreateInstanceResult(instance, response).Instance;
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -344,23 +404,29 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Guid instanceGuid,
         string readStatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdateReadStatusActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status={readStatus}";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(string.Empty),
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(instance, response).Instance;
         }
 
@@ -378,27 +444,33 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Guid instanceGuid,
         Substatus substatus,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdateSubStatusActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         using HttpResponseMessage response = await _client.PutAsync(
             token,
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json"),
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(instance, response).Instance;
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -407,7 +479,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Guid instanceGuid,
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) =>
         (
             await UpdatePresentationTextsWithStorageMetadata(
@@ -415,7 +487,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
                 instanceGuid,
                 presentationTexts,
                 authenticationMethod,
-                ct: ct
+                cancellationToken: cancellationToken
             )
         ).Instance;
 
@@ -426,12 +498,15 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdatePresentationTextActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         using HttpResponseMessage response = await SendStorageRequestAsync(
             HttpMethod.Put,
@@ -439,16 +514,19 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json"),
             preconditions,
-            ct
+            cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(instance, response);
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -457,7 +535,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Guid instanceGuid,
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     ) =>
         (
             await UpdateDataValuesWithStorageMetadata(
@@ -465,7 +543,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
                 instanceGuid,
                 dataValues,
                 authenticationMethod,
-                ct: ct
+                cancellationToken: cancellationToken
             )
         ).Instance;
 
@@ -476,12 +554,15 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartUpdateDataValuesActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
 
         using HttpResponseMessage response = await SendStorageRequestAsync(
             HttpMethod.Put,
@@ -489,16 +570,19 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
             apiUrl,
             new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json"),
             preconditions,
-            ct
+            cancellationToken
         );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             return CreateInstanceResult(instance, response);
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -507,22 +591,32 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         Guid instanceGuid,
         bool hard,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartDeleteInstanceActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";
-        string token = await _tokenResolver.GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, ct);
-        using HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: ct);
+        string token = await _tokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
+        );
+        using HttpResponseMessage response = await _client.DeleteAsync(
+            token,
+            apiUrl,
+            cancellationToken: cancellationToken
+        );
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(response.Content, ct);
+            Instance instance = await JsonSerializerPermissive.DeserializeAsync<Instance>(
+                response.Content,
+                cancellationToken
+            );
             _telemetry?.InstanceDeleted(instance);
             return CreateInstanceResult(instance, response).Instance;
         }
 
-        throw await PlatformHttpException.Create(response, ct);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 
     private async Task<HttpResponseMessage> SendStorageRequestAsync(
@@ -531,7 +625,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         string apiUrl,
         HttpContent? content,
         StorageWritePreconditions? preconditions,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         bool skipTaskDataCleanup = false
     )
     {
@@ -545,7 +639,7 @@ internal sealed class InstanceClient : IInstanceClient, IInstanceClientWithStora
         request.Headers.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
         StoragePreconditionHeaders.Add(request.Headers, preconditions);
 
-        return await _client.SendAsync(request, ct);
+        return await _client.SendAsync(request, cancellationToken);
     }
 
     private static InstanceWithStorageMetadata CreateInstanceResult(Instance instance, HttpResponseMessage response)

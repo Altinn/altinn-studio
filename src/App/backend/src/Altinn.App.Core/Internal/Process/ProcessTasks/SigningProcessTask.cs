@@ -49,7 +49,7 @@ internal sealed class SigningProcessTask : IProcessTask
     public async Task Start(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
         ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
@@ -62,7 +62,7 @@ internal sealed class SigningProcessTask : IProcessTask
             && signingConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, ct);
+            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, cancellationToken);
         }
     }
 
@@ -74,7 +74,7 @@ internal sealed class SigningProcessTask : IProcessTask
     public async Task End(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
             .GetAltinnTaskExtension(taskId)
@@ -84,9 +84,14 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
+            await using Stream pdfStream = await _pdfService.GeneratePdf(
+                dataMutator,
+                taskId,
+                false,
+                cancellationToken: cancellationToken
+            );
             using var memoryStream = new MemoryStream();
-            await pdfStream.CopyToAsync(memoryStream, ct);
+            await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
             UpsertTaskGeneratedBinaryDataElement(
                 dataMutator,
@@ -104,7 +109,7 @@ internal sealed class SigningProcessTask : IProcessTask
             && signatureConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, ct);
+            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, cancellationToken);
         }
     }
 
@@ -112,25 +117,30 @@ internal sealed class SigningProcessTask : IProcessTask
     public async Task Abandon(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
-        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, ct);
+        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, cancellationToken);
     }
 
     private async Task InitialiseRuntimeDelegatedSigning(
         IInstanceDataMutator cachedDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         List<SigneeContext> signeeContexts = await _signeeContextsManager.GenerateSigneeContexts(
             cachedDataMutator,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
-        await _signingService.InitializeSignees(cachedDataMutator, signeeContexts, signatureConfiguration, ct);
+        await _signingService.InitializeSignees(
+            cachedDataMutator,
+            signeeContexts,
+            signatureConfiguration,
+            cancellationToken
+        );
     }
 
     private AltinnSignatureConfiguration GetAltinnSignatureConfiguration(string taskId)

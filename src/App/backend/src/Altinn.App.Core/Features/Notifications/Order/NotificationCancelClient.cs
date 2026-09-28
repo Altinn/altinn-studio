@@ -34,7 +34,7 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
         _telemetry = telemetry;
     }
 
-    public async Task Cancel(Guid notificationOrderId, CancellationToken ct)
+    public async Task Cancel(Guid notificationOrderId, CancellationToken cancellationToken)
     {
         using var activity = _telemetry?.StartNotificationOrderCancelActivity(notificationOrderId);
 
@@ -53,8 +53,8 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, ct);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
 
             if (httpResponseMessage.IsSuccessStatusCode is false)
             {
@@ -65,7 +65,7 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
 
             _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Success);
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Cancelled);
             throw;

@@ -30,7 +30,7 @@
           <altinn:taskExtension>
               <altinn:taskType>pdf</altinn:taskType>
               <altinn:pdfConfig>
-                  <altinn:filenameTextResourceKey>layoutSetBasedPdf</altinn:filenameTextResourceKey>
+                  <altinn:filenameTextResourceKey>layoutSetBasedPdfFileName</altinn:filenameTextResourceKey>
               </altinn:pdfConfig>
           </altinn:taskExtension>
       </bpmn:extensionElements>
@@ -85,7 +85,7 @@
           <altinn:taskType>fail</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0wi2fss</bpmn:incoming>
+      <bpmn:incoming>Flow_1038xje</bpmn:incoming>
       <bpmn:outgoing>Flow_1uewkmg</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1">
@@ -131,9 +131,24 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1uewkmg" sourceRef="Task_Fail" targetRef="Task_Send_EFormidling" />
     <bpmn:sequenceFlow id="Flow_0c1ure8" sourceRef="Task_Send_EFormidling" targetRef="Gateway_0x86z9e" />
-    <bpmn:sequenceFlow id="Flow_0wi2fss" sourceRef="Gateway_19sxbsr" targetRef="Task_Fail">
+    <bpmn:sequenceFlow id="Flow_0wi2fss" sourceRef="Gateway_19sxbsr" targetRef="SubformPdf">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="SubformPdf" name="Subform PDF">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>subformPdf</altinn:taskType>
+          <altinn:subformPdfConfig>
+            <altinn:filenameTextResourceKey>SubformPdfFileName</altinn:filenameTextResourceKey>
+            <altinn:subformComponentId>Subform</altinn:subformComponentId>
+            <altinn:subformDataTypeId>SubformModel</altinn:subformDataTypeId>
+          </altinn:subformPdfConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0wi2fss</bpmn:incoming>
+      <bpmn:outgoing>Flow_1038xje</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1038xje" sourceRef="SubformPdf" targetRef="Task_Fail" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
@@ -225,9 +240,16 @@
         <di:waypoint x="2200" y="121" />
         <di:waypoint x="2265" y="121" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SubformPdf_di" bpmnElement="SubformPdf">
+        <dc:Bounds x="1450" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1038xje_di" bpmnElement="Flow_1038xje">
+        <di:waypoint x="1550" y="121" />
+        <di:waypoint x="1750" y="121" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0wi2fss_di" bpmnElement="Flow_0wi2fss">
         <di:waypoint x="1305" y="121" />
-        <di:waypoint x="1750" y="121" />
+        <di:waypoint x="1450" y="121" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

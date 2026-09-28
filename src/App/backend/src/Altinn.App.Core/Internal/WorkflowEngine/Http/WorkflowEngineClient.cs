@@ -37,7 +37,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         string idempotencyKey,
         string? collectionKey,
         WorkflowEnqueueRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows";
@@ -50,10 +50,10 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             httpRequest.Headers.Add(CollectionKeyHeader, collectionKey);
         }
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
                 "Workflow engine enqueue failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
                 response.StatusCode,
@@ -63,7 +63,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         }
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(ct)
+        return await response.Content.ReadFromJsonAsync<WorkflowEnqueueResponse.Accepted>(cancellationToken)
             ?? throw new InvalidOperationException(
                 "The expected workflow enqueue response was not found in the response content."
             );
@@ -73,14 +73,14 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     public async Task<WorkflowCollectionDetailResponse?> GetCollection(
         string ns,
         string key,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string url =
             $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/collections/{Uri.EscapeDataString(key)}";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -89,9 +89,33 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<WorkflowCollectionDetailResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<WorkflowCollectionDetailResponse>(cancellationToken)
             ?? throw new InvalidOperationException(
                 "The expected workflow collection detail was not found in the response content."
+            );
+    }
+
+    /// <inheritdoc />
+    public async Task<WorkflowStatusResponse?> GetWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<WorkflowStatusResponse>(cancellationToken)
+            ?? throw new InvalidOperationException(
+                "The expected workflow detail was not found in the response content."
             );
     }
 
@@ -101,7 +125,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
         IReadOnlyList<PersistentItemStatus>? statuses = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         var workflows = new List<WorkflowStatusResponse>();
@@ -111,7 +135,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         {
             var url = BuildListWorkflowsUrl(ns, collectionKey, labels, statuses, cursor);
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
-            using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+            using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
@@ -121,7 +145,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             response.EnsureSuccessStatusCode();
 
             var paginated =
-                await response.Content.ReadFromJsonAsync<PaginatedResponse<WorkflowStatusResponse>>(ct)
+                await response.Content.ReadFromJsonAsync<PaginatedResponse<WorkflowStatusResponse>>(cancellationToken)
                 ?? throw new InvalidOperationException(
                     "The expected workflow list page was not found in the response content."
                 );
@@ -138,15 +162,19 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
-    public async Task<CancelWorkflowResponse> CancelWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public async Task<CancelWorkflowResponse> CancelWorkflow(
+        string ns,
+        Guid workflowId,
+        CancellationToken cancellationToken = default
+    )
     {
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/cancel";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<CancelWorkflowResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<CancelWorkflowResponse>(cancellationToken)
             ?? throw new InvalidOperationException(
                 "The expected cancel workflow response was not found in the response content."
             );
@@ -157,7 +185,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid workflowId,
         bool cascade = false,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         var cascadeValue = cascade ? "true" : "false";
@@ -166,22 +194,22 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<ResumeWorkflowResponse>(cancellationToken)
             ?? throw new InvalidOperationException(
                 "The expected resume workflow response was not found in the response content."
             );
     }
 
     /// <inheritdoc />
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default)
+    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
     {
         var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/abandon";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         if (response.StatusCode == HttpStatusCode.Conflict)
         {
             // Compare-and-set lost: the workflow is not in an abandonable state (e.g. a concurrent
@@ -197,20 +225,20 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     public async Task<MailboxMintResult> MintMailbox(
         string ns,
         MailboxCreateRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = JsonContent.Create(request);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
         // A 400 cannot change on retry, so it is a value the caller fails permanently on rather than an
         // exception the retry ladder chews on.
         if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            string detail = await ReadProblemDetail(response, ct);
+            string detail = await ReadProblemDetail(response, cancellationToken);
             _logger.LogError(
                 "Workflow engine refused the mailbox mint as invalid. URL: {Url}. Detail: {Detail}",
                 url,
@@ -223,7 +251,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         // the runaway.
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
         {
-            string detail = await ReadProblemDetail(response, ct);
+            string detail = await ReadProblemDetail(response, cancellationToken);
             _logger.LogError(
                 "Workflow engine mailbox mint hit the open-mailbox cap. URL: {Url}. Detail: {Detail}",
                 url,
@@ -234,7 +262,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         if (!response.IsSuccessStatusCode)
         {
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
                 "Workflow engine mailbox mint failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
                 response.StatusCode,
@@ -245,19 +273,23 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         response.EnsureSuccessStatusCode();
 
         MailboxResponse mailbox =
-            await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+            await response.Content.ReadFromJsonAsync<MailboxResponse>(cancellationToken)
             ?? throw new InvalidOperationException("The expected mailbox was not found in the mint response content.");
 
         return new MailboxMintResult.Minted(mailbox);
     }
 
     /// <inheritdoc />
-    public async Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+    public async Task<MailboxResponse?> CloseMailbox(
+        string ns,
+        Guid mailboxId,
+        CancellationToken cancellationToken = default
+    )
     {
         string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, url);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
         // A 404 is modeled: the caller's only sensible answer is "nothing left to close".
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -272,7 +304,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
 
         if (!response.IsSuccessStatusCode)
         {
-            string body = await response.Content.ReadAsStringAsync(ct);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
                 "Workflow engine mailbox close failed with status {StatusCode}. URL: {Url}. Response body: {Body}",
                 response.StatusCode,
@@ -282,7 +314,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         }
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<MailboxResponse>(ct)
+        return await response.Content.ReadFromJsonAsync<MailboxResponse>(cancellationToken)
             ?? throw new InvalidOperationException("The expected mailbox was not found in the close response content.");
     }
 
@@ -297,14 +329,14 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
         string ns,
         Guid mailboxId,
         MailboxDeliveryRequest request,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}/deliveries";
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
         httpRequest.Content = JsonContent.Create(request);
 
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, ct);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
 
         if (response.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.OK)
         {
@@ -313,7 +345,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             MailboxDeliveryResponse? body = null;
             try
             {
-                body = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(ct);
+                body = await response.Content.ReadFromJsonAsync<MailboxDeliveryResponse>(cancellationToken);
             }
             catch (Exception ex) when (ex is JsonException or NotSupportedException)
             {
@@ -329,7 +361,7 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             return new MailboxDeliveryResult(response.StatusCode, body, ErrorDetail: null);
         }
 
-        string errorBody = await response.Content.ReadAsStringAsync(ct);
+        string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
         return new MailboxDeliveryResult(
             response.StatusCode,
             Body: null,
@@ -338,9 +370,12 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <summary>The <c>detail</c> of a ProblemDetails body, or the raw body when it is not one.</summary>
-    private static async Task<string> ReadProblemDetail(HttpResponseMessage response, CancellationToken ct)
+    private static async Task<string> ReadProblemDetail(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken
+    )
     {
-        string body = await response.Content.ReadAsStringAsync(ct);
+        string body = await response.Content.ReadAsStringAsync(cancellationToken);
         try
         {
             using JsonDocument document = JsonDocument.Parse(body);

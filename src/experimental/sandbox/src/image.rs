@@ -149,6 +149,9 @@ pub enum ImageSource {
         context: PathBuf,
         /// Dockerfile path relative to the build context.
         dockerfile: PathBuf,
+        /// Optional named Dockerfile stage to build.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        target: Option<String>,
     },
     /// Resolve an image from an OCI registry reference.
     Reference {
@@ -175,12 +178,19 @@ impl ImageSource {
     /// Returns [`Error::Invalid`] when a required path or reference is empty.
     pub fn validate(&self) -> Result<(), Error> {
         match self {
-            Self::Build { context, dockerfile } => {
+            Self::Build {
+                context,
+                dockerfile,
+                target,
+            } => {
                 if context.as_os_str().is_empty() {
                     return Err(Error::invalid("image.context", "must not be empty"));
                 }
                 if dockerfile.as_os_str().is_empty() {
                     return Err(Error::invalid("image.dockerfile", "must not be empty"));
+                }
+                if target.as_ref().is_some_and(|target| target.trim().is_empty()) {
+                    return Err(Error::invalid("image.target", "must not be empty"));
                 }
             }
             Self::Reference { reference } if reference.trim().is_empty() => {
@@ -195,13 +205,18 @@ impl ImageSource {
     #[must_use]
     pub fn resolve_from(&self, source_directory: &std::path::Path) -> Self {
         match self {
-            Self::Build { context, dockerfile } => Self::Build {
+            Self::Build {
+                context,
+                dockerfile,
+                target,
+            } => Self::Build {
                 context: if context.is_relative() {
                     source_directory.join(context)
                 } else {
                     context.clone()
                 },
                 dockerfile: dockerfile.clone(),
+                target: target.clone(),
             },
             Self::Reference { .. } => self.clone(),
         }

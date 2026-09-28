@@ -12,6 +12,7 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 )
 
@@ -345,4 +346,74 @@ func knownDiagnosticContainer(name string) bool {
 	default:
 		return false
 	}
+}
+
+// TestDiagnoseReportsTheBuildBehindAMovingTag covers both halves of the image check: the
+// workflow engine runs what its reference resolves to, so doctor names both; the localtest
+// container runs a build its tag has moved off, so only the build is named.
+func TestDiagnoseReportsTheBuildBehindAMovingTag(t *testing.T) {
+	const (
+		engineImageID    = "sha256:1111222233334444"
+		localtestStarted = "sha256:aaaabbbbccccdddd"
+		localtestPulled  = "sha256:eeeeffff00001111"
+	)
+
+	opts := newDiagnosticTestOptions(
+		t,
+		func(context.Context, string) (localtest.DiagnosticHTTPResponse, error) {
+			return localtest.DiagnosticHTTPResponse{StatusCode: http.StatusOK, Status: "200 OK"}, nil
+		},
+		func(context.Context) (container.ContainerClient, error) {
+			client := containermock.New()
+			client.ContainerStateFunc = func(context.Context, string) (types.ContainerState, error) {
+				return types.ContainerState{Status: "running", Running: true}, nil
+			}
+			client.ContainerInspectFunc = func(_ context.Context, name string) (types.ContainerInfo, error) {
+				info := types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}
+				switch name {
+				case components.ContainerWorkflowEngine:
+					info.ImageID = engineImageID
+				case components.ContainerLocaltest:
+					info.ImageID = localtestStarted
+				default:
+					return types.ContainerInfo{}, types.ErrContainerNotFound
+				}
+				return info, nil
+			}
+			client.ImageInspectFunc = func(_ context.Context, image string) (types.ImageInfo, error) {
+				switch image {
+				case "ghcr.io/altinn/test-workflow-engine:tt02":
+					return types.ImageInfo{ID: engineImageID}, nil
+				case testLocaltestImageRef:
+					return types.ImageInfo{ID: localtestPulled}, nil
+				default:
+					return types.ImageInfo{}, types.ErrImageNotFound
+				}
+			}
+			return client, nil
+		},
+	)
+	opts.Images = config.ImagesConfig{
+		Core: config.CoreImages{
+			Localtest: config.ImageSpec{Image: "ghcr.io/altinn/test-localtest", Tag: "latest", Floating: true},
+			WorkflowEngine: config.ImageSpec{
+				Image:    "ghcr.io/altinn/test-workflow-engine",
+				Tag:      "tt02",
+				Floating: true,
+			},
+		},
+	}
+
+	report := localtest.Diagnose(t.Context(), opts)
+
+	engineImage := findDiagnosticCheck(t, report, "workflow-engine", "image")
+	if engineImage.Message != "ghcr.io/altinn/test-workflow-engine:tt02 (111122223333)" {
+		t.Errorf("workflow-engine image check message = %q", engineImage.Message)
+	}
+	localtestImage := findDiagnosticCheck(t, report, "localtest", "image")
+	if localtestImage.Message != "aaaabbbbcccc" {
+		t.Errorf("localtest image check message = %q, want only the build once its tag has moved",
+			localtestImage.Message)
+	}
+	assertDiagnosticCheckMissing(t, report, "pdf", "image")
 }

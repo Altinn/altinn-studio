@@ -18,7 +18,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     Error, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode, RootFilesystemModeSet, Sandbox,
-    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxPhase, SandboxResources, SandboxState,
+    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxResources, SandboxState,
     backend::{CreateSandboxRequest, SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
     mount::{MountKind, MountKindSet},
@@ -50,6 +50,7 @@ struct BackendState {
     by_name: BTreeMap<SandboxName, SandboxId>,
     executions: BTreeSet<(SandboxId, execution::ExecutionId)>,
     files: BTreeMap<(SandboxId, SandboxPath), Vec<u8>>,
+    file_writes: Vec<SandboxPath>,
     execution_specs: Vec<execution::ExecutionSpec>,
     matched_execution_events: VecDeque<MatchedExecutionEvents>,
     queued_execution_events: VecDeque<Vec<execution::ExecutionEvent>>,
@@ -116,6 +117,12 @@ impl Provider {
     #[must_use]
     pub fn execution_specs(&self) -> Vec<execution::ExecutionSpec> {
         self.state.borrow().execution_specs.clone()
+    }
+
+    /// Returns the path of every file write observed by this Provider, in order.
+    #[must_use]
+    pub fn file_writes(&self) -> Vec<SandboxPath> {
+        self.state.borrow().file_writes.clone()
     }
 
     /// Supplies the events returned by the next terminal Execution.
@@ -301,7 +308,7 @@ impl SandboxBackend for Provider {
     }
 
     fn create(&self, request: CreateSandboxRequest) -> PendingOperation<'_, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxCreate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 if let Some(id) = storage.by_name.get(&request.name) {
@@ -341,7 +348,7 @@ impl SandboxBackend for Provider {
     }
 
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -362,7 +369,7 @@ impl SandboxBackend for Provider {
         id: &'a SandboxId,
         environment: BTreeMap<String, String>,
     ) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -405,9 +412,7 @@ impl SandboxBackend for Provider {
     }
 
     fn start<'a>(&'a self, id: &'a SandboxId) -> PendingOperation<'a, ()> {
-        PendingOperation::run(SandboxPhase::SandboxStart, move |_progress| {
-            Box::pin(async move { self.set_state(id, SandboxState::Running) })
-        })
+        PendingOperation::run(move |_progress| Box::pin(async move { self.set_state(id, SandboxState::Running) }))
     }
 
     fn stop<'a>(&'a self, id: &'a SandboxId) -> LocalFuture<'a, Result<(), Error>> {
@@ -596,10 +601,9 @@ impl SandboxBackend for Provider {
                 source,
             })?;
             self.ensure_running(sandbox_id)?;
-            self.state
-                .borrow_mut()
-                .files
-                .insert((sandbox_id.clone(), path.clone()), bytes);
+            let mut storage = self.state.borrow_mut();
+            storage.files.insert((sandbox_id.clone(), path.clone()), bytes);
+            storage.file_writes.push(path.clone());
             Ok(())
         })
     }
@@ -955,7 +959,7 @@ impl image::ImageBackend for MemoryImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
@@ -987,10 +991,15 @@ fn memory_manifest_digest(request: &image::ResolveRequest) -> String {
     let mut digest = Sha256::new();
     digest.update(b"sandbox.memory-image-manifest.v1\0");
     match &request.source {
-        image::ImageSource::Build { context, dockerfile } => {
+        image::ImageSource::Build {
+            context,
+            dockerfile,
+            target,
+        } => {
             update_digest_part(&mut digest, b"build");
             update_digest_part(&mut digest, context.as_os_str().as_encoded_bytes());
             update_digest_part(&mut digest, dockerfile.as_os_str().as_encoded_bytes());
+            update_optional_digest_part(&mut digest, target.as_deref());
         }
         image::ImageSource::Reference { reference } => {
             update_digest_part(&mut digest, b"reference");
@@ -1030,9 +1039,7 @@ fn update_digest_part(digest: &mut Sha256, value: &[u8]) {
 }
 
 fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
-    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
-        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
-    })
+    PendingOperation::run(move |_progress| Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) }))
 }
 
 fn test_platform() -> Platform {

@@ -1,6 +1,8 @@
 use std::{path::PathBuf, rc::Rc};
 
-use crate::{Agent, AgentId, Error, MountSpec};
+use ignore::WalkBuilder;
+
+use crate::{Agent, AgentId, Error, MountSpec, progress::ProvisioningState};
 
 use super::{AgentRecord, SharedAgentStore, Wakeup};
 
@@ -13,7 +15,7 @@ pub struct ApplyRequest {
     /// Absolute path of the manifest being applied, recorded for discovery.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest_path: Option<PathBuf>,
-    /// Absolute path of the file supplying manifest secret values. Defaults to `.env` beside the
+    /// Absolute path of the file supplying declared manifest values. Defaults to `.env` beside the
     /// manifest; omitted on an update keeps the recorded path.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub env_file: Option<PathBuf>,
@@ -40,13 +42,25 @@ impl Notifier for Wakeup {
 pub struct ControlPlane {
     store: SharedAgentStore,
     notifier: Rc<dyn Notifier>,
+    provisioning: ProvisioningState,
 }
 
 impl ControlPlane {
     /// Creates an Agent Control Plane facade.
     #[must_use]
     pub fn new(store: SharedAgentStore, notifier: Rc<dyn Notifier>) -> Self {
-        Self { store, notifier }
+        Self {
+            store,
+            notifier,
+            provisioning: ProvisioningState::default(),
+        }
+    }
+
+    /// Projects the reconciler's in-memory provisioning state onto returned Agents.
+    #[must_use]
+    pub fn with_provisioning(mut self, provisioning: ProvisioningState) -> Self {
+        self.provisioning = provisioning;
+        self
     }
 
     /// Stores desired state and returns without waiting for reconciliation.
@@ -62,6 +76,7 @@ impl ControlPlane {
         desired.clear_managed_fields();
         resolve_mount_sources(&mut desired, &request.source_directory).await?;
         desired.validate()?;
+        reject_dot_env_in_bind_mounts(&desired).await?;
 
         loop {
             let result = match self.store.get_by_name(&desired.metadata.name).await {
@@ -93,7 +108,7 @@ impl ControlPlane {
                         && current.env_file == env_file
                     {
                         self.notifier.notify(current.id);
-                        return Ok(resource(current));
+                        return Ok(self.resource(current));
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -156,12 +171,13 @@ impl ControlPlane {
         }
     }
 
-    /// Rejects desired state that would expose a real secret file inside a Sandbox.
+    /// Rejects desired state that would expose a selected secret file inside a Sandbox.
     ///
     /// Secret files hold the real values that mediation exists to keep out of Sandboxes. A bind
-    /// mount whose source contains this Agent's secret file, or another active Agent's, would hand
-    /// those values to the guest, so the combination is refused at apply time. Bind mount sources
-    /// are canonical by this point.
+    /// mount whose source contains this Agent's selected non-default secret file or another active
+    /// Agent's selected secret file would hand those values to the guest, so the combination is
+    /// refused at apply time. Default `.env` files are covered by the bind-source scan above. Bind
+    /// mount sources are canonical by this point.
     async fn reject_exposed_secret_files(
         &self,
         id: AgentId,
@@ -172,7 +188,9 @@ impl ControlPlane {
         let mut secret_files = Vec::new();
         if !desired.spec.secrets.is_empty() {
             let path = env_file.map_or_else(|| source_directory.join(super::resource::ENV_FILE), PathBuf::from);
-            secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
+            if env_file.is_some() || tokio::fs::try_exists(&path).await? {
+                secret_files.push((desired.metadata.name.clone(), canonical_secret_file(&path).await));
+            }
         }
         let mut mounts = bind_mount_sources(desired);
         for other in self.store.list().await? {
@@ -180,10 +198,10 @@ impl ControlPlane {
                 continue;
             }
             if !other.agent.spec.secrets.is_empty() {
-                secret_files.push((
-                    other.agent.metadata.name.clone(),
-                    canonical_secret_file(&other.env_file_path()).await,
-                ));
+                let path = other.env_file_path();
+                if other.env_file.is_some() || tokio::fs::try_exists(&path).await? {
+                    secret_files.push((other.agent.metadata.name.clone(), canonical_secret_file(&path).await));
+                }
             }
             if !desired.spec.secrets.is_empty() {
                 mounts.extend(
@@ -215,7 +233,7 @@ impl ControlPlane {
     ///
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
-        self.store.get_by_name(name).await.map(resource)
+        self.store.get_by_name(name).await.map(|record| self.resource(record))
     }
 
     /// Lists every active Agent ordered by name.
@@ -227,7 +245,28 @@ impl ControlPlane {
         self.store
             .list()
             .await
-            .map(|records| records.into_iter().map(resource).collect())
+            .map(|records| records.into_iter().map(|record| self.resource(record)).collect())
+    }
+
+    /// Reads an Agent's stored status and the complete progress of its latest
+    /// pass. When `output` names that pass, only later output is included.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent does not exist or storage fails.
+    pub async fn progress(
+        &self,
+        name: &str,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> Result<(crate::Status, Option<crate::progress::Provisioning>), Error> {
+        let record = self.store.get_by_name(name).await?;
+        let provisioning = self.provisioning.get(record.id).map(|mut provisioning| {
+            if let Some(output) = output.filter(|output| output.pass == provisioning.pass) {
+                provisioning.progress = provisioning.progress.output_from(output.sequence);
+            }
+            provisioning
+        });
+        Ok((record.agent.status, provisioning))
     }
 
     /// Resolves the closest Agent source directory containing `directory`.
@@ -237,6 +276,24 @@ impl ControlPlane {
     /// Returns an error when no Agent matches, multiple Agents share the closest
     /// source directory, or storage cannot be read.
     pub async fn resolve_directory(&self, directory: &std::path::Path) -> Result<Agent, Error> {
+        self.resolve_directory_variant(directory, None).await
+    }
+
+    /// Resolves the closest Agent associated with `directory`, optionally by
+    /// the variant encoded in its recorded leaf manifest filename.
+    ///
+    /// When several closest Agents tie without an explicit variant, exactly one
+    /// Agent originating from the default `agent.yaml` manifest is preferred.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no Agent matches, selection remains ambiguous, or
+    /// storage cannot be read.
+    pub async fn resolve_directory_variant(
+        &self,
+        directory: &std::path::Path,
+        variant: Option<&crate::AgentVariantName>,
+    ) -> Result<Agent, Error> {
         if !directory.is_absolute() {
             return Err(Error::Invalid("directory must be absolute".into()));
         }
@@ -258,6 +315,37 @@ impl ControlPlane {
             return Err(Error::NotFound);
         };
         matches.retain(|(_, candidate_depth)| *candidate_depth == depth);
+        if let Some(variant) = variant {
+            let filename = variant.filename();
+            matches.retain(|(record, _)| {
+                record
+                    .manifest_path
+                    .as_deref()
+                    .and_then(std::path::Path::file_name)
+                    .is_some_and(|name| name == filename.as_str())
+            });
+            if matches.is_empty() {
+                return Err(Error::Invalid(format!(
+                    "no Agent associated with this directory was applied from {filename}"
+                )));
+            }
+        } else if matches.len() > 1 {
+            let defaults = matches
+                .iter()
+                .enumerate()
+                .filter_map(|(index, (record, _))| {
+                    let filename = record
+                        .manifest_path
+                        .as_deref()
+                        .and_then(std::path::Path::file_name)
+                        .or_else(|| Some(std::ffi::OsStr::new(crate::manifest::MANIFEST_FILE)));
+                    (filename == Some(std::ffi::OsStr::new(crate::manifest::MANIFEST_FILE))).then_some(index)
+                })
+                .collect::<Vec<_>>();
+            if let [index] = defaults.as_slice() {
+                return Ok(self.resource(matches.swap_remove(*index).0));
+            }
+        }
         if matches.len() != 1 {
             let mut names = matches
                 .iter()
@@ -265,11 +353,14 @@ impl ControlPlane {
                 .collect::<Vec<_>>();
             names.sort();
             return Err(Error::Invalid(format!(
-                "multiple Agents were applied from this directory ({}); specify --agent",
+                "multiple Agents were applied from this directory ({}); specify --agent or --variant",
                 names.join(", ")
             )));
         }
-        matches.pop().map(|(record, _)| resource(record)).ok_or(Error::NotFound)
+        matches
+            .pop()
+            .map(|(record, _)| self.resource(record))
+            .ok_or(Error::NotFound)
     }
 
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
@@ -289,15 +380,65 @@ impl ControlPlane {
     }
 }
 
-/// Converts a stored record to its API representation, projecting provenance into status.
-fn resource(record: AgentRecord) -> Agent {
-    let mut agent = record.agent;
-    agent.status.provenance = Some(crate::Provenance {
-        source_directory: record.source_directory,
-        manifest_path: record.manifest_path,
-        env_file: record.env_file,
-    });
-    agent
+/// Rejects any bind source containing a `.env` file, case-insensitively and regardless of ignores.
+///
+/// Filesystem traversal is blocking and may cover a whole checkout, so it stays off the local
+/// async runtime. Directories named `.env` are allowed. Symbolic links are not followed, but a
+/// link itself named `.env` is rejected.
+async fn reject_dot_env_in_bind_mounts(agent: &Agent) -> Result<(), Error> {
+    let mounts = bind_mount_sources(agent);
+    tokio::task::spawn_blocking(move || {
+        for (field, source) in mounts {
+            for result in WalkBuilder::new(&source)
+                .hidden(false)
+                .ignore(false)
+                .git_ignore(false)
+                .git_global(false)
+                .git_exclude(false)
+                .parents(false)
+                .follow_links(false)
+                .build()
+            {
+                let entry = result.map_err(|error| {
+                    Error::Invalid(format!(
+                        "cannot inspect {field}.source {} for .env files: {error}",
+                        source.display()
+                    ))
+                })?;
+                let is_directory = entry.file_type().is_some_and(|kind| kind.is_dir());
+                let is_env_file = entry
+                    .file_name()
+                    .as_encoded_bytes()
+                    .eq_ignore_ascii_case(super::resource::ENV_FILE.as_bytes());
+                if !is_directory && is_env_file {
+                    return Err(Error::Invalid(format!(
+                        "{field} bind-mounts {} which contains .env at {}; the Sandbox would see its real values. \
+                         Remove the file or keep it outside mounted directories",
+                        source.display(),
+                        entry.path().display(),
+                    )));
+                }
+            }
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|error| Error::Daemon(format!("bind-mount .env inspection failed: {error}")))?
+}
+
+impl ControlPlane {
+    /// Converts a stored record to its API representation, projecting
+    /// provisioning progress and provenance into status.
+    fn resource(&self, record: AgentRecord) -> Agent {
+        let mut agent = record.agent;
+        agent.status.progress = self.provisioning.summary(record.id);
+        agent.status.provenance = Some(crate::Provenance {
+            source_directory: record.source_directory,
+            manifest_path: record.manifest_path,
+            env_file: record.env_file,
+        });
+        agent
+    }
 }
 
 fn validate_immutable_fields(current: &AgentRecord, desired: &Agent) -> Result<(), Error> {

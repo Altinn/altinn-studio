@@ -173,7 +173,7 @@ public class AppCommandExecutionTests
         // Regression guard for the "preserve actor identity across handoff" path.
         // The engine must round-trip ALL actor identity fields, not just a single identity + language.
         // App.Core relies on the full actor (ProcessEngine.CreatePlatformUser) to attribute instance
-        // events to the originating user/system user when an auto-advanced workflow is re-enqueued.
+        // events to the originating user/system user in dependent process continuations.
         using var fixture = AppCommandTestFixture.Create();
         var command = GetAppCommand(fixture);
 

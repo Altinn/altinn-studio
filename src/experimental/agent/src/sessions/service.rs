@@ -5,11 +5,11 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, Harness, control_plane, control_plane::WaitPolicy, progress::Reporter};
+use crate::{Error, control_plane, control_plane::WaitPolicy};
 
 use super::{
-    AgentSandboxes, AttachTarget, LifecycleState, Session, SessionId, SessionName, SessionRuntime, SharedStore, State,
-    Turn, Wakeup,
+    AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
+    SessionRuntime, SharedStore, State, Turn, Wakeup,
 };
 
 /// Ceiling for completion waiting after prompt submission.
@@ -102,25 +102,30 @@ impl Service {
 
     /// Creates or gets one named Session and waits until its driver is ready.
     ///
-    /// `initial_prompt` is recorded only when this call creates the Session;
-    /// the reconciler hands it to the harness at its first launch, so the
-    /// harness starts working before this call returns.
+    /// `request` applies only when this call creates the Session. Its harness,
+    /// model and effort resolve in that order of precedence: the explicit
+    /// request, then the selected installation's manifest defaults, then the
+    /// harness's own defaults; the resolved values are recorded with the
+    /// Session. The initial prompt is handed to the harness at its first
+    /// launch, so the harness starts working before this call returns.
     ///
     /// # Errors
     ///
-    /// Returns an error when persistence fails or the Agent is invalid; with
+    /// Returns an error when persistence fails, the Agent is invalid, or an
+    /// explicit selection conflicts with an existing Session; with
     /// [`WaitPolicy::FirstPass`] also when the single Agent pass fails.
     pub async fn ensure(
         &self,
         agent: &str,
         name: &SessionName,
-        requested_harness: Option<Harness>,
-        initial_prompt: Option<&str>,
+        request: SessionRequest,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> Result<AttachTarget, Error> {
-        let (owner, session) = self.prepare(agent, name, requested_harness, initial_prompt).await?;
-        self.convergence.converge(owner.id, wait, progress.as_ref()).await?;
+        let (owner, session) = self.prepare(agent, name, request).await?;
+        self.convergence.converge(owner.id, wait).await?;
+        // On a brand-new Agent this is the first moment the answer exists.
+        let converged = self.sandboxes.agent_by_name(agent).await?;
+        Self::reject_omitted_optional_harness(&converged, session.harness)?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await
     }
@@ -197,10 +202,21 @@ impl Service {
                         "Session \"{name}\" was stopped while waiting for turn completion"
                     )));
                 }
-                State::Starting | State::Working | State::WaitingForInput => {}
+                State::Archived if current.status.lifecycle.failure.is_none() => {
+                    return Err(Error::Session(format!(
+                        "Session \"{name}\" was archived while waiting for turn completion"
+                    )));
+                }
+                State::Starting | State::Working | State::WaitingForInput | State::Archived => {}
             }
             let activity = &current.status.reported.activity;
-            if activity.turns > completed_before && current.status.state == State::WaitingForInput {
+            let waiting = match current.status.state {
+                State::WaitingForInput => true,
+                // An archive that has not stopped the harness yet leaves the turn to its own report.
+                State::Archived => activity.phase == super::Phase::WaitingForInput,
+                State::Starting | State::Working | State::Idle | State::Failed => false,
+            };
+            if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
                     return Ok(());
                 }
@@ -229,7 +245,7 @@ impl Service {
                 let session = self.store.get_session(id).await?;
                 match session.status.state {
                     State::Working | State::WaitingForInput => return Ok(session),
-                    State::Idle | State::Failed => {
+                    State::Idle | State::Archived | State::Failed => {
                         return Err(session.not_running_error());
                     }
                     State::Starting => {
@@ -252,7 +268,7 @@ impl Service {
     /// Returns an error when the Session or its Sandbox is unavailable or the
     /// conversation cannot be read.
     pub async fn turns(&self, agent: &str, name: &SessionName, last: Option<usize>) -> Result<Vec<Turn>, Error> {
-        let session = self.store.get_agent_session(agent, name).await?;
+        let session = self.visible(agent, name).await?;
         let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
@@ -260,7 +276,10 @@ impl Service {
     }
 
     async fn open_running(&self, agent: &str, name: &SessionName) -> Result<(Session, SandboxHandle), Error> {
-        let session = self.store.get_agent_session(agent, name).await?;
+        let session = self.visible(agent, name).await?;
+        if session.is_archived() {
+            return Err(Error::Invalid(format!("Session \"{name}\" is archived")));
+        }
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
         }
@@ -269,18 +288,42 @@ impl Service {
         Ok((session, sandbox))
     }
 
+    /// Refuses a Session on an optional installation this Agent's Sandbox does not carry.
+    ///
+    /// Reports the reason to the caller; the Session reconciler enforces it. Before the Sandbox is
+    /// materialized nothing is known, so the decision is deferred to the next attach.
+    fn reject_omitted_optional_harness(
+        owner: &control_plane::AgentRecord,
+        harness: crate::Harness,
+    ) -> Result<(), Error> {
+        let Some(installation) = owner.agent.spec.harness(harness) else {
+            return Ok(());
+        };
+        let Some(crate::sandbox::Assignment::Materialized { harnesses, .. }) = &owner.agent.status.sandbox else {
+            return Ok(());
+        };
+        if !installation.optional || harnesses.contains(&harness) {
+            return Ok(());
+        }
+        Err(Error::Invalid(format!(
+            "Agent {:?} declares harness {:?} as optional and it is not installed, because its \
+             host login is absent; sign in on the host and the next Agent convergence installs it",
+            owner.agent.metadata.name,
+            installation.kind.as_str()
+        )))
+    }
+
     async fn prepare(
         &self,
         agent: &str,
         name: &SessionName,
-        requested_harness: Option<Harness>,
-        initial_prompt: Option<&str>,
+        request: SessionRequest,
     ) -> Result<(control_plane::AgentRecord, Session), Error> {
         let owner = self.sandboxes.agent_by_name(agent).await?;
         if owner.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        if let Some(harness) = requested_harness
+        if let Some(harness) = request.harness
             && owner.agent.spec.harness(harness).is_none()
         {
             return Err(Error::Invalid(format!(
@@ -288,29 +331,51 @@ impl Service {
                 harness.as_str()
             )));
         }
-        let session = match self.store.get_agent_session(agent, name).await {
+        let existing = match self.visible(agent, name).await {
             Ok(session) => {
-                if let Some(harness) = requested_harness
-                    && harness != session.harness
-                {
+                if session.is_archived() {
                     return Err(Error::Invalid(format!(
-                        "Session \"{name}\" already uses harness {:?}, not {:?}",
-                        session.harness.as_str(),
-                        harness.as_str()
+                        "Session \"{name}\" is archived; unarchive it before attaching or prompting"
                     )));
                 }
-                session
+                reject_conflicting_selections(name, &session, &request)?;
+                Some(session)
             }
-            Err(Error::NotFound) => {
-                let harness = requested_harness
-                    .or_else(|| owner.agent.spec.default_harness().map(|installation| installation.kind))
-                    .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?;
-                if let Some(initial_prompt) = initial_prompt {
-                    crate::harness::validate_initial_prompt(initial_prompt)?;
-                }
-                self.store.ensure_session(agent, name, harness, initial_prompt).await?
-            }
+            Err(Error::NotFound) => None,
             Err(error) => return Err(error),
+        };
+        let harness = match (&existing, request.harness) {
+            (Some(session), _) => session.harness,
+            (None, Some(harness)) => harness,
+            (None, None) => {
+                owner
+                    .agent
+                    .spec
+                    .default_harness()
+                    .ok_or_else(|| Error::Invalid(format!("Agent {agent:?} has no default harness")))?
+                    .kind
+            }
+        };
+        // Validated before the Session is persisted: a Session name is bound to its harness for the
+        // life of the Session, so a refused attempt must not leave the name claimed.
+        Self::reject_omitted_optional_harness(&owner, harness)?;
+        let session = if let Some(session) = existing {
+            session
+        } else {
+            let installation = owner.agent.spec.harness(harness).ok_or_else(|| {
+                Error::Invalid(format!(
+                    "Agent {agent:?} does not declare harness {:?}",
+                    harness.as_str()
+                ))
+            })?;
+            if let Some(initial_prompt) = &request.initial_prompt {
+                crate::harness::validate_initial_prompt(initial_prompt)?;
+            }
+            let new = NewSession {
+                initial_prompt: request.initial_prompt,
+                ..NewSession::resolved(installation.kind, request.model_selection, &installation.defaults)
+            };
+            self.store.ensure_session(agent, name, new).await?
         };
         if session.agent_id != owner.id {
             return Err(Error::Conflict);
@@ -325,7 +390,7 @@ impl Service {
     ///
     /// Returns an error when either resource is missing or persistent state cannot be read.
     pub async fn get(&self, agent: &str, name: &SessionName) -> Result<Session, Error> {
-        self.store.get_agent_session(agent, name).await
+        self.visible(agent, name).await
     }
 
     /// Lists durable Sessions, optionally scoped to one active Agent incarnation.
@@ -334,12 +399,67 @@ impl Service {
     ///
     /// Returns an error when the scoped Agent is missing or persistent state cannot be read.
     pub async fn list(&self, agent: Option<&str>) -> Result<Vec<Session>, Error> {
-        if let Some(agent) = agent {
-            self.sandboxes.agent_by_name(agent).await?;
-            self.store.list_agent_sessions(agent).await
-        } else {
-            self.store.list_all_sessions().await
+        let Some(agent) = agent else {
+            return self.live_sessions().await;
+        };
+        self.sandboxes.agent_by_name(agent).await?;
+        Ok(live(self.store.list_agent_sessions(agent).await?))
+    }
+
+    /// Releases one Session: its harness is stopped and the Session is removed.
+    ///
+    /// The request is recorded first, so a Session that cannot be released yet
+    /// stays marked and is retried by the Session controller instead of leaving
+    /// a harness running with nothing tracking it. The Session is no longer
+    /// listed or resolvable by name from the moment it is marked, and its name
+    /// becomes available again once the harness is gone. Repeating the request
+    /// while the release is still pending is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session is missing, the request
+    /// cannot be recorded, or the release pass fails; the marker survives a
+    /// failed pass.
+    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
+        let session = self.store.mark_session_deleting(agent, name).await?;
+        self.wakeup.reconcile(session.id).await.map_err(|error| {
+            Error::Session(format!(
+                "Session \"{name}\" is marked for deletion and will be retried; stopping its harness failed: {error}"
+            ))
+        })
+    }
+
+    /// Archives or unarchives one Session and returns it as recorded.
+    ///
+    /// Archiving stops the harness and keeps it stopped, once any turn in
+    /// progress has ended; the Session keeps its name and conversation.
+    /// Unarchiving leaves it Idle, so the next attach resumes it. Repeating
+    /// either is safe.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent or Session is missing, the request
+    /// cannot be recorded, or the pass fails; the request survives a failed pass.
+    pub async fn set_archived(&self, agent: &str, name: &SessionName, archived: bool) -> Result<Session, Error> {
+        let session = self.store.set_session_archived(agent, name, archived).await?;
+        self.wakeup.reconcile(session.id).await?;
+        self.store.get_session(session.id).await
+    }
+
+    /// Every Session that is not being deleted. One already on its way out
+    /// is gone as far as listings and upgrades are concerned.
+    async fn live_sessions(&self) -> Result<Vec<Session>, Error> {
+        Ok(live(self.store.list_all_sessions().await?))
+    }
+
+    /// Resolves a Session a caller may still act on. A Session marked for
+    /// release is already gone as far as its name is concerned.
+    async fn visible(&self, agent: &str, name: &SessionName) -> Result<Session, Error> {
+        let session = self.store.get_agent_session(agent, name).await?;
+        if session.is_deleting() {
+            return Err(Error::NotFound);
         }
+        Ok(session)
     }
 
     /// Lists active work and terminal attachments that must finish before an upgrade.
@@ -355,7 +475,7 @@ impl Service {
 
     async fn inspect_upgrade_readiness(&self) -> Result<UpgradeReadiness, Error> {
         let mut readiness = UpgradeReadiness::default();
-        for session in self.store.list_all_sessions().await? {
+        for session in self.live_sessions().await? {
             let label = format!("session/{}/{}", session.agent, session.name);
             if session.status.state == State::Working {
                 readiness.blockers.push(format!("{label} (working)"));
@@ -409,7 +529,13 @@ impl Service {
     }
 
     async fn relaunch_sessions(&self) -> Result<(), Error> {
-        for session in self.store.list_all_sessions().await? {
+        // An archived Session stays stopped, even one still finishing its last turn.
+        for session in self
+            .live_sessions()
+            .await?
+            .into_iter()
+            .filter(|session| !session.is_archived())
+        {
             let Some(sandbox) = self.upgrade_sandbox(&session).await? else {
                 self.store.reset_session_launch_attempts(session.id).await?;
                 continue;
@@ -461,4 +587,28 @@ impl Service {
         }
         Ok(Some(sandbox))
     }
+}
+
+/// Leaves out Sessions that are being deleted.
+fn live(sessions: Vec<Session>) -> Vec<Session> {
+    sessions.into_iter().filter(|session| !session.is_deleting()).collect()
+}
+
+/// An existing Session keeps its recorded harness, model and effort; only an
+/// explicit, differing request is an error, so a manifest default that changed
+/// after creation never conflicts with relaunching or attaching.
+fn reject_conflicting_selections(name: &SessionName, session: &Session, request: &SessionRequest) -> Result<(), Error> {
+    if let Some(harness) = request.harness
+        && harness != session.harness
+    {
+        return Err(Error::Invalid(format!(
+            "Session \"{name}\" already uses harness {:?}, not {:?}",
+            session.harness.as_str(),
+            harness.as_str()
+        )));
+    }
+    if let Some(conflict) = session.model_selection.conflict_with(&request.model_selection) {
+        return Err(Error::Invalid(format!("Session \"{name}\" {conflict}")));
+    }
+    Ok(())
 }

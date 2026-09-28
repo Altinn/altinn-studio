@@ -4,10 +4,14 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 
-export const useCanUseFeatureQuery = (featureName: FeatureName): UseQueryResult<CanUseFeature> => {
+export const useCanUseFeatureQuery = (
+  org: string,
+  app: string,
+  featureName: FeatureName,
+): UseQueryResult<CanUseFeature> => {
   const { canUseFeature } = useServicesContext();
   return useQuery({
-    queryKey: [QueryKey.CanUseFeature, featureName],
-    queryFn: () => canUseFeature(featureName),
+    queryKey: [QueryKey.CanUseFeature, org, app, featureName],
+    queryFn: () => canUseFeature(org, app, featureName),
   });
 };

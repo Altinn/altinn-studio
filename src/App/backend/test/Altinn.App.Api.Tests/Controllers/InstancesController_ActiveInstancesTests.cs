@@ -40,7 +40,7 @@ public class InstancesController_ActiveInstancesTest
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -103,12 +103,14 @@ public class InstancesController_ActiveInstancesTest
             .ReturnsAsync(instances);
         fixture
             .Mock<IProfileClient>()
-            .Setup(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(default(UserProfile)!);
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -124,7 +126,11 @@ public class InstancesController_ActiveInstancesTest
                     It.IsAny<CancellationToken>()
                 )
             );
-        fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()));
+        fixture
+            .Mock<IProfileClient>()
+            .Verify(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            );
         fixture.VerifyNoOtherCalls();
     }
 
@@ -171,12 +177,14 @@ public class InstancesController_ActiveInstancesTest
             .ReturnsAsync(instances);
         fixture
             .Mock<IProfileClient>()
-            .Setup(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new UserProfile());
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -192,7 +200,11 @@ public class InstancesController_ActiveInstancesTest
                     It.IsAny<CancellationToken>()
                 )
             );
-        fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()));
+        fixture
+            .Mock<IProfileClient>()
+            .Verify(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            );
         fixture.VerifyNoOtherCalls();
     }
 
@@ -237,12 +249,14 @@ public class InstancesController_ActiveInstancesTest
             .ReturnsAsync(instances);
         fixture
             .Mock<IProfileClient>()
-            .Setup(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new UserProfile() { Party = new() { Name = "Ola Olsen" } });
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -258,7 +272,11 @@ public class InstancesController_ActiveInstancesTest
                     It.IsAny<CancellationToken>()
                 )
             );
-        fixture.Mock<IProfileClient>().Verify(p => p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>()));
+        fixture
+            .Mock<IProfileClient>()
+            .Verify(p =>
+                p.GetUserProfile(12345, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            );
         fixture.VerifyNoOtherCalls();
     }
 
@@ -304,12 +322,14 @@ public class InstancesController_ActiveInstancesTest
             .ReturnsAsync(instances);
         fixture
             .Mock<IOrganizationClient>()
-            .Setup(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(er =>
+                er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(default(Organization));
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -327,7 +347,9 @@ public class InstancesController_ActiveInstancesTest
             );
         fixture
             .Mock<IOrganizationClient>()
-            .Verify(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()));
+            .Verify(er =>
+                er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            );
         fixture.VerifyNoOtherCalls();
     }
 
@@ -372,12 +394,14 @@ public class InstancesController_ActiveInstancesTest
             .ReturnsAsync(instances);
         fixture
             .Mock<IOrganizationClient>()
-            .Setup(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()))
+            .Setup(er =>
+                er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new Organization { Name = "Testdepartementet" });
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
-        var result = await controller.GetActiveInstances(org, app, 12345);
+        var result = await controller.GetActiveInstances(org, app, 12345, CancellationToken.None);
 
         // Assert
         var resultValue = result.Result.Should().BeOfType<OkObjectResult>().Which.Value;
@@ -395,7 +419,9 @@ public class InstancesController_ActiveInstancesTest
             );
         fixture
             .Mock<IOrganizationClient>()
-            .Verify(er => er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>()));
+            .Verify(er =>
+                er.GetOrganization("123456789", It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            );
         fixture.VerifyNoOtherCalls();
     }
 }

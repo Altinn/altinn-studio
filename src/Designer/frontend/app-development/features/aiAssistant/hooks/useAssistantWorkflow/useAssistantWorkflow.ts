@@ -637,7 +637,7 @@ function buildSessionBranchName(sessionId: string): string {
   const uniqueIdWithoutPrefix = sessionId.startsWith('session_')
     ? sessionId.substring(8, 16)
     : sessionId.substring(0, 8);
-  return `altinity_session_${uniqueIdWithoutPrefix}`;
+  return `assistant_${uniqueIdWithoutPrefix}`;
 }
 
 function createThreadTitle(messageContent: string): string {

@@ -410,7 +410,9 @@ public class FiksArkivDefaultPayloadGeneratorTest
         // The register lookup serves both the sender korrespondansepart and the instance owner classification's
         // title, so the two are driven from the same owner rather than being hand-rolled per case.
         fixture
-            .PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>()))
+            .PartyClientMock.Setup(x =>
+                x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(Factories.RegisterParty(testCase.Owner));
 
         return fixture;

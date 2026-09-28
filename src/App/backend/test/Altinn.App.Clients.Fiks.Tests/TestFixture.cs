@@ -76,8 +76,6 @@ internal sealed record TestFixture(
     public FiksIOClient FiksIOClient => (FiksIOClient)App.Services.GetRequiredService<IFiksIOClient>();
     public FiksIOSettings FiksIOSettings => App.Services.GetRequiredService<IOptions<FiksIOSettings>>().Value;
     public FiksArkivSettings FiksArkivSettings => App.Services.GetRequiredService<IOptions<FiksArkivSettings>>().Value;
-    public MaskinportenSettings MaskinportenSettings =>
-        App.Services.GetRequiredService<IOptions<MaskinportenSettings>>().Value;
     public FiksArkivConfigValidationService FiksArkivConfigValidationService =>
         App.Services.GetServices<IHostedService>().OfType<FiksArkivConfigValidationService>().Single();
     public FiksArkivSubscriber FiksArkivSubscriber =>
@@ -94,7 +92,9 @@ internal sealed record TestFixture(
     public IPipelineServiceTask FiksArkivServiceTask =>
         AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
 
-    /// <summary>The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.</summary>
+    /// <summary>
+    /// The Fiks Arkiv task's composed pipeline — the send stage plus its reply handler.
+    /// </summary>
     public ServiceTaskPipeline FiksArkivPipeline => FiksArkivServiceTask.ResolvePipeline();
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();
     public IProcessReader ProcessReader => App.Services.GetRequiredService<IProcessReader>();
@@ -115,7 +115,6 @@ internal sealed record TestFixture(
         IEnumerable<(string, object)>? configurationCollection = null,
         bool useDefaultFiksIOSettings = true,
         bool useDefaultFiksArkivSettings = true,
-        bool useDefaultMaskinportenSettings = true,
         string hostEnvironment = "Development",
         bool mockFiksIOClientFactory = true
     )
@@ -130,14 +129,6 @@ internal sealed record TestFixture(
             builder.Configuration.AddJsonStream(
                 GetJsonStream("FiksArkivSettings", TestHelpers.DefaultFiksArkivSettings)
             );
-
-        if (useDefaultMaskinportenSettings)
-        {
-            builder.Configuration.AddJsonStream(
-                GetJsonStream("MaskinportenSettings", TestHelpers.DefaultMaskinportenSettings)
-            );
-            builder.Services.ConfigureMaskinportenClient("MaskinportenSettings");
-        }
 
         // User supplied configuration values
         if (configurationCollection is not null)

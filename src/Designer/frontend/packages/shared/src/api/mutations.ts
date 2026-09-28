@@ -41,6 +41,7 @@ import {
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
+  replaceDataModelXsdPath,
   imagePath,
   addImagePath,
   optionListUploadPath,
@@ -185,6 +186,7 @@ export const updateAppPolicy = (org: string, app: string, payload: Policy) => pu
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateDataType = (org: string, app: string, dataModelName: string, payload: DataType) => put<void>(dataTypePath(org, app, dataModelName), payload);
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);

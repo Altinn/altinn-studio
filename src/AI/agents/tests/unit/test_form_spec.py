@@ -8,6 +8,7 @@ prompt now emits) or legacy bare strings (lifted via a slug fallback).
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from agents.graph.state import FormSpec, FormSpecField, FormSpecOption, FormSpecPage
 
@@ -58,7 +59,7 @@ class TestFormSpecOptionCoercion:
         # Once the model returns a dict, both keys are required — we
         # don't silently fabricate a value from the label, since that's
         # exactly what callers asked the model to provide explicitly.
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             FormSpecField(
                 id="x",
                 label="X",

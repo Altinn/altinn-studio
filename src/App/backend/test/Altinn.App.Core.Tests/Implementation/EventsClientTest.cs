@@ -151,6 +151,82 @@ public class EventsClientTest
     }
 
     [Fact]
+    public async Task AddEvent_WithIdempotencyKey_SendsIdempotencyKeyHeader()
+    {
+        // Arrange
+        Instance instance = new()
+        {
+            AppId = "ttd/best-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() },
+        };
+
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(Guid.NewGuid().ToString()),
+        };
+
+        HttpRequestMessage actualRequest = null;
+        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        InitializeMocks(httpResponseMessage, SetRequest);
+
+        HttpClient httpClient = new(handlerMock.Object);
+        EventsClient target = new(httpClient, BuildServiceProvider());
+
+        Guid idempotencyKey = Guid.Parse("8b1f2c3d-4e5a-6b7c-8d9e-0f1a2b3c4d5e");
+
+        // Act
+        await target.AddEvent("created", instance, idempotencyKey: idempotencyKey);
+
+        // Assert
+        Assert.NotNull(actualRequest);
+        // Altinn Events reads this header as a GUID and stores and delivers one event per key, so the
+        // exact spelling is a wire contract: a renamed or reformatted header silently reverts the app
+        // to at-least-once publication rather than failing the request.
+        Assert.True(actualRequest.Headers.TryGetValues("Idempotency-Key", out var values));
+        Assert.Equal(idempotencyKey.ToString(), Assert.Single(values));
+
+        handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task AddEvent_WithoutIdempotencyKey_SendsNoIdempotencyKeyHeader()
+    {
+        // Arrange
+        Instance instance = new()
+        {
+            AppId = "ttd/best-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() },
+        };
+
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(Guid.NewGuid().ToString()),
+        };
+
+        HttpRequestMessage actualRequest = null;
+        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        InitializeMocks(httpResponseMessage, SetRequest);
+
+        HttpClient httpClient = new(handlerMock.Object);
+        EventsClient target = new(httpClient, BuildServiceProvider());
+
+        // Act
+        await target.AddEvent("created", instance);
+
+        // Assert
+        Assert.NotNull(actualRequest);
+        // A caller with no key registers unconditionally, as before. Sending an empty or placeholder
+        // key instead would have Altinn Events treat unrelated events as duplicates of each other.
+        Assert.False(actualRequest.Headers.Contains("Idempotency-Key"));
+
+        handlerMock.VerifyAll();
+    }
+
+    [Fact]
     public async Task AddEvent_TheServiceResponseIndicateFailure_ThrowsPlatformHttpException()
     {
         // Arrange

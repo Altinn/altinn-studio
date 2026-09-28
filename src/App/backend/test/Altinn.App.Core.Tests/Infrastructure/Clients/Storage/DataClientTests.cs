@@ -71,7 +71,7 @@ public class DataClientTests
         TelemetrySink telemetrySink = new();
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 platformRequest = request;
 
@@ -212,10 +212,10 @@ public class DataClientTests
         string? requestBody = null;
         string? requestContentType = null;
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 platformRequest = request;
-                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
                 requestContentType = request.Content.Headers.ContentType?.ToString();
                 var response = new HttpResponseMessage
                 {
@@ -309,10 +309,10 @@ public class DataClientTests
         string? requestBody = null;
         string? requestContentType = null;
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 platformRequest = request;
-                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
                 requestContentType = request.Content.Headers.ContentType?.ToString();
                 return new HttpResponseMessage
                 {
@@ -359,9 +359,9 @@ public class DataClientTests
         Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
         string? requestBody = null;
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
-                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
                 return new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
@@ -543,9 +543,9 @@ public class DataClientTests
         Guid instanceGuid = Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346");
         string? requestBody = null;
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
-                requestBody = await request.Content!.ReadAsStringAsync(ct);
+                requestBody = await request.Content!.ReadAsStringAsync(cancellationToken);
                 return new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
@@ -831,7 +831,7 @@ public class DataClientTests
         HttpRequestMessage? platformRequest = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 platformRequest = request;
 
@@ -881,7 +881,7 @@ public class DataClientTests
         HttpRequestMessage? platformRequest = null;
 
         await using var fixture = Fixture.Create(
-            (request, ct) =>
+            (request, cancellationToken) =>
             {
                 platformRequest = request;
 
@@ -936,7 +936,7 @@ public class DataClientTests
     {
         // Arrange
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.BadRequest };
@@ -979,7 +979,7 @@ public class DataClientTests
         };
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1026,7 +1026,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
 
@@ -1059,7 +1059,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
 
@@ -1094,7 +1094,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1134,7 +1134,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1169,7 +1169,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
 
@@ -1204,7 +1204,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
@@ -1237,7 +1237,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
@@ -1265,7 +1265,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response(statusCode: HttpStatusCode.NotFound);
@@ -1294,7 +1294,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response(
@@ -1330,7 +1330,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response(
@@ -1363,7 +1363,7 @@ public class DataClientTests
         DisposeTrackingContent? content = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 await Task.CompletedTask;
                 var (response, trackedContent) = DisposeTrackingContent.Response("hello worlds");
@@ -1397,7 +1397,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1440,7 +1440,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1479,7 +1479,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
 
@@ -1512,7 +1512,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1579,7 +1579,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
 
@@ -1612,7 +1612,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1648,7 +1648,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1687,7 +1687,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1726,7 +1726,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1774,7 +1774,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 await Task.CompletedTask;
@@ -1809,7 +1809,7 @@ public class DataClientTests
         int invocations = 0;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1859,7 +1859,7 @@ public class DataClientTests
         DataElement dataElement = new() { Id = "67a5ef12-6e38-41f8-8b42-f91249ebcec0", Locked = true };
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1898,7 +1898,7 @@ public class DataClientTests
         HttpRequestMessage? platformRequest = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1936,7 +1936,7 @@ public class DataClientTests
         DataElement dataElement = new() { Id = "67a5ef12-6e38-41f8-8b42-f91249ebcec0", Locked = true };
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;
@@ -1975,7 +1975,7 @@ public class DataClientTests
         HttpRequestMessage? platformRequest = null;
 
         await using var fixture = Fixture.Create(
-            async (request, ct) =>
+            async (request, cancellationToken) =>
             {
                 invocations++;
                 platformRequest = request;

@@ -2,11 +2,9 @@
 
 use std::{collections::BTreeMap, rc::Rc};
 
+use crate::{Error, authorization::AgentPolicyEngine, control_plane, environment, harness, persistence};
 use ::sandbox::{SandboxHandle, SandboxId, SandboxName, network::NetworkBackend as _};
 use sandbox_microsandbox::{MicrosandboxNetworkBackend, SecretBinding};
-use zeroize::Zeroizing;
-
-use crate::{Error, authorization::AgentPolicyEngine, control_plane, harness, persistence};
 
 /// Connects Agent policy and host-owned secrets to the Microsandbox Network Backend.
 pub(super) struct Preparation {
@@ -18,6 +16,7 @@ pub(super) struct Preparation {
 pub(super) struct PreparedNetwork {
     pub(super) bindings_changed: bool,
     pub(super) environment: BTreeMap<String, String>,
+    pub(super) harnesses: Vec<crate::Harness>,
 }
 
 impl Preparation {
@@ -48,37 +47,43 @@ impl Preparation {
     pub(super) async fn prepare(&self, record: &control_plane::AgentRecord) -> Result<PreparedNetwork, Error> {
         let sandbox_name = record.sandbox_name()?;
         let result = async {
-            let environment = if record.agent.spec.secrets.is_empty() {
+            let secrets = &record.agent.spec.secrets;
+            let environment = if secrets.is_empty() {
                 BTreeMap::new()
+            } else if secrets.iter().all(|secret| secret.optional) {
+                environment::read_or_empty(&record.env_file_path()).await?
             } else {
-                read_environment(&record.env_file_path()).await?
+                environment::read(&record.env_file_path()).await?
             };
-            let mut secret_writes = Vec::with_capacity(record.agent.spec.secrets.len());
-            for secret in &record.agent.spec.secrets {
-                let value = environment.get(secret.source()).ok_or_else(|| {
-                    Error::Invalid(format!(".env does not define required variable {:?}", secret.source()))
-                })?;
-                if value.is_empty() {
-                    return Err(Error::Invalid(format!(
-                        ".env variable {:?} must not be empty",
-                        secret.source()
-                    )));
-                }
+            let mut configured_secrets = Vec::with_capacity(secrets.len());
+            let mut secret_writes = Vec::with_capacity(secrets.len());
+            for secret in secrets {
+                let value = secret_value(&environment, secret)?;
+                let Some(value) = value else {
+                    continue;
+                };
+                configured_secrets.push(secret);
                 secret_writes.push(persistence::StoredSecret {
                     name: secret.environment.clone(),
-                    value: Zeroizing::new(value.as_bytes().to_vec()),
+                    value: zeroize::Zeroizing::new(value.as_bytes().to_vec()),
                 });
             }
             let references = self.database.replace_agent_secrets(record.id, secret_writes).await?;
-            let mut bindings = Vec::with_capacity(record.agent.spec.secrets.len() + 1);
-            for (secret, reference) in record.agent.spec.secrets.iter().zip(references) {
+            let mut bindings = Vec::with_capacity(configured_secrets.len() + 1);
+            for (secret, reference) in configured_secrets.into_iter().zip(references) {
                 let binding = SecretBinding::with_placeholder(&secret.environment, secret.inert_value(), reference)?;
                 bindings.push(binding);
             }
             let mut managed_secrets = Vec::new();
             let mut managed_environments = BTreeMap::new();
             let mut managed_placeholders = BTreeMap::new();
+            let mut installed = Vec::with_capacity(record.agent.spec.harnesses.len());
             for installation in &record.agent.spec.harnesses {
+                // Re-evaluated every pass, so signing in later installs it with no manifest change.
+                if installation.optional && !harness::authentication_ready(installation.kind, &self.database).await? {
+                    continue;
+                }
+                installed.push(installation.kind);
                 for secret in harness::prepare(installation.kind, &self.database).await? {
                     if let Some(existing) = managed_environments.insert(secret.environment, installation.kind.as_str())
                     {
@@ -89,7 +94,8 @@ impl Preparation {
                             secret.environment
                         )));
                     }
-                    if let Some(existing) = managed_placeholders.insert(secret.placeholder, installation.kind.as_str())
+                    if let Some(existing) =
+                        managed_placeholders.insert(secret.placeholder.clone(), installation.kind.as_str())
                     {
                         return Err(Error::Invalid(format!(
                             "harnesses {:?} and {:?} use the same managed placeholder {:?}",
@@ -111,7 +117,7 @@ impl Preparation {
             for secret in managed_secrets {
                 bindings.push(SecretBinding::with_placeholder(
                     secret.environment,
-                    secret.placeholder,
+                    &secret.placeholder,
                     secret.reference,
                 )?);
             }
@@ -126,6 +132,7 @@ impl Preparation {
             Ok(PreparedNetwork {
                 bindings_changed,
                 environment: guest_environment,
+                harnesses: installed,
             })
         }
         .await;
@@ -141,56 +148,57 @@ impl Preparation {
     }
 }
 
-async fn read_environment(path: &std::path::Path) -> Result<BTreeMap<String, Zeroizing<String>>, Error> {
-    let bytes = Zeroizing::new(tokio::fs::read(path).await.map_err(|error| {
-        if error.kind() == std::io::ErrorKind::NotFound {
-            Error::Invalid(format!(
-                "manifest secrets require the secret file {} (default: .env beside the manifest; override with `agentctl apply --env-file`)",
-                path.display()
-            ))
-        } else {
-            Error::Io(error)
-        }
-    })?);
-    let text = std::str::from_utf8(&bytes).map_err(|_| Error::Invalid(".env must be UTF-8".into()))?;
-    let mut values = BTreeMap::new();
-    for (line_index, original) in text.lines().enumerate() {
-        let line = original.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let Some((name, value)) = line.split_once('=') else {
-            return Err(Error::Invalid(format!(
-                "invalid .env assignment on line {}",
-                line_index + 1
-            )));
-        };
-        let name = name.trim();
-        if name.is_empty()
-            || !name
-                .bytes()
-                .enumerate()
-                .all(|(index, byte)| byte == b'_' || byte.is_ascii_alphabetic() || (index > 0 && byte.is_ascii_digit()))
-        {
-            return Err(Error::Invalid(format!(
-                "invalid .env variable name on line {}",
-                line_index + 1
-            )));
-        }
-        let value = unquote(value.trim())
-            .ok_or_else(|| Error::Invalid(format!("unbalanced .env quotes on line {}", line_index + 1)))?;
-        if values.insert(name.into(), Zeroizing::new(value.into())).is_some() {
-            return Err(Error::Invalid(format!("duplicate .env variable {name:?}")));
-        }
+fn secret_value<'a>(
+    environment: &'a BTreeMap<String, zeroize::Zeroizing<String>>,
+    secret: &crate::SecretSpec,
+) -> Result<Option<&'a str>, Error> {
+    if secret.optional {
+        Ok(environment::optional(environment, secret.source()))
+    } else {
+        Ok(Some(environment::required(environment, secret.source())?))
     }
-    Ok(values)
 }
 
-fn unquote(value: &str) -> Option<&str> {
-    match value.as_bytes().first() {
-        Some(b'"') => value.strip_prefix('"')?.strip_suffix('"'),
-        Some(b'\'') => value.strip_prefix('\'')?.strip_suffix('\''),
-        _ if value.ends_with(['"', '\'']) => None,
-        _ => Some(value),
+#[cfg(test)]
+mod tests {
+    use super::secret_value;
+    use crate::SecretSpec;
+    use std::collections::BTreeMap;
+    use zeroize::Zeroizing;
+
+    fn secret(optional: bool) -> SecretSpec {
+        SecretSpec {
+            environment: "API_TOKEN".into(),
+            optional,
+            placeholder: None,
+            allowed_hosts: vec!["example.com".into()],
+            source: None,
+        }
+    }
+
+    #[test]
+    fn optional_secret_omits_missing_and_empty_values() -> Result<(), crate::Error> {
+        let mut environment = BTreeMap::new();
+        assert_eq!(secret_value(&environment, &secret(true))?, None);
+
+        environment.insert("API_TOKEN".into(), Zeroizing::new(String::new()));
+        assert_eq!(secret_value(&environment, &secret(true))?, None);
+        Ok(())
+    }
+
+    #[test]
+    fn optional_secret_selects_a_present_value() -> Result<(), crate::Error> {
+        let environment = BTreeMap::from([("API_TOKEN".into(), Zeroizing::new("token".into()))]);
+
+        assert_eq!(secret_value(&environment, &secret(true))?, Some("token"));
+        Ok(())
+    }
+
+    #[test]
+    fn required_secret_still_rejects_a_missing_value() {
+        let environment = BTreeMap::new();
+        let error = secret_value(&environment, &secret(false));
+
+        assert!(matches!(error, Err(crate::Error::Invalid(message)) if message.contains("API_TOKEN")));
     }
 }

@@ -12,13 +12,13 @@ internal interface IInstanceClientWithStorageMetadata
         int instanceOwnerPartyId,
         Guid instanceId,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     Task<InstanceWithStorageMetadata> GetInstanceWithStorageMetadata(
         Instance instance,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     Task<InstanceWithStorageMetadata> CreateInstanceWithStorageMetadata(
@@ -26,7 +26,7 @@ internal interface IInstanceClientWithStorageMetadata
         string app,
         Instance instanceTemplate,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     Task<InstanceWithStorageMetadata> UpdatePresentationTextsWithStorageMetadata(
@@ -35,7 +35,7 @@ internal interface IInstanceClientWithStorageMetadata
         PresentationTexts presentationTexts,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     Task<InstanceWithStorageMetadata> UpdateDataValuesWithStorageMetadata(
@@ -44,7 +44,7 @@ internal interface IInstanceClientWithStorageMetadata
         DataValues dataValues,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     Task<InstanceWithStorageMetadata> UpdateProcessAndEventsWithStorageMetadata(
@@ -52,6 +52,6 @@ internal interface IInstanceClientWithStorageMetadata
         List<InstanceEvent> events,
         StorageAuthenticationMethod? authenticationMethod = null,
         StorageWritePreconditions? preconditions = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

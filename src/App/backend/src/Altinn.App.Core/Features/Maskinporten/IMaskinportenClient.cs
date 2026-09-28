@@ -20,7 +20,7 @@ public interface IMaskinportenClient
     /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
-    /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
+    /// The Maskinporten configuration is incomplete or invalid. Very possibly because the credentials the platform provisions for the app are missing or corrupt.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenTokenExpiredException">The token received from Maskinporten has already expired.</exception>
     public Task<JwtToken> GetAccessToken(IEnumerable<string> scopes, CancellationToken cancellationToken = default);
@@ -39,7 +39,7 @@ public interface IMaskinportenClient
     /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
-    /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
+    /// The Maskinporten configuration is incomplete or invalid. Very possibly because the credentials the platform provisions for the app are missing or corrupt.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenTokenExpiredException">The token received from Maskinporten has already expired.</exception>
     public Task<JwtToken> GetAccessToken(
@@ -59,7 +59,7 @@ public interface IMaskinportenClient
     /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
-    /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
+    /// The Maskinporten configuration is incomplete or invalid. Very possibly because the credentials the platform provisions for the app are missing or corrupt.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenTokenExpiredException">The token received from Maskinporten and/or Altinn Authentication has already expired.</exception>
     /// <seealso cref="GetAccessToken(IEnumerable{string}, CancellationToken)"/>
@@ -84,7 +84,7 @@ public interface IMaskinportenClient
     /// Authentication failed. This could be caused by an authentication/authorisation issue or a myriad of other circumstances.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenConfigurationException">
-    /// The Maskinporten configuration is incomplete or invalid. Very possibly because of a missing or corrupt maskinporten-settings.json file.
+    /// The Maskinporten configuration is incomplete or invalid. Very possibly because the credentials the platform provisions for the app are missing or corrupt.
     /// </exception>
     /// <exception cref="Exceptions.MaskinportenTokenExpiredException">The token received from Maskinporten and/or Altinn Authentication has already expired.</exception>
     /// <seealso cref="GetAccessToken(MaskinportenTokenRequest, CancellationToken)"/>

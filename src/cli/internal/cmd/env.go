@@ -612,11 +612,25 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 	table := ui.NewTable(
 		ui.NewColumn("Container"),
 		ui.NewColumn("Status"),
+		ui.NewColumn("Image"),
 	)
 	for _, ctr := range status.Containers {
-		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status))
+		table.Row(ui.Text(ctr.Name), ui.Text(ctr.Status), ui.Text(containerImageCell(ctr)))
 	}
 	out.RenderTable(table)
+}
+
+// containerImageCell renders what a container is running: its build, and the reference it was
+// started from when studioctl could confirm that reference still resolves to that build.
+func containerImageCell(ctr envlocaltest.ContainerStatus) string {
+	if ctr.ImageID == "" {
+		return "-"
+	}
+	build := config.ShortImageID(ctr.ImageID)
+	if ctr.Image == "" {
+		return build
+	}
+	return ctr.Image + " (" + build + ")"
 }
 
 func (c *EnvCommand) hostsUsage() string {

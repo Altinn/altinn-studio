@@ -15,7 +15,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validates form data against expression validations
 /// </summary>
-public class ExpressionValidator : IValidator
+internal sealed class ExpressionValidator : IValidator
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

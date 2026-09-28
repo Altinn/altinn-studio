@@ -337,10 +337,25 @@ observability lives. What changed is that the repo is authoritative for what is 
 and Langfuse is a projection of it, so the two cannot drift.
 
 **Prove a score is stable.** Every pinned check is deterministic code, so a score is
-repeatable given the same model output. The model output is not: three runs of identical
-code and model have varied widely on `confidence.band-matches-outcome`, because one item is
-a large share of a small dataset. The noise floor is a single global number and
-cannot express that, so read a small dataset's movement as noise until it is bigger.
+repeatable given the same model output. The model output is not: across the runs in
+`benchmarks/runs`, `scope.declines-in-users-language` has landed anywhere between 0.533 and
+1.000 and `confidence.band-matches-outcome` between 0.500 and 0.967, on unchanged code and
+an unchanged model, because one item is a large share of a small dataset. The noise floor is
+a single global number and cannot express that, so read a small dataset's movement as noise
+until it is bigger.
+
+The runs on disk are the data for fixing this: group them by the axes that were identical,
+take each behavior's spread within a group, and that is its band on unchanged code. The
+open question is not how to compute it but how wide a band may be before it hides a real
+regression, which is a decision about what this is for rather than a calculation. A gate
+whose band is a third of its range is telling you the gate is too small to pin, and that is
+itself the finding.
+
+**Score a page the preview never answered for.** A layout that breaks renders the error
+marker and fails. A preview that returns nothing at all within the timeout is retried once
+and then left unmeasured, so `bench_pages_render` is a mean over the pages it could measure
+and its comment names the ones it skipped. Scoring a timeout as a failure cost one run 0.250
+on two behaviors while the same committed branch rendered on a retry.
 
 **Attribute movement it cannot attribute.** Each component declares the model role its
 calls use, so the report says when a behavior moved on a component whose model did not

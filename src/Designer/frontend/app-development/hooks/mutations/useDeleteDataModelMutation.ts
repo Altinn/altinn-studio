@@ -36,6 +36,7 @@ export const useDeleteDataModelMutation = () => {
       });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] });
     },
   });
 };

@@ -33,7 +33,7 @@ export function deriveInvalidDataValidations({
       source: FrontendValidationSource.InvalidData,
       message: { key: 'validation_errors.pattern' },
       severity: 'error',
-      category: ValidationMask.Schema,
+      category: ValidationMask.Invalid,
     });
   }
 

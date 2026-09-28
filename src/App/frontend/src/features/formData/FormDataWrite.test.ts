@@ -1,9 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
 import { FormStoreState } from 'src/features/form/FormContext';
-import { selectAllPaths } from 'src/features/formData/FormDataWrite';
+import { hasInvalidFormData, selectAllPaths } from 'src/features/formData/FormDataWrite';
 
 const dataType = 'default';
+
+describe('hasInvalidFormData', () => {
+  function stateWithInvalidData(invalidCurrentData: object): FormStoreState {
+    const state = makeContext({});
+    state.data.models[dataType].invalidCurrentData = invalidCurrentData;
+    return state;
+  }
+
+  it('detects unsaveable values nested in repeating rows', () => {
+    expect(hasInvalidFormData(stateWithInvalidData({ books: [{ pageCount: '323.22' }] }))).toBe(true);
+  });
+
+  it('ignores empty containers left after correcting invalid values', () => {
+    expect(hasInvalidFormData(stateWithInvalidData({ books: [{}, { details: {} }], other: [] }))).toBe(false);
+  });
+
+  it('does not treat schema validation errors on saveable data as unsaved input', () => {
+    const state = stateWithInvalidData({});
+    state.data.models[dataType].currentData = { year: 2024.22 };
+    expect(hasInvalidFormData(state)).toBe(false);
+  });
+});
 
 function makeContext(formData?: object): FormStoreState {
   return {

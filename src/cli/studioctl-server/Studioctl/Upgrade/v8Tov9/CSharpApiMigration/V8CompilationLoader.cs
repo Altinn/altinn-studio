@@ -1,8 +1,5 @@
 using System.Diagnostics;
-using Altinn.Studio.StudioctlServer.Platform;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
@@ -27,7 +24,7 @@ internal sealed record SemanticAnalysis(Compilation? Compilation, string? Unavai
 /// the syntax-based detection that was previously the only mode, with the reason reported.
 /// </para>
 /// <para>
-/// Uses <see cref="MSBuildWorkspace"/>, which the server already ships (and already uses in the v7-&gt;v8
+/// Uses <see cref="Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace"/>, which the server already ships (and already uses in the v7-&gt;v8
 /// upgrade); the MSBuild machinery runs in an out-of-process BuildHost, so nothing heavy loads into
 /// the server process.
 /// </para>
@@ -98,32 +95,14 @@ internal static class V8CompilationLoader
         CancellationToken cancellationToken
     )
     {
-        // The design-time build needs the project's assets file; restore against the *current* csproj
-        // produces the v8 graph. Failure is not checked here — its consequences (no references) are
-        // caught by the probe below, with restore output as context.
-        var restoreError = await RunRestoreAsync(projectFolder, projectFile, cancellationToken);
-
-        // MSBuildLocator resolves a dotnet SDK for the out-of-process BuildHost; it throws when no SDK
-        // can be found, which the caller reports as the fallback reason.
-        if (!MSBuildLocator.IsRegistered)
-        {
-            MSBuildLocator.RegisterDefaults();
-        }
-
-        using var workspace = MSBuildWorkspace.Create();
-        var loadFailures = new List<string>();
-        workspace.WorkspaceFailed += (_, args) =>
-        {
-            if (args.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
-            {
-                loadFailures.Add(args.Diagnostic.Message);
-            }
-        };
-
-        var project = await workspace.OpenProjectAsync(projectFile, cancellationToken: cancellationToken);
-        var compilation = await project.GetCompilationAsync(cancellationToken);
-
-        return EvaluateCompilation(compilation, loadFailures, restoreError, cancellationToken);
+        using var loaded = await ProjectCompilationLoader.LoadAsync(
+            projectFolder,
+            projectFile,
+            configuration: null,
+            cancellationToken
+        );
+        var compilation = await loaded.Project.GetCompilationAsync(cancellationToken);
+        return EvaluateCompilation(compilation, loaded.LoadFailures, loaded.RestoreError, cancellationToken);
     }
 
     /// <summary>
@@ -174,58 +153,5 @@ internal static class V8CompilationLoader
         }
 
         return new SemanticAnalysis(compilation, null);
-    }
-
-    /// <summary>
-    /// Runs <c>dotnet restore</c> and returns a short failure description, or <c>null</c> when the
-    /// restore exited cleanly. Mirrors <see cref="NuGetDowngradeResolver"/>'s process handling,
-    /// including killing the process tree on cancellation.
-    /// </summary>
-    private static async Task<string?> RunRestoreAsync(
-        string projectFolder,
-        string projectFile,
-        CancellationToken cancellationToken
-    )
-    {
-        var startInfo = ProcessUtil.CreateStartInfo("dotnet", "restore", projectFile);
-        startInfo.WorkingDirectory = projectFolder;
-        startInfo.RedirectStandardOutput = true;
-        startInfo.RedirectStandardError = true;
-
-        using var process =
-            Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start dotnet restore.");
-
-        var standardOutput = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var standardError = process.StandardError.ReadToEndAsync(cancellationToken);
-
-        try
-        {
-            await process.WaitForExitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // WaitForExitAsync only stops waiting on cancellation; the restore would keep running.
-            try
-            {
-                process.Kill(entireProcessTree: true);
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited between the cancellation and the kill.
-            }
-            throw;
-        }
-
-        var error = (await standardError).Trim();
-        var output = (await standardOutput).Trim();
-
-        if (process.ExitCode == 0)
-        {
-            return null;
-        }
-        var detail = error.Length > 0 ? error : output;
-        // Keep it to one line: restore output is verbose, and this only serves as fallback context.
-        var firstLine = detail.Split('\n', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim();
-        return $"dotnet restore exited with {process.ExitCode}{(firstLine is null ? "" : $": {firstLine}")}";
     }
 }

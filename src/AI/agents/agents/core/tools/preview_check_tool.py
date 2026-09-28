@@ -120,8 +120,7 @@ class PreviewRenderCheckTool(WriteToolMixin):
         body = {
             "passed": not failures,
             "pages": [
-                {"page": result.page, "rendered": result.rendered, "detail": result.detail}
-                for result in results
+                {"page": result.page, "rendered": result.rendered, "detail": result.detail} for result in results
             ],
         }
         content = json.dumps(body, ensure_ascii=False, indent=2)

@@ -146,8 +146,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
   const sortedKeys = Object.keys(componentList).sort((a, b) => a.localeCompare(b));
   const configMap: { [key: string]: ComponentConfig } = {};
   for (const key of sortedKeys) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const config = require(`src/layout/${key}/config`).Config;
+    const { Config: config } = await import(`src/layout/${key}/config`);
     config.setType(componentList[key], key);
     configMap[key] = config;
   }
@@ -289,7 +288,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
   );
   await fs.mkdir(CONTRACT_DOCUMENTATION_ROOT, { recursive: true });
   for (const locale of ['nb', 'en'] satisfies DocumentationLocale[]) {
-    for (const [componentType, markdown] of generateComponentDocumentation(
+    for (const [componentType, documentation] of generateComponentDocumentation(
       componentCatalog.componentCatalog,
       componentCatalog.commonProperties,
       locale,
@@ -301,7 +300,7 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
       promises.push(
         saveFile(
           documentationPath,
-          await format(markdown, {
+          await format(documentation, {
             ...prettierConfig,
             filepath: documentationPath,
           }),

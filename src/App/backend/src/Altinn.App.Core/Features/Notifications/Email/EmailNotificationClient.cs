@@ -37,7 +37,10 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
         _telemetry = telemetry;
     }
 
-    public async Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken ct)
+    public async Task<EmailOrderResponse> Order(
+        EmailNotification emailNotification,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(_orderType);
 
@@ -58,8 +61,8 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, ct);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
             EmailOrderResponse? orderResponse;
             if (httpResponseMessage.IsSuccessStatusCode)
             {

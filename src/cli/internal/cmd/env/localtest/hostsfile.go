@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -611,144 +610,15 @@ func hostsBackupIndex(base, name string) (int, bool) {
 	return index, true
 }
 
-func writeHostsFileAtomic(path, content string, mode fs.FileMode) (retErr error) {
-	dir := filepath.Dir(path)
-	tmpFile, err := os.CreateTemp(dir, "."+filepath.Base(path)+".studioctl.tmp-*")
-	if err != nil {
-		return fmt.Errorf("write hosts file %q: create temp file: %w", path, err)
-	}
-	tmpPath := tmpFile.Name()
-	cleanup := true
-	defer func() {
-		if !cleanup {
-			return
-		}
-		if tmpFile != nil {
-			closeErr := closeFile(tmpFile, fmt.Sprintf("temp hosts file %q", tmpPath))
-			if closeErr != nil {
-				retErr = errors.Join(retErr, fmt.Errorf("write hosts file %q: %w", path, closeErr))
-			}
-		}
-		removeErr := removePathIfExists(tmpPath)
-		if removeErr != nil {
-			retErr = errors.Join(retErr, fmt.Errorf("write hosts file %q: %w", path, removeErr))
-		}
-	}()
-
-	if err := tmpFile.Chmod(mode); err != nil {
-		return fmt.Errorf("write hosts file %q: chmod temp file: %w", path, err)
-	}
-	if _, err := tmpFile.WriteString(content); err != nil {
-		return fmt.Errorf("write hosts file %q: write temp file: %w", path, err)
-	}
-	if err := tmpFile.Sync(); err != nil {
-		return fmt.Errorf("write hosts file %q: sync temp file: %w", path, err)
-	}
-	if err := closeFile(tmpFile, fmt.Sprintf("temp hosts file %q", tmpPath)); err != nil {
+func writeHostsFileAtomic(path, content string, mode fs.FileMode) error {
+	if err := osutil.WriteFileAtomic(
+		path,
+		[]byte(content),
+		osutil.AtomicWriteOptions{Perm: mode, OwnerOnly: false},
+	); err != nil {
 		return fmt.Errorf("write hosts file %q: %w", path, err)
 	}
-	tmpFile = nil
-	if err := replacePathAtomic(tmpPath, path); err != nil {
-		return fmt.Errorf("write hosts file %q: replace target: %w", path, err)
-	}
-	cleanup = false
-	if err := syncDirIfSupported(dir); err != nil {
-		return fmt.Errorf("write hosts file %q: sync directory: %w", path, err)
-	}
 	return nil
-}
-
-func replacePathAtomic(src, dst string) error {
-	if runtime.GOOS != osutil.OSWindows {
-		if err := os.Rename(src, dst); err != nil {
-			return fmt.Errorf("rename %q to %q: %w", src, dst, err)
-		}
-		return nil
-	}
-
-	renameErr := os.Rename(src, dst)
-	if renameErr == nil {
-		return nil
-	}
-
-	canRetry := errors.Is(renameErr, os.ErrExist) || errors.Is(renameErr, os.ErrPermission)
-	if !canRetry {
-		return fmt.Errorf("rename %q to %q: %w", src, dst, renameErr)
-	}
-
-	return replacePathAtomicWindows(src, dst)
-}
-
-func replacePathAtomicWindows(src, dst string) error {
-	backupPath, err := reserveReplaceBackupPath(dst)
-	if err != nil {
-		return err
-	}
-
-	if moveErr := os.Rename(dst, backupPath); moveErr != nil {
-		removeErr := removePathIfExists(backupPath)
-		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", dst, backupPath, moveErr)
-		if removeErr != nil {
-			return errors.Join(wrappedMoveErr, removeErr)
-		}
-		return wrappedMoveErr
-	}
-	if moveErr := os.Rename(src, dst); moveErr != nil {
-		wrappedMoveErr := fmt.Errorf("rename %q to %q: %w", src, dst, moveErr)
-		restoreErr := os.Rename(backupPath, dst)
-		if restoreErr != nil {
-			return errors.Join(
-				wrappedMoveErr,
-				fmt.Errorf("rename %q to %q: %w", backupPath, dst, restoreErr),
-			)
-		}
-		return wrappedMoveErr
-	}
-	return removePathIfExists(backupPath)
-}
-
-func reserveReplaceBackupPath(dst string) (string, error) {
-	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
-	if err != nil {
-		return "", fmt.Errorf("reserve backup path for %q: create temp file: %w", dst, err)
-	}
-	backupPath := backup.Name()
-	closeErr := closeFile(backup, fmt.Sprintf("temporary backup file %q", backupPath))
-	if closeErr != nil {
-		removeErr := removePathIfExists(backupPath)
-		if removeErr != nil {
-			return "", errors.Join(
-				fmt.Errorf("reserve backup path for %q: %w", dst, closeErr),
-				removeErr,
-			)
-		}
-		return "", fmt.Errorf("reserve backup path for %q: %w", dst, closeErr)
-	}
-	removeErr := removePathIfExists(backupPath)
-	if removeErr != nil {
-		return "", fmt.Errorf("reserve backup path for %q: %w", dst, removeErr)
-	}
-	return backupPath, nil
-}
-
-func syncDirIfSupported(path string) error {
-	if runtime.GOOS == osutil.OSWindows {
-		return nil
-	}
-
-	dir, err := os.Open(path) //nolint:gosec // Path is derived from caller-controlled hosts file location.
-	if err != nil {
-		return fmt.Errorf("open directory %q: %w", path, err)
-	}
-	syncErr := dir.Sync()
-	if syncErr != nil {
-		closeErr := closeFile(dir, fmt.Sprintf("directory %q", path))
-		if closeErr != nil {
-			return errors.Join(fmt.Errorf("sync directory %q: %w", path, syncErr), closeErr)
-		}
-		return fmt.Errorf("sync directory %q: %w", path, syncErr)
-	}
-	return closeFile(dir, fmt.Sprintf("directory %q", path))
 }
 
 func closeFile(file *os.File, name string) error {
@@ -756,16 +626,4 @@ func closeFile(file *os.File, name string) error {
 		return fmt.Errorf("close %s: %w", name, err)
 	}
 	return nil
-}
-
-func removePathIfExists(path string) error {
-	err := os.Remove(path)
-	switch {
-	case err == nil:
-		return nil
-	case errors.Is(err, os.ErrNotExist):
-		return nil
-	default:
-		return fmt.Errorf("remove %q: %w", path, err)
-	}
 }

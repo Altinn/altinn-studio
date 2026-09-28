@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal interface IWorkflowEngineService
 {
-    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         ProcessStateChange processStateChange,
@@ -16,10 +16,21 @@ internal interface IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
-    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(Instance instance, CancellationToken ct = default);
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        string? action,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<CurrentTaskWorkflowState> GetCurrentTaskWorkflowState(
+        Instance instance,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Resolves the live status of the current task's transition for read-path enrichment:
@@ -28,13 +39,16 @@ internal interface IWorkflowEngineService
     /// <see cref="GetCurrentTaskWorkflowState"/> (which the process engine uses for control flow),
     /// this is a presentation projection and carries no engine ids.
     /// </summary>
-    Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(Instance instance, CancellationToken ct = default);
+    Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
+        Instance instance,
+        CancellationToken cancellationToken = default
+    );
 
     Task<ProcessNextWorkflowResult> ResumeAndWaitForWorkflow(
         Instance instance,
         Guid workflowId,
         string collectionKey,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -50,6 +64,6 @@ internal interface IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

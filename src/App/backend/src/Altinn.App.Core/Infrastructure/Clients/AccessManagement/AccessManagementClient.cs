@@ -35,7 +35,10 @@ internal sealed class AccessManagementClient(
     private const string ApplicationJsonMediaType = "application/json";
 
     /// <inheritdoc />
-    public async Task<DelegationResponse> DelegateRights(DelegationRequest delegation, CancellationToken ct = default)
+    public async Task<DelegationResponse> DelegateRights(
+        DelegationRequest delegation,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = telemetry?.StartAppInstanceDelegationActivity();
 
@@ -56,9 +59,9 @@ internal sealed class AccessManagementClient(
             );
 
             using HttpRequestMessage httpRequestMessage = CreateRequestMessage(application, uri, body);
-            using (httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, ct))
+            using (httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, cancellationToken))
             {
-                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
                 return GetResponseOrThrow(httpResponseMessage, httpContent);
             }
         }
@@ -71,7 +74,10 @@ internal sealed class AccessManagementClient(
     }
 
     /// <inheritdoc />
-    public async Task<DelegationResponse> RevokeRights(DelegationRequest delegation, CancellationToken ct = default)
+    public async Task<DelegationResponse> RevokeRights(
+        DelegationRequest delegation,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = telemetry?.StartAppInstanceRevokeActivity();
 
@@ -92,9 +98,9 @@ internal sealed class AccessManagementClient(
             );
 
             using HttpRequestMessage httpRequestMessage = CreateRequestMessage(application, uri, body);
-            using (httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, ct))
+            using (httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, cancellationToken))
             {
-                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(ct);
+                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
                 return GetResponseOrThrow(httpResponseMessage, httpContent);
             }
         }

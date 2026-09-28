@@ -59,20 +59,3 @@ def _flat(value: object) -> str:
     if isinstance(value, dict):
         return ", ".join(f"{k} {v}" for k, v in sorted(value.items())) or "not recorded"
     return str(value)
-
-
-def drifted(pointer: Pointer, run) -> tuple[str, ...]:
-    """Axes where the committed pointer disagrees with the run Langfuse returns."""
-    if not pointer.axes:
-        return ()
-    actual = {k: _flat(v) for k, v in run.provenance.axes().items()}
-    return tuple(
-        name
-        for name, recorded in sorted(pointer.axes.items())
-        if _comparable(name, actual.get(name, "")) != _comparable(name, recorded)
-    )
-
-
-def _comparable(axis: str, value: str) -> str:
-    """The code axis carries a dirty flag that moves on its own; the rest do not."""
-    return value.split()[0] if axis == "code" and value else value

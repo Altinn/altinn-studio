@@ -246,6 +246,10 @@ pub trait SandboxBackend {
     ) -> LocalFuture<'a, Result<file_transfer::ByteReader, Error>>;
 
     /// Creates or replaces one regular file in a running Sandbox from a byte stream.
+    ///
+    /// The replacement is atomic: a concurrent reader in the Sandbox observes either the previous
+    /// file or the complete new one, never a truncated or partially written file. A replaced
+    /// regular file keeps its mode and ownership.
     fn write_file<'a>(
         &'a self,
         sandbox_id: &'a SandboxId,

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -117,7 +118,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             string idempotencyKey,
             string? collectionKey,
             WorkflowEnqueueRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         )
         {
             recorder.Calls.Add("enqueue");
@@ -136,7 +137,11 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             );
         }
 
-        public Task<MailboxResponse?> CloseMailbox(string ns, Guid mailboxId, CancellationToken ct = default)
+        public Task<MailboxResponse?> CloseMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        )
         {
             recorder.Calls.Add("close");
             recorder.Closed.Add(mailboxId);
@@ -147,13 +152,19 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             string ns,
             Guid mailboxId,
             MailboxDeliveryRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<WorkflowStatusResponse?> GetWorkflow(
+            string ns,
+            Guid workflowId,
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
             string key,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
@@ -161,29 +172,29 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             string? collectionKey = null,
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
             Guid workflowId,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
         public Task<ResumeWorkflowResponse> ResumeWorkflow(
             string ns,
             Guid workflowId,
             bool cascade = false,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken ct = default) =>
+        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
-            CancellationToken ct = default
+            CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
     }
 
@@ -279,18 +290,29 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
                 processEngine
                     .Setup(x =>
                         x.EnqueueProcessNext(
-                            It.IsAny<Instance>(),
+                            It.IsAny<IInstanceDataAccessor>(),
                             It.IsAny<Actor>(),
                             It.IsAny<Guid>(),
                             It.IsAny<string>(),
                             It.IsAny<string>(),
+                            It.IsAny<DateTimeOffset>(),
                             It.IsAny<string?>(),
                             It.IsAny<string?>(),
                             It.IsAny<CancellationToken>()
                         )
                     )
-                    .Callback<Instance, Actor, Guid, string, string, string?, string?, CancellationToken>(
-                        (_, _, _, _, state, action, idempotencyKey, _) =>
+                    .Callback<
+                        IInstanceDataAccessor,
+                        Actor,
+                        Guid,
+                        string,
+                        string,
+                        DateTimeOffset,
+                        string?,
+                        string?,
+                        CancellationToken
+                    >(
+                        (_, _, _, _, state, _, action, idempotencyKey, _) =>
                         {
                             recorder.Calls.Add("after-workflow");
                             recorder.EnqueueKeys.Add(idempotencyKey!);
@@ -505,7 +527,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             onMessage: (_, reply) =>
             {
                 seen = reply;
-                return ServiceTaskResult.SuccessWithoutAutoAdvance();
+                return ServiceTaskResult.Success();
             }
         );
 
@@ -523,7 +545,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             onClosed: (_, reason) =>
             {
                 seen = reason;
-                return ServiceTaskResult.SuccessWithoutAutoAdvance();
+                return ServiceTaskResult.Success();
             }
         );
 

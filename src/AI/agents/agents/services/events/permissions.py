@@ -79,10 +79,8 @@ class PermissionBroker:
                 pending.waiters += 1
 
         try:
-            return await asyncio.wait_for(
-                asyncio.shield(pending.future), timeout=PERMISSION_TIMEOUT_SECONDS
-            )
-        except asyncio.TimeoutError:
+            return await asyncio.wait_for(asyncio.shield(pending.future), timeout=PERMISSION_TIMEOUT_SECONDS)
+        except TimeoutError:
             log.info("🔐 Permission request timed out for session %s", session_id)
             # Resolve the shared future so every waiter in the batch sees
             # the same declined outcome and a late answer can't flip it.

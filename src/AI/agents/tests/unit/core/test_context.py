@@ -8,13 +8,13 @@ from agents.core import SessionContext, build_system_prompt
 
 
 def _base_ctx(**overrides) -> SessionContext:
-    base = dict(
-        session_id="s1",
-        repo_path="/repo",
-        user_goal="Add a date field",
-        allow_app_changes=True,
-        today=date(2026, 5, 22),
-    )
+    base = {
+        "session_id": "s1",
+        "repo_path": "/repo",
+        "user_goal": "Add a date field",
+        "allow_app_changes": True,
+        "today": date(2026, 5, 22),
+    }
     base.update(overrides)
     return SessionContext(**base)
 
@@ -40,27 +40,23 @@ class TestRequiredSections:
 class TestMode:
     def test_write_mode_message(self):
         prompt = build_system_prompt(_base_ctx(allow_app_changes=True))
-        assert "WRITE" in prompt
-        assert "READ-ONLY" not in prompt
+        assert "Mode: WRITE" in prompt
 
-    def test_read_only_mode_message(self):
+    def test_read_mode_says_a_write_asks_rather_than_fails(self):
+        """ "Write tools are disabled" contradicted the rule to try and let the
+        user answer the permission prompt, and the model believed the ban."""
         prompt = build_system_prompt(_base_ctx(allow_app_changes=False))
-        assert "READ-ONLY" in prompt
+
+        assert "Mode: READ (a write tool asks the user for permission" in prompt
+        assert "disabled" not in prompt
+
+    def test_read_mode_names_the_switch_the_user_has_to_turn_on(self):
+        prompt = build_system_prompt(_base_ctx(allow_app_changes=False))
+
+        assert "Tillat endringer i appen" in prompt
 
 
 class TestOptionalSections:
-    def test_repo_facts_omitted_when_absent(self):
-        prompt = build_system_prompt(_base_ctx())
-        assert "Repo facts" not in prompt
-
-    def test_repo_facts_rendered_when_present(self):
-        prompt = build_system_prompt(
-            _base_ctx(repo_facts={"layouts": ["a", "b", "c"], "model": "Form"})
-        )
-        assert "Repo facts" in prompt
-        assert "layouts" in prompt
-        assert "Form" in prompt
-
     def test_form_spec_omitted_when_absent(self):
         prompt = build_system_prompt(_base_ctx())
         assert "Form spec" not in prompt
@@ -73,14 +69,9 @@ class TestOptionalSections:
 
 class TestStableOrdering:
     def test_sections_in_documented_order(self):
-        prompt = build_system_prompt(
-            _base_ctx(
-                repo_facts={"x": 1},
-                form_spec_summary="FORM SPEC: y",
-            )
-        )
+        prompt = build_system_prompt(_base_ctx(form_spec_summary="FORM SPEC: y"))
         # identity → principles → anatomy → rules → tool-use → session →
-        # repo facts → form spec → final answer
+        # form spec → final answer
         order = [
             "Altinity",
             "Operating principles",
@@ -88,14 +79,11 @@ class TestStableOrdering:
             "Critical rules",
             "Working with tools",
             "Session",
-            "Repo facts",
             "Form spec",
             "Final response",
         ]
         positions = [prompt.index(landmark) for landmark in order]
-        assert positions == sorted(positions), (
-            f"Sections out of order: {list(zip(order, positions))}"
-        )
+        assert positions == sorted(positions), f"Sections out of order: {list(zip(order, positions, strict=False))}"
 
 
 class TestDomainKnowledge:
@@ -142,8 +130,7 @@ class TestDomainKnowledge:
         # "different files" + "same turn" together are the load-bearing
         # phrase — either alone is too generic.
         assert "different" in text and "same turn" in text, (
-            "operating principles should tell the model to batch writes "
-            "to different files into the same turn"
+            "operating principles should tell the model to batch writes to different files into the same turn"
         )
 
 

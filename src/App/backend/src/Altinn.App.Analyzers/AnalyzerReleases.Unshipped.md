@@ -17,3 +17,5 @@ ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
 ALTINNAPP0800 | Authorization | Error | Service owner is missing required authorization
 ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not be verified
+ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
+ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type

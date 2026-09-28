@@ -85,7 +85,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EngineDbContext(options);
     }
 
-    internal EngineRepository CreateRepository()
+    internal EngineRepository CreateRepository(TimeProvider? timeProvider = null)
     {
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
@@ -96,7 +96,7 @@ public sealed class PostgresFixture : IAsyncLifetime
             _settings,
             _limiter,
             sqlBulkInserter,
-            TimeProvider.System,
+            timeProvider ?? TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
     }

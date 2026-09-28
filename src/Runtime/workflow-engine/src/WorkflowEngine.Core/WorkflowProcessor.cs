@@ -110,7 +110,7 @@ internal sealed class WorkflowProcessor(
                 var queueStart = Stopwatch.GetTimestamp();
 
                 await Task.WhenAny(
-                    Debounce(workflowSignal, TimeSpan.FromMilliseconds(10), stoppingToken),
+                    workflowSignal.Wait(stoppingToken),
                     Task.Delay(TimeSpan.FromMilliseconds(500), stoppingToken)
                 );
 
@@ -176,12 +176,6 @@ internal sealed class WorkflowProcessor(
         }
 
         workflowSignal.Signal();
-    }
-
-    private static async Task Debounce(AsyncSignal signal, TimeSpan delay, CancellationToken ct)
-    {
-        await signal.Wait(ct);
-        await Task.Delay(delay, ct);
     }
 }
 

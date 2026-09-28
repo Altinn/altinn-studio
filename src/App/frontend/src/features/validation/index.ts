@@ -39,6 +39,7 @@ export enum ValidationMask {
   Component             = 0b0000000000000010,
   Expression            = 0b0000000000000100,
   CustomBackend         = 0b0000000000001000,
+  Invalid               = 0b0000000000010000, // Input that cannot be saved
   Required              = 0b0100000000000000,
   AllExceptRequired     = 0b0011111111111111, // All frontend validations except required
   All                   = 0b0111111111111111, // All frontend validations

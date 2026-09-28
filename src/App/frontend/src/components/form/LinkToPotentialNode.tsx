@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link, useLinkClickHandler } from 'react-router';
 import type { LinkProps } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
+import { withFocusComponentRequestState } from 'src/layout/focusComponent';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -20,7 +21,22 @@ export const LinkToPotentialNode = (props: Props) => {
   const to = props.to;
   const searchParams = typeof to === 'string' ? to.split('?').at(1) : to.search;
 
-  const componentId = new URLSearchParams(searchParams).get(SearchParams.FocusComponentId);
+  const params = new URLSearchParams(searchParams);
+  const componentId = params.get(SearchParams.FocusComponentId);
+  const cleanTo = withoutFocusComponentParams(to, params);
+  const handleInternalClick = useLinkClickHandler(cleanTo, {
+    replace: props.replace,
+    state: componentId
+      ? withFocusComponentRequestState(props.state, {
+          nodeId: componentId,
+          errorBinding: params.get(SearchParams.FocusErrorBinding),
+        })
+      : props.state,
+    target: props.target,
+    preventScrollReset: props.preventScrollReset,
+    relative: props.relative,
+    viewTransition: props.viewTransition,
+  });
   const { baseComponentId } = splitDashedKey(componentId ?? '');
   const component = useExternalItem(baseComponentId);
 
@@ -28,7 +44,17 @@ export const LinkToPotentialNode = (props: Props) => {
   const shouldShowLink = componentId && !isHidden;
 
   if (shouldShowLink) {
-    return <Link {...props} />;
+    return (
+      <Link
+        {...props}
+        onClick={(event) => {
+          props.onClick?.(event);
+          if (!event.defaultPrevented && !props.reloadDocument) {
+            handleInternalClick(event);
+          }
+        }}
+      />
+    );
   }
 
   if (!component) {
@@ -43,3 +69,20 @@ export const LinkToPotentialNode = (props: Props) => {
 
   return props.children;
 };
+
+function withoutFocusComponentParams(to: LinkProps['to'], params: URLSearchParams): LinkProps['to'] {
+  const cleanParams = new URLSearchParams(params);
+  cleanParams.delete(SearchParams.FocusComponentId);
+  cleanParams.delete(SearchParams.FocusErrorBinding);
+  const search = cleanParams.size > 0 ? `?${cleanParams.toString()}` : '';
+
+  if (typeof to !== 'string') {
+    return { ...to, search };
+  }
+
+  const hashIndex = to.indexOf('#');
+  const hash = hashIndex >= 0 ? to.slice(hashIndex) : '';
+  const pathAndSearch = hashIndex >= 0 ? to.slice(0, hashIndex) : to;
+  const path = pathAndSearch.split('?')[0];
+  return `${path}${search}${hash}`;
+}

@@ -40,7 +40,7 @@ internal sealed class SignDocumentManager(
     public async Task<List<SignDocument>> GetSignDocuments(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using Activity? activity = telemetry?.StartGetSignDocumentsActivity();
@@ -83,7 +83,7 @@ internal sealed class SignDocumentManager(
         string taskId,
         List<SigneeContext> signeeContexts,
         List<SignDocument> signDocuments,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = telemetry?.StartSynchronizeSigneeContextsWithSignDocumentsActivity(taskId);
@@ -127,7 +127,11 @@ internal sealed class SignDocumentManager(
 
             if (matchedSignDocument is not null)
             {
-                result[i] = await UpdateSigneeContextWithMatchedDocument(signeeContext, matchedSignDocument);
+                result[i] = await UpdateSigneeContextWithMatchedDocument(
+                    signeeContext,
+                    matchedSignDocument,
+                    cancellationToken
+                );
                 unmatchedSignDocuments.Remove(matchedSignDocument);
             }
         }
@@ -135,7 +139,8 @@ internal sealed class SignDocumentManager(
         // Create new contexts for documents that aren't matched with existing signee contexts
         var signeeContextsForUnmatchedDocuments = await CreateSigneeContextsForUnmatchedDocuments(
             taskId,
-            unmatchedSignDocuments
+            unmatchedSignDocuments,
+            cancellationToken
         );
 
         return [.. result, .. signeeContextsForUnmatchedDocuments];
@@ -200,7 +205,8 @@ internal sealed class SignDocumentManager(
 
     private async Task<SigneeContext> UpdateSigneeContextWithMatchedDocument(
         SigneeContext signeeContext,
-        SignDocument matchedSignDocument
+        SignDocument matchedSignDocument,
+        CancellationToken cancellationToken
     )
     {
         SigneeContext updatedContext = new()
@@ -214,7 +220,7 @@ internal sealed class SignDocumentManager(
 
         if (signeeContext.Signee is OrganizationSignee orgSignee)
         {
-            updatedContext = await ConvertOrgSignee(matchedSignDocument, updatedContext, orgSignee);
+            updatedContext = await ConvertOrgSignee(matchedSignDocument, updatedContext, orgSignee, cancellationToken);
         }
 
         return updatedContext;
@@ -223,7 +229,8 @@ internal sealed class SignDocumentManager(
     private async Task<SigneeContext> ConvertOrgSignee(
         SignDocument signDocument,
         SigneeContext context,
-        OrganizationSignee orgSignee
+        OrganizationSignee orgSignee,
+        CancellationToken cancellationToken
     )
     {
         var signeeInfo = signDocument.SigneeInfo;
@@ -231,7 +238,10 @@ internal sealed class SignDocumentManager(
 
         if (!string.IsNullOrEmpty(signeeInfo.PersonNumber))
         {
-            updatedSignee = await orgSignee.ToPersonOnBehalfOfOrgSignee(signeeInfo.PersonNumber, LookupParty);
+            updatedSignee = await orgSignee.ToPersonOnBehalfOfOrgSignee(
+                signeeInfo.PersonNumber,
+                lookup => LookupParty(lookup, cancellationToken)
+            );
         }
         else if (signeeInfo.SystemUserId.HasValue)
         {
@@ -254,7 +264,8 @@ internal sealed class SignDocumentManager(
 
     private async Task<List<SigneeContext>> CreateSigneeContextsForUnmatchedDocuments(
         string taskId,
-        List<SignDocument> unmatchedSignDocuments
+        List<SignDocument> unmatchedSignDocuments,
+        CancellationToken cancellationToken
     )
     {
         try
@@ -264,7 +275,7 @@ internal sealed class SignDocumentManager(
             [
                 .. await Task.WhenAll(
                     unmatchedSignDocuments.Select(signDocument =>
-                        CreateSigneeContextFromSignDocument(taskId, signDocument)
+                        CreateSigneeContextFromSignDocument(taskId, signDocument, cancellationToken)
                     )
                 ),
             ];
@@ -281,7 +292,11 @@ internal sealed class SignDocumentManager(
         }
     }
 
-    private async Task<SigneeContext> CreateSigneeContextFromSignDocument(string taskId, SignDocument signDocument)
+    private async Task<SigneeContext> CreateSigneeContextFromSignDocument(
+        string taskId,
+        SignDocument signDocument,
+        CancellationToken cancellationToken
+    )
     {
         _logger.LogDebug(
             "Creating signee context for sign document {SignDocument} for task {TaskId}.",
@@ -296,7 +311,7 @@ internal sealed class SignDocumentManager(
                 signDocument.SigneeInfo.PersonNumber,
                 signDocument.SigneeInfo.OrganisationNumber,
                 signDocument.SigneeInfo.SystemUserId,
-                LookupParty
+                lookup => LookupParty(lookup, cancellationToken)
             ),
             SigneeState = new SigneeContextState() { IsAccessDelegated = true, HasBeenMessagedForCallToSign = true },
             SignDocument = signDocument,
@@ -326,16 +341,20 @@ internal sealed class SignDocumentManager(
             && signDocument.SigneeInfo.SystemUserId.HasValue;
     }
 
-    private async Task<Party> LookupParty(PartyLookup partyLookup)
+    private async Task<Party> LookupParty(PartyLookup partyLookup, CancellationToken cancellationToken)
     {
         try
         {
-            return await altinnPartyClient.LookupParty(partyLookup);
+            return await altinnPartyClient.LookupParty(partyLookup, cancellationToken: cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to look up party.");
-            throw new SigningException("Failed to look up party.");
+            throw new SigningException("Failed to look up party.", e);
         }
     }
 }
