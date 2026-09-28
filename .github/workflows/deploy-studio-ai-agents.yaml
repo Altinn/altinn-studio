@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - src/AI/agents/**
+      - src/common/ts/layout-contract/schemas/json/layout/**
       - .github/workflows/deploy-studio-ai-agents.yaml
   workflow_dispatch:
     inputs:
