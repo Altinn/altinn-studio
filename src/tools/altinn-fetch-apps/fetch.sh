@@ -3,13 +3,23 @@
 set -e
 set -u
 
+USAGE="Usage: $0 <target-folder> [environments, comma-separated (default: tt02,prod)]"
+
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "Please provide a target folder path as the first parameter"
+  >&2 echo "$USAGE"
+  exit 1
+fi
+
 if [[ ! -d "$1" ]]; then
-  echo "Please provide a target folder path as the first parameter"
+  >&2 echo "Target folder does not exist: $1"
+  >&2 echo "Create it first, e.g. mkdir -p \"$1\""
   exit 1
 fi
 
 TARGET=$(realpath "$1")
-ENVIRONMENTS=("tt02" "prod")
+ENVIRONMENT_LIST="${2:-${FETCH_ENVIRONMENTS:-tt02,prod}}"
+IFS=',' read -r -a ENVIRONMENTS <<< "$ENVIRONMENT_LIST"
 
 mkdir -p "$1/.cache"
 

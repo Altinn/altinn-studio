@@ -12,6 +12,13 @@ mkdir ~/all-apps
 ./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps
 ```
 
+By default the script fetches apps from both tt02 and prod. To fetch from only some environments, pass a comma-separated list as the second argument, or set `FETCH_ENVIRONMENTS`. The argument takes precedence:
+
+```sh
+./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps tt02
+FETCH_ENVIRONMENTS=prod ./src/tools/altinn-fetch-apps/fetch.sh ~/all-apps
+```
+
 Running the script again updates the apps that are already checked out. API responses are cached in `.cache` inside the target folder for an hour.
 
 If cloning an app fails, the script leaves a `fetch-failed.txt` file in its folder and skips the app on later runs. Delete the folder to try again.
