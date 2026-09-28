@@ -57,6 +57,7 @@ export const DeployDropdown = ({
   return (
     <div className={classes.deployDropDown}>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         selected={selectedItems}
         label={t('app_deployment.choose_version')}
         emptyText={t('app_deployment.no_versions')}
