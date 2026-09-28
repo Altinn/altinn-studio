@@ -130,6 +130,27 @@ pub fn render_proxy_command(agentctl: &Path, agent: &str, shell: CommandShell) -
     Ok(format!("{} ssh-proxy agent/{agent}", quoted.replace('%', "%%")))
 }
 
+/// Renders the `ProxyCommand` Win32-OpenSSH runs to reach an Agent whose
+/// `agentctl` lives in a WSL distribution: `wsl.exe` starts it there.
+///
+/// # Errors
+///
+/// Returns an error when the `agentctl` path cannot be carried, as for
+/// [`render_proxy_command`].
+pub fn render_wsl_proxy_command(
+    wsl_exe: &str,
+    distribution: &str,
+    agentctl: &Path,
+    agent: &str,
+) -> Result<String, Error> {
+    let inner = render_proxy_command(agentctl, agent, CommandShell::Windows)?;
+    Ok(format!(
+        "{} -d {} -- {inner}",
+        windows_quote(wsl_exe).replace('%', "%%"),
+        windows_quote(distribution).replace('%', "%%")
+    ))
+}
+
 /// Quotes one word for `/bin/sh`: single quotes, with an embedded `'` written as `'\''`.
 fn posix_quote(text: &str) -> String {
     if is_plain(text) {
@@ -361,7 +382,7 @@ mod tests {
 
     use super::{
         CommandShell, HostEntry, IncludeOutcome, include_installed, install_include, remove_known_host, render_config,
-        render_include, render_path, render_proxy_command, upsert_known_host,
+        render_include, render_path, render_proxy_command, render_wsl_proxy_command, upsert_known_host,
     };
 
     fn entry(name: &str, id: &str, root: &Path) -> HostEntry {
@@ -558,6 +579,30 @@ Host agentctl-worker
         assert_eq!(
             install_include(&config, "include ~/.agent/ssh/config").expect("indented global line counts"),
             IncludeOutcome::AlreadyInstalled
+        );
+    }
+
+    #[test]
+    fn wsl_proxy_commands_quote_for_windows_and_run_agentctl_in_the_distribution() {
+        assert_eq!(
+            render_wsl_proxy_command(
+                "C:/WINDOWS/System32/wsl.exe",
+                "Ubuntu",
+                Path::new("/home/ola/.local/bin/agentctl"),
+                "worker"
+            )
+            .expect("plain"),
+            "C:/WINDOWS/System32/wsl.exe -d Ubuntu -- /home/ola/.local/bin/agentctl ssh-proxy agent/worker"
+        );
+        assert_eq!(
+            render_wsl_proxy_command(
+                "C:/Program Files/WSL/wsl.exe",
+                "Ubuntu 24.04",
+                Path::new("/home/100%/agentctl"),
+                "worker"
+            )
+            .expect("quoted"),
+            "\"C:/Program Files/WSL/wsl.exe\" -d \"Ubuntu 24.04\" -- \"/home/100%%/agentctl\" ssh-proxy agent/worker"
         );
     }
 

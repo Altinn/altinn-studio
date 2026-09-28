@@ -158,17 +158,33 @@ pub(crate) struct Environment {
     pub(crate) remote: bool,
     /// Each editor's launcher found on `PATH`.
     pub(crate) launchers: Vec<(Editor, PathBuf)>,
+    /// The Windows host, when this runs in WSL and editors run there.
+    pub(crate) windows: Option<WindowsHost>,
+}
+
+/// The Windows host of a WSL distribution, as the open menu needs it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct WindowsHost {
+    pub(crate) wsl: agent::local::wsl::Wsl,
+    /// `agentd` has written the configuration Windows editors connect with.
+    pub(crate) mirror_written: bool,
 }
 
 impl Environment {
     pub(crate) fn detect() -> Self {
         let path = std::env::var_os("PATH");
+        let windows = agent::local::wsl::Wsl::detect().map(|wsl| WindowsHost {
+            mirror_written: wsl.profile.join(".agent/ssh/config").is_file(),
+            wsl,
+        });
+        let under_wsl = windows.is_some();
         Self {
             remote: crate::launch::remote_terminal(|name| std::env::var_os(name)),
             launchers: Editor::ALL
                 .into_iter()
-                .filter_map(|editor| Some((editor, editor.locate(path.as_deref())?)))
+                .filter_map(|editor| Some((editor, editor.locate(path.as_deref(), under_wsl)?)))
                 .collect(),
+            windows,
         }
     }
 
@@ -297,7 +313,10 @@ pub(crate) fn connect_lines(
         .collect::<Vec<_>>();
     lines.push(match (editors.is_empty(), environment.remote) {
         (_, true) => "  editors    none: this terminal is reached over SSH".to_owned(),
-        (true, false) => "  editors    none found on this machine".to_owned(),
+        (true, false) => editor_unavailable(Editor::VsCode, environment).map_or_else(
+            || "  editors    none found on this machine".to_owned(),
+            |reason| format!("  editors    none: {reason}"),
+        ),
         (false, false) => format!("  editors    {}", editors.join(" · ")),
     });
     if setup == SshSetup::Missing {
@@ -334,10 +353,17 @@ fn editor_unavailable(editor: Editor, environment: &Environment) -> Option<Strin
     if environment.remote {
         return Some("this terminal is reached over SSH, so the editor would open on that machine".into());
     }
+    if environment
+        .windows
+        .as_ref()
+        .is_some_and(|windows| !windows.mirror_written)
+    {
+        return Some("agentd has not written the SSH configuration Windows editors use".into());
+    }
     if environment.launcher(editor).is_some() {
         return None;
     }
-    editor.missing_launcher()
+    editor.missing_launcher(environment.windows.is_some())
 }
 
 #[cfg(test)]
@@ -388,6 +414,7 @@ mod tests {
     fn local(editors: &[Editor]) -> Environment {
         Environment {
             remote: false,
+            windows: None,
             launchers: editors
                 .iter()
                 .map(|editor| (*editor, PathBuf::from(format!("/opt/bin/{}", editor.label()))))
@@ -589,6 +616,46 @@ mod tests {
     }
 
     #[test]
+    fn under_wsl_editors_wait_for_the_windows_configuration() {
+        let wsl = agent::local::wsl::Wsl {
+            distribution: "Ubuntu".into(),
+            profile: PathBuf::from("/mnt/c/Users/ola"),
+            windows_profile: "C:/Users/ola".into(),
+            user: "ola".into(),
+            wsl_exe: "C:/WINDOWS/System32/wsl.exe".into(),
+        };
+        let mut environment = Environment {
+            windows: Some(WindowsHost {
+                wsl,
+                mirror_written: false,
+            }),
+            ..local(&[])
+        };
+        let listed = items(&with_ssh(), &environment, SshSetup::Installed);
+        assert_eq!(
+            unavailable(&listed, OpenTarget::Editor(Editor::VsCode)).as_deref(),
+            Some("agentd has not written the SSH configuration Windows editors use")
+        );
+        assert_eq!(
+            unavailable(&listed, OpenTarget::SshShell),
+            None,
+            "SSH inside WSL is unaffected"
+        );
+        assert_eq!(
+            connect_lines(&with_ssh(), &environment, SshSetup::Installed, None)[2],
+            "  editors    none: agentd has not written the SSH configuration Windows editors use"
+        );
+
+        environment.windows.as_mut().expect("windows").mirror_written = true;
+        let listed = items(&with_ssh(), &environment, SshSetup::Installed);
+        assert_eq!(unavailable(&listed, OpenTarget::Editor(Editor::VsCode)), None);
+        assert_eq!(
+            unavailable(&listed, OpenTarget::Editor(Editor::Zed)).as_deref(),
+            Some("not found on PATH (zed.exe)")
+        );
+    }
+
+    #[test]
     fn connect_lines_agree_with_the_menu() {
         assert_eq!(
             connect_lines(&agent(""), &local(&Editor::ALL), SshSetup::Missing, None),
@@ -611,6 +678,7 @@ mod tests {
         let remote = Environment {
             remote: true,
             launchers: Vec::new(),
+            windows: None,
         };
         assert_eq!(
             connect_lines(&with_ssh(), &remote, SshSetup::Installed, None)[2],

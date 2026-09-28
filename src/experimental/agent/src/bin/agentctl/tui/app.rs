@@ -293,8 +293,9 @@ pub(crate) struct App {
     pub(crate) environment: Environment,
     /// Whether the user's OpenSSH configuration includes the generated one.
     pub(crate) ssh_setup: SshSetup,
-    /// The `Include` SSH setup adds, when the user's home is known.
-    pub(crate) ssh_include: Option<agent::ssh::UserInclude>,
+    /// The `Include` lines SSH setup adds: the user's own configuration, and
+    /// under WSL the Windows user's too, where editors run.
+    pub(crate) ssh_includes: Vec<agent::ssh::UserInclude>,
     /// Opens running in the background.
     pub(crate) opening: usize,
     /// What Agents created here do once they are Ready, oldest first.
@@ -914,7 +915,7 @@ impl CreateForm {
             name,
             env_file: (!self.env_file.is_empty()).then(|| PathBuf::from(&self.env_file)),
             when_ready: self.when_ready,
-            form: self.clone(),
+            form: Box::new(self.clone()),
         })
     }
 }
@@ -1098,7 +1099,7 @@ pub(crate) enum Action {
         name: String,
         env_file: Option<PathBuf>,
         when_ready: WhenReady,
-        form: CreateForm,
+        form: Box<CreateForm>,
     },
     Exec {
         agent: String,
@@ -1205,7 +1206,7 @@ impl App {
             queued_candidates: None,
             environment: Environment::default(),
             ssh_setup: SshSetup::Unknown,
-            ssh_include: None,
+            ssh_includes: Vec::new(),
             opening: 0,
             pending: Vec::new(),
         }
@@ -2291,9 +2292,12 @@ impl App {
             return Action::None;
         }
         self.ssh_setup = SshSetup::Installed;
-        if let Some(include) = &self.ssh_include {
-            self.notice = Some((format!("SSH set up in {}", include.user_config.display()), now));
-        }
+        let files = self
+            .ssh_includes
+            .iter()
+            .map(|include| include.user_config.display().to_string())
+            .collect::<Vec<_>>();
+        self.notice = Some((format!("SSH set up in {}", files.join(" and ")), now));
         then.map_or(Action::None, |(agent, target)| Action::Open { agent, target })
     }
 

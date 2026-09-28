@@ -77,7 +77,9 @@ fn access(
     let sibling = agentd.with_file_name(format!("agentctl{}", std::env::consts::EXE_SUFFIX));
     let agentctl = agent::ssh::stable_agentctl_path(&sibling, std::env::var_os("PATH").as_deref());
     let host_keys: Rc<dyn agent::ssh::HostKeyStore> = Rc::new(database.clone());
-    let ssh = agent::ssh::Access::new(home, agentctl.clone(), host_keys, store.clone());
+    // Under WSL, editors on the Windows host get a configuration of their own.
+    let windows = agent::local::wsl::Wsl::detect().map(agent::ssh::WindowsMirror::new);
+    let ssh = agent::ssh::Access::new(home, agentctl.clone(), host_keys, store.clone()).with_windows_mirror(windows);
     Ok((Rc::new(ssh), Rc::new(agent::vnc::Access::new(agentctl, store))))
 }
 

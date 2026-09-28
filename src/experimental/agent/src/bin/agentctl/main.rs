@@ -922,12 +922,16 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     std::process::exit(0)
 }
 
+/// Includes the generated configuration from the user's own, and under WSL
+/// from the Windows user's too, which editors on Windows read.
 fn install_ssh_config(home: &ControlPlaneHome) -> CommandResult<()> {
-    let include = agent::ssh::UserInclude::for_home(home)?;
-    let (line, user_config) = (&include.line, include.user_config.display());
-    match include.install()? {
-        agent::ssh::IncludeOutcome::Installed => println!("added `{line}` at the top of {user_config}"),
-        agent::ssh::IncludeOutcome::AlreadyInstalled => println!("{user_config} already contains `{line}`"),
+    let windows = agent::local::wsl::Wsl::detect().map(|wsl| agent::ssh::UserInclude::for_windows(&wsl));
+    for include in std::iter::once(agent::ssh::UserInclude::for_home(home)?).chain(windows) {
+        let (line, user_config) = (&include.line, include.user_config.display());
+        match include.install()? {
+            agent::ssh::IncludeOutcome::Installed => println!("added `{line}` at the top of {user_config}"),
+            agent::ssh::IncludeOutcome::AlreadyInstalled => println!("{user_config} already contains `{line}`"),
+        }
     }
     Ok(())
 }
@@ -1029,7 +1033,7 @@ async fn vnc(
 /// already printed, and a missing handler must not fail the forward.
 fn open_locally(url: &str) {
     match launch::open_url(url) {
-        Ok(()) => println!("Asked {} to open {url}.", launch::opener()),
+        Ok(()) => println!("Asked {} to open {url}.", launch::opener().display()),
         Err(error) => eprintln!("{error}"),
     }
 }

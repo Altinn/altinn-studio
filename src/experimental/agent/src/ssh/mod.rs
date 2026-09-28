@@ -30,13 +30,13 @@ use zeroize::Zeroizing;
 use crate::{
     AgentId, Error,
     control_plane::{AgentRecord, AgentStore},
-    local::home::ControlPlaneHome,
+    local::{home::ControlPlaneHome, wsl::Wsl},
     sandbox::platform,
 };
 
 pub use client_config::{
     CommandShell, HostEntry, IncludeOutcome, include_installed, install_include, remove_known_host, render_config,
-    render_include, render_path, render_proxy_command, upsert_known_host,
+    render_include, render_path, render_proxy_command, render_wsl_proxy_command, upsert_known_host,
 };
 pub use keys::KeyPair;
 
@@ -132,6 +132,16 @@ impl UserInclude {
         })
     }
 
+    /// Locates the include for the Windows mirror in the Windows user's own
+    /// configuration, which Win32-OpenSSH reads with `~` as the profile.
+    #[must_use]
+    pub fn for_windows(wsl: &Wsl) -> Self {
+        Self {
+            user_config: wsl.profile.join(".ssh").join("config"),
+            line: "Include ~/.agent/ssh/config".into(),
+        }
+    }
+
     /// Returns whether the user's configuration already carries the line.
     ///
     /// # Errors
@@ -215,6 +225,117 @@ pub fn image_contract_missing(what: &str) -> String {
     )
 }
 
+/// A copy of the generated client configuration for Windows OpenSSH, kept
+/// when `agentd` runs in WSL so editors on the Windows host reach its Agents.
+///
+/// It lives below the Windows profile at `.agent/ssh`, dials each Agent by
+/// running this distribution's `agentctl` through `wsl.exe`, and carries
+/// copies of the client keys restricted to the Windows user, since
+/// Win32-OpenSSH refuses a private key that others can read.
+pub struct WindowsMirror {
+    wsl: Wsl,
+    restrict: Restrict,
+}
+
+/// Restricts a private key, given its Windows path, to the Windows user.
+type Restrict = Box<dyn Fn(&Wsl, &str) -> Result<(), Error>>;
+
+impl WindowsMirror {
+    /// Mirrors into the profile of `wsl`, restricting keys with `icacls.exe`.
+    #[must_use]
+    pub fn new(wsl: Wsl) -> Self {
+        Self::with_restrict(wsl, restrict_to_user)
+    }
+
+    /// Mirrors with another way to restrict a key, given its Windows path; tests record it.
+    #[must_use]
+    pub fn with_restrict(wsl: Wsl, restrict: impl Fn(&Wsl, &str) -> Result<(), Error> + 'static) -> Self {
+        Self {
+            wsl,
+            restrict: Box::new(restrict),
+        }
+    }
+
+    /// The mirror's directory, as this distribution reaches it.
+    #[must_use]
+    pub fn root(&self) -> PathBuf {
+        self.wsl.profile.join(".agent").join("ssh")
+    }
+
+    /// The Windows-side configuration editors on Windows include.
+    #[must_use]
+    pub fn config_path(&self) -> PathBuf {
+        self.root().join("config")
+    }
+
+    fn write(&self, home: &SshHome, agentctl: &Path, agents: &[(AgentId, String)]) -> Result<(), Error> {
+        let root = self.root();
+        std::fs::create_dir_all(&root)?;
+        let windows = |path: &Path| {
+            self.wsl
+                .windows_path(path)
+                .ok_or_else(|| Error::Invalid(format!("{} is outside the Windows profile", path.display())))
+        };
+        let mut entries = Vec::new();
+        for (id, name) in agents {
+            let identity = root.join(id.to_string()).join("id_ed25519");
+            // An incarnation whose key is not generated yet joins on its own pass.
+            let Ok(key) = std::fs::read(home.identity_path(*id)) else {
+                continue;
+            };
+            if std::fs::read(&identity).ok().as_deref() != Some(key.as_slice()) {
+                std::fs::create_dir_all(root.join(id.to_string()))?;
+                std::fs::write(&identity, &key)?;
+                (self.restrict)(&self.wsl, &windows(&identity)?)?;
+            }
+            entries.push(HostEntry {
+                alias: alias(name),
+                user: GUEST_USER.into(),
+                proxy_command: render_wsl_proxy_command(&self.wsl.wsl_exe, &self.wsl.distribution, agentctl, name)?,
+                host_key_alias: host_key_alias(*id),
+                identity_file: PathBuf::from(windows(&identity)?),
+                known_hosts_file: PathBuf::from(windows(&root.join("known_hosts"))?),
+            });
+        }
+        let known_hosts = std::fs::read(home.known_hosts_path()).unwrap_or_default();
+        std::fs::write(root.join("known_hosts"), known_hosts)?;
+        // Keys of incarnations that no longer have SSH access leave with them.
+        for entry in std::fs::read_dir(&root)?.filter_map(Result::ok) {
+            let stale = entry
+                .file_name()
+                .to_str()
+                .and_then(|name| name.parse::<AgentId>().ok())
+                .is_some_and(|id| agents.iter().all(|(listed, _)| *listed != id));
+            if stale {
+                std::fs::remove_dir_all(entry.path())?;
+            }
+        }
+        let profile = Path::new(&self.wsl.windows_profile);
+        std::fs::write(self.config_path(), render_config(&entries, Some(profile)))?;
+        Ok(())
+    }
+}
+
+/// Grants only the Windows user access to a private key.
+fn restrict_to_user(wsl: &Wsl, windows_path: &str) -> Result<(), Error> {
+    let icacls =
+        crate::local::wsl::which("icacls.exe").unwrap_or_else(|| PathBuf::from("/mnt/c/Windows/System32/icacls.exe"));
+    let output = std::process::Command::new(icacls)
+        .arg(windows_path.replace('/', "\\"))
+        .args(["/inheritance:r", "/grant:r", &format!("{}:F", wsl.user)])
+        .current_dir("/mnt/c")
+        .output()?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(Error::Invalid(format!(
+            "icacls could not restrict {windows_path} to {}: {}",
+            wsl.user,
+            String::from_utf8_lossy(&output.stdout).trim()
+        )))
+    }
+}
+
 /// Reconciles SSH access for Agents: host key material, client configuration
 /// and the in-guest server state.
 pub struct Access {
@@ -223,6 +344,7 @@ pub struct Access {
     user_home: Option<PathBuf>,
     keys: Rc<dyn HostKeyStore>,
     agents: Rc<dyn AgentStore>,
+    windows: Option<WindowsMirror>,
 }
 
 impl Access {
@@ -242,7 +364,15 @@ impl Access {
             user_home: crate::local::home::user_home_directory(),
             keys,
             agents,
+            windows: None,
         }
+    }
+
+    /// Also keeps a configuration for Windows OpenSSH, when running in WSL.
+    #[must_use]
+    pub fn with_windows_mirror(mut self, windows: Option<WindowsMirror>) -> Self {
+        self.windows = windows;
+        self
     }
 
     /// Overrides the user home used to shorten paths to `~/...`; tests pin it.
@@ -372,6 +502,12 @@ impl Access {
         if directory.exists() {
             std::fs::remove_dir_all(&directory)?;
         }
+        if let Some(windows) = &self.windows {
+            let mirrored = windows.root().join(id.to_string());
+            if mirrored.exists() {
+                std::fs::remove_dir_all(&mirrored)?;
+            }
+        }
         let known_hosts = self.home.known_hosts_path();
         remove_known_host(&known_hosts, &host_key_alias(id))?;
         // The name alias belongs to whichever incarnation currently owns the name.
@@ -386,13 +522,29 @@ impl Access {
     }
 
     /// Rewrites the generated client configuration from every active Agent with SSH access.
+    ///
+    /// The Windows mirror is best effort: SSH inside WSL works without it,
+    /// so a failure to write it is logged rather than failing the pass.
     async fn rewrite_config(&self) -> Result<(), Error> {
-        let mut entries = self
+        let records = self
             .agents
             .list()
             .await?
             .into_iter()
             .filter(|record| record.agent.metadata.deletion_timestamp.is_none() && record.agent.spec.ssh_access())
+            .collect::<Vec<_>>();
+        if let Some(windows) = &self.windows {
+            let mut agents = records
+                .iter()
+                .map(|record| (record.id, record.agent.metadata.name.clone()))
+                .collect::<Vec<_>>();
+            agents.sort_by(|left, right| left.1.cmp(&right.1));
+            if let Err(error) = windows.write(&self.home, &self.agentctl, &agents) {
+                tracing::warn!(%error, "could not write the Windows SSH configuration");
+            }
+        }
+        let mut entries = records
+            .into_iter()
             .map(|record| {
                 Ok(HostEntry {
                     alias: alias(&record.agent.metadata.name),

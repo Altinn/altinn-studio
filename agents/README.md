@@ -177,6 +177,10 @@ In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or 
 The TUI offers to add the `Include` above when an editor needs it. When creating an Agent with `c`, "When ready"
 picks what opens once provisioning finishes.
 
+When `agentctl` runs in WSL, editors and the browser open on Windows. `agentd` then also keeps an OpenSSH
+configuration for Windows in `%USERPROFILE%\.agent\ssh`, and `ssh-config install` includes it from the Windows
+`~/.ssh/config` as well.
+
 ## Desktop access
 
 The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also

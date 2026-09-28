@@ -200,12 +200,19 @@ struct Fixture {
 
 impl Fixture {
     fn new() -> Self {
+        Self::with_windows(|_| None)
+    }
+
+    /// A fixture whose Access also mirrors for Windows, into a profile below its directory.
+    fn with_windows(windows: impl FnOnce(&std::path::Path) -> Option<ssh::WindowsMirror>) -> Self {
         let directory = TempDir::new().expect("temporary directory");
         let home = ControlPlaneHome::resolve(Some(&directory.path().join("agent-home"))).expect("home");
         home.prepare().expect("prepare home");
         let store = Rc::new(InMemoryAgentStore::new());
         let keys = Rc::new(InMemoryHostKeyStore::new());
-        let access = Access::new(&home, PathBuf::from(AGENTCTL), keys.clone(), store.clone()).with_user_home(None);
+        let access = Access::new(&home, PathBuf::from(AGENTCTL), keys.clone(), store.clone())
+            .with_user_home(None)
+            .with_windows_mirror(windows(directory.path()));
         Self {
             _directory: directory,
             home,
@@ -631,6 +638,82 @@ async fn deletion_removes_host_material_and_config_lists_only_active_ssh_agents(
     assert!(!fixture.ssh_home().agent_directory(worker.id).exists());
     assert_eq!(fixture.known_hosts(), "");
     fixture.access.remove(&worker).await.expect("removal is idempotent");
+}
+
+#[tokio::test(flavor = "local")]
+async fn under_wsl_a_windows_configuration_follows_every_ssh_agent() {
+    let restricted = Rc::new(std::cell::RefCell::new(Vec::<String>::new()));
+    let profile = Rc::new(std::cell::RefCell::new(PathBuf::new()));
+    let fixture = Fixture::with_windows(|directory| {
+        let windows = directory.join("c").join("Users").join("Ola Nordmann");
+        *profile.borrow_mut() = windows.clone();
+        let wsl = agent::local::wsl::Wsl {
+            distribution: "Ubuntu".into(),
+            profile: windows,
+            windows_profile: "C:/Users/Ola Nordmann".into(),
+            user: "ola".into(),
+            wsl_exe: "C:/WINDOWS/System32/wsl.exe".into(),
+        };
+        let restricted = Rc::clone(&restricted);
+        Some(ssh::WindowsMirror::with_restrict(wsl, move |_, path| {
+            restricted.borrow_mut().push(path.to_owned());
+            Ok(())
+        }))
+    });
+    let worker = record("worker", "38f41de4-6ff7-4679-ae46-678bc61e4dcb", true);
+    fixture.store(&worker, 0).await;
+    let sandbox = fixture.sandbox(&worker).await;
+    fixture
+        .backend
+        .queue_execution_events_matching(is_server_check, exited(0));
+    queue_valid_environment_policy(&fixture.backend);
+    assert!(fixture.access.reconcile(&worker, &sandbox).await.expect("grant"));
+
+    let mirror = profile.borrow().join(".agent").join("ssh");
+    let config = std::fs::read_to_string(mirror.join("config")).expect("Windows configuration");
+    assert!(config.contains("Host agentctl-worker\n"), "{config}");
+    assert!(
+        config.contains(&format!(
+            "ProxyCommand C:/WINDOWS/System32/wsl.exe -d Ubuntu -- {AGENTCTL} ssh-proxy agent/worker\n"
+        )),
+        "{config}"
+    );
+    let id = worker.id;
+    assert!(
+        config.contains(&format!("IdentityFile ~/.agent/ssh/{id}/id_ed25519\n")),
+        "{config}"
+    );
+    assert!(
+        config.contains("UserKnownHostsFile ~/.agent/ssh/known_hosts\n"),
+        "{config}"
+    );
+    assert_eq!(
+        std::fs::read(mirror.join(id.to_string()).join("id_ed25519")).expect("copied key"),
+        std::fs::read(fixture.ssh_home().identity_path(id)).expect("key")
+    );
+    assert_eq!(
+        std::fs::read_to_string(mirror.join("known_hosts")).expect("copied known_hosts"),
+        fixture.known_hosts()
+    );
+    assert_eq!(
+        *restricted.borrow(),
+        [format!("C:/Users/Ola Nordmann/.agent/ssh/{id}/id_ed25519")]
+    );
+
+    queue_valid_environment_policy(&fixture.backend);
+    fixture
+        .backend
+        .queue_execution_events_matching(is_server_check, exited(0));
+    assert!(fixture.access.reconcile(&worker, &sandbox).await.expect("resync"));
+    assert_eq!(restricted.borrow().len(), 1, "an unchanged key is not copied again");
+
+    let mut deleted = worker.clone();
+    deleted.agent.metadata.deletion_timestamp = Some(time::OffsetDateTime::now_utc());
+    fixture.store(&deleted, 1).await;
+    fixture.access.remove(&deleted).await.expect("remove on deletion");
+    assert!(!mirror.join(id.to_string()).exists());
+    let config = std::fs::read_to_string(mirror.join("config")).expect("Windows configuration");
+    assert!(!config.contains("Host "), "{config}");
 }
 
 #[tokio::test(flavor = "local")]

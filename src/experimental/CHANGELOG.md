@@ -22,6 +22,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
   open forwards. `o` in the forwards view opens a forward.
 - Creating an Agent in the terminal UI can choose what opens once it is Ready: a Session, a shell, an editor or the
   desktop. A Ready provisioning view offers `n` for a Session and `o` to open the Agent.
+- When `agentctl` runs in WSL, the terminal UI opens the browser, VNC client and editors on Windows, and Windows VS Code
+  and Zed can connect to Agents over SSH.
 - `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
   whether a failure is being retried, and how long each condition has held its state.
 - Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and

@@ -820,7 +820,7 @@ fn render_modal(frame: &mut Frame, area: Rect, app: &App, modal: &Modal, hit_map
         Modal::Open(menu) => render_open(frame, area, menu, hit_map),
         Modal::ConfirmQuit => render_confirm_quit(frame, area, app, hit_map),
         Modal::ConfirmSshSetup { then, .. } => {
-            render_confirm_ssh_setup(frame, area, app.ssh_include.as_ref(), *then, hit_map);
+            render_confirm_ssh_setup(frame, area, &app.ssh_includes, *then, hit_map);
         }
         // Typed in the footer, so the tree and the Session's turns stay in view.
         Modal::Filter | Modal::Prompt(_) => {}
@@ -907,27 +907,29 @@ fn render_confirm_quit(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut H
 fn render_confirm_ssh_setup(
     frame: &mut Frame,
     area: Rect,
-    include: Option<&agent::ssh::UserInclude>,
+    includes: &[agent::ssh::UserInclude],
     then: Option<OpenTarget>,
     hit_map: &mut HitMap,
 ) {
-    let (line, file) = include.map_or_else(
-        || {
-            (
-                "Include (unknown: the home directory is not set)".to_owned(),
-                "~/.ssh/config".to_owned(),
-            )
-        },
-        |include| {
-            (
-                include.line.clone(),
-                abbreviate_home(&include.user_config.display().to_string()),
-            )
-        },
+    let line = includes.first().map_or_else(
+        || "Include (unknown: the home directory is not set)".to_owned(),
+        |include| include.line.clone(),
     );
+    let files = includes
+        .iter()
+        .map(|include| abbreviate_home(&include.user_config.display().to_string()))
+        .collect::<Vec<_>>();
     let mut form = Form::new(" set up SSH ", Color::Cyan, &CONFIRM_SSH_SETUP_HINTS)
-        .row(Line::from("Editors reach Agents through your OpenSSH config."))
-        .row(Line::from(format!("Add this line at the top of {file}?")))
+        .row(Line::from("Editors reach Agents through your OpenSSH config."));
+    // Under WSL the Windows user's configuration takes the same line.
+    form = match files.as_slice() {
+        [file] => form.row(Line::from(format!("Add this line at the top of {file}?"))),
+        files => files.iter().fold(
+            form.row(Line::from("Add this line at the top of each of:")),
+            |form, file| form.row(note_line(&format!("  {file}"))),
+        ),
+    };
+    let mut form = form
         .row(Line::default())
         .row(Line::from(Span::styled(
             format!("  {line}"),
@@ -2375,10 +2377,10 @@ mod tests {
         agents[0].spec.access = vec![agent::AccessSpec::Ssh {}];
         app.apply_snapshot(agents, Vec::new());
         app.ssh_setup = setup;
-        app.ssh_include = Some(agent::ssh::UserInclude {
+        app.ssh_includes = vec![agent::ssh::UserInclude {
             user_config: "/tmp/user/.ssh/config".into(),
             line: "Include ~/.agent/ssh/config".into(),
-        });
+        }];
         app.selection = Some(TreeRowId::Agent("agent-00".into()));
         app.on_key(crossterm::event::KeyEvent::new(
             crossterm::event::KeyCode::Char('o'),
@@ -2465,5 +2467,26 @@ mod tests {
             // The form pads one cell inside its border; the cell before that is the last one text uses.
             assert_eq!(inside[border - 2], ' ', "cut off at the border:\n{line}");
         }
+    }
+
+    #[test]
+    fn under_wsl_ssh_setup_names_both_configurations() {
+        let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
+        app.ssh_includes.push(agent::ssh::UserInclude {
+            user_config: "/mnt/c/Users/ola/.ssh/config".into(),
+            line: "Include ~/.agent/ssh/config".into(),
+        });
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('c'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+
+        assert!(text.contains("Add this line at the top of each of:"), "{text}");
+        assert!(text.contains("  /tmp/user/.ssh/config"), "{text}");
+        assert!(text.contains("  /mnt/c/Users/ola/.ssh/config"), "{text}");
+        assert!(text.contains("y add · n back"), "{text}");
     }
 }

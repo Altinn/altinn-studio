@@ -28,24 +28,27 @@ impl Editor {
     }
 
     /// Executable names the editor's command-line launcher is installed as, most common first.
-    /// Some distribution packages install Zed's as `zeditor`.
-    const fn executables(self) -> &'static [&'static str] {
+    /// Some distribution packages install Zed's as `zeditor`. Under WSL the editor runs on
+    /// Windows: Zed's Windows launcher is reached through interop, and VS Code's WSL `code`
+    /// would open VS Code attached to WSL rather than to the Agent, so VS Code uses its URL.
+    const fn executables(self, wsl: bool) -> &'static [&'static str] {
         match self {
+            Self::VsCode if wsl => &[],
             Self::VsCode if cfg!(windows) => &["code.cmd"],
             Self::VsCode => &["code"],
-            Self::Zed if cfg!(windows) => &["zed.exe"],
+            Self::Zed if wsl || cfg!(windows) => &["zed.exe"],
             Self::Zed => &["zed", "zeditor"],
         }
     }
 
     /// Finds the editor's launcher on `path`, a `PATH`-style variable.
-    pub(crate) fn locate(self, path: Option<&OsStr>) -> Option<PathBuf> {
+    pub(crate) fn locate(self, path: Option<&OsStr>, wsl: bool) -> Option<PathBuf> {
         let directories = path
             .map(std::env::split_paths)
             .into_iter()
             .flatten()
             .collect::<Vec<_>>();
-        self.executables().iter().find_map(|name| {
+        self.executables(wsl).iter().find_map(|name| {
             directories
                 .iter()
                 .filter(|directory| directory.is_absolute())
@@ -74,10 +77,10 @@ impl Editor {
     }
 
     /// Why the editor cannot be launched without its command-line launcher, if it needs one.
-    pub(crate) fn missing_launcher(self) -> Option<String> {
+    pub(crate) fn missing_launcher(self, wsl: bool) -> Option<String> {
         match self {
             Self::VsCode => None,
-            Self::Zed => Some(format!("not found on PATH ({})", self.executables().join(", "))),
+            Self::Zed => Some(format!("not found on PATH ({})", self.executables(wsl).join(", "))),
         }
     }
 }
@@ -106,23 +109,28 @@ impl Launch {
     }
 }
 
-/// Hands `url` to the program that opens addresses on this operating system.
+/// Hands `url` to the program that opens addresses where the person works.
 ///
 /// # Errors
 ///
 /// Returns a description of why the opener could not be started.
 pub(crate) fn open_url(url: &str) -> Result<(), String> {
-    spawn_detached(OsStr::new(opener()), &[url.to_owned()])
+    spawn_detached(opener().as_os_str(), &[url.to_owned()])
 }
 
-/// The program that opens addresses on this operating system.
-pub(crate) const fn opener() -> &'static str {
+/// The program that opens addresses where the person works: under WSL that
+/// is the Windows host, through `wslview` when installed or else Explorer.
+pub(crate) fn opener() -> PathBuf {
     if cfg!(target_os = "macos") {
-        "open"
+        PathBuf::from("open")
     } else if cfg!(target_os = "windows") {
-        "explorer"
+        PathBuf::from("explorer")
+    } else if agent::local::wsl::Wsl::interop() {
+        agent::local::wsl::which("wslview")
+            .or_else(|| agent::local::wsl::which("explorer.exe"))
+            .unwrap_or_else(|| PathBuf::from("/mnt/c/Windows/explorer.exe"))
     } else {
-        "xdg-open"
+        PathBuf::from("xdg-open")
     }
 }
 
@@ -173,7 +181,7 @@ mod tests {
                 "vscode://vscode-remote/ssh-remote+agentctl-worker/srv/work".into()
             ))
         );
-        assert_eq!(Editor::VsCode.missing_launcher(), None);
+        assert_eq!(Editor::VsCode.missing_launcher(false), None);
     }
 
     #[test]
@@ -187,7 +195,11 @@ mod tests {
             })
         );
         assert_eq!(Editor::Zed.launch(None, "agentctl-worker", "/srv/work"), None);
-        assert!(Editor::Zed.missing_launcher().is_some());
+        assert!(Editor::Zed.missing_launcher(false).is_some());
+        assert_eq!(
+            Editor::Zed.missing_launcher(true).as_deref(),
+            Some("not found on PATH (zed.exe)")
+        );
     }
 
     #[cfg(unix)]
@@ -198,11 +210,34 @@ mod tests {
         std::fs::write(second.path().join("zeditor"), "").expect("zeditor");
         let path = std::env::join_paths([first.path(), Path::new("relative"), second.path()]).expect("PATH");
 
-        assert_eq!(Editor::Zed.locate(Some(&path)), Some(second.path().join("zeditor")));
+        assert_eq!(
+            Editor::Zed.locate(Some(&path), false),
+            Some(second.path().join("zeditor"))
+        );
         std::fs::write(first.path().join("zed"), "").expect("zed");
-        assert_eq!(Editor::Zed.locate(Some(&path)), Some(first.path().join("zed")));
-        assert_eq!(Editor::VsCode.locate(Some(&path)), None);
-        assert_eq!(Editor::VsCode.locate(None), None);
+        assert_eq!(Editor::Zed.locate(Some(&path), false), Some(first.path().join("zed")));
+        assert_eq!(Editor::VsCode.locate(Some(&path), false), None);
+        assert_eq!(Editor::VsCode.locate(None, false), None);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn under_wsl_editors_are_the_windows_ones() {
+        let windows = tempfile::tempdir().expect("directory");
+        std::fs::write(windows.path().join("zed.exe"), "").expect("zed.exe");
+        std::fs::write(windows.path().join("code"), "").expect("WSL code shim");
+        std::fs::write(windows.path().join("zed"), "").expect("Linux zed");
+        let path = std::env::join_paths([windows.path()]).expect("PATH");
+
+        assert_eq!(
+            Editor::Zed.locate(Some(&path), true),
+            Some(windows.path().join("zed.exe"))
+        );
+        assert_eq!(
+            Editor::VsCode.locate(Some(&path), true),
+            None,
+            "VS Code opens through its URL"
+        );
     }
 
     #[test]

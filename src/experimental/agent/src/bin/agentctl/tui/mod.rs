@@ -165,10 +165,19 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     }
     let mut app = App::new();
     app.environment = open::Environment::detect();
-    app.ssh_include = agent::ssh::UserInclude::for_home(home).ok();
+    app.ssh_includes = agent::ssh::UserInclude::for_home(home)
+        .ok()
+        .into_iter()
+        .chain(
+            app.environment
+                .windows
+                .as_ref()
+                .map(|windows| agent::ssh::UserInclude::for_windows(&windows.wsl)),
+        )
+        .collect();
     let mut forwards = ActiveForwards::default();
     let (inputs, mut background) = tokio::sync::mpsc::unbounded_channel();
-    spawn_ssh_setup_check(app.ssh_include.clone(), inputs.clone());
+    spawn_ssh_setup_check(app.ssh_includes.clone(), inputs.clone());
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -350,7 +359,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 terminal::copy_to_clipboard(&alias)?;
                 app.notice = Some((format!("copied {alias}"), Instant::now()));
             }
-            Action::SetUpSsh { then } => spawn_ssh_setup(app.ssh_include.clone(), inputs.clone(), then),
+            Action::SetUpSsh { then } => spawn_ssh_setup(app.ssh_includes.clone(), inputs.clone(), then),
             Action::Open {
                 agent,
                 target: OpenTarget::Desktop(viewer),
@@ -510,13 +519,20 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
     })
 }
 
-/// Checks whether the user's OpenSSH configuration includes the generated one.
-fn spawn_ssh_setup_check(include: Option<agent::ssh::UserInclude>, inputs: Inputs) {
+/// Checks whether every configuration that needs it includes the generated one.
+fn spawn_ssh_setup_check(includes: Vec<agent::ssh::UserInclude>, inputs: Inputs) {
     tokio::task::spawn_local(async move {
-        let setup = tokio::task::spawn_blocking(move || match include.map(|include| include.installed()) {
-            Some(Ok(true)) => SshSetup::Installed,
-            Some(Ok(false)) => SshSetup::Missing,
-            Some(Err(_)) | None => SshSetup::Unknown,
+        let setup = tokio::task::spawn_blocking(move || {
+            let installed = includes
+                .iter()
+                .map(agent::ssh::UserInclude::installed)
+                .collect::<Result<Vec<_>, _>>();
+            match installed {
+                Ok(installed) if installed.is_empty() => SshSetup::Unknown,
+                Ok(installed) if installed.iter().all(|done| *done) => SshSetup::Installed,
+                Ok(_) => SshSetup::Missing,
+                Err(_) => SshSetup::Unknown,
+            }
         })
         .await
         .unwrap_or_default();
@@ -524,15 +540,17 @@ fn spawn_ssh_setup_check(include: Option<agent::ssh::UserInclude>, inputs: Input
     });
 }
 
-/// Adds the `Include` to the user's OpenSSH configuration off the event loop.
-fn spawn_ssh_setup(include: Option<agent::ssh::UserInclude>, inputs: Inputs, then: Option<(String, OpenTarget)>) {
+/// Adds each missing `Include` off the event loop.
+fn spawn_ssh_setup(includes: Vec<agent::ssh::UserInclude>, inputs: Inputs, then: Option<(String, OpenTarget)>) {
     tokio::task::spawn_local(async move {
         let result = tokio::task::spawn_blocking(move || {
-            include
-                .ok_or_else(|| "the user home directory is not set (HOME or USERPROFILE)".to_owned())?
-                .install()
-                .map(|_| ())
-                .map_err(|error| error.to_string())
+            if includes.is_empty() {
+                return Err("the user home directory is not set (HOME or USERPROFILE)".to_owned());
+            }
+            for include in &includes {
+                include.install().map_err(|error| error.to_string())?;
+            }
+            Ok(())
         })
         .await
         .unwrap_or_else(|error| Err(error.to_string()));
@@ -559,7 +577,7 @@ fn spawn_open_editor(
             let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
             let launch = editor
                 .launch(launcher.as_deref(), &access.alias, &access.working_directory)
-                .ok_or_else(|| editor.missing_launcher().unwrap_or_default())?;
+                .ok_or_else(|| format!("{} has no launcher on this machine", editor.label()))?;
             launch.start()?;
             Ok(format!("opening {} on {agent}", editor.label()))
         }
@@ -794,13 +812,13 @@ async fn create(
     name: String,
     env_file: Option<PathBuf>,
     when_ready: open::WhenReady,
-    mut form: CreateForm,
+    mut form: Box<CreateForm>,
 ) {
     match create_agent(client, manifest, name, env_file).await {
         Ok(applied) => app.agent_applied(applied, when_ready),
         Err(error) => {
             form.error = Some(error.to_string());
-            app.modal = Some(Modal::CreateAgent(form));
+            app.modal = Some(Modal::CreateAgent(*form));
         }
     }
 }
