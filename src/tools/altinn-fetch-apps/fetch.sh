@@ -25,7 +25,7 @@ function get_deployments {
     URL="https://$ORG.apps.$ENV_KEY.altinn.no/kuberneteswrapper/api/v1/deployments"
   fi
 
-  download_file_if_old "$DEPLOYMENTS_FILE" "$URL" "deployments for $ORG (in $ENV_KEY)"
+  download_file_if_old "$DEPLOYMENTS_FILE" "$URL" "deployments for $ORG (in $ENV_KEY)" || return 0
   jq -r '.[] | .release + " " + .version' "$DEPLOYMENTS_FILE" | grep -v kuberneteswrapper
 }
 
@@ -37,22 +37,24 @@ function get_release() {
   local URL_DEV="https://dev.altinn.studio/designer/api/$ORG/$APP/releases"
   local CACHE_PROD="$TARGET/.cache/releases-prod-$ORG-$APP.json"
   local CACHE_DEV="$TARGET/.cache/releases-dev-$ORG-$APP.json"
-  local FOUND
+  local FOUND=""
   local REPO
 
-  download_file_if_old "$CACHE_PROD" "$URL_PROD" "releases for $ORG/$APP"
-
-  FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_PROD" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+  if download_file_if_old "$CACHE_PROD" "$URL_PROD" "releases for $ORG/$APP"; then
+    FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_PROD" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+  fi
   REPO="https://altinn.studio/repos/$ORG/$APP.git"
   if test -z "$FOUND"; then
-    download_file_if_old "$CACHE_DEV" "$URL_DEV" "releases for $ORG/$APP (in dev)"
-    FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_DEV" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+    if download_file_if_old "$CACHE_DEV" "$URL_DEV" "releases for $ORG/$APP (in dev)"; then
+      FOUND=$(jq -r '.results[] | (.tagName + " " + .targetCommitish)' "$CACHE_DEV" | grep "^$VERSION " | head -n 1 | awk '{print $2}')
+    fi
     REPO="https://dev.altinn.studio/repos/$ORG/$APP.git"
   fi
 
   echo "$REPO" "$FOUND"
 }
 
+# Returns non-zero when neither a fresh download nor an older cached copy is available
 function download_file_if_old {
   local FILE_PATH="$1"
   local URL="$2"
@@ -65,16 +67,33 @@ function download_file_if_old {
       FILE_AGE=$(($(date +%s) - $(stat -c '%Y' "$FILE_PATH")))
     fi
     if test "$FILE_AGE" -gt "3600"; then
-      >&2 echo " * Loading $DESCRIPTION"
-      curl -s "$URL" > "$FILE_PATH"
+      download_file "$FILE_PATH" "$URL" "$DESCRIPTION"
     fi
   else
-    >&2 echo " * Loading $DESCRIPTION"
-    curl -s "$URL" > "$FILE_PATH"
+    download_file "$FILE_PATH" "$URL" "$DESCRIPTION"
+  fi
+  test -e "$FILE_PATH"
+}
+
+# Downloads to a temporary file first, so a failed request never replaces a usable cache
+function download_file {
+  local FILE_PATH="$1"
+  local URL="$2"
+  local DESCRIPTION="$3"
+
+  >&2 echo " * Loading $DESCRIPTION"
+  if curl -fs "$URL" -o "$FILE_PATH.tmp"; then
+    mv "$FILE_PATH.tmp" "$FILE_PATH"
+  else
+    rm -f "$FILE_PATH.tmp"
+    >&2 echo " * Failed to load $DESCRIPTION"
   fi
 }
 
-curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed 's/"//g' | while read -r ORG; do
+ORGS_JSON=$(curl -fsS https://altinncdn.no/orgs/altinn-orgs.json)
+ORGS=$(jq -r '.orgs | keys[]' <<< "$ORGS_JSON")
+
+for ORG in $ORGS; do
   for ENV_KEY in "${ENVIRONMENTS[@]}"; do
     get_deployments "$ORG" "$ENV_KEY" | while read -r line; do
       APP=$(echo "$line" | awk '{print $1}' | sed "s/^$ORG-//")
@@ -95,7 +114,7 @@ curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed '
         else
           echo " * Updating $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
           cd "$TARGET_FOLDER"
-          git fetch -q origin master
+          git fetch -q origin
           set +e
           GIT_OUTPUT=$(git checkout -q "$COMMIT" 2>&1)
           GIT_STATUS=$?

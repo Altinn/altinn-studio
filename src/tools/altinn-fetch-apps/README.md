@@ -14,6 +14,8 @@ mkdir ~/all-apps
 
 Running the script again updates the apps that are already checked out. API responses are cached in `.cache` inside the target folder for an hour.
 
+If cloning an app fails, the script leaves a `fetch-failed.txt` file in its folder and skips the app on later runs. Delete the folder to try again.
+
 ## Running verifications
 
 You now have all the files for all the apps on disk, and can use VS Code or other search tools to find usages of APIs, or whatever else you want to verify.
@@ -21,7 +23,7 @@ You now have all the files for all the apps on disk, and can use VS Code or othe
 ### Use test code from the app frontend
 
 [`src/App/frontend`](../../App/frontend) contains example code that checks the status of various things in all apps.
-In `src/App/frontend`, copy `template.env` to `.env` (if you haven't done so already) and set `ALTINN_ALL_APPS_DIR` to an absolute path to the folder you created with all the apps (e.g. `all-apps`).
+In `src/App/frontend`, copy `template.env` to `.env` (if you haven't done so already) and set `ALTINN_ALL_APPS_DIR` to the absolute path of the folder you created with all the apps (e.g. `/Users/<you>/all-apps`, since `~` is not expanded).
 Run tests that use this concept, e.g. `src/utils/layout/schema.test.ts`. To check, for example, which apps set a given parameter on their Input/TextArea components, you can extend the test with a bit of your own code:
 
 ```ts
