@@ -26,6 +26,10 @@ internal sealed class LayoutUpgrader
     {
         _layoutMutator.ReadAllLayoutFiles();
         _layoutMutator.Mutate(new AddressMutator());
+        var saveWhileTypingMutator = new SaveWhileTypingMutator();
+        _layoutMutator.Mutate(saveWhileTypingMutator);
+        if (saveWhileTypingMutator.GetWarning() is { } saveWhileTypingWarning)
+            _warnings.Add(saveWhileTypingWarning);
         _layoutMutator.Mutate(new LikertMutator());
         _layoutMutator.Mutate(new RepeatingGroupMutator());
         _layoutMutator.Mutate(new GroupMutator());
