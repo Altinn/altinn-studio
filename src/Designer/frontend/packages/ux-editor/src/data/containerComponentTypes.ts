@@ -1,9 +1,15 @@
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs } from './formItemConfig';
-import { LayoutItemType } from '../types/global';
+import { componentCatalog } from '@app/layout-contract';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ContainerComponentType } from '../types/ContainerComponent';
 
-export const containerComponentTypes: (ComponentType | CustomComponentType)[] = Object.values(
-  formItemConfigs,
-)
-  .filter((comp) => comp.itemType === LayoutItemType.Container)
-  .map((comp) => comp.name);
+const supportedComponentTypes = new Set<string>(Object.values(ComponentType));
+
+export const containerComponentTypes = Object.entries(componentCatalog)
+  .filter(
+    ([type, definition]) =>
+      supportedComponentTypes.has(type) && 'children' in definition.properties,
+  )
+  .map(([type]) => type as ContainerComponentType);
+
+export const isContainerComponentType = (type: ComponentType): type is ContainerComponentType =>
+  containerComponentTypes.includes(type as ContainerComponentType);

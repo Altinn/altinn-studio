@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../../componentConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { reservedDataTypes } from './attachmentListUtils';
 import { AttachmentListInternalFormat } from './AttachmentListInternalFormat';

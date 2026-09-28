@@ -1,14 +1,12 @@
 import React from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
-import type { properties } from '../../../../testing/schemas/json/component/FileUpload.schema.v1.json';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
-import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 import { ConfigNumberProperties } from '../../../config/ConfigProperties/ConfigNumberProperties';
 
-type FileUploadMainProperties = (keyof typeof properties)[];
-const fileUploadMainStringProperties: FileUploadMainProperties = ['displayMode'];
-const fileUploadMainNumberProperties: FileUploadMainProperties = [
+const fileUploadMainStringProperties = ['displayMode'];
+const fileUploadMainNumberProperties = [
   'maxFileSizeInMB',
   'maxNumberOfAttachments',
   'minNumberOfAttachments',
@@ -25,14 +23,14 @@ export const FileUploadMainConfig = ({
   handleComponentChange,
   className,
 }: FileUploadMainConfigProps): React.ReactElement => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
 
   return (
     <>
       <ConfigStringProperties
         component={component}
         handleComponentUpdate={handleComponentChange}
-        schema={schema}
+        properties={properties}
         stringPropertyKeys={fileUploadMainStringProperties}
         className={className}
       />
@@ -40,7 +38,7 @@ export const FileUploadMainConfig = ({
       <ConfigNumberProperties
         component={component}
         handleComponentUpdate={handleComponentChange}
-        schema={schema}
+        properties={properties}
         numberPropertyKeys={fileUploadMainNumberProperties}
         className={className}
       />

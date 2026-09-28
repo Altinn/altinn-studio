@@ -5,10 +5,10 @@ import type { IInternalLayout } from '../../types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { addOrRemoveNavigationButtons, firstAvailableLayout } from '../../utils/formLayoutsUtils';
-import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import { useAppContext } from '../';
 import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavableFormLayoutSettings';
+import type { SerializedFormLayout } from '../../types/SerializedComponent';
 
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
@@ -19,7 +19,7 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
   const queryClient = useQueryClient();
 
   const saveLayout = async (updatedLayoutName: string, updatedLayout: IInternalLayout) => {
-    const convertedLayout: ExternalFormLayout = internalLayoutToExternal(updatedLayout);
+    const convertedLayout: SerializedFormLayout = internalLayoutToExternal(updatedLayout);
     return await saveFormLayout(org, app, updatedLayoutName, layoutSetName, {
       layout: convertedLayout,
     });

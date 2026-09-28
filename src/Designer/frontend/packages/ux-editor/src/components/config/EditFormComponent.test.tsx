@@ -2,19 +2,13 @@ import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../testing/componentMocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
-
-// Test data:
-const srcValueLabel = 'Source';
 
 // Mocks:
-const imageSpecificContentId = 'image-specific-content';
-jest.mock('./componentSpecificContent/Image/ImageComponent', () => ({
-  ImageComponent: () => <div data-testid={imageSpecificContentId} />,
+const mapSpecificContentId = 'map-specific-content';
+jest.mock('./componentSpecificContent/Map/MapComponent', () => ({
+  MapComponent: () => <div data-testid={mapSpecificContentId} />,
 }));
 
 describe('EditFormComponent', () => {
@@ -22,17 +16,17 @@ describe('EditFormComponent', () => {
     jest.clearAllMocks();
   });
 
-  test('should render Image component when component type is Image', async () => {
+  test('renders the registered component-specific content', async () => {
     await render({
-      component: { ...componentMocks[ComponentType.Image] },
-      editFormId: componentMocks[ComponentType.Image].id,
+      component: { ...componentMocks[ComponentType.Map] },
+      editFormId: componentMocks[ComponentType.Map].id,
     });
-    expect(await screen.findByTestId(imageSpecificContentId)).toBeInTheDocument();
+    expect(await screen.findByTestId(mapSpecificContentId)).toBeInTheDocument();
   });
 
-  it('should not render Image component when component type is not Image', async () => {
+  it('does not render component-specific content for a generic component', async () => {
     await render();
-    expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(mapSpecificContentId)).not.toBeInTheDocument();
   });
 });
 
@@ -43,16 +37,5 @@ const defaultProps: IEditFormComponentProps = {
 };
 
 const render = async (props: Partial<IEditFormComponentProps> = {}) => {
-  const component = props.component ?? defaultProps.component;
-  const componentType = component.type;
-
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData(
-    [QueryKey.FormComponent, componentMocks[componentType].type],
-    componentSchemaMocks[componentMocks[componentType].type],
-  );
-
-  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />, {
-    queryClient,
-  });
+  renderWithProviders(<EditFormComponent {...defaultProps} {...props} />);
 };

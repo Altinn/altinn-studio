@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { IGenericEditComponent } from '../../../config/componentConfig';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 import { useTranslation } from 'react-i18next';

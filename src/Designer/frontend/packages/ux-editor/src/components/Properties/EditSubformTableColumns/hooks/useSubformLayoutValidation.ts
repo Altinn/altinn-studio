@@ -1,7 +1,7 @@
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 export const useSubformLayoutValidation = (subformLayoutSetName: string): boolean => {
   const { org, app } = useStudioEnvironmentParams();

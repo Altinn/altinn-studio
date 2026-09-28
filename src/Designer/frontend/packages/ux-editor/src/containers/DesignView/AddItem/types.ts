@@ -1,6 +1,7 @@
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 
 export type AddedItem = {
-  componentType: ComponentType | CustomComponentType;
+  componentType: ComponentType | ComponentPreset;
   componentId: string;
 };

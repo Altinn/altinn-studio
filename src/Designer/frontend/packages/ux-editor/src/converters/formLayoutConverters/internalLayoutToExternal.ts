@@ -1,7 +1,10 @@
 import type { IInternalLayout } from '../../types/global';
-import type { ExternalComponent, ExternalFormLayout } from 'app-shared/types/api';
+import type {
+  SerializedComponent,
+  SerializedContainerComponent,
+  SerializedFormLayout,
+} from '../../types/SerializedComponent';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
-import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import { internalContainerComponentToExternal } from '../containerComponentConverters';
 import type { FormContainer } from '../../types/FormContainer';
 import { addPageIndexPrefix } from './pageIndexUtils';
@@ -10,7 +13,9 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type { CompareFunction } from 'app-shared/utils/compareFunctions';
 import type { FormComponent } from '../../types/FormComponent';
 
-export const internalLayoutToExternal = (internalLayout: IInternalLayout): ExternalFormLayout => ({
+export const internalLayoutToExternal = (
+  internalLayout: IInternalLayout,
+): SerializedFormLayout => ({
   $schema: layoutSchemaUrl(),
   data: {
     hidden: internalLayout.hidden,
@@ -22,7 +27,7 @@ export const internalLayoutToExternal = (internalLayout: IInternalLayout): Exter
 
 export const generateExternalComponents = (
   internalLayout: IInternalLayout,
-): ExternalComponent[] => {
+): SerializedComponent[] => {
   const groupComponents = getGroupComponents(internalLayout);
   const simpleComponents = getSimpleComponents(internalLayout);
   const allComponents = [...groupComponents, ...simpleComponents];
@@ -30,7 +35,7 @@ export const generateExternalComponents = (
   return allComponents.sort(compareComponentsByPosition(allComponentIdsInOrder));
 };
 
-const getGroupComponents = (internalLayout: IInternalLayout): ExternalContainerComponent[] => {
+const getGroupComponents = (internalLayout: IInternalLayout): SerializedContainerComponent[] => {
   const convert = (container) => convertContainer(internalLayout, container);
   return findRelevantContainers(internalLayout).map(convert);
 };
@@ -43,7 +48,7 @@ const findRelevantContainers = (internalLayout: IInternalLayout): FormContainer[
 const convertContainer = (
   internalLayout: IInternalLayout,
   container: FormContainer,
-): ExternalContainerComponent => {
+): SerializedContainerComponent => {
   const children = getGroupChildrenWithPageIndex(internalLayout, container);
   return internalContainerComponentToExternal(container, children);
 };
@@ -67,9 +72,8 @@ export const getComponentIdWithPageIndex = (
     // Returns the ID which is unknown component reference.
     return componentId;
   }
-  return component.pageIndex === null
-    ? componentId
-    : addPageIndexPrefix(componentId, component.pageIndex);
+  const pageIndex = internalLayout.pageIndexes?.[componentId];
+  return pageIndex === undefined ? componentId : addPageIndexPrefix(componentId, pageIndex);
 };
 
 const getComponentById = (
@@ -78,7 +82,7 @@ const getComponentById = (
 ): FormComponent | FormContainer =>
   internalLayout.components[componentId] || internalLayout.containers[componentId];
 
-const getSimpleComponents = (internalLayout: IInternalLayout): ExternalComponent[] =>
+const getSimpleComponents = (internalLayout: IInternalLayout): SerializedComponent[] =>
   Object.values(internalLayout.components).map(internalSimpleComponentToExternal);
 
 /**
@@ -91,8 +95,8 @@ const getAllComponentIdsInOrder = (internalLayout: IInternalLayout): string[] =>
 };
 
 const compareComponentsByPosition =
-  (idsInOrder: string[]): CompareFunction<ExternalComponent> =>
-  (componentA: ExternalComponent, componentB: ExternalComponent) => {
+  (idsInOrder: string[]): CompareFunction<SerializedComponent> =>
+  (componentA: SerializedComponent, componentB: SerializedComponent) => {
     const indexA = idsInOrder.indexOf(componentA.id);
     const indexB = idsInOrder.indexOf(componentB.id);
     return indexA - indexB;

@@ -4,7 +4,7 @@ import {
   updateComponentWithDeletedImageReference,
   updateComponentWithImage,
 } from './EditImageUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('EditImageUtils', () => {
   describe('updateComponentWithImage', () => {
