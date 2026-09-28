@@ -110,8 +110,8 @@ const common = {
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
           .setDescription(
-            'Show the optional indicator on the label of non-required fields. Enabled by default, as recommended by Designsystemet.',
-            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, i tråd med anbefalingene fra Designsystemet.',
+            'Show the optional indicator on the label of non-required fields. Enabled by default.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
           )
           .optional({ default: true }),
       ),
