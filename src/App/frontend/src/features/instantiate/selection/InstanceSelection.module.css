@@ -74,6 +74,7 @@ Altinn, and making sure they are consistent. */
 
 .instanceDetails {
   margin: 0;
+  padding: 0;
 }
 
 .instanceDetails dt {
