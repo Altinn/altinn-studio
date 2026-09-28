@@ -23,7 +23,7 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// <summary>
 /// Aggregates all form bootstrap data into a single response.
 /// </summary>
-public sealed class FormBootstrapService
+internal sealed class FormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

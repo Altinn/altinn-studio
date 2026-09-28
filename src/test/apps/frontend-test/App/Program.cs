@@ -1,7 +1,6 @@
 using Altinn.App.Actions;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.logic.DataProcessing;
 using Altinn.App.logic.Pdf;
@@ -11,10 +10,6 @@ using Altinn.App.services.options;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Logic.Instantiation;
 using Altinn.FileAnalyzers.MimeType;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using Altinn.Codelists.Extensions;
 using Altinn.App.Logic.ConvertedLegacyRules;

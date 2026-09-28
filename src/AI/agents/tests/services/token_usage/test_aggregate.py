@@ -90,12 +90,8 @@ class TestBucketing:
             make_observation(trace_id="trace-skd", start_time="2026-05-03T11:00:00Z"),
         ]
         traces = {
-            "trace-ttd": make_trace(
-                trace_id="trace-ttd", user_id="ttd", app_name="ttd-app"
-            ),
-            "trace-skd": make_trace(
-                trace_id="trace-skd", user_id="skd", app_name="skd-app"
-            ),
+            "trace-ttd": make_trace(trace_id="trace-ttd", user_id="ttd", app_name="ttd-app"),
+            "trace-skd": make_trace(trace_id="trace-skd", user_id="skd", app_name="skd-app"),
         }
 
         rows = aggregate_token_usage(observations, traces, LOADED_AT)
@@ -203,11 +199,7 @@ class TestEdgeCases:
         """Langfuse's own evaluators stamp no user and no app metadata, but the
         environment names them"""
         observations = [make_observation(input_tokens=100, output_tokens=50)]
-        traces = {
-            DEFAULT_TRACE_ID: make_trace(
-                user_id="", app_name=None, environment=JUDGE_ENVIRONMENT
-            )
-        }
+        traces = {DEFAULT_TRACE_ID: make_trace(user_id="", app_name=None, environment=JUDGE_ENVIRONMENT)}
 
         with caplog.at_level(logging.WARNING):
             [row] = aggregate_token_usage(observations, traces, LOADED_AT)

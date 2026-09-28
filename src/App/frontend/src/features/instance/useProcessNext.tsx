@@ -12,7 +12,7 @@ import {
   useInstanceDataQueryArgs,
   useLaxInstanceId,
 } from 'src/features/instance/InstanceContext';
-import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
+import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -188,7 +188,9 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
  * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
  * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
  * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
- * full-screen loader, and the failed task view should stay mounted (button spinner) while resuming.
+ * full-screen loader, so the failed task view stays mounted (button spinner) until the instance poll
+ * that runs while a resume is pending reports the workflow processing, and the transition loader
+ * takes over.
  */
 export function useProcessResume() {
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
@@ -200,7 +202,7 @@ export function useProcessResume() {
 
   return useMutation({
     scope: { id: 'process/next' },
-    mutationKey: ['processResume'] as const,
+    mutationKey: PROCESS_RESUME_MUTATION_KEY,
     mutationFn: async () => {
       if (!instanceId) {
         throw new Error('Missing instance ID. Cannot perform process/resume.');

@@ -2,7 +2,6 @@ use std::{
     collections::HashSet,
     fs::File,
     path::{Path, PathBuf},
-    time::Instant,
 };
 
 use bollard::{
@@ -11,10 +10,8 @@ use bollard::{
 };
 use futures_util::StreamExt as _;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
-use sandbox::progress::{ProgressStep, SandboxProgress};
-use sandbox::{
-    Error, LocalFuture, OutputStream, PendingOperation, ProgressUnit, RootFilesystemMode, SandboxPhase, image,
-};
+use sandbox::progress::{MeasuredStep, ProgressStep, SandboxProgress};
+use sandbox::{Error, LocalFuture, OutputStream, PendingOperation, ProgressUnit, RootFilesystemMode, image};
 use sha2::{Digest as _, Sha256};
 use tokio::io::AsyncWriteExt as _;
 use tokio_util::codec::{BytesCodec, FramedRead};
@@ -29,6 +26,9 @@ const PULL_IMAGE: &str = "Pull OCI image";
 const LOOKUP_IMPORTED_IMAGE: &str = "Look up imported Microsandbox image";
 const EXPORT_IMAGE: &str = "Export Docker image";
 const IMPORT_IMAGE: &str = "Import Microsandbox image";
+const DOWNLOAD_LAYERS: &str = "Download image layers";
+const MATERIALIZE_LAYERS: &str = "Materialize image layers";
+const ASSEMBLE_ROOT_DISK: &str = "Assemble root disk";
 const RETAIN_BUILD_CACHE: &str = "Retain Docker build cache";
 const REMOVE_TEMPORARY_IMAGE: &str = "Remove temporary Docker image";
 const EXPORT_PREPARED_ROOT: &str = "Export prepared root";
@@ -108,10 +108,9 @@ impl MicrosandboxImageBackend {
     }
 
     async fn check_docker(&self, progress: &SandboxProgress) -> Result<(), Error> {
-        let started = Instant::now();
         let step = progress.start_step(CHECK_DOCKER).await;
         self.docker()?.ping().await.map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
@@ -123,7 +122,6 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<PreparedBuild, Error> {
-        let started = Instant::now();
         let step = progress.start_step(PREPARE_CONTEXT).await;
         let context = tokio::fs::canonicalize(source_context)
             .await
@@ -139,7 +137,7 @@ impl MicrosandboxImageBackend {
 
         let cache_tag = cache_tag(&context, &dockerfile_parameter, target, platform);
         let archive = create_context_archive(self.scratch_dir().await?, context, relative_dockerfile).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(PreparedBuild {
             archive,
             dockerfile: dockerfile_parameter,
@@ -176,9 +174,11 @@ impl MicrosandboxImageBackend {
         };
         let options = options.build();
 
-        let started = Instant::now();
-        let step = progress.start_step(BUILD_IMAGE).await;
+        let step = progress
+            .start_measured_step(BUILD_IMAGE, ProgressUnit::Bytes, None)
+            .await;
         let mut completed_vertices = HashSet::new();
+        let mut transfers = Transfers::default();
         let mut responses = self
             .docker()?
             .build_image(options, None, Some(bollard::body_try_stream(context_stream)));
@@ -195,7 +195,7 @@ impl MicrosandboxImageBackend {
                 step.output(OutputStream::Stdout, stream).await;
             }
             if let Some(status) = response.status {
-                let output = response.id.map_or_else(
+                let output = response.id.as_ref().map_or_else(
                     || format!("{status}\n"),
                     |identifier| format!("{identifier}: {status}\n"),
                 );
@@ -205,13 +205,15 @@ impl MicrosandboxImageBackend {
                 && let Some(completed) = detail.current.and_then(|value| u64::try_from(value).ok())
             {
                 let total = detail.total.and_then(|value| u64::try_from(value).ok());
-                step.progress(completed, total, ProgressUnit::Bytes).await;
+                let key = response.id.clone().unwrap_or_default();
+                let (completed, total) = transfers.record(key, completed, total);
+                step.report(completed, total).await;
             }
             if let Some(aux) = response.aux {
                 report_buildkit_status(&step, &mut completed_vertices, aux).await?;
             }
         }
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
@@ -223,10 +225,9 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<(String, sandbox::Platform), Error> {
-        let started = Instant::now();
         let step = progress.start_step(RETAIN_BUILD_CACHE).await;
         self.retain_build_cache(temporary_tag, cache_tag).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
 
         let import_reference = self.import_cache_reference(temporary_tag).await?;
         if let Some(resolved) = self
@@ -246,15 +247,15 @@ impl MicrosandboxImageBackend {
         temporary_tag: &str,
         progress: &SandboxProgress,
     ) -> Result<tempfile::TempPath, Error> {
-        let started = Instant::now();
-        let step = progress.start_step(EXPORT_IMAGE).await;
+        let step = progress
+            .start_measured_step(EXPORT_IMAGE, ProgressUnit::Bytes, None)
+            .await;
         let archive = self.export_image(temporary_tag, &step).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(archive)
     }
 
     async fn remove_temporary_image(&self, temporary_tag: &str, progress: &SandboxProgress) -> Result<(), Error> {
-        let started = Instant::now();
         let step = progress.start_step(REMOVE_TEMPORARY_IMAGE).await;
         self.docker()?
             .remove_image(
@@ -264,7 +265,7 @@ impl MicrosandboxImageBackend {
             )
             .await
             .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
@@ -302,14 +303,13 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<Option<(String, sandbox::Platform)>, Error> {
-        let started = Instant::now();
         let step = progress.start_step(LOOKUP_IMPORTED_IMAGE).await;
         let handle = match microsandbox::Image::get_local(self.client.local(), reference).await {
             Ok(handle) => Some(handle),
             Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => None,
             Err(failure) => return Err(error::microsandbox(failure)),
         };
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         handle
             .map(|handle| resolve_image_handle(&handle, requested, platform))
             .transpose()
@@ -323,7 +323,6 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<(String, sandbox::Platform), Error> {
-        let started = Instant::now();
         let step = progress.start_step(IMPORT_IMAGE).await;
         let (mut import_events, import_progress) = microsandbox_image::progress_channel();
         let cache_dir = self.client.local().cache_dir();
@@ -338,11 +337,15 @@ impl MicrosandboxImageBackend {
         let report = async {
             let mut pull = PullReport::default();
             while let Some(event) = import_events.recv().await {
-                pull.report(&step, event).await;
+                pull.report(progress, event).await;
             }
+            pull
         };
-        let (loaded, ()) = tokio::join!(load, report);
+        let (loaded, pull) = tokio::join!(load, report);
         let loaded = loaded.map_err(error::backend)?;
+        // The channel also closes when the import fails; its steps then stay
+        // open and end as failed with the operation.
+        pull.finish().await;
         let image = loaded
             .into_iter()
             .find(|image| image.reference == import_reference)
@@ -354,11 +357,11 @@ impl MicrosandboxImageBackend {
             .await
             .map_err(error::microsandbox)?;
         let resolved = resolve_image_handle(&handle, requested, platform)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(resolved)
     }
 
-    async fn export_image(&self, reference: &str, step: &ProgressStep) -> Result<tempfile::TempPath, Error> {
+    async fn export_image(&self, reference: &str, step: &MeasuredStep) -> Result<tempfile::TempPath, Error> {
         let archive = tempfile::NamedTempFile::new_in(self.scratch_dir().await?)
             .map_err(|source| error::io("create Docker image archive", source))?
             .into_temp_path();
@@ -377,11 +380,11 @@ impl MicrosandboxImageBackend {
                 .map_err(|source| error::io("write Docker image archive", source))?;
             written = written.saturating_add(chunk_length);
             if written.saturating_sub(reported) >= EXPORT_PROGRESS_INTERVAL {
-                step.progress(written, None, ProgressUnit::Bytes).await;
+                step.report(written, None).await;
                 reported = written;
             }
         }
-        step.progress(written, Some(written), ProgressUnit::Bytes).await;
+        step.report(written, Some(written)).await;
         file.sync_all()
             .await
             .map_err(|source| error::io("sync Docker image archive", source))?;
@@ -398,7 +401,6 @@ impl MicrosandboxImageBackend {
         let parsed: microsandbox_image::Reference = reference
             .parse()
             .map_err(|failure| Error::Backend(format!("invalid OCI image reference '{reference}': {failure}")))?;
-        let started = Instant::now();
         let step = progress.start_step(PULL_IMAGE).await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
@@ -446,11 +448,15 @@ impl MicrosandboxImageBackend {
             let report = async {
                 let mut pull = PullReport::default();
                 while let Some(event) = events.recv().await {
-                    pull.report(&step, event).await;
+                    pull.report(progress, event).await;
                 }
+                pull
             };
-            let (result, ()) = tokio::join!(pull, report);
+            let (result, report) = tokio::join!(pull, report);
             result.map_err(error::backend)?.map_err(error::backend)?;
+            // The channel also closes when the pull fails; its steps then stay
+            // open and end as failed with the operation.
+            report.finish().await;
             cache
                 .read_image_metadata(&parsed)
                 .map_err(error::backend)?
@@ -464,7 +470,7 @@ impl MicrosandboxImageBackend {
             .await
             .map_err(error::microsandbox)?;
         let (manifest_digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
@@ -485,7 +491,6 @@ impl MicrosandboxImageBackend {
             .resolve_reference(request, &reference.to_string(), progress)
             .await?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
-        let started = Instant::now();
         let step = progress.start_step(EXPORT_PREPARED_ROOT).await;
         let prepared = microsandbox_image::export_prepared_root(
             &cache,
@@ -495,7 +500,7 @@ impl MicrosandboxImageBackend {
         )
         .await
         .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(prepared_root(resolved, &prepared))
     }
 
@@ -510,7 +515,6 @@ impl MicrosandboxImageBackend {
         let actual = platform::require_supported(&request.platform)?;
         let reference = prepared_root_reference(request, operation)?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
-        let started = Instant::now();
         let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
         let prepared = microsandbox_image::import_prepared_root(
             &cache,
@@ -520,7 +524,7 @@ impl MicrosandboxImageBackend {
         )
         .await
         .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(prepared_root(
             image::ResolvedImage {
                 source: request.source.clone(),
@@ -635,7 +639,7 @@ fn resolve_image_handle(
 }
 
 async fn report_buildkit_status(
-    step: &ProgressStep,
+    step: &MeasuredStep,
     completed_vertices: &mut HashSet<String>,
     aux: bollard::models::BuildInfoAux,
 ) -> Result<(), Error> {
@@ -672,23 +676,53 @@ async fn report_buildkit_status(
     Ok(())
 }
 
-/// Translates registry pull events into one step's progress.
+/// Sums concurrent transfers, such as layer downloads, into one quantity.
 ///
-/// Layer counts keep their total across events, byte progress covers both the
-/// download and the materialization of each layer, and the stitch stages that
-/// have no byte progress are named as output so a long root-disk write is
-/// visibly in progress rather than silent.
+/// The total is known once every transfer seen so far has announced its size.
+#[derive(Default)]
+struct Transfers {
+    transfers: std::collections::BTreeMap<String, (u64, Option<u64>)>,
+}
+
+impl Transfers {
+    fn record(&mut self, key: String, completed: u64, total: Option<u64>) -> (u64, Option<u64>) {
+        self.transfers.insert(key, (completed, total));
+        self.totals(None)
+    }
+
+    fn totals(&self, announced: Option<u64>) -> (u64, Option<u64>) {
+        let completed = self.transfers.values().map(|(completed, _)| completed).sum();
+        let total = announced.or_else(|| {
+            self.transfers
+                .values()
+                .map(|(_, total)| *total)
+                .sum::<Option<u64>>()
+                .filter(|_| !self.transfers.is_empty())
+        });
+        (completed, total)
+    }
+}
+
+/// Translates registry pull events into the steps of one image pull or import.
+///
+/// Layers download and materialize concurrently, so each activity is its own
+/// measured step with one aggregated byte count, started when its first event
+/// arrives. Assembling the root disk has no byte progress and is named through
+/// its output so a long write is visibly in progress rather than silent.
 #[derive(Default)]
 struct PullReport {
     layers: Option<u64>,
     /// Total download size announced by the registry, when known up front.
     total_download_bytes: Option<u64>,
-    /// Bytes downloaded and expected per layer; layers download concurrently.
-    downloads: std::collections::BTreeMap<usize, (u64, Option<u64>)>,
+    downloads: Transfers,
+    materializations: Transfers,
+    download: Option<MeasuredStep>,
+    materialize: Option<MeasuredStep>,
+    assemble: Option<ProgressStep>,
 }
 
 impl PullReport {
-    async fn report(&mut self, step: &ProgressStep, event: microsandbox_image::PullProgress) {
+    async fn report(&mut self, progress: &SandboxProgress, event: microsandbox_image::PullProgress) {
         use microsandbox_image::PullProgress;
         match event {
             PullProgress::Resolved {
@@ -698,7 +732,6 @@ impl PullReport {
             } => {
                 self.layers = u64::try_from(layer_count).ok();
                 self.total_download_bytes = total_download_bytes;
-                step.progress(0, self.layers, ProgressUnit::Items).await;
             }
             PullProgress::LayerDownloadProgress {
                 layer_index,
@@ -706,9 +739,9 @@ impl PullReport {
                 total_bytes,
                 ..
             } => {
-                self.downloads.insert(layer_index, (downloaded_bytes, total_bytes));
-                let (downloaded, total) = self.download_totals();
-                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+                self.downloads
+                    .record(layer_index.to_string(), downloaded_bytes, total_bytes);
+                self.report_download(progress).await;
             }
             PullProgress::LayerDownloadComplete {
                 layer_index,
@@ -716,56 +749,92 @@ impl PullReport {
                 ..
             } => {
                 self.downloads
-                    .insert(layer_index, (downloaded_bytes, Some(downloaded_bytes)));
-                let (downloaded, total) = self.download_totals();
-                step.progress(downloaded, total, ProgressUnit::Bytes).await;
+                    .record(layer_index.to_string(), downloaded_bytes, Some(downloaded_bytes));
+                self.report_download(progress).await;
             }
             PullProgress::LayerMaterializeStarted { layer_index, .. } => {
-                step.output(
-                    OutputStream::Stdout,
-                    self.layer_line("Materializing layer", layer_index),
-                )
-                .await;
+                let line = self.layer_line("Materializing layer", layer_index);
+                if let Some(step) = self.materialize_step(progress).await {
+                    step.output(OutputStream::Stdout, line).await;
+                }
             }
             PullProgress::LayerMaterializeProgress {
+                layer_index,
                 bytes_read,
                 total_bytes,
-                ..
-            } => step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await,
-            PullProgress::LayerMaterializeComplete { layer_index, .. } => {
-                let completed = u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX);
-                step.progress(completed, self.layers, ProgressUnit::Items).await;
+            } => {
+                let (completed, total) =
+                    self.materializations
+                        .record(layer_index.to_string(), bytes_read, Some(total_bytes));
+                if let Some(step) = self.materialize_step(progress).await {
+                    step.report(completed, total).await;
+                }
             }
             PullProgress::StitchMergingTrees { layer_count } => {
-                step.output(OutputStream::Stdout, format!("Merging {layer_count} layer trees\n"))
+                self.assemble(progress, format!("Merging {layer_count} layer trees\n"))
                     .await;
             }
             PullProgress::StitchWritingFsmeta => {
-                step.output(OutputStream::Stdout, "Writing filesystem metadata\n").await;
+                self.assemble(progress, "Writing filesystem metadata\n".into()).await;
             }
             PullProgress::StitchWritingVmdk => {
-                step.output(OutputStream::Stdout, "Writing root disk image\n").await;
-            }
-            PullProgress::Complete { layer_count, .. } => {
-                let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
-                step.progress(completed, Some(completed), ProgressUnit::Items).await;
+                self.assemble(progress, "Writing root disk image\n".into()).await;
             }
             PullProgress::Resolving { .. }
             | PullProgress::LayerDownloadVerifying { .. }
             | PullProgress::LayerMaterializeWriting { .. }
+            | PullProgress::LayerMaterializeComplete { .. }
+            | PullProgress::Complete { .. }
             | PullProgress::StitchComplete => {}
         }
     }
 
-    /// Sums per-layer download progress; the total is the registry's figure when it
-    /// announced one, otherwise the sum of the layer sizes seen so far.
-    fn download_totals(&self) -> (u64, Option<u64>) {
-        let downloaded = self.downloads.values().map(|(bytes, _)| bytes).sum();
-        let total = self.total_download_bytes.or_else(|| {
-            let known: Vec<u64> = self.downloads.values().filter_map(|(_, total)| *total).collect();
-            (known.len() == self.downloads.len() && !known.is_empty()).then(|| known.iter().sum())
-        });
-        (downloaded, total)
+    /// Completes the steps still running once the pull or import succeeded.
+    async fn finish(self) {
+        for step in [self.download, self.materialize].into_iter().flatten() {
+            step.complete().await;
+        }
+        if let Some(step) = self.assemble {
+            step.complete().await;
+        }
+    }
+
+    async fn report_download(&mut self, progress: &SandboxProgress) {
+        let (completed, total) = self.downloads.totals(self.total_download_bytes);
+        if self.download.is_none() {
+            self.download = Some(
+                progress
+                    .start_measured_step(DOWNLOAD_LAYERS, ProgressUnit::Bytes, total)
+                    .await,
+            );
+        }
+        if let Some(step) = &self.download {
+            step.report(completed, total).await;
+        }
+    }
+
+    async fn materialize_step(&mut self, progress: &SandboxProgress) -> Option<&MeasuredStep> {
+        if self.materialize.is_none() {
+            self.materialize = Some(
+                progress
+                    .start_measured_step(MATERIALIZE_LAYERS, ProgressUnit::Bytes, None)
+                    .await,
+            );
+        }
+        self.materialize.as_ref()
+    }
+
+    /// Reports root-disk assembly, which starts once every layer is in place.
+    async fn assemble(&mut self, progress: &SandboxProgress, line: String) {
+        if self.assemble.is_none() {
+            for step in [self.download.take(), self.materialize.take()].into_iter().flatten() {
+                step.complete().await;
+            }
+            self.assemble = Some(progress.start_step(ASSEMBLE_ROOT_DISK).await);
+        }
+        if let Some(step) = &self.assemble {
+            step.output(OutputStream::Stdout, line).await;
+        }
     }
 
     fn layer_line(&self, activity: &str, layer_index: usize) -> String {
@@ -803,7 +872,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move {
                 match &request.source {
                     image::ImageSource::Build {
@@ -827,7 +896,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         request: &'a image::ResolveRequest,
         destination: &'a Path,
     ) -> PendingOperation<'a, image::PreparedImage> {
-        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.export_prepared_root(request, destination, &progress).await })
         })
     }
@@ -837,7 +906,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         request: &'a image::ResolveRequest,
         source: &'a Path,
     ) -> PendingOperation<'a, image::PreparedImage> {
-        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.import_prepared_root(request, source, &progress).await })
         })
     }

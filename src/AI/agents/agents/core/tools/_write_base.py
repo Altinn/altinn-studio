@@ -21,9 +21,7 @@ class WriteToolMixin(Tool):
     tool in the MRO; subclasses still declare name/description/schema.
     """
 
-    async def check_permission(
-        self, args: BaseModel, ctx: LoopContext
-    ) -> PermissionResult:
+    async def check_permission(self, args: BaseModel, ctx: LoopContext) -> PermissionResult:
         if not ctx.allow_app_changes:
             return PermissionResult.deny(
                 "Write tools are disabled in this session (read-only mode).",

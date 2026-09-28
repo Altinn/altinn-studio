@@ -1653,6 +1653,8 @@ public class WorkflowEngineServiceTests
         Guid instanceGuid = Guid.NewGuid();
         string collectionKey = instanceGuid.ToString();
         var instance = CreateInstanceOnTask("Task_1", instanceGuid);
+        DateTimeOffset headCreatedAt = DateTimeOffset.UtcNow.AddHours(-1);
+        DateTimeOffset headResumedAt = DateTimeOffset.UtcNow.AddSeconds(-5);
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
@@ -1675,6 +1677,9 @@ public class WorkflowEngineServiceTests
                             },
                             StepsCompleted = 7,
                             StepsTotal = 12,
+                            FailedAttempts = 3,
+                            CreatedAt = headCreatedAt,
+                            ResumedAt = headResumedAt,
                         },
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
@@ -1693,6 +1698,11 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowActivityStatus.Processing, result.Status);
         Assert.Equal("Task_2", result.TargetTask);
         Assert.True(result.Retrying);
+        Assert.Equal(3, result.FailedAttempts);
+        // Resume reruns the head in place: both times pass through unchanged, side by side.
+        Assert.Equal(headCreatedAt, result.StartedAt);
+        Assert.Equal(headResumedAt, result.ResumedAt);
+        Assert.Equal(headResumedAt, result.ToAppProcessWorkflowStatus().ResumedAt);
         Assert.Null(result.Failure);
         Assert.Equal(new WorkflowStepProgress(Completed: 7, Total: 12), result.Progress);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);

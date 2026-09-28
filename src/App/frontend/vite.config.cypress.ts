@@ -15,5 +15,12 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    rolldownOptions: {
+      checks: {
+        // Aksel icons emit hundreds of "use client" warnings while Cypress bundles its support file.
+        // Cypress can stall while forwarding that warning burst through its stderr stream.
+        moduleLevelDirective: false,
+      },
+    },
   },
 });

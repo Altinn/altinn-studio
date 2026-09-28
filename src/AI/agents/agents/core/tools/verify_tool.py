@@ -79,7 +79,7 @@ class VerifyChangesTool(WriteToolMixin):
         for file_path in changed:
             try:
                 ok, file_notes = _verify_one(ctx, file_path)
-            except Exception as exc:  # noqa: BLE001 — never let one file's crash skip the rest
+            except Exception as exc:
                 ok = False
                 file_notes = [f"{file_path}: verifier crashed — {exc}"]
 
@@ -154,9 +154,7 @@ def _is_layout_file(file_path: str) -> bool:
     name = Path(file_path).name
     # Settings.json and layout-sets.json live near layouts but use
     # different schemas — the layout validator would reject them.
-    if name == "Settings.json" or name == "layout-sets.json":
-        return False
-    return True
+    return not (name == "Settings.json" or name == "layout-sets.json")
 
 
 def _is_layout_settings(file_path: str) -> bool:
@@ -235,9 +233,7 @@ def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[s
 
     # A changed resource file can strip a key any layout still references.
     touched_texts = any(_is_text_resource(f) for f in changed)
-    layouts = _all_layout_files(repo) if touched_texts else [
-        repo / f for f in changed if _is_layout_file(f)
-    ]
+    layouts = _all_layout_files(repo) if touched_texts else [repo / f for f in changed if _is_layout_file(f)]
 
     notes: list[str] = []
     for layout in layouts:
@@ -318,9 +314,7 @@ def _has_navigation_component(layout_path: Path) -> bool:
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
     if not isinstance(layout, list):
         return True
-    return any(
-        isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout
-    )
+    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout)
 
 
 # ---------------------------------------------------------------------------
@@ -349,7 +343,7 @@ def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
         span.update(input={"file_content": json_content})
         try:
             schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # noqa: BLE001 — CDN fetch can fail
+        except Exception as exc:
             span.update(output={"error": str(exc)})
             return False, [f"{file_path}: could not load layout schema — {exc}"]
 
@@ -388,9 +382,7 @@ def _as_full_layout(parsed: Any) -> dict[str, Any]:
     return {"data": {"layout": []}}
 
 
-def _validate_resource(
-    ctx: LoopContext, file_path: str, full_path: Path
-) -> tuple[bool, list[str]]:
+def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Validate a text resource in-process (schema + business rules).
 
     Language is inferred from the filename (`resource.nb.json` → `nb`);

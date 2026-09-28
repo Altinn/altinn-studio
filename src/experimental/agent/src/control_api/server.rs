@@ -6,18 +6,31 @@ use serde_json::Value;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio::sync::Notify;
 
-use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::Reporter, sessions};
+use crate::{
+    Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::AgentProgress, resources::Changes,
+    sessions,
+};
 
-use super::outbox::Outbox;
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS_EVENT, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
-    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, Notification,
-    PROTOCOL_VERSION, ReadMessage, Request, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams,
+    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
     SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
+
+/// Quiet period after a change before a progress reply, so a burst of byte
+/// progress costs one reply.
+const PROGRESS_SETTLE: Duration = Duration::from_millis(50);
+/// Quiet period after a resource change before a watch replies, so a burst of
+/// changes, such as byte progress during an image pull, costs one reply.
+const WATCH_SETTLE: Duration = Duration::from_millis(150);
+/// Longest a watch waits without a change; the unchanged reply tells the
+/// watcher the daemon is still there.
+const WATCH_KEEPALIVE: Duration = Duration::from_secs(30);
 
 /// Agent operations exposed through the Agent Control API.
 pub trait AgentApi {
@@ -39,6 +52,14 @@ pub trait AgentApi {
 
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
+
+    /// Reads an Agent's stored status and its latest pass's progress, with
+    /// only the output after `output` when it names the same pass.
+    fn progress<'a>(
+        &'a self,
+        name: &'a str,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> LocalFuture<'a, Result<(crate::Status, Option<crate::progress::Provisioning>), Error>>;
 }
 
 impl AgentApi for control_plane::ControlPlane {
@@ -64,6 +85,14 @@ impl AgentApi for control_plane::ControlPlane {
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move { Self::delete(self, name).await })
+    }
+
+    fn progress<'a>(
+        &'a self,
+        name: &'a str,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> LocalFuture<'a, Result<(crate::Status, Option<crate::progress::Provisioning>), Error>> {
+        Box::pin(async move { Self::progress(self, name, output).await })
     }
 }
 
@@ -102,7 +131,6 @@ pub trait SessionApi {
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
     /// Gets one named Session scoped to an Agent.
@@ -134,6 +162,17 @@ pub trait SessionApi {
         last: Option<usize>,
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
 
+    /// Requests release of one Session; see [`sessions::Service::delete`].
+    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>>;
+
+    /// Archives or unarchives one Session; see [`sessions::Service::set_archived`].
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
+
     /// Lists Sessions whose work or terminal attachment prevents an upgrade.
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
 }
@@ -145,9 +184,8 @@ impl SessionApi for sessions::Service {
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, request, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, agent, name, request, wait).await })
     }
 
     fn prompt<'a>(
@@ -182,6 +220,19 @@ impl SessionApi for sessions::Service {
         Box::pin(async move { Self::list(self, agent).await })
     }
 
+    fn set_archived<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        archived: bool,
+    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+        Box::pin(async move { Self::set_archived(self, agent, name, archived).await })
+    }
+
+    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { Self::delete(self, agent, name).await })
+    }
+
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>> {
         Box::pin(Self::upgrade_readiness(self))
     }
@@ -194,7 +245,6 @@ pub trait ExecutionApi {
         &'a self,
         name: &'a str,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
 }
 
@@ -203,9 +253,8 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
         &'a self,
         name: &'a str,
         wait: WaitPolicy,
-        progress: Option<Reporter>,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, name, wait, progress).await })
+        Box::pin(async move { Self::ensure(self, name, wait).await })
     }
 }
 
@@ -302,6 +351,7 @@ pub struct Server {
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
+    changes: Changes,
     on_error: ErrorHandler,
     lifecycle: Lifecycle,
 }
@@ -315,6 +365,7 @@ impl Server {
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
+        changes: Changes,
         on_error: ErrorHandler,
     ) -> Self {
         Self {
@@ -323,6 +374,7 @@ impl Server {
             executions,
             sessions,
             ssh,
+            changes,
             on_error,
             lifecycle: Lifecycle::default(),
         }
@@ -379,15 +431,7 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
-            let outbox = Outbox::new();
-            let mut response = std::pin::pin!(self.handle(request, outbox.reporter()));
-            let response = loop {
-                tokio::select! {
-                    () = outbox.readied() => flush(&outbox, stream.get_mut()).await?,
-                    response = &mut response => break response,
-                }
-            };
-            flush(&outbox, stream.get_mut()).await?;
+            let response = self.handle(request).await;
             write_response(stream.get_mut(), &response).await?;
         }
     }
@@ -406,7 +450,7 @@ impl Server {
         }
     }
 
-    async fn handle(&self, request: Request, progress: crate::progress::Reporter) -> Response {
+    async fn handle(&self, request: Request) -> Response {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
@@ -430,16 +474,21 @@ impl Server {
             METHOD_SHUTDOWN => self.handle_shutdown(request.id, request.params).await,
             METHOD_GET => self.handle_get(request.id, request.params).await,
             METHOD_LIST => result_response(request.id, self.agents.list().await),
+            METHOD_PROGRESS => self.handle_progress(request.id, request.params).await,
+            METHOD_RESOURCES_WATCH => self.handle_resources_watch(request.id, request.params).await,
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
-            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params, progress).await,
+            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
-            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, progress).await,
+            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
+            METHOD_SESSION_DELETE => self.handle_session_delete(request.id, request.params).await,
+            METHOD_SESSION_ARCHIVE => self.handle_session_archive(request.id, request.params, true).await,
+            METHOD_SESSION_UNARCHIVE => self.handle_session_archive(request.id, request.params, false).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -529,15 +578,67 @@ impl Server {
         result_response(id, self.ssh.describe(&params.name).await)
     }
 
-    async fn handle_execution_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
+    /// Long-polls for a change after the caller's revision, then returns the
+    /// Agent's status and progress. Draining returns at once so an upgrade is
+    /// never held by a follower.
+    async fn handle_progress(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<ProgressParams>(value) else {
+            return error_response(
+                id,
+                CODE_INVALID_PARAMS,
+                "name is required, and after must be a revision",
+            );
+        };
+        tokio::select! {
+            _changed = self.changes.changed_since(params.after, PROGRESS_SETTLE, WATCH_KEEPALIVE) => {}
+            () = self.shutdown_requested() => {}
+        }
+        let revision = self.changes.revision();
+        let progress = self
+            .agents
+            .progress(&params.name, params.output)
+            .await
+            .map(|(status, provisioning)| AgentProgress {
+                revision,
+                status,
+                provisioning,
+            });
+        result_response(id, progress)
+    }
+
+    /// Long-polls for a resource change after the caller's revision, then
+    /// returns every Agent and Session. Draining returns at once so an upgrade
+    /// is never held by a watcher.
+    async fn handle_resources_watch(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<ResourcesWatchParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "after must be a resource revision");
+        };
+        tokio::select! {
+            _changed = self.changes.changed_since(params.after, WATCH_SETTLE, WATCH_KEEPALIVE) => {}
+            () = self.shutdown_requested() => {}
+        }
+        let revision = self.changes.revision();
+        let resources = async {
+            Ok(crate::resources::Resources {
+                revision,
+                agents: self.agents.list().await?,
+                sessions: self.sessions.list(None).await?,
+            })
+        };
+        result_response(id, resources.await)
+    }
+
+    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
         };
         if params.name.is_empty() {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
         }
-        let (wait, progress) = observation(params.follow, params.progress, progress);
-        result_response(id, self.executions.ensure(&params.name, wait, progress).await)
+        result_response(
+            id,
+            self.executions.ensure(&params.name, wait_policy(params.follow)).await,
+        )
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -552,7 +653,7 @@ impl Server {
         )
     }
 
-    async fn handle_session_ensure(&self, id: u64, value: Value, progress: crate::progress::Reporter) -> Response {
+    async fn handle_session_ensure(&self, id: u64, value: Value) -> Response {
         let params = match serde_json::from_value::<SessionEnsureParams>(value) {
             Ok(params) => params,
             // The selections carry their own validation, so name the decoding failure
@@ -565,7 +666,7 @@ impl Server {
                 );
             }
         };
-        let (wait, progress) = observation(params.follow, params.progress, progress);
+        let wait = wait_policy(params.follow);
         let request = sessions::SessionRequest {
             harness: params.harness,
             model_selection: params.model_selection,
@@ -573,9 +674,7 @@ impl Server {
         };
         result_response(
             id,
-            self.sessions
-                .ensure(&params.agent, &params.name, request, wait, progress)
-                .await,
+            self.sessions.ensure(&params.agent, &params.name, request, wait).await,
         )
     }
 
@@ -606,6 +705,29 @@ impl Server {
         result_response(id, self.sessions.get(&params.agent, &params.name).await)
     }
 
+    async fn handle_session_delete(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.sessions
+                .delete(&params.agent, &params.name)
+                .await
+                .map(|()| serde_json::json!({})),
+        )
+    }
+
+    async fn handle_session_archive(&self, id: u64, value: Value, archived: bool) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.sessions.set_archived(&params.agent, &params.name, archived).await,
+        )
+    }
+
     async fn handle_session_list(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<SessionListParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
@@ -614,14 +736,12 @@ impl Server {
     }
 }
 
-/// Maps the request's opt-in flags to the wait policy and optional progress sink.
-fn observation(follow: bool, progress: bool, reporter: Reporter) -> (WaitPolicy, Option<Reporter>) {
-    let wait = if follow {
+const fn wait_policy(follow: bool) -> WaitPolicy {
+    if follow {
         WaitPolicy::UntilReady
     } else {
         WaitPolicy::FirstPass
-    };
-    (wait, progress.then_some(reporter))
+    }
 }
 
 fn is_mutating(method: &str) -> bool {
@@ -633,14 +753,10 @@ fn is_mutating(method: &str) -> bool {
             | METHOD_AUTH_LOGIN
             | METHOD_SESSION_ENSURE
             | METHOD_SESSION_PROMPT
+            | METHOD_SESSION_DELETE
+            | METHOD_SESSION_ARCHIVE
+            | METHOD_SESSION_UNARCHIVE
     )
-}
-
-async fn flush<W: AsyncWrite + Unpin>(outbox: &Outbox, writer: &mut W) -> Result<(), Error> {
-    while let Some(event) = outbox.pop() {
-        write_notification(writer, &event).await?;
-    }
-    Ok(())
 }
 
 fn name_params(value: Value) -> Result<NameParams, Response> {
@@ -676,22 +792,6 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
 
 async fn write_response<W: AsyncWrite + Unpin>(writer: &mut W, response: &Response) -> Result<(), Error> {
     let mut bytes = serde_json::to_vec(response)?;
-    bytes.push(b'\n');
-    writer.write_all(&bytes).await?;
-    writer.flush().await?;
-    Ok(())
-}
-
-async fn write_notification<W: AsyncWrite + Unpin>(
-    writer: &mut W,
-    event: &crate::progress::Event,
-) -> Result<(), Error> {
-    let notification = Notification {
-        jsonrpc: JSON_RPC_VERSION.into(),
-        method: METHOD_PROGRESS_EVENT.into(),
-        params: serde_json::to_value(event)?,
-    };
-    let mut bytes = serde_json::to_vec(&notification)?;
     bytes.push(b'\n');
     writer.write_all(&bytes).await?;
     writer.flush().await?;

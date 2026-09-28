@@ -17,6 +17,8 @@ export type BpmnContextProps = {
   isInitialized: boolean;
   setIsInitialized: React.Dispatch<React.SetStateAction<boolean>>;
   initialBpmnXml: string;
+  /** True while the saved process is imported into the modeler, whose shape events are then not user edits. */
+  isReloadingRef: MutableRefObject<boolean>;
 };
 
 export const BpmnContext = createContext<Partial<BpmnContextProps>>(undefined);
@@ -40,6 +42,7 @@ export const BpmnContextProvider = ({
     shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck);
 
   const modelerRef = useRef<Modeler | null>(null);
+  const isReloadingRef = useRef<boolean>(false);
 
   const getUpdatedXml = async (): Promise<string> => {
     if (!modelerRef.current) {
@@ -66,6 +69,7 @@ export const BpmnContextProvider = ({
         isInitialized,
         setIsInitialized,
         initialBpmnXml,
+        isReloadingRef,
       }}
     >
       {children}

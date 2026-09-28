@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Internal.App;
 /// <summary>
 /// Default implementation of IAppMetadata
 /// </summary>
-public class AppMetadata : IAppMetadata
+internal sealed class AppMetadata : IAppMetadata
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -80,7 +80,10 @@ public class AppMetadata : IAppMetadata
                     );
                 }
 
-                application.Features = await _frontendFeatures.GetFrontendFeatures();
+                application.Features = new Dictionary<string, bool>(
+                    _frontendFeatures.GetDictionary(),
+                    StringComparer.Ordinal
+                );
                 application.ExternalApiIds = _externalApiFactory?.GetAllExternalApiIds();
                 application.OnEntry ??= new OnEntry { Show = "new-instance" };
                 application.OnEntry.Show ??= "new-instance";

@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// App implementation of the execution service needed for executing an Altinn Core Application (Functional term).
 /// </summary>
-public class AppResourcesSI : IAppResources
+internal sealed class AppResourcesSI : IAppResources
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -89,11 +89,11 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc/>
-    public string GetModelJsonSchema(string modelId)
+    public string GetModelJsonSchema(string dataTypeId)
     {
         using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
         string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{modelId}.{_settings.JsonSchemaFileName}");
+        string filename = Path.Join(legalPath, $"{dataTypeId}.{_settings.JsonSchemaFileName}");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string filedata = File.ReadAllText(filename, Encoding.UTF8);
@@ -102,11 +102,11 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetPrefillJson(string dataModelName = "ServiceModel")
+    public string? GetPrefillJson(string dataTypeId = "ServiceModel")
     {
         using var activity = _telemetry?.StartGetPrefillJsonActivity();
         string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, dataModelName + ".prefill.json");
+        string filename = Path.Join(legalPath, dataTypeId + ".prefill.json");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string? filedata = null;
@@ -459,10 +459,10 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetXsdSchema(string modelId)
+    public string? GetXsdSchema(string dataTypeId)
     {
         string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{modelId}.xsd");
+        string filename = Path.Join(legalPath, $"{dataTypeId}.xsd");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string? filedata = null;

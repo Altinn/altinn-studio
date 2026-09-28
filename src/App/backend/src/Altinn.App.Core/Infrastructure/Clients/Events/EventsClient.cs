@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events;
 /// <summary>
 /// A client for handling actions on events in Altinn Platform.
 /// </summary>
-public class EventsClient : IEventsClient
+internal sealed class EventsClient : IEventsClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly GeneralSettings _generalSettings;

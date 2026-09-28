@@ -122,6 +122,9 @@ enum Command {
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with_all = ["agent", "variant"])]
         all_agents: bool,
+        /// Include archived Sessions in a Session listing.
+        #[arg(long)]
+        archived: bool,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
@@ -142,6 +145,22 @@ enum Command {
         resource: String,
         /// Optional resource name when it is not part of `resource`.
         name: Option<String>,
+        /// Owning Agent for Session resources; inferred from the current directory when omitted.
+        #[arg(long, conflicts_with = "variant")]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
+    },
+    /// Archive a Session: stop its harness and hide it from listings, keeping its name and conversation.
+    Archive {
+        #[command(flatten)]
+        target: SessionTarget,
+    },
+    /// Unarchive a Session; the next attach resumes its conversation.
+    Unarchive {
+        #[command(flatten)]
+        target: SessionTarget,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
@@ -467,18 +486,31 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             variant,
             all_agents,
+            archived,
             output,
-        } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
+        } => get_resources(client, &resource, name, agent, variant, all_agents, archived, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
-        Command::Delete { resource, name } => {
+        Command::Delete {
+            resource,
+            name,
+            agent,
+            variant,
+        } => {
             let (resource, name) = resource_reference(&resource, name)?;
-            if resource != Resource::Agent {
-                return Err(Error::Invalid("Session deletion is not supported".into()).into());
+            if resource == Resource::Agent {
+                reject_session_scope(agent.as_deref(), variant.as_ref(), false)?;
+                let name = require_name(name, "Agent")?;
+                client.delete(&name).await?;
+                println!("agent/{name} deleted");
+            } else {
+                let name = SessionName::new(require_name(name, "Session")?)?;
+                let agent = resolve_agent_name(client, agent, variant).await?;
+                client.delete_session(&agent, name.clone()).await?;
+                println!("session/{agent}/{name} deleted");
             }
-            let name = require_name(name, "Agent")?;
-            client.delete(&name).await?;
-            println!("agent/{name} deleted");
         }
+        Command::Archive { target } => set_archived(client, target, true).await?,
+        Command::Unarchive { target } => set_archived(client, target, false).await?,
         Command::Attach {
             resource,
             name,
@@ -540,6 +572,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
     Ok(ExitCode::SUCCESS)
 }
 
+#[allow(clippy::too_many_arguments, reason = "mirrors the get command's flags")]
 async fn get_resources(
     client: &Client,
     resource: &str,
@@ -547,6 +580,7 @@ async fn get_resources(
     agent: Option<String>,
     variant: Option<AgentVariantName>,
     all_agents: bool,
+    archived: bool,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
@@ -577,11 +611,17 @@ async fn get_resources(
                         .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
                         .await?,
                 ]
-            } else if all_agents {
-                client.list_sessions(None).await?
             } else {
-                let agent = resolve_agent_name(client, agent, variant).await?;
-                client.list_sessions(Some(&agent)).await?
+                let sessions = if all_agents {
+                    client.list_sessions(None).await?
+                } else {
+                    let agent = resolve_agent_name(client, agent, variant).await?;
+                    client.list_sessions(Some(&agent)).await?
+                };
+                sessions
+                    .into_iter()
+                    .filter(|session| archived || !session.is_archived())
+                    .collect()
             };
             match output {
                 OutputFormat::Json => print_json(&sessions)?,
@@ -617,13 +657,11 @@ async fn attach(
     let agent = resolve_agent_name(client, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_session(
+        .until(
+            client,
             &agent,
-            session,
-            selection.request(None),
-            WaitPolicy::UntilReady,
-            Some(&mut wait.sink()),
-        ))
+            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+        )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
@@ -649,7 +687,7 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -710,7 +748,7 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -762,7 +800,7 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
@@ -805,7 +843,7 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -878,17 +916,29 @@ async fn create_session(
 ) -> CommandResult<()> {
     let resource = target.resource.clone();
     let request = selection.request(read_prompt_arg(input)?);
-    let wait = progress::Wait::start();
-    let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
+    let deadline = tokio::time::Instant::now() + timeout;
+    let timed_out = || {
+        CommandError::Message(format!(
+            "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
+        ))
+    };
+    let (agent, session) = tokio::time::timeout_at(deadline, async {
         ensure_daemon(home, client).await?;
-        let (agent, session) = session_target(client, target).await?;
-        client.ensure_session(
-            &agent, session.clone(), request, WaitPolicy::UntilReady, Some(&mut wait.sink()),
-        ).await?;
-        Ok::<_, CommandError>((agent, session))
-    })).await.map_err(|_| CommandError::Message(format!(
-        "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
-    )))??;
+        session_target(client, target).await
+    })
+    .await
+    .map_err(|_| timed_out())??;
+    let wait = progress::Wait::start();
+    wait.until(
+        client,
+        &agent,
+        tokio::time::timeout_at(
+            deadline,
+            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
+        ),
+    )
+    .await
+    .map_err(|_| timed_out())??;
     println!("session/{agent}/{session} ready");
     Ok(())
 }
@@ -913,6 +963,19 @@ async fn prompt_session(
         )
         .await?;
     println!("session/{agent}/{session} prompted");
+    Ok(())
+}
+
+async fn set_archived(client: &Client, target: SessionTarget, archived: bool) -> CommandResult<()> {
+    let (agent, name) = session_target(client, target).await?;
+    let session = client.set_session_archived(&agent, name.clone(), archived).await?;
+    if !archived {
+        println!("session/{agent}/{name} unarchived");
+    } else if session.status.state == agent::sessions::State::Archived {
+        println!("session/{agent}/{name} archived");
+    } else {
+        println!("session/{agent}/{name} archived; its harness stops once it is idle");
+    }
     Ok(())
 }
 
@@ -943,31 +1006,11 @@ fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
 }
 
 fn print_turns(turns: &[agent::sessions::Turn]) {
-    use agent::sessions::{Part, Role};
     if turns.is_empty() {
         eprintln!("No turns yet.");
-        return;
     }
-    for (index, turn) in turns.iter().enumerate() {
-        if index > 0 {
-            println!();
-        }
-        println!("=== turn {} ===", index + 1);
-        for message in &turn.messages {
-            let who = match message.role {
-                Role::User => "user",
-                Role::Assistant => "assistant",
-            };
-            for part in &message.parts {
-                match part {
-                    Part::Text { text } => println!("[{who}] {text}"),
-                    Part::ToolCall { name, failed } => {
-                        let mark = if *failed { " (failed)" } else { "" };
-                        println!("[{who}] -> {name}{mark}");
-                    }
-                }
-            }
-        }
+    for line in format::turn_lines(turns) {
+        println!("{line}");
     }
 }
 
@@ -1124,10 +1167,11 @@ fn inference_error(error: Error) -> CommandError {
 async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
     let wait = progress::Wait::start();
     let waited = wait
-        .until(tokio::time::timeout(
-            timeout,
-            client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut wait.sink())),
-        ))
+        .until(
+            client,
+            name,
+            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
+        )
         .await;
     match waited {
         Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
@@ -1859,6 +1903,7 @@ mod tests {
             status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+            last_transition_time: None,
         };
 
         assert_eq!(

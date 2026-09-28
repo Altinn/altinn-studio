@@ -36,9 +36,7 @@ class TestSwapLayoutInPreviewUrl:
 
 class TestBuildScores:
     def test_all_pages_rendering_scores_full(self):
-        scores = build_scores(
-            [PageRenderResult("Side1", True), PageRenderResult("Side2", True)]
-        )
+        scores = build_scores([PageRenderResult("Side1", True), PageRenderResult("Side2", True)])
         by_name = {score.name: score for score in scores}
         assert by_name["bench_renders"].value == 1.0
         assert by_name["bench_pages_render"].value == 1.0
@@ -115,8 +113,7 @@ class TestItRunsInsideTheExperimentRunner:
 
         assert asyncio.run(run_like_the_sdk_does()) == []
         assert calling_thread["loop"] is False, (
-            "the render check ran on a thread with a live event loop, so Playwright's "
-            "sync API will refuse"
+            "the render check ran on a thread with a live event loop, so Playwright's sync API will refuse"
         )
         assert calling_thread["name"] != "MainThread"
 

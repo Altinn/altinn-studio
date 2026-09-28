@@ -231,6 +231,10 @@ Per-step, configurable:
 | Linear      | `base × iteration`       | 1s, 2s, 3s...                          |
 | Exponential | `base × 2^(iteration-1)` | 1s, 2s, 4s, 8s... (capped at MaxDelay) |
 
+A collection head reports `failedAttempts`: how many consecutive attempts of its current step have
+failed and been scheduled for retry. It holds steady while a retry attempt runs, so a consumer can
+tell a failing head from a slow one without a per-workflow lookup.
+
 ### Failure Outcomes
 
 When a workflow fails:
@@ -1111,7 +1115,7 @@ OpenTelemetry data exported via OTLP, designed for Grafana (Tempo + Prometheus).
 | `engine.mailboxes.created`                | Counter   | —                                                                                        |
 | `engine.mailboxes.closed`                 | Counter   | `reason` (`request`/`deadline`)                                                          |
 | `engine.mailboxes.deliveries.received`    | Counter   | `outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
-| `engine.mailboxes.deliveries.unpaired`  | Counter   | — (recorded by the deadline sweep alone)                                                 |
+| `engine.mailboxes.deliveries.unpaired`    | Counter   | — (recorded by the deadline sweep alone)                                                 |
 | `engine.mailboxes.receivers.created`      | Counter   | `birth` (`delivered`/`closed`/`held`)                                                    |
 | `engine.mailboxes.receivers.released`     | Counter   | `cause` (`delivered`/`closed`)                                                           |
 | `engine.mailboxes.receivers.wake_latency` | Histogram | — (seconds from release to first claim, recorded once per release)                       |
@@ -1422,9 +1426,7 @@ GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:500012
 
 ```json
 {
-    "data": [
-        /* WorkflowStatusResponse items */
-    ],
+    "data": [/* WorkflowStatusResponse items */],
     "pageSize": 25,
     "totalCount": 142,
     "nextCursor": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
@@ -1824,15 +1826,15 @@ immediately, without waiting for the next sweep. Operational tooling — the obs
 force-trip/force-clear endpoints, the dashboard panel, and the nudge/resume interplay — is
 described under [Failure-Storm Throttling](#failure-storm-throttling).
 
-| Setting                            | Default | Description                                             |
-| ---------------------------------- | ------- | ------------------------------------------------------- |
-| `Throttling.Enabled`               | false   | Master switch for the namespace circuit breaker         |
-| `Throttling.MinRequeuedWorkflows`  | 50      | Absolute floor of `Requeued` workflows before tripping  |
-| `Throttling.MinRequeuedRatio`      | 0.5     | Fraction of active workflows that must be `Requeued`    |
-| `Throttling.SweepInterval`         | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
-| `Throttling.CanaryCount`           | 3       | Canary workflows kept on the normal retry schedule      |
-| `Throttling.InitialWindow`         | 10m     | Throttle window at first trip                           |
-| `Throttling.MaxWindow`             | 1h      | Cap on the exponentially growing window                 |
+| Setting                           | Default | Description                                                  |
+| --------------------------------- | ------- | ------------------------------------------------------------ |
+| `Throttling.Enabled`              | false   | Master switch for the namespace circuit breaker              |
+| `Throttling.MinRequeuedWorkflows` | 50      | Absolute floor of `Requeued` workflows before tripping       |
+| `Throttling.MinRequeuedRatio`     | 0.5     | Fraction of active workflows that must be `Requeued`         |
+| `Throttling.SweepInterval`        | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
+| `Throttling.CanaryCount`          | 3       | Canary workflows kept on the normal retry schedule           |
+| `Throttling.InitialWindow`        | 10m     | Throttle window at first trip                                |
+| `Throttling.MaxWindow`            | 1h      | Cap on the exponentially growing window                      |
 
 Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
 `ThrottlingSettings`, deliberately not configuration.

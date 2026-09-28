@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.ExternalApi;
 using Altinn.App.Core.Models;
 
