@@ -16,9 +16,11 @@ spec:
           randomization_factor: 0.5
           multiplier: 1.5
           max_interval: 30s
-          max_elapsed_time: 300s
+          max_elapsed_time: 60s # a rollout needs seconds; also limits a batch that crashes gateways
         sending_queue:
-          enabled: true # in memory, 1,000 batches
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608 # 8 MiB serialized, several times that in memory; the router has 256Mi
         protocol:
           otlp:
             tls:
@@ -43,9 +45,11 @@ spec:
           randomization_factor: 0.5
           multiplier: 1.5
           max_interval: 30s
-          max_elapsed_time: 300s
+          max_elapsed_time: 60s
         sending_queue:
           enabled: true
+          sizer: bytes
+          queue_size: 8388608
         protocol:
           otlp:
             tls:
