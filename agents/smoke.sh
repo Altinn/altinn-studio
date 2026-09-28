@@ -330,9 +330,11 @@ for _ in $(seq 1 300); do desktop windows | grep -qi chromium && break; sleep 0.
 desktop windows | grep -qi chromium || fail "the desktop browser never opened a window"
 # The desktop browser exposes its page and its own controls to `desktop tree`, with click boxes.
 for _ in $(seq 1 50); do desktop tree chrom 2>/dev/null | grep -q '^ *document web "smoke" @' && break; sleep 0.2; done
-desktop tree chrom >tree.txt || true
-grep -q '^ *document web "smoke" @' tree.txt || fail "desktop tree does not show the page"$'\n'"$(cat tree.txt)"
-grep -q '^ *entry ".*" value=".*localhost:8321' tree.txt \
+# Trees are captured rather than piped: `grep -q` stops reading at the first match, the tree
+# helper then fails writing the rest, and under `pipefail` the check would fail on a match.
+tree="$(desktop tree chrom)" || fail "desktop tree chrom failed"
+grep -q '^ *document web "smoke" @' <<<"$tree" || fail "desktop tree does not show the page"$'\n'"$tree"
+grep -q '^ *entry ".*" value=".*localhost:8321' <<<"$tree" \
     || fail "desktop tree does not show the browser's address bar"
 # The headed playwright-cli browser the skill steers page work to is in the tree as well, including
 # from a project whose own playwright-cli configuration sets launch arguments: that configuration
@@ -342,7 +344,8 @@ printf '{"browser":{"launchOptions":{"args":["--lang=nb"]}}}\n' >headed/.playwri
 (cd headed && PLAYWRIGHT_CLI_SESSION=smoke-headed playwright-cli open --browser chromium --headed \
     'https://localhost:8321/?headed' >/dev/null)
 for _ in $(seq 1 50); do desktop tree chromium 2>/dev/null | grep -q '"smoke headed" @' && break; sleep 0.2; done
-desktop tree chromium | grep -q '^ *document web "smoke headed" @' \
+tree="$(desktop tree chromium)" || fail "desktop tree chromium failed"
+grep -q '^ *document web "smoke headed" @' <<<"$tree" \
     || fail "the headed playwright-cli browser is missing from desktop tree"
 (cd headed && PLAYWRIGHT_CLI_SESSION=smoke-headed playwright-cli close >/dev/null)
 shot="$(desktop --json screenshot)"
@@ -414,7 +417,8 @@ pkill -x sakura || true
 # does not export SHELL, and without it sakura opens a window with no shell in it.
 env -u SHELL setsid desktop-terminal >terminal-plain.log 2>&1 &
 for _ in $(seq 1 50); do desktop tree sakura 2>/dev/null | grep -q '\$" @' && break; sleep 0.2; done
-desktop tree sakura 2>/dev/null | grep -q '^ *terminal ".*\$" @' \
+tree="$(desktop tree sakura)" || fail "desktop tree sakura failed"
+grep -q '^ *terminal ".*\$" @' <<<"$tree" \
     || fail "a terminal started without SHELL shows no shell prompt"
 pkill -x sakura || true
 # It loads the Session environment SSH access writes, and desktop tree reads what it shows.
@@ -422,7 +426,8 @@ printf 'SMOKE_MARKER=from-session\n' >session.env
 AGENT_DESKTOP_ENVIRONMENT="$work/session.env" setsid desktop-terminal \
     -x "bash -c 'echo marker=\$SMOKE_MARKER; exec bash'" >terminal.log 2>&1 &
 for _ in $(seq 1 50); do desktop tree sakura 2>/dev/null | grep -q 'marker=from-session' && break; sleep 0.2; done
-desktop tree sakura 2>/dev/null | grep -q '^ *terminal ".*value=".*marker=from-session' \
+tree="$(desktop tree sakura)" || fail "desktop tree sakura failed"
+grep -q '^ *terminal ".*value=".*marker=from-session' <<<"$tree" \
     || fail "the desktop terminal did not load the Session environment, or desktop tree cannot read it"
 pkill -x sakura || true
 
