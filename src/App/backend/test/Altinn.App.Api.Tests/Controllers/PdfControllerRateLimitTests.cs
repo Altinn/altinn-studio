@@ -18,7 +18,7 @@ public class PdfControllerRateLimitTests : ApiTestBase, IClassFixture<WebApplica
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
-    private static readonly Guid _instanceGuid = new("00000000-dead-0000-babe-000000000999");
+    private static readonly Guid _instanceGuid = new("ace19a86-3468-40ee-9393-ee7e0c1ab768");
 
     public PdfControllerRateLimitTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper) { }
