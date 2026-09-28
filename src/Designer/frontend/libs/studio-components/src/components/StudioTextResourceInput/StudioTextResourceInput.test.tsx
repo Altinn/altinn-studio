@@ -135,7 +135,7 @@ describe('StudioTextResourceInput', () => {
     await user.tab();
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
-    expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
+    expect(onChangeCurrentId).toHaveBeenCalledTimes(2); // u-combobox 2.1.4 → 2.1.5 in DS v1.23, makes it call twice, one at clear and one at blur
     expect(onChangeCurrentId).toHaveBeenCalledWith(null);
   });
 
