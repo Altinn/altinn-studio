@@ -218,7 +218,7 @@ describe('StudioExpression', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it('Keeps the text as typed in the manual editor when the new expression is passed back as a prop', async () => {
+  it('Keeps the text as typed in the manual editor and formats it when the textarea loses focus', async () => {
     const user = userEvent.setup();
     const { rerender } = renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
@@ -234,14 +234,6 @@ describe('StudioExpression', () => {
       />,
     );
     expect(input).toHaveValue(typedString);
-  });
-
-  it('Formats the expression in the manual editor when the textarea loses focus', async () => {
-    const user = userEvent.setup();
-    renderExpression(tooComplexExpression);
-    const input = screen.getByRole('textbox');
-    await user.clear(input);
-    await user.paste('["equals", 1, 1]');
     await user.tab();
     expect(input).toHaveValue(expressionToString(['equals', 1, 1]));
   });
