@@ -1,4 +1,5 @@
 mod app;
+mod open;
 mod provisioning;
 mod terminal;
 mod view;
@@ -29,6 +30,7 @@ use agent::manifest::MANIFEST_FILE;
 use app::{
     Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
 };
+use open::{OpenTarget, SshSetup};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
@@ -63,6 +65,12 @@ enum Input {
     ArchiveChanged(Session),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
+    /// Whether the user's OpenSSH configuration includes the generated one.
+    SshSetupChecked(SshSetup),
+    /// The `Include` was added, or why not, and what to open next.
+    SshSetUp(Result<(), String>, Option<(String, OpenTarget)>),
+    /// A background open finished: the notice to show, or why it failed.
+    Opened(Result<String, String>),
 }
 
 /// Sends the event loop what background work finished.
@@ -150,8 +158,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         return Err(Error::Invalid("tui requires an interactive local terminal".into()).into());
     }
     let mut app = App::new();
+    app.environment = open::Environment::detect();
+    app.ssh_include = agent::ssh::UserInclude::for_home(home).ok();
     let mut forwards = ActiveForwards::default();
     let (inputs, mut background) = tokio::sync::mpsc::unbounded_channel();
+    spawn_ssh_setup_check(app.ssh_include.clone(), inputs.clone());
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -219,6 +230,15 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.manifests_discovered(candidates);
                 continue;
             }
+            Input::SshSetupChecked(setup) => {
+                app.ssh_setup = setup;
+                continue;
+            }
+            Input::SshSetUp(result, then) => app.ssh_set_up(result, then, Instant::now()),
+            Input::Opened(result) => {
+                app.opened(result, Instant::now());
+                continue;
+            }
             Input::Event(None) => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
@@ -242,7 +262,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
         };
         match action {
-            Action::None => {}
+            Action::None
+            | Action::Open {
+                target: OpenTarget::SetUpSsh,
+                ..
+            } => {}
             Action::Quit => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
@@ -284,6 +308,23 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.prompting += 1;
                 spawn_prompt(home.socket_path(), inputs.clone(), form);
             }
+            Action::Open {
+                agent,
+                target: OpenTarget::Editor(editor),
+            } => {
+                app.opening += 1;
+                let launcher = app.environment.launcher(editor).map(Path::to_path_buf);
+                spawn_open_editor(home.socket_path(), inputs.clone(), agent, editor, launcher);
+            }
+            Action::Open {
+                agent,
+                target: OpenTarget::CopyAlias,
+            } => {
+                let alias = agent::ssh::alias(&agent);
+                terminal::copy_to_clipboard(&alias)?;
+                app.notice = Some((format!("copied {alias}"), Instant::now()));
+            }
+            Action::SetUpSsh { then } => spawn_ssh_setup(app.ssh_include.clone(), inputs.clone(), then),
             action => {
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
@@ -405,6 +446,64 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
             }
         }
     })
+}
+
+/// Checks whether the user's OpenSSH configuration includes the generated one.
+fn spawn_ssh_setup_check(include: Option<agent::ssh::UserInclude>, inputs: Inputs) {
+    tokio::task::spawn_local(async move {
+        let setup = tokio::task::spawn_blocking(move || match include.map(|include| include.installed()) {
+            Some(Ok(true)) => SshSetup::Installed,
+            Some(Ok(false)) => SshSetup::Missing,
+            Some(Err(_)) | None => SshSetup::Unknown,
+        })
+        .await
+        .unwrap_or_default();
+        let _ = inputs.send(Input::SshSetupChecked(setup));
+    });
+}
+
+/// Adds the `Include` to the user's OpenSSH configuration off the event loop.
+fn spawn_ssh_setup(include: Option<agent::ssh::UserInclude>, inputs: Inputs, then: Option<(String, OpenTarget)>) {
+    tokio::task::spawn_local(async move {
+        let result = tokio::task::spawn_blocking(move || {
+            include
+                .ok_or_else(|| "the user home directory is not set (HOME or USERPROFILE)".to_owned())?
+                .install()
+                .map(|_| ())
+                .map_err(|error| error.to_string())
+        })
+        .await
+        .unwrap_or_else(|error| Err(error.to_string()));
+        let _ = inputs.send(Input::SshSetUp(result, then));
+    });
+}
+
+/// Opens an editor on the Agent once it is Ready, so the editor's first
+/// connection does not wait behind provisioning and time out.
+fn spawn_open_editor(
+    socket_path: PathBuf,
+    inputs: Inputs,
+    agent: String,
+    editor: crate::launch::Editor,
+    launcher: Option<PathBuf>,
+) {
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let result = async {
+            client
+                .ensure_execution(&agent, WaitPolicy::UntilReady)
+                .await
+                .map_err(|error| error.to_string())?;
+            let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
+            let launch = editor
+                .launch(launcher.as_deref(), &access.alias, &access.working_directory)
+                .ok_or_else(|| editor.missing_launcher().unwrap_or_default())?;
+            launch.start()?;
+            Ok(format!("opening {} on {agent}", editor.label()))
+        }
+        .await;
+        let _ = inputs.send(Input::Opened(result));
+    });
 }
 
 /// Loads the most recent turns of the selected Session.
@@ -642,7 +741,15 @@ async fn suspended(
             };
             attach(home, client, &agent, session, request).await
         }
-        Action::Exec { agent } => exec(home, client, &agent).await,
+        Action::Exec { agent }
+        | Action::Open {
+            agent,
+            target: OpenTarget::Shell,
+        } => exec(home, client, &agent).await,
+        Action::Open {
+            agent,
+            target: OpenTarget::SshShell,
+        } => ssh_shell(client, &agent).await,
         _ => Ok(()),
     };
     tui.resume()?;
@@ -689,6 +796,33 @@ async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(
             "terminal execution returned an unsupported outcome".into(),
         )),
     }
+}
+
+/// Runs OpenSSH against the Agent's generated alias until it exits.
+///
+/// Unlike `agentctl ssh`, this waits for the client rather than replacing the
+/// process, which is the TUI's.
+async fn ssh_shell(client: &Client, agent: &str) -> Result<(), Error> {
+    let wait = Wait::start();
+    wait.until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
+        .await?;
+    let access = client.ssh_access(agent).await?;
+    let status = std::process::Command::new(crate::ssh_client_executable())
+        .arg("-F")
+        .arg(&access.config_file)
+        .arg(&access.alias)
+        .status()
+        .map_err(|error| match error.kind() {
+            std::io::ErrorKind::NotFound => Error::Invalid(
+                "the OpenSSH client `ssh` was not found on PATH; install OpenSSH for an SSH shell".into(),
+            ),
+            _ => Error::Invalid(format!("could not run the OpenSSH client: {error}")),
+        })?;
+    // 255 is OpenSSH's own failure; any other status is the remote shell's last command.
+    if status.code() == Some(255) {
+        return Err(Error::Invalid(format!("ssh could not connect to {}", access.alias)));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

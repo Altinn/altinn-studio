@@ -18,6 +18,7 @@ use agent::{
 use clap::{Parser, Subcommand, ValueEnum};
 
 mod format;
+mod launch;
 mod progress;
 mod self_update;
 mod tui;
@@ -922,18 +923,11 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
 }
 
 fn install_ssh_config(home: &ControlPlaneHome) -> CommandResult<()> {
-    let user_home = agent::local::home::user_home_directory()
-        .ok_or_else(|| Error::Invalid("the user home directory is not set (HOME or USERPROFILE)".into()))?;
-    let user_config = user_home.join(".ssh").join("config");
-    let generated = agent::ssh::SshHome::new(home).config_path();
-    let include = agent::ssh::render_include(&generated, Some(&user_home));
-    match agent::ssh::install_include(&user_config, &include)? {
-        agent::ssh::IncludeOutcome::Installed => {
-            println!("added `{include}` at the top of {}", user_config.display());
-        }
-        agent::ssh::IncludeOutcome::AlreadyInstalled => {
-            println!("{} already contains `{include}`", user_config.display());
-        }
+    let include = agent::ssh::UserInclude::for_home(home)?;
+    let (line, user_config) = (&include.line, include.user_config.display());
+    match include.install()? {
+        agent::ssh::IncludeOutcome::Installed => println!("added `{line}` at the top of {user_config}"),
+        agent::ssh::IncludeOutcome::AlreadyInstalled => println!("{user_config} already contains `{line}`"),
     }
     Ok(())
 }
@@ -1034,16 +1028,9 @@ async fn vnc(
 /// Best effort by design: there is no portable VNC viewer, the address is
 /// already printed, and a missing handler must not fail the forward.
 fn open_locally(url: &str) {
-    let opener = if cfg!(target_os = "macos") {
-        "open"
-    } else if cfg!(target_os = "windows") {
-        "explorer"
-    } else {
-        "xdg-open"
-    };
-    match ProcessCommand::new(opener).arg(url).spawn() {
-        Ok(_) => println!("Asked {opener} to open {url}."),
-        Err(error) => eprintln!("could not run {opener} to open {url}: {error}"),
+    match launch::open_url(url) {
+        Ok(()) => println!("Asked {} to open {url}.", launch::opener()),
+        Err(error) => eprintln!("{error}"),
     }
 }
 

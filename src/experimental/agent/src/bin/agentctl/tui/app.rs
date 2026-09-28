@@ -13,6 +13,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sandbox::progress::{OperationStatus, Progress};
 use time::OffsetDateTime;
 
+use super::open::{Environment, OpenMenu, OpenTarget, SshSetup};
 use crate::{format, forward::ForwardSpec};
 
 /// Output lines of a failed pass the Agent side panel shows.
@@ -93,6 +94,18 @@ pub(crate) const FILTER_HINTS: [Hint; 2] = [
     Hint::key("esc", "clear", KeyCode::Esc),
 ];
 
+/// Key hints of the open menu, shared by the modal and the footer.
+pub(crate) const OPEN_HINTS: [Hint; 3] = [
+    Hint::key("enter", "open", KeyCode::Enter),
+    Hint::display("↑/↓", "select"),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
+pub(crate) const CONFIRM_SSH_SETUP_HINTS: [Hint; 2] = [
+    Hint::key("y", "add", KeyCode::Char('y')),
+    Hint::key("n", "back", KeyCode::Char('n')),
+];
+
 pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("enter", "forward", KeyCode::Enter),
     Hint::key("tab", "field", KeyCode::Tab),
@@ -112,9 +125,10 @@ const FORWARD_VIEW_HINTS: [Hint; 3] = [
 
 // Selection hints come most used first, so a footer too narrow for all of
 // them drops the rarest.
-const AGENT_HINTS: [Hint; 10] = [
+const AGENT_HINTS: [Hint; 11] = [
     Hint::key("enter", "fold", KeyCode::Enter),
     Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("e", "exec", KeyCode::Char('e')),
     Hint::key("f", "forward", KeyCode::Char('f')),
     Hint::key("d", "delete", KeyCode::Char('d')),
@@ -125,9 +139,10 @@ const AGENT_HINTS: [Hint; 10] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
-const SESSION_HINTS: [Hint; 8] = [
+const SESSION_HINTS: [Hint; 9] = [
     Hint::key("enter", "attach", KeyCode::Enter),
     Hint::key("p", "prompt", KeyCode::Char('p')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("a", "archive", KeyCode::Char('a')),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("s", "describe", KeyCode::Char('s')),
@@ -136,8 +151,9 @@ const SESSION_HINTS: [Hint; 8] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
-const ARCHIVED_SESSION_HINTS: [Hint; 6] = [
+const ARCHIVED_SESSION_HINTS: [Hint; 7] = [
     Hint::key("a", "unarchive", KeyCode::Char('a')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
@@ -189,6 +205,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "follow provisioning"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session"),
+                ("o", "open in a shell or editor"),
                 ("e", "shell in its Sandbox"),
                 ("f", "forward a port"),
                 ("d", "delete"),
@@ -200,6 +217,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "prompt without attaching"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session on its Agent"),
+                ("o", "open its Agent"),
                 ("a", "archive, or unarchive"),
                 ("d", "delete"),
             ],
@@ -249,6 +267,14 @@ pub(crate) struct App {
     pub(crate) notice: Option<(String, Instant)>,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
+    /// Editors and whether the terminal is remote, which the open menu depends on.
+    pub(crate) environment: Environment,
+    /// Whether the user's OpenSSH configuration includes the generated one.
+    pub(crate) ssh_setup: SshSetup,
+    /// The `Include` SSH setup adds, when the user's home is known.
+    pub(crate) ssh_include: Option<agent::ssh::UserInclude>,
+    /// Opens running in the background.
+    pub(crate) opening: usize,
 }
 
 /// Display state of one process-owned port forward.
@@ -331,14 +357,27 @@ impl Detail {
 }
 
 pub(crate) enum Modal {
-    ConfirmDelete { agent: String, sessions: usize },
-    ConfirmDeleteSession { agent: String, session: SessionName },
+    ConfirmDelete {
+        agent: String,
+        sessions: usize,
+    },
+    ConfirmDeleteSession {
+        agent: String,
+        session: SessionName,
+    },
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
     Filter,
     Prompt(PromptForm),
     Help,
+    Open(OpenMenu),
+    /// Asks before adding the `Include` to the user's OpenSSH configuration,
+    /// then opens `then` in `agent`.
+    ConfirmSshSetup {
+        agent: String,
+        then: Option<OpenTarget>,
+    },
 }
 
 /// A prompt for a running Session, sent without attaching to it.
@@ -903,8 +942,13 @@ pub(crate) enum MouseAction {
     FocusSessionField(SessionField),
     SelectHarness(usize),
     FocusCreateField(CreateField),
-    SelectCreate { field: CreateField, delta: isize },
+    SelectCreate {
+        field: CreateField,
+        delta: isize,
+    },
     FocusForwardField(ForwardField),
+    /// Chooses the open menu's item at this index.
+    ChooseOpen(usize),
 }
 
 /// A rendered row whose selection is owned by the application.
@@ -988,6 +1032,14 @@ pub(crate) enum Action {
     DeleteForward {
         id: u64,
     },
+    Open {
+        agent: String,
+        target: OpenTarget,
+    },
+    /// Adds the `Include`, then opens `then`.
+    SetUpSsh {
+        then: Option<(String, OpenTarget)>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1057,6 +1109,10 @@ impl App {
             notice: None,
             discovering: false,
             queued_candidates: None,
+            environment: Environment::default(),
+            ssh_setup: SshSetup::Unknown,
+            ssh_include: None,
+            opening: 0,
         }
     }
 
@@ -1394,6 +1450,21 @@ impl App {
                 }
                 Action::None
             }
+            MouseAction::ChooseOpen(index) => {
+                let Some(Modal::Open(menu)) = self.modal.take() else {
+                    return Action::None;
+                };
+                let chosen = menu
+                    .items
+                    .get(index)
+                    .filter(|item| item.unavailable.is_none())
+                    .map(|item| item.target);
+                if let Some(target) = chosen {
+                    return self.choose(menu.agent, target);
+                }
+                self.modal = Some(Modal::Open(menu));
+                Action::None
+            }
         }
     }
 
@@ -1431,8 +1502,8 @@ impl App {
             KeyCode::Char('z') => self.toggle_all(),
             KeyCode::Char('A') => {
                 self.show_archived = !self.show_archived;
-                // Every notice is about archiving, so showing or hiding
-                // archived Sessions answers it, "A to show" included.
+                // Showing or hiding archived Sessions answers a notice about
+                // archiving, "A to show" included; any other is short-lived.
                 self.notice = None;
                 self.rebuild();
             }
@@ -1514,6 +1585,7 @@ impl App {
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
             }
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('o') => self.open_menu(&name),
             KeyCode::Char('e') => return Action::Exec { agent: name },
             KeyCode::Char('f') => {
                 self.modal = Some(Modal::PortForward(ForwardForm {
@@ -1573,6 +1645,10 @@ impl App {
                 });
             }
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('o') => {
+                let agent = session.agent.clone();
+                self.open_menu(&agent);
+            }
             KeyCode::Char('p') => {
                 self.modal = Some(Modal::Prompt(PromptForm {
                     agent: session.agent.clone(),
@@ -1652,6 +1728,8 @@ impl App {
                 self.modal = Some(Modal::Prompt(form));
                 Action::None
             }
+            Some(Modal::Open(menu)) => self.open_menu_key(menu, key),
+            Some(Modal::ConfirmSshSetup { agent, then }) => self.confirm_ssh_setup_key(agent, then, key),
             Some(Modal::Filter) => {
                 match key.code {
                     KeyCode::Enter => return Action::None,
@@ -1844,6 +1922,23 @@ impl App {
                     .map(|line| line.text.as_str()),
             ));
         }
+        lines.extend([String::new(), "Connect · o open…".to_owned()]);
+        lines.extend(super::open::connect_lines(agent, &self.environment, self.ssh_setup));
+        let mut states = Vec::<(&str, usize)>::new();
+        for session in self.sessions.iter().filter(|session| session.agent == name) {
+            let (_, _, state) = session_state(session.status.state);
+            match states.iter_mut().find(|(listed, _)| *listed == state) {
+                Some((_, count)) => *count += 1,
+                None => states.push((state, 1)),
+            }
+        }
+        if !states.is_empty() {
+            let states = states
+                .iter()
+                .map(|(state, count)| format!("{count} {}", state.to_lowercase()))
+                .collect::<Vec<_>>();
+            lines.extend([String::new(), format!("Sessions   {}", states.join(" · "))]);
+        }
         lines
     }
 
@@ -1863,6 +1958,99 @@ impl App {
             detail.lines = lines;
             // The next draw measures the new lines.
             detail.scroll_limit.set(None);
+        }
+    }
+
+    /// Applies one key to the open menu: moving, choosing by row or by the item's own key.
+    fn open_menu_key(&mut self, mut menu: OpenMenu, key: KeyEvent) -> Action {
+        let chosen = match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => return Action::None,
+            KeyCode::Enter => menu.chosen(),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Tab => {
+                menu.move_selection(1);
+                None
+            }
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::BackTab => {
+                menu.move_selection(-1);
+                None
+            }
+            KeyCode::Char(character) => menu.by_key(character),
+            _ => None,
+        };
+        if let Some(target) = chosen {
+            return self.choose(menu.agent, target);
+        }
+        self.modal = Some(Modal::Open(menu));
+        Action::None
+    }
+
+    /// Applies one key to the SSH setup question; declining returns to the menu.
+    fn confirm_ssh_setup_key(&mut self, agent: String, then: Option<OpenTarget>, key: KeyEvent) -> Action {
+        match key.code {
+            KeyCode::Char('y') => Action::SetUpSsh {
+                then: then.map(|target| (agent, target)),
+            },
+            KeyCode::Esc | KeyCode::Char('n' | 'q') => {
+                self.open_menu(&agent);
+                Action::None
+            }
+            _ => {
+                self.modal = Some(Modal::ConfirmSshSetup { agent, then });
+                Action::None
+            }
+        }
+    }
+
+    /// Opens the open menu for the named Agent.
+    fn open_menu(&mut self, agent: &str) {
+        if let Some(agent) = self.agents.iter().find(|candidate| candidate.metadata.name == agent) {
+            self.modal = Some(Modal::Open(OpenMenu::new(agent, &self.environment, self.ssh_setup)));
+        }
+    }
+
+    /// Opens `target` in `agent`, asking first when it needs the SSH setup
+    /// that is still missing.
+    fn choose(&mut self, agent: String, target: OpenTarget) -> Action {
+        match target {
+            OpenTarget::SetUpSsh => {
+                self.modal = Some(Modal::ConfirmSshSetup { agent, then: None });
+                Action::None
+            }
+            target if target.needs_include() && self.ssh_setup == SshSetup::Missing => {
+                self.modal = Some(Modal::ConfirmSshSetup {
+                    agent,
+                    then: Some(target),
+                });
+                Action::None
+            }
+            target => Action::Open { agent, target },
+        }
+    }
+
+    /// Records the SSH setup's outcome and continues to what it was set up for.
+    pub(crate) fn ssh_set_up(
+        &mut self,
+        result: Result<(), String>,
+        then: Option<(String, OpenTarget)>,
+        now: Instant,
+    ) -> Action {
+        if let Err(error) = result {
+            self.error = Some(error);
+            return Action::None;
+        }
+        self.ssh_setup = SshSetup::Installed;
+        if let Some(include) = &self.ssh_include {
+            self.notice = Some((format!("SSH set up in {}", include.user_config.display()), now));
+        }
+        then.map_or(Action::None, |(agent, target)| Action::Open { agent, target })
+    }
+
+    /// Shows how a background open ended.
+    pub(crate) fn opened(&mut self, result: Result<String, String>, now: Instant) {
+        self.opening = self.opening.saturating_sub(1);
+        match result {
+            Ok(notice) => self.notice = Some((notice, now)),
+            Err(error) => self.error = Some(error),
         }
     }
 
@@ -2049,6 +2237,8 @@ impl App {
                 Modal::Filter => &FILTER_HINTS,
                 Modal::Prompt(_) => &PROMPT_HINTS,
                 Modal::Help => &HELP_HINTS,
+                Modal::Open(_) => &OPEN_HINTS,
+                Modal::ConfirmSshSetup { .. } => &CONFIRM_SSH_SETUP_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -3911,5 +4101,143 @@ mod tests {
         assert_eq!(detail.title, "session/builder/b1 yaml");
         assert!(detail.lines.iter().any(|line| line.contains("harness: claudeCode")));
         assert!(detail.lines.iter().any(|line| line.contains("name: b1")));
+    }
+
+    fn ssh_app(setup: SshSetup) -> App {
+        let mut worker = ready_agent("worker");
+        worker.spec.access = vec![agent::AccessSpec::Ssh {}];
+        let mut app = App::new();
+        app.ssh_setup = setup;
+        app.apply_snapshot(vec![worker], vec![session("worker", "main", "working")]);
+        app
+    }
+
+    #[test]
+    fn o_opens_the_menu_of_the_selected_agent_or_of_a_sessions_agent() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        assert_eq!(app.on_key(key(KeyCode::Char('o'))), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::Open(menu)) if menu.agent == "worker"));
+        assert_eq!(app.hints(), &OPEN_HINTS);
+
+        app.modal = None;
+        app.selection = Some(TreeRowId::Session {
+            agent: "worker".into(),
+            session: SessionName::new("main").expect("name"),
+        });
+        app.on_key(key(KeyCode::Char('o')));
+        assert!(matches!(&app.modal, Some(Modal::Open(menu)) if menu.agent == "worker"));
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn choosing_an_item_opens_it_in_the_agent() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('c'))),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::Editor(crate::launch::Editor::VsCode),
+            }
+        );
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::Shell,
+            },
+            "the shell is selected first"
+        );
+    }
+
+    #[test]
+    fn an_editor_asks_for_the_missing_ssh_setup_and_then_opens() {
+        let mut app = ssh_app(SshSetup::Missing);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::None);
+        let editor = OpenTarget::Editor(crate::launch::Editor::VsCode);
+        assert_eq!(
+            app.modal
+                .as_ref()
+                .map(|modal| matches!(modal, Modal::ConfirmSshSetup { then: Some(target), .. } if *target == editor)),
+            Some(true)
+        );
+        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_HINTS);
+
+        // Declining returns to the menu, which still offers the setup.
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::Open(menu))
+            if menu.items.iter().any(|item| item.target == OpenTarget::SetUpSsh)));
+
+        app.on_key(key(KeyCode::Char('c')));
+        let then = Some(("worker".to_owned(), editor));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::SetUpSsh { then: then.clone() }
+        );
+        let now = Instant::now();
+        assert_eq!(
+            app.ssh_set_up(Ok(()), then, now),
+            Action::Open {
+                agent: "worker".into(),
+                target: editor,
+            }
+        );
+        assert_eq!(app.ssh_setup, SshSetup::Installed);
+
+        // Once set up, the editor opens directly.
+        app.on_key(key(KeyCode::Char('o')));
+        assert!(matches!(app.on_key(key(KeyCode::Char('c'))), Action::Open { .. }));
+    }
+
+    #[test]
+    fn a_failed_ssh_setup_is_reported_and_opens_nothing() {
+        let mut app = ssh_app(SshSetup::Missing);
+        let then = Some(("worker".to_owned(), OpenTarget::CopyAlias));
+
+        assert_eq!(
+            app.ssh_set_up(Err("read-only file system".into()), then, Instant::now()),
+            Action::None
+        );
+        assert_eq!(app.error.as_deref(), Some("read-only file system"));
+        assert_eq!(app.ssh_setup, SshSetup::Missing);
+    }
+
+    #[test]
+    fn the_agent_panel_shows_how_to_connect_and_its_sessions() {
+        let app = ssh_app(SshSetup::Missing);
+        let lines = app.agent_panel_lines("worker");
+        let connect = lines
+            .iter()
+            .position(|line| line == "Connect · o open…")
+            .expect("Connect section");
+        assert_eq!(lines[connect + 1], "  shell      in this terminal");
+        assert!(lines.contains(&"  ! editors need SSH set up; o offers it".to_owned()));
+        assert!(lines.contains(&"  ssh alias  agentctl-worker".to_owned()));
+        assert_eq!(lines.last().map(String::as_str), Some("Sessions   1 working"));
+        assert!(
+            lines.iter().all(|line| !line.contains("agentctl ")),
+            "the panel offers keys, not commands: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn a_background_open_ends_in_a_notice_or_an_error() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.opening = 2;
+        let now = Instant::now();
+        app.opened(Ok("opening VS Code on worker".into()), now);
+        assert_eq!(
+            app.notice.as_ref().map(|(text, _)| text.as_str()),
+            Some("opening VS Code on worker")
+        );
+        app.opened(Err("could not run code".into()), now);
+        assert_eq!(app.error.as_deref(), Some("could not run code"));
+        assert_eq!(app.opening, 0);
     }
 }

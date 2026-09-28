@@ -278,7 +278,7 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
         Err(error) => return Err(error.into()),
     };
-    if global_lines(&existing).any(|line| line == include) {
+    if carries_include(&existing, include) {
         return Ok(IncludeOutcome::AlreadyInstalled);
     }
     if let Some(directory) = target.parent()
@@ -294,6 +294,24 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
     }
     write_private_file(&target, text.as_bytes())?;
     Ok(IncludeOutcome::Installed)
+}
+
+/// Returns whether `user_config` carries `include` where OpenSSH applies it to
+/// every host, by the rule [`install_include`] uses; a missing file carries none.
+///
+/// # Errors
+///
+/// Returns an error when the file exists but cannot be read.
+pub fn include_installed(user_config: &Path, include: &str) -> Result<bool, Error> {
+    match std::fs::read_to_string(link_target(user_config)?) {
+        Ok(text) => Ok(carries_include(&text, include)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(error.into()),
+    }
+}
+
+fn carries_include(text: &str, include: &str) -> bool {
+    global_lines(text).any(|line| line == include)
 }
 
 /// Follows a chain of symbolic links to the file they name, whether or not it
@@ -342,8 +360,8 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
-        render_path, render_proxy_command, upsert_known_host,
+        CommandShell, HostEntry, IncludeOutcome, include_installed, install_include, remove_known_host, render_config,
+        render_include, render_path, render_proxy_command, upsert_known_host,
     };
 
     fn entry(name: &str, id: &str, root: &Path) -> HostEntry {
@@ -541,6 +559,32 @@ Host agentctl-worker
             install_include(&config, "include ~/.agent/ssh/config").expect("indented global line counts"),
             IncludeOutcome::AlreadyInstalled
         );
+    }
+
+    #[test]
+    fn include_is_installed_only_when_it_applies_to_every_host() {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let config = directory.path().join(".ssh").join("config");
+        let include = "Include ~/.agent/ssh/config";
+
+        assert!(!include_installed(&config, include).expect("missing file"));
+        std::fs::create_dir_all(config.parent().expect("parent")).expect(".ssh");
+        std::fs::write(&config, "Host x\n  Include ~/.agent/ssh/config\n").expect("scoped include");
+        assert!(!include_installed(&config, include).expect("scoped copy"));
+        install_include(&config, include).expect("install");
+        assert!(include_installed(&config, include).expect("installed"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn include_check_follows_a_symlinked_user_config() {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let dotfiles = directory.path().join("ssh_config");
+        std::fs::write(&dotfiles, "Include ~/.agent/ssh/config\n").expect("managed config");
+        let config = directory.path().join("config");
+        std::os::unix::fs::symlink(&dotfiles, &config).expect("symlink");
+
+        assert!(include_installed(&config, "Include ~/.agent/ssh/config").expect("through link"));
     }
 
     #[cfg(unix)]
