@@ -28,13 +28,15 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   const handleCommandStackChanged = useCallback((): Promise<void> => {
     const metadata = metadataFormRef.current || null;
     resetForm();
+    // The process is serialized now, so the save sends it as it was after this edit, with this edit's metadata.
+    const xml = getUpdatedXml();
+    xml.catch(() => {}); // A failure is handled when the save runs.
     const reloadCount = reloadCountRef.current;
-    // Saves run one at a time, and each sends the process as it is when the save starts.
+    // Saves run one at a time.
     return enqueueProcessChange(async () => {
       if (reloadCountRef.current !== reloadCount) return; // A reload has replaced this edit with the saved process.
-      const xml = await getUpdatedXml();
       try {
-        await saveBpmn(xml, metadata);
+        await saveBpmn(await xml, metadata);
       } catch {
         // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
         // renames the task's layout set. Other failed changes are sent again with the next edit, as before.

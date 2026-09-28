@@ -384,6 +384,48 @@ describe('useBpmnEditor', () => {
     expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange });
   });
 
+  it('Saves each edit with the process as it was after that edit, and with its own metadata', async () => {
+    const firstSave = withResolvers<void>();
+    const saveBpmn = jest.fn().mockReturnValueOnce(firstSave.promise).mockResolvedValue(undefined);
+    let processInEditor = '<first/>';
+    const serializeProcessInEditor = async () => ({ xml: processInEditor });
+    saveXML
+      .mockImplementationOnce(serializeProcessInEditor)
+      .mockImplementationOnce(serializeProcessInEditor)
+      .mockImplementationOnce(serializeProcessInEditor);
+    const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
+
+    await act(async () => {
+      eventListeners.triggerEvent('commandStack.changed');
+      processInEditor = '<second/>';
+      result.current.metadataFormRef.current = { taskIdChange };
+      eventListeners.triggerEvent('commandStack.changed');
+      processInEditor = '<third/>';
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    await act(async () => firstSave.resolve());
+
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalledTimes(3));
+    expect(saveBpmn).toHaveBeenNthCalledWith(1, '<first/>', null);
+    expect(saveBpmn).toHaveBeenNthCalledWith(2, '<second/>', { taskIdChange });
+    expect(saveBpmn).toHaveBeenNthCalledWith(3, '<third/>', null);
+  });
+
+  it('Reloads the process when the process cannot be serialized for a task id change', async () => {
+    saveXML.mockRejectedValueOnce(new Error('Serialization failed'));
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
+    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
+    const { result } = await setupWithBpmnContext({
+      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
+    });
+    result.current.metadataFormRef.current = { taskIdChange };
+
+    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+
+    await waitFor(() => expect(importXML).toHaveBeenLastCalledWith(savedXml));
+    expect(saveBpmn).not.toHaveBeenCalled();
+  });
+
   it('Does not save an edit made while a layout set rename and its reload run, and saves the edits after them', async () => {
     const rename = withResolvers<void>();
     const mutateLayoutSetId = jest.fn().mockReturnValue(rename.promise);
