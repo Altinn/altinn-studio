@@ -30,14 +30,18 @@ export class DataModelConfig extends BasePage {
       .first();
   }
 
+  // The suggestion input and its listbox share the same accessible name, so the label alone is ambiguous.
+  private comboboxInput(label: string): Locator {
+    return this.page.locator('input').and(this.page.getByLabel(label, { exact: true }));
+  }
+
   public async clickOnDataModelButton(dataModelName: string): Promise<void> {
     await this.dataModelButton(dataModelName).click();
   }
 
   public async waitForComboboxToBeVisible(): Promise<void> {
-    const combobox = this.page.getByLabel(
+    const combobox = this.comboboxInput(
       this.textMock('process_editor.configuration_panel_set_data_model_label'),
-      { exact: true },
     );
     await expect(combobox).toBeVisible();
   }
@@ -59,11 +63,9 @@ export class DataModelConfig extends BasePage {
   }
 
   public async clickOnCombobox(): Promise<void> {
-    await this.page
-      .getByLabel(this.textMock('process_editor.configuration_panel_set_data_model_label'), {
-        exact: true,
-      })
-      .click();
+    await this.comboboxInput(
+      this.textMock('process_editor.configuration_panel_set_data_model_label'),
+    ).click();
   }
 
   public async chooseOption(option: string): Promise<void> {
@@ -90,11 +92,8 @@ export class DataModelConfig extends BasePage {
   }
 
   public async clickOnAddDataModelCombobox(): Promise<void> {
-    await this.page
-      .getByLabel(
-        this.textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
-        { exact: true },
-      )
-      .click();
+    await this.comboboxInput(
+      this.textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    ).click();
   }
 }

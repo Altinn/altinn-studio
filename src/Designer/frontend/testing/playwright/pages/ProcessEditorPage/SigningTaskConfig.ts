@@ -7,10 +7,15 @@ export class SigningTaskConfig extends BasePage {
   }
 
   public async clickDataTypesToSignCombobox(): Promise<void> {
+    // The suggestion input and its listbox share the same accessible name, so the label alone is ambiguous.
     await this.page
-      .getByLabel(this.textMock('process_editor.configuration_panel_set_data_types_to_sign'), {
-        exact: true,
-      })
+      .locator('input')
+      .and(
+        this.page.getByLabel(
+          this.textMock('process_editor.configuration_panel_set_data_types_to_sign'),
+          { exact: true },
+        ),
+      )
       .click();
   }
 

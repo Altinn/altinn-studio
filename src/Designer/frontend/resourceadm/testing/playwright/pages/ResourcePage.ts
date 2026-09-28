@@ -101,10 +101,11 @@ export class ResourcePage extends ResourceEnvironment {
     this.addPolicyRuleButton = this.page.getByRole('button', {
       name: textMock('policy_editor.card_button_text'),
     });
-    this.policyActionDropdown = this.page.getByLabel(
-      textMock('policy_editor.rule_card_actions_title'),
-      { exact: true },
-    );
+    this.policyActionDropdown = this.page
+      .locator('input')
+      .and(
+        this.page.getByLabel(textMock('policy_editor.rule_card_actions_title'), { exact: true }),
+      );
     this.policySubjectAccordion = this.page
       .locator('summary')
       .filter({ hasText: textMock('policy_editor.org_subjects_header') });
