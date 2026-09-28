@@ -1,106 +1,11 @@
-"""Schema validator tool - validates layout JSON against Altinn schemas."""
+"""Validate layout JSON against Altinn schemas."""
 
-import json
 from collections import defaultdict
 from typing import Any
 from urllib.parse import urlparse
 
 import requests
 from jsonschema import Draft7Validator, ValidationError
-from jsonschema.exceptions import SchemaError
-
-
-def schema_validator_tool(user_goal: str, json_obj: str, schema_path: str) -> dict[str, Any]:
-    """
-    Validates layout JSON against Altinn Studio layout schema using jsonschema library.
-    Can handle complete layout files, component snippets, or single components.
-
-    Args:
-        json_obj: JSON string that can be:
-                    - Complete layout with $schema and data.layout structure
-                    - Array of objects
-                    - Single object
-        schema_path: URL to the schema to validate against
-    Returns:
-        Dictionary containing validation results with status and error messages
-    """
-    try:
-        # Parse the layout JSON
-        try:
-            parsed_input = json.loads(json_obj)
-        except json.JSONDecodeError as e:
-            return {
-                "status": "error",
-                "error_code": "INVALID_JSON",
-                "message": f"JSON_PARSE_ERROR: The json_obj parameter contains invalid JSON. Error: {e!s}. "
-                f"Check for: missing quotes, trailing commas, unescaped characters. "
-                f"DO NOT RETRY with the same input - fix the JSON syntax first.",
-                "validation_errors": [],
-                "component_results": [],
-                "hint": "Validate your JSON with a JSON linter before retrying.",
-            }
-
-        # Load the schema
-        try:
-            schema = load_layout_schema(schema_path)
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Error loading schema: {e!s}",
-                "validation_errors": [],
-                "component_results": [],
-            }
-
-        # Determine input type and normalize to full layout structure
-        layout = normalize_input_to_layout(parsed_input)
-
-        # Validate the layout
-        return validate_layout_json(layout, schema)
-
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Unexpected error during validation: {e!s}",
-            "validation_errors": [],
-            "component_results": [],
-        }
-
-
-def normalize_input_to_layout(parsed_input: Any) -> dict[str, Any]:
-    """
-    Normalize different input types to a full layout structure.
-
-    Args:
-        parsed_input: Can be a complete layout, component array, or single component
-
-    Returns:
-        Dictionary with full layout structure including $schema and data.layout
-    """
-    # If it's already a complete layout with $schema and data, return as-is
-    if isinstance(parsed_input, dict) and "$schema" in parsed_input and "data" in parsed_input:
-        return parsed_input
-
-    # If it's a list (component snippet), wrap it in layout structure
-    if isinstance(parsed_input, list):
-        return {
-            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-            "data": {"layout": parsed_input},
-        }
-
-    # If it's a single object (dict with id and type), wrap it in layout structure
-    if isinstance(parsed_input, dict) and "id" in parsed_input and "type" in parsed_input:
-        return {
-            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-            "data": {"layout": [parsed_input]},
-        }
-
-    # If it's some other dict structure, assume it's a malformed layout and return as-is
-    # This will likely fail validation, which is the desired behavior
-    if isinstance(parsed_input, dict):
-        return parsed_input
-
-    # For any other type, raise error
-    raise ValueError("Unsupported input type")
 
 
 def validate_layout_json(layout: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
@@ -248,79 +153,6 @@ def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[di
                 )
 
     return deduplicated_errors
-
-
-def validate_json_object(
-    object: dict[str, Any],
-    schema: dict[str, Any],
-) -> dict[str, Any]:
-    """Validate component using jsonschema library and extract detailed information.
-
-    Args:
-        object: The object instance to validate
-        schema: The complete schema for reference resolution
-        component_type: The component type name
-
-    Returns:
-        Dictionary with validation results and detailed error information
-    """
-    try:
-        # Create validator with the component definition and provide the full schema for $ref resolution
-        from jsonschema import RefResolver
-
-        # Create a resolver with the full schema
-        resolver = RefResolver.from_schema(schema)
-        validator = Draft7Validator(schema, resolver=resolver)
-
-        # Validate and collect errors
-        errors = list(validator.iter_errors(object))
-        validation_errors = []
-        missing_required_properties = []
-
-        # Process validation errors
-        for error in errors:
-            error_info = {
-                "path": ".".join(str(p) for p in error.absolute_path),
-                "message": error.message,
-                "validator": error.validator,
-                "failed_value": error.instance,
-            }
-            validation_errors.append(error_info)
-
-            # Categorize errors
-            if error.validator == "required":
-                # Required properties missing
-                missing_required_properties.extend(error.validator_value)
-
-        # Determine validation status
-        if errors:
-            status = "validation_failed"
-            message = f"Object validation failed with {len(errors)} error(s)"
-        else:
-            status = "validation_passed"
-            message = "Object validation passed"
-
-        return {
-            "status": status,
-            "message": message,
-            "missing_required_properties": list(set(missing_required_properties)),  # Remove duplicates
-            "validation_errors": validation_errors,
-        }
-
-    except SchemaError as e:
-        return {
-            "status": "error",
-            "message": f"Invalid schema definition: {e!s}",
-            "missing_required_properties": [],
-            "validation_errors": [],
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Validation error: {e!s}",
-            "missing_required_properties": [],
-            "validation_errors": [],
-        }
 
 
 def load_layout_schema(schema_url: str) -> dict[str, Any]:

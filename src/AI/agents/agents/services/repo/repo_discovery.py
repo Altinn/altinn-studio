@@ -3,7 +3,6 @@ Repository discovery service for dynamic context-aware planning.
 Scans repository to discover locales, source of truth, available files, etc.
 """
 
-import json
 import re
 from pathlib import Path
 
@@ -112,84 +111,6 @@ class RepositoryDiscovery:
 
         return sorted(resource_files)
 
-    def check_arithmetic_usage(self, field_binding: str) -> bool:
-        """
-        Check if a field binding is used in arithmetic expressions.
-        Scans rules and other logic files for arithmetic usage.
-        """
-        # Look for rules files
-        rules_dir = self.repo_path / "App" / "logic"
-
-        if not rules_dir.exists():
-            return False
-
-        arithmetic_operators = ["+", "-", "*", "/", "sum", "avg", "count", "Math."]
-
-        for rules_file in rules_dir.rglob("*.cs"):
-            try:
-                content = rules_file.read_text(encoding="utf-8")
-
-                # Check if field binding appears near arithmetic operators
-                if field_binding in content:
-                    for operator in arithmetic_operators:
-                        # Simple heuristic: if operator appears within 50 chars of binding
-                        binding_pos = content.find(field_binding)
-                        operator_pos = content.find(operator, max(0, binding_pos - 50))
-
-                        if 0 <= operator_pos <= binding_pos + 50:
-                            log.info(f"Field {field_binding} appears to be used arithmetically")
-                            return True
-
-            except Exception as e:
-                log.warning(f"Could not scan {rules_file}: {e}")
-
-        return False
-
-    def discover_component_anchor_candidates(self, layout_file: str) -> list[dict]:
-        """
-        Discover potential anchor points in a layout file.
-        Returns list of components that can serve as anchors.
-        """
-        layout_path = self.repo_path / layout_file
-
-        if not layout_path.exists():
-            return []
-
-        try:
-            with open(layout_path) as f:
-                layout_data = json.load(f)
-
-            # Extract layout array
-            layout_array = self._extract_layout_array(layout_data)
-
-            candidates = []
-            for i, component in enumerate(layout_array):
-                candidate = {
-                    "index": i,
-                    "id": component.get("id"),
-                    "type": component.get("type"),
-                    "text_key": component.get("textResourceBindings", {}).get("title"),
-                }
-
-                # Only include components that can serve as anchors
-                if candidate["id"] or candidate["text_key"]:
-                    candidates.append(candidate)
-
-            return candidates
-
-        except Exception as e:
-            log.error(f"Could not analyze layout {layout_file}: {e}")
-            return []
-
-    def _extract_layout_array(self, layout_data: dict) -> list[dict]:
-        """Extract layout array from various layout file formats"""
-        if "data" in layout_data and "layout" in layout_data["data"]:
-            return layout_data["data"]["layout"]
-        elif isinstance(layout_data, list):
-            return layout_data
-        else:
-            return []
-
 
 def discover_repository_context(repo_path: str) -> PlanContext:
     """
@@ -198,9 +119,3 @@ def discover_repository_context(repo_path: str) -> PlanContext:
     """
     discovery = RepositoryDiscovery(repo_path)
     return discovery.discover_context()
-
-
-def check_field_arithmetic_usage(repo_path: str, field_binding: str) -> bool:
-    """Check if a field is used in arithmetic operations"""
-    discovery = RepositoryDiscovery(repo_path)
-    return discovery.check_arithmetic_usage(field_binding)

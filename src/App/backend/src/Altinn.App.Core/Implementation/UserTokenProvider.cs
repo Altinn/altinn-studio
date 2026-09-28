@@ -16,7 +16,7 @@ namespace Altinn.App.Core.Implementation;
 /// There are also very little code to test as most of the logic are in an imported package.
 /// </remarks>
 [ExcludeFromCodeCoverage]
-public class UserTokenProvider : IUserTokenProvider
+internal sealed class UserTokenProvider : IUserTokenProvider
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly string _jwtCookieName;

@@ -9,6 +9,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, so app code no longer needs `using` directives for the most common namespaces. The `using` directives this makes redundant are removed from the app's C# files, except the generated data models under `models/`, which Studio regenerates. Converted legacy rules are generated without them.
+- `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods `GetModelJsonSchema`, `GetXsdSchema` and `GetPrefillJson` where a call passes it by name, since v9 names the parameter `dataTypeId`.
+- `studioctl app upgrade v9` reports references to the app library's service classes that are internal in v9, such as `AppResourcesSI`, `AppMetadata`, `DataClient` and `PdfService`, and names the interface to inject instead of each one.
+
 ### Fixed
 
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.

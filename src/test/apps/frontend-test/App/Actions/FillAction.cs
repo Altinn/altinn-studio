@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Actions;
 
