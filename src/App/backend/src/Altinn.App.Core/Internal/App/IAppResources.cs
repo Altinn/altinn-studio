@@ -28,18 +28,18 @@ public interface IAppResources
     Task<TextResource?> GetTexts(string org, string app, string language);
 
     /// <summary>
-    /// Returns the json schema for the provided model id.
+    /// Returns the json schema for the data type.
     /// </summary>
-    /// <param name="modelId">Unique identifier for the model.</param>
-    /// <returns>The JSON schema for the model</returns>
-    string GetModelJsonSchema(string modelId);
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
+    /// <returns>The JSON schema for the data type</returns>
+    string GetModelJsonSchema(string dataTypeId);
 
     /// <summary>
     /// Gets the prefill json file
     /// </summary>
-    /// <param name="dataModelName">the data model name</param>
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
     /// <returns>The prefill json file as a string</returns>
-    string? GetPrefillJson(string dataModelName = "ServiceModel");
+    string? GetPrefillJson(string dataTypeId = "ServiceModel");
 
     /// <summary>
     /// Get the class ref based on data type
@@ -152,8 +152,8 @@ public interface IAppResources
     /// <summary>
     /// Gets the xsd schema.
     /// </summary>
-    /// <param name="modelId">Unique identifier for the model.</param>
-    string? GetXsdSchema(string modelId);
+    /// <param name="dataTypeId">The data type id, which is also the name of the files in the models folder.</param>
+    string? GetXsdSchema(string dataTypeId);
 
     /// <summary>
     /// Gets the calculation configuration for a given data type

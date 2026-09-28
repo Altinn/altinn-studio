@@ -643,6 +643,92 @@
       ]
     }
   ],
+  "semantic_query_extraction": [
+    {
+      "retired_on": "2026-09-26",
+      "versions": [
+        {
+          "version": 1,
+          "type": "text",
+          "labels": [],
+          "tags": [
+            "actor"
+          ],
+          "config": {},
+          "commitMessage": "new type: text",
+          "prompt": "You are a technical concept extractor. Extract key Altinn-specific technical patterns and implementation approaches from user input."
+        },
+        {
+          "version": 2,
+          "type": "text",
+          "labels": [],
+          "tags": [
+            "actor"
+          ],
+          "config": {},
+          "commitMessage": "lagnfuse",
+          "prompt": "#Loaded from Langfuse\nYou are a technical concept extractor. Extract key Altinn-specific technical patterns and implementation approaches from user input."
+        },
+        {
+          "version": 3,
+          "type": "text",
+          "labels": [],
+          "tags": [
+            "actor"
+          ],
+          "config": {},
+          "commitMessage": null,
+          "prompt": "You are a technical concept extractor. Extract key Altinn-specific technical patterns and implementation approaches from user input."
+        },
+        {
+          "version": 4,
+          "type": "text",
+          "labels": [
+            "production",
+            "latest"
+          ],
+          "tags": [
+            "actor"
+          ],
+          "config": {},
+          "commitMessage": "Update version",
+          "prompt": "You are a technical concept extractor. Your job is to translate user questions (which may be in Norwegian) into concise English technical search keywords for documentation lookup.\n\nAlways output English keywords regardless of the input language. Norwegian words must be translated to their English technical equivalents before output."
+        }
+      ]
+    }
+  ],
+  "semantic_query_user": [
+    {
+      "retired_on": "2026-09-26",
+      "versions": [
+        {
+          "version": 1,
+          "type": "text",
+          "labels": [],
+          "tags": [
+            "user"
+          ],
+          "config": {},
+          "commitMessage": null,
+          "prompt": "Extract key technical concepts from this user input to create a focused semantic search query.\n\nUser Input (may be Norwegian):\n{user_input}\n\nGenerate a concise English query (2-5 key technical terms) that captures:\n- Technical PATTERNS and APPROACHES (e.g., \"authorization policy role requirement\", \"conditional rendering hidden expressions\")\n- Altinn-specific BEHAVIORS (e.g., \"datamodel bindings\", \"validation rules\", \"prefill mapping\", \"access control\")\n- Implementation CONCEPTS (e.g., \"expressions\", \"triggers\", \"data sources\", \"XACML policy\")\n\nDO NOT include specific component types - focus on technical concepts and behaviors.\nFocus on HOW things work, not WHAT components exist.\n\nOutput ONLY the search query, nothing else. No explanations.\n\nExample good queries:\n- \"authorization policy configuration skip role requirement organization access\"\n- \"conditional rendering hidden expressions dynamic visibility\"\n- \"validation rules required expressions datamodel\"\n- \"prefill configuration data sources mapping\"\n- \"nested conditions visibility triggers\"\n"
+        },
+        {
+          "version": 2,
+          "type": "text",
+          "labels": [
+            "latest",
+            "production"
+          ],
+          "tags": [
+            "user"
+          ],
+          "config": {},
+          "commitMessage": "Use Langfuse variable syntax",
+          "prompt": "Extract key technical concepts from this user input to create a focused semantic search query.\n\nUser Input (may be Norwegian):\n{{user_input}}\n\nGenerate a concise English query (2-5 key technical terms) that captures:\n\n- Technical PATTERNS and APPROACHES (e.g., \"authorization policy role requirement\", \"conditional rendering hidden expressions\")\n- Altinn-specific BEHAVIORS (e.g., \"datamodel bindings\", \"validation rules\", \"prefill mapping\", \"access control\")\n- Implementation CONCEPTS (e.g., \"expressions\", \"triggers\", \"data sources\", \"XACML policy\")\n\nDO NOT include specific component types - focus on technical concepts and behaviors.\nFocus on HOW things work, not WHAT components exist.\n\nOutput ONLY the search query, nothing else. No explanations.\n\nExample good queries:\n\n- \"authorization policy configuration skip role requirement organization access\"\n- \"conditional rendering hidden expressions dynamic visibility\"\n- \"validation rules required expressions datamodel\"\n- \"prefill configuration data sources mapping\"\n- \"nested conditions visibility triggers\"\n"
+        }
+      ]
+    }
+  ],
   "tool_planning": [
     {
       "retired_on": "2026-09-14",

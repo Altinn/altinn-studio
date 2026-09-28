@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on data in Altinn Platform.
 /// </summary>
-public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
+internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
 {
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger _logger;
@@ -95,7 +95,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     )
     {
         using var activity = _telemetry?.StartInsertFormDataActivity(instance);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataTypeId)
             ?? throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata.json");
@@ -139,7 +139,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
             );
         }
         var classRef = type.FullName;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         if (TypeAllowsJson(classRef, appMetadata))
         {
             throw new InvalidOperationException(
@@ -190,7 +190,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     {
         using var activity = _telemetry?.StartUpdateDataActivity(instance, dataElement);
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
@@ -306,7 +306,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         );
 
         var classRef = type.FullName;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         if (TypeAllowsJson(classRef, appMetadata))
         {
             throw new InvalidOperationException(
@@ -345,7 +345,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         ArgumentNullException.ThrowIfNull(dataElement);
         using var activity = _telemetry?.StartGetFormDataActivity(instance);
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
             ?? throw new InvalidOperationException(

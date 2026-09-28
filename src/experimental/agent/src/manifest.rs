@@ -230,6 +230,8 @@ pub enum AccessSpec {
     /// A struct variant so that `deny_unknown_fields` rejects tunables; serde
     /// does not enforce it for unit variants of an internally tagged enum.
     Ssh {},
+    /// VNC access to the desktop the image runs, reached through `agentctl vnc`.
+    Vnc {},
 }
 
 /// Sandbox settings as supplied by an Agent manifest.
@@ -424,6 +426,12 @@ impl Spec {
     #[must_use]
     pub fn ssh_access(&self) -> bool {
         self.access.contains(&AccessSpec::Ssh {})
+    }
+
+    /// Returns whether the Agent declares VNC access.
+    #[must_use]
+    pub fn vnc_access(&self) -> bool {
+        self.access.contains(&AccessSpec::Vnc {})
     }
 
     fn validate(&self) -> Result<(), Error> {
@@ -864,6 +872,8 @@ impl Condition {
     pub const SANDBOX_READY: &'static str = "SandboxReady";
     /// Condition type for declared SSH access underneath `Ready`.
     pub const SSH_READY: &'static str = "SshReady";
+    /// VNC access is reconciled and the bridge to the desktop is listening.
+    pub const VNC_READY: &'static str = "VncReady";
 
     /// Finds the `Ready` condition in a condition list.
     #[must_use]

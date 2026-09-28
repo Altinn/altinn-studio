@@ -20,6 +20,7 @@ from agents.graph.runner import (
     _validate_intent,
 )
 from agents.graph.state import AgentState, ConversationMessage
+from agents.services.events.events import AgentEvent
 from agents.services.events.jobs import EventSink
 from agents.services.llm.scope_checker import (
     ScopeCheckResult,
@@ -120,6 +121,17 @@ class TestCheckScopeAsync:
         assert result.in_scope is True
 
 
+def _event_sink() -> EventSink:
+    """A real sink that delivers the events of the test session to its developer."""
+    event_sink = EventSink()
+    event_sink.register_developer_session("dev", "sess-1")
+    return event_sink
+
+
+def _delivered(event_sink: EventSink) -> list[AgentEvent]:
+    return event_sink.get_developer_events_since("dev", 0)
+
+
 def _sink(cancelled: bool = False) -> MagicMock:
     sink = MagicMock()
     sink.is_cancelled.return_value = cancelled
@@ -168,7 +180,7 @@ class TestGateGoal:
 
     async def test_read_only_declines_as_a_normal_chat_turn(self):
         state = _state(allow_app_changes=False)
-        event_sink = EventSink()
+        event_sink = _event_sink()
         with patch(
             "agents.graph.runner.check_scope_async",
             new=AsyncMock(return_value=self._out_of_scope()),
@@ -176,7 +188,7 @@ class TestGateGoal:
             decline = await _gate_goal(state, event_sink=event_sink)
 
         assert decline == "Jeg kan bare hjelpe med Altinn-apputvikling."
-        sent = event_sink.get_events_since("sess-1", 0)
+        sent = _delivered(event_sink)
         assert [event.type for event in sent] == ["assistant_message", "status"]
         assert sent[0].data["content"] == decline
         assert sent[0].data["no_branch_operations"] is True
@@ -255,7 +267,7 @@ class TestGateGoal:
         """The decline is all-or-nothing even if a cancel arrives while it is
         being written."""
         state = _state(allow_app_changes=False)
-        event_sink = EventSink()
+        event_sink = _event_sink()
         cancelling = threading.Event()
         original_send = event_sink.send
 
@@ -276,19 +288,15 @@ class TestGateGoal:
         cancel_thread.join(timeout=5)
 
         assert decline == "Jeg kan bare hjelpe med Altinn-apputvikling."
-        delivered = [
-            event.type
-            for event in event_sink.get_events_since("sess-1", 0)
-            if event.type in ("assistant_message", "status")
-        ]
+        delivered = [event.type for event in _delivered(event_sink) if event.type in ("assistant_message", "status")]
         # Both halves, or neither. Never the message without its terminal status.
         assert delivered == ["assistant_message", "status"]
 
     async def test_a_decline_is_dropped_entirely_when_already_cancelled(self):
         state = _state(allow_app_changes=False)
-        event_sink = EventSink()
+        event_sink = _event_sink()
         event_sink.cancel_session("sess-1")
-        before = len(event_sink.get_events_since("sess-1", 0))
+        before = len(_delivered(event_sink))
 
         with (
             patch(
@@ -299,7 +307,7 @@ class TestGateGoal:
         ):
             await _gate_goal(state, event_sink=event_sink)
 
-        after = event_sink.get_events_since("sess-1", 0)
+        after = _delivered(event_sink)
         assert len(after) == before
         assert event_sink.get_conversation_history("sess-1") == []
 

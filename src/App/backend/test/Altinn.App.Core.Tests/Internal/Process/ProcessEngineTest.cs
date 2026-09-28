@@ -124,8 +124,8 @@ public sealed class ProcessEngineTest
 
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
@@ -268,8 +268,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         var instance = new Instance()
@@ -481,8 +481,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         var instance = new Instance()
@@ -662,8 +662,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services, registerProcessEnd: false);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
@@ -839,8 +839,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(userActions: [userActionMock.Object]);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
 
@@ -1061,8 +1061,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services, userActions: [userActionMock.Object]);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata("org/app")
                 {
                     DataTypes =
@@ -1293,8 +1293,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(userActions: [userActionMock.Object]);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
 
@@ -1360,8 +1360,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create();
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
 
@@ -1456,8 +1456,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(services);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
         fixture.Mock<IProcessReader>().Setup(r => r.IsEndEvent("Task_Service")).Returns(false);
         fixture.Mock<IProcessReader>().Setup(r => r.IsProcessTask("Task_Service")).Returns(true);
         fixture
@@ -1838,8 +1838,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create();
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
         LegacyProcessEngine processEngine = fixture.ProcessEngine;
         Instance instance = new Instance()
         {
@@ -1929,8 +1929,8 @@ public sealed class ProcessEngineTest
         await using var fixture = Fixture.Create(registerProcessEnd: registerProcessEnd, withTelemetry: useTelemetry);
         fixture
             .Mock<IAppMetadata>()
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("org/app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("org/app") { DataTypes = [] });
 
         if (registerProcessEnd)
         {
@@ -3495,7 +3495,7 @@ public sealed class ProcessEngineTest
             Mock<IAppResources> appResourcesMock = new(MockBehavior.Strict);
             Mock<ITranslationService> translationServiceMock = new(MockBehavior.Strict);
             var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [] };
-            appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+            appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
             authenticationContextMock
                 .Setup(a => a.Current)

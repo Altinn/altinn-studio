@@ -36,8 +36,8 @@ public class PersonClientTests
 
         _appMetadata = new Mock<IAppMetadata>();
         _appMetadata
-            .Setup(s => s.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
+            .Setup(s => s.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/app") { Org = "ttd", Id = "ttd/app" });
 
         _accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         _accessTokenGenerator

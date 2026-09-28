@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.AppModel;
 
 /// <inheritdoc />
-public class DefaultAppModel : IAppModel
+internal sealed class DefaultAppModel : IAppModel
 {
     private readonly ILogger<DefaultAppModel> _logger;
 

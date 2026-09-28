@@ -60,7 +60,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
             > 0
         )
         {
-            var appMetadata = await _appMetadata.GetApplicationMetadata();
+            var appMetadata = _appMetadata.ApplicationMetadata;
             var instance = await _instanceClient.GetInstance(
                 appMetadata.AppIdentifier.App,
                 appMetadata.AppIdentifier.Org,

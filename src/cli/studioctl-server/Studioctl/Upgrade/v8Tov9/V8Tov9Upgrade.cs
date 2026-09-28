@@ -189,6 +189,12 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppMetadataProperties(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -199,6 +205,12 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckAppSettingsRemovedKeys(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -813,16 +825,61 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Renames the model argument of the IAppResources schema and prefill methods to dataTypeId where a call
+    /// passes it by name.
+    /// </summary>
+    static async Task<int> MigrateAppResourcesParameterNames(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppResources parameter names");
+        try
+        {
+            var result = new AppResourcesParameterNameMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppResources calls pass the model parameter by its old name",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppResources parameter names", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
-    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
+    /// the service classes that are internal in v9 and must be reached through their interfaces.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
     /// silent-blindness bug (semantic detectors on the rewritten live view) or self-contradicting
     /// output (syntax detectors on the pristine view re-reporting what a rewriter just fixed).
     /// </remarks>
+    /// <summary>
+    /// Rewrites awaited IAppMetadata reads to the v9 properties. The old methods survive as obsolete, so a
+    /// call this cannot rewrite still compiles and is only advised on.
+    /// </summary>
+    static async Task<int> MigrateAppMetadataProperties(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppMetadata properties");
+        try
+        {
+            var result = new AppMetadataPropertyMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppMetadata method calls in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppMetadata calls", ex);
+        }
+    }
+
     internal static async Task<int> CheckRemovedCSharpApis(CSharpSourceScanner scanner, string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
@@ -846,7 +903,11 @@ internal static class V8Tov9Upgrade
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
-                new RemovedAppResourcesApiDetector(pristineView).Detect()
+                new RemovedAppResourcesApiDetector(pristineView).Detect(),
+                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect(),
+                new RemovedFeatureManagementDetector(scanner).Detect(),
+                new RemovedAppSettingsMemberDetector(pristineView).Detect(),
+                new InternalizedAppTypeDetector(pristineView).Detect()
             );
 
             return ReportMigrationResult(
@@ -917,6 +978,53 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking the Maskinporten configuration", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports AppSettings keys in the appsettings files that v9 no longer reads (AppBasePath and the folder and
+    /// file name settings). Inert, so a warning; a non-default value is marked since the app's files may then be
+    /// somewhere v9 does not look.
+    /// </summary>
+    static async Task<int> CheckAppSettingsRemovedKeys(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Removed AppSettings keys");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = new AppSettingsRemovedKeysDetector(appFolder).Detect();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No removed AppSettings keys in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the appsettings files for removed keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
+    /// names case-sensitively on every operating system.
+    /// </summary>
+    static async Task<int> CheckAppFileNameCase(string projectFile)
+    {
+        UpgradeConsole.BeginStep("App file name casing");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = new AppFileNameCaseDetector(appFolder).Detect();
+            return ReportMigrationResult(
+                result,
+                cleanText: "App file and folder names match the names v9 reads",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the app file names", ex);
         }
     }
 

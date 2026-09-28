@@ -88,7 +88,7 @@ internal sealed class SigningTaskValidator : IValidator
             (_processReader.GetAltinnTaskExtension(taskId)?.SignatureConfiguration)
             ?? throw new ApplicationConfigException("Signing configuration not found in AltinnTaskExtension");
 
-        ApplicationMetadata appMetadataResult = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadataResult = _appMetadata.ApplicationMetadata;
 
         List<SigneeContext> signeeContextsResult = await _signingService.GetSigneeContexts(
             dataAccessor,

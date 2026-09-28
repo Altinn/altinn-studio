@@ -47,7 +47,7 @@ internal sealed class AccessManagementClient(
         try
         {
             UrlHelper urlHelper = new(platformSettings.Value);
-            var application = await appMetadata.GetApplicationMetadata();
+            var application = appMetadata.ApplicationMetadata;
 
             var uri = urlHelper.CreateInstanceDelegationUrl(delegation.ResourceId, delegation.InstanceId);
             var body = JsonSerializer.Serialize(DelegationRequest.ConvertToDto(delegation));
@@ -87,7 +87,7 @@ internal sealed class AccessManagementClient(
         try
         {
             UrlHelper urlHelper = new(platformSettings.Value);
-            var application = await appMetadata.GetApplicationMetadata();
+            var application = appMetadata.ApplicationMetadata;
 
             var uri = urlHelper.CreateInstanceRevokeUrl(delegation.ResourceId, delegation.InstanceId);
             var body = JsonSerializer.Serialize(DelegationRequest.ConvertToDto(delegation));

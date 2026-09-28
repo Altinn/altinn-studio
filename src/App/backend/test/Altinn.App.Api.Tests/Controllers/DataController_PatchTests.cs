@@ -326,7 +326,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         {
             services.Replace(ServiceDescriptor.Singleton(storageMetadata));
             services.AddSingleton(
-                new AppMetadataMutationHook(
+                AppFilesMutationHook.ApplicationMetadata(
                     (app) =>
                     {
                         app.DataTypes.Add(

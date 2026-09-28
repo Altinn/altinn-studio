@@ -13,7 +13,7 @@ use std::{
 
 use agent::{
     Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    resources::Resources, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
+    resources::Resources, sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -59,6 +59,8 @@ enum Input {
     PromptSent(PromptForm, Result<(), String>),
     /// A background Session change failed; its success shows through the watch.
     SessionChangeFailed(String),
+    /// A Session was archived or unarchived, as recorded.
+    ArchiveChanged(Session),
     ForwardCreated(CreateOutcome),
     ManifestsDiscovered(Vec<ManifestCandidate>),
 }
@@ -162,6 +164,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.set_forwards(forwards.entries());
         follow.sync(app.followed_agent(), home.socket_path(), &inputs);
         app.side_panel = view::shows_side_panel(tui.width());
+        app.expire_notice(Instant::now());
         if let Some((agent, session)) = app.transcript_request() {
             spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
         }
@@ -200,6 +203,10 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
             }
             Input::SessionChangeFailed(error) => {
                 app.error = Some(error);
+                continue;
+            }
+            Input::ArchiveChanged(session) => {
+                app.archive_changed(session, Instant::now());
                 continue;
             }
             Input::ForwardCreated(outcome) => {
@@ -435,12 +442,15 @@ fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, ses
 /// Archives or unarchives a Session off the event loop, which stopping its harness would block.
 fn spawn_session_archive(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName, archived: bool) {
     tokio::task::spawn_local(async move {
-        if let Err(error) = Client::for_path(socket_path)
-            .set_session_archived(&agent, session, archived)
-            .await
-        {
-            let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
-        }
+        let _ = inputs.send(
+            match Client::for_path(socket_path)
+                .set_session_archived(&agent, session, archived)
+                .await
+            {
+                Ok(session) => Input::ArchiveChanged(session),
+                Err(error) => Input::SessionChangeFailed(error.to_string()),
+            },
+        );
     });
 }
 
