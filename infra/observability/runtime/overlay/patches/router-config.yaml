@@ -5,7 +5,7 @@ metadata:
 spec:
   config:
     exporters:
-      loadbalancing/traces:
+      load_balancing/traces:
         routing_key: traceID
         protocol:
           otlp:
@@ -17,7 +17,7 @@ spec:
             port: '4317'
       # Sink app metrics at router: Azure Monitor OTel metrics are currently high-cost, low-value.
       nop: {}
-      loadbalancing/logs:
+      load_balancing/logs:
         routing_key: traceID
         protocol:
           otlp:
@@ -32,12 +32,12 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [resourcedetection/aks, k8s_attributes, resource/environment, transform/drop, batch]
-          exporters: [loadbalancing/traces]
+          processors: [resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          exporters: [load_balancing/traces]
         metrics:
           receivers: [otlp]
           exporters: [nop]
         logs:
           receivers: [otlp]
-          processors: [filter/logs, resourcedetection/aks, k8s_attributes, resource/environment, transform/drop, batch]
-          exporters: [loadbalancing/logs]
+          processors: [filter/logs, resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          exporters: [load_balancing/logs]
