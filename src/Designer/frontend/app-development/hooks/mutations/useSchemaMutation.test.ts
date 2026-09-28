@@ -40,6 +40,19 @@ describe('useSchemaMutation', () => {
     expect(queryClient.getQueryData([QueryKey.JsonSchema, org, app, modelPath])).toEqual(model);
   });
 
+  it('Rechecks whether the model files are out of date', async () => {
+    const queryClient = createQueryClientMock();
+    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const {
+      renderHookResult: { result },
+    } = render({}, queryClient);
+    result.current.mutate({ modelPath, model: jsonSchemaMock });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.DataModelGenerationStatus, org, app, modelPath],
+    });
+  });
+
   it('Updates the JsonSchema query cache', async () => {
     const queryClient = createQueryClientMock();
     const {

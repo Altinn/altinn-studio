@@ -401,9 +401,7 @@ public class FiksArkivDefaultPayloadGeneratorTest
             useDefaultFiksArkivSettings: false
         );
 
-        fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app"));
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/test-app"));
         fixture
             .TranslationServiceMock.Setup(x => x.TranslateTextKey("appName", LanguageConst.Nb, null))
             .ReturnsAsync("Test app");

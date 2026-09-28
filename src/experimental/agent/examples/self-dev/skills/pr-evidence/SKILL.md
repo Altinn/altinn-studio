@@ -1,79 +1,57 @@
 ---
 name: pr-evidence
-description: Record agentctl and agentd behavior with asciinema, render it to a GIF with agg and attach it to a pull request with gh. Use when a change alters what a user sees in the terminal.
+description: Help pull request reviewers understand changes to the agentctl and agentd developer experience through terminal recordings. Use when a change affects CLI output, provisioning progress or TUI workflows.
 ---
 
-# Pull request evidence
+# Show the change to reviewers
 
-Changes to `agentctl` output, provisioning progress or the TUI are shown in the pull request as a terminal recording.
-Backend-only changes keep using test output and text.
+Demonstrate the scenario, the relevant change and its result so a reviewer can understand the experience without
+running it locally. Explain the premise and starting state in the recording or PR caption.
 
-## Artifacts
+- Keep artifacts under `/home/agent/code/.artifacts/<task>/<run>/`, outside the checkout. No capture report is required.
+- Keep each attachment within 10 MiB. There is no fixed duration limit, but GIFs should be brief enough to follow
+  without seeking. Split longer demonstrations into focused clips.
+- Capture actual behavior from the tested revision, using test data without secrets.
 
-Keep captures outside the checkout, one directory per task and run:
+## Record
 
-```text
-/home/agent/code/.artifacts/<task>/<run>/
-  capture.md        the commit recorded, the commands, the terminal size, the scenario shown
-  demo.cast demo.gif
-  pr-body.md
-```
+Prepare incidental setup before recording. Prefer familiar command names on `PATH` and a sensible working directory;
+avoid cluttering the demonstration with full binary paths, custom environment variables or a custom `HOME`. If such
+configuration is part of the behavior being demonstrated, show it and explain why it matters.
 
-Never capture secret values. The placeholders in this Sandbox are inert, but the recording still should not show them.
-
-## Recording
-
-A GIF only shows something when output changes. Script CLI demonstrations so each command and its output can be read.
-For the TUI, record it directly and pause on focused fields, placeholders and picker states before typing or moving on.
-
-Record the behavior shipped by the tested revision. Evidence automation may navigate, provide input, change buffers
-or control timing, but it does not change themes, colors, layout or other presentation merely to improve the capture.
-Document any unavoidable evidence-only behavior or presentation override in `capture.md`.
+Set terminal capabilities on the recorder so the demonstrated program inherits them. The prefix below removes
+`NO_COLOR` and replaces an inherited `TERM=dumb`; it runs before capture, keeping setup out of the demonstration.
+Omit the override when demonstrating behavior under those settings. From the artifact directory:
 
 ```sh
-run=/home/agent/code/.artifacts/<task>/<run>
-mkdir -p "$run"
-cols=120 rows=36 cast="$run/demo.cast" gif="$run/demo.gif"
-render() {
-  agg --cols "$cols" --rows "$rows" --font-size 14 --theme dracula \
-    --font-family 'JetBrains Mono' "$@"
-}
 env -u NO_COLOR TERM=xterm-256color COLORTERM=truecolor \
-  asciinema rec --window-size "${cols}x${rows}" --idle-time-limit 2 \
-  --command 'agentctl tui' "$cast"
-render "$cast" "$gif"
-for position in 20 50 80; do
-  render --select "$position%" "$cast" "$run/frame-$position.gif"
-done
+  asciinema rec --window-size 120x36 --command 'agentctl tui' terminal.cast
+agg --font-size 14 terminal.cast terminal.gif
+agg --select 50% terminal.cast frame.gif
 ```
 
-Replace `agentctl tui` with `bash demo.sh` for a scripted CLI flow, or omit `--command` to record a shell. Keep the
-clip under 15 seconds; `--idle-time-limit` collapses waits. Unsetting `NO_COLOR` and replacing an inherited `TERM=dumb`
-preserves real terminal styling. When the recorded command starts a container, explicitly forward the capabilities,
-for example with `podman run -e TERM -e COLORTERM ...`; setting them for asciinema does not guarantee they cross the
-container boundary. The image's JetBrains Mono font renders picker glyphs such as `◂` and `▸`.
+For a scripted CLI demonstration, replace `agentctl tui` with `bash demo.sh` and have the script display the commands
+it runs. Pause before execution and after output so a human can follow along. For a TUI, pause on relevant states
+before moving on. `--idle-time-limit` can compress long waits, but preserve enough time to read.
 
-Do not judge an animated GIF by its first frame. Inspect the three rendered stills with the image viewer. Confirm the
-recorded command receives the intended `TERM` and `COLORTERM` values; asciinema v3 may omit them from the cast header.
-Check that the states differ and that focus color, dim text, cursor, picker glyphs, alignment and clipping match the
-live terminal. Aim below 8 MB; GitHub accepts GIFs up to 10 MB.
+For containerized programs, forward the capabilities with `podman run -e TERM -e COLORTERM ...` and ensure
+`NO_COLOR` is unset inside the container. For missing picker glyphs, try `agg --font-family 'JetBrains Mono'`.
+Keep the application's presentation faithful to the tested revision. Inspect representative frames with the image
+viewer, using `agg --select` at relevant positions to check readability beyond the GIF's first frame.
 
-## Attaching to the pull request
+## Attach
 
-Write the body with a local image reference and run `gh` from the artifact directory; the file is uploaded and the
-reference rewritten to the hosted URL.
+From the artifact directory, use local image references in the PR body; `gh --attach` uploads files and rewrites
+those references to hosted URLs. Pass one `--attach` per file. For example, after pushing the branch:
 
 ```sh
-cd /home/agent/code/.artifacts/<task>/<run>
 gh pr create --repo Altinn/altinn-studio --base main --head <branch> \
-  --title 'feat(experimental): ...' --body-file pr-body.md --attach './demo.gif#agentctl apply --wait'
-gh pr edit <number> --body-file pr-body.md --attach ./demo.gif
+  --title 'fix: ...' --body-file pr-body.md --attach ./result.gif
+gh pr edit <number> --attach ./result.gif
 ```
 
-- If no attachment uploads, `gh` stops before creating or editing the pull request.
-- If some upload and some fail, the pull request exists with the successful ones and `gh` exits nonzero. Retry only
-  the missing files with `gh pr edit --attach`; never repeat `gh pr create`.
-- Uploading needs write access to the repository through the mediated `GITHUB_TOKEN`.
+If an upload fails, inspect the PR before retrying: partial success can create or update the PR despite a nonzero
+exit. Retry missing attachments with `gh pr edit`, rather than repeating creation. Uploads need repository write
+access and a token recognized by `gh` as a personal access or OAuth token.
 
-Finish by reading the body back (`gh pr view <number> --json body -q .body`) and confirming the reference is a hosted
-`github.com` URL.
+Read the body back with `gh pr view <number> --json body -q .body` and confirm attachments have hosted URLs.

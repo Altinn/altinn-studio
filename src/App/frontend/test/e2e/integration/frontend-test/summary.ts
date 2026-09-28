@@ -519,11 +519,6 @@ describe('Summary', () => {
     cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldLastName}")`).find('button').click();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
-    // Navigating to a component adds focus parameters to the URL, and the app removes them again by
-    // replacing the location. Navigating before that lands makes the replace overwrite our navigation,
-    // so wait it out. Remove this once #20512 is fixed and the app no longer navigates to clean up the URL.
-    cy.location('search').should('not.contain', 'focusComponentId');
-
     // The 'back to summary' button should not be here, and when we click 'next' we should land on the next
     // page (not the page we came from)
     cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');

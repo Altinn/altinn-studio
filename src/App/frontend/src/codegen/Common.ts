@@ -869,7 +869,16 @@ const common = {
 
   AllowedValidationMasks: () =>
     new CG.arr(
-      new CG.enum('Schema', 'Component', 'Expression', 'CustomBackend', 'Required', 'AllExceptRequired', 'All'),
+      new CG.enum(
+        'Schema',
+        'Invalid',
+        'Component',
+        'Expression',
+        'CustomBackend',
+        'Required',
+        'AllExceptRequired',
+        'All',
+      ),
     )
       .setTitle('Validation types', 'Valideringstyper')
       .setDescription('List of validation types to show', 'Liste over valideringstypene som skal vises.'),

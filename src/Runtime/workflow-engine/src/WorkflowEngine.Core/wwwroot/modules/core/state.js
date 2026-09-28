@@ -118,12 +118,14 @@
  */
 
 /**
- * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
+ * `previousWorkflows` is the live section's own set: the freshest SSE copy of every workflow it
+ * holds a live card for, dropped the moment one leaves (an exiting card outlives its entry by the
+ * length of its animation). Other sections read it for fresher data than their own snapshot, and
+ * to tell a live workflow from a settled one.
  *
  * @typedef {{
  *   previousWorkflows:    Record<string, Workflow>,
  *   workflowFingerprints: Record<string, string>,
- *   workflowTimers:       Record<string, WorkflowTimer>,
  *   lastRecentKeys:       string,
  *   queryLoaded:        boolean,
  *   liveFilter:           string,
@@ -181,7 +183,6 @@ export const dom = {
 export const state = {
     previousWorkflows: {},
     workflowFingerprints: {},
-    workflowTimers: {},
     lastRecentKeys: '',
     queryLoaded: false,
     liveFilter: '',

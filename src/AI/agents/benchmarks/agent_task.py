@@ -72,7 +72,7 @@ def repo_org(repo_url: str) -> str:
 
 def session_branch(session_id: str) -> str:
     # Mirrors agents.core.tools.git_tool._session_branch_name.
-    return f"altinity_session_{session_id[:8]}"
+    return f"assistant_{session_id[:8]}"
 
 
 def agent_headers() -> dict[str, str]:
@@ -143,9 +143,7 @@ def start_agent(
         payload["experiment"] = experiment
     if branch:
         payload["branch"] = branch
-    response = httpx.post(
-        f"{base_url}/api/agent/start", headers=agent_headers(), json=payload, timeout=120
-    )
+    response = httpx.post(f"{base_url}/api/agent/start", headers=agent_headers(), json=payload, timeout=120)
     response.raise_for_status()
 
 
@@ -198,10 +196,7 @@ def render_fix_rounds() -> int:
     except ValueError:
         rounds = -1
     if rounds < 0:
-        print(
-            f"  {RENDER_FIX_ROUNDS_ENV}={raw!r} is not a non-negative integer; "
-            f"using {DEFAULT_RENDER_FIX_ROUNDS}"
-        )
+        print(f"  {RENDER_FIX_ROUNDS_ENV}={raw!r} is not a non-negative integer; using {DEFAULT_RENDER_FIX_ROUNDS}")
         return DEFAULT_RENDER_FIX_ROUNDS
     return rounds
 
@@ -216,9 +211,7 @@ def _render_fix_goal(failures: list[preview_check.PageRenderResult]) -> str:
     )
 
 
-def _after_fix_scores(
-    results: list[preview_check.PageRenderResult] | None, rounds: int
-) -> list[Score]:
+def _after_fix_scores(results: list[preview_check.PageRenderResult] | None, rounds: int) -> list[Score]:
     scores = [
         Score(
             name=preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
@@ -332,9 +325,7 @@ class AgentTask:
             for name in names
         ]
 
-    def _score_app(
-        self, clone: Path, rubric: dict, session_id: str, workdir: Path
-    ) -> list[Score]:
+    def _score_app(self, clone: Path, rubric: dict, session_id: str, workdir: Path) -> list[Score]:
         app = load_app(clone)
         scores = list(evaluate(app, rubric))
         if not preview_check.is_enabled():
@@ -364,9 +355,7 @@ class AgentTask:
         for round_number in range(1, max_rounds + 1):
             rounds = round_number
             print(f"  render fix round {round_number}: {len(failures)} failing page(s)")
-            start_agent(
-                self.agent_base, session_id, _render_fix_goal(failures), [], branch=branch
-            )
+            start_agent(self.agent_base, session_id, _render_fix_goal(failures), [], branch=branch)
             status = await_workflow(self.agent_base, session_id)
             print(f"  fix workflow finished: {status.get('status')}")
 

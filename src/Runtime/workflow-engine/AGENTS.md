@@ -19,7 +19,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - **Command pattern**: `ICommand` → `Command<TData, TContext>` / `Command<TData>` abstract bases. `CommandDefinition` is the inert data record (type, operationId, data JSON). `CommandRegistry` is a DI-based string-keyed dictionary from `ICommand` singletons.
 - **Class library**: `WorkflowEngine.Core` is a class library (`Microsoft.NET.Sdk`), not an executable. Hosts compose it with two extension methods:
     - `AddWorkflowEngine(connectionString)` on `WebApplicationBuilder` — registers all core services, auth, DB, telemetry, OpenAPI, health checks, and built-in `WebhookCommand`
-    - `UseWorkflowEngine()` on `WebApplication` — configures middleware pipeline, endpoints, dashboard, and applies DB migrations
+    - `UseWorkflowEngine()` on `WebApplication` — configures middleware pipeline, endpoints, dashboard, and applies DB migrations (adding, listing and removing them: [`docs/migration.md`](docs/migration.md))
     - Host-specific commands are added via `builder.Services.AddCommand<T>()`
 - **Database-first processing**: `WorkflowProcessor` is a `BackgroundService` that fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`. No in-memory queue — the database is the single source of truth.
 - **Concurrency**: `IConcurrencyLimiter` manages three independent semaphore pools: Workers, DB connections, and HTTP calls.
@@ -53,7 +53,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}` — get single workflow with all steps
 - `GET /api/v1/{namespace}/workflows/{workflowId:guid}/dependency-graph` — get the connected dependency graph reachable from the workflow (nodes + edges)
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/cancel` — request cancellation (idempotent)
-- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing (optional `?cascade=true` to also resume dependents in `DependencyFailed`)
+- `POST /api/v1/{namespace}/workflows/{workflowId:guid}/resume` — resume a terminal workflow for re-processing (optional `?cascade=true` to also resume dependents in `DependencyFailed`). The workflow keeps its `createdAt`; each resumed workflow records `resumedAt`, which collection heads report
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/nudge` — clear a parked (`Requeued`/`Waiting`) workflow's pending backoff so it is re-executed on the next fetch cycle. 202 Accepted when this call cleared a backoff, idempotent 200 (null `nudgedAt`) when the workflow was parked but already due, 409 when it is not parked, 404 when missing
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/fail` — fail a parked (`Requeued`/`Waiting`) workflow by caller decision, recording the optional body `reason` (≤ 500 characters) as the parked step's final non-retryable error entry. 202 Accepted when this call failed it, 409 when it is not parked (including already `Failed` — no idempotent replay), 404 when missing, 400 for a blank or over-long reason
 - `POST /api/v1/{namespace}/workflows/{workflowId:guid}/abandon` — write off an unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed` → `Abandoned`). Abandoned workflows no longer condemn dependents evaluated after the marking; dependents already in `DependencyFailed` stay put. Atomically releases the enqueue idempotency key, so replaying the same fingerprint creates a fresh workflow instead of deduplicating onto the write-off. Compare-and-set: 202 Accepted when this call wrote off the workflow, 409 on any other non-`Abandoned` state (including a concurrently resumed workflow), idempotent 200 with the original `abandonedAt` when already abandoned, 404 when missing
@@ -71,8 +71,8 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 Supporting services for local development. Without a profile, compose starts those alone and the
 engine runs on the host against them; the one profile, `core`, adds an engine host built from this
-folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose invocations — use the
-`/docker` skill for the details.
+folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose invocations — see
+[`docs/docker.md`](docs/docker.md) for the details.
 
 | Container                 | Port             | Purpose                                    |
 | ------------------------- | ---------------- | ------------------------------------------ |
@@ -86,7 +86,8 @@ folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose in
 
 ## Code Style & Documentation
 
-CSharpier formatting enforced at build time. Use the `/format` skill for details and commands.
+CSharpier formatting enforced at build time. See [`docs/format.md`](docs/format.md) for details and
+commands.
 
 Use docstrings to document all public types and members. Extend this to private members where necessary to explain complex logic or add clarity.
 
@@ -111,7 +112,9 @@ Runtime-specific test projects (e.g. `workflow-engine-app`) can reference the Te
 
 **Infrastructure**: Integration and repository tests use [Testcontainers](https://dotnet.testcontainers.org/) to automatically spin up PostgreSQL (and WireMock where needed) in Docker. No manual Docker Compose setup is required — the test fixtures handle all container lifecycle. Just run `dotnet test` and the fixtures take care of the rest.
 
-For test conventions, scaffolding templates, and infrastructure details, use the `/test` skill.
+For test conventions, scaffolding templates, and infrastructure details, see
+[`docs/test.md`](docs/test.md). For load and performance runs against the engine, see
+[`docs/k6.md`](docs/k6.md).
 
 ## Dashboard
 

@@ -9,7 +9,6 @@ on:
       - 'yarn.lock'
       - '.github/workflows/common-typescript-unit-test.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

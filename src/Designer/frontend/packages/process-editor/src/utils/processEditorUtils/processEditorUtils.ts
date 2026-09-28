@@ -1,3 +1,5 @@
+import type { AppVersion } from 'app-shared/types/AppVersion';
+
 /**
  * Minimum version of Altinn.App .NET libraries required for PDF service task
  */
@@ -9,10 +11,19 @@ export const MINIMUM_APPLIB_VERSION_FOR_PDF_SERVICE_TASK = '8.9.0';
 export const MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK = '4.25.2';
 
 /**
- * Minimum version of Altinn.App .NET libraries where a custom receipt's layout set is named after
- * its task. From this version the name is always the protected task name and no longer user-editable.
+ * Minimum version of Altinn.App .NET libraries where a task's layout set is named after the task, so
+ * renaming the task renames the layout set.
  */
-export const MINIMUM_APPLIB_VERSION_FOR_FIXED_CUSTOM_RECEIPT_NAME = '9.0.0';
+export const MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK = '9.0.0';
+
+/**
+ * Returns true if the app names a task's layout set after the task, so renaming one renames the other.
+ */
+export const isLayoutSetNamedAfterTask = (appVersion?: AppVersion): boolean =>
+  isVersionEqualOrGreater(
+    appVersion?.backendVersion ?? '',
+    MINIMUM_APPLIB_VERSION_FOR_LAYOUT_SET_NAMED_AFTER_TASK,
+  );
 
 /**
  * Returns true if the version is 8 or higher, and false otherwise

@@ -7,7 +7,6 @@ on:
       - 'src/tools/health/**'
       - '.github/workflows/runtime-health-build.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

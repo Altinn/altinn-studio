@@ -103,8 +103,8 @@ test('Allows to add a data model, include an object with properties and a combin
 
   // Delete the data model
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
+  await dataModelPage.clickOnDataModelMenuButton();
   await dataModelPage.clickOnDeleteDataModelButton();
-  await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
@@ -124,8 +124,8 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   expect(dataModelComboboxValue).toMatch(/\/testDataModel.schema.json$/);
 
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
+  await dataModelPage.clickOnDataModelMenuButton();
   await dataModelPage.clickOnDeleteDataModelButton();
-  await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 

@@ -14,10 +14,12 @@ pub mod manifest;
 pub mod persistence;
 pub mod platform_api;
 pub mod progress;
+pub mod resources;
 pub mod sandbox;
 pub mod sessions;
 pub mod ssh;
 pub mod upgrade;
+pub mod vnc;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};

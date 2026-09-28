@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Options;
 /// <summary>
 /// Utility class for joining multiple app options providers into one
 /// </summary>
-public class JoinedAppOptionsProvider : IAppOptionsProvider
+internal sealed class JoinedAppOptionsProvider : IAppOptionsProvider
 {
     private readonly IEnumerable<string> _subOptions;
     private readonly Func<AppOptionsFactory> _appOptionsFactory;

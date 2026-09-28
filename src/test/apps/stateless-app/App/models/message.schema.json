@@ -1,44 +1,36 @@
 {
-  "$schema": "http://json-schema.org/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
+  "@xsdRootElement": "MessageV1",
   "type": "object",
   "properties": {
-    "Message": {
-      "$ref": "#/definitions/MessageV1"
+    "ProcessTask": {
+      "type": "string"
+    },
+    "Title": {
+      "type": "string"
+    },
+    "Body": {
+      "type": "string"
+    },
+    "Reference": {
+      "type": "string"
+    },
+    "Sender": {
+      "type": "string"
+    },
+    "PrefilledJobTitle": {
+      "type": "string"
+    },
+    "JobTitle": {
+      "type": "string"
     }
   },
-  "definitions": {
-    "MessageV1": {
-      "properties": {
-        "ProcessTask": {
-          "type": "string"
-        },
-        "Title": {
-          "type": "string"
-        },
-        "Body": {
-          "type": "string"
-        },
-        "Reference": {
-          "type": "string"
-        },
-        "Sender": {
-          "type": "string"
-        },
-        "PrefilledJobTitle": {
-          "type": "string"
-        },
-        "JobTitle": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "ProcessTask",
-        "Title",
-        "Body",
-        "Reference",
-        "Sender"
-      ]
-    }
-  }
+  "required": [
+    "ProcessTask",
+    "Title",
+    "Body",
+    "Reference",
+    "Sender"
+  ]
 }

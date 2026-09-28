@@ -61,6 +61,11 @@
   },
   "packageRules": [
     {
+      "description": "Work around renovatebot/renovate#45236: digest updates carry no branch-stage release timestamp, so the stability check would stay pending forever. The lookup-stage minimumReleaseAge check still holds too-new digests back.",
+      "matchUpdateTypes": ["digest", "pinDigest", "lockFileMaintenance"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
       "matchPackageNames": ["*"],
@@ -231,6 +236,14 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "MSBuild packages must ship assets for studioctl-server's target framework; a separate PR keeps a mismatch from blocking the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/cli/**"],
+      "matchPackageNames": ["/^Microsoft\\.Build/", "Microsoft.NET.StringTools"],
+      "groupName": "MSBuild packages in studioctl",
+      "groupSlug": "studioctl-msbuild"
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
@@ -240,12 +253,7 @@
     },
     {
       "matchFileNames": ["src/Designer/backend/**"],
-      "ignoreDeps": [
-        "Moq",
-        "Basic.Reference.Assemblies",
-        "Microsoft.CodeAnalysis.CSharp",
-        "Microsoft.CodeAnalysis.Common"
-      ]
+      "ignoreDeps": ["Moq"]
     },
     {
       "matchFileNames": [

@@ -82,6 +82,10 @@ pub enum Assignment {
         provider: ProviderId,
         /// Provider-owned Sandbox identity.
         id: SandboxId,
+        /// Harness installations convergence put in this Sandbox. An optional installation whose
+        /// host login was absent is missing here, and is installed by a later pass once it exists.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        harnesses: Vec<crate::Harness>,
     },
 }
 
@@ -102,6 +106,15 @@ impl Assignment {
             Self::Materialized { id, .. } => Some(id),
         }
     }
+
+    /// Returns the harnesses installed in the materialized Sandbox, when it exists.
+    #[must_use]
+    pub fn installed_harnesses(&self) -> Option<&[crate::Harness]> {
+        match self {
+            Self::Selected { .. } => None,
+            Self::Materialized { harnesses, .. } => Some(harnesses),
+        }
+    }
 }
 
 /// One runtime-selectable implementation of Agent Sandbox lifecycle effects.
@@ -117,7 +130,7 @@ pub trait Provider {
         &'a self,
         record: &'a AgentRecord,
         environment: std::collections::BTreeMap<String, String>,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
@@ -131,6 +144,8 @@ pub trait Provider {
 pub struct ProviderEnsureOutcome {
     pub sandbox: SandboxHandle,
     pub runtime_restarted: bool,
+    /// Harness installations this pass prepared.
+    pub harnesses: Vec<crate::Harness>,
 }
 
 /// Materialized Sandbox and relevant lifecycle transition.
@@ -139,6 +154,8 @@ pub struct EnsureOutcome {
     pub runtime_restarted: bool,
     /// The running Sandbox, for Agent-level setup that follows platform setup.
     pub sandbox: SandboxHandle,
+    /// Harness installations this pass prepared.
+    pub harnesses: Vec<crate::Harness>,
 }
 
 /// Runtime-selectable setup for an operating system reported by a materialized Sandbox.
@@ -146,8 +163,15 @@ pub trait PlatformAdapter {
     /// Reports whether this adapter supports the resolved Sandbox platform.
     fn supports(&self, platform: &Platform) -> bool;
 
-    /// Idempotently applies Agent and harness setup inside the Sandbox.
-    fn setup<'a>(&'a self, record: &'a AgentRecord, sandbox: &'a SandboxHandle) -> LocalFuture<'a, Result<(), Error>>;
+    /// Idempotently applies Agent and harness setup inside the Sandbox,
+    /// reporting its steps through `steps`.
+    fn setup<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        sandbox: &'a SandboxHandle,
+        harnesses: &'a [crate::Harness],
+        steps: &'a ::sandbox::SandboxProgress,
+    ) -> LocalFuture<'a, Result<(), Error>>;
 }
 
 /// Resolves Agent requirements against configured Providers and dispatches lifecycle effects.
@@ -214,11 +238,11 @@ impl Service {
     pub async fn ensure(
         &self,
         record: &AgentRecord,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
         let environment = crate::environment::resolve(record).await?;
-        let outcome = provider.ensure(record, environment, progress).await?;
+        let outcome = provider.ensure(record, environment, progress.clone()).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self
@@ -230,11 +254,16 @@ impl Service {
                     "no Agent setup adapter supports resolved Sandbox platform {resolved_platform:?}"
                 ))
             })?;
-        adapter.setup(record, &sandbox).await?;
+        let phase = progress.start_phase(crate::progress::SETUP).await;
+        adapter
+            .setup(record, &sandbox, &outcome.harnesses, &progress.steps())
+            .await?;
+        phase.complete().await;
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
             runtime_restarted: outcome.runtime_restarted,
             sandbox,
+            harnesses: outcome.harnesses,
         })
     }
 
@@ -244,7 +273,7 @@ impl Service {
     ///
     /// Returns an error unless the assignment is materialized through a configured Provider.
     pub async fn open(&self, record: &AgentRecord) -> Result<SandboxHandle, Error> {
-        let Some(Assignment::Materialized { provider, id }) = &record.agent.status.sandbox else {
+        let Some(Assignment::Materialized { provider, id, .. }) = &record.agent.status.sandbox else {
             return Err(Error::Invalid("Agent has no materialized Sandbox assignment".into()));
         };
         self.provider(provider)?.open(record, id).await

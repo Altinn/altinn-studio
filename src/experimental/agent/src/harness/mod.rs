@@ -225,6 +225,10 @@ pub struct HarnessSpec {
     pub version: Option<String>,
     /// Authentication delivery mode.
     pub auth: HarnessAuthMode,
+    /// Whether a host login this harness cannot find omits the installation instead of blocking
+    /// Agent provisioning. Re-evaluated on every pass, so a later host login installs it.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub optional: bool,
     /// Whether new Sessions select this installation when no harness is specified.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub default: bool,
@@ -324,6 +328,17 @@ pub fn acquire_host_credential(
     }
 }
 
+/// Reports whether the host login this harness mediates is present and usable.
+///
+/// An optional installation is omitted rather than failing provisioning when this is false, so the
+/// check must distinguish "no login here" from a genuine fault, which stays an error.
+pub(crate) async fn authentication_ready(harness: Harness, database: &persistence::Database) -> Result<bool, Error> {
+    match harness {
+        Harness::ClaudeCode => claude_code::authentication_ready(database).await,
+        Harness::Codex => codex::authentication_ready(database).await,
+    }
+}
+
 pub(crate) async fn prepare(harness: Harness, database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
     match harness {
         Harness::ClaudeCode => claude_code::prepare(database).await,
@@ -333,7 +348,7 @@ pub(crate) async fn prepare(harness: Harness, database: &persistence::Database) 
 
 pub(crate) struct MediatedSecret {
     pub(crate) environment: &'static str,
-    pub(crate) placeholder: &'static str,
+    pub(crate) placeholder: String,
     pub(crate) reference: sandbox::secret_store::SecretReference,
     pub(crate) allowed_hosts: Vec<String>,
 }

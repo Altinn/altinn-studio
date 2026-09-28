@@ -91,7 +91,7 @@ func (s *Service) ResolveRunTarget(ctx context.Context, appPath string) (RunTarg
 		return RunTarget{}, repocontext.ErrAppNotFound
 	}
 
-	appID, err := readAppID(result.AppRoot)
+	appID, err := ReadAppID(result.AppRoot)
 	if err != nil {
 		return RunTarget{}, fmt.Errorf("read app id: %w", err)
 	}
@@ -144,7 +144,9 @@ func (s *Service) BuildDotnetRunSpec(
 	}, nil
 }
 
-func readAppID(appPath string) (string, error) {
+// ReadAppID returns the app id declared in an app directory's application metadata. Exported because
+// the app's secrets directory is named after it, and doctor reports on that directory too.
+func ReadAppID(appPath string) (string, error) {
 	metadataPath := filepath.Join(appPath, appMetadataFile)
 	content, err := os.ReadFile(metadataPath) //nolint:gosec // App path is the detected local app root.
 	if err != nil {

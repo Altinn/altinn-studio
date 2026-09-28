@@ -39,6 +39,17 @@ public sealed class AppProcessWorkflowStatus
     public bool? Retrying { get; init; }
 
     /// <summary>
+    /// How many consecutive attempts of the transition's current step have failed and been
+    /// scheduled for automatic retry. Only present while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/>, and unlike <see cref="Retrying"/> it holds
+    /// steady while a retry attempt executes, so a waiting UI can escalate its message for a
+    /// failing transition. Omitted when zero.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
+
+    /// <summary>
     /// The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
     /// awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
     /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the
@@ -68,6 +79,16 @@ public sealed class AppProcessWorkflowStatus
     [JsonPropertyName("startedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? StartedAt { get; init; }
+
+    /// <summary>
+    /// When the in-flight transition was last resumed, on the workflow engine's clock. Resume reruns
+    /// the transition in place and keeps <see cref="StartedAt"/>, so a client timing the current run
+    /// starts from this when it is present. Present only while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/> and the transition has been resumed.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
 
     /// <summary>
     /// The workflow engine clock time when its status response was assembled. Present only while

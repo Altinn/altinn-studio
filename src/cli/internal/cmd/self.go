@@ -28,6 +28,7 @@ const (
 	selfMigrateSubcmd         = "__migrate"
 	selfWindowsHelperSubcmd   = "__windows-helper"
 	selfUpdateSubcmd          = "update"
+	selfUpgradeSubcmd         = "upgrade"
 	selfUninstallSubcmd       = "uninstall"
 )
 
@@ -100,7 +101,7 @@ func (c *SelfCommand) Usage() string {
 		"",
 		"Subcommands:",
 		"  install   Install binary, studioctl-server, and localtest resources",
-		"  update    Check for and install updates",
+		"  update    Check for and install updates (alias: upgrade)",
 		"  uninstall Remove installed binary",
 		"",
 		fmt.Sprintf("Run '%s self <subcommand> --help' for more information.", osutil.CurrentBin()),
@@ -120,8 +121,8 @@ func (c *SelfCommand) Run(ctx context.Context, args []string) error {
 	switch subCmd {
 	case "install":
 		return c.runInstall(ctx, subArgs)
-	case selfUpdateSubcmd:
-		return c.runUpdate(ctx, subArgs)
+	case selfUpdateSubcmd, selfUpgradeSubcmd:
+		return c.runUpdate(ctx, subCmd, subArgs)
 	case selfUninstallSubcmd:
 		return c.runUninstall(ctx, subArgs)
 	case selfCompleteInstallSubcmd, selfMigrateSubcmd:
@@ -335,11 +336,13 @@ func (c *SelfCommand) handleNoWritableLocations() error {
 	return selfcmd.ErrNoWritableInstallLocation
 }
 
-func (c *SelfCommand) runUpdate(ctx context.Context, args []string) error {
-	fs := flag.NewFlagSet("self update", flag.ContinueOnError)
+// runUpdate installs a newer release. The name is the subcommand the user typed, so help
+// output matches the invocation whether they ran 'update' or its 'upgrade' alias.
+func (c *SelfCommand) runUpdate(ctx context.Context, name string, args []string) error {
+	fs := flag.NewFlagSet("self "+name, flag.ContinueOnError)
 	fs.Usage = func() {
 		c.out.Print(joinLines(
-			fmt.Sprintf("Usage: %s self update [options]", osutil.CurrentBin()),
+			fmt.Sprintf("Usage: %s self %s [options]", osutil.CurrentBin(), name),
 			"",
 			fmt.Sprintf("Update %s in-place.", osutil.CurrentBin()),
 			"",

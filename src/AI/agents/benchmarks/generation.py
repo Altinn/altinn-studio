@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator
+from typing import Any
 
 from langfuse import Evaluation
 
@@ -75,11 +76,7 @@ class GeneratedTurn:
 
 
 def turn_from_reply(reply: AssistantMessage) -> GeneratedTurn:
-    calls = [
-        {"name": block.name, "input": block.input}
-        for block in reply.content
-        if isinstance(block, ToolUseBlock)
-    ]
+    calls = [{"name": block.name, "input": block.input} for block in reply.content if isinstance(block, ToolUseBlock)]
     text = "".join(block.text for block in reply.content if isinstance(block, TextBlock))
     return GeneratedTurn(tool_calls=calls, text=text, stop_reason=reply.stop_reason)
 
@@ -125,9 +122,7 @@ def tool_choice(*, output: Any = None, expected_output: Any = None, **_: Any) ->
     ]
 
 
-def tool_arguments(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def tool_arguments(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Are the arguments that matter right."""
     expected = rule_of(expected_output).get("arguments")
     if not expected:
@@ -153,16 +148,12 @@ def tool_arguments(
             name="gen_tool_arguments",
             value=round((len(expected) - len(wrong)) / len(expected), 4),
             data_type="NUMERIC",
-            comment="all expected arguments match"
-            if not wrong
-            else "; ".join(f"{k}: {v}" for k, v in wrong.items()),
+            comment="all expected arguments match" if not wrong else "; ".join(f"{k}: {v}" for k, v in wrong.items()),
         )
     ]
 
 
-def allowed_tools(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def allowed_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Was the chosen tool one of the defensible ones."""
     allowed = rule_of(expected_output).get("allowed_tools")
     if not allowed:
@@ -180,9 +171,7 @@ def allowed_tools(
     ]
 
 
-def forbidden_tools(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def forbidden_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did it avoid the tools this turn must not use."""
     forbidden = set(rule_of(expected_output).get("forbidden_tools") or [])
     if not forbidden:
@@ -199,9 +188,7 @@ def forbidden_tools(
     ]
 
 
-def stopped_cleanly(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def stopped_cleanly(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """A turn expected to finish must not ask for another tool, and a turn
     expected to continue must not stop early."""
     expected = rule_of(expected_output).get("stop")
@@ -299,24 +286,18 @@ def resolve_system_prompt(item_input: dict[str, Any]) -> str:
 
         path = DATASETS_DIR / SYSTEM_PROMPTS_FILE
         if not path.exists():
-            raise ValueError(
-                f"{SYSTEM_PROMPTS_FILE} is missing; rebuild it with "
-                "`python -m benchmarks.harvest`"
-            )
+            raise ValueError(f"{SYSTEM_PROMPTS_FILE} is missing; rebuild it with `python -m benchmarks.harvest`")
         prompts = json.loads(path.read_text(encoding="utf-8"))
         if not prompts.get(trace):
             raise ValueError(
-                f"no session prompt recorded for trace {trace}; rebuild with "
-                "`python -m benchmarks.harvest`"
+                f"no session prompt recorded for trace {trace}; rebuild with `python -m benchmarks.harvest`"
             )
         return prompts[trace]
 
     goal = item_input.get("goal")
     if not goal:
         raise ValueError("an item needs system_prompt, system_prompt_trace or goal")
-    return actor_system_prompt(
-        goal, allow_app_changes=item_input.get("allow_app_changes", True)
-    )
+    return actor_system_prompt(goal, allow_app_changes=item_input.get("allow_app_changes", True))
 
 
 def adapter_for(model: str, max_tokens: int | None = None) -> Any:
@@ -350,9 +331,7 @@ class GenerationTask:
         item_input = item_field(item, "input") or {}
         role = item_input.get("role") or self.role
         adapter = (
-            adapter_for(self.model, self.max_tokens)
-            if self.model
-            else build_adapter(role, max_tokens=self.max_tokens)
+            adapter_for(self.model, self.max_tokens) if self.model else build_adapter(role, max_tokens=self.max_tokens)
         )
         reply = await adapter.chat(
             messages=conversation_from_item(item_input),
@@ -366,172 +345,6 @@ class GenerationTask:
         return output
 
 
-GOAL_SENTINEL = "__GOAL__"
-
-DECISION_CONTRACT = """
-## How to answer in this evaluation
-
-You are being evaluated on one turn, and the tools are not connected. Do not
-narrate. Reply with JSON only, in exactly this shape:
-
-{
-  "tool_calls": [
-    {"tool": "the tool to call", "arguments_json": "{\"the arguments\": \"...\"}"}
-  ],
-  "done": false,
-  "text": "what you would say to the developer, or an empty string"
-}
-
-Call as many tools in one turn as the work needs, exactly as you would normally:
-reading four files and writing three is one turn, not seven. Return an empty
-`tool_calls` list and `done: true` only when the work is finished or the
-conversation calls for an answer rather than an action.
-
-`arguments_json` is a JSON *string* rather than an object, because a free-form
-object in the schema is coerced to always-empty.
-
-The tools below are the full catalog, described the same way the running agent
-sees them. Earlier turns in this conversation are written in this same JSON
-shape, and a `[tool_result]:` message is what those tools returned. Answer in
-that shape too, with no prose around it.
-"""
-
-# arguments is a string; a nested object permits no keys.
-DECISION_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["tool_calls", "done", "text"],
-    "properties": {
-        "tool_calls": {
-            "type": "array",
-            "description": "Every tool to call this turn, in order. Empty when done.",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "required": ["tool", "arguments_json"],
-                "properties": {
-                    "tool": {"type": "string"},
-                    "arguments_json": {
-                        "type": "string",
-                        "description": "Arguments as a JSON object encoded in a "
-                        "string, for example {\"path\": \"App/ui/form/layouts/Side1.json\"}.",
-                    },
-                },
-            },
-        },
-        "done": {
-            "type": "boolean",
-            "description": "True only when the work is finished or the turn calls "
-            "for an answer rather than an action.",
-        },
-        "text": {
-            "type": "string",
-            "description": "What you would say to the developer, or an empty string.",
-        },
-    },
-}
-
-
-def render_tool_catalog(schemas: list[dict[str, Any]] | None = None) -> str:
-    """The catalog as text, for the path that cannot pass tool definitions."""
-    schemas = schemas if schemas is not None else tool_catalog()
-    blocks = []
-    for schema in schemas:
-        blocks.append(
-            f"### {schema['name']}\n{schema['description'].strip()}\n\n"
-            f"Arguments (JSON Schema):\n```json\n"
-            f"{json.dumps(schema.get('input_schema') or {}, ensure_ascii=False)}\n```"
-        )
-    return "## Tools\n\n" + "\n\n".join(blocks)
-
-
-def ui_system_prompt() -> str:
-    """The loop system prompt with the goal left as a Langfuse variable."""
-    prompt = actor_system_prompt(GOAL_SENTINEL)
-    if GOAL_SENTINEL not in prompt:
-        raise RuntimeError("the system prompt no longer carries the goal verbatim")
-    return (
-        prompt.replace(GOAL_SENTINEL, "{{goal}}")
-        + "\n\n"
-        + render_tool_catalog().strip()
-        + "\n"
-        + DECISION_CONTRACT
-    )
-
-
-def as_chat_messages(conversation: list[dict[str, Any]]) -> list[dict[str, str]]:
-    """The conversation flattened to role/content, for a placeholder."""
-    messages = []
-    for entry in conversation:
-        role = entry.get("role")
-        if role == "user" and "tool_results" in entry:
-            body = "\n\n".join(
-                f"[tool_result{' err' if result.get('is_error') else ''}]: {result['content']}"
-                for result in entry["tool_results"]
-            )
-            messages.append({"role": "user", "content": body})
-        elif role == "user":
-            messages.append({"role": "user", "content": entry["text"]})
-        elif role == "assistant":
-            calls = entry.get("tool_calls") or []
-            messages.append(
-                {
-                    "role": "assistant",
-                    "content": json.dumps(
-                        {
-                            "tool_calls": [
-                                {
-                                    "tool": call["name"],
-                                    "arguments_json": json.dumps(
-                                        call.get("input") or {}, ensure_ascii=False
-                                    ),
-                                }
-                                for call in calls
-                            ],
-                            "done": not calls,
-                            "text": entry.get("text") or "",
-                        },
-                        ensure_ascii=False,
-                    ),
-                }
-            )
-        else:
-            raise ValueError(f"unknown role {role!r} in a conversation entry")
-    return messages
-
-
-def decoded_arguments(decision: dict[str, Any]) -> dict[str, Any]:
-    """The arguments of a UI decision, whichever form they arrived in."""
-    encoded = decision.get("arguments_json")
-    if isinstance(encoded, str) and encoded.strip():
-        try:
-            parsed = json.loads(encoded)
-        except json.JSONDecodeError:
-            return {}
-        return parsed if isinstance(parsed, dict) else {}
-    arguments = decision.get("arguments")
-    return arguments if isinstance(arguments, dict) else {}
-
-
-def ui_output_as_tool_calls(decision: dict[str, Any]) -> dict[str, Any]:
-    """A UI decision in the same shape the SDK task returns."""
-    listed = decision.get("tool_calls")
-    if isinstance(listed, list):
-        calls = [
-            {"name": call.get("tool"), "input": decoded_arguments(call)}
-            for call in listed
-            if isinstance(call, dict) and call.get("tool")
-        ]
-    else:
-        tool = decision.get("tool")
-        calls = [{"name": tool, "input": decoded_arguments(decision)}] if tool else []
-    return {
-        TOOL_CALLS_KEY: calls,
-        TEXT_KEY: decision.get("text") or "",
-        "stop_reason": "end_turn" if decision.get("done") else "tool_use",
-    }
-
-
 FAILURE_MODES = (
     "correct",
     "off_contract",
@@ -543,9 +356,7 @@ FAILURE_MODES = (
 )
 
 
-def required_tools(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def required_tools(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """How much of what the turn had to do it actually did."""
     required = rule_of(expected_output).get("required_tools")
     if not required:
@@ -563,9 +374,7 @@ def required_tools(
     ]
 
 
-def failure_mode(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def failure_mode(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Which way the turn went wrong, as a category."""
     rule = rule_of(expected_output)
     if not rule:
@@ -638,9 +447,7 @@ def _carries(component: dict[str, Any], prop: str, required: Any) -> bool:
     return value == required
 
 
-def content_pairings(
-    *, output: Any = None, expected_output: Any = None, **_: Any
-) -> list[Evaluation]:
+def content_pairings(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Do the components this turn wrote carry the property values their bindings need."""
     required = rule_of(expected_output).get("content_pairings") or []
     if not required:
@@ -662,8 +469,7 @@ def content_pairings(
         satisfied += len(setting)
         comments.append(
             f"{len(setting)}/{len(written)} {component_type}(s) set {prop} to "
-            f"{json.dumps(value)}"
-            + ("" if len(setting) == len(written) else f"; {pairing['consequence']}")
+            f"{json.dumps(value)}" + ("" if len(setting) == len(written) else f"; {pairing['consequence']}")
         )
     if not total:
         return []
@@ -678,7 +484,6 @@ def content_pairings(
 
 
 ITEM_EVALUATORS.extend([required_tools, failure_mode, content_pairings])
-
 
 
 SCORE_NAMES = (

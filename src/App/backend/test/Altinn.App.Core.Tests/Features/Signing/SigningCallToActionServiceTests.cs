@@ -97,7 +97,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "TestAppName" } },
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
         TranslationService translationService = new(
@@ -187,7 +187,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "TestAppName" } },
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
         TranslationService translationService = new(
@@ -289,7 +289,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "TestAppName" } },
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
         TranslationService translationService = new(
@@ -391,7 +391,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "TestAppName" } },
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
         TranslationService translationService = new(
@@ -480,7 +480,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             Title = new Dictionary<string, string> { { LanguageConst.Nb, "TestAppName" } },
         };
         Mock<IAppMetadata> appMetadataMock = new();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadata);
 
         AppIdentifier appIdentifier = new("org", "app");
         TranslationService translationService = new(

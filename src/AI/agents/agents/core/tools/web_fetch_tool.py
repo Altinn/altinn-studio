@@ -32,9 +32,7 @@ _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 
 class WebFetchArgs(BaseModel):
-    url: str = Field(
-        description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio."
-    )
+    url: str = Field(description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio.")
 
 
 class WebFetchTool(Tool):
@@ -60,27 +58,19 @@ class WebFetchTool(Tool):
         host = (parsed.hostname or "").lower()
         if host not in ALLOWED_HOSTS:
             return ToolResult(
-                content=(
-                    f"Host {host!r} is not allowed. Allowed hosts: "
-                    + ", ".join(sorted(ALLOWED_HOSTS))
-                ),
+                content=(f"Host {host!r} is not allowed. Allowed hosts: " + ", ".join(sorted(ALLOWED_HOSTS))),
                 is_error=True,
             )
 
         try:
-            async with httpx.AsyncClient(
-                follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS
-            ) as client:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=FETCH_TIMEOUT_SECONDS) as client:
                 response = await client.get(args.url)
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             status = exc.response.status_code
             hint = ""
             if status == 404:
-                hint = (
-                    "  Do not guess URLs — load `skill(altinn-docs)` and use a "
-                    "URL verbatim from its index."
-                )
+                hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
             return ToolResult(
                 content=f"HTTP {status} fetching {args.url}.{hint}",
                 is_error=True,

@@ -7,7 +7,6 @@ on:
       - 'src/AI/agents/**'
       - '.github/workflows/altinity-build-test.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -36,6 +35,14 @@ jobs:
     - name: Install dependencies
       working-directory: src/AI/agents
       run: pip install -r requirements.txt -r requirements-dev.txt
+
+    - name: Lint
+      working-directory: src/AI/agents
+      run: ruff check --output-format=github .
+
+    - name: Check formatting
+      working-directory: src/AI/agents
+      run: ruff format --check .
 
     - name: Run Altinity unit tests
       working-directory: src/AI/agents

@@ -122,6 +122,9 @@ enum Command {
         /// List Sessions across every Agent instead of resolving one owner.
         #[arg(short = 'A', long, conflicts_with_all = ["agent", "variant"])]
         all_agents: bool,
+        /// Include archived Sessions in a Session listing.
+        #[arg(long)]
+        archived: bool,
         /// Output format.
         #[arg(short = 'o', long, default_value = "table", value_enum)]
         output: OutputFormat,
@@ -142,6 +145,22 @@ enum Command {
         resource: String,
         /// Optional resource name when it is not part of `resource`.
         name: Option<String>,
+        /// Owning Agent for Session resources; inferred from the current directory when omitted.
+        #[arg(long, conflicts_with = "variant")]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
+        variant: Option<AgentVariantName>,
+    },
+    /// Archive a Session: stop its harness and hide it from listings, keeping its name and conversation.
+    Archive {
+        #[command(flatten)]
+        target: SessionTarget,
+    },
+    /// Unarchive a Session; the next attach resumes its conversation.
+    Unarchive {
+        #[command(flatten)]
+        target: SessionTarget,
     },
     /// Create or attach to a named Session in an Agent sandbox.
     Attach {
@@ -221,6 +240,45 @@ enum Command {
     },
     /// Describe how to reach an Agent over SSH.
     SshInfo {
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
+        /// Output format.
+        #[arg(short = 'o', long, default_value = "table", value_enum)]
+        output: OutputFormat,
+    },
+    /// Forward an Agent's desktop to a local VNC port until interrupted.
+    Vnc {
+        /// Agent name, as an alternative to the positional resource.
+        #[arg(long, conflicts_with_all = ["resource", "variant"])]
+        agent: Option<String>,
+        /// Select the closest Agent by its applied leaf variant.
+        #[arg(long, value_parser = parse_variant_name, conflicts_with_all = ["agent", "resource"])]
+        variant: Option<AgentVariantName>,
+        /// Agent resource or name; inferred from the current directory when omitted.
+        resource: Option<String>,
+        /// Local port to listen on. Defaults to a free port, which is printed.
+        #[arg(long)]
+        port: Option<u16>,
+        /// Forward the browser-based viewer instead of the raw RFB port, so no VNC client is needed.
+        #[arg(long)]
+        web: bool,
+        /// Hand the address to the local browser or VNC handler instead of only printing it.
+        #[arg(long)]
+        open: bool,
+    },
+    /// Relay one connection to an Agent's desktop over standard input and output.
+    VncProxy {
+        /// Agent resource or name.
+        resource: String,
+    },
+    /// Describe how to reach an Agent's desktop over VNC.
+    VncInfo {
         /// Agent resource or name; inferred from the current directory when omitted.
         resource: Option<String>,
         /// Agent name, as an alternative to the positional resource.
@@ -467,18 +525,31 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             agent,
             variant,
             all_agents,
+            archived,
             output,
-        } => get_resources(client, &resource, name, agent, variant, all_agents, output).await?,
+        } => get_resources(client, &resource, name, agent, variant, all_agents, archived, output).await?,
         Command::Describe { resource, name, output } => describe(client, &resource, name, output).await?,
-        Command::Delete { resource, name } => {
+        Command::Delete {
+            resource,
+            name,
+            agent,
+            variant,
+        } => {
             let (resource, name) = resource_reference(&resource, name)?;
-            if resource != Resource::Agent {
-                return Err(Error::Invalid("Session deletion is not supported".into()).into());
+            if resource == Resource::Agent {
+                reject_session_scope(agent.as_deref(), variant.as_ref(), false)?;
+                let name = require_name(name, "Agent")?;
+                client.delete(&name).await?;
+                println!("agent/{name} deleted");
+            } else {
+                let name = SessionName::new(require_name(name, "Session")?)?;
+                let agent = resolve_agent_name(client, agent, variant).await?;
+                client.delete_session(&agent, name.clone()).await?;
+                println!("session/{agent}/{name} deleted");
             }
-            let name = require_name(name, "Agent")?;
-            client.delete(&name).await?;
-            println!("agent/{name} deleted");
         }
+        Command::Archive { target } => set_archived(client, target, true).await?,
+        Command::Unarchive { target } => set_archived(client, target, false).await?,
         Command::Attach {
             resource,
             name,
@@ -517,6 +588,24 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             variant,
             output,
         } => ssh_info(client, resource, agent, variant, output).await?,
+        Command::Vnc {
+            agent,
+            variant,
+            resource,
+            port,
+            web,
+            open,
+        } => {
+            let options = VncOptions { port, web, open };
+            return vnc(home, client, resource, agent, variant, options).await;
+        }
+        Command::VncProxy { resource } => return vnc_proxy(home, client, resource).await,
+        Command::VncInfo {
+            resource,
+            agent,
+            variant,
+            output,
+        } => vnc_info(client, resource, agent, variant, output).await?,
         Command::Create {
             target,
             selection,
@@ -540,6 +629,7 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
     Ok(ExitCode::SUCCESS)
 }
 
+#[allow(clippy::too_many_arguments, reason = "mirrors the get command's flags")]
 async fn get_resources(
     client: &Client,
     resource: &str,
@@ -547,6 +637,7 @@ async fn get_resources(
     agent: Option<String>,
     variant: Option<AgentVariantName>,
     all_agents: bool,
+    archived: bool,
     output: OutputFormat,
 ) -> CommandResult<()> {
     let (resource, name) = resource_reference(resource, name)?;
@@ -577,11 +668,17 @@ async fn get_resources(
                         .get_session(&agent, SessionName::new(require_name(name, "Session")?)?)
                         .await?,
                 ]
-            } else if all_agents {
-                client.list_sessions(None).await?
             } else {
-                let agent = resolve_agent_name(client, agent, variant).await?;
-                client.list_sessions(Some(&agent)).await?
+                let sessions = if all_agents {
+                    client.list_sessions(None).await?
+                } else {
+                    let agent = resolve_agent_name(client, agent, variant).await?;
+                    client.list_sessions(Some(&agent)).await?
+                };
+                sessions
+                    .into_iter()
+                    .filter(|session| archived || !session.is_archived())
+                    .collect()
             };
             match output {
                 OutputFormat::Json => print_json(&sessions)?,
@@ -617,13 +714,11 @@ async fn attach(
     let agent = resolve_agent_name(client, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_session(
+        .until(
+            client,
             &agent,
-            session,
-            selection.request(None),
-            WaitPolicy::UntilReady,
-            Some(&mut wait.sink()),
-        ))
+            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+        )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
     Ok(())
@@ -649,7 +744,7 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -710,7 +805,7 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -722,6 +817,12 @@ async fn port_forward(
         );
         forwards.push(forward);
     }
+    hold_forwards(&forwards).await
+}
+
+/// Holds forwards open until interrupted, reporting each connection failure
+/// once, and fails when every forward has stopped serving.
+async fn hold_forwards(forwards: &[forward::PortForward]) -> CommandResult<ExitCode> {
     let mut reported = vec![None; forwards.len()];
     let mut poll = tokio::time::interval(Duration::from_secs(1));
     loop {
@@ -762,7 +863,7 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
@@ -805,7 +906,7 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client.ensure_execution(&agent, WaitPolicy::UntilReady, Some(&mut wait.sink())))
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -857,6 +958,139 @@ async fn ssh_info(
     Ok(())
 }
 
+/// How one `agentctl vnc` invocation should expose the desktop.
+struct VncOptions {
+    /// Local port to listen on; a free port when omitted.
+    port: Option<u16>,
+    /// Forward the browser-based viewer rather than the raw RFB port.
+    web: bool,
+    /// Also hand the address to whichever local application handles its scheme.
+    open: bool,
+}
+
+/// Forwards the Agent's desktop to a local port and holds it open.
+///
+/// The Agent is converged first, so the platform-owned bridge from the guest
+/// port to the image's display socket exists before anything dials it.
+async fn vnc(
+    home: &ControlPlaneHome,
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    variant: Option<AgentVariantName>,
+    options: VncOptions,
+) -> CommandResult<ExitCode> {
+    let VncOptions { port, web, open } = options;
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
+    // Refuses early, with the remedy, when the Agent declares no VNC access.
+    client.vnc_access(&agent).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .await?;
+    // Read again now the Agent is Ready: which ports its image offers is something a
+    // reconciliation pass observes, so before converging the browser viewer's port is unknown
+    // rather than absent.
+    let access = client.vnc_access(&agent).await?;
+    let guest_port = if web {
+        access.web_guest_port.ok_or_else(|| {
+            Error::Invalid(format!(
+                "the image of Agent {agent:?} serves no browser viewer; use `agentctl vnc {agent}` with a VNC client"
+            ))
+        })?
+    } else {
+        access.guest_port
+    };
+    let spec = forward::ForwardSpec {
+        address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+        // A free port by default: 5900 and 6080 are often taken locally, by a screen-sharing
+        // server or by another `agentctl vnc`, and the address is printed either way.
+        local_port: port.unwrap_or(0),
+        guest_port,
+    };
+    let forward = forward::PortForward::start(home.path().to_path_buf(), target.sandbox.clone(), spec).await?;
+    let address = forward.local_address();
+    // The image decides what its viewer port serves and where the root redirects, so the caller is
+    // pointed at the root rather than a path this side would have to keep in step with it.
+    let url = if web {
+        format!("http://{address}/")
+    } else {
+        format!("vnc://{address}")
+    };
+    println!("Desktop of agent {agent:?} is at {url}");
+    if web {
+        println!("Open that address in a browser; nothing needs installing.");
+    } else {
+        println!("Open it with any VNC viewer, for example `vncviewer {address}`, or pass --web for a browser.");
+    }
+    if open {
+        open_locally(&url);
+    }
+    hold_forwards(std::slice::from_ref(&forward)).await
+}
+
+/// Hands the address to whichever local application handles its scheme.
+///
+/// Best effort by design: there is no portable VNC viewer, the address is
+/// already printed, and a missing handler must not fail the forward.
+fn open_locally(url: &str) {
+    let opener = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(target_os = "windows") {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    match ProcessCommand::new(opener).arg(url).spawn() {
+        Ok(_) => println!("Asked {opener} to open {url}."),
+        Err(error) => eprintln!("could not run {opener} to open {url}: {error}"),
+    }
+}
+
+/// Relays one desktop connection over standard input and output.
+///
+/// This is the seam for a viewer that dials through a command rather than a
+/// port, and for tooling that wants the RFB stream without a listening socket.
+async fn vnc_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -> CommandResult<ExitCode> {
+    let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
+    let access = client.vnc_access(&agent).await?;
+    let wait = progress::Wait::start();
+    let target = wait
+        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .await?;
+    forward::relay_guest_port(
+        home.path(),
+        &target.sandbox,
+        access.guest_port,
+        tokio::io::stdin(),
+        tokio::io::stdout(),
+    )
+    .await?;
+    // A blocked standard-input read would keep the runtime from shutting down;
+    // the relay is finished, so leave immediately.
+    std::process::exit(0)
+}
+
+async fn vnc_info(
+    client: &Client,
+    resource: Option<String>,
+    agent: Option<String>,
+    variant: Option<AgentVariantName>,
+    output: OutputFormat,
+) -> CommandResult<()> {
+    let agent = resolve_execution_agent(client, resource, agent, variant).await?;
+    let access = client.vnc_access(&agent).await?;
+    match output {
+        OutputFormat::Json => print_json(&access)?,
+        OutputFormat::Table => {
+            for line in format::vnc_access_lines(&access) {
+                println!("{line}");
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Resolves a [`SessionTarget`] into the owning Agent and Session name.
 async fn session_target(client: &Client, target: SessionTarget) -> CommandResult<(String, SessionName)> {
     let (resource, name) = resource_reference(&target.resource, target.name)?;
@@ -878,17 +1112,29 @@ async fn create_session(
 ) -> CommandResult<()> {
     let resource = target.resource.clone();
     let request = selection.request(read_prompt_arg(input)?);
-    let wait = progress::Wait::start();
-    let (agent, session) = wait.until(tokio::time::timeout(timeout, async {
+    let deadline = tokio::time::Instant::now() + timeout;
+    let timed_out = || {
+        CommandError::Message(format!(
+            "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
+        ))
+    };
+    let (agent, session) = tokio::time::timeout_at(deadline, async {
         ensure_daemon(home, client).await?;
-        let (agent, session) = session_target(client, target).await?;
-        client.ensure_session(
-            &agent, session.clone(), request, WaitPolicy::UntilReady, Some(&mut wait.sink()),
-        ).await?;
-        Ok::<_, CommandError>((agent, session))
-    })).await.map_err(|_| CommandError::Message(format!(
-        "timed out creating {resource}; Agent resolution or provisioning did not finish; provisioning may continue"
-    )))??;
+        session_target(client, target).await
+    })
+    .await
+    .map_err(|_| timed_out())??;
+    let wait = progress::Wait::start();
+    wait.until(
+        client,
+        &agent,
+        tokio::time::timeout_at(
+            deadline,
+            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
+        ),
+    )
+    .await
+    .map_err(|_| timed_out())??;
     println!("session/{agent}/{session} ready");
     Ok(())
 }
@@ -913,6 +1159,19 @@ async fn prompt_session(
         )
         .await?;
     println!("session/{agent}/{session} prompted");
+    Ok(())
+}
+
+async fn set_archived(client: &Client, target: SessionTarget, archived: bool) -> CommandResult<()> {
+    let (agent, name) = session_target(client, target).await?;
+    let session = client.set_session_archived(&agent, name.clone(), archived).await?;
+    if !archived {
+        println!("session/{agent}/{name} unarchived");
+    } else if session.status.state == agent::sessions::State::Archived {
+        println!("session/{agent}/{name} archived");
+    } else {
+        println!("session/{agent}/{name} archived; its harness stops once it is idle");
+    }
     Ok(())
 }
 
@@ -943,31 +1202,11 @@ fn read_prompt_arg(input: PromptInput) -> CommandResult<Option<String>> {
 }
 
 fn print_turns(turns: &[agent::sessions::Turn]) {
-    use agent::sessions::{Part, Role};
     if turns.is_empty() {
         eprintln!("No turns yet.");
-        return;
     }
-    for (index, turn) in turns.iter().enumerate() {
-        if index > 0 {
-            println!();
-        }
-        println!("=== turn {} ===", index + 1);
-        for message in &turn.messages {
-            let who = match message.role {
-                Role::User => "user",
-                Role::Assistant => "assistant",
-            };
-            for part in &message.parts {
-                match part {
-                    Part::Text { text } => println!("[{who}] {text}"),
-                    Part::ToolCall { name, failed } => {
-                        let mark = if *failed { " (failed)" } else { "" };
-                        println!("[{who}] -> {name}{mark}");
-                    }
-                }
-            }
-        }
+    for line in format::turn_lines(turns) {
+        println!("{line}");
     }
 }
 
@@ -1124,10 +1363,11 @@ fn inference_error(error: Error) -> CommandError {
 async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
     let wait = progress::Wait::start();
     let waited = wait
-        .until(tokio::time::timeout(
-            timeout,
-            client.ensure_execution(name, WaitPolicy::UntilReady, Some(&mut wait.sink())),
-        ))
+        .until(
+            client,
+            name,
+            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
+        )
         .await;
     match waited {
         Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
@@ -1689,6 +1929,71 @@ mod tests {
     }
 
     #[test]
+    fn vnc_commands_accept_kubectl_shapes_and_a_chosen_local_port() {
+        let explicit = Arguments::try_parse_from(["agentctl", "vnc", "agent/worker"]).expect("vnc");
+        let Command::Vnc {
+            agent,
+            variant,
+            resource,
+            port,
+            web,
+            open,
+        } = explicit.command
+        else {
+            panic!("expected vnc command");
+        };
+        assert_eq!(resource.as_deref(), Some("agent/worker"));
+        assert!(agent.is_none() && variant.is_none());
+        assert!(port.is_none(), "a free local port is chosen unless one is asked for");
+        assert!(!web, "the raw RFB port is forwarded unless a browser is asked for");
+        assert!(!open, "a viewer is launched only when asked for");
+
+        let chosen = Arguments::try_parse_from(["agentctl", "vnc", "--port", "5901", "--open"]).expect("chosen port");
+        assert!(
+            matches!(
+                chosen.command,
+                Command::Vnc {
+                    port: Some(5901),
+                    open: true,
+                    resource: None,
+                    ..
+                }
+            ),
+            "the Agent is inferred and a chosen local port is kept"
+        );
+
+        let browser = Arguments::try_parse_from(["agentctl", "vnc", "--web"]).expect("web vnc");
+        assert!(
+            matches!(
+                browser.command,
+                Command::Vnc {
+                    web: true,
+                    port: None,
+                    ..
+                }
+            ),
+            "--web forwards the viewer port instead of the RFB port"
+        );
+
+        // The Agent is named once, the same rule the ssh commands follow.
+        assert!(Arguments::try_parse_from(["agentctl", "vnc", "--agent", "worker", "agent/other"]).is_err());
+
+        let proxy = Arguments::try_parse_from(["agentctl", "vnc-proxy", "agent/worker"]).expect("vnc-proxy");
+        assert!(matches!(proxy.command, Command::VncProxy { resource } if resource == "agent/worker"));
+        assert!(Arguments::try_parse_from(["agentctl", "vnc-proxy"]).is_err());
+
+        let info = Arguments::try_parse_from(["agentctl", "vnc-info", "worker", "-o", "json"]).expect("vnc-info");
+        assert!(matches!(
+            info.command,
+            Command::VncInfo {
+                resource: Some(resource),
+                output: OutputFormat::Json,
+                ..
+            } if resource == "worker"
+        ));
+    }
+
+    #[test]
     fn ssh_commands_accept_kubectl_shapes_and_remote_commands() {
         let explicit = Arguments::try_parse_from(["agentctl", "ssh", "agent/worker", "--", "uptime", "-p"])
             .expect("ssh with a remote command");
@@ -1859,6 +2164,7 @@ mod tests {
             status: agent::ConditionStatus::False,
             reason: "SecretMissing".into(),
             message: ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+            last_transition_time: None,
         };
 
         assert_eq!(

@@ -4,15 +4,34 @@
 import { state } from '../core/state.js';
 import { formatElapsed, formatSpan } from '../core/helpers.js';
 
+/**
+ * How long a live workflow's current attempt has been running, or how long one with no attempt yet
+ * has been waiting to start.
+ *
+ * A live workflow carrying no `executionStartedAt` is `Enqueued` or `Held`, and for those
+ * `updatedAt` is when it entered the queue: the enqueue itself leaves it null, while every later
+ * path back into the queue — resume, stale reclaim, dependency recovery, a mailbox hold — stamps
+ * it. Reading it here is what keeps a workflow the operator has just retried from showing its whole
+ * age until a worker picks it up. Settled durations elsewhere must not use this fallback, where
+ * `updatedAt` is the moment the workflow finished.
+ * @param {import('../core/state.js').Workflow} wf
+ * @param {number} [now]
+ */
+export const elapsedLabel = (wf, now = Date.now()) => {
+    const anchor = new Date(wf.executionStartedAt || wf.updatedAt || wf.createdAt).getTime();
+    return formatElapsed(Math.max(0, (now - anchor) / 1000));
+};
+
 export const updateTimers = () => {
     const now = Date.now();
 
+    // Anchored on the live copy and re-read every frame: `executionStartedAt` moves to the start of
+    // each new attempt, so a cached anchor would keep counting from a previous one. A workflow the
+    // live section has dropped is not found here at all — its card was stamped with its final
+    // elapsed on the way out.
     for (const el of document.querySelectorAll('[data-timer]')) {
-        const timer = state.workflowTimers[el.getAttribute('data-timer') ?? ''];
-        if (timer) {
-            const end = timer.frozenAt || now;
-            el.textContent = formatElapsed((end - new Date(timer.startedAt).getTime()) / 1000);
-        }
+        const wf = state.previousWorkflows[el.getAttribute('data-timer') ?? ''];
+        if (wf) el.textContent = elapsedLabel(wf, now);
     }
 
     for (const el of document.querySelectorAll('[data-backoff]')) {

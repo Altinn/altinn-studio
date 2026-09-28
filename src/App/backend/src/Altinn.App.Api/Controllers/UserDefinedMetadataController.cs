@@ -152,7 +152,7 @@ public class UserDefinedMetadataController : ControllerBase
             return NotFound("Unable to find data element based on the given parameters.");
         }
 
-        Application application = await _appMetadata.GetApplicationMetadata();
+        Application application = _appMetadata.ApplicationMetadata;
         DataType? dataTypeFromMetadata = application.DataTypes.First(e =>
             e.Id.Equals(dataElement.DataType, StringComparison.OrdinalIgnoreCase)
         );

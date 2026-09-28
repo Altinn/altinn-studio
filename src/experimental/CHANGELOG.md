@@ -12,8 +12,67 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.7] - 2026-09-28
+
 ### Added
 
+- `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
+  whether a failure is being retried, and how long each condition has held its state.
+- Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
+  provisioning progress.
+- Provisioning shows Agent setup and SSH access as phases of their own.
+- The `agentctl` terminal UI is a live triage view: every Agent and Session with its state and how long it has been in
+  it. Sessions that need input are marked and counted, `tab` jumps to the next one, `/` filters, and `?` lists every
+  key.
+- In the terminal UI, a side panel shows the selected Session's recent turns or the selected Agent's status. `p` follows
+  an Agent's provisioning, which also opens for an Agent created with `c`, or prompts a Session without attaching.
+- Altinn Agents include `typos` and `hunspell`, so the repository spell check (`yarn spell:quick`, `yarn spell:check`
+  and the pre-commit hook) runs inside an Agent.
+- The full Altinn Agent includes `cargo-machete`, so `make deps-check` and `make check` in the Rust workspaces run
+  inside an Agent.
+- `agentctl delete session/<name>` and `d` in the terminal UI delete one Session: its harness is stopped and its name
+  becomes free. The harness's own conversation files stay in the Sandbox.
+- `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
+  progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
+- A new `desktop` Altinn Agent has a graphical screen it can see and use, driven by a `desktop` helper and a
+  `computer-use` skill: screenshot, zoom, point, scroll and type, including Norwegian text, and read what is showing
+  as an accessibility tree, including the browser's own controls and dialogs. A terminal opens with `Ctrl+Alt+T`
+  or the panel's launcher and has the Session's environment.
+- Agents can declare `access: [{type: vnc}]`. Watch or take over the desktop with `agentctl vnc --web`, in a browser
+  with nothing installed, or `agentctl vnc` for a VNC client of your own.
+
+### Changed
+
+- Commands that wait for an Agent, such as `apply --wait`, pick up provisioning already in progress and no longer drop
+  output when they fall behind.
+- Image pulls and imports show downloading, materializing and assembling as separate steps.
+- The terminal UI updates as Agents and Sessions change instead of every two seconds, and keeps the last state on screen
+  while `agentd` is unreachable.
+- Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off color while every state keeps its
+  glyph.
+- New full Altinn Agents finish setup faster. Chromium's trust in the certificate bundle is imported faster and in the
+  background, so Sessions no longer wait for it.
+
+### Fixed
+
+- The terminal UI keeps the selection on the same Agent or Session when rows move or an Agent is folded.
+- A Claude Code Session left Idle for more than 30 days resumes its conversation instead of starting a new one. Claude
+  Code no longer deletes transcripts it considers old.
+- The terminal UI's new-Session form rejects a name the Agent already uses instead of attaching to that Session.
+
+## [0.1.0-preview.6] - 2026-09-23
+
+### Changed
+
+- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
+- Altinn, self-development and worktree Agents install Codex CLI 0.156.0, with workspace routing and activity hooks updated for its startup flow.
+
+## [0.1.0-preview.5] - 2026-09-22
+
+### Added
+
+- Codex and Claude Code Sessions show their model, working directory, Git branch, context usage, usage limits, harness
+  version and Fast mode in a persistent status line.
 - Altinn Agents can authenticate ordinary HTTPS Git commands to Azure DevOps with an optional host-mediated personal
   access token, including cloning the `altinn-studio-infra` repository without exposing the token in the Sandbox.
 - Altinn and self-development Agents include Neovim with line numbers, cursor highlighting, a filetype statusline, the
@@ -22,6 +81,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - The `agentctl` terminal UI supports mouse selection, scrolling, clickable controls and deliberate double-click
   actions while retaining all keyboard controls.
 - Agent Skill entries may declare an installed `name` separately from their source directory.
+- A harness installation may be declared `optional`, so an Agent is created without it when its host login is
+  absent. Altinn Agents declare Codex this way, and signing in on the host installs it on the next convergence.
+- Altinn Agents install the repository's text-review and Norwegian copy-editing Skills, so a Session has them as
+  well as a local checkout.
 - Agent manifests may mark a mediated secret as optional, so an absent or empty value omits that binding instead of
   blocking Agent provisioning.
 - Altinn Agent images include `studioctl`, the Altinn Studio app-development skill and `/home/agent/code/apps` for
@@ -30,7 +93,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- New self-development, minimal and worktree example Agents install the latest stable Claude Code and Codex CLI
+- Pull request evidence guidance is shorter, with readable pacing and no fixed clip
+  duration. The GIF conversion helper now accepts files up to 10 MiB instead of 8 MiB.
+- Altinn, self-development, minimal and worktree Agents install the latest stable Claude Code and Codex CLI
   harnesses, and Codex command failures remain visible in `agentctl turns` with the new transcript format.
 
 ### Fixed

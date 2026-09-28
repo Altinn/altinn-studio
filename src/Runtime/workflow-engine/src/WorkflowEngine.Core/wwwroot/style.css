@@ -2420,31 +2420,6 @@ pre.diff-remove {
         transform: translateY(12px);
     }
 }
-.exit-fail {
-    --exit-color: var(--red);
-}
-.exit-fail {
-    animation-name: complete-exit-fail !important;
-}
-@keyframes complete-exit-fail {
-    0% {
-        border-color: var(--border);
-        opacity: 1;
-        transform: translateY(0);
-    }
-    40% {
-        border-color: var(--red);
-        box-shadow: 0 0 12px rgba(var(--red-rgb), 0.4);
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        border-color: var(--red);
-        box-shadow: 0 0 8px rgba(var(--red-rgb), 0.4);
-        opacity: 0;
-        transform: translateY(12px);
-    }
-}
 @keyframes shake {
     0%,
     100% {
@@ -3152,22 +3127,8 @@ pre.diff-remove {
         box-shadow: var(--shadow-card);
     }
 }
-@keyframes altinn-recent-glow-fail {
-    0%,
-    15% {
-        border-color: var(--red);
-        box-shadow: 0 0 8px rgba(var(--red-rgb), 0.2);
-    }
-    100% {
-        border-color: var(--border);
-        box-shadow: var(--shadow-card);
-    }
-}
 [data-theme='altinn'] .workflow-card {
     animation-name: altinn-recent-glow;
-}
-[data-theme='altinn'] .workflow-card.exit-fail {
-    animation-name: altinn-recent-glow-fail;
 }
 @keyframes altinn-chip-glow {
     0% {

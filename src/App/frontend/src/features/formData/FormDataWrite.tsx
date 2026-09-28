@@ -308,6 +308,8 @@ function FormDataEffects() {
     s.data.manualSaveRequested,
   ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
+  const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
+  const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
@@ -323,8 +325,8 @@ function FormDataEffects() {
     throw error;
   }
 
-  // Marking the document as having unsaved changes. The data attribute is used in tests, while the beforeunload
-  // event is used to warn the user when they try to navigate away from the page with unsaved changes.
+  // The data attribute tracks saveable changes for tests. The unload warning also includes invalid input,
+  // which cannot be saved and would be lost when leaving the page.
   useEffect(() => {
     clearTimeout(setUnsavedAttrTimeout.current);
     if (hasUnsavedChanges) {
@@ -335,14 +337,19 @@ function FormDataEffects() {
         setUnsavedAttrTimeout.current = undefined;
       }, 10);
     }
-    window.onbeforeunload = hasUnsavedChanges ? () => true : null;
+    window.onbeforeunload = shouldWarnBeforeUnload
+      ? (event) => {
+          event.preventDefault();
+          return true;
+        }
+      : null;
 
     return () => {
       clearTimeout(setUnsavedAttrTimeout.current);
       document.body.removeAttribute('data-unsaved-changes');
       window.onbeforeunload = null;
     };
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, shouldWarnBeforeUnload]);
 
   // Debounce the data model when the user stops typing. This has the effect of triggering the useEffect below,
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
@@ -463,6 +470,14 @@ function hasUnsavedChanges(state: FormStoreState) {
   return Object.values(state.data.models).some(
     ({ currentData, lastSavedData, debouncedCurrentData }) =>
       currentData !== lastSavedData || debouncedCurrentData !== lastSavedData,
+  );
+}
+
+export function hasInvalidFormData(state: FormStoreState): boolean {
+  return Object.values(state.data.models).some(({ invalidCurrentData }) =>
+    Object.values(dot.dot(invalidCurrentData)).some(
+      (value) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean',
+    ),
   );
 }
 

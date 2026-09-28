@@ -37,7 +37,7 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         IReadOnlyList<ProcessTask> processTasks = _processReader.GetProcessTasks();
 
         ValidateProcessShape(processTasks);

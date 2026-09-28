@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status};
 
-use super::{AgentRecord, ObservedStatus, Observers, SharedAgentStore};
+use super::{AgentRecord, SharedAgentStore};
+use crate::progress::{ProvisioningState, SandboxObserver};
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -16,19 +17,25 @@ pub struct Reconciler {
     sandboxes: Rc<crate::sandbox::Service>,
     sessions: Option<Rc<dyn SessionNotifier>>,
     ssh: Option<Rc<crate::ssh::Access>>,
-    observers: Observers,
+    vnc: Option<Rc<crate::vnc::Access>>,
+    provisioning: ProvisioningState,
 }
 
 impl Reconciler {
     /// Creates an Agent reconciler over persistent resources and runtime-resolved Sandboxes.
     #[must_use]
-    pub fn new(store: SharedAgentStore, sandboxes: Rc<crate::sandbox::Service>, observers: Observers) -> Self {
+    pub fn new(
+        store: SharedAgentStore,
+        sandboxes: Rc<crate::sandbox::Service>,
+        provisioning: ProvisioningState,
+    ) -> Self {
         Self {
             store,
             sandboxes,
             sessions: None,
             ssh: None,
-            observers,
+            vnc: None,
+            provisioning,
         }
     }
 
@@ -36,6 +43,13 @@ impl Reconciler {
     #[must_use]
     pub fn with_ssh_access(mut self, ssh: Rc<crate::ssh::Access>) -> Self {
         self.ssh = Some(ssh);
+        self
+    }
+
+    /// Reconciles declared VNC access after the Sandbox is set up.
+    #[must_use]
+    pub fn with_vnc_access(mut self, vnc: Rc<crate::vnc::Access>) -> Self {
+        self.vnc = Some(vnc);
         self
     }
 
@@ -80,16 +94,19 @@ impl Reconciler {
                     "Sandbox provisioning has not completed",
                 )],
             );
-            self.update_status(&record, status.clone(), None).await?;
-            record.agent.status = status;
+            record.agent.status = self.update_status(&record, status, None).await?;
         }
 
-        let observer = self.observers.observe_sandbox(record.id);
+        let status = &record.agent.status;
+        let observer = if status.is_ready() && status.observed_generation == record.agent.metadata.generation {
+            SandboxObserver::resync(record.id, self.provisioning.clone())
+        } else {
+            SandboxObserver::new(record.id, self.provisioning.clone())
+        };
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
-                observer.failed(&failure);
                 let message = error.to_string();
                 let status = Status::observed(
                     record.agent.metadata.generation,
@@ -109,7 +126,10 @@ impl Reconciler {
                         ),
                     ],
                 );
-                self.update_status(&record, status, Some(failure.kind)).await?;
+                // The failure class is stored before followers see the pass fail.
+                let stored = self.update_status(&record, status, Some(failure.kind)).await;
+                observer.failed(&failure);
+                stored?;
                 return Err(error);
             }
         };
@@ -126,6 +146,7 @@ impl Reconciler {
         let assignment = crate::sandbox::Assignment::Materialized {
             provider,
             id: ensured.id,
+            harnesses: ensured.harnesses.clone(),
         };
         let mut conditions = vec![condition(
             Condition::SANDBOX_READY,
@@ -133,44 +154,70 @@ impl Reconciler {
             "SandboxRunning",
             "",
         )];
-        self.reconcile_ssh(&record, &ensured.sandbox, &assignment, &mut conditions)
+        self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
+        // As on failure, readiness is stored before followers see the pass end.
         self.update_status(&record, status, None).await?;
+        observer.succeeded();
         if ensured.runtime_restarted {
             self.notify_sessions(record.id);
         }
         Ok(())
     }
 
-    /// Reconciles declared SSH access and appends its condition. A failure is
-    /// recorded as the Agent's `Ready=False` before it is returned.
-    async fn reconcile_ssh(
+    /// Reconciles every access capability the platform offers, in order.
+    async fn reconcile_declared_access(
         &self,
         record: &AgentRecord,
         sandbox: &::sandbox::SandboxHandle,
         assignment: &crate::sandbox::Assignment,
         conditions: &mut Vec<Condition>,
+        observer: &SandboxObserver,
     ) -> Result<(), Error> {
-        let Some(ssh) = &self.ssh else {
-            return Ok(());
+        if let Some(ssh) = &self.ssh {
+            let pass = ssh.reconcile(record, sandbox);
+            self.reconcile_access(SSH, pass, record, assignment, conditions, observer)
+                .await?;
+        }
+        if let Some(vnc) = &self.vnc {
+            let pass = vnc.reconcile(record, sandbox);
+            self.reconcile_access(VNC, pass, record, assignment, conditions, observer)
+                .await?;
+        }
+        Ok(())
+    }
+
+    /// Runs one access capability's pass and appends its condition. A failure
+    /// is recorded as the Agent's `Ready=False` before it is returned.
+    async fn reconcile_access(
+        &self,
+        kind: AccessKind,
+        pass: impl Future<Output = Result<bool, Error>>,
+        record: &AgentRecord,
+        assignment: &crate::sandbox::Assignment,
+        conditions: &mut Vec<Condition>,
+        observer: &SandboxObserver,
+    ) -> Result<(), Error> {
+        let phase = if (kind.declared)(&record.agent.spec) {
+            Some(observer.reporter().start_phase(kind.phase).await)
+        } else {
+            None
         };
-        match ssh.reconcile(record, sandbox).await {
+        match pass.await {
             Ok(true) => {
-                conditions.push(condition(
-                    Condition::SSH_READY,
-                    ConditionStatus::True,
-                    "ServerRunning",
-                    "",
-                ));
+                if let Some(phase) = phase {
+                    phase.complete().await;
+                }
+                conditions.push(condition(kind.condition, ConditionStatus::True, kind.ready_reason, ""));
                 Ok(())
             }
             Ok(false) => Ok(()),
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 conditions.push(condition(
-                    Condition::SSH_READY,
+                    kind.condition,
                     ConditionStatus::False,
                     "ReconcileFailed",
                     &failure.message,
@@ -178,7 +225,7 @@ impl Reconciler {
                 conditions.push(condition(
                     Condition::READY,
                     ConditionStatus::False,
-                    "SshAccessFailed",
+                    kind.failed_reason,
                     &failure.message,
                 ));
                 let status = Status::observed(
@@ -186,7 +233,9 @@ impl Reconciler {
                     Some(assignment.clone()),
                     std::mem::take(conditions),
                 );
-                self.update_status(record, status, Some(failure.kind)).await?;
+                let stored = self.update_status(record, status, Some(failure.kind)).await;
+                observer.failed(&failure);
+                stored?;
                 Err(error)
             }
         }
@@ -197,11 +246,14 @@ impl Reconciler {
         if let Some(ssh) = &self.ssh {
             ssh.remove(record).await?;
         }
+        if let Some(vnc) = &self.vnc {
+            vnc.forget(record.id);
+        }
         self.notify_sessions(record.id);
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
             .await?;
-        self.observers.forget(record.id);
+        self.provisioning.forget(record.id);
         Ok(())
     }
 
@@ -226,27 +278,38 @@ impl Reconciler {
             Some(failure.kind),
         )
         .await
+        .map(drop)
     }
 
+    /// Records the pass's observed status and failure class and returns it as stored.
     async fn update_status(
         &self,
         record: &AgentRecord,
-        status: Status,
+        mut status: Status,
         failure: Option<FailureKind>,
-    ) -> Result<(), Error> {
-        let notify = session_relevant_transition(&record.agent.status, &status);
-        let observed = ObservedStatus {
-            conditions: status.conditions.clone(),
-            failure,
+    ) -> Result<Status, Error> {
+        status.failure = failure;
+        // A resync that observes what is already stored writes nothing, so it
+        // advances no revision and wakes no watcher.
+        let stored = Status {
+            progress: None,
+            provenance: None,
+            ..record.agent.status.clone()
         };
-        self.store
+        let mut unchanged = status.clone();
+        unchanged.stamp_transitions(&stored, time::OffsetDateTime::UNIX_EPOCH);
+        if unchanged == stored {
+            return Ok(stored);
+        }
+        let notify = session_relevant_transition(&record.agent.status, &status);
+        let stored = self
+            .store
             .update_status(record.id, record.agent.metadata.generation, status)
             .await?;
-        self.observers.publish_status(record.id, observed);
         if notify {
             self.notify_sessions(record.id);
         }
-        Ok(())
+        Ok(stored)
     }
 
     fn notify_sessions(&self, id: crate::AgentId) {
@@ -262,12 +325,38 @@ impl crate::controller::Reconcile<crate::AgentId> for Reconciler {
     }
 }
 
+/// How one access capability reports its pass in progress and conditions.
+struct AccessKind {
+    declared: fn(&crate::Spec) -> bool,
+    phase: ::sandbox::Phase,
+    condition: &'static str,
+    ready_reason: &'static str,
+    failed_reason: &'static str,
+}
+
+const SSH: AccessKind = AccessKind {
+    declared: crate::Spec::ssh_access,
+    phase: crate::progress::SSH_ACCESS,
+    condition: Condition::SSH_READY,
+    ready_reason: "ServerRunning",
+    failed_reason: "SshAccessFailed",
+};
+
+const VNC: AccessKind = AccessKind {
+    declared: crate::Spec::vnc_access,
+    phase: crate::progress::VNC_ACCESS,
+    condition: Condition::VNC_READY,
+    ready_reason: "BridgeListening",
+    failed_reason: "VncAccessFailed",
+};
+
 fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -> Condition {
     Condition {
         kind: kind.into(),
         status,
         reason: reason.into(),
         message: message.into(),
+        last_transition_time: None,
     }
 }
 
@@ -275,4 +364,12 @@ fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
+        || previous
+            .sandbox
+            .as_ref()
+            .and_then(crate::sandbox::Assignment::installed_harnesses)
+            != current
+                .sandbox
+                .as_ref()
+                .and_then(crate::sandbox::Assignment::installed_harnesses)
 }

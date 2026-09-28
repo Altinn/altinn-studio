@@ -37,6 +37,18 @@ cp .env.example .env
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
+### Lint, format and test
+
+```bash
+pip install -r requirements-dev.txt
+
+ruff check .          # lint (add --fix to fix automatically)
+ruff format .         # format
+python -m pytest      # unit tests
+```
+
+CI runs `ruff check`, `ruff format --check` and `pytest` on each pull request.
+
 ## Features
 
 - 🤖 **Code Generation** - Generates Altinn-compliant code using in-process Altinn tools
@@ -143,13 +155,13 @@ GITEA_LOCAL_TOKEN=your-token
 GITEA_BASE_URL=http://localhost:3000
 
 # Optional: Multi-model setup
-LLM_MODEL_PLANNER=gpt-4o
-LLM_MODEL_ACTOR=claude-sonnet-4-5
-LLM_MODEL_REVIEWER=gpt-4o-mini
+LLM_MODEL_PLANNER=gpt-5.6-sol
+LLM_MODEL_ACTOR=gpt-5.6-terra
 
 # Optional: Langfuse observability
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
 LANGFUSE_ENABLED=true
 ```
 
@@ -214,10 +226,10 @@ altinity-agents/
 │   │   ├── runner.py     # Graph build + pre-graph gates
 │   │   └── state.py      # AgentState
 │   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
-│   ├── altinn/           # Altinn domain library (datamodel, layout, policy, resources)
+│   ├── altinn/           # Altinn domain library (datamodel, layout, resources)
 │   ├── skills/           # Domain-knowledge skills, loaded on demand
 │   ├── prompts/          # System + user prompts (+ loader; Langfuse overrides these)
-│   ├── services/         # git, llm, events, validation, repo, patching, telemetry
+│   ├── services/         # git, llm, events, preview, repo
 │   └── workflows/        # Up-front pipeline stages (intake, spec)
 └── shared/               # Config, models, utilities
 ```

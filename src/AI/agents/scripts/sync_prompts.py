@@ -55,9 +55,7 @@ def _report_judges() -> None:
         return
     print(
         f"\n{len(names)} judge template(s) live in Langfuse as evaluators rather than "
-        "prompts, so this report cannot compare them: "
-        + ", ".join(names)
-        + ".\nThe files under "
+        "prompts, so this report cannot compare them: " + ", ".join(names) + ".\nThe files under "
         f"agents/prompts/{JUDGE_DIR}/ are the reviewed source; the running text is "
         "configured in the Langfuse UI."
     )

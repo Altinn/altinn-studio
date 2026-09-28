@@ -13,7 +13,6 @@ on:
       - 'src/tools/releaser/**'
       - '.github/workflows/changelog.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

@@ -93,6 +93,9 @@ func (e *Env) OnInstall(_ context.Context) error {
 
 // Preflight validates prerequisites before startup.
 func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
+		return err
+	}
 	return CheckForLegacyLocaltest(ctx, e.client)
 }
 

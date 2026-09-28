@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,27 +16,27 @@ namespace Altinn.App.Models.modell1
     [XmlElement("tekstfelt", Order = 1)]
     [JsonProperty("tekstfelt")]
     [JsonPropertyName("tekstfelt")]
-    public string tekstfelt { get; set; }
+    public string? tekstfelt { get; set; }
 
     [XmlElement("gateadresse", Order = 2)]
     [JsonProperty("gateadresse")]
     [JsonPropertyName("gateadresse")]
-    public string gateadresse { get; set; }
+    public string? gateadresse { get; set; }
 
     [XmlElement("poststed", Order = 3)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
-    public string poststed { get; set; }
+    public string? poststed { get; set; }
 
     [XmlElement("bransje", Order = 4)]
     [JsonProperty("bransje")]
     [JsonPropertyName("bransje")]
-    public string bransje { get; set; }
+    public string? bransje { get; set; }
 
     [XmlElement("personer", Order = 5)]
     [JsonProperty("personer")]
     [JsonPropertyName("personer")]
-    public List<personer> personer { get; set; }
+    public List<personer>? personer { get; set; }
 
     [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("randomnum", Order = 6)]
@@ -51,7 +52,7 @@ namespace Altinn.App.Models.modell1
     [XmlElement("listsearch", Order = 7)]
     [JsonProperty("listsearch")]
     [JsonPropertyName("listsearch")]
-    public string listsearch { get; set; }
+    public string? listsearch { get; set; }
 
   }
 
@@ -71,7 +72,7 @@ namespace Altinn.App.Models.modell1
     [XmlElement("hjelpefelt", Order = 1)]
     [JsonProperty("hjelpefelt")]
     [JsonPropertyName("hjelpefelt")]
-    public string hjelpefelt { get; set; }
+    public string? hjelpefelt { get; set; }
 
   }
 }

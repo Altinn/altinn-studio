@@ -1,7 +1,4 @@
-using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Models.Model;
 
@@ -16,7 +13,7 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
         {
 
             if (data.GetType() == typeof(Model))

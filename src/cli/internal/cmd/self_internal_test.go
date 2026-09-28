@@ -89,6 +89,28 @@ func TestSelfUsageHidesInternalSubcommands(t *testing.T) {
 	}
 }
 
+func TestSelfUpdateSubcommandNames(t *testing.T) {
+	t.Parallel()
+
+	for _, subcmd := range []string{selfUpdateSubcmd, selfUpgradeSubcmd} {
+		t.Run(subcmd, func(t *testing.T) {
+			t.Parallel()
+
+			var stdout bytes.Buffer
+			command := &SelfCommand{out: ui.NewOutput(&stdout, io.Discard, false)}
+
+			if err := command.Run(context.Background(), []string{subcmd, "--help"}); err != nil {
+				t.Fatalf("Run(%q, --help) error = %v", subcmd, err)
+			}
+
+			want := "self " + subcmd + " [options]"
+			if !strings.Contains(stdout.String(), want) {
+				t.Fatalf("Run(%q, --help) output = %q, want it to contain %q", subcmd, stdout.String(), want)
+			}
+		})
+	}
+}
+
 func TestInstalledSelfCommandArgsIncludesConfigFlags(t *testing.T) {
 	t.Parallel()
 

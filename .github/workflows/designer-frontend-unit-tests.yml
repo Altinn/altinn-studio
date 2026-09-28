@@ -12,7 +12,6 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

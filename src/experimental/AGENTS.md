@@ -17,6 +17,10 @@ This area contains the experimental agent platform described in `README.md`.
   Agent Runtime; host-side management drives tmux and the harness through Sandbox executions.
 - The backend owns Sandbox lifecycle, execution, runtime file transfer, storage and mount behavior; do not split
   those into speculative replaceable component traits.
+- Sandbox progress is reported through phase spans and step tokens. A step belongs to the phase in progress and is
+  either unmeasured or measures one quantity in the unit it started with. Every phase and step ends exactly once.
+  Consumers read the folded `Progress` and a `ProgressCursor` instead of interpreting events, and the Agent layer
+  delivers progress to clients as state behind a revision, never as an event stream.
 - A Provider pairs a Sandbox Backend with an Image Backend over one image materialization domain. Both expose
   discovery-first, per-Platform capabilities; Backend trait operations are required and have no default behavior.
 - A Network Backend is independently selectable from a Sandbox Backend. They negotiate an owned Network Endpoint:

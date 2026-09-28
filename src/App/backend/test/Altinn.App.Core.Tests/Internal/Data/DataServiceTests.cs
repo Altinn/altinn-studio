@@ -51,7 +51,7 @@ public class DataServiceTests
             )
             .ReturnsAsync(referenceStream);
 
-        _mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _mockAppMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         (Guid dataElementId, TestModel? model) = await _dataService.GetByType<TestModel>(instance, dataType);
@@ -106,7 +106,7 @@ public class DataServiceTests
             )
             .ReturnsAsync(referenceStream);
 
-        _mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _mockAppMetadata.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         var model = await _dataService.GetById<TestModel>(instance, expectedDataId);

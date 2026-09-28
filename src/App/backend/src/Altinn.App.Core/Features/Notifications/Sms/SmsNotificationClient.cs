@@ -45,7 +45,7 @@ internal sealed class SmsNotificationClient : ISmsNotificationClient
         string? httpContent = null;
         try
         {
-            Models.ApplicationMetadata? application = await _appMetadata.GetApplicationMetadata();
+            Models.ApplicationMetadata? application = _appMetadata.ApplicationMetadata;
 
             var uri = _platformSettings.ApiNotificationEndpoint.TrimEnd('/') + "/orders/sms";
             var body = JsonSerializer.Serialize(smsNotification);

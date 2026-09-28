@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization;
 /// <summary>
 /// Client for handling authorization actions in Altinn Platform.
 /// </summary>
-public class AuthorizationClient : IAuthorizationClient
+internal sealed class AuthorizationClient : IAuthorizationClient
 {
     private readonly HttpClient _client;
     private readonly IServiceProvider _serviceProvider;

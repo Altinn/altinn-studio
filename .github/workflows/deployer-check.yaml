@@ -7,7 +7,6 @@ on:
       - 'src/tools/deployer/**'
       - '.github/workflows/deployer-check.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

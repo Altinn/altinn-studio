@@ -33,7 +33,6 @@ on:
       - 'src/Runtime/localtest/**'
       - 'src/test/apps/component-library/**'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

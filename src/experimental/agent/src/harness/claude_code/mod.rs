@@ -12,11 +12,12 @@ use sandbox::secret_store::SecretReference;
 pub(super) mod authentication;
 mod bootstrap;
 mod hooks;
+mod status_line;
 pub(super) mod transcript;
 
 const PROVIDER: &str = "claude";
 const ACCESS_SECRET: &str = "claude-access-token";
-const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
+pub(super) const ACCESS_ENVIRONMENT: &str = "CLAUDE_CODE_OAUTH_TOKEN";
 const ACCESS_PLACEHOLDER: &str = "sk-ant-oat01-agent-mediated-placeholder-not-a-real-credential";
 /// Second binding on the same credential, under a name the harness does not
 /// scrub. Claude Code removes `CLAUDE_CODE_OAUTH_TOKEN` from every process it
@@ -41,6 +42,10 @@ const DISABLE_ALTERNATE_SCREEN_ENVIRONMENT: &str = "CLAUDE_CODE_DISABLE_ALTERNAT
 /// now declare the default for new Sessions.
 pub(super) const MODEL_LAUNCHED_BEFORE_SELECTION: &str = "fable";
 
+pub(super) async fn authentication_ready(database: &persistence::Database) -> Result<bool, Error> {
+    authentication::is_ready(database).await
+}
+
 pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<MediatedSecret>, Error> {
     if !authentication::is_ready(database).await? {
         return Err(Error::Invalid(
@@ -50,13 +55,13 @@ pub(super) async fn prepare(database: &persistence::Database) -> Result<Vec<Medi
     Ok(vec![
         MediatedSecret {
             environment: ACCESS_ENVIRONMENT,
-            placeholder: ACCESS_PLACEHOLDER,
+            placeholder: ACCESS_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![authentication::mediated_host().into()],
         },
         MediatedSecret {
             environment: NESTED_ENVIRONMENT,
-            placeholder: NESTED_PLACEHOLDER,
+            placeholder: NESTED_PLACEHOLDER.into(),
             reference: SecretReference::from_opaque(ACCESS_SECRET),
             allowed_hosts: vec![authentication::mediated_host().into()],
         },

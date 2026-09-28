@@ -22,8 +22,9 @@
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.8.1",
     "globals": "17.9.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.8",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vitest": "4.1.10"
+    "vite": "8.2.2",
+    "vitest": "5.0.1"
   }
 }

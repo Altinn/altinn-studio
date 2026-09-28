@@ -56,6 +56,7 @@ pub(crate) fn agent(name: &str) -> Agent {
                 kind: Harness::ClaudeCode,
                 version: Some("2.1.266".into()),
                 auth: HarnessAuthMode::Mediated,
+                optional: false,
                 default: false,
                 defaults: ModelSelection::default(),
             }],

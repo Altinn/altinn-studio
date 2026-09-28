@@ -114,25 +114,46 @@ fn decodes_the_minimal_manifest() {
     );
 }
 
+/// The image owns the harness version, so a manifest that repeats it only creates a second place
+/// to forget. The examples are what people copy, so none of them may pin one.
 #[test]
-fn minimal_manifest_declares_the_installed_claude_code_version() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/minimal");
-    let dockerfile = std::fs::read_to_string(root.join("Dockerfile")).expect("minimal Dockerfile");
-    let installed = dockerfile
-        .lines()
-        .find_map(|line| line.strip_prefix("ARG CLAUDE_CODE_VERSION="))
-        .expect("minimal Dockerfile pins Claude Code");
-    let agent = manifest::resolve(&root.join("agent.yaml"))
-        .expect("minimal manifest should resolve")
-        .agent;
-    let declared = agent
-        .spec
-        .harness(Harness::ClaudeCode)
-        .expect("minimal manifest installs Claude Code")
-        .version
-        .as_deref();
-
-    assert_eq!(declared, Some(installed));
+fn no_example_manifest_pins_a_harness_version() {
+    let examples = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples");
+    let mut checked = 0;
+    for example in std::fs::read_dir(&examples).expect("examples directory") {
+        let directory = example.expect("examples entry").path();
+        if !directory.is_dir() {
+            continue;
+        }
+        for manifest in std::fs::read_dir(&directory).expect("example directory") {
+            let path = manifest.expect("example entry").path();
+            if !path.is_file() {
+                continue;
+            }
+            let name = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
+            let is_manifest = name.starts_with("agent")
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("yaml"));
+            if !is_manifest {
+                continue;
+            }
+            let agent = manifest::resolve(&path)
+                .unwrap_or_else(|error| panic!("{} should resolve: {error}", path.display()))
+                .agent;
+            for harness in &agent.spec.harnesses {
+                assert_eq!(
+                    harness.version,
+                    None,
+                    "{} pins a version for {:?}; the image owns it",
+                    path.display(),
+                    harness.kind
+                );
+            }
+            checked += 1;
+        }
+    }
+    assert!(checked > 0, "no example manifests were checked");
 }
 
 #[test]
@@ -188,6 +209,10 @@ fn published_manifests_explicitly_select_git_identity() {
         manifests.join("full/agent.nested.yaml"),
         manifests.join("full/agent.nested-build.yaml"),
         manifests.join("full/agent.worktree.yaml"),
+        manifests.join("desktop/agent.yaml"),
+        manifests.join("desktop/agent.nested.yaml"),
+        manifests.join("desktop/agent.nested-build.yaml"),
+        manifests.join("desktop/agent.worktree.yaml"),
     ] {
         let agent = manifest::resolve(&path)
             .expect("published Agent manifest should resolve")
@@ -419,6 +444,56 @@ fn rejects_a_custom_placeholder_that_collides_with_a_generated_one() {
 }
 
 #[test]
+fn decodes_an_optional_harness_installation_and_omits_the_flag_by_default() {
+    let bytes = br#"
+apiVersion: agents.platform/v1alpha1
+kind: Agent
+metadata:
+  name: worker
+spec:
+  sandbox:
+    image:
+      type: reference
+      reference: ghcr.io/altinn/altinn-studio/agent-minimal:latest
+    platform:
+      os: linux
+    resources:
+      cpu: "2"
+      memory: "4Gi"
+      rootFilesystem:
+        capacity: "32Gi"
+        mode: layered
+  home:
+    source: home
+  harnesses:
+    - type: claudeCode
+      auth: mediated
+      default: true
+    - type: codex
+      auth: mediated
+      optional: true
+  network:
+    mode: mediated
+    allow: all
+"#;
+
+    let agent = manifest::decode(bytes).expect("manifest with an optional harness should decode");
+    let claude = agent
+        .spec
+        .harness(Harness::ClaudeCode)
+        .expect("Claude Code installation");
+    let codex = agent.spec.harness(Harness::Codex).expect("Codex installation");
+    assert!(!claude.optional);
+    assert!(codex.optional);
+
+    // The flag is absent from a required installation's serialized form, so manifests that never
+    // opt in are unchanged by this field existing.
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert!(value["spec"]["harnesses"][0].get("optional").is_none());
+    assert_eq!(value["spec"]["harnesses"][1]["optional"], true);
+}
+
+#[test]
 fn validates_harness_installation_cardinality_and_defaults() {
     let mut empty = support::agent("worker");
     empty.spec.harnesses.clear();
@@ -484,7 +559,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
 }
 
 #[test]
-fn status_tolerates_unknown_fields_inside_provenance() {
+fn status_tolerates_unknown_fields_inside_provenance_and_conditions() {
     let status: agent::Status = serde_json::from_value(serde_json::json!({
         "observedGeneration": 1,
         "futureField": true,
@@ -492,9 +567,11 @@ fn status_tolerates_unknown_fields_inside_provenance() {
             "sourceDirectory": "/source",
             "manifestPath": "/source/worker.yml",
             "futureField": "ignored"
-        }
+        },
+        "conditions": [{ "type": "Ready", "status": "True", "futureField": "ignored" }]
     }))
     .expect("newer status should decode");
+    assert!(status.is_ready());
     let provenance = status.provenance.expect("provenance");
     assert_eq!(provenance.source_directory, std::path::Path::new("/source"));
     assert_eq!(
@@ -688,15 +765,46 @@ fn decodes_ssh_access_as_a_tagged_agent_capability() {
 }
 
 #[test]
+fn decodes_vnc_access_beside_ssh_as_a_tagged_agent_capability() {
+    let agent = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: vnc\n"))
+        .expect("SSH and VNC access decode");
+    assert_eq!(
+        agent.spec.access,
+        vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}]
+    );
+    assert!(agent.spec.ssh_access());
+    assert!(agent.spec.vnc_access());
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(
+        value["spec"]["access"],
+        serde_json::json!([{"type": "ssh"}, {"type": "vnc"}])
+    );
+
+    let ssh_only = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n")).expect("SSH only");
+    assert!(!ssh_only.spec.vnc_access(), "one capability does not imply the other");
+}
+
+#[test]
 fn rejects_unknown_duplicate_and_configured_access_capabilities() {
     assert!(matches!(
         manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: ssh\n")),
         Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
     ));
     assert!(matches!(
-        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n")),
+        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n    - type: vnc\n")),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
+    ));
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: rdp\n")),
         Err(agent::Error::Yaml(_))
     ));
+    assert!(
+        matches!(
+            manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n      port: 5901\n")),
+            Err(agent::Error::Yaml(_))
+        ),
+        "VNC access exposes no tunables"
+    );
     assert!(
         matches!(
             manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n      port: 22\n")),

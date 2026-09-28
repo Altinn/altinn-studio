@@ -48,6 +48,9 @@ internal static class V8Tov9Upgrade
     private const string ServiceTaskOldNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks";
     private const string ServiceTaskNewNamespace = "Altinn.App.Core.Features.Process";
 
+    // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
+    private const string FeaturesNamespace = "Altinn.App.Core.Features";
+
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
     /// Altinn.App.Core in v9. Matching is on the exact namespace, so the entries below are the whole
@@ -137,6 +140,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveLoggingDebugPackage(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await EnableImplicitUsings(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
 
         // The v9 Altinn.App packages raise some transitive dependency floors; an app pinning them lower
@@ -184,10 +190,27 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateTextService(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppMetadataProperties(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
+
+        // Last of the C# rewrites, so the using directives the steps above leave behind are covered
+        // too. The rule migration further down generates its code without the redundant usings.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, RemoveRedundantUsingDirectives(scanner, projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckAppSettingsRemovedKeys(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
@@ -220,6 +243,9 @@ internal static class V8Tov9Upgrade
                 "Kept all legacy rule files and layout-set folders because a migration failed. Resolve the reported error before rerunning."
             );
         }
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
@@ -439,6 +465,63 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing Microsoft.Extensions.Logging.Debug package reference", ex);
+        }
+    }
+
+    // v9 apps get the SDK's implicit usings plus Altinn.App.Core.Features as a global using, so app
+    // code (data processors, validators, ...) compiles without a using block for the namespaces it
+    // needs most. File-level usings that become redundant are harmless: the compiler reports them
+    // only as hidden diagnostics.
+    static async Task<int> EnableImplicitUsings(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Implicit usings");
+        try
+        {
+            var rewriter = new ProjectFileRewriter(projectFile);
+            var change = await rewriter.EnableImplicitUsings(FeaturesNamespace);
+            if (!change.Any)
+            {
+                UpgradeConsole.Skip($"Implicit usings already enabled with {FeaturesNamespace} as a global using");
+                return ExitSuccess;
+            }
+
+            if (change.EnabledImplicitUsings)
+                UpgradeConsole.Ok("ImplicitUsings enabled in the project file");
+
+            foreach (var ns in change.AddedNamespaces)
+                UpgradeConsole.Ok($"{ns} added as a global using");
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error enabling implicit usings", ex);
+        }
+    }
+
+    static int RemoveRedundantUsingDirectives(CSharpSourceScanner scanner, string projectFile)
+    {
+        UpgradeConsole.BeginStep("Redundant using directives");
+        try
+        {
+            var globalNamespaces = ProjectGlobalUsings.Read(projectFile);
+            if (globalNamespaces.Count == 0)
+            {
+                UpgradeConsole.Skip("The project file declares no global usings");
+                return ExitSuccess;
+            }
+
+            var migration = new RedundantUsingDirectiveMigration(scanner, globalNamespaces);
+            if (migration.Migrate() == 0)
+            {
+                UpgradeConsole.Skip("No using directive duplicates the project's global usings");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing redundant using directives", ex);
         }
     }
 
@@ -742,16 +825,61 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Renames the model argument of the IAppResources schema and prefill methods to dataTypeId where a call
+    /// passes it by name.
+    /// </summary>
+    static async Task<int> MigrateAppResourcesParameterNames(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppResources parameter names");
+        try
+        {
+            var result = new AppResourcesParameterNameMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppResources calls pass the model parameter by its old name",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppResources parameter names", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports (never rewrites) app usages of removed/changed v9 C# APIs that require human judgment:
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
-    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters.
+    /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
+    /// the service classes that are internal in v9 and must be reached through their interfaces.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
     /// silent-blindness bug (semantic detectors on the rewritten live view) or self-contradicting
     /// output (syntax detectors on the pristine view re-reporting what a rewriter just fixed).
     /// </remarks>
+    /// <summary>
+    /// Rewrites awaited IAppMetadata reads to the v9 properties. The old methods survive as obsolete, so a
+    /// call this cannot rewrite still compiles and is only advised on.
+    /// </summary>
+    static async Task<int> MigrateAppMetadataProperties(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("IAppMetadata properties");
+        try
+        {
+            var result = new AppMetadataPropertyMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IAppMetadata method calls in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating IAppMetadata calls", ex);
+        }
+    }
+
     internal static async Task<int> CheckRemovedCSharpApis(CSharpSourceScanner scanner, string projectFile)
     {
         UpgradeConsole.BeginStep("Removed v9 C# APIs");
@@ -775,7 +903,11 @@ internal static class V8Tov9Upgrade
                 new RemovedMaskinportenShimDetector(scanner).Detect(),
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
-                new RemovedAppResourcesApiDetector(pristineView).Detect()
+                new RemovedAppResourcesApiDetector(pristineView).Detect(),
+                new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect(),
+                new RemovedFeatureManagementDetector(scanner).Detect(),
+                new RemovedAppSettingsMemberDetector(pristineView).Detect(),
+                new InternalizedAppTypeDetector(pristineView).Detect()
             );
 
             return ReportMigrationResult(
@@ -821,20 +953,78 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<int> CheckMaskinportenSettingsSection(CSharpSourceScanner scanner, string projectFolder)
     {
-        UpgradeConsole.BeginStep("Maskinporten settings");
+        UpgradeConsole.BeginStep("Maskinporten settings and scopes");
         try
         {
             var boundSections = new MaskinportenClientOverrideDetector(scanner).NamedSections();
-            var result = new MaskinportenSettingsSectionDetector(projectFolder, boundSections).Detect();
+            var detector = new MaskinportenSettingsSectionDetector(projectFolder, boundSections);
+            var sections = detector.Detect();
+
+            // The inventory reads the scopes out of the very sections the step above tells the developer to
+            // delete, so it runs after the detector and takes what it found.
+            var inventory = new MaskinportenScopeInventory(
+                scanner,
+                projectFolder,
+                detector.ConfiguredScopes()
+            ).Describe();
+
+            var result = new MigrationResult([.. sections.Messages, .. inventory.Messages]);
             return ReportMigrationResult(
                 result,
-                cleanText: "No obsolete MaskinportenSettings configuration found",
+                cleanText: "No obsolete MaskinportenSettings configuration and no Maskinporten scopes found",
                 cleanStatus: UpgradeMessageStatus.Skip
             );
         }
         catch (Exception ex)
         {
             return Fail("Error checking the Maskinporten configuration", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports AppSettings keys in the appsettings files that v9 no longer reads (AppBasePath and the folder and
+    /// file name settings). Inert, so a warning; a non-default value is marked since the app's files may then be
+    /// somewhere v9 does not look.
+    /// </summary>
+    static async Task<int> CheckAppSettingsRemovedKeys(string projectFile)
+    {
+        UpgradeConsole.BeginStep("Removed AppSettings keys");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = new AppSettingsRemovedKeysDetector(appFolder).Detect();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No removed AppSettings keys in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the appsettings files for removed keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
+    /// names case-sensitively on every operating system.
+    /// </summary>
+    static async Task<int> CheckAppFileNameCase(string projectFile)
+    {
+        UpgradeConsole.BeginStep("App file name casing");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = new AppFileNameCaseDetector(appFolder).Detect();
+            return ReportMigrationResult(
+                result,
+                cleanText: "App file and folder names match the names v9 reads",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the app file names", ex);
         }
     }
 
@@ -920,6 +1110,7 @@ internal static class V8Tov9Upgrade
             DatepickerFormatMigration.Apply(workspace);
             GridXlMigration.Apply(workspace);
             ShowBackButtonMigrator.Apply(workspace);
+            InvalidValidationMaskMigration.Apply(workspace);
 
             var messages = new List<UpgradeMessage>();
             foreach (var issue in workspace.Conflicts)
@@ -1262,6 +1453,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
+        }
+    }
+
+    static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Invalid input validation lists");
+        try
+        {
+            return await InvalidValidationMaskMigration.MigrateSettings(projectFolder);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating Invalid input validation lists", ex);
         }
     }
 

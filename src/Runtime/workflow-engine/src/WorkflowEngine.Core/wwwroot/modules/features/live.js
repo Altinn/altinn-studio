@@ -9,6 +9,7 @@ import {
     setCardFilterData,
 } from '../shared/cards.js';
 import { scrollPipelineToActive, setCardHTMLKeepingPipelineScroll } from '../shared/pipeline.js';
+import { elapsedLabel } from '../shared/timers.js';
 import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
 import { notifyChainChanged } from './chain-modal.js';
@@ -60,8 +61,15 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             if (card && !card.dataset.exiting) {
                 const visible = card.offsetParent !== null;
                 if (visible && !movedToRecent) {
-                    const failed = state.previousWorkflows[key]?.status === 'Failed';
-                    if (failed) card.classList.add('exit-fail');
+                    // The card outlives its live entry by the length of the animation and nothing
+                    // ticks it after this pass, so freeze its counter on the elapsed it ended at —
+                    // otherwise it fades out showing whatever the last card rebuild left behind.
+                    const last = state.previousWorkflows[key];
+                    if (last) {
+                        for (const el of card.querySelectorAll('[data-timer]')) {
+                            el.textContent = elapsedLabel(last);
+                        }
+                    }
                     card.dataset.exiting = '1';
                     card.style.animation = 'complete-exit 0.5s ease forwards';
                     card.style.pointerEvents = 'none';
@@ -81,7 +89,6 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             }
             delete state.previousWorkflows[key];
             delete state.workflowFingerprints[key];
-            delete state.workflowTimers[key];
             delete _processingIdx[key];
             notifyStepChanged(key);
             notifyWorkflowChanged(key);
@@ -102,9 +109,6 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
         if (!card) {
             card = createWorkflowCard(wf, elId);
             dom.liveContainer.appendChild(card);
-            state.workflowTimers[wf.databaseId] = {
-                startedAt: wf.executionStartedAt || wf.createdAt,
-            };
             state.workflowFingerprints[wf.databaseId] = fp;
             // createWorkflowCard centers the active step itself; record which one so the first
             // rebuild does not re-center a pipeline the operator has since scrolled.

@@ -268,7 +268,7 @@ public class ValidationControllerValidateDataTests
             );
         if (testScenario.ReceivedApplication != null)
         {
-            _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(testScenario.ReceivedApplication);
+            _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(testScenario.ReceivedApplication);
         }
 
         if (
