@@ -101,6 +101,11 @@ pub(crate) const OPEN_HINTS: [Hint; 3] = [
     Hint::key("esc", "cancel", KeyCode::Esc),
 ];
 
+pub(crate) const CONFIRM_QUIT_HINTS: [Hint; 2] = [
+    Hint::key("y", "quit", KeyCode::Char('y')),
+    Hint::key("n", "stay", KeyCode::Char('n')),
+];
+
 pub(crate) const CONFIRM_SSH_SETUP_HINTS: [Hint; 2] = [
     Hint::key("y", "add", KeyCode::Char('y')),
     Hint::key("n", "back", KeyCode::Char('n')),
@@ -117,7 +122,8 @@ const DETAIL_HINTS: [Hint; 2] = [
     Hint::key("q", "back", KeyCode::Char('q')),
 ];
 
-const FORWARD_VIEW_HINTS: [Hint; 3] = [
+const FORWARD_VIEW_HINTS: [Hint; 4] = [
+    Hint::key("o", "open", KeyCode::Char('o')),
     Hint::key("e", "edit", KeyCode::Char('e')),
     Hint::modified("ctrl-d", "delete", KeyCode::Char('d'), KeyModifiers::CONTROL),
     Hint::key("q", "back", KeyCode::Char('q')),
@@ -193,6 +199,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
             "Views and forms",
             &[
                 ("j / k", "scroll a detail view"),
+                ("o", "open a forward, in forwards"),
                 ("q / esc", "back, or close a form"),
                 ("ctrl-b d", "detach from a Session"),
             ],
@@ -205,7 +212,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "follow provisioning"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session"),
-                ("o", "open in a shell or editor"),
+                ("o", "open in editor, desktop…"),
                 ("e", "shell in its Sandbox"),
                 ("f", "forward a port"),
                 ("d", "delete"),
@@ -284,13 +291,26 @@ pub(crate) struct ForwardEntry {
     pub(crate) local: String,
     pub(crate) guest_port: u16,
     pub(crate) status: Option<String>,
+    /// What the forward is for, when the TUI opened it for the desktop.
+    pub(crate) label: Option<&'static str>,
 }
 
 impl ForwardEntry {
     /// Renders the mapping as `LOCAL:GUEST`, keeping a non-loopback address.
     fn mapping(&self) -> String {
         let local = self.local.strip_prefix("127.0.0.1:").unwrap_or(&self.local);
-        format!("{local}:{}", self.guest_port)
+        let mapping = format!("{local}:{}", self.guest_port);
+        self.label
+            .map_or_else(|| mapping.clone(), |label| format!("{label} {mapping}"))
+    }
+
+    /// The address that opens the forward: a VNC client for the RFB port, a browser otherwise.
+    pub(crate) fn url(&self) -> String {
+        if self.guest_port == agent::vnc::GUEST_PORT {
+            format!("vnc://{}", self.local)
+        } else {
+            format!("http://{}/", self.local)
+        }
     }
 }
 
@@ -372,6 +392,8 @@ pub(crate) enum Modal {
     Prompt(PromptForm),
     Help,
     Open(OpenMenu),
+    /// Asks before quitting closes the forwards this TUI holds open.
+    ConfirmQuit,
     /// Asks before adding the `Include` to the user's OpenSSH configuration,
     /// then opens `then` in `agent`.
     ConfirmSshSetup {
@@ -1040,6 +1062,8 @@ pub(crate) enum Action {
     SetUpSsh {
         then: Option<(String, OpenTarget)>,
     },
+    /// Opens an address on this machine.
+    OpenUrl(String),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1372,9 +1396,18 @@ impl App {
     fn error_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
             KeyCode::Esc | KeyCode::Enter => self.error = None,
-            KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Char('q') => return self.quit(),
             _ => {}
         }
+        Action::None
+    }
+
+    /// Quits, asking first while forwards would close with the TUI.
+    fn quit(&mut self) -> Action {
+        if self.forwards.is_empty() {
+            return Action::Quit;
+        }
+        self.modal = Some(Modal::ConfirmQuit);
         Action::None
     }
 
@@ -1493,7 +1526,7 @@ impl App {
                 self.filter.clear();
                 self.rebuild();
             }
-            KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Esc | KeyCode::Char('q') => return self.quit(),
             KeyCode::Char('/') => self.modal = Some(Modal::Filter),
             KeyCode::Char('?') => self.modal = Some(Modal::Help),
             KeyCode::Tab => self.select_next_needing_input(),
@@ -1529,6 +1562,11 @@ impl App {
             KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 if let Some(entry) = self.forwards.get(self.forward_selected) {
                     return Action::DeleteForward { id: entry.id };
+                }
+            }
+            KeyCode::Char('o') => {
+                if let Some(entry) = self.forwards.get(self.forward_selected) {
+                    return Action::OpenUrl(entry.url());
                 }
             }
             KeyCode::Char('e') => {
@@ -1729,6 +1767,14 @@ impl App {
                 Action::None
             }
             Some(Modal::Open(menu)) => self.open_menu_key(menu, key),
+            Some(Modal::ConfirmQuit) => match key.code {
+                KeyCode::Char('y') => Action::Quit,
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmQuit);
+                    Action::None
+                }
+            },
             Some(Modal::ConfirmSshSetup { agent, then }) => self.confirm_ssh_setup_key(agent, then, key),
             Some(Modal::Filter) => {
                 match key.code {
@@ -1923,7 +1969,17 @@ impl App {
             ));
         }
         lines.extend([String::new(), "Connect · o open…".to_owned()]);
-        lines.extend(super::open::connect_lines(agent, &self.environment, self.ssh_setup));
+        let desktop = self
+            .forwards
+            .iter()
+            .find(|entry| entry.agent == name && entry.label.is_some())
+            .map(|entry| entry.local.as_str());
+        lines.extend(super::open::connect_lines(
+            agent,
+            &self.environment,
+            self.ssh_setup,
+            desktop,
+        ));
         let mut states = Vec::<(&str, usize)>::new();
         for session in self.sessions.iter().filter(|session| session.agent == name) {
             let (_, _, state) = session_state(session.status.state);
@@ -2238,6 +2294,7 @@ impl App {
                 Modal::Prompt(_) => &PROMPT_HINTS,
                 Modal::Help => &HELP_HINTS,
                 Modal::Open(_) => &OPEN_HINTS,
+                Modal::ConfirmQuit => &CONFIRM_QUIT_HINTS,
                 Modal::ConfirmSshSetup { .. } => &CONFIRM_SSH_SETUP_HINTS,
             };
         }
@@ -3218,6 +3275,7 @@ mod tests {
                 local: "127.0.0.1:8000".into(),
                 guest_port: 80,
                 status: None,
+                label: None,
             },
             ForwardEntry {
                 id: 20,
@@ -3225,6 +3283,7 @@ mod tests {
                 local: "127.0.0.1:9000".into(),
                 guest_port: 90,
                 status: None,
+                label: None,
             },
         ]);
 
@@ -3886,6 +3945,7 @@ mod tests {
             local: "127.0.0.1:9090".into(),
             guest_port: 80,
             status: None,
+            label: None,
         }]);
         app.on_key(key(KeyCode::Char('F')));
         assert_eq!(app.view, View::Forwards);
@@ -3971,6 +4031,7 @@ mod tests {
                 local: "127.0.0.1:9090".into(),
                 guest_port: 80,
                 status: None,
+                label: None,
             },
             ForwardEntry {
                 id: 2,
@@ -3978,6 +4039,7 @@ mod tests {
                 local: "0.0.0.0:80".into(),
                 guest_port: 80,
                 status: None,
+                label: None,
             },
         ]);
         let views = app.render_rows();
@@ -4239,5 +4301,73 @@ mod tests {
         app.opened(Err("could not run code".into()), now);
         assert_eq!(app.error.as_deref(), Some("could not run code"));
         assert_eq!(app.opening, 0);
+    }
+
+    fn desktop_forward(id: u64, agent: &str, guest_port: u16, label: Option<&'static str>) -> ForwardEntry {
+        ForwardEntry {
+            id,
+            agent: agent.into(),
+            local: format!("127.0.0.1:{}", 50000 + id),
+            guest_port,
+            status: None,
+            label,
+        }
+    }
+
+    #[test]
+    fn quitting_asks_first_while_forwards_would_close() {
+        let mut app = ssh_app(SshSetup::Installed);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit, "nothing to lose");
+
+        app.set_forwards(vec![desktop_forward(1, "worker", 6080, Some("desktop"))]);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::ConfirmQuit)));
+        assert_eq!(app.hints(), &CONFIRM_QUIT_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None);
+        assert!(app.modal.is_none(), "n stays");
+        app.on_key(key(KeyCode::Esc));
+        assert_eq!(app.on_key(key(KeyCode::Char('y'))), Action::Quit);
+    }
+
+    #[test]
+    fn a_forward_opens_in_the_application_for_its_port() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.set_forwards(vec![
+            desktop_forward(1, "worker", 6080, Some("desktop")),
+            desktop_forward(2, "worker", agent::vnc::GUEST_PORT, Some("vnc")),
+        ]);
+        app.view = View::Forwards;
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::OpenUrl("http://127.0.0.1:50001/".into())
+        );
+        app.on_key(key(KeyCode::Char('j')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::OpenUrl("vnc://127.0.0.1:50002".into())
+        );
+    }
+
+    #[test]
+    fn labeled_forwards_name_themselves_and_the_panel_shows_the_open_desktop() {
+        let mut app = ssh_app(SshSetup::Installed);
+        let mut desktop = ready_agent("desk");
+        desktop.spec.access = vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}];
+        let mut agents = std::mem::take(&mut app.agents);
+        agents.push(desktop);
+        let sessions = std::mem::take(&mut app.sessions);
+        app.apply_snapshot(agents, sessions);
+        app.set_forwards(vec![desktop_forward(1, "desk", 6080, Some("desktop"))]);
+
+        let desk = app
+            .render_rows()
+            .into_iter()
+            .find(|row| row.name == "desk")
+            .expect("desk row");
+        assert!(desk.detail.contains("ports: desktop 50001:6080"), "{}", desk.detail);
+        assert!(
+            app.agent_panel_lines("desk")
+                .contains(&"  desktop    open at 127.0.0.1:50001".to_owned())
+        );
     }
 }

@@ -211,6 +211,9 @@ Or with a VNC client of your own:
 agentctl vnc agent/altinn-desktop   # prints vnc://127.0.0.1:<port> for your viewer
 ```
 
+In `agentctl tui`, `o` then `w` opens the desktop in the browser and `o` then `v` in a VNC client. The forward
+closes when the TUI quits, which asks first.
+
 Both hold the forward open until interrupted on a free local port they print. `--port` picks a
 fixed one, and
 `agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them

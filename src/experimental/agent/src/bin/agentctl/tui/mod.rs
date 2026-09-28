@@ -30,7 +30,7 @@ use agent::manifest::MANIFEST_FILE;
 use app::{
     Action, App, CreateForm, ForwardEntry, ForwardForm, ManifestCandidate, Modal, MouseAction, PromptForm, RowTarget,
 };
-use open::{OpenTarget, SshSetup};
+use open::{DesktopViewer, OpenTarget, SshSetup};
 use terminal::Tui;
 use view::{HitMap, HitTarget, WheelTarget};
 
@@ -71,6 +71,12 @@ enum Input {
     SshSetUp(Result<(), String>, Option<(String, OpenTarget)>),
     /// A background open finished: the notice to show, or why it failed.
     Opened(Result<String, String>),
+    /// A forward to the Agent's desktop started, or why it could not.
+    DesktopForwarded {
+        agent: String,
+        viewer: DesktopViewer,
+        forward: Result<PortForward, String>,
+    },
 }
 
 /// Sends the event loop what background work finished.
@@ -239,6 +245,19 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.opened(result, Instant::now());
                 continue;
             }
+            Input::DesktopForwarded { agent, viewer, forward } => {
+                app.opening = app.opening.saturating_sub(1);
+                match forward {
+                    Ok(forward) => {
+                        let url = viewer.url(forward.local_address());
+                        forwards.push(agent, forward, Some(viewer.forward_label()));
+                        app.set_forwards(forwards.entries());
+                        hand_over(&mut app, &url)?;
+                    }
+                    Err(error) => app.error = Some(error),
+                }
+                continue;
+            }
             Input::Event(None) => {
                 tui.restore()?;
                 return Ok(ExitCode::SUCCESS);
@@ -325,6 +344,19 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 app.notice = Some((format!("copied {alias}"), Instant::now()));
             }
             Action::SetUpSsh { then } => spawn_ssh_setup(app.ssh_include.clone(), inputs.clone(), then),
+            Action::Open {
+                agent,
+                target: OpenTarget::Desktop(viewer),
+            } => {
+                // An Agent's desktop already forwarded is opened again rather than twice.
+                if let Some(local) = forwards.labeled(&agent, viewer.forward_label()) {
+                    hand_over(&mut app, &viewer.url(local))?;
+                } else {
+                    app.opening += 1;
+                    spawn_desktop(home, inputs.clone(), agent, viewer);
+                }
+            }
+            Action::OpenUrl(url) => hand_over(&mut app, &url)?,
             action => {
                 drop(events);
                 suspended(&mut app, &mut tui, home, client, action).await?;
@@ -338,29 +370,52 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
 #[derive(Default)]
 struct ActiveForwards {
     next_id: u64,
-    active: Vec<(u64, String, PortForward)>,
+    active: Vec<Active>,
+}
+
+/// One forward this TUI holds open.
+struct Active {
+    id: u64,
+    agent: String,
+    forward: PortForward,
+    /// What the TUI opened it for, when it did so itself.
+    label: Option<&'static str>,
 }
 
 impl ActiveForwards {
-    fn push(&mut self, agent: String, forward: PortForward) {
+    fn push(&mut self, agent: String, forward: PortForward, label: Option<&'static str>) {
         let id = self.next_id;
         self.next_id += 1;
-        self.active.push((id, agent, forward));
+        self.active.push(Active {
+            id,
+            agent,
+            forward,
+            label,
+        });
     }
 
     fn remove(&mut self, id: u64) {
-        self.active.retain(|(entry, _, _)| *entry != id);
+        self.active.retain(|active| active.id != id);
+    }
+
+    /// The local address of the Agent's forward carrying `label`, while it still serves.
+    fn labeled(&self, agent: &str, label: &str) -> Option<std::net::SocketAddr> {
+        self.active
+            .iter()
+            .find(|active| active.agent == agent && active.label == Some(label) && !active.forward.finished())
+            .map(|active| active.forward.local_address())
     }
 
     fn entries(&self) -> Vec<ForwardEntry> {
         self.active
             .iter()
-            .map(|(id, agent, forward)| ForwardEntry {
-                id: *id,
-                agent: agent.clone(),
-                local: forward.local_address().to_string(),
-                guest_port: forward.spec().guest_port,
-                status: forward.status(),
+            .map(|active| ForwardEntry {
+                id: active.id,
+                agent: active.agent.clone(),
+                local: active.forward.local_address().to_string(),
+                guest_port: active.forward.spec().guest_port,
+                status: active.forward.status(),
+                label: active.label,
             })
             .collect()
     }
@@ -504,6 +559,59 @@ fn spawn_open_editor(
         .await;
         let _ = inputs.send(Input::Opened(result));
     });
+}
+
+/// Forwards the Agent's desktop to a free local port once it is Ready. The
+/// browser viewer's port is known only after a pass has seen what the image
+/// declares, so it is read after converging.
+fn spawn_desktop(home: &ControlPlaneHome, inputs: Inputs, agent: String, viewer: DesktopViewer) {
+    let home_path = home.path().to_path_buf();
+    let socket_path = home.socket_path();
+    tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let forward = async {
+            let target = client
+                .ensure_execution(&agent, WaitPolicy::UntilReady)
+                .await
+                .map_err(|error| error.to_string())?;
+            let access = client.vnc_access(&agent).await.map_err(|error| error.to_string())?;
+            let guest_port = match viewer {
+                DesktopViewer::Browser => access
+                    .web_guest_port
+                    .ok_or_else(|| format!("the image of {agent} serves no browser viewer; open it in a VNC client"))?,
+                DesktopViewer::VncClient => access.guest_port,
+            };
+            let spec = ForwardSpec {
+                address: std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+                local_port: 0,
+                guest_port,
+            };
+            PortForward::start(home_path, target.sandbox, spec)
+                .await
+                .map_err(|error| error.to_string())
+        }
+        .await;
+        let _ = inputs.send(Input::DesktopForwarded { agent, viewer, forward });
+    });
+}
+
+/// Opens `url` on this machine, or copies it when this terminal is remote and
+/// an application started here would open somewhere the person cannot see.
+fn hand_over(app: &mut App, url: &str) -> Result<(), Error> {
+    let now = Instant::now();
+    if app.environment.remote {
+        terminal::copy_to_clipboard(url)?;
+        app.notice = Some((format!("copied {url}, forwarded on this machine"), now));
+        return Ok(());
+    }
+    match crate::launch::open_url(url) {
+        Ok(()) => app.notice = Some((format!("opening {url}"), now)),
+        Err(error) => {
+            terminal::copy_to_clipboard(url)?;
+            app.notice = Some((format!("copied {url}: {error}"), now));
+        }
+    }
+    Ok(())
 }
 
 /// Loads the most recent turns of the selected Session.
@@ -706,7 +814,7 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
     let (agent, spec, replace, result) = outcome;
     app.creating = app.creating.saturating_sub(1);
     match result {
-        Ok(forward) => forwards.push(agent, forward),
+        Ok(forward) => forwards.push(agent, forward, None),
         Err(error) => {
             app.modal = Some(Modal::PortForward(ForwardForm::rejected(
                 agent,

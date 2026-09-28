@@ -18,6 +18,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - In the terminal UI, `o` opens an Agent in a shell, VS Code, Zed or over SSH, setting up SSH for editors when needed.
   The side panel shows how to connect to the selected Agent.
+- The terminal UI opens an Agent's desktop in the browser or a VNC client from `o`, and asks before quitting would close
+  open forwards. `o` in the forwards view opens a forward.
 - `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
   whether a failure is being retried, and how long each condition has held its state.
 - Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
