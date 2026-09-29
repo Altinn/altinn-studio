@@ -61,9 +61,12 @@ func (c *AppCommand) runVetChecks(ctx context.Context, flags appVetFlags) error 
 		return fmt.Errorf("vet: %w", rpcErr)
 	}
 	if flags.jsonOutput {
-		return printJSONOutput(c.out, "vet", resp)
+		if err := printJSONOutput(c.out, "vet", resp); err != nil {
+			return err
+		}
+	} else {
+		appsvc.PrintVetResult(c.out, resp)
 	}
-	appsvc.PrintVetResult(c.out, resp)
 	if resp.Summary.Errors > 0 {
 		return ErrReportedFailure
 	}
