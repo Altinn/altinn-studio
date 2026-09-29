@@ -3,6 +3,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -23,6 +24,7 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
@@ -50,6 +52,7 @@ public class ProcessNextRequestFactoryTests
         Authenticated? authentication = null,
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
+        IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
         params IPipelineServiceTask[] serviceTasks
     )
     {
@@ -85,7 +88,7 @@ public class ProcessNextRequestFactoryTests
             authContextMock.Object,
             TestAppIdentifier,
             appSettings,
-            callbackTokenGeneratorMock.Object,
+            callbackTokenGenerator ?? callbackTokenGeneratorMock.Object,
             stepOptionsResolver
         );
     }
@@ -401,6 +404,58 @@ public class ProcessNextRequestFactoryTests
                 return appData?.CommandKey == ExecuteServiceTask.Key;
             })
             .ToList();
+    }
+
+    [Fact]
+    public async Task EveryEnqueue_MintsItsTokenForTheActorAndCommandsItCarries()
+    {
+        var secretProvider = new Mock<IWorkflowCallbackSecretProvider>();
+        secretProvider
+            .Setup(x => x.GetSigningSecret())
+            .Returns(
+                new AppCode
+                {
+                    Id = "id-1",
+                    Code = "a-secret-that-is-long-enough-for-hmac",
+                    IssuedAt = DateTimeOffset.UtcNow,
+                    ExpiresAt = DateTimeOffset.UtcNow.AddDays(1),
+                }
+            );
+        var factory = CreateFactory(callbackTokenGenerator: new WorkflowCallbackTokenGenerator(secretProvider.Object));
+        var transition = CreateTaskToTaskTransition();
+        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
+
+        var acquire = await factory.CreateAcquire(instance, action: null, SignedTestState, "acquire-key");
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            transition,
+            "saved-state",
+            new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+
+        AssertTokenBindsItsRequest(acquire);
+        AssertTokenBindsItsRequest(dependent);
+    }
+
+    /// <summary>
+    /// Decodes the token the request actually carries and checks it against the request's own actor and steps.
+    /// </summary>
+    private static void AssertTokenBindsItsRequest(WorkflowEnqueueEnvelope envelope)
+    {
+        var context = JsonSerializer.Deserialize<AppWorkflowContext>(envelope.Request.Context!.Value)!;
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(context.CallbackToken);
+
+        Assert.Equal(
+            WorkflowCallbackTokenBinding.ActorHash(context.Actor),
+            jwt.GetClaim(WorkflowCallbackTokenBinding.ActorClaim).Value
+        );
+        Assert.True(jwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.CommandsClaim, out string[]? commands));
+        Assert.Equal(
+            envelope.Request.Workflows.SelectMany(ExtractCommandKeys).Distinct().Order(StringComparer.Ordinal),
+            commands
+        );
     }
 
     [Theory]
