@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
@@ -2320,7 +2321,11 @@ public class WorkflowEngineServiceTests
             .SetupGet(context => context.Current)
             .Returns(currentAuthentication ?? TestAuthentication.GetUserAuthentication());
         var callbackTokenGenerator = new Mock<IWorkflowCallbackTokenGenerator>(MockBehavior.Strict);
-        callbackTokenGenerator.Setup(generator => generator.GenerateToken(It.IsAny<Guid>())).Returns("callback-token");
+        callbackTokenGenerator
+            .Setup(generator =>
+                generator.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+            )
+            .Returns("callback-token");
         AppImplementationFactory appImplementationFactory =
             serviceProvider.GetRequiredService<AppImplementationFactory>();
         return new ProcessNextRequestFactory(

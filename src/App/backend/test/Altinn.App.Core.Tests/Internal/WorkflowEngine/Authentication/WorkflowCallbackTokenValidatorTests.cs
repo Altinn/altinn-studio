@@ -18,12 +18,18 @@ public class WorkflowCallbackTokenValidatorTests
     private WorkflowCallbackTokenValidator CreateSut(TimeProvider? timeProvider = null) =>
         new(_secretProviderMock.Object, _loggerMock.Object, timeProvider);
 
+    private const string CommandKey = "mutate-process-state";
+    private const string ActorHash = "actor-hash";
+
     private static string GenerateToken(
         Guid instanceGuid,
         string secret,
         string? secretId,
         DateTime? expires = null,
-        DateTime? notBefore = null
+        DateTime? notBefore = null,
+        string[]? commands = null,
+        bool omitCommands = false,
+        bool omitActor = false
     )
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
@@ -33,6 +39,10 @@ public class WorkflowCallbackTokenValidatorTests
 
         if (secretId is not null)
             claims[JwtClaimTypes.AppCode.SecretId] = secretId;
+        if (!omitCommands)
+            claims[JwtClaimTypes.WorkflowCallback.Commands] = commands ?? [CommandKey];
+        if (!omitActor)
+            claims[JwtClaimTypes.WorkflowCallback.ActorHash] = ActorHash;
 
         return handler.CreateToken(
             new SecurityTokenDescriptor
@@ -62,23 +72,23 @@ public class WorkflowCallbackTokenValidatorTests
             ]);
 
     [Fact]
-    public async Task ValidateToken_NullToken_ReturnsFalse()
+    public async Task ValidateToken_NullToken_Fails()
     {
-        var result = await CreateSut().ValidateToken(null, Guid.NewGuid());
+        var result = await CreateSut().ValidateToken(null, Guid.NewGuid(), CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_WhitespaceToken_ReturnsFalse()
+    public async Task ValidateToken_WhitespaceToken_Fails()
     {
-        var result = await CreateSut().ValidateToken("   ", Guid.NewGuid());
+        var result = await CreateSut().ValidateToken("   ", Guid.NewGuid(), CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_ValidTokenMatchingSecret_ReturnsTrue()
+    public async Task ValidateToken_ValidTokenMatchingSecret_Succeeds()
     {
         const string secret = "test-secret-that-is-long-enough-for-hmac";
         const string secretId = "id-1";
@@ -86,13 +96,13 @@ public class WorkflowCallbackTokenValidatorTests
         SetupSecrets((secretId, secret));
 
         var token = GenerateToken(instanceGuid, secret, secretId);
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.True(result);
+        Assert.NotNull(result);
     }
 
     [Fact]
-    public async Task ValidateToken_ValidTokenSignedWithOldSecret_ReturnsTrue()
+    public async Task ValidateToken_ValidTokenSignedWithOldSecret_Succeeds()
     {
         const string newSecret = "new-secret-that-is-long-enough-for-hmac";
         const string oldSecret = "old-secret-that-is-long-enough-for-hmac";
@@ -101,26 +111,26 @@ public class WorkflowCallbackTokenValidatorTests
         SetupSecrets(("id-new", newSecret), (oldSecretId, oldSecret));
 
         var token = GenerateToken(instanceGuid, oldSecret, oldSecretId);
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.True(result);
+        Assert.NotNull(result);
     }
 
     [Fact]
-    public async Task ValidateToken_UnknownSecretId_ReturnsFalse()
+    public async Task ValidateToken_UnknownSecretId_Fails()
     {
         const string secret = "correct-secret-that-is-long-enough-ok";
         var instanceGuid = Guid.NewGuid();
         SetupSecrets(("id-1", secret));
 
         var token = GenerateToken(instanceGuid, secret, "unknown-id");
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_MissingSecretIdClaim_ReturnsFalse()
+    public async Task ValidateToken_MissingSecretIdClaim_Fails()
     {
         const string secret = "correct-secret-that-is-long-enough-ok";
         var instanceGuid = Guid.NewGuid();
@@ -128,13 +138,13 @@ public class WorkflowCallbackTokenValidatorTests
 
         // Correctly signed, but the secret_id claim is absent — must be rejected, not fall back.
         var token = GenerateToken(instanceGuid, secret, secretId: null);
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_WrongSecret_ReturnsFalse()
+    public async Task ValidateToken_WrongSecret_Fails()
     {
         const string secret = "correct-secret-that-is-long-enough-ok";
         const string secretId = "id-1";
@@ -142,13 +152,13 @@ public class WorkflowCallbackTokenValidatorTests
         SetupSecrets((secretId, secret));
 
         var token = GenerateToken(instanceGuid, "wrong-secret-that-is-long-enough-ok", secretId);
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_ExpiredToken_ReturnsFalse()
+    public async Task ValidateToken_ExpiredToken_Fails()
     {
         const string secret = "test-secret-that-is-long-enough-for-hmac";
         const string secretId = "id-1";
@@ -156,9 +166,9 @@ public class WorkflowCallbackTokenValidatorTests
         SetupSecrets((secretId, secret));
 
         var token = GenerateToken(instanceGuid, secret, secretId, expires: DateTime.UtcNow.AddMinutes(-10));
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
@@ -179,13 +189,13 @@ public class WorkflowCallbackTokenValidatorTests
             expires: now.UtcDateTime.AddHours(1),
             notBefore: now.UtcDateTime.AddHours(-1)
         );
-        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.True(result);
+        Assert.NotNull(result);
     }
 
     [Fact]
-    public async Task ValidateToken_ExpiredWithinClockSkew_ReturnsTrue()
+    public async Task ValidateToken_ExpiredWithinClockSkew_Succeeds()
     {
         var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         const string secret = "test-secret-that-is-long-enough-for-hmac";
@@ -201,13 +211,13 @@ public class WorkflowCallbackTokenValidatorTests
             expires: now.UtcDateTime.AddMinutes(-4),
             notBefore: now.UtcDateTime.AddHours(-1)
         );
-        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.True(result);
+        Assert.NotNull(result);
     }
 
     [Fact]
-    public async Task ValidateToken_ExpiredBeyondClockSkew_ReturnsFalse()
+    public async Task ValidateToken_ExpiredBeyondClockSkew_Fails()
     {
         var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         const string secret = "test-secret-that-is-long-enough-for-hmac";
@@ -223,13 +233,13 @@ public class WorkflowCallbackTokenValidatorTests
             expires: now.UtcDateTime.AddMinutes(-6),
             notBefore: now.UtcDateTime.AddHours(-1)
         );
-        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_SecretCodeExpired_ReturnsFalse()
+    public async Task ValidateToken_SecretCodeExpired_Fails()
     {
         var now = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
         const string secret = "test-secret-that-is-long-enough-for-hmac";
@@ -258,36 +268,36 @@ public class WorkflowCallbackTokenValidatorTests
             expires: now.UtcDateTime.AddDays(30),
             notBefore: now.UtcDateTime.AddHours(-1)
         );
-        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid);
+        var result = await CreateSut(new FakeTimeProvider(now)).ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_JtiDoesNotMatchInstanceGuid_ReturnsFalse()
+    public async Task ValidateToken_JtiDoesNotMatchInstanceGuid_Fails()
     {
         const string secret = "test-secret-that-is-long-enough-for-hmac";
         const string secretId = "id-1";
         SetupSecrets((secretId, secret));
 
         var token = GenerateToken(Guid.NewGuid(), secret, secretId);
-        var result = await CreateSut().ValidateToken(token, Guid.NewGuid());
+        var result = await CreateSut().ValidateToken(token, Guid.NewGuid(), CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_InvalidJwt_ReturnsFalse()
+    public async Task ValidateToken_InvalidJwt_Fails()
     {
         SetupSecrets(("id-1", "test-secret-that-is-long-enough-for-hmac"));
 
-        var result = await CreateSut().ValidateToken("not.a.jwt", Guid.NewGuid());
+        var result = await CreateSut().ValidateToken("not.a.jwt", Guid.NewGuid(), CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
-    public async Task ValidateToken_NoSecretsConfigured_ReturnsFalse()
+    public async Task ValidateToken_NoSecretsConfigured_Fails()
     {
         _secretProviderMock
             .Setup(x => x.GetValidationSecrets())
@@ -297,17 +307,79 @@ public class WorkflowCallbackTokenValidatorTests
         var instanceGuid = Guid.NewGuid();
         var token = GenerateToken(instanceGuid, secret, "id-1");
 
-        var result = await CreateSut().ValidateToken(token, instanceGuid);
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
     }
 
     [Fact]
     public async Task ValidateToken_NullToken_DoesNotCallSecretProvider()
     {
-        var result = await CreateSut().ValidateToken(null, Guid.NewGuid());
+        var result = await CreateSut().ValidateToken(null, Guid.NewGuid(), CommandKey);
 
-        Assert.False(result);
+        Assert.Null(result);
         _secretProviderMock.Verify(x => x.GetValidationSecrets(), Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateToken_ValidToken_ReturnsTheBoundActorHash()
+    {
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        var token = GenerateToken(instanceGuid, secret, "id-1");
+        var result = await CreateSut().ValidateToken(token, instanceGuid, CommandKey);
+
+        Assert.Equal(ActorHash, result?.ActorHash);
+    }
+
+    [Fact]
+    public async Task ValidateToken_CommandNotAuthorizedByToken_Fails()
+    {
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        var token = GenerateToken(instanceGuid, secret, "id-1", commands: ["commit-process-state", CommandKey]);
+
+        Assert.NotNull(await CreateSut().ValidateToken(token, instanceGuid, "commit-process-state"));
+        Assert.Null(await CreateSut().ValidateToken(token, instanceGuid, "execute-service-task"));
+    }
+
+    [Fact]
+    public async Task ValidateToken_CommandKeyMatchIsCaseSensitive()
+    {
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        var token = GenerateToken(instanceGuid, secret, "id-1");
+
+        Assert.Null(await CreateSut().ValidateToken(token, instanceGuid, CommandKey.ToUpperInvariant()));
+    }
+
+    [Fact]
+    public async Task ValidateToken_TokenWithoutCommands_Fails()
+    {
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        var token = GenerateToken(instanceGuid, secret, "id-1", omitCommands: true);
+
+        Assert.Null(await CreateSut().ValidateToken(token, instanceGuid, CommandKey));
+    }
+
+    [Fact]
+    public async Task ValidateToken_TokenWithoutActorBinding_Fails()
+    {
+        const string secret = "test-secret-that-is-long-enough-for-hmac";
+        var instanceGuid = Guid.NewGuid();
+        SetupSecrets(("id-1", secret));
+
+        var token = GenerateToken(instanceGuid, secret, "id-1", omitActor: true);
+
+        Assert.Null(await CreateSut().ValidateToken(token, instanceGuid, CommandKey));
     }
 }

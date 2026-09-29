@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Constants;
 
 /// <summary>
-/// JWT claim types the app reads or issues.
+/// JWT claim types the app reads or issues, grouped by the token they belong to.
 /// </summary>
 internal static class JwtClaimTypes
 {
@@ -37,6 +37,22 @@ internal static class JwtClaimTypes
         public const string AuthenticateMethod = AltinnUrns.AuthenticationMethod;
         public const string Org = AltinnUrns.Org;
         public const string OrgNumber = AltinnUrns.OrgNumber;
+    }
+
+    /// <summary>
+    /// Claims of the workflow-engine callback token, beyond <see cref="JwtId"/> and <see cref="AppCode.SecretId"/>.
+    /// </summary>
+    public static class WorkflowCallback
+    {
+        /// <summary>
+        /// A hash of the identity of the actor the token was minted for.
+        /// </summary>
+        public const string ActorHash = "actor_sha256";
+
+        /// <summary>
+        /// The app command keys the token may call back for, as a JSON array.
+        /// </summary>
+        public const string Commands = "commands";
     }
 
     public static class Maskinporten

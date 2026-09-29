@@ -32,6 +32,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `AppSettings.AppBasePath`. The app files are always read relative to the content root of the host. A value left in `appsettings.json` is ignored; code that set the property must drop it.
 - The `AppSettings` folder and file name settings `ConfigurationFolder`, `OptionsFolder`, `UiFolder`, `ModelsFolder`, `TextFolder`, `ProcessFolder`, `AuthorizationFolder`, `FormLayoutSettingsFileName`, `FooterFileName`, `JsonSchemaFileName`, `ValidationConfigurationFileName`, `CalculationConfigurationFileName`, `ApplicationMetadataFileName`, `ApplicationXACMLPolicyFileName` and `ProcessFileName`, with the `JSON_SCHEMA_FILENAME`, `VALIDATION_CONFIG_FILENAME` and `CALCULATION_CONFIG_FILENAME` constants. The layout of an app folder is the one Studio creates and is not configurable. A value left in `appsettings.json` is ignored; code that read or set the properties must drop it.
 
+### Security
+
+- Workflow engine callbacks are only accepted for the commands and the acting user or system they were enqueued for. A process transition already in progress when the app is upgraded fails on its next callback and must be started again.
+
 ## [9.0.0-preview.6] - 2026-09-18
 
 ### Added
