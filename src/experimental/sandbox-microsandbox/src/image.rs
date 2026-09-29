@@ -486,7 +486,7 @@ impl MicrosandboxImageBackend {
     ) -> Result<image::PreparedImage, Error> {
         let operation = image::ImageOperation::PreparedImageExport;
         require_direct_prepared_root(request, operation)?;
-        let reference = prepared_root_reference(request, operation)?;
+        let (_, reference) = prepared_root_reference(request, operation)?;
         let resolved = self
             .resolve_reference(request, &reference.to_string(), progress)
             .await?;
@@ -513,7 +513,7 @@ impl MicrosandboxImageBackend {
         let operation = image::ImageOperation::PreparedImageImport;
         require_direct_prepared_root(request, operation)?;
         let actual = platform::require_supported(&request.platform)?;
-        let reference = prepared_root_reference(request, operation)?;
+        let (catalog_name, reference) = prepared_root_reference(request, operation)?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
         let prepared = microsandbox_image::import_prepared_root(
@@ -524,6 +524,11 @@ impl MicrosandboxImageBackend {
         )
         .await
         .map_err(error::backend)?;
+        // Record the imported root like a pulled image, so it is listed locally
+        // and image removal and pruning reclaim its flat artifacts.
+        microsandbox::Image::persist(self.client.local(), catalog_name, prepared.image.clone())
+            .await
+            .map_err(error::microsandbox)?;
         step.complete().await;
         Ok(prepared_root(
             image::ResolvedImage {
@@ -560,26 +565,28 @@ fn reference_pull_policy(reference: &microsandbox_image::Reference) -> microsand
     }
 }
 
+/// The prepared root's reference as given, used as its catalog name like a
+/// pulled image's, and parsed.
 fn prepared_root_reference(
     request: &image::ResolveRequest,
     operation: image::ImageOperation,
-) -> Result<microsandbox_image::Reference, Error> {
+) -> Result<(&str, microsandbox_image::Reference), Error> {
     let image::ImageSource::Reference { reference } = &request.source else {
         return Err(Error::UnsupportedImageSourceKind {
             operation,
             source_kind: request.source.kind(),
         });
     };
-    let reference = reference
+    let parsed = reference
         .parse::<microsandbox_image::Reference>()
         .map_err(error::backend)?;
-    if reference.digest().is_none() {
+    if parsed.digest().is_none() {
         return Err(Error::invalid(
             "image.reference",
             "prepared roots require an immutable digest-pinned OCI reference",
         ));
     }
-    Ok(reference)
+    Ok((reference, parsed))
 }
 
 fn prepared_root(
@@ -980,7 +987,8 @@ fn archive_path(path: &Path) -> Result<String, Error> {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+// Test Clients live for the whole test; tightening their drop adds nothing.
+#[allow(clippy::expect_used, clippy::significant_drop_tightening)]
 mod tests {
     use std::{fs, path::Path};
 
@@ -1000,6 +1008,70 @@ mod tests {
         assert_eq!(
             super::reference_pull_policy(&pinned),
             microsandbox_image::PullPolicy::IfMissing
+        );
+    }
+
+    #[tokio::test(flavor = "local")]
+    #[ignore = "requires Internet access"]
+    async fn imported_prepared_roots_are_recorded_in_the_image_catalog() {
+        use sandbox::image::ImageBackend as _;
+
+        // Prepared roots pin the native platform manifest of Alpine 3.22.
+        let (architecture, manifest_digest) = match std::env::consts::ARCH {
+            "x86_64" => (
+                "amd64",
+                "sha256:7c8cb692ae09657cbc4a3f3cbd0e8d5a2690ba38386aaaf252dbb060bf5eb2e6",
+            ),
+            "aarch64" => (
+                "arm64",
+                "sha256:2c9d26f410d032d5b1525aa8a873e238b05b90c4ae8618743d4311f0cc827e37",
+            ),
+            _ => return,
+        };
+        let temporary = tempfile::tempdir().expect("temporary directory should be created");
+        let reference = format!("docker.io/library/alpine@{manifest_digest}");
+        let request = sandbox::image::ResolveRequest {
+            source: sandbox::image::ImageSource::Reference {
+                reference: reference.clone(),
+            },
+            platform: sandbox::Platform::new("linux", architecture),
+            root_filesystem_mode: sandbox::RootFilesystemMode::Direct,
+        };
+        let exporter = super::MicrosandboxImageBackend::new(
+            crate::client::Client::open(temporary.path().join("exporter"), None, None)
+                .await
+                .expect("exporting Client should open"),
+            None,
+        );
+        let bundle = temporary.path().join("prepared");
+        exporter
+            .export_prepared_image(&request, &bundle)
+            .await
+            .expect("prepared root should export");
+
+        let client = crate::client::Client::open(temporary.path().join("importer"), None, None)
+            .await
+            .expect("importing Client should open");
+        let importer = super::MicrosandboxImageBackend::new(client.clone(), None);
+        importer
+            .import_prepared_image(&request, &bundle)
+            .await
+            .expect("prepared root should import");
+        importer
+            .import_prepared_image(&request, &bundle)
+            .await
+            .expect("importing the same root again should succeed");
+
+        let images = microsandbox::Image::list_local(client.local())
+            .await
+            .expect("local images should list");
+        assert!(
+            images.iter().any(|image| image.reference() == reference),
+            "the imported root should be recorded under its reference; found {:?}",
+            images
+                .iter()
+                .map(microsandbox::ImageHandle::reference)
+                .collect::<Vec<_>>()
         );
     }
 
