@@ -8,7 +8,8 @@ public sealed record DataType(
     string ClassRef,
     int? MaxCount = null,
     int? MinCount = null,
-    SourceSpan Position = default
+    SourceSpan Position = default,
+    bool AllowInSubform = false
 )
 {
     public bool IsForm => !string.IsNullOrEmpty(ClassRef);

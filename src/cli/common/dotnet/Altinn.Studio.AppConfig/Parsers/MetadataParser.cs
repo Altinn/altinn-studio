@@ -42,9 +42,12 @@ internal static class MetadataParser
                 var id = TryString(dt, "id") ?? "";
                 var taskId = TryString(dt, "taskId") ?? "";
                 var classRef = "";
+                var allowInSubform = false;
                 if (dt.TryGetProperty("appLogic", out var al) && al.ValueKind == JsonValueKind.Object)
                 {
                     classRef = TryString(al, "classRef") ?? "";
+                    allowInSubform =
+                        al.TryGetProperty("allowInSubform", out var sub) && sub.ValueKind == JsonValueKind.True;
                     if (
                         al.TryGetProperty("shadowFields", out var sf)
                         && sf.ValueKind == JsonValueKind.Object
@@ -72,7 +75,8 @@ internal static class MetadataParser
                         classRef,
                         maxCount,
                         minCount,
-                        new SourceSpan(FileRel, $"/dataTypes/{i}/id")
+                        new SourceSpan(FileRel, $"/dataTypes/{i}/id"),
+                        allowInSubform
                     )
                 );
 
