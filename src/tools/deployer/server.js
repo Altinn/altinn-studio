@@ -174,12 +174,32 @@ function normalizeRunJobsForService(service, jobs) {
   return normalized;
 }
 
+// A re-run keeps the run id but bumps run_attempt; the jobs endpoint returns the latest attempt.
+function getRunAttempt(run, jobs) {
+  return Math.max(run.run_attempt ?? 1, ...jobs.map((job) => job.run_attempt ?? 1));
+}
+
+// Last attempt stored for the run. Runs stored before attempts were tracked count as attempt 1.
+function getStoredRunAttempt(runId) {
+  return stmts.getRunAttempt.get(runId)?.run_attempt ?? null;
+}
+
+function hasUnsyncedAttempt(run) {
+  return (run.run_attempt ?? 1) > (getStoredRunAttempt(run.id) ?? 1);
+}
+
 function storeRunJobs(run, jobs, workflowOverride = null) {
   const workflowFile = workflowOverride || path.posix.basename(run.path || '');
   const service = SERVICE_BY_WORKFLOW.get(workflowFile);
   if (!service) return [];
 
   const normalizedJobs = normalizeRunJobsForService(service, jobs);
+  const attempt = getRunAttempt(run, jobs);
+  const storedAttempt = getStoredRunAttempt(run.id);
+  // Jobs fetched before a re-run must not overwrite the newer attempt.
+  if (storedAttempt !== null && attempt < storedAttempt) return normalizedJobs;
+  // A newer (or untracked) attempt replaces all jobs stored for the run.
+  if (storedAttempt === null || attempt > storedAttempt) stmts.deleteRunJobs.run(run.id);
   const commitFirstLine = (run.head_commit?.message || '').split('\n')[0];
   const title = commitFirstLine || run.display_title || '';
   const prMatch = title.match(/\(#(\d+)\)/);
@@ -201,6 +221,7 @@ function storeRunJobs(run, jobs, workflowOverride = null) {
       prNumber,
     );
   }
+  stmts.setRunAttempt.run(run.id, attempt);
   return normalizedJobs;
 }
 
@@ -272,7 +293,8 @@ async function processRunForSync(run, workflow, planes, coverageByPlane = null) 
     runCompleted &&
     run.conclusion === 'success' &&
     Array.isArray(existingJobs) &&
-    existingJobs.length > 0;
+    existingJobs.length > 0 &&
+    !hasUnsyncedAttempt(run);
 
   let jobsToProcess;
   let jobFetches = 0;
@@ -402,13 +424,16 @@ async function syncWorkflowIncremental(service, stopAtRunId) {
     }
     if (newestWorkflowRunId === 0 && page === 1) newestWorkflowRunId = runs[0].id;
 
+    // Runs at or below the watermark are only re-processed when re-run since they were stored.
+    // The rest of the page holding the watermark is scanned for these, at no extra API cost.
     const relevant = [];
     for (const run of runs) {
-      if (run.id <= stopAtRunId) {
-        reachedStopAtRunId = true;
-        break;
+      if (run.id > stopAtRunId) {
+        relevant.push(run);
+        continue;
       }
-      relevant.push(run);
+      reachedStopAtRunId = true;
+      if (hasUnsyncedAttempt(run)) relevant.push(run);
     }
 
     totalRuns += relevant.length;
