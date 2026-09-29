@@ -143,10 +143,11 @@ public class WorkflowCallbackTokenGeneratorTests
         Assert.Equal(["commit", "mutate", "side-effect"], commands);
     }
 
+    // The operation id differs from the key on purpose: the claim must carry what the engine routes on.
     private static StepRequest AppStep(string commandKey) =>
         new()
         {
-            OperationId = commandKey,
+            OperationId = $"step {commandKey}",
             Command = CommandDefinition.Create("app", new AppCommandData { CommandKey = commandKey }),
         };
 

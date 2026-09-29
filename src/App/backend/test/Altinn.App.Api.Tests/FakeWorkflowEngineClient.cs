@@ -643,7 +643,24 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
                 };
 
-                controller.HttpContext.User = await AuthenticateCallback(workflow.Context, appCommandData.CommandKey);
+                if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
+                {
+                    // What the engine does with a 401: a client error, so the step fails without retrying.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            $"The app rejected the callback token for command '{appCommandData.CommandKey}'.",
+                            (int)HttpStatusCode.Unauthorized,
+                            WasRetryable: false
+                        )
+                    );
+                    step.Status = PersistentItemStatus.Failed;
+                    step.UpdatedAt = DateTimeOffset.UtcNow;
+                    workflow.Status = PersistentItemStatus.Failed;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                    return;
+                }
+                controller.HttpContext.User = principal;
                 IActionResult result = await controller.ExecuteCommand(
                     workflow.Context.Org,
                     workflow.Context.App,
@@ -909,17 +926,16 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
     /// <summary>
     /// Authenticates a callback with the app's own validator, as the callback scheme does for a real request,
-    /// so the controller sees the principal the engine's replayed token would give it.
+    /// so the controller sees the principal the engine's replayed token would give it. <c>null</c> when the app
+    /// would answer 401.
     /// </summary>
-    private async Task<ClaimsPrincipal> AuthenticateCallback(AppWorkflowContext context, string commandKey)
+    private async Task<ClaimsPrincipal?> AuthenticateCallback(AppWorkflowContext context, string commandKey)
     {
-        ValidatedWorkflowCallbackToken validated =
-            await _serviceProvider
-                .GetRequiredService<IWorkflowCallbackTokenValidator>()
-                .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey)
-            ?? throw new InvalidOperationException(
-                $"The app rejected the callback token for command '{commandKey}'; the engine would get a 401."
-            );
+        ValidatedWorkflowCallbackToken? validated = await _serviceProvider
+            .GetRequiredService<IWorkflowCallbackTokenValidator>()
+            .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey);
+        if (validated is null)
+            return null;
         return new ClaimsPrincipal(
             new ClaimsIdentity(
                 [
