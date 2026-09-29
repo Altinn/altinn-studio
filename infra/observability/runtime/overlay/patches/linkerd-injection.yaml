@@ -6,10 +6,11 @@ spec:
   podAnnotations:
     linkerd.io/inject: "enabled"
     config.linkerd.io/skip-outbound-ports: "443"
-    # Linkerd runs as a regular sidecar: keep the proxy up through the Collector's 60s preStop
-    # and 30s shutdown, then let it drain; 90s + 20s fits the 120s termination grace period.
-    config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "90"
-    config.linkerd.io/shutdown-grace-period: "20s"
+    # As a native sidecar, Linkerd's proxy is stopped only after the Collector has exited, so it
+    # needs no wait before exit, and some Linkerd versions refuse a native sidecar with one. "0"
+    # rather than no annotation, because the operator leaves one it no longer sets in place.
+    config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "0"
+    config.linkerd.io/shutdown-grace-period: "20s" # the proxy's drain once the Collector has exited
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 ---
 apiVersion: opentelemetry.io/v1beta1
@@ -20,8 +21,9 @@ spec:
   podAnnotations:
     linkerd.io/inject: "enabled"
     config.linkerd.io/skip-outbound-ports: "443"
-    # Linkerd runs as a regular sidecar: keep the proxy up through the Collector's 60s preStop
-    # and 30s shutdown, then let it drain; 90s + 20s fits the 120s termination grace period.
-    config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "90"
-    config.linkerd.io/shutdown-grace-period: "20s"
+    # As a native sidecar, Linkerd's proxy is stopped only after the Collector has exited, so it
+    # needs no wait before exit, and some Linkerd versions refuse a native sidecar with one. "0"
+    # rather than no annotation, because the operator leaves one it no longer sets in place.
+    config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "0"
+    config.linkerd.io/shutdown-grace-period: "20s" # the proxy's drain once the Collector has exited
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
