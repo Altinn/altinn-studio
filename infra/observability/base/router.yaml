@@ -33,6 +33,8 @@ spec:
       sleep:
         seconds: 60 # beyond the gateway's 40s tail sampling wait and 5s batch timeout
   terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
+  livenessProbe:
+    terminationGracePeriodSeconds: 10 # a failed liveness probe restarts without the 60s drain
   config:
     extensions:
       # The operator derives the readiness and liveness probes from this extension, so a pod counts
