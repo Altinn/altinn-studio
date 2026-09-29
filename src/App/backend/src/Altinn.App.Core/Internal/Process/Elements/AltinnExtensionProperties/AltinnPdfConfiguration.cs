@@ -14,8 +14,15 @@ public sealed class AltinnPdfConfiguration
     public string? FilenameTextResourceKey { get; set; }
 
     /// <summary>
-    /// Enable auto-pdf for a list of tasks. Will not respect pdfLayoutName on those tasks, but use the main layout-set of the given tasks and render the components in summary mode. This setting will be ignored if the PDF task has a pdf layout set defined.
+    /// The tasks to include in an automatically generated PDF. The pages of each task's UI folder are rendered in
+    /// summary mode; <c>pdfLayoutName</c> on those tasks is not used.
     /// </summary>
+    /// <remarks>
+    /// A PDF service task needs either this list or a UI folder of its own (<c>ui/{pdfTaskId}</c>), which
+    /// renders a custom PDF from that folder's <c>pdfLayoutName</c>, or from its pages when none is set. When
+    /// the PDF service task's own UI folder has a <c>pdfLayoutName</c>, this list is ignored; combining the list
+    /// with an own UI folder without one is not supported.
+    /// </remarks>
     [XmlArray(ElementName = "autoPdfTaskIds", Namespace = "http://altinn.no/process", IsNullable = true)]
     [XmlArrayItem(ElementName = "taskId", Namespace = "http://altinn.no/process")]
     public List<string>? AutoPdfTaskIds { get; set; } = [];

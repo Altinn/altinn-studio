@@ -122,6 +122,40 @@ public static class Diagnostics
         );
     }
 
+    internal static class Process
+    {
+        // Worded like the runtime backstop in PdfServiceTask, so an author who meets one of them after the
+        // other reads one explanation rather than two. Without these, a PDF service task that cannot be
+        // rendered fails only when an instance reaches it, and the cause shows up only in the PDF generator's
+        // browser log.
+        public static readonly DiagnosticDescriptor PdfServiceTaskHasNothingToRender = Error(
+            "ALTINNAPP1000",
+            Category.Process,
+            "PDF service task has nothing to render",
+            "PDF service task '{0}' has nothing to render, so generating its PDF will fail. List the tasks to "
+                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{0}' with a "
+                + "Settings.json to design the PDF yourself."
+        );
+
+        public static readonly DiagnosticDescriptor PdfServiceTaskConflictingContent = Error(
+            "ALTINNAPP1001",
+            Category.Process,
+            "PDF service task combines autoPdfTaskIds with a UI folder without pdfLayoutName",
+            "PDF service task '{0}' lists tasks in <altinn:autoPdfTaskIds> and also has its own UI folder "
+                + "'ui/{0}' without a pdfLayoutName, so generating its PDF will fail. Remove "
+                + "<altinn:autoPdfTaskIds> or the UI folder, or set pdfLayoutName in 'ui/{0}/Settings.json' to "
+                + "render a custom PDF layout."
+        );
+
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
+            "ALTINNAPP1002",
+            Category.Process,
+            "PDF service task includes a task without a UI folder",
+            "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
+                + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
@@ -164,5 +198,6 @@ public static class Diagnostics
         public const string Deprecation = nameof(Deprecation);
         public const string Contracts = nameof(Contracts);
         public const string Authorization = nameof(Authorization);
+        public const string Process = nameof(Process);
     }
 }
