@@ -95,16 +95,23 @@ func vetSeverityStyle(severity studioctlserver.ValidateSeverity) ui.CellStyle {
 	}
 }
 
+const (
+	vetRankError = iota
+	vetRankWarning
+	vetRankInfo
+	vetRankUnknown
+)
+
 func vetSeverityRank(severity studioctlserver.ValidateSeverity) int {
 	switch severity {
 	case studioctlserver.ValidateSeverityError:
-		return 0
+		return vetRankError
 	case studioctlserver.ValidateSeverityWarning:
-		return 1
+		return vetRankWarning
 	case studioctlserver.ValidateSeverityInfo:
-		return 2
+		return vetRankInfo
 	default:
-		return 3
+		return vetRankUnknown
 	}
 }
 
