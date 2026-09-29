@@ -23,6 +23,7 @@ public sealed class SchemaSetLoaderTests
 
         public void Complete(string version, SchemaSet? result)
         {
+            Assert.True(SpinWait.SpinUntil(() => !_pending.IsEmpty, TimeSpan.FromSeconds(5)));
             Assert.True(_pending.TryDequeue(out var load));
             Assert.Equal(version, load.Version);
             load.Completion.SetResult(result);
