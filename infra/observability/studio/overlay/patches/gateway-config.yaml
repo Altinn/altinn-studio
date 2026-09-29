@@ -47,7 +47,8 @@ spec:
           queue_size: 268435456
 
     service:
-      extensions: [bearertokenauth/victoria, file_storage/victoria]
+      # The list replaces base's, so it repeats health_check, which the probes need.
+      extensions: [health_check, bearertokenauth/victoria, file_storage/victoria]
       pipelines:
         traces:
           receivers: [otlp]
