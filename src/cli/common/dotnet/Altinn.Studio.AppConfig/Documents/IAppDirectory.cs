@@ -21,14 +21,3 @@ internal interface IHashingAppDirectory : IAppDirectory
 {
     FileHandle ReadHandle(string relativePath);
 }
-
-public interface IWritableAppDirectory : IAppDirectory
-{
-    void WriteAllBytes(string relativePath, byte[] bytes);
-
-    byte[]? ReadRawBytes(string relativePath);
-
-    void Delete(string relativePath);
-
-    void Rename(string oldRelativePath, string newRelativePath);
-}

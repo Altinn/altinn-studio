@@ -22,22 +22,11 @@ public sealed class BomToleranceTests
     }
 
     [Fact]
-    public void WriteAllBytes_OntoBomPrefixedFile_KeepsTheBom()
+    public void ReadAllBytes_StripsTheBom()
     {
         var dir = new InMemoryAppDirectory();
         dir.Set("a.json", Bom + "{\"x\":1}");
 
         Assert.Equal(Encoding.UTF8.GetBytes("{\"x\":1}"), dir.ReadAllBytes("a.json"));
-        Assert.Equal(Encoding.UTF8.GetBytes(Bom + "{\"x\":1}"), dir.ReadRawBytes("a.json"));
-
-        dir.WriteAllBytes("a.json", Encoding.UTF8.GetBytes("{\"x\":2}"));
-        Assert.Equal(Encoding.UTF8.GetBytes(Bom + "{\"x\":2}"), dir.ReadRawBytes("a.json"));
-
-        // A BOM-less file stays BOM-less, and a fresh file is written verbatim.
-        dir.Set("b.json", "{}");
-        dir.WriteAllBytes("b.json", Encoding.UTF8.GetBytes("{\"y\":1}"));
-        Assert.Equal(Encoding.UTF8.GetBytes("{\"y\":1}"), dir.ReadRawBytes("b.json"));
-        dir.WriteAllBytes("c.json", Encoding.UTF8.GetBytes("{}"));
-        Assert.Equal(Encoding.UTF8.GetBytes("{}"), dir.ReadRawBytes("c.json"));
     }
 }

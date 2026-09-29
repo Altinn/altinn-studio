@@ -49,10 +49,10 @@ public sealed class BuildOutputExclusionTests
         var root = Path.Combine(Path.GetTempPath(), "appconfig-binobj-" + Guid.NewGuid().ToString("N"));
         try
         {
+            WriteFile(root, "App/models/a.cs");
+            WriteFile(root, "App/obj/Debug/g.cs");
+            WriteFile(root, "App/bin/Debug/b.cs");
             var dir = new FileSystemAppDirectory(root);
-            dir.WriteAllBytes("App/models/a.cs", new byte[] { 1 });
-            dir.WriteAllBytes("App/obj/Debug/g.cs", new byte[] { 1 });
-            dir.WriteAllBytes("App/bin/Debug/b.cs", new byte[] { 1 });
 
             Assert.Equal(_expectedFiles, dir.EnumerateFiles("App", "*.cs", recursive: true));
         }
@@ -61,5 +61,11 @@ public sealed class BuildOutputExclusionTests
             if (Directory.Exists(root))
                 Directory.Delete(root, recursive: true);
         }
+    }
+
+    private static void WriteFile(string root, string relativePath)
+    {
+        Directory.CreateDirectory(Path.Combine(root, Path.GetDirectoryName(relativePath) ?? ""));
+        File.WriteAllBytes(Path.Combine(root, relativePath), [1]);
     }
 }

@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Altinn.Studio.AppConfig.Documents;
 
-public sealed class InMemoryAppDirectory : IWritableAppDirectory
+public sealed class InMemoryAppDirectory : IAppDirectory
 {
     private readonly Dictionary<string, byte[]> _files;
 
@@ -24,9 +24,6 @@ public sealed class InMemoryAppDirectory : IWritableAppDirectory
 
     public byte[]? ReadExternalBytes(string relativePath) => null;
 
-    public byte[]? ReadRawBytes(string relativePath) =>
-        _files.TryGetValue(relativePath, out var b) ? (byte[])b.Clone() : null;
-
     public IEnumerable<string> EnumerateFiles(string relativeDir, string searchPattern, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(searchPattern);
@@ -44,32 +41,6 @@ public sealed class InMemoryAppDirectory : IWritableAppDirectory
             )
                 yield return key;
         }
-    }
-
-    public void WriteAllBytes(string relativePath, byte[] bytes)
-    {
-        ArgumentNullException.ThrowIfNull(bytes);
-        var hadBom = _files.TryGetValue(relativePath, out var existing) && Utf8Bom.Has(existing);
-        _files[relativePath] = hadBom && !Utf8Bom.Has(bytes) ? Utf8Bom.Prepend(bytes) : (byte[])bytes.Clone();
-    }
-
-    public void Delete(string relativePath)
-    {
-        if (!_files.Remove(relativePath))
-            throw new FileNotFoundException($"cannot delete: file does not exist at {relativePath}", relativePath);
-    }
-
-    public void Rename(string oldRelativePath, string newRelativePath)
-    {
-        if (!_files.TryGetValue(oldRelativePath, out var bytes))
-            throw new FileNotFoundException(
-                $"cannot rename: source does not exist at {oldRelativePath}",
-                oldRelativePath
-            );
-        if (_files.ContainsKey(newRelativePath))
-            throw new IOException($"cannot rename: destination already exists at {newRelativePath}");
-        _files.Remove(oldRelativePath);
-        _files[newRelativePath] = bytes;
     }
 
     public void Set(string relativePath, string content) => _files[relativePath] = Encoding.UTF8.GetBytes(content);
