@@ -1361,6 +1361,39 @@ public sealed class RuleFalsePositiveTests
         );
 
     [Fact]
+    public void Bpmn_ConditionExpression_CdataWrappedValidRefs_AreNotFlagged()
+    {
+        var findings = ValidateBpmnExpr("""<![CDATA[["equals", ["dataModel", "x", "model"], "b"]]]>""");
+        Assert.DoesNotContain(findings, f => f.RuleId == "SYNTAX-VALID");
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATATYPE-ID");
+    }
+
+    [Theory]
+    [InlineData("""<![CDATA[["equals", ["dataModel", "ghostPath", "model"], "b"]]]>""")]
+    [InlineData(
+        """
+
+                    <![CDATA[
+                      ["equals", ["dataModel", "ghostPath", "model"], "b"]
+                    ]]>
+
+            """
+    )]
+    public void Bpmn_ConditionExpression_CdataWrappedBadPath_IsFlaggedAtItsToken(string expr)
+    {
+        var bpmn = ExprBpmn.Replace("EXPR", expr, StringComparison.Ordinal);
+        var findings = ValidateBpmnExpr(expr);
+        Assert.DoesNotContain(findings, f => f.RuleId == "SYNTAX-VALID");
+        var f = Assert.Single(findings, x => x.RuleId == "REF-DATAMODEL-PATH");
+        Assert.Contains("ghostPath", f.Message, StringComparison.Ordinal);
+        var lines = bpmn.Split('\n');
+        var line = Array.FindIndex(lines, l => l.Contains("\"ghostPath\"", StringComparison.Ordinal)) + 1;
+        Assert.Equal(line, f.Position.Line);
+        Assert.Equal(lines[line - 1].IndexOf("\"ghostPath\"", StringComparison.Ordinal) + 1, f.Position.Column);
+    }
+
+    [Fact]
     public void Metadata_PresentationField_ValidPathAndType_IsNotFlagged()
     {
         var dir = App(
