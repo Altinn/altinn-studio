@@ -91,7 +91,6 @@ async def _run_studioctl_upgrade(project_folder: str) -> subprocess.CompletedPro
         *command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
-        # studioctl colors its errors even when stderr is not a terminal.
         env={**os.environ, "NO_COLOR": "1"},
     )
     stdout, stderr = await process.communicate()

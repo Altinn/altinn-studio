@@ -22,18 +22,12 @@ RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && rm /tmp/dotnet-install.sh \
     && dotnet --version
 
-# studioctl runs the v8->v9 app upgrade (`upgrade_app_to_v9`). The released installer
-# verifies the studioctl binary and its studioctl-server against the release checksums,
-# and the checksum below verifies the installer.
-ARG STUDIOCTL_VERSION=v0.1.0-preview.27
-ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=f7ffb89be68a0e8c73463229303978953822c736df1ebc289d7dfa7caafee50f
-RUN curl -fsSL \
-        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
-        -o /tmp/studioctl-install.sh \
-    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
-    && sh /tmp/studioctl-install.sh --version "${STUDIOCTL_VERSION}" --install-dir /usr/local/bin \
+# studioctl runs the v8->v9 app upgrade (`upgrade_app_to_v9`). Designer serves the installer
+# for the newest studioctl release, which verifies the binaries against the release checksums.
+RUN curl -fsSL https://altinn.studio/designer/api/v1/studioctl/install.sh -o /tmp/studioctl-install.sh \
+    && sh /tmp/studioctl-install.sh --install-dir /usr/local/bin \
     && rm /tmp/studioctl-install.sh \
-    && test "$(studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+    && studioctl version \
     && test -x "${HOME}/.config/altinn-studio/bin/studioctl-server/studioctl-server"
 
 RUN git config --system user.name "Altinity Agent" && \
