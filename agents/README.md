@@ -122,7 +122,8 @@ Create or reattach to a Session:
 agentctl attach session/work
 ```
 
-Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
+Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`. `Ctrl-Z` is ignored in the harness pane, because
+nothing there could resume a suspended harness; open a shell in a second window with `Ctrl-b c` when you need one.
 
 Delete a Session when its work is done; its name becomes free again:
 

@@ -26,6 +26,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
   without restarting the Agent.
 - An Agent started while the host has no network connection resolves names once the host is back online.
 - `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
+- Pressing Ctrl-Z in an attached Session no longer freezes it. The harness pane has no shell to run `fg`, so the key
+  used to stop Claude Code with nothing able to resume it; tmux now ignores it there and shows a reminder to detach
+  with `Ctrl-b d` instead. Windows opened with `Ctrl-b c` keep normal job control. Reattaching applies this to
+  existing Sessions.
 
 ## [0.1.0-preview.7] - 2026-09-28
 

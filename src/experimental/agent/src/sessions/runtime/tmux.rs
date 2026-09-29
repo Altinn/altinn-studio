@@ -29,10 +29,23 @@ const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::fr
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 const DETACH_KEYS: &str = "ctrl-b,d";
 
+/// Shown in place of forwarding Ctrl-Z to a pane whose only process is the
+/// harness. Claude Code answers Ctrl-Z by leaving raw mode, telling the user to
+/// run `fg`, and sending itself SIGTSTP. The pane has no shell to run `fg`, and
+/// the harness's process group is orphaned, so the kernel discards the stop and
+/// the harness sits in cooked mode waiting for a SIGCONT that only an outside
+/// `kill -CONT` can send.
+const SUSPEND_REFUSED_MESSAGE: &str =
+    "Ctrl-Z ignored: this Session runs its harness with no shell to resume it. Detach with Ctrl-b d.";
+
 // Set history-limit before pane creation; reapply on attach for existing servers.
 // Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
 // Reserve index 99: appending would grow terminal-features on every attach.
+// Ctrl-Z is intercepted only where the pane was started with a command, which is
+// how every harness pane starts; windows opened with Ctrl-b c run a shell whose
+// job control makes suspension recoverable, so the key passes through there.
 fn terminal_options() -> Vec<String> {
+    let suspend_refused = format!("display-message -d 4000 '{SUSPEND_REFUSED_MESSAGE}'");
     [
         "set-option",
         "-g",
@@ -58,6 +71,15 @@ fn terminal_options() -> Vec<String> {
         "-s",
         "terminal-features[99]",
         "xterm*:extkeys",
+        ";",
+        "bind-key",
+        "-n",
+        "C-z",
+        "if-shell",
+        "-F",
+        "#{!=:#{pane_start_command},}",
+        suspend_refused.as_str(),
+        "send-keys C-z",
         ";",
     ]
     .into_iter()
@@ -792,6 +814,26 @@ mod tests {
         let session = test_session(crate::ModelSelection::default());
         let output = std::process::Command::new("node")
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_scrollback.mjs"))
+            .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
+            .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
+            .arg(super::session_name(&session))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    #[ignore = "requires Node.js, tmux and script; exercises Ctrl-Z in an isolated terminal server"]
+    fn suspend_is_refused_in_a_real_terminal() {
+        let session = test_session(crate::ModelSelection::default());
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_suspend.mjs"))
             .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
             .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
             .arg(super::session_name(&session))
