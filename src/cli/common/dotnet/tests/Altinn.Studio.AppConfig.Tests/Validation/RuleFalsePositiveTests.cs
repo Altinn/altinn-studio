@@ -33,6 +33,36 @@ public sealed class RuleFalsePositiveTests
         Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(3)]
+    public void DataTypeCount_SubformType_WithNonOneMaxCount_IsNotFlagged(int maxCount)
+    {
+        var dir = App(
+            $$"""{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"sub","appLogic":{"classRef":"App.Models.S","allowInSubform":true},"maxCount":{{maxCount}}}]}"""
+        );
+        Assert.DoesNotContain(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+    }
+
+    [Fact]
+    public void DataTypeCount_FormType_ExplicitlyNotInSubform_WithNonOneMaxCount_IsStillFlagged()
+    {
+        var dir = App(
+            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M","allowInSubform":false},"maxCount":2}]}"""
+        );
+        Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+    }
+
+    [Fact]
+    public void DataTypeCount_SubformType_MinCountAboveMaxCount_IsStillFlagged()
+    {
+        var dir = App(
+            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"sub","appLogic":{"classRef":"App.Models.S","allowInSubform":true},"maxCount":2,"minCount":3}]}"""
+        );
+        var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+        Assert.Contains("minCount", finding.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void UniquePageInOrder_PdfLayoutNameReusingOrderedPage_IsNotFlagged()
     {

@@ -17,6 +17,7 @@ public sealed class CleanAppTests
     [InlineData("expression-validation-test")]
     [InlineData("multiple-datamodels-test")]
     [InlineData("signing-test")]
+    [InlineData("subform-test")]
     public void TestApp_ProducesNoErrors(string name)
     {
         var app = AppConfigEngine.Open(new FileSystemAppDirectory(TestAppDir(name))).Build();
