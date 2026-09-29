@@ -1,15 +1,14 @@
-using System.Buffers;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.AppConfig.Parsers;
 
-internal static partial class AppVersionParser
+internal static class AppVersionParser
 {
     private const string FileRel = "App/App.csproj";
     private const int SupportedMajor = 9;
@@ -21,7 +20,11 @@ internal static partial class AppVersionParser
         "Altinn.App.Core",
     };
 
-    private static readonly SearchValues<char> _majorTerminators = SearchValues.Create(".-");
+    private sealed record ProjectFile(XDocument Document, byte[] Data, string File);
+
+    private sealed record PackageReference(XElement Element, string Include, ProjectFile Project);
+
+    private sealed record DeclaredVersion(string? Spec, VersionRange? Range, string? Problem);
 
     public static void Parse(AppModelBuilder app, IAppDirectory dir)
     {
@@ -38,40 +41,52 @@ internal static partial class AppVersionParser
             return;
         }
 
-        var projectFiles = ProjectFiles(doc, data, dir);
+        var appProject = new ProjectFile(doc, data, FileRel);
+        var buildProps = LoadProjectFiles(ProjectImportFiles(dir, "Directory.Build.props"));
+        var packagesProps = LoadProjectFiles(ProjectImportFiles(dir, "Directory.Packages.props").Take(1));
+        var projectFiles = new List<ProjectFile> { appProject };
+        projectFiles.AddRange(buildProps.Take(1));
+        var properties = MsBuildProperties.Evaluate(
+            Enumerable.Reverse(buildProps).Concat(packagesProps).Append(appProject).Select(project => project.Document)
+        );
 
-        var packageRefs = new List<(XElement Element, string Include, XDocument Document, byte[] Data, string File)>();
-        foreach (var (projectDoc, projectData, projectFile) in projectFiles)
-        foreach (var e in projectDoc.Descendants())
+        var packageRefs = new List<PackageReference>();
+        foreach (var project in projectFiles)
         {
-            if (
-                e.Name.LocalName == "PackageReference"
-                && e.Attribute("Include")?.Value is { } inc
-                && _altinnPackages.Contains(inc, StringComparer.OrdinalIgnoreCase)
-            )
+            foreach (var e in project.Document.Descendants())
             {
-                packageRefs.Add((e, inc, projectDoc, projectData, projectFile));
+                if (
+                    e.Name.LocalName == "PackageReference"
+                    && e.Attribute("Include")?.Value is { } inc
+                    && _altinnPackages.Contains(inc, StringComparer.OrdinalIgnoreCase)
+                )
+                {
+                    packageRefs.Add(new PackageReference(e, inc, project));
+                }
             }
         }
 
         var resolvedSupported = false;
         string? resolvedVersion = null;
-        foreach (var (pr, include, projectDoc, projectData, projectFile) in packageRefs)
+        (PackageReference Reference, string Problem)? firstUnresolved = null;
+        foreach (var packageRef in packageRefs)
         {
-            var version = ResolveVersion(pr, include, projectDoc, dir);
-            if (version is null || !TryMajor(version, out var major))
+            var declared = DeclaredVersionOf(packageRef, properties, packagesProps);
+            if (declared is not { Spec: { } spec, Range: { } range })
+            {
+                firstUnresolved ??= (packageRef, declared.Problem ?? "has no resolvable version");
                 continue;
-            if (major < SupportedMajor)
+            }
+            if (ResolvesBelowSupportedMajor(range))
             {
                 app.UnsupportedAppVersion = new UnsupportedAppVersion(
-                    $"app declares {include} {version}",
-                    PositionOf(pr, projectData, projectFile, head)
+                    $"app declares {packageRef.Include} {spec}",
+                    PositionOf(packageRef, head)
                 );
                 return;
             }
             resolvedSupported = true;
-            if (resolvedVersion is null && ExactVersionPattern().IsMatch(version))
-                resolvedVersion = version;
+            resolvedVersion ??= LowestApplicableVersion(range);
         }
         if (resolvedSupported)
         {
@@ -79,12 +94,11 @@ internal static partial class AppVersionParser
             return;
         }
 
-        if (packageRefs.Count > 0)
+        if (firstUnresolved is ({ } unresolved, { } problem))
         {
-            var first = packageRefs[0];
             app.UnsupportedAppVersion = new UnsupportedAppVersion(
-                $"could not determine the app's Altinn.App version (PackageReference \"{first.Include}\" has no resolvable version)",
-                PositionOf(first.Element, first.Data, first.File, new SourceSpan(first.File, "", 1, 1))
+                $"could not determine the app's Altinn.App version (PackageReference \"{unresolved.Include}\" {problem})",
+                PositionOf(unresolved, new SourceSpan(unresolved.Project.File, "", 1, 1))
             );
             return;
         }
@@ -110,33 +124,23 @@ internal static partial class AppVersionParser
         );
     }
 
-    private static List<(XDocument Document, byte[] Data, string File)> ProjectFiles(
-        XDocument appProject,
-        byte[] appProjectData,
-        IAppDirectory dir
-    )
+    private static List<ProjectFile> LoadProjectFiles(IEnumerable<(string File, byte[] Data)> files)
     {
-        var files = new List<(XDocument Document, byte[] Data, string File)> { (appProject, appProjectData, FileRel) };
-        foreach (var (file, data) in ProjectImportFiles(dir, "Directory.Build.props"))
+        var projects = new List<ProjectFile>();
+        foreach (var (file, data) in files)
         {
             if (LoadXml(data) is { } doc)
-                files.Add((doc, data, file));
+                projects.Add(new ProjectFile(doc, data, file));
         }
-        return files;
+        return projects;
     }
 
-    // MSBuild auto-imports the nearest Directory.*.props: first within the app, then in parent
-    // directories. Parent files live outside the app root, so they go through ReadExternalBytes
-    // and stay part of the recorded dependency snapshot.
     private static IEnumerable<(string File, byte[] Data)> ProjectImportFiles(IAppDirectory dir, string fileName)
     {
         foreach (var file in new[] { $"App/{fileName}", fileName })
         {
             if (dir.ReadAllBytes(file) is { } data)
-            {
                 yield return (file, data);
-                yield break;
-            }
         }
 
         var rel = new StringBuilder("../").Append(fileName);
@@ -148,52 +152,65 @@ internal static partial class AppVersionParser
         {
             var path = rel.ToString();
             if (dir.ReadExternalBytes(path) is { } data)
-            {
                 yield return (path, data);
-                yield break;
-            }
             rel.Insert(0, "../");
         }
     }
 
-    private static string? ResolveVersion(XElement packageRef, string include, XDocument csproj, IAppDirectory dir)
+    private static DeclaredVersion DeclaredVersionOf(
+        PackageReference packageRef,
+        MsBuildProperties properties,
+        List<ProjectFile> packagesProps
+    )
     {
         var raw =
-            packageRef.Attribute("Version")?.Value
-            ?? packageRef.Elements().FirstOrDefault(e => e.Name.LocalName == "Version")?.Value;
+            packageRef.Element.Attribute("Version")?.Value
+            ?? packageRef.Element.Elements().FirstOrDefault(e => e.Name.LocalName == "Version")?.Value;
         if (string.IsNullOrEmpty(raw))
-            return CentralPackageVersion(include, dir);
-        return ResolveProperty(raw, csproj);
-    }
-
-    private static string? ResolveProperty(string value, XDocument doc)
-    {
-        if (!value.StartsWith("$(", StringComparison.Ordinal) || !value.EndsWith(')'))
-            return value;
-        var name = value[2..^1];
-        var prop = doc.Descendants()
-            .Where(e => e.Name.LocalName == "PropertyGroup")
-            .SelectMany(g => g.Elements())
-            .FirstOrDefault(e => string.Equals(e.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
-        return prop is { Value: { Length: > 0 } v } && !v.StartsWith("$(", StringComparison.Ordinal) ? v : null;
-    }
-
-    private static string? CentralPackageVersion(string include, IAppDirectory dir)
-    {
-        foreach (var (_, data) in ProjectImportFiles(dir, "Directory.Packages.props"))
+            raw = CentralPackageVersion(packageRef.Include, packagesProps);
+        if (string.IsNullOrEmpty(raw))
+            return new DeclaredVersion(null, null, "has no version and no Directory.Packages.props entry");
+        if (!properties.TryExpand(raw, out var spec, out var problem))
+            return new DeclaredVersion(null, null, $"version \"{raw}\" {problem}");
+        if (!VersionRange.TryParse(spec, allowFloating: true, out var range))
         {
-            if (LoadXml(data) is not { } doc)
-                continue;
-            var entry = doc.Descendants()
-                .FirstOrDefault(e =>
-                    e.Name.LocalName == "PackageVersion"
-                    && string.Equals(e.Attribute("Include")?.Value, include, StringComparison.OrdinalIgnoreCase)
-                );
-            if (entry?.Attribute("Version")?.Value is { Length: > 0 } v)
-                return ResolveProperty(v, doc);
+            var expandedFrom = string.Equals(spec, raw, StringComparison.Ordinal) ? "" : $" (from \"{raw}\")";
+            return new DeclaredVersion(
+                null,
+                null,
+                $"version \"{spec}\"{expandedFrom} is not a NuGet version or version range"
+            );
         }
-        return null;
+        return new DeclaredVersion(spec, range, null);
     }
+
+    private static string? CentralPackageVersion(string include, List<ProjectFile> packagesProps) =>
+        packagesProps
+            .SelectMany(project => project.Document.Descendants())
+            .FirstOrDefault(e =>
+                e.Name.LocalName == "PackageVersion"
+                && string.Equals(e.Attribute("Include")?.Value, include, StringComparison.OrdinalIgnoreCase)
+            )
+            ?.Attribute("Version")
+            ?.Value;
+
+    private static bool ResolvesBelowSupportedMajor(VersionRange range)
+    {
+        if (
+            range is
+            {
+                IsFloating: true,
+                Float.FloatBehavior: NuGetVersionFloatBehavior.Major
+                    or NuGetVersionFloatBehavior.PrereleaseMajor
+                    or NuGetVersionFloatBehavior.AbsoluteLatest,
+            }
+        )
+            return false;
+        return range.MinVersion is not { } min || min.Major < SupportedMajor;
+    }
+
+    private static string? LowestApplicableVersion(VersionRange range) =>
+        range is { IsFloating: false, IsMinInclusive: true, MinVersion: { } min } ? min.ToNormalizedString() : null;
 
     private static XDocument? LoadXml(byte[] data)
     {
@@ -207,18 +224,10 @@ internal static partial class AppVersionParser
         }
     }
 
-    private static bool TryMajor(string version, out int major)
+    private static SourceSpan PositionOf(PackageReference packageRef, SourceSpan fallback)
     {
-        var cut = version.AsSpan().IndexOfAny(_majorTerminators);
-        return int.TryParse(cut < 0 ? version : version[..cut], out major);
+        var data = packageRef.Project.Data;
+        var (line, col) = XmlPositions.LineCol(packageRef.Element as IXmlLineInfo, data, Spans.LineStarts(data));
+        return line > 0 ? new SourceSpan(packageRef.Project.File, "", line, col) : fallback;
     }
-
-    private static SourceSpan PositionOf(XElement el, byte[] data, string file, SourceSpan fallback)
-    {
-        var (line, col) = XmlPositions.LineCol(el as IXmlLineInfo, data, Spans.LineStarts(data));
-        return line > 0 ? new SourceSpan(file, "", line, col) : fallback;
-    }
-
-    [GeneratedRegex(@"^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$")]
-    private static partial Regex ExactVersionPattern();
 }

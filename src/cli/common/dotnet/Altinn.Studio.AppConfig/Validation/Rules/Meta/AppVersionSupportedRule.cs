@@ -15,9 +15,12 @@ internal sealed class AppVersionSupportedRule : IValidationRule
                 + "pre-v9 Altinn.App package — or whose version cannot be resolved at all — the "
                 + "conventions can't be assumed, so every other check would produce misleading "
                 + "findings; the build stops at this single error instead. Version resolution is "
-                + "best-effort: a literal PackageReference version, a $(Property) defined in the "
-                + "same csproj, a Directory.Packages.props entry, or a ProjectReference to the "
-                + "Altinn.App sources (a source build is the current version). Only a directory "
+                + "best-effort: a PackageReference or Directory.Packages.props version, read as a "
+                + "NuGet version or range (exact pins, ranges and floating versions; the lowest "
+                + "version the range admits must be v9 or later), with $(Property) references "
+                + "resolved from the csproj, Directory.Packages.props and the Directory.Build.props "
+                + "files up the directory chain; or a ProjectReference to the Altinn.App sources "
+                + "(a source build is the current version). Only a directory "
                 + "without App/App.csproj passes unchecked — nothing there claims a version.",
             Severity.Error
         );
