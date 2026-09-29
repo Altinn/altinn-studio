@@ -19,10 +19,21 @@ export const StudioManualExpression = ({
   onValidityChange,
   texts,
 }: StudioManualExpressionProps): React.ReactElement => {
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
+  const givenExpressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
+  const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const [prevExpressionString, setPrevExpressionString] = useState<string>(givenExpressionString);
+
+  if (givenExpressionString !== prevExpressionString) {
+    setPrevExpressionString(givenExpressionString);
+    const isOwnChange =
+      isValid && givenExpressionString === expressionToString(stringToExpression(expressionString));
+    if (!isOwnChange) {
+      setExpressionString(givenExpressionString);
+      setIsValid(isInitiallyValid);
+    }
+  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
