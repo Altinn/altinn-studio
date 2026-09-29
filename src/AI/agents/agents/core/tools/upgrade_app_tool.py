@@ -36,6 +36,10 @@ _UPGRADED_MESSAGE = "Upgraded the app to v9."
 _RERUN_MESSAGE = "The app was already on v9.  The upgrade ran again and made new changes."
 _MANUAL_FOLLOW_UP_MESSAGE = "Some steps need manual follow-up:"
 _NOTHING_TO_CHANGE_MESSAGE = "The app is up to date with this version of the upgrade, so nothing was changed."
+_FAILED_MESSAGE = "The v9 upgrade failed, and its changes were discarded:"
+_UNCOMMITTED_CHANGES_MESSAGE = (
+    "The upgrade needs a clean working tree.  Commit or discard the changes to these files, then run it again:"
+)
 
 # The upgrade keeps this file when it holds back layout sets that need manual work.
 _LAYOUT_SETS_FILE = "App/ui/layout-sets.json"
@@ -50,6 +54,7 @@ _COMMENT_PREFIX = "//"
 
 # studioctl stages its changes, so git status shows a file it created as added to the index.
 _GIT_STATUS_ADDED = "A"
+_GIT_STATUS_RENAMED = "R"
 
 _GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
 _GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
@@ -123,15 +128,17 @@ class UpgradeAppToV9Tool(WriteToolMixin):
     is_read_only = False
 
     async def run(self, args: UpgradeAppToV9Args, ctx: LoopContext) -> ToolResult:
+        uncommitted_paths = _get_changed_paths(ctx.repo_path)
+        if uncommitted_paths:
+            return ToolResult(content="\n".join([_UNCOMMITTED_CHANGES_MESSAGE, *uncommitted_paths]), is_error=True)
+
         async with _upgrade_queue.turn(ctx.report_status):
             completed = await _run_studioctl_upgrade(ctx.repo_path)
 
         result = _parse_upgrade_result(completed.stdout)
         if result is None:
-            return ToolResult(
-                content=f"studioctl could not run the upgrade: {completed.stderr.strip()}",
-                is_error=True,
-            )
+            _restore_working_tree(ctx.repo_path)
+            return ToolResult(content=f"{_FAILED_MESSAGE}\n\n{completed.stderr.strip()}", is_error=True)
 
         return _map_exit_code_to_tool_result(result, ctx)
 
@@ -164,10 +171,7 @@ def _map_exit_code_to_tool_result(result: dict, ctx: LoopContext) -> ToolResult:
             is_error=True,
         )
 
-    return ToolResult(
-        content=(f"The v9 upgrade failed, and its changes were discarded:\n\n{result.get('error') or summary}"),
-        is_error=True,
-    )
+    return ToolResult(content=f"{_FAILED_MESSAGE}\n\n{result.get('error') or summary}", is_error=True)
 
 
 def _upgraded_result(exit_code: int, summary: str, ctx: LoopContext) -> ToolResult:
@@ -232,7 +236,7 @@ def _format_message(step: dict, message: dict) -> str:
 
 
 def _restore_working_tree(repo_path: str) -> None:
-    """studioctl refuses a dirty working tree, so this discards only the upgrade's own changes."""
+    """The upgrade only runs on a clean working tree, so this discards only the upgrade's own changes."""
     subprocess.run(_GIT_RESET_TO_HEAD, cwd=repo_path, capture_output=True, text=True)
     subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True)
 
@@ -267,37 +271,30 @@ def _todo_comment(lines: list[str], todo_index: int) -> str:
 
 def _get_changed_paths(repo_path: str) -> list[str]:
     """Repo-relative paths touched in the working tree"""
-    return [_path_in_status_line(line) for line in _git_status_lines(repo_path)]
+    return [path for _, path in _git_status_entries(repo_path)]
 
 
 def _get_created_paths(repo_path: str) -> list[str]:
-    created_lines = [line for line in _git_status_lines(repo_path) if line.startswith(_GIT_STATUS_ADDED)]
-    return [_path_in_status_line(line) for line in created_lines]
+    return [path for status, path in _git_status_entries(repo_path) if status.startswith(_GIT_STATUS_ADDED)]
 
 
-def _git_status_lines(repo_path: str) -> list[str]:
+def _git_status_entries(repo_path: str) -> list[tuple[str, str]]:
+    """The status code and path of each changed file.  A renamed file has its new path.
+
+    With `-z`, git leaves paths with spaces and non-ASCII letters unquoted, so they match the files on disk.
+    """
     result = subprocess.run(
-        ["git", "status", "--porcelain"],
+        ["git", "status", "--porcelain", "-z"],
         cwd=repo_path,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
-    return result.stdout.splitlines()
-
-
-def _path_in_status_line(line: str) -> str:
-    line = _strip_status_prefix(line)
-    return _parse_rename(line)
-
-
-def _strip_status_prefix(line: str) -> str:
-    """Drop the porcelain status prefix (two-char code and a space) before the path."""
-    status_prefix_length = 3
-    return line[status_prefix_length:].strip()
-
-
-def _parse_rename(line: str) -> str:
-    git_rename_separator = " -> "
-    if git_rename_separator not in line:
-        return line
-    return line.split(git_rename_separator, 1)[1]
+    fields = iter(field for field in result.stdout.split("\0") if field)
+    entries: list[tuple[str, str]] = []
+    for field in fields:
+        status, path = field[:2], field[3:]
+        if _GIT_STATUS_RENAMED in status:
+            next(fields)  # the path before the rename
+        entries.append((status, path))
+    return entries

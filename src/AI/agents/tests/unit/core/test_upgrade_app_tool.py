@@ -1,8 +1,8 @@
 """Tests for `upgrade_app_to_v9`.
 
-The tool runs `studioctl app upgrade`; the `_run_studioctl_upgrade` seam and
-the `git status` subprocess are monkeypatched so these run without studioctl
-or a real repo.
+The tool runs `studioctl app upgrade`; the `_run_studioctl_upgrade` seam is
+monkeypatched so these run without studioctl.  The fakes change a real git repo
+the way studioctl does.
 """
 
 from __future__ import annotations
@@ -78,10 +78,17 @@ def _studioctl_error(stderr: str) -> subprocess.CompletedProcess[str]:
     return subprocess.CompletedProcess([], 1, stdout="", stderr=stderr)
 
 
-def _stub_studioctl(monkeypatch, completed: subprocess.CompletedProcess[str], recorder=None) -> None:
+def _stub_studioctl(
+    monkeypatch,
+    completed: subprocess.CompletedProcess[str],
+    recorder: list[str] | None = None,
+    edit_repo: Callable[[], None] | None = None,
+) -> None:
     async def fake_run(project_folder: str) -> subprocess.CompletedProcess[str]:
         if recorder is not None:
             recorder.append(project_folder)
+        if edit_repo is not None:
+            edit_repo()
         return completed
 
     monkeypatch.setattr("agents.core.tools.upgrade_app_tool._run_studioctl_upgrade", fake_run)
@@ -101,21 +108,8 @@ async def _let_tasks_run() -> None:
         await asyncio.sleep(0)
 
 
-def _stub_git_status(monkeypatch, paths: list[str]) -> None:
-    stdout = "".join(f" M {path}\n" for path in paths)
-
-    def fake_run(args, **kwargs):
-        return subprocess.CompletedProcess(args, 0, stdout=stdout, stderr="")
-
-    monkeypatch.setattr("agents.core.tools.upgrade_app_tool.subprocess.run", fake_run)
-
-
 def _stub_upgrade_that_edits_repo(monkeypatch, edit_repo: Callable[[], None], exit_code: int) -> None:
-    async def fake_run(project_folder: str) -> subprocess.CompletedProcess[str]:
-        edit_repo()
-        return _studioctl_result({**_SUCCESS_PAYLOAD, "exitCode": exit_code})
-
-    monkeypatch.setattr("agents.core.tools.upgrade_app_tool._run_studioctl_upgrade", fake_run)
+    _stub_studioctl(monkeypatch, _studioctl_result({**_SUCCESS_PAYLOAD, "exitCode": exit_code}), edit_repo=edit_repo)
 
 
 def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[], None]:
@@ -124,6 +118,31 @@ def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[
     def upgrade() -> None:
         write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE})
         (repo / "App/ui/layout-sets.json").unlink()
+        git(repo, "add", "-A")
+
+    return upgrade
+
+
+def _upgrade_that_fails_halfway(repo: Path) -> Callable[[], None]:
+    def upgrade() -> None:
+        write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
+
+    return upgrade
+
+
+def _upgrade_that_renames_the_layout_sets_file(repo: Path) -> Callable[[], None]:
+    def upgrade() -> None:
+        git(repo, "mv", "App/ui/layout-sets.json", "App/ui/layout-sets.old.json")
+
+    return upgrade
+
+
+_CREATED_FILE_WITH_SPACE_AND_NORWEGIAN_LETTER = "App/ui/søknad/layouts/Side 1.json"
+
+
+def _upgrade_that_creates_a_file_with_a_space_and_a_norwegian_letter(repo: Path) -> Callable[[], None]:
+    def upgrade() -> None:
+        write_files(repo, {_CREATED_FILE_WITH_SPACE_AND_NORWEGIAN_LETTER: "{}"})
         git(repo, "add", "-A")
 
     return upgrade
@@ -197,30 +216,22 @@ async def _run(tool: Tool, ctx: LoopContext):
 
 class TestUpgradeAppToV9:
     async def test_success_marks_changed_and_verified(self, monkeypatch, tmp_path: Path):
-        _stub_studioctl(
-            monkeypatch,
-            _studioctl_result(
-                {
-                    "message": "upgrade completed",
-                    "exitCode": 0,
-                    "output": "",
-                    "error": "",
-                    "steps": [{"name": "Project file", "messages": [{"text": "done", "status": "OK"}]}],
-                }
-            ),
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
         )
-        _stub_git_status(monkeypatch, ["App/App.csproj", "App/ui/form/layouts/Side1.json"])
 
-        ctx = _ctx(tmp_path)
+        ctx = _ctx(repo)
         result = await _run(UpgradeAppToV9Tool(), ctx)
 
         assert not result.is_error
         assert "Upgraded the app to v9" in result.content
-        expected = {"App/App.csproj", "App/ui/form/layouts/Side1.json"}
+        expected = {"App/App.csproj", "App/ui/layout-sets.json"}
         assert ctx.extras["changed_files"] == expected
         assert ctx.extras["verified_files"] == expected
 
     async def test_manual_action_required_is_not_error_and_surfaces_todos(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
         _stub_studioctl(
             monkeypatch,
             _studioctl_result(
@@ -237,16 +248,16 @@ class TestUpgradeAppToV9:
                     ],
                 }
             ),
+            edit_repo=_upgrade_that_bumps_csproj_and_deletes_layout_sets(repo),
         )
-        _stub_git_status(monkeypatch, ["App/config/process/process.bpmn"])
 
-        ctx = _ctx(tmp_path)
+        ctx = _ctx(repo)
         result = await _run(UpgradeAppToV9Tool(), ctx)
 
         assert not result.is_error
         assert "manual" in result.content.lower()
         assert "Review the process manually" in result.content
-        assert ctx.extras["changed_files"] == {"App/config/process/process.bpmn"}
+        assert ctx.extras["changed_files"] == {"App/App.csproj", "App/ui/layout-sets.json"}
 
     async def test_unsupported_version_is_error_and_records_nothing(self, monkeypatch, tmp_path: Path):
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
@@ -313,6 +324,28 @@ class TestUpgradeAppToV9:
 
         assert not verify_result.is_error
 
+    async def test_success_records_a_renamed_file_by_its_new_path(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_renames_the_layout_sets_file(repo), exit_code=0)
+
+        ctx = _ctx(repo)
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert ctx.extras["changed_files"] == {"App/ui/layout-sets.old.json"}
+
+    async def test_success_records_a_created_file_with_a_space_and_a_norwegian_letter_in_its_path(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_creates_a_file_with_a_space_and_a_norwegian_letter(repo), exit_code=0
+        )
+
+        ctx = _ctx(repo, app_version_profile=V9_PROFILE)
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert _CREATED_FILE_WITH_SPACE_AND_NORWEGIAN_LETTER in ctx.extras["changed_files"]
+
     async def test_success_returns_each_todo_comment_in_the_created_files_with_its_location(
         self, monkeypatch, tmp_path: Path
     ):
@@ -341,11 +374,7 @@ class TestUpgradeAppToV9:
 
     async def test_failed_upgrade_discards_its_partial_changes(self, monkeypatch, tmp_path: Path):
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
-
-        def fail_halfway() -> None:
-            write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
-
-        _stub_upgrade_that_edits_repo(monkeypatch, fail_halfway, exit_code=_EXIT_ERROR)
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_fails_halfway(repo), exit_code=_EXIT_ERROR)
 
         result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
 
@@ -491,50 +520,69 @@ class TestUpgradeAppToV9:
 
         assert "still in RuleConfiguration.json and RuleHandler.js" in result.content
 
-    async def test_passes_on_the_studioctl_error_when_studioctl_cannot_run_the_upgrade(
+    async def test_passes_on_the_studioctl_error_when_studioctl_cannot_finish_the_upgrade(
         self, monkeypatch, tmp_path: Path
     ):
-        _stub_studioctl(
-            monkeypatch,
-            _studioctl_error(
-                "upgrade app: unexpected studioctl-server upgrade response: 400 Bad Request: "
-                "The git repository has local changes."
-            ),
-        )
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_studioctl(monkeypatch, _studioctl_error("upgrade app: context deadline exceeded"))
 
-        result = await _run(UpgradeAppToV9Tool(), _ctx(tmp_path))
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
 
         assert result.is_error
-        assert "The git repository has local changes." in result.content
+        assert "context deadline exceeded" in result.content
 
-    async def test_upgrades_the_session_repo(self, monkeypatch, tmp_path: Path):
+    async def test_discards_partial_changes_when_studioctl_cannot_finish_the_upgrade(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_studioctl(
+            monkeypatch,
+            _studioctl_error("upgrade app: context deadline exceeded"),
+            edit_repo=_upgrade_that_fails_halfway(repo),
+        )
+
+        await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
+        assert not (repo / "App/ui/Task_1").exists()
+
+    async def test_refuses_to_upgrade_a_working_tree_with_uncommitted_changes(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        write_files(repo, {"App/App.csproj": "<Project />"})
         recorder: list[str] = []
         _stub_studioctl(monkeypatch, _studioctl_result(_SUCCESS_PAYLOAD), recorder=recorder)
-        _stub_git_status(monkeypatch, [])
 
-        ctx = _ctx(tmp_path)
-        await _run(UpgradeAppToV9Tool(), ctx)
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
 
-        assert recorder == [str(tmp_path)]
+        assert result.is_error
+        assert "App/App.csproj" in result.content
+        assert recorder == []
+
+    async def test_upgrades_the_session_repo(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        recorder: list[str] = []
+        _stub_studioctl(monkeypatch, _studioctl_result(_SUCCESS_PAYLOAD), recorder=recorder)
+
+        await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert recorder == [str(repo)]
 
     async def test_reports_no_queue_status_when_queue_is_empty(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
         _stub_studioctl(monkeypatch, _studioctl_result(_SUCCESS_PAYLOAD))
-        _stub_git_status(monkeypatch, [])
         statuses: list[str] = []
 
-        await _run(UpgradeAppToV9Tool(), _ctx(tmp_path, statuses=statuses))
+        await _run(UpgradeAppToV9Tool(), _ctx(repo, statuses=statuses))
 
         assert statuses == []
 
     async def test_reports_queue_position_when_another_upgrade_is_running(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
         release = asyncio.Event()
         _stub_studioctl_blocked_until(monkeypatch, release, recorder=[])
-        _stub_git_status(monkeypatch, [])
         statuses: list[str] = []
 
-        running = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(tmp_path)))
+        running = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(repo)))
         await _let_tasks_run()
-        queued = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(tmp_path, statuses=statuses)))
+        queued = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(repo, statuses=statuses)))
         await _let_tasks_run()
 
         assert statuses == ["Står i kø for oppgradering (1 foran)"]
@@ -548,9 +596,8 @@ class TestUpgradeAppToV9:
         release = asyncio.Event()
         recorder: list[str] = []
         _stub_studioctl_blocked_until(monkeypatch, release, recorder)
-        _stub_git_status(monkeypatch, [])
-        first_repo = tmp_path / "first"
-        second_repo = tmp_path / "second"
+        first_repo = create_committed_repo(tmp_path / "first", _V9_APP_FILES)
+        second_repo = create_committed_repo(tmp_path / "second", _V9_APP_FILES)
 
         first = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(first_repo)))
         await _let_tasks_run()
