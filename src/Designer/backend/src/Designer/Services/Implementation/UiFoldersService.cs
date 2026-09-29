@@ -411,14 +411,12 @@ public class UiFoldersService : IUiFoldersService
 
     /// <summary>
     /// Creates the files of a PDF service task's layout set: the PDF layout the task renders (initially
-    /// empty) and one ordinary page. The page is not optional. The app frontend renders any task that has
-    /// a ui folder as a form task, using that folder's pages in place of its built-in service task views,
-    /// so the set must contain the page a user sees while the PDF is being generated. That is a waiting
-    /// page bound to the same <c>service_task.waiting_*</c> text keys as the built-in waiting view, so an
-    /// app's overrides apply to both. A failed generation needs no page here: the v9 frontend renders its
-    /// own failure view, with retry, over any custom layout. The v8 generator in
-    /// <see cref="AppDevelopmentService"/> still emits an error page with retry and back buttons, since
-    /// the v8 runtime relies on the layout's own buttons for recovery.
+    /// empty) and one ordinary page. The page is not optional: the app frontend renders any task that has
+    /// a ui folder as a form task, so the set must contain at least one page. The user does not normally
+    /// see it. While the PDF is being generated the v9 frontend shows its loading view, and a failed
+    /// generation gets the frontend's own failure view, with retry, over any custom layout. The v8
+    /// generator in <see cref="AppDevelopmentService"/> still emits an error page with retry and back
+    /// buttons, since the v8 runtime relies on the layout's own buttons for recovery.
     /// </summary>
     private static async Task CreatePdfLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
