@@ -7,13 +7,13 @@ namespace WorkflowEngine.Core.Tests;
 /// Tripwire for the token-lifetime bound: callback tokens are minted once at enqueue and never refresh, so a
 /// receive workflow's worst-case lifetime must fit inside the signing app-code's guaranteed remaining validity
 /// (operator rotation policy in <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c>:
-/// 186d acceptance − 72d rotation = 114d). Raising the wait budget, the mailbox timeout or retention past the
+/// 365d acceptance − 24d rotation = 341d). Raising the wait budget, the mailbox timeout or retention past the
 /// floor would otherwise surface only as receivers failing to authenticate weeks after enqueue.
 /// </summary>
 public class CallbackTokenLifetimeInvariantTests
 {
-    /// <summary>The operator's acceptance window (186d) minus its rotation interval (72d).</summary>
-    private static readonly TimeSpan _guaranteedTokenValidityAtEnqueue = TimeSpan.FromDays(114);
+    /// <summary>The operator's acceptance window (365d) minus its rotation interval (24d).</summary>
+    private static readonly TimeSpan _guaranteedTokenValidityAtEnqueue = TimeSpan.FromDays(341);
 
     /// <summary>
     /// The worst-case lifetime of a receive workflow, from its own enqueue: park for the mailbox's lifetime,
@@ -39,9 +39,9 @@ public class CallbackTokenLifetimeInvariantTests
             worstCase < _guaranteedTokenValidityAtEnqueue,
             $"Bounded worst-case receive-workflow lifetime is {worstCase.TotalDays:0.##}d, which exceeds the "
                 + $"{_guaranteedTokenValidityAtEnqueue.TotalDays:0.##}d of callback-token validity guaranteed at "
-                + "enqueue, so a parked receiver would fail to authenticate when it finally runs. Give the "
-                + "callback token a refresh path before raising MaxMailboxTimeout, MaxStepWaitBudget or the "
-                + "retention period."
+                + "enqueue, so a parked receiver would fail to authenticate when it finally runs. Widen the "
+                + "operator's WorkflowEngineCallback acceptance window (appcodesync) and this floor together, "
+                + "or lower MaxMailboxTimeout, MaxStepWaitBudget or the retention period."
         );
     }
 
