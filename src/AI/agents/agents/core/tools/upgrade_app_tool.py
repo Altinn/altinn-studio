@@ -68,7 +68,7 @@ class _UpgradeQueue:
         self._upgrades_in_progress += 1
         try:
             if upgrades_ahead:
-                report_status(f"Venter i kø ({upgrades_ahead} foran)")
+                report_status(f"Står i kø for oppgradering ({upgrades_ahead} foran)")
             async with self._lock:
                 if upgrades_ahead:
                     report_status("Oppgraderer appen til v9")

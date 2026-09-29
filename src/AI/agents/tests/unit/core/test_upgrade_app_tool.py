@@ -537,12 +537,12 @@ class TestUpgradeAppToV9:
         queued = asyncio.create_task(_run(UpgradeAppToV9Tool(), _ctx(tmp_path, statuses=statuses)))
         await _let_tasks_run()
 
-        assert statuses == ["Venter i kø (1 foran)"]
+        assert statuses == ["Står i kø for oppgradering (1 foran)"]
 
         release.set()
         await asyncio.gather(running, queued)
 
-        assert statuses == ["Venter i kø (1 foran)", "Oppgraderer appen til v9"]
+        assert statuses == ["Står i kø for oppgradering (1 foran)", "Oppgraderer appen til v9"]
 
     async def test_waits_for_the_running_upgrade_before_starting(self, monkeypatch, tmp_path: Path):
         release = asyncio.Event()
