@@ -161,9 +161,11 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
-    public void Stays_Quiet_When_No_UI_Folders_Are_Visible()
+    public void An_App_Without_UI_Folders_Is_Still_Checked()
     {
-        Assert.Empty(Collect(Process(PdfTask("PdfTask"))));
+        var diagnostic = Assert.Single(Collect(Process(PdfTask("PdfTask"))));
+
+        Assert.Equal(NothingToRender, diagnostic.Id);
     }
 
     [Fact]

@@ -56,13 +56,9 @@ internal static class PdfServiceTaskUtils
             return;
         }
 
+        // The package props that expose config/** to the analysis expose ui/**/*.json as well, so no UI folders
+        // here means the app has none.
         var uiFolders = FindUiFolders(additionalFiles, AppRoot(processFile));
-        if (uiFolders.Count == 0)
-        {
-            // Every app with a form has at least one UI folder, so none at all means the UI files are not
-            // visible to this analysis. Stay quiet rather than report every PDF task as unrenderable.
-            return;
-        }
 
         foreach (var task in FindServiceTasks(document, PdfTaskType))
         {
