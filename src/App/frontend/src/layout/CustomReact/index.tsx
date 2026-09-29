@@ -21,7 +21,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-// Types that a CustomReact component can write to, see CustomReactFormValue
+// Types that a CustomReact component can write to, see CustomReactFormValue. Lists must contain strings.
 const validBindingTypes = ['string', 'number', 'integer', 'boolean', 'array'];
 
 export class CustomReact extends CustomReactDef implements ValidateEmptyField<'CustomReact'> {
@@ -33,7 +33,9 @@ export class CustomReact extends CustomReactDef implements ValidateEmptyField<'C
 
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'CustomReact');
-    return Object.values(formData ?? {}).join(', ');
+    return Object.values(formData ?? {})
+      .filter((value) => value !== undefined && value !== null && value !== '')
+      .join(', ');
   }
 
   renderSummary(props: SummaryRendererProps): JSX.Element | null {
@@ -72,17 +74,31 @@ export class CustomReact extends CustomReactDef implements ValidateEmptyField<'C
     bindings: IDataModelBindings<'CustomReact'>,
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
-    return Object.keys(bindings ?? {}).flatMap(
-      (key) =>
-        validateDataModelBindingsAny(
-          baseComponentId,
-          bindings,
-          lookupBinding,
-          layoutLookups,
-          key,
-          validBindingTypes,
-          false,
-        )[0] ?? [],
-    );
+    return Object.keys(bindings ?? {}).flatMap((key) => {
+      const [errors, schema] = validateDataModelBindingsAny(
+        baseComponentId,
+        bindings,
+        lookupBinding,
+        layoutLookups,
+        key,
+        validBindingTypes,
+        false,
+      );
+      if (errors) {
+        return errors;
+      }
+
+      // Lists can only be written back as string[], see CustomReactFormValue
+      const items = schema.items;
+      const isStringList = typeof items === 'object' && !Array.isArray(items) && items.type === 'string';
+      if (schema.type === 'array' && !isStringList) {
+        return [
+          `${key}-datamodellbindingen peker mot en liste som ikke er en liste med tekst i datamodellen, ` +
+            `men CustomReact støtter bare lister med tekst`,
+        ];
+      }
+
+      return [];
+    });
   }
 }

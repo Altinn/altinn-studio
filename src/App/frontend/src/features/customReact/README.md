@@ -133,7 +133,7 @@ add the `<script>` tag there themselves, after the app frontend script.
 ```
 
 - **`dataModelBindings`** can have any keys. The component reads them from `formData` and writes with `setValue`,
-  using the same keys.
+  using the same keys. The fields must be text, numbers, booleans or lists of text.
 - **`textResourceBindings`** can have any keys. The component gets them resolved to the current language in `texts`.
   `title`, `description` and `help` are also shown as the standard label above the component.
 - **`options`** is passed unchanged to the component. Values are plain JSON and are not evaluated as expressions.
@@ -162,7 +162,9 @@ add the `<script>` tag there themselves, after the app frontend script.
   `summaryMode` set to true.
 - **PDF.** The PDF waits until the component is registered. If it is not registered within 10 seconds, the user sees
   an error, the reason is logged to the browser console, and the PDF is not generated.
-- **Crashes.** An error thrown while rendering is caught, so it does not break the rest of the form.
+- **Crashes.** An error thrown while rendering is caught, so it does not break the rest of the form. The user sees
+  the same error as for a component that is not registered, the error is logged to the browser console, and the PDF
+  is not generated.
 
 ## Scripts that may run before the app frontend
 

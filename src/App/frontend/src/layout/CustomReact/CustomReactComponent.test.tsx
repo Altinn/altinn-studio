@@ -113,6 +113,29 @@ describe('CustomReactComponent', () => {
     expect(screen.getByText('registered later')).toBeInTheDocument();
   });
 
+  it('shows an error that stops PDF generation when the component throws', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    registerComponent({
+      name: 'throwing-component',
+      component: () => {
+        throw new Error('Broken component');
+      },
+      apiVersion: CUSTOM_REACT_API_VERSION,
+    });
+
+    await render({ component: { componentName: 'throwing-component' } });
+
+    const error = screen.getByText('Denne delen av skjemaet kunne ikke vises. Prøv å laste inn siden på nytt.');
+    expect(error.closest('[data-fatal-error]')).toBeInTheDocument();
+    // The label is still shown, so the user can tell which part of the form is affected
+    expect(screen.getByText('my.title', { selector: '.ds-label *' })).toBeInTheDocument();
+    expect(logError).toHaveBeenCalledWith(
+      expect.stringContaining('React component "throwing-component" (component \'my-test-component-id\') threw'),
+      expect.objectContaining({ message: 'Broken component' }),
+    );
+  });
+
   it('shows an error that stops PDF generation when the component is never registered', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});

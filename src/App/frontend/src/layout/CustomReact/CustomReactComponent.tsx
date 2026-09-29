@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { Component as ReactComponent, useEffect, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Spinner } from '@app/form-component';
 import { Alert } from '@digdir/designsystemet-react';
@@ -56,7 +57,16 @@ export function CustomReactRenderer({
     );
   }
 
-  return <Component {...props} />;
+  return (
+    <CustomReactErrorBoundary
+      // Start over if the layout points the component at another registered component
+      key={componentName}
+      baseComponentId={baseComponentId}
+      componentName={componentName}
+    >
+      <Component {...props} />
+    </CustomReactErrorBoundary>
+  );
 }
 
 function WaitingForRegistration({
@@ -68,33 +78,21 @@ function WaitingForRegistration({
 }) {
   const [timedOut, setTimedOut] = useState(false);
   const { langAsString } = useLanguage();
-  const nodeId = useIndexedId(baseComponentId);
-  const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
     const timeout = setTimeout(() => setTimedOut(true), REGISTRATION_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, []);
 
-  useEffect(() => {
-    if (timedOut) {
-      const error =
-        `React component "${componentName}" (component '${baseComponentId}') was not registered. Make sure the app ` +
-        `registers it with window.altinnAppFrontend.registerComponent()`;
-      window.logError(error);
-      addError(error, nodeId, 'node');
-    }
-  }, [addError, baseComponentId, componentName, nodeId, timedOut]);
-
   if (timedOut) {
-    // data-fatal-error stops PDF generation, as the PDF would be missing this part of the form
     return (
-      <Alert
-        data-color='danger'
-        data-fatal-error
-      >
-        <Lang id='custom_react.not_registered' />
-      </Alert>
+      <ComponentUnavailable
+        baseComponentId={baseComponentId}
+        error={
+          `React component "${componentName}" (component '${baseComponentId}') was not registered. Make sure the ` +
+          `app registers it with window.altinnAppFrontend.registerComponent()`
+        }
+      />
     );
   }
 
@@ -104,5 +102,74 @@ function WaitingForRegistration({
       aria-label={langAsString('general.loading')}
       data-size='sm'
     />
+  );
+}
+
+interface ErrorBoundaryProps extends PropsWithChildren {
+  baseComponentId: string;
+  componentName: string;
+}
+
+/**
+ * Catches errors thrown by the app-provided component. Without this, the error would reach the generic component
+ * error boundary, which renders nothing, so the component would silently disappear and the PDF would be generated
+ * without it.
+ */
+class CustomReactErrorBoundary extends ReactComponent<ErrorBoundaryProps, { error?: Error }> {
+  state: { error?: Error } = {};
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    const { error } = this.state;
+    if (!error) {
+      return this.props.children;
+    }
+
+    const { baseComponentId, componentName } = this.props;
+    return (
+      <ComponentUnavailable
+        baseComponentId={baseComponentId}
+        error={`React component "${componentName}" (component '${baseComponentId}') threw an error while rendering`}
+        cause={error}
+      />
+    );
+  }
+}
+
+/**
+ * Tells the user that this part of the form could not be displayed, and logs the reason for the app developer.
+ */
+function ComponentUnavailable({
+  baseComponentId,
+  error,
+  cause,
+}: {
+  baseComponentId: string;
+  error: string;
+  cause?: Error;
+}) {
+  const nodeId = useIndexedId(baseComponentId);
+  const addError = FormStore.layoutDiagnostics.useAddError();
+
+  useEffect(() => {
+    if (cause) {
+      window.logError(`${error}:\n`, cause);
+    } else {
+      window.logError(error);
+    }
+    addError(cause ? `${error}: ${cause.message}` : error, nodeId, 'node');
+  }, [addError, cause, error, nodeId]);
+
+  // data-fatal-error stops PDF generation, as the PDF would be missing this part of the form
+  return (
+    <Alert
+      data-color='danger'
+      data-fatal-error
+    >
+      <Lang id='custom_react.not_registered' />
+    </Alert>
   );
 }

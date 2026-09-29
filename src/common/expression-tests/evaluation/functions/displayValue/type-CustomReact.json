@@ -1,5 +1,5 @@
 {
-  "name": "Display value of CustomReact component",
+  "name": "Display value of CustomReact component, leaving out bindings without a value",
   "expression": [
     "displayValue",
     "customReact"
@@ -20,7 +20,9 @@
             "componentName": "my-component",
             "dataModelBindings": {
               "name": "Skjema.Name",
-              "age": "Skjema.Age"
+              "missing": "Skjema.Missing",
+              "age": "Skjema.Age",
+              "empty": "Skjema.Empty"
             }
           }
         ]
@@ -30,7 +32,8 @@
   "dataModel": {
     "Skjema": {
       "Name": "Alice",
-      "Age": 42
+      "Age": 42,
+      "Empty": ""
     }
   }
 }

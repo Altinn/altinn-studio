@@ -85,7 +85,7 @@ describe('CustomReact', () => {
     });
   });
 
-  it('renders the React component in the PDF', { retries: 0 }, () => {
+  it('includes the React component in the PDF', { retries: 0 }, () => {
     // The layout is fetched again when the page reloads in PDF mode
     addCustomReactComponent(2);
     cy.goto('changename');
@@ -94,8 +94,8 @@ describe('CustomReact', () => {
 
     cy.testPdf({
       callback: () => {
-        cy.findByRole('textbox', { name: 'Mellomnavn fra React' }).should('have.value', 'Olav');
-        cy.get('[data-testid="custom-react-summary"]').should('have.text', 'Oppsummert: Olav');
+        // The auto-generated PDF shows every component as a summary: the title, with the bound values below it
+        cy.getSummary('Mellomnavn fra React').should('contain.text', 'Olav');
       },
     });
   });
