@@ -16,6 +16,7 @@ public sealed class CleanAppTests
     [InlineData("anonymous-stateless-app")]
     [InlineData("expression-validation-test")]
     [InlineData("multiple-datamodels-test")]
+    [InlineData("navigation-test-subform")]
     [InlineData("signing-test")]
     [InlineData("subform-test")]
     public void TestApp_ProducesNoErrors(string name)

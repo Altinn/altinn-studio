@@ -1028,15 +1028,15 @@ public sealed class RuleFalsePositiveTests
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY");
     }
 
-    private static IReadOnlyList<Finding> ValidateSubformTextBindings(string textResourceBindings) =>
+    private static IReadOnlyList<Finding> ValidateSubform(string subformProperties) =>
         Validate(
             App(
                 """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"sub","appLogic":{"classRef":"S","allowInSubform":true}}]}""",
                 ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
                 (
                     "App/ui/Task_1/layouts/P1.json",
-                    """{"data":{"layout":[{"id":"sf","type":"Subform","layoutSet":"sub-set","tableColumns":[],"textResourceBindings":"""
-                        + textResourceBindings
+                    """{"data":{"layout":[{"id":"sf","type":"Subform","layoutSet":"sub-set","""
+                        + subformProperties
                         + "}]}}"
                 ),
                 ("App/ui/sub-set/Settings.json", """{"pages":{"order":["S1"]},"defaultDataType":"sub"}"""),
@@ -1049,8 +1049,8 @@ public sealed class RuleFalsePositiveTests
     [Fact]
     public void SubformTableEditButtonExpression_ResolvesAgainstTheSubformDataType()
     {
-        var findings = ValidateSubformTextBindings(
-            """{"title":["dataModel","x"],"tableEditButton":["if",["equals",["dataModel","brand"],"Vespa"],"Edit Vespa","else","general.edit"]}"""
+        var findings = ValidateSubform(
+            """ "tableColumns":[],"textResourceBindings":{"title":["dataModel","x"],"tableEditButton":["if",["equals",["dataModel","brand"],"Vespa"],"Edit Vespa","else","general.edit"]}"""
         );
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
     }
@@ -1058,9 +1058,31 @@ public sealed class RuleFalsePositiveTests
     [Fact]
     public void SubformTableEditButtonExpression_PathMissingInTheSubformModel_IsFlagged()
     {
-        var findings = ValidateSubformTextBindings("""{"tableEditButton":["dataModel","x"]}""");
+        var findings = ValidateSubform(
+            """ "tableColumns":[],"textResourceBindings":{"tableEditButton":["dataModel","x"]}"""
+        );
         var finding = Assert.Single(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
         Assert.Contains("dataType \"sub\"", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SubformRowExpressions_ResolveAgainstTheSubformDataType()
+    {
+        var findings = ValidateSubform(
+            """ "entryDisplayName":["concat",["dataModel","brand"]],"tableColumns":[{"headerContent":"h","cellContent":{"value":["dataModel","brand"],"default":"-"}}]"""
+        );
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+    }
+
+    [Fact]
+    public void SubformRowExpressions_PathMissingInTheSubformModel_AreFlagged()
+    {
+        var findings = ValidateSubform(
+            """ "entryDisplayName":["dataModel","x"],"tableColumns":[{"headerContent":"h","cellContent":{"value":["dataModel","x"]}}]"""
+        );
+        var flagged = findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH").ToList();
+        Assert.Equal(2, flagged.Count);
+        Assert.All(flagged, f => Assert.Contains("dataType \"sub\"", f.Message, StringComparison.Ordinal));
     }
 
     private const string V8Csproj = """

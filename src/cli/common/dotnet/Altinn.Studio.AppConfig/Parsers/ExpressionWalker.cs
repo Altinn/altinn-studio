@@ -72,7 +72,14 @@ internal static class ExpressionWalker
             }
             else
             {
-                CollectValue(app, ownerId, file, ptr, p.Value);
+                CollectValue(
+                    app,
+                    ownerId,
+                    file,
+                    ptr,
+                    p.Value,
+                    inLayoutSet: _subformRowProperties.Contains(p.Name) ? subformLayoutSet : null
+                );
             }
         }
     }
@@ -192,6 +199,12 @@ internal static class ExpressionWalker
                 break;
         }
     }
+
+    private static readonly HashSet<string> _subformRowProperties = new(StringComparer.Ordinal)
+    {
+        "entryDisplayName",
+        "tableColumns",
+    };
 
     private static readonly HashSet<string> _subformRowTextResourceBindings = new(StringComparer.Ordinal)
     {
