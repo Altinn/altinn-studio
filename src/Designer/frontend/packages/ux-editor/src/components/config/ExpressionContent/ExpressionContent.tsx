@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import type { Expression, DataLookupOptions } from '@studio/components';
-import { DataLookupFuncName, StudioDeleteButton, StudioParagraph } from '@studio/components';
+import { DataLookupFuncName, StudioConfigCard } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
-import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from './Expression';
 import { useText } from '../../../hooks';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
@@ -25,6 +24,7 @@ export const ExpressionContent = ({
   heading,
 }: ExpressionContentProps) => {
   const t = useText();
+  const headingId = useId();
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, layoutSet);
@@ -42,28 +42,22 @@ export const ExpressionContent = ({
   );
 
   return (
-    <fieldset className={classes.expressionContent}>
-      <legend className={classes.legend}>
-        <StudioParagraph className={classes.legendContent} data-size='sm'>
-          {heading}
-        </StudioParagraph>
-      </legend>
-      {expression && (
-        <StudioDeleteButton
-          className={classes.deleteButton}
-          confirmMessage={t('right_menu.expressions_delete_confirm')}
-          onDelete={onDelete}
-          data-size='sm'
-          title={t('right_menu.expression_delete')}
-        />
-      )}
-      <div className={classes.expressionWrapper}>
+    <StudioConfigCard role='group' aria-labelledby={headingId}>
+      <StudioConfigCard.Header
+        cardLabel={heading}
+        cardLabelId={headingId}
+        isDeleteDisabled={!expression}
+        deleteAriaLabel={t('right_menu.expression_delete')}
+        confirmDeleteMessage={t('right_menu.expressions_delete_confirm')}
+        onDelete={onDelete}
+      />
+      <StudioConfigCard.Body>
         <ExpressionWithTexts
           expression={expression}
           onChange={onChange}
           dataLookupOptions={dataLookupOptions}
         />
-      </div>
-    </fieldset>
+      </StudioConfigCard.Body>
+    </StudioConfigCard>
   );
 };
