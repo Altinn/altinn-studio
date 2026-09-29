@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 
@@ -16,6 +17,25 @@ public class WorkflowCallbackTokenGeneratorActorHashTests
         SystemUserName = "Integration",
         Language = "nb",
     };
+
+    // The shapes actors take in practice: each kind fills only its own fields.
+    private static readonly Actor _user = new()
+    {
+        UserId = 1337,
+        AuthenticationLevel = 2,
+        NationalIdentityNumber = "01017012345",
+        Language = "nb",
+    };
+    private static readonly Actor _systemUser = new()
+    {
+        SystemUserId = Guid.Parse("0b1c2d3e-4f50-4617-8293-a4b5c6d7e8f9"),
+        SystemUserOwnerOrgNo = "991825827",
+        SystemUserName = "Integrasjon for Tønsberg",
+        Language = "nb",
+    };
+    private static readonly Actor _serviceOwner = new() { OrgId = "ttd", Language = "nb" };
+
+    public static TheoryData<Actor> RealisticActors => [_user, _systemUser, _serviceOwner];
 
     public static TheoryData<Actor> EachIdentityFieldChanged =>
         [
@@ -95,6 +115,40 @@ public class WorkflowCallbackTokenGeneratorActorHashTests
         Assert.NotEqual(
             WorkflowCallbackTokenGenerator.ActorHash(split),
             WorkflowCallbackTokenGenerator.ActorHash(joined)
+        );
+    }
+
+    [Theory]
+    [MemberData(nameof(RealisticActors))]
+    public void ActorHash_SurvivesTheWireRoundTripOfASparseActor(Actor actor)
+    {
+        // Null fields are omitted on the way out and read back as null, as they are between the app and the engine.
+        Actor echoed =
+            JsonSerializer.Deserialize<Actor>(
+                JsonSerializer.Serialize(actor),
+                new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            ) ?? throw new InvalidOperationException("The actor did not deserialize.");
+
+        Assert.Equal(WorkflowCallbackTokenGenerator.ActorHash(actor), WorkflowCallbackTokenGenerator.ActorHash(echoed));
+    }
+
+    [Fact]
+    public void ActorHash_TellsTheRealisticActorsApart()
+    {
+        Assert.Distinct(new[] { _user, _systemUser, _serviceOwner }.Select(WorkflowCallbackTokenGenerator.ActorHash));
+    }
+
+    [Fact]
+    public void ActorHash_TellsTheSameValueInDifferentFieldsApart()
+    {
+        // With nearly every field null, only a field's position separates these.
+        Assert.NotEqual(
+            WorkflowCallbackTokenGenerator.ActorHash(new Actor { UserId = 5 }),
+            WorkflowCallbackTokenGenerator.ActorHash(new Actor { AuthenticationLevel = 5 })
+        );
+        Assert.NotEqual(
+            WorkflowCallbackTokenGenerator.ActorHash(new Actor { OrgId = "991825827" }),
+            WorkflowCallbackTokenGenerator.ActorHash(new Actor { SystemUserOwnerOrgNo = "991825827" })
         );
     }
 }
