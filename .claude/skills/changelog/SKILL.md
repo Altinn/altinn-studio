@@ -11,8 +11,10 @@ changelog needs to know what changed for them and whether they must act.
 
 ## Rules
 
-- **One entry per change a reader notices.** If `[Unreleased]` already has an entry for the same feature, extend or
-  rewrite that entry instead of adding another. No entry for refactors, tests or CI: apply the `skip-changelog` label.
+- **One entry per change a reader notices**, however many pull requests it took. Do not join unrelated changes in one
+  sentence, even when one pull request made them: make them separate entries, or sub-bullets under what they change.
+  If `[Unreleased]` already has an entry for the same feature, extend or rewrite that entry instead of adding another.
+  No entry for refactors, tests or CI: apply the `skip-changelog` label.
 - **Short.** One or two sentences, 40 words or fewer as a rule. `releaser validate-changelogs` fails a new or changed
   `[Unreleased]` entry over 60 words.
 - **Lead with what changed for the reader**, then say what they can do now or what they must do.
@@ -27,10 +29,10 @@ changelog needs to know what changed for them and whether they must act.
 - **End with the references in parentheses**: the documentation link first, when there is one, then every pull request
   the entry covers: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/pull/1234))`.
   Pull request links do not count toward the word limit.
-- **Sub-bullets only for one feature with several separate parts** the reader acts on, such as the migrations
-  `studioctl app upgrade v9` gains in a release. The top line must stand on its own. Use one level, at most five short
-  sub-bullets, and put each reference on the line it belongs to. The word limit counts the whole entry, sub-bullets
-  included. Everything else is a single bullet.
+- **Sub-bullets group changes by what readers know them by**, such as a command, an endpoint or a component: the top
+  line names it, and each sub-bullet is one change to it. Use one level, at most five short sub-bullets, and put each
+  reference on the line it belongs to. The word limit counts the whole entry, sub-bullets included. Changes in
+  different categories are separate entries.
 - **Do not wrap lines.** Only sub-bullets start a new line within an entry.
 
 Before you finish, read the entry as someone who has only the changelog: can they tell what changed for them and
@@ -105,6 +107,20 @@ Better, as one entry with sub-bullets:
   - enables implicit usings and removes the `using` directives this makes redundant ([#20690](https://github.com/Altinn/altinn-studio/pull/20690))
   - rewrites awaited `IAppMetadata` reads to the new properties ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
   - renames `IAppResources` arguments passed by their old name ([#20745](https://github.com/Altinn/altinn-studio/pull/20745))
+```
+
+Two changes in one entry, each described by its mechanism:
+
+```markdown
+- `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
+```
+
+Better, grouped under the command they change:
+
+```markdown
+- `studioctl app upgrade v9` converts more app code correctly:
+  - legacy calculation rules become code that compiles and gives the same results as before ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
+  - obsolete package references are removed even when their names are written in lowercase ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
 ```
 
 A fix described by its cause:
