@@ -358,16 +358,16 @@ internal sealed class TranslationService : ITranslationService
                 return Localized(
                     key,
                     language,
-                    nb: "Filen mangler filtype.",
-                    nn: "Fila manglar filtype.",
+                    nb: "Filen har ingen filtype.",
+                    nn: "Fila har ingen filtype.",
                     en: "The file is missing a content type."
                 );
             case "backend.validation_errors.file_too_large":
                 return Localized(
                     key,
                     language,
-                    nb: "Filen er for stor. Maks filstørrelse er {0} MB.",
-                    nn: "Fila er for stor. Maks filstorleik er {0} MB.",
+                    nb: "Filen er for stor. Største tillatte filstørrelse er {0} MB.",
+                    nn: "Fila er for stor. Største tillatne filstorleik er {0} MB.",
                     en: "The file is too large. The maximum file size is {0} MB.",
                     "maxSize"
                 );

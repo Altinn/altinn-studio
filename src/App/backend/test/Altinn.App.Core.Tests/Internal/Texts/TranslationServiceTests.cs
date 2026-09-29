@@ -247,7 +247,7 @@ public class TranslationServiceTests
         "backend.validation_errors.file_too_large",
         "maxSize",
         "25",
-        "Filen er for stor. Maks filstørrelse er 25 MB."
+        "Filen er for stor. Største tillatte filstørrelse er 25 MB."
     )]
     [InlineData(
         "backend.validation_errors.too_many_data_elements",
