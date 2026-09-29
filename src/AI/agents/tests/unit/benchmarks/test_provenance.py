@@ -60,3 +60,14 @@ class TestDigestsCoverEveryAppVersion:
 
         assert before is not None
         assert provenance._tools_digest() != before
+
+    def test_the_tool_list_moves_the_tools_digest(self, monkeypatch):
+        """The tool list is in the graph node, which is not a tools file."""
+        from agents.graph.nodes import agentic_loop_node
+
+        before = provenance._tools_digest()
+        all_tools = agentic_loop_node._internal_tools
+        monkeypatch.setattr(agentic_loop_node, "_internal_tools", lambda skills: all_tools(skills)[1:])
+
+        assert before is not None
+        assert provenance._tools_digest() != before

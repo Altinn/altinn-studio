@@ -11,18 +11,21 @@ from benchmarks import impact
 AGENTS_ROOT = Path(__file__).resolve().parents[3]
 
 
+@pytest.fixture(autouse=True)
+def _digests_match_the_baseline(monkeypatch):
+    """The digest tests below set their own values. The path tests must not depend on the real digests."""
+    from benchmarks import baseline
+
+    pointer = baseline.read()
+    recorded = pointer.axes if pointer else {}
+    monkeypatch.setattr(impact, "current_digests", lambda: {axis: recorded.get(axis) for axis, _ in impact.DIGESTS})
+
+
 def test_a_dataset_edit_invalidates_the_baseline():
     found = impact.analyze(["benchmarks/datasets/gates_scope.jsonl"])
     assert found.needs_rebaseline
     assert found.axes == ("dataset",)
     assert any("not comparable" in line for line in found.explain())
-
-
-def test_the_actor_prompt_invalidates_the_baseline():
-    """It is not a Langfuse prompt, so only a path rule catches a change to it."""
-    found = impact.analyze(["agents/core/context.py"])
-    assert found.needs_rebaseline
-    assert found.axes == ("actor_prompt",)
 
 
 def test_an_evaluator_change_invalidates_the_baseline():
@@ -37,13 +40,6 @@ def test_an_evaluator_change_invalidates_the_baseline():
         found = impact.analyze([path])
         assert found.needs_rebaseline, path
         assert found.axes == ("evaluators",), path
-
-
-def test_a_tool_change_invalidates_the_baseline():
-    for path in ("agents/core/tools/file_tool.py", "agents/core/registry.py"):
-        found = impact.analyze([path])
-        assert found.needs_rebaseline, path
-        assert found.axes == ("tools",), path
 
 
 def test_a_loop_change_needs_a_check_but_keeps_the_baseline():
@@ -86,12 +82,6 @@ def test_repo_relative_and_agents_relative_paths_both_work():
     assert a.axes == b.axes == ("dataset",)
 
 
-def test_a_yardstick_change_wins_over_a_behavior_change_on_the_same_path():
-    """`agents/core/context.py` matches both rule sets, and the stronger one applies."""
-    found = impact.analyze(["agents/core/context.py"])
-    assert found.yardstick_hits and not found.behavior_hits
-
-
 def test_both_kinds_are_reported_when_both_are_present():
     found = impact.analyze(["benchmarks/datasets/x.jsonl", "agents/core/loop.py"])
     assert found.needs_rebaseline
@@ -115,6 +105,85 @@ def test_without_a_new_baseline_it_still_says_stale(capsys):
     assert code == 1
     assert "not comparable" in said
     assert "was measured with this instrument" not in said
+
+
+class TestTheDigestsDecideForThePromptAndTheTools:
+    """A path rule can only guess which files move a digest. The gate compares the digests."""
+
+    RECORDED = {"actor_prompt": "aaaaaaaaaaaa", "tools": "bbbbbbbbbbbb"}
+
+    @pytest.fixture(autouse=True)
+    def _pointer(self, monkeypatch):
+        from benchmarks import baseline
+
+        pointer = baseline.Pointer(
+            check_id="check-1", label="check-1", recorded_at="", why="a test", axes=dict(self.RECORDED)
+        )
+        monkeypatch.setattr(baseline, "read", lambda **_kwargs: pointer)
+
+    def _report(self, capsys, current, changed=()):
+        code = impact.report(list(changed), strict=True, measure=lambda: current)
+        return code, capsys.readouterr().out
+
+    def test_equal_digests_move_no_axis(self, capsys):
+        code, said = self._report(capsys, dict(self.RECORDED))
+        assert code == 0
+        assert "Nothing in this change" in said
+
+    def test_a_changed_digest_fails_whatever_file_moved_it(self, capsys):
+        """No path rule matches `agentic_loop_node.py`, but it decides which tools the actor gets."""
+        code, said = self._report(
+            capsys,
+            {**self.RECORDED, "tools": "cccccccccccc"},
+            ["src/AI/agents/agents/graph/nodes/agentic_loop_node.py"],
+        )
+        assert code == 1
+        assert "tools  baseline bbbbbbbbbbbb, this checkout cccccccccccc" in said
+        assert "actor_prompt  baseline" not in said
+        assert "INVALIDATES THE BASELINE" in said
+
+    def test_a_failed_digest_fails(self, capsys):
+        """A broken dependency must stop the gate, not let it pass."""
+        code, said = self._report(capsys, {**self.RECORDED, "actor_prompt": None})
+        assert code == 1
+        assert "actor_prompt  baseline aaaaaaaaaaaa, this checkout failed" in said
+        assert "Install requirements.txt" in said
+
+    def test_a_digest_the_baseline_did_not_record_is_not_equal(self):
+        """`runner check` refuses an axis that one side did not record."""
+        drift = impact.compare_digests(
+            {"actor_prompt": impact.NOT_RECORDED, "tools": "b"}, {"actor_prompt": "a", "tools": "b"}
+        )
+        assert [d.axis for d in drift] == ["actor_prompt"]
+
+    def test_a_new_baseline_for_other_code_still_fails(self, capsys):
+        code, said = self._report(
+            capsys, {**self.RECORDED, "tools": "cccccccccccc"}, ["src/AI/agents/benchmarks/BASELINE.json"]
+        )
+        assert code == 1
+        assert "NOT FOR THIS CODE" in said
+        assert "was measured with this instrument" not in said
+
+    def test_a_new_baseline_for_this_code_passes(self, capsys):
+        code, _said = self._report(
+            capsys, dict(self.RECORDED), ["src/AI/agents/benchmarks/BASELINE.json", "benchmarks/datasets/x.jsonl"]
+        )
+        assert code == 0
+
+    def test_without_a_baseline_there_is_nothing_to_compare(self, monkeypatch, capsys):
+        from benchmarks import baseline
+
+        monkeypatch.setattr(baseline, "read", lambda **_kwargs: None)
+        code, _said = self._report(capsys, {"actor_prompt": None, "tools": None})
+        assert code == 0
+
+    def test_the_gate_compares_the_digests_a_run_records(self):
+        from benchmarks.provenance import BLOCKING_AXES, digests
+
+        measured = digests()
+        assert set(measured) == {axis for axis, _because in impact.DIGESTS}
+        assert set(measured) <= set(BLOCKING_AXES)
+        assert None not in measured.values(), "a digest fails in the test environment, so it fails in CI"
 
 
 def test_every_declared_pattern_matches_something_that_exists():
@@ -178,7 +247,7 @@ class TestTheFailureTellsYouWhatToDo:
         assert "INVALIDATES THE BASELINE" in text
 
     def test_the_failure_names_the_commands_to_run(self, tmp_path):
-        _code, text = self._run_impact(["agents/core/context.py"], tmp_path)
+        _code, text = self._run_impact(["benchmarks/datasets/gates_scope.jsonl"], tmp_path)
         assert "runner check --label" in text
         assert "runner baseline <check id> --why" in text
         assert "commit benchmarks/BASELINE.json" in text
@@ -205,36 +274,8 @@ class TestTheFailureTellsYouWhatToDo:
         assert "INVALIDATES THE BASELINE" in text
 
 
-class TestTheGateRunsWithoutDependencies:
-    """CI installs nothing, so a broken dependency cannot silence the one gate
-    that always runs. That only holds while this module stays stdlib only."""
-
-    def test_impact_and_baseline_import_nothing_third_party(self):
-        import ast
-
-        allowed = {
-            "ast",
-            "collections",
-            "fnmatch",
-            "dataclasses",
-            "json",
-            "pathlib",
-            "subprocess",
-            "sys",
-            "benchmarks",
-            "__future__",
-        }
-        for name in ("impact", "baseline"):
-            source = (AGENTS_ROOT / "benchmarks" / f"{name}.py").read_text()
-            for node in ast.walk(ast.parse(source)):
-                if isinstance(node, ast.Import):
-                    roots = [alias.name.split(".")[0] for alias in node.names]
-                elif isinstance(node, ast.ImportFrom):
-                    roots = [(node.module or "").split(".")[0]]
-                else:
-                    continue
-                for root in roots:
-                    assert root in allowed, f"{name}.py imports {root!r}, which CI does not install"
+class TestTheGateEntryPoints:
+    """CI and `runner impact` call the same report."""
 
     def test_the_module_is_runnable_as_a_script(self):
         from benchmarks import impact
@@ -479,37 +520,8 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
     assert "evaluators" in capsys.readouterr().out
 
 
-def test_an_app_version_profile_invalidates_the_baseline():
-    """The v8 and v9 prompt text is in the profiles, not in `agents/core/context.py`."""
-    for path in ("agents/altinn/app_version/v8.py", "agents/altinn/app_version/v9.py"):
-        found = impact.analyze([path])
-        assert found.needs_rebaseline, path
-        assert found.axes == ("actor_prompt",), path
-
-
-def test_the_other_app_version_files_stay_code():
-    found = impact.analyze(["agents/altinn/app_version/detection.py"])
-    assert not found.needs_rebaseline
-    assert found.axes == ("code",)
-
-
-def test_a_skill_file_invalidates_the_baseline():
-    for path in (
-        "agents/skills/altinn-policy/SKILL.md",
-        "agents/skills/altinn-planning/v9.md",
-        "agents/skills/altinn-docs/llms.txt",
-    ):
-        found = impact.analyze([path])
-        assert found.needs_rebaseline, path
-        assert found.axes == ("tools",), path
-
-
-def test_the_skills_readme_is_not_a_skill():
-    assert impact.analyze(["agents/skills/README.md"]).hits == ()
-
-
 class TestOnlyTheCodeTheActorSeesCounts:
-    """A docstring, a comment or a format change must not require a new baseline."""
+    """A docstring, a comment or a format change must not require a check."""
 
     PATH = "agents/core/tools/file_tool.py"
     SOURCE = '''\
@@ -555,20 +567,20 @@ def run(args):
     def test_a_class_docstring_change_moves_the_axis(self):
         """Pydantic copies a class docstring into the tool's input schema."""
         found = self._analyze(self.SOURCE.replace("Copied into the input schema.", "New text."))
-        assert found.axes == ("tools",)
+        assert found.axes == ("code",)
 
     def test_a_code_change_moves_the_axis(self):
         found = self._analyze(self.SOURCE.replace("return args.path", "return args"))
-        assert found.axes == ("tools",)
+        assert found.axes == ("code",)
 
     def test_a_new_file_moves_the_axis(self):
-        assert self._analyze(self.SOURCE, old_source=None).axes == ("tools",)
+        assert self._analyze(self.SOURCE, old_source=None).axes == ("code",)
 
     def test_a_deleted_file_moves_the_axis(self):
-        assert self._analyze(None).axes == ("tools",)
+        assert self._analyze(None).axes == ("code",)
 
     def test_a_file_that_does_not_parse_moves_the_axis(self):
-        assert self._analyze(self.SOURCE + "def (:\n").axes == ("tools",)
+        assert self._analyze(self.SOURCE + "def (:\n").axes == ("code",)
 
     def test_a_docstring_change_in_a_behavior_file_needs_no_check(self):
         found = impact.analyze(

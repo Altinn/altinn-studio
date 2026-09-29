@@ -192,6 +192,11 @@ def _tools_digest() -> str | None:
     return hashlib.sha256(payload).hexdigest()[:12]
 
 
+def digests() -> dict[str, str | None]:
+    """The axes that this checkout can hash without a run. A None value means that the digest failed."""
+    return {"actor_prompt": _actor_prompt_digest(), "tools": _tools_digest()}
+
+
 def _environment() -> str:
     declared = os.getenv("BENCHMARK_ENVIRONMENT")
     if declared in ENVIRONMENTS:
@@ -221,8 +226,7 @@ def collect(
         models=models,
         sampling=sampling,
         prompts=prompts or {},
-        actor_prompt=_actor_prompt_digest(),
-        tools=_tools_digest(),
+        **digests(),
         dataset=dataset,
         evaluators=evaluators or {},
         judge=judge,
