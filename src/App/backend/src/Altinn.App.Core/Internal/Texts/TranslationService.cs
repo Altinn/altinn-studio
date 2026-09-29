@@ -350,9 +350,10 @@ internal sealed class TranslationService : ITranslationService
                 return Localized(
                     key,
                     language,
-                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.",
-                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera.",
-                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be."
+                    nb: "Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være. Tillatte filtyper er: {0}.",
+                    nn: "Det ser ut som du prøver å lasta opp ein filtype som ikkje er tillaten. Sjekk at fila faktisk er av den typen han gir seg ut for å vera. Tillatne filtypar er: {0}.",
+                    en: "It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be. Allowed file types are: {0}.",
+                    "allowedContentTypes"
                 );
             case "backend.validation_errors.missing_content_type":
                 return Localized(
@@ -391,19 +392,21 @@ internal sealed class TranslationService : ITranslationService
                 return Localized(
                     key,
                     language,
-                    nb: "Du kan ikke laste opp flere enn {0} filer.",
-                    nn: "Du kan ikkje laste opp fleire enn {0} filer.",
-                    en: "You cannot upload more than {0} files.",
-                    "maxCount"
+                    nb: "Det er lagt til flere enn {0} elementer av typen {1}.",
+                    nn: "Det er lagt til fleire enn {0} element av typen {1}.",
+                    en: "More than {0} items of type {1} have been added.",
+                    "maxCount",
+                    "dataType"
                 );
             case "backend.validation_errors.too_few_data_elements":
                 return Localized(
                     key,
                     language,
-                    nb: "Du må laste opp minst {0} vedlegg.",
-                    nn: "Du må laste opp minst {0} vedlegg.",
-                    en: "You must upload at least {0} attachment(s).",
-                    "minCount"
+                    nb: "Det må legges til minst {0} elementer av typen {1}.",
+                    nn: "Det må leggjast til minst {0} element av typen {1}.",
+                    en: "At least {0} items of type {1} must be added.",
+                    "minCount",
+                    "dataType"
                 );
             case "backend.validation_errors.missing_signatures":
                 return Localized(

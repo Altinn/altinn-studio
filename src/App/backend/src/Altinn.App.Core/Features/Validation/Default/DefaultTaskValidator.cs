@@ -43,6 +43,7 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
                     CustomTextParameters = new Dictionary<string, string>
                     {
                         ["maxCount"] = dataType.MaxCount.ToString(CultureInfo.InvariantCulture),
+                        ["dataType"] = dataType.Id,
                     },
                     Field = dataType.Id,
                 };
@@ -59,6 +60,7 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
                     CustomTextParameters = new Dictionary<string, string>
                     {
                         ["minCount"] = dataType.MinCount.ToString(CultureInfo.InvariantCulture),
+                        ["dataType"] = dataType.Id,
                     },
                     Field = dataType.Id,
                 };

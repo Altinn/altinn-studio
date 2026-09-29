@@ -104,6 +104,10 @@ public class DefaultTaskValidatorTests
         issue.Code.Should().Be("TooFewDataElementsOfType");
         issue.Severity.Should().Be(ValidationIssueSeverity.Error);
         issue.Field.Should().Be(OneRequiredDataType);
+        issue.CustomTextKey.Should().Be("backend.validation_errors.too_few_data_elements");
+        issue
+            .CustomTextParameters.Should()
+            .BeEquivalentTo(new Dictionary<string, string> { ["minCount"] = "1", ["dataType"] = OneRequiredDataType });
     }
 
     [Fact]
@@ -116,5 +120,9 @@ public class DefaultTaskValidatorTests
         issue.Code.Should().Be("TooManyDataElementsOfType");
         issue.Severity.Should().Be(ValidationIssueSeverity.Error);
         issue.Field.Should().Be(OneRequiredDataType);
+        issue.CustomTextKey.Should().Be("backend.validation_errors.too_many_data_elements");
+        issue
+            .CustomTextParameters.Should()
+            .BeEquivalentTo(new Dictionary<string, string> { ["maxCount"] = "1", ["dataType"] = OneRequiredDataType });
     }
 }

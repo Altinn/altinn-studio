@@ -249,13 +249,6 @@ public class TranslationServiceTests
         "25",
         "Filen er for stor. Største tillatte filstørrelse er 25 MB."
     )]
-    [InlineData(
-        "backend.validation_errors.too_many_data_elements",
-        "maxCount",
-        "3",
-        "Du kan ikke laste opp flere enn 3 filer."
-    )]
-    [InlineData("backend.validation_errors.too_few_data_elements", "minCount", "2", "Du må laste opp minst 2 vedlegg.")]
     public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
         string key,
         string parameter,
@@ -269,5 +262,52 @@ public class TranslationServiceTests
         var result = await translationService.TranslateTextKey(key, LanguageConst.Nb, new() { [parameter] = value });
 
         Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "backend.validation_errors.too_many_data_elements",
+        "maxCount",
+        "3",
+        "Det er lagt til flere enn 3 elementer av typen vedlegg."
+    )]
+    [InlineData(
+        "backend.validation_errors.too_few_data_elements",
+        "minCount",
+        "2",
+        "Det må legges til minst 2 elementer av typen vedlegg."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback_WithCountAndDataType(
+        string key,
+        string countParameter,
+        string count,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            key,
+            LanguageConst.Nb,
+            new() { [countParameter] = count, ["dataType"] = "vedlegg" }
+        );
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_ContentTypeNotAllowed_NamesAllowedTypes()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            "backend.validation_errors.content_type_not_allowed",
+            LanguageConst.En,
+            new() { ["allowedContentTypes"] = "application/pdf, image/png" }
+        );
+
+        Assert.EndsWith("Allowed file types are: application/pdf, image/png.", result);
     }
 }

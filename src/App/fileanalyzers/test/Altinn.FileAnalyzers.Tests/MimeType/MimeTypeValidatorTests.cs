@@ -68,5 +68,9 @@ public class MimeTypeValidatorTests
             ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
             errors.FirstOrDefault()?.Code
         );
+        Assert.Equal(
+            "application/pdf",
+            errors.FirstOrDefault()?.CustomTextParameters?["allowedContentTypes"]
+        );
     }
 }
