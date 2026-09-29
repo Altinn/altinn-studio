@@ -27,11 +27,13 @@ public sealed class LspServer
     private readonly LanguageFeatures _features;
 
     private readonly SchemaSetLoader _schemaLoader;
+    private readonly Func<IAppDistProvider?> _createAppDist;
 
     private bool _shutdownRequested;
 
-    public LspServer(Stream input, Stream output)
+    public LspServer(Stream input, Stream output, Func<IAppDistProvider?> createAppDist)
     {
+        _createAppDist = createAppDist;
         _log = new Logger(Logger.ParseLevel(Environment.GetEnvironmentVariable("STUDIOCTL_LSP_LOG")));
         _transport = new LspTransport(input, output, _log);
         _workspace = new WorkspaceState(_transport, _log);
@@ -51,12 +53,18 @@ public sealed class LspServer
 
     private void ScheduleDiagnostics() => _diagnostics.Schedule();
 
-    private static async Task<SchemaSet?> LoadSchemasAsync(string version)
+    private async Task<SchemaSet?> LoadSchemasAsync(string version)
     {
-        if (AppDistEnvironment.CreateFromEnvironment() is not { } appDist)
+        if (_createAppDist() is not { } appDist)
             return null;
-        using (appDist)
+        try
+        {
             return await AppDistSchemas.Load(appDist, version);
+        }
+        finally
+        {
+            (appDist as IDisposable)?.Dispose();
+        }
     }
 
     /// <summary>

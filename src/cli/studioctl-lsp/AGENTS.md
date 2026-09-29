@@ -27,6 +27,8 @@ picture.
 The server is compiled into `studioctl-server` and started with the `lsp` argument
 (`../studioctl-server/Program.cs`). `studioctl app lsp` (`../internal/cmd/app_lsp.go`) execs the installed
 server binary with stdio attached. Logging goes to stderr because stdout carries the protocol.
+`studioctl-server` owns the app-dist configuration: it reads `STUDIOCTL_APP_DIST_CACHE` and passes
+`LspServer` a provider factory, so the language server and the shared libraries never read the environment.
 
 ## Build & test
 

@@ -16,7 +16,11 @@ internal static class Program
             var stdin = Console.OpenStandardInput();
             var stdout = Console.OpenStandardOutput();
             Console.SetOut(Console.Error);
-            Environment.ExitCode = new AppConfigLsp.LspServer(stdin, stdout).Run();
+            Environment.ExitCode = new AppConfigLsp.LspServer(
+                stdin,
+                stdout,
+                AppDistEnvironment.CreateFromEnvironment
+            ).Run();
             return Task.CompletedTask;
         }
 
