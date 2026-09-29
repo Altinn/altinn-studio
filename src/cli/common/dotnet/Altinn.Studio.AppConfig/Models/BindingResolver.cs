@@ -8,7 +8,7 @@ internal static class BindingResolver
     {
         if (!string.IsNullOrEmpty(r.ExplicitDataType))
             return r.ExplicitDataType;
-        return ResolveFromOwner(app, OwnerSegment(r.Position.File));
+        return ResolveFromOwner(app, r.InLayoutSet ?? OwnerSegment(r.Position.File));
     }
 
     public static string? Resolve(AppModel app, LayoutSet owningSet, ComponentBinding binding)

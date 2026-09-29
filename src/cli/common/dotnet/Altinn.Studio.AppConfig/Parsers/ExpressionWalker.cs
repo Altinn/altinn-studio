@@ -48,13 +48,39 @@ internal static class ExpressionWalker
     {
         if (c.ValueKind != JsonValueKind.Object)
             return;
+        var subformLayoutSet = SubformLayoutSet(c);
         foreach (var p in c.EnumerateObject())
         {
             if (_structural.Contains(p.Name))
                 continue;
-            CollectValue(app, ownerId, file, $"{basePtr}/{p.Name}", p.Value);
+            var ptr = $"{basePtr}/{p.Name}";
+            if (
+                subformLayoutSet is not null
+                && p.Name == "textResourceBindings"
+                && p.Value.ValueKind == JsonValueKind.Object
+            )
+            {
+                foreach (var binding in p.Value.EnumerateObject())
+                    CollectValue(
+                        app,
+                        ownerId,
+                        file,
+                        $"{ptr}/{binding.Name}",
+                        binding.Value,
+                        inLayoutSet: _subformRowTextResourceBindings.Contains(binding.Name) ? subformLayoutSet : null
+                    );
+            }
+            else
+            {
+                CollectValue(app, ownerId, file, ptr, p.Value);
+            }
         }
     }
+
+    private static string? SubformLayoutSet(JsonElement c) =>
+        JsonRead.TryString(c, "type") == "Subform" && JsonRead.TryString(c, "layoutSet") is { Length: > 0 } set
+            ? set
+            : null;
 
     public static void CollectValue(
         AppModelBuilder app,
@@ -63,24 +89,25 @@ internal static class ExpressionWalker
         string ptr,
         JsonElement node,
         IReadOnlySet<string>? functions = null,
-        Func<string, SourceSpan>? spanAt = null
+        Func<string, SourceSpan>? spanAt = null,
+        string? inLayoutSet = null
     )
     {
         switch (node.ValueKind)
         {
             case JsonValueKind.Array:
-                MatchExpression(app, ownerId, file, ptr, node, functions, spanAt);
+                MatchExpression(app, ownerId, file, ptr, node, functions, spanAt, inLayoutSet);
                 int i = 0;
                 foreach (var child in node.EnumerateArray())
                 {
-                    CollectValue(app, ownerId, file, $"{ptr}/{i}", child, functions, spanAt);
+                    CollectValue(app, ownerId, file, $"{ptr}/{i}", child, functions, spanAt, inLayoutSet);
                     i++;
                 }
                 break;
             case JsonValueKind.Object:
                 foreach (var p in node.EnumerateObject())
                 {
-                    CollectValue(app, ownerId, file, $"{ptr}/{p.Name}", p.Value, functions, spanAt);
+                    CollectValue(app, ownerId, file, $"{ptr}/{p.Name}", p.Value, functions, spanAt, inLayoutSet);
                 }
                 break;
         }
@@ -93,7 +120,8 @@ internal static class ExpressionWalker
         string ptr,
         JsonElement arr,
         IReadOnlySet<string>? functions,
-        Func<string, SourceSpan>? spanAt
+        Func<string, SourceSpan>? spanAt,
+        string? inLayoutSet
     )
     {
         int len = arr.GetArrayLength();
@@ -112,7 +140,16 @@ internal static class ExpressionWalker
                 app.Refs.DataTypes.Add(new DataTypeReference(explicitType, ArgSpan(2)));
             var path = LiteralArg(arr, len, 1);
             if (path is not null)
-                app.Refs.DataModel.Add(new DataModelReference(path, ownerId, "expression", ArgSpan(1), explicitType));
+                app.Refs.DataModel.Add(
+                    new DataModelReference(
+                        path,
+                        ownerId,
+                        "expression",
+                        ArgSpan(1),
+                        explicitType,
+                        InLayoutSet: inLayoutSet
+                    )
+                );
             return;
         }
 
@@ -156,6 +193,11 @@ internal static class ExpressionWalker
         }
     }
 
+    private static readonly HashSet<string> _subformRowTextResourceBindings = new(StringComparer.Ordinal)
+    {
+        "tableEditButton",
+    };
+
     private static readonly HashSet<string> _structural = new(StringComparer.Ordinal)
     {
         "id",
@@ -164,7 +206,6 @@ internal static class ExpressionWalker
         "componentRef",
         "layoutSet",
         "dataModelBindings",
-        "textResourceBindings",
         "optionsId",
         "image",
         "$schema",

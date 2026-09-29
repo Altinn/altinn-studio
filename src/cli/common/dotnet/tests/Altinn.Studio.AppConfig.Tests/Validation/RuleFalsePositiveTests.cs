@@ -949,6 +949,90 @@ public sealed class RuleFalsePositiveTests
         );
     }
 
+    [Fact]
+    public void ComponentTextBinding_ExpressionValue_IsWalkedForReferences()
+    {
+        var dir = App(
+            ExprMeta,
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
+            (
+                "App/ui/Task_1/layouts/P1.json",
+                """{"data":{"layout":[{"id":"in","type":"Input","dataModelBindings":{"simpleBinding":"x"},"textResourceBindings":{"title":["concat",["dataModel","ghostPath"],["text","ghost.key"],["component","ghostComp"]],"description":"plain.missing.key"}}]}}"""
+            ),
+            ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
+        );
+        var findings = Validate(dir);
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostPath", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("ghost.key", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f =>
+                f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("plain.missing.key", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void ComponentTextBinding_ExpressionValue_ResolvingRefs_AreNotFlagged()
+    {
+        var dir = App(
+            ExprMeta,
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
+            (
+                "App/ui/Task_1/layouts/P1.json",
+                """{"data":{"layout":[{"id":"in","type":"Input","dataModelBindings":{"simpleBinding":"x"},"textResourceBindings":{"title":["concat","Value: ",["dataModel","x"]]}}]}}"""
+            ),
+            ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
+        );
+        var findings = Validate(dir);
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY");
+    }
+
+    private static IReadOnlyList<Finding> ValidateSubformTextBindings(string textResourceBindings) =>
+        Validate(
+            App(
+                """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"sub","appLogic":{"classRef":"S","allowInSubform":true}}]}""",
+                ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
+                (
+                    "App/ui/Task_1/layouts/P1.json",
+                    """{"data":{"layout":[{"id":"sf","type":"Subform","layoutSet":"sub-set","tableColumns":[],"textResourceBindings":"""
+                        + textResourceBindings
+                        + "}]}}"
+                ),
+                ("App/ui/sub-set/Settings.json", """{"pages":{"order":["S1"]},"defaultDataType":"sub"}"""),
+                ("App/ui/sub-set/layouts/S1.json", """{"data":{"layout":[]}}"""),
+                ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}"""),
+                ("App/models/sub.schema.json", """{"properties":{"brand":{"type":"string"}}}""")
+            )
+        );
+
+    [Fact]
+    public void SubformTableEditButtonExpression_ResolvesAgainstTheSubformDataType()
+    {
+        var findings = ValidateSubformTextBindings(
+            """{"title":["dataModel","x"],"tableEditButton":["if",["equals",["dataModel","brand"],"Vespa"],"Edit Vespa","else","general.edit"]}"""
+        );
+        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+    }
+
+    [Fact]
+    public void SubformTableEditButtonExpression_PathMissingInTheSubformModel_IsFlagged()
+    {
+        var findings = ValidateSubformTextBindings("""{"tableEditButton":["dataModel","x"]}""");
+        var finding = Assert.Single(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+        Assert.Contains("dataType \"sub\"", finding.Message, StringComparison.Ordinal);
+    }
+
     private const string V8Csproj = """
         <Project Sdk="Microsoft.NET.Sdk.Web">
           <ItemGroup>

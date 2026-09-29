@@ -23,7 +23,8 @@ public sealed record DataModelReference(
     string BindingName,
     SourceSpan Position,
     string? ExplicitDataType = null,
-    string OwningComponentType = ""
+    string OwningComponentType = "",
+    string? InLayoutSet = null
 );
 
 public sealed record TextResourceReference(
