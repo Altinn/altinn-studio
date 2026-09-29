@@ -405,7 +405,7 @@ public class DataElementAccessCheckerTest
             var data = new FixtureData();
             var mocks = new FixtureMocks();
 
-            mocks.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(data.AppMetadata);
+            mocks.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(data.AppMetadata);
             mocks.HttpContextAccessorMock.Setup(x => x.HttpContext).Returns(new DefaultHttpContext());
             mocks.AuthenticationContextMock.Setup(x => x.Current).Returns((Authenticated)null!);
             mocks

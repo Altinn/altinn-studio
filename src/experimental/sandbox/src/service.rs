@@ -1,4 +1,4 @@
-use std::{rc::Rc, time::Instant};
+use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -11,7 +11,7 @@ use crate::{
     init::InitSystem,
     mount::{Mount, MountKind},
     network,
-    progress::{PendingSandbox, PhaseOutcome, SandboxEvents, SandboxPhase, SandboxProgress},
+    progress::{Outcome, PendingSandbox, ProgressReporter, SandboxPhase, SandboxProgress},
     provider::SandboxProvider,
     terminal, volume,
 };
@@ -560,6 +560,7 @@ impl SandboxService {
                 request.validate()?;
                 self.require_image_operation(image::ImageOperation::PreparedImageExport, request)
                     .await?;
+                let span = events.start_phase(SandboxPhase::ImagePrepare).await;
                 let prepared = self
                     .provider
                     .image_backend()
@@ -567,6 +568,7 @@ impl SandboxService {
                     .forward(&events)
                     .await?;
                 prepared.validate_for(request)?;
+                span.complete().await;
                 Ok(prepared)
             })
         })
@@ -584,6 +586,7 @@ impl SandboxService {
                 request.validate()?;
                 self.require_image_operation(image::ImageOperation::PreparedImageImport, request)
                     .await?;
+                let span = events.start_phase(SandboxPhase::ImagePrepare).await;
                 let prepared = self
                     .provider
                     .image_backend()
@@ -591,6 +594,7 @@ impl SandboxService {
                     .forward(&events)
                     .await?;
                 prepared.validate_for(request)?;
+                span.complete().await;
                 Ok(prepared)
             })
         })
@@ -599,7 +603,7 @@ impl SandboxService {
     async fn ensure_inner(
         &self,
         request: &EnsureSandboxRequest,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
     ) -> Result<SandboxHandle, Error> {
         let retention_policy = request.spec.retention_policy;
         let sandbox = self.ensure_sandbox(request, events).await?;
@@ -610,17 +614,17 @@ impl SandboxService {
         })
     }
 
-    async fn ensure_sandbox(&self, request: &EnsureSandboxRequest, events: &SandboxEvents) -> Result<Sandbox, Error> {
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::Validate).await;
+    async fn ensure_sandbox(
+        &self,
+        request: &EnsureSandboxRequest,
+        events: &ProgressReporter,
+    ) -> Result<Sandbox, Error> {
+        let span = events.start_phase(SandboxPhase::Validate).await;
         request.spec.validate()?;
         validate_environment(&request.environment)?;
-        events
-            .phase_completed(SandboxPhase::Validate, PhaseOutcome::Completed, started.elapsed())
-            .await;
+        span.end(Outcome::Completed).await;
 
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::Lookup).await;
+        let span = events.start_phase(SandboxPhase::Lookup).await;
         match self.backend().find(&request.name).await {
             Ok(sandbox) => {
                 if !sandbox.image.platform.satisfies(&request.spec.platform) {
@@ -638,9 +642,7 @@ impl SandboxService {
                 if sandbox.mounts != request.mounts {
                     return Err(Error::Immutable("mounts"));
                 }
-                events
-                    .phase_completed(SandboxPhase::Lookup, PhaseOutcome::Reused, started.elapsed())
-                    .await;
+                span.end(Outcome::Reused).await;
                 let network = self
                     .require_backend_features_observed(&sandbox.image.platform, request, events)
                     .await?;
@@ -651,17 +653,14 @@ impl SandboxService {
                 self.ensure_running(sandbox, events).await
             }
             Err(error) if error.is_not_found() => {
-                events
-                    .phase_completed(SandboxPhase::Lookup, PhaseOutcome::Completed, started.elapsed())
-                    .await;
+                span.end(Outcome::Completed).await;
                 self.require_backend_features_observed(&request.spec.platform, request, events)
                     .await?;
                 let image = self.resolve_image(request, events).await?;
                 let network = self
                     .require_backend_features_observed(&image.platform, request, events)
                     .await?;
-                let started = Instant::now();
-                events.phase_started(SandboxPhase::SandboxCreate).await;
+                let span = events.start_phase(SandboxPhase::SandboxCreate).await;
                 let id = crate::SandboxId::generate();
                 let sandbox = self
                     .backend()
@@ -685,9 +684,7 @@ impl SandboxService {
                         actual: sandbox.id,
                     });
                 }
-                events
-                    .phase_completed(SandboxPhase::SandboxCreate, PhaseOutcome::Completed, started.elapsed())
-                    .await;
+                span.end(Outcome::Completed).await;
                 self.ensure_running(sandbox, events).await
             }
             Err(error) => Err(Error::component("find Sandbox", error)),
@@ -697,10 +694,9 @@ impl SandboxService {
     async fn resolve_image(
         &self,
         request: &EnsureSandboxRequest,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
     ) -> Result<image::ResolvedImage, Error> {
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::ImageResolve).await;
+        let span = events.start_phase(SandboxPhase::ImageResolve).await;
         let image = self
             .provider
             .image_backend()
@@ -719,9 +715,7 @@ impl SandboxService {
                 actual: Box::new(image.platform),
             });
         }
-        events
-            .phase_completed(SandboxPhase::ImageResolve, PhaseOutcome::Completed, started.elapsed())
-            .await;
+        span.end(Outcome::Completed).await;
         Ok(image)
     }
 
@@ -730,25 +724,22 @@ impl SandboxService {
         &self,
         sandbox: Sandbox,
         request: &EnsureSandboxRequest,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
     ) -> Result<Sandbox, Error> {
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::SandboxUpdate).await;
-        let progress = events.progress(SandboxPhase::SandboxUpdate);
+        let span = events.start_phase(SandboxPhase::SandboxUpdate).await;
+        let progress = events.steps();
         let (sandbox, environment) = self
             .ensure_environment(sandbox, &request.environment, events, &progress)
             .await?;
         let (sandbox, resources) = self
             .ensure_resources(sandbox, request.spec.resources, events, &progress)
             .await?;
-        let outcome = if environment == PhaseOutcome::Reused && resources == PhaseOutcome::Reused {
-            PhaseOutcome::Reused
+        let outcome = if environment == Outcome::Reused && resources == Outcome::Reused {
+            Outcome::Reused
         } else {
-            PhaseOutcome::Completed
+            Outcome::Completed
         };
-        events
-            .phase_completed(SandboxPhase::SandboxUpdate, outcome, started.elapsed())
-            .await;
+        span.end(outcome).await;
         Ok(sandbox)
     }
 
@@ -756,13 +747,12 @@ impl SandboxService {
         &self,
         sandbox: Sandbox,
         resources: SandboxResources,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
         progress: &SandboxProgress,
-    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+    ) -> Result<(Sandbox, Outcome), Error> {
         if sandbox.resources == resources {
-            return Ok((sandbox, PhaseOutcome::Reused));
+            return Ok((sandbox, Outcome::Reused));
         }
-        let started = Instant::now();
         let step = progress.start_step("Update Sandbox resources").await;
         let sandbox = self
             .backend()
@@ -770,21 +760,20 @@ impl SandboxService {
             .forward(events)
             .await
             .map_err(|error| Error::component("update Sandbox resources", error))?;
-        step.complete(started.elapsed()).await;
-        Ok((sandbox, PhaseOutcome::Completed))
+        step.complete().await;
+        Ok((sandbox, Outcome::Completed))
     }
 
     async fn ensure_environment(
         &self,
         sandbox: Sandbox,
         environment: &std::collections::BTreeMap<String, String>,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
         progress: &SandboxProgress,
-    ) -> Result<(Sandbox, PhaseOutcome), Error> {
+    ) -> Result<(Sandbox, Outcome), Error> {
         if &sandbox.environment == environment {
-            return Ok((sandbox, PhaseOutcome::Reused));
+            return Ok((sandbox, Outcome::Reused));
         }
-        let started = Instant::now();
         let step = progress.start_step("Update Sandbox environment").await;
         if sandbox.state != SandboxState::Stopped {
             self.backend()
@@ -804,26 +793,19 @@ impl SandboxService {
             .forward(events)
             .await
             .map_err(|error| Error::component("update Sandbox environment", error))?;
-        step.complete(started.elapsed()).await;
-        Ok((sandbox, PhaseOutcome::Completed))
+        step.complete().await;
+        Ok((sandbox, Outcome::Completed))
     }
 
     async fn require_backend_features_observed(
         &self,
         platform: &Platform,
         request: &EnsureSandboxRequest,
-        events: &SandboxEvents,
+        events: &ProgressReporter,
     ) -> Result<Option<network::NetworkAttachment>, Error> {
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::FeatureDiscovery).await;
+        let span = events.start_phase(SandboxPhase::FeatureDiscovery).await;
         let network = self.require_backend_features(platform, request).await?;
-        events
-            .phase_completed(
-                SandboxPhase::FeatureDiscovery,
-                PhaseOutcome::Completed,
-                started.elapsed(),
-            )
-            .await;
+        span.end(Outcome::Completed).await;
         Ok(network)
     }
 
@@ -1001,12 +983,11 @@ impl SandboxService {
         Ok(())
     }
 
-    async fn ensure_running(&self, sandbox: Sandbox, events: &SandboxEvents) -> Result<Sandbox, Error> {
+    async fn ensure_running(&self, sandbox: Sandbox, events: &ProgressReporter) -> Result<Sandbox, Error> {
         if let Some(network_backend) = self.network_backend_for(&sandbox)?
             && !network_backend.is_running(&sandbox.id)
         {
-            let started = Instant::now();
-            events.phase_started(SandboxPhase::NetworkStart).await;
+            let span = events.start_phase(SandboxPhase::NetworkStart).await;
             let endpoint = self
                 .backend()
                 .open_network_endpoint(&sandbox.id)
@@ -1030,12 +1011,9 @@ impl SandboxService {
                 })
                 .await
                 .map_err(|error| Error::component("start Sandbox Network", error))?;
-            events
-                .phase_completed(SandboxPhase::NetworkStart, PhaseOutcome::Completed, started.elapsed())
-                .await;
+            span.end(Outcome::Completed).await;
         }
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::SandboxStart).await;
+        let span = events.start_phase(SandboxPhase::SandboxStart).await;
         if sandbox.state != SandboxState::Running {
             self.backend()
                 .start(&sandbox.id)
@@ -1044,23 +1022,18 @@ impl SandboxService {
                 .map_err(|error| Error::component("start Sandbox", error))?;
         }
         let outcome = if sandbox.state == SandboxState::Running {
-            PhaseOutcome::Reused
+            Outcome::Reused
         } else {
-            PhaseOutcome::Completed
+            Outcome::Completed
         };
-        events
-            .phase_completed(SandboxPhase::SandboxStart, outcome, started.elapsed())
-            .await;
-        let started = Instant::now();
-        events.phase_started(SandboxPhase::Inspect).await;
+        span.end(outcome).await;
+        let span = events.start_phase(SandboxPhase::Inspect).await;
         let sandbox = self
             .backend()
             .inspect(&sandbox.id)
             .await
             .map_err(|error| Error::component("inspect Sandbox", error))?;
-        events
-            .phase_completed(SandboxPhase::Inspect, PhaseOutcome::Completed, started.elapsed())
-            .await;
+        span.end(Outcome::Completed).await;
         Ok(sandbox)
     }
 

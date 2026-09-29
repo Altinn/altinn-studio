@@ -1,4 +1,4 @@
-"""Git-state tools: `commit_session_branch` and `rollback`.
+"""Git-state tool: `commit_session_branch`.
 
 `commit_session_branch` derives a per-session branch name on first
 call (cached on `ctx.extras["session_branch"]`), commits via
@@ -6,10 +6,7 @@ call (cached on `ctx.extras["session_branch"]`), commits via
 session branch is visible in Designer.  Subsequent commits reuse the
 same branch.
 
-`rollback` discards all uncommitted changes via `git_ops.revert` and
-clears the tracked `changed_files`.
-
-Both tools require `ctx.allow_app_changes`.
+The tool requires `ctx.allow_app_changes`.
 """
 
 from __future__ import annotations

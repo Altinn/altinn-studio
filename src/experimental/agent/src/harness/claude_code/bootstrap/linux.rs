@@ -9,6 +9,9 @@ use crate::{
 
 use super::super::ACCESS_PLACEHOLDER;
 
+/// Days before Claude Code's retention sweep deletes an untouched transcript: effectively never.
+const TRANSCRIPT_RETENTION_DAYS: u32 = 36_500;
+
 pub(super) async fn configure(
     sandbox: &SandboxHandle,
     home: &str,
@@ -51,7 +54,10 @@ pub(super) async fn configure(
             "CLAUDE_CODE_RATE_LIMIT_TIER": "default_claude_max_5x"
         },
         "hooks": super::super::hooks::configuration(&hook_path),
-        "statusLine": super::super::status_line::configuration(&status_line_path)
+        "statusLine": super::super::status_line::configuration(&status_line_path),
+        // Claude Code deletes transcripts untouched for 30 days by default, so an Idle Session
+        // would resume into a fresh conversation. Discarding a conversation is the platform's call.
+        "cleanupPeriodDays": TRANSCRIPT_RETENTION_DAYS
     }))?;
     write_if_changed(sandbox, &settings_path, &settings).await?;
     // Runtime file transfer writes as the Sandbox supervisor (root), while

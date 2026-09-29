@@ -173,7 +173,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // Neither ClosedReason nor the end event can see this: Conclude closes the mailbox and *then*
         // enqueues the after-workflow, so a conclusion that skipped the close would still advance the process and
         // still leave this app's onClosed unrun. Read after WaitForProcessEnd, so ordered after the close
-        // rather than racing it; the engine's retention period is 60 days, so the row is still there.
+        // rather than racing it; the engine's retention period is 90 days, so the row is still there.
         EngineMailbox mailbox = await GetMailbox(engineClient, ns, mailboxId);
         Assert.Equal("Disposed", mailbox.Status);
         // "Request" and not "Deadline": the closure came from this task concluding, not from the engine's

@@ -11,7 +11,6 @@ from shared.config.base_config import DEFAULT_ROLE, default_role_model, resolved
 class _Config:
     LLM_MODEL_ACTOR = "actor-model"
     LLM_MODEL_PLANNER = "planner-model"
-    LLM_MODEL_TOOL_PLANNER = "tool-planner-model"
     LLM_MODEL_REVIEWER = "reviewer-model"
     LLM_MODEL_ASSISTANT = "assistant-model"
     LLM_MODEL = "llm-model"
@@ -67,11 +66,6 @@ class TestTheTwoResolutionPaths:
         assert models["actor"] == config.LLM_MODEL_ACTOR
         assert models["planner"] == config.LLM_MODEL_PLANNER
         assert models["reviewer"] == config.LLM_MODEL_REVIEWER
-
-    def test_tool_planner_exists_in_only_one_of_the_two(self, config):
-        """LLMClient branches on it; build_adapter has no branch and would answer
-        with the default deployment."""
-        assert resolved_role_models()["tool_planner"] == config.LLM_MODEL_TOOL_PLANNER
 
     def test_it_is_reported_under_its_own_name(self, config):
         assert resolved_role_models()[DEFAULT_ROLE] == "azure-deployment"

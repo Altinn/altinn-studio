@@ -176,7 +176,7 @@ public class HomeController : Controller
     [Route("set-query-params")]
     public async Task<IActionResult> SetQueryParams()
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (!IsStatelessApp(application))
         {
             return BadRequest("You can only use query params with a stateless task.");
@@ -258,7 +258,7 @@ public class HomeController : Controller
             return null;
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         if (IsStatelessApp(application))
         {
@@ -326,7 +326,7 @@ public class HomeController : Controller
             return true;
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         if (!IsStatelessApp(application))
         {
             return false;

@@ -87,8 +87,8 @@ public class WorkflowCallbackStateTests
         WorkflowStateSigner stateSigner = CreateStateSigner();
         var appMetadata = new Mock<IAppMetadata>();
         appMetadata
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         var service = new WorkflowCallbackStateService(
             CreateUnitOfWorkInitializer(appMetadata.Object),
             new ModelSerializationService(null!),
@@ -193,8 +193,8 @@ public class WorkflowCallbackStateTests
         );
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
-            .Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [] });
         var initializer = CreateUnitOfWorkInitializer(appMetadataMock.Object);
         var service = new WorkflowCallbackStateService(
             initializer,
@@ -360,7 +360,7 @@ public class WorkflowCallbackStateTests
             DataTypes = [formDataType, attachmentDataType],
         };
         var appMetadataMock = new Mock<IAppMetadata>(MockBehavior.Strict);
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
         var appModelMock = new Mock<IAppModel>(MockBehavior.Strict);
         appModelMock.Setup(x => x.GetModelType(typeof(CallbackForm).FullName!)).Returns(typeof(CallbackForm));
         var dataClientMock = new Mock<IDataClient>(MockBehavior.Strict);

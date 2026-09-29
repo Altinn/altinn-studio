@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "9766b2fc3ce5",
-    "code": "8997d20 clean",
-    "dataset": "115 items be00f7b53c3b",
+    "code": "c2579bd clean",
+    "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260924T120441Z-agents-ruff-438e",
-  "label": "agents ruff",
-  "recorded_at": "2026-09-24T12:09:44+00:00",
-  "why": "Added Ruff linting and formatting"
+  "check_id": "20260928T124324Z-fast-verify-changes-892a",
+  "label": "fast verify_changes",
+  "recorded_at": "2026-09-28T12:48:27+00:00",
+  "why": "Fast verify_changes for nested v9 expressions and JSON files with a UTF-8 BOM, #20776"
 }

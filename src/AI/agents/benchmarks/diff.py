@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 
 from benchmarks import manifest, outputs
 from benchmarks.provenance import blocking_differences
@@ -204,19 +203,3 @@ def compare(baseline: Run, candidate: Run) -> Comparison:
         changes=tuple(changes),
         refused=refused,
     )
-
-
-def word_diff(before: str, after: str) -> tuple[tuple[str, str], ...]:
-    """Token level diff, as (kind, text) pairs where kind is same, del or add."""
-    left, right = before.split(), after.split()
-    matcher = SequenceMatcher(None, left, right, autojunk=False)
-    out: list[tuple[str, str]] = []
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == "equal":
-            out.append(("same", " ".join(left[i1:i2])))
-        else:
-            if i1 != i2:
-                out.append(("del", " ".join(left[i1:i2])))
-            if j1 != j2:
-                out.append(("add", " ".join(right[j1:j2])))
-    return tuple(pair for pair in out if pair[1])

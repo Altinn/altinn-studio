@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authentication;
 /// <summary>
 /// A client for authentication actions in Altinn Platform.
 /// </summary>
-public class AuthenticationClient : IAuthenticationClient
+internal sealed class AuthenticationClient : IAuthenticationClient
 {
     private readonly ILogger _logger;
     private readonly HttpClient _client;

@@ -1,17 +1,11 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core;
-using Altinn.App.Core.Features;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using Altinn.App.logic;
 using Altinn.App.Core.Features.Payment;
 using Altinn.Codelists.SSB.Extensions;
 using Altinn.Codelists.SSB.Models;
-using Microsoft.Extensions.Hosting;
 
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)

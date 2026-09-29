@@ -51,7 +51,7 @@ internal sealed class SigningCallToActionService(
     )
     {
         using var activity = _telemetry?.StartSendSignCallToActionActivity();
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
         HostingEnvironment env = AltinnEnvironments.GetHostingEnvironment(_hostEnvironment);
         var resource = AltinnTaskExtension.GetConfigForEnvironment(env, correspondenceResources)?.Value;

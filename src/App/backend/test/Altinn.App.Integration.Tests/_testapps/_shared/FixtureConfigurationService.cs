@@ -61,8 +61,6 @@ public sealed class FixtureConfigurationService
         var scenario = config.AppScenario ?? "default";
         if (scenario != "default")
         {
-            SyncScenarioConfig(env.ContentRootPath);
-
             var scenarioOverridePath = Path.Join(env.ContentRootPath, "scenario-overrides", "services");
             if (Directory.Exists(scenarioOverridePath))
             {
@@ -101,31 +99,6 @@ public sealed class FixtureConfigurationService
 
             Config = config;
             ConfigurationChanged?.Invoke();
-        }
-    }
-
-    private static void SyncScenarioConfig(string contentRootPath)
-    {
-        var scenarioConfigPath = Path.Join(contentRootPath, "scenario-overrides", "config");
-        if (!Directory.Exists(scenarioConfigPath))
-        {
-            SnapshotLogger.LogInitWarning($"No scenario config directory found at {scenarioConfigPath}");
-            return;
-        }
-        var targetConfigPath = Path.Join(contentRootPath, "config");
-
-        foreach (var file in Directory.GetFiles(scenarioConfigPath, "*", SearchOption.AllDirectories))
-        {
-            var relativePath = Path.GetRelativePath(scenarioConfigPath, file);
-            var targetFile = Path.Join(targetConfigPath, relativePath);
-            var targetDir = Path.GetDirectoryName(targetFile);
-
-            if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-            {
-                Directory.CreateDirectory(targetDir);
-            }
-
-            File.Copy(file, targetFile, overwrite: true);
         }
     }
 

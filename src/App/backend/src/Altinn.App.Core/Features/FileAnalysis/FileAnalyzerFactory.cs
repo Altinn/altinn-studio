@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.FileAnalysis;
 /// <summary>
 /// Factory class that resolves the correct file analyzers to run on against a <see cref="DataType"/>.
 /// </summary>
-public class FileAnalyzerFactory : IFileAnalyzerFactory
+internal sealed class FileAnalyzerFactory : IFileAnalyzerFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 

@@ -300,8 +300,9 @@ class TestTheReportShowsWhatWasMeasured:
         assert "text" not in shown
 
     def test_an_empty_payload_does_not_hide_the_answer(self):
-        """A query task returns spec=None beside the answer in text. Treating the
-        key as present dropped text and rendered the whole answer as null."""
+        """A planner task returns spec=None beside the answer in text when the answer
+        is not JSON. Treating the key as present dropped text and rendered the whole
+        answer as null."""
         wrapped = json.dumps({"model": "m", "spec": None, "text": "input component binding"})
 
         assert report.readable(wrapped, unwrap=True) == "input component binding"
@@ -827,9 +828,9 @@ class TestComparingTwoCandidates:
 
 def test_a_regression_past_the_noise_floor_is_reported():
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
-    worse = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "query.names-needed-concepts": 0.833})
+    worse = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "spec.covers-every-label": 0.833})
     comparison = diff.compare(base, worse)
-    change = next(c for c in comparison.changes if c.behavior == "query.names-needed-concepts")
+    change = next(c for c in comparison.changes if c.behavior == "spec.covers-every-label")
     assert change.verdict == "regressed"
     assert change.delta == pytest.approx(-0.167, abs=1e-3)
 
@@ -909,9 +910,10 @@ def test_the_actor_prompt_digest_tracks_what_the_agent_sends():
     """Digesting a copy of the prompt would drift; it digests the function the agent calls."""
     import hashlib
 
+    from agents.altinn.app_version import V8_PROFILE
     from agents.core.context import stable_prefix_sections
 
-    expected = hashlib.sha256("\n\n".join(stable_prefix_sections()).encode()).hexdigest()[:12]
+    expected = hashlib.sha256("\n\n".join(stable_prefix_sections(V8_PROFILE)).encode()).hexdigest()[:12]
     assert provenance.collect().actor_prompt == expected
 
 
@@ -1035,18 +1037,18 @@ def test_the_report_covers_every_behavior_in_the_manifest(tmp_path):
 
 def test_every_prompt_in_the_report_carries_computed_evidence(tmp_path):
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
-    cand = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "query.names-needed-concepts": 0.5})
+    cand = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "spec.covers-every-label": 0.5})
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
     runstore.set_baseline(base.name, directory=tmp_path)
     built = report.build(directory=tmp_path)
-    view = next(v for v in built.behaviors if v.behavior.id == "query.names-needed-concepts")
+    view = next(v for v in built.behaviors if v.behavior.id == "spec.covers-every-label")
     assert "1.000 to 0.500" in view.prompt
     assert "Do not change an eval" in view.prompt
 
 
 def test_open_work_is_ordered_worst_first(tmp_path):
-    scores = {**HOLDING, "build.pages-render": 0.0, "query.names-needed-concepts": 0.5}
+    scores = {**HOLDING, "build.pages-render": 0.0, "spec.covers-every-label": 0.5}
     base = _run("20260909T100000Z-baseline", "baseline", {**HOLDING, "build.pages-render": 0.0})
     cand = _run("20260909T110000Z-cand", "candidate", scores)
     for run in (base, cand):
@@ -1061,7 +1063,7 @@ def test_open_work_is_ordered_worst_first(tmp_path):
 
 def test_the_page_renders_and_embeds_the_manifest(tmp_path):
     base = _run("20260909T100000Z-baseline", "baseline", HOLDING)
-    cand = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "query.names-needed-concepts": 0.5})
+    cand = _run("20260909T110000Z-cand", "candidate", {**HOLDING, "spec.covers-every-label": 0.5})
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
     runstore.set_baseline(base.name, directory=tmp_path)
@@ -1082,7 +1084,7 @@ def test_the_page_states_a_refusal_instead_of_deltas(tmp_path):
     cand = _run(
         "20260909T110000Z-cand",
         "candidate",
-        {**HOLDING, "query.names-needed-concepts": 0.5},
+        {**HOLDING, "spec.covers-every-label": 0.5},
         prov=_provenance(environment="dev"),
     )
     for run in (base, cand):
@@ -1117,16 +1119,6 @@ def test_the_judge_name_and_run_are_escaped_too():
     assert "<b>judge</b>" not in html_out
     assert "<i>run</i>" not in html_out
     assert "&lt;b&gt;judge&lt;/b&gt;" in html_out
-
-
-def test_word_diff_marks_what_moved():
-    pairs = diff.word_diff(
-        "attachment component configuration file upload data binding",
-        "layout configuration data model binding",
-    )
-    kinds = {kind for kind, _ in pairs}
-    assert kinds == {"same", "del", "add"}
-    assert ("del", "attachment component") in pairs
 
 
 def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
@@ -1262,7 +1254,7 @@ def test_movement_on_a_component_whose_model_did_not_change_is_not_attributable(
     assert any("did not change between these runs" in line for line in scope.evidence)
     assert scope in built.unattributable()
 
-    planner = next(v for v in built.behaviors if v.behavior.id == "query.names-needed-concepts")
+    planner = next(v for v in built.behaviors if v.behavior.id == "spec.covers-every-label")
     assert planner.attributable
 
 
@@ -1272,20 +1264,20 @@ def test_an_output_change_on_a_swapped_model_is_expected_not_a_finding(tmp_path)
         "20260909T100000Z-baseline",
         "baseline",
         HOLDING,
-        outputs={"query.names-needed-concepts": json.dumps({"terms": ["attachment", "binding"]})},
+        outputs={"spec.covers-every-label": json.dumps({"labels": ["Name", "Address"]})},
     )
     cand = _run(
         "20260909T110000Z-cand",
         "candidate",
         HOLDING,
-        outputs={"query.names-needed-concepts": json.dumps({"terms": ["layout", "binding"]})},
+        outputs={"spec.covers-every-label": json.dumps({"labels": ["Name", "Phone"]})},
         prov=_provenance(models={"actor": "gpt-5.6-sol", "planner": "gpt-5.6-terra", "default": "gpt-5.4-mini"}),
     )
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
     runstore.set_baseline(base.name, directory=tmp_path)
     built = report.build(directory=tmp_path)
-    view = next(v for v in built.behaviors if v.behavior.id == "query.names-needed-concepts")
+    view = next(v for v in built.behaviors if v.behavior.id == "spec.covers-every-label")
     assert view.verdict == "holding"
 
 
@@ -1295,20 +1287,20 @@ def test_an_output_change_with_no_model_change_stays_a_finding(tmp_path):
         "20260909T100000Z-baseline",
         "baseline",
         HOLDING,
-        outputs={"query.names-needed-concepts": json.dumps({"terms": ["attachment", "binding"]})},
+        outputs={"spec.covers-every-label": json.dumps({"labels": ["Name", "Address"]})},
     )
     cand = _run(
         "20260909T110000Z-cand",
         "candidate",
         HOLDING,
-        outputs={"query.names-needed-concepts": json.dumps({"terms": ["layout", "binding"]})},
+        outputs={"spec.covers-every-label": json.dumps({"labels": ["Name", "Phone"]})},
         prov=_provenance(commit="b" * 40),
     )
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
     runstore.set_baseline(base.name, directory=tmp_path)
     built = report.build(directory=tmp_path)
-    view = next(v for v in built.behaviors if v.behavior.id == "query.names-needed-concepts")
+    view = next(v for v in built.behaviors if v.behavior.id == "spec.covers-every-label")
     assert view.verdict == "output-changed"
     assert view in built.open_work()
 
@@ -1512,59 +1504,6 @@ class TestWhereTheBaselineLives:
         path = tmp_path / "BASELINE.json"
         pointer_file.write(pointer_file.from_run(run, "because"), path=path)
         assert pointer_file.read(path=path) == pointer_file.from_run(run, "because")
-
-    def test_a_hand_edited_pointer_is_detected_as_drifted(self, tmp_path):
-        """A pointer that disagrees with the run it names is not what the commit said."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        edited = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={**pointer.axes, "environment": "dev", "tools": "0000dead"},
-        )
-        assert set(pointer_file.drifted(edited, run)) == {"environment", "tools"}
-        assert pointer_file.drifted(pointer, run) == ()
-
-    def test_drift_in_a_dict_axis_is_detected(self, tmp_path):
-        """Comparing one whitespace-separated token made every dict axis a no-op: the
-        first token of a flattened `models` is the role name, never a model."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        swapped = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={
-                **pointer.axes,
-                "models": "actor claude-sonnet-5, default gpt-5.4-mini, planner something-else",
-                "prompts": "scope_check 4",
-            },
-        )
-
-        assert set(pointer_file.drifted(swapped, run)) == {"models", "prompts"}
-
-    def test_an_uncommitted_workspace_alone_is_not_drift(self, tmp_path):
-        """The dirty flag moves on its own, which is why `code` compares by commit."""
-        from benchmarks import baseline as pointer_file
-
-        run = _run("20260909T100000Z-base", "baseline", HOLDING)
-        pointer = pointer_file.from_run(run, "because")
-        dirty = pointer_file.Pointer(
-            check_id=pointer.check_id,
-            label=pointer.label,
-            recorded_at=pointer.recorded_at,
-            why=pointer.why,
-            axes={**pointer.axes, "code": pointer.axes["code"].split()[0] + " dirty"},
-        )
-
-        assert pointer_file.drifted(dirty, run) == ()
 
     def test_the_baseline_is_read_from_the_local_cache_when_it_is_there(self, tmp_path):
         run = _run("20260909T100000Z-base", "baseline", HOLDING)

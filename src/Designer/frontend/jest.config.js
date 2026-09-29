@@ -73,6 +73,8 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
+    // The Designsystemet theme is a stylesheet behind an extensionless subpath, so the rule above misses it.
+    '^@digdir/designsystemet-css/theme$': 'identity-obj-proxy',
     // Fixes ReferenceError: MessageChannel is not defined in tests
     'react-dom/server': 'react-dom/server.edge',
     // Force react-i18next to resolve to root node_modules to ensure global mock applies for app-development

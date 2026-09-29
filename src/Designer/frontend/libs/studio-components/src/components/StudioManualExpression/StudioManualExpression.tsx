@@ -4,7 +4,6 @@ import { isStringValidAsExpression } from '../StudioExpression/validators/isStri
 import { expressionToString, stringToExpression } from './converters';
 import { StudioTextarea } from '../StudioTextarea';
 import classes from './StudioManualExpression.module.css';
-import { usePropState } from '@studio/hooks';
 import type { ExpressionTexts } from '../StudioExpression';
 
 export type StudioManualExpressionProps = {
@@ -22,7 +21,7 @@ export const StudioManualExpression = ({
 }: StudioManualExpressionProps): React.ReactElement => {
   const initialExpressionString = expressionToString(givenExpression);
   const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = usePropState<string>(initialExpressionString);
+  const [expressionString, setExpressionString] = useState<string>(initialExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
@@ -38,6 +37,12 @@ export const StudioManualExpression = ({
     }
   };
 
+  const handleBlur = (): void => {
+    if (isValid) {
+      setExpressionString(expressionToString(stringToExpression(expressionString)));
+    }
+  };
+
   const errorMessage = isValid ? undefined : texts.cannotSaveSinceInvalid;
 
   return (
@@ -45,6 +50,7 @@ export const StudioManualExpression = ({
       aria-label={texts.expression}
       className={classes.manualEditor}
       error={errorMessage}
+      onBlur={handleBlur}
       onChange={handleChange}
       rows={12}
       value={expressionString}

@@ -218,6 +218,26 @@ describe('StudioExpression', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
+  it('Keeps the text as typed in the manual editor and formats it when the textarea loses focus', async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    const typedString = '["equals", 1, 1]';
+    await user.clear(input);
+    await user.paste(typedString);
+    rerender(
+      <StudioExpression
+        expression={onChange.mock.lastCall[0]}
+        onChange={onChange}
+        dataLookupOptions={dataLookupOptions}
+        texts={texts}
+      />,
+    );
+    expect(input).toHaveValue(typedString);
+    await user.tab();
+    expect(input).toHaveValue(expressionToString([GeneralRelationOperator.Equals, 1, 1]));
+  });
+
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(false);

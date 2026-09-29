@@ -70,7 +70,7 @@ public class SigningUserActionTests
             var signClient = new Mock<ISignClient>();
             var instanceDataMutatorMock = new Mock<IInstanceDataMutator>();
 
-            appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_defaultAppMetadata);
+            appMetadata.Setup(x => x.ApplicationMetadata).Returns(_defaultAppMetadata);
             signingReceiptService
                 .Setup(x =>
                     x.SendSignatureReceipt(
@@ -369,7 +369,7 @@ public class SigningUserActionTests
         ];
         var fixture = Fixture.Create(overrideCorrespondences: o);
 
-        fixture.AppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         var instance = fixture.Instance;
         var signClientMock = fixture.SignClient;
@@ -452,7 +452,7 @@ public class SigningUserActionTests
             ],
         };
         var fixture = Fixture.Create();
-        fixture.AppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,
@@ -553,7 +553,7 @@ public class SigningUserActionTests
 
         var signingClientMock = new Mock<ISignClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadataToReturn);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadataToReturn);
         if (platformHttpExceptionToThrow != null)
         {
             signingClientMock

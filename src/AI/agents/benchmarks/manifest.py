@@ -168,13 +168,6 @@ COMPONENTS = (
         role="planner",
     ),
     Component(
-        id="query",
-        name="Semantic query",
-        where="agents/services/llm/semantic_query.py::extract_semantic_query",
-        does="Writes the retrieval query the agent uses to look up component docs.",
-        role="planner",
-    ),
-    Component(
         id="actor",
         name="Actor loop",
         where="agents/core/llm_adapter.py::build_adapter",
@@ -557,41 +550,6 @@ BEHAVIORS = (
             ),
             acceptance=("A written finding naming the label and classifying it, and field types asserted somewhere."),
         ),
-    ),
-    Behavior(
-        id="query.names-needed-concepts",
-        component="query",
-        text="Names the concepts needed to retrieve the right components",
-        checks=(
-            "The query the agent writes for itself contains the terms retrieval needs to find "
-            "the correct component docs. A request about attachments must name an attachment term."
-        ),
-        blind=(
-            "The lists of expected terms were authored rather than derived, and loosened "
-            "after seeing results. That is exactly how an expectation gets "
-            "fitted to an outcome. Trust the direction, treat the exact number as soft until "
-            "the term lists are reviewed by someone who did not write them."
-        ),
-        eval="Planner/query",
-        evaluator="query_terms",
-        metric="mean",
-        fix=Fix(
-            kind="regression",
-            title="Review the expectations before touching the agent",
-            task=(
-                "1. Start with the eval, not the agent. Decide whether the expected-term list "
-                "encodes what retrieval actually needs, ideally by checking which terms "
-                "retrieve the right docs. Record the reasoning in datasets/README.md.\n"
-                "2. Only if the expectation holds up, investigate the prompt. A candidate from "
-                "a different model family may not infer phrasing the previous one did.\n"
-                "3. Prefer changing the prompt over changing the expected terms."
-            ),
-            acceptance=(
-                "Back to the baseline score with the term list unchanged, or a written justification for a "
-                "changed list reviewed by someone who did not write the original."
-            ),
-        ),
-        see=("build.references-resolve",),
     ),
     Behavior(
         id="actor.picks-allowed-tool",
@@ -1018,7 +976,6 @@ BEHAVIORS = (
                 "optionsId names a code list that does not exist."
             ),
         ),
-        see=("query.names-needed-concepts",),
     ),
     Behavior(
         id="build.matches-the-request",
@@ -1056,25 +1013,21 @@ BEHAVIORS = (
         blind=(
             "An e2e run pushes branches to whatever BENCH_REPO_URL points at, so the "
             "starting state is one developer's repo and the result is not reproducible on "
-            "another machine. The replacement is written but not wired: base_app.py "
-            "materializes the app template from this repository, using git ls-files so no "
-            "build artifact can leak in, and fixtures/ holds overlays expressed as diffs "
-            "from that template. agent_task.py still clones the remote repo instead."
+            "another machine. agent_task.py clones the remote repo to get the starting state."
         ),
         fix=Fix(
             kind="gap",
-            title="Wire base_app into the e2e task so a run does not depend on one developer's repo",
+            title="Start the e2e task from the in-repo app template so a run does not depend on one developer's repo",
             task=(
-                "1. Replace the clone of BENCH_REPO_URL as the starting state with "
-                "base_app.materialize_base_app, which copies the in-repo app template.\n"
+                "1. Replace the clone of BENCH_REPO_URL as the starting state with a copy of "
+                "the app template in this repository. Copy only the files that git ls-files "
+                "lists, so no build artifact can leak in.\n"
                 "2. Keep the remote push, because the render check needs a real Gitea branch. "
                 "What changes is where the starting state comes from, not where the result "
                 "goes.\n"
-                "3. Once wired, record the app template version as a run axis in "
+                "3. Then record the app template version as a run axis in "
                 "provenance.py, and delete BENCH_REPO_URL from the axes a comparison has to "
-                "trust.\n"
-                "4. base_app.py and fixtures/ exist and are tested. If this is not going to "
-                "be wired, delete both rather than leaving a module nothing imports."
+                "trust."
             ),
             acceptance=(
                 "An e2e run reproducible on a machine that has only this repository, and the "

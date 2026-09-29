@@ -23,8 +23,6 @@ const designsystemetRestriction = {
     '@digdir/designsystemet-react/*',
     '@digdir/designsystemet-css',
     '@digdir/designsystemet-css/**',
-    '@digdir/designsystemet-theme',
-    '@digdir/designsystemet-theme/**',
   ],
   message:
     'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components.',

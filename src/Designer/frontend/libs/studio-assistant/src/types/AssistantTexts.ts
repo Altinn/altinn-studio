@@ -19,6 +19,7 @@ export type AssistantTexts = {
   securityNoticeAlert: SecurityNoticeAlertTexts;
   permissionPrompt: PermissionPromptTexts;
   sourcesLabel: string;
+  filesChangedLabel: string;
 };
 
 export type PermissionPromptTexts = {

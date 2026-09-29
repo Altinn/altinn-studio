@@ -232,7 +232,7 @@ public class FiksArkivMessageSenderTest
             useDefaultFiksArkivSettings: false
         );
 
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
         fiksArkivConfigResolverMock
             .Setup(x => x.GetRecipient(It.IsAny<IInstanceDataAccessor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
