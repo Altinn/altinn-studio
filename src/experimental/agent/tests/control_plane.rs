@@ -189,6 +189,13 @@ struct UnsupportedProvider {
     id: ProviderId,
 }
 
+/// A planned Sandbox ensure failure.
+///
+/// A transient failure fails only the pass that takes it. A permanent one fails
+/// every pass, as a real Provider would until desired state changes, so the
+/// controller's background ticks cannot use it up before or overwrite it after
+/// the pass a test waits on.
+#[derive(Clone)]
 enum PlannedFailure {
     Invalid(String),
     /// The Sandbox Provider rejects the request itself (an SDK `InvalidRequest`).
@@ -229,7 +236,15 @@ impl Provider for PlannedProvider {
         environment: std::collections::BTreeMap<String, String>,
         progress: sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
-        match self.failures.borrow_mut().pop_front() {
+        let planned = {
+            let mut failures = self.failures.borrow_mut();
+            if matches!(failures.front(), Some(PlannedFailure::Transient(_))) {
+                failures.pop_front()
+            } else {
+                failures.front().cloned()
+            }
+        };
+        match planned {
             Some(PlannedFailure::Invalid(message)) => Box::pin(async move { Err(Error::Invalid(message)) }),
             Some(PlannedFailure::Rejected) => Box::pin(async move {
                 Err(Error::Sandbox(sandbox::Error::Invalid {
