@@ -35,6 +35,7 @@ microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.gi
 # Cargo's output directory; the host runtime is installed automatically on
 # first use into the control-plane home.
 microsandbox-filesystem = { git = "https://github.com/martinothamar/microsandbox.git", rev = "5ffddb4789751a2f2312ed191199a2133e99e776", default-features = false, features = ["prebuilt"] }
+mimalloc = "0.1.52"
 ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["json"] }
 rand_core = { version = "0.6.4", features = ["getrandom"] }
