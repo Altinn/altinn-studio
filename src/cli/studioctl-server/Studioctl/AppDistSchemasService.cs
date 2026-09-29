@@ -44,7 +44,7 @@ internal sealed class AppDistSchemasService : IDisposable
         if (_byVersion.TryGetValue(version, out var cached))
             return SchemaSetResult.Loaded(version, cached);
 
-        if (await AppDistSchemas.LoadAsync(appDist, version, cancellationToken) is not { } schemas)
+        if (await AppDistSchemas.Load(appDist, version, cancellationToken) is not { } schemas)
         {
             _logger.LogWarning("app-dist {Version} unreachable and not cached; schema validation skipped", version);
             return SchemaSetResult.Skipped($"app-dist {version} is unreachable and not cached", version);

@@ -8,9 +8,9 @@ public static class AppDistEnvironment
 {
     public const string CacheDirectoryVariable = "STUDIOCTL_APP_DIST_CACHE";
 
-    public static AppDist? CreateFromEnvironment()
+    public static AppDistProvider? CreateFromEnvironment()
     {
         var cacheDirectory = Environment.GetEnvironmentVariable(CacheDirectoryVariable);
-        return string.IsNullOrWhiteSpace(cacheDirectory) ? null : AppDist.CreateDefault(cacheDirectory);
+        return string.IsNullOrWhiteSpace(cacheDirectory) ? null : AppDistProvider.CreateDefault(cacheDirectory);
     }
 }
