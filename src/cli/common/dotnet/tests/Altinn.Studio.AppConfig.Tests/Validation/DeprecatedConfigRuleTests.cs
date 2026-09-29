@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -29,7 +28,7 @@ public sealed class DeprecatedConfigRuleTests
         var report = AppConfigEngine.Open(App(metadata, CleanComponent)).Validate();
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
-        Assert.Contains("enablePdfCreation", finding.Message);
+        Assert.Contains("enablePdfCreation", finding.Message, StringComparison.Ordinal);
         Assert.Equal("/dataTypes/0/enablePdfCreation", finding.Position.Pointer);
     }
 
@@ -43,7 +42,12 @@ public sealed class DeprecatedConfigRuleTests
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
         Assert.Equal("/eFormidling", finding.Position.Pointer);
-        Assert.DoesNotContain(report.Findings, f => f.Message.Contains("Task_gone") || f.Message.Contains("\"gone\""));
+        Assert.DoesNotContain(
+            report.Findings,
+            f =>
+                f.Message.Contains("Task_gone", StringComparison.Ordinal)
+                || f.Message.Contains("\"gone\"", StringComparison.Ordinal)
+        );
     }
 
     [Theory]
@@ -76,7 +80,7 @@ public sealed class DeprecatedConfigRuleTests
         var report = AppConfigEngine.Open(App(TestMeta.Json("ttd/x", "model"), component)).Validate();
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
-        Assert.Contains("summaryBinding", finding.Message);
+        Assert.Contains("summaryBinding", finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]

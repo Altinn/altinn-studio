@@ -1,8 +1,5 @@
-using System.Text;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
-using Altinn.Studio.AppConfig.Models;
 using Altinn.Studio.AppConfig.Validation;
 using Altinn.Studio.AppConfig.Validation.Schemas;
 
@@ -29,8 +26,14 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(app);
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("MissingPage"));
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Page1\""));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("MissingPage", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Page1\"", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -114,11 +117,11 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(engine.Build());
 
         var pathFinding = Assert.Single(report.Findings, f => f.RuleId == "REF-DATAMODEL-PATH");
-        Assert.Contains("project.gnre", pathFinding.Message);
-        Assert.Contains("\"model\"", pathFinding.Message);
+        Assert.Contains("project.gnre", pathFinding.Message, StringComparison.Ordinal);
+        Assert.Contains("\"model\"", pathFinding.Message, StringComparison.Ordinal);
 
         var typeFinding = Assert.Single(report.Findings, f => f.RuleId == "REF-DATATYPE-ID");
-        Assert.Contains("modele", typeFinding.Message);
+        Assert.Contains("modele", typeFinding.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -154,8 +157,8 @@ public sealed class InMemoryAppDirectoryTests
 
         var paths = report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH").ToList();
         var path = Assert.Single(paths);
-        Assert.Contains("project.address", path.Message);
-        Assert.Contains("\"other\"", path.Message);
+        Assert.Contains("project.address", path.Message, StringComparison.Ordinal);
+        Assert.Contains("\"other\"", path.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -189,8 +192,8 @@ public sealed class InMemoryAppDirectoryTests
 
         var paths = report.Findings.Where(f => f.RuleId == "REF-DATAMODEL-PATH").ToList();
         var path = Assert.Single(paths);
-        Assert.Contains("applicant.fnr", path.Message);
-        Assert.Contains("\"model\"", path.Message);
+        Assert.Contains("applicant.fnr", path.Message, StringComparison.Ordinal);
+        Assert.Contains("\"model\"", path.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -220,8 +223,8 @@ public sealed class InMemoryAppDirectoryTests
 
         var kinds = report.Findings.Where(f => f.RuleId == "BINDING-KIND").ToList();
         var kind = Assert.Single(kinds);
-        Assert.Contains("warns", kind.Message);
-        Assert.Contains("\"model\"", kind.Message);
+        Assert.Contains("warns", kind.Message, StringComparison.Ordinal);
+        Assert.Contains("\"model\"", kind.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -272,9 +275,9 @@ public sealed class InMemoryAppDirectoryTests
 
         var coverage = report.Findings.Where(f => f.RuleId == "TEXT-RESOURCE-COVERAGE").ToList();
         Assert.Single(coverage);
-        Assert.Contains("only-nb", coverage[0].Message);
-        Assert.Contains("resource.nb.json", coverage[0].Message);
-        Assert.Contains("resource.nn.json", coverage[0].Message);
+        Assert.Contains("only-nb", coverage[0].Message, StringComparison.Ordinal);
+        Assert.Contains("resource.nb.json", coverage[0].Message, StringComparison.Ordinal);
+        Assert.Contains("resource.nn.json", coverage[0].Message, StringComparison.Ordinal);
         Assert.Equal(Severity.Info, coverage[0].Severity);
     }
 
@@ -346,7 +349,7 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "REF-DATAMODEL-PATH");
-        Assert.Contains("lines[0].missing", single.Message);
+        Assert.Contains("lines[0].missing", single.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -367,7 +370,10 @@ public sealed class InMemoryAppDirectoryTests
         Assert.Equal("App/ui/Task_1/layouts/Bad.json", syntax.Position.File);
         Assert.True(syntax.Position.Line > 0);
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Missing"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Missing", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -434,7 +440,12 @@ public sealed class InMemoryAppDirectoryTests
         var report = AppConfigEngine.Open(dir).ValidateSchemas(schemas);
 
         Assert.Equal(report.Findings.Count, report.Findings.Distinct().Count());
-        Assert.Equal(1, report.Findings.Count(f => f.RuleId == "JSONSCHEMA-VALID" && f.Message.Contains("size")));
+        Assert.Equal(
+            1,
+            report.Findings.Count(f =>
+                f.RuleId == "JSONSCHEMA-VALID" && f.Message.Contains("size", StringComparison.Ordinal)
+            )
+        );
     }
 
     [Fact]
@@ -467,11 +478,17 @@ public sealed class InMemoryAppDirectoryTests
 
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "BINDING-KIND" && f.Severity == Severity.Error && f.Message.Contains("project.scalar")
+            f =>
+                f.RuleId == "BINDING-KIND"
+                && f.Severity == Severity.Error
+                && f.Message.Contains("project.scalar", StringComparison.Ordinal)
         );
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "BINDING-KIND" && f.Severity == Severity.Warning && f.Message.Contains("project.list")
+            f =>
+                f.RuleId == "BINDING-KIND"
+                && f.Severity == Severity.Warning
+                && f.Message.Contains("project.list", StringComparison.Ordinal)
         );
     }
 
@@ -491,7 +508,7 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "UNIQUE-PAGE-IN-ORDER");
-        Assert.Contains("P1", single.Message);
+        Assert.Contains("P1", single.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -510,13 +527,22 @@ public sealed class InMemoryAppDirectoryTests
 
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "DATATYPE-COUNT" && f.Message.Contains("formBad") && f.Message.Contains("maxCount")
+            f =>
+                f.RuleId == "DATATYPE-COUNT"
+                && f.Message.Contains("formBad", StringComparison.Ordinal)
+                && f.Message.Contains("maxCount", StringComparison.Ordinal)
         );
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "DATATYPE-COUNT" && f.Message.Contains("rangeBad") && f.Message.Contains("unsatisfiable")
+            f =>
+                f.RuleId == "DATATYPE-COUNT"
+                && f.Message.Contains("rangeBad", StringComparison.Ordinal)
+                && f.Message.Contains("unsatisfiable", StringComparison.Ordinal)
         );
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "DATATYPE-COUNT" && f.Message.Contains("\"ok\""));
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "DATATYPE-COUNT" && f.Message.Contains("\"ok\"", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -536,10 +562,13 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "LAYOUTSET-FORM-DATATYPE" && f.Message.Contains("attach"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "LAYOUTSET-FORM-DATATYPE" && f.Message.Contains("attach", StringComparison.Ordinal)
+        );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "LAYOUTSET-FORM-DATATYPE" && f.Message.Contains("\"model\"")
+            f => f.RuleId == "LAYOUTSET-FORM-DATATYPE" && f.Message.Contains("\"model\"", StringComparison.Ordinal)
         );
     }
 
@@ -578,9 +607,18 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("missing-sign"));
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("missing-sig"));
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("\"model\""));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("missing-sign", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("missing-sig", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("\"model\"", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -598,8 +636,14 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Missing"));
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("\"P1\""));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Missing", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("\"P1\"", StringComparison.Ordinal)
+        );
 
         var ok = new InMemoryAppDirectory(
             new()
@@ -639,14 +683,17 @@ public sealed class InMemoryAppDirectoryTests
             report.Findings,
             f =>
                 f.RuleId == "REF-DATAMODEL-PATH"
-                && f.Message.Contains("project.nope")
+                && f.Message.Contains("project.nope", StringComparison.Ordinal)
                 && f.Position.File == "App/ui/Task_1/layouts/Receipt.json"
         );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("project.good")
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("project.good", StringComparison.Ordinal)
         );
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "PARSER-COVERAGE-GAP" && f.Message.Contains("Receipt"));
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "PARSER-COVERAGE-GAP" && f.Message.Contains("Receipt", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -664,7 +711,10 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("nope"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("nope", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -682,7 +732,10 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Ghost"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("Ghost", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -700,7 +753,10 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -741,11 +797,14 @@ public sealed class InMemoryAppDirectoryTests
 
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost") && f.Message.Contains("Task_2")
+            f =>
+                f.RuleId == "REF-LAYOUT-COMPONENT-ID"
+                && f.Message.Contains("ghost", StringComparison.Ordinal)
+                && f.Message.Contains("Task_2", StringComparison.Ordinal)
         );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("known")
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("known", StringComparison.Ordinal)
         );
     }
 
@@ -764,7 +823,10 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("ghostTask"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("ghostTask", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -794,7 +856,9 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "PROCESS-TASK-TYPE");
-        Assert.True(single.Message.Contains("signign") && single.Severity == Severity.Warning);
+        Assert.True(
+            single.Message.Contains("signign", StringComparison.Ordinal) && single.Severity == Severity.Warning
+        );
     }
 
     [Fact]
@@ -826,7 +890,7 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "CROSS-GROUP-CHILD-PAGE");
-        Assert.Contains("\"b\"", single.Message);
+        Assert.Contains("\"b\"", single.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -851,7 +915,7 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "SELECTION-OPTIONS");
-        Assert.Contains("dd-bad", single.Message);
+        Assert.Contains("dd-bad", single.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -869,8 +933,14 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("Task_NOPE"));
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("\"Task_1\""));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("Task_NOPE", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            report.Findings,
+            f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("\"Task_1\"", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -897,7 +967,7 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var single = Assert.Single(report.Findings, f => f.RuleId == "UNUSED-LAYOUT-FOLDER");
-        Assert.Contains("\"Leftover\"", single.Message);
+        Assert.Contains("\"Leftover\"", single.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -921,7 +991,10 @@ public sealed class InMemoryAppDirectoryTests
 
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
-        Assert.Contains(report.Findings, f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("other.field"));
+        Assert.Contains(
+            report.Findings,
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("other.field", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -952,10 +1025,10 @@ public sealed class InMemoryAppDirectoryTests
         foreach (
             var ghost in new[] { "ghostTab", "ghostMedia", "ghostCell", "ghostLabel", "ghostCol", "ghostExcluded" }
         )
-            Assert.Contains(flagged, m => m.Contains(ghost));
+            Assert.Contains(flagged, m => m.Contains(ghost, StringComparison.Ordinal));
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("\"real\"")
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("\"real\"", StringComparison.Ordinal)
         );
     }
 
@@ -986,16 +1059,16 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var keys = report.Findings.Where(f => f.RuleId == "REF-TEXT-RESOURCE-KEY").Select(f => f.Message).ToList();
-        Assert.Contains(keys, m => m.Contains("opt.label.ghost"));
-        Assert.Contains(keys, m => m.Contains("opt.desc.ghost"));
-        Assert.Contains(keys, m => m.Contains("src.label.ghost"));
+        Assert.Contains(keys, m => m.Contains("opt.label.ghost", StringComparison.Ordinal));
+        Assert.Contains(keys, m => m.Contains("opt.desc.ghost", StringComparison.Ordinal));
+        Assert.Contains(keys, m => m.Contains("src.label.ghost", StringComparison.Ordinal));
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("opt.label.real")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("opt.label.real", StringComparison.Ordinal)
         );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Alltid")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Alltid", StringComparison.Ordinal)
         );
     }
 
@@ -1021,12 +1094,12 @@ public sealed class InMemoryAppDirectoryTests
             report.Findings,
             f =>
                 f.RuleId == "REF-TEXT-RESOURCE-KEY"
-                && f.Message.Contains("countries.norway.ghost")
+                && f.Message.Contains("countries.norway.ghost", StringComparison.Ordinal)
                 && f.Position.File == "App/options/countries.json"
         );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Sverige")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Sverige", StringComparison.Ordinal)
         );
     }
 
@@ -1057,15 +1130,15 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var keys = report.Findings.Where(f => f.RuleId == "REF-TEXT-RESOURCE-KEY").Select(f => f.Message).ToList();
-        Assert.Contains(keys, m => m.Contains("tabs.title.ghost"));
-        Assert.Contains(keys, m => m.Contains("cards.title.ghost"));
+        Assert.Contains(keys, m => m.Contains("tabs.title.ghost", StringComparison.Ordinal));
+        Assert.Contains(keys, m => m.Contains("cards.title.ghost", StringComparison.Ordinal));
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("tabs.title.real")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("tabs.title.real", StringComparison.Ordinal)
         );
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Personalia")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Personalia", StringComparison.Ordinal)
         );
     }
 }

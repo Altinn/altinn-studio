@@ -1,5 +1,4 @@
 using System.Text;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Validation;
 
@@ -97,8 +96,8 @@ public sealed class AppConfigTests
         var model = engine.Build();
 
         var set = model.LayoutSets.Single();
-        var componentIds = set.AllComponents.Select(c => c.Id);
-        Assert.Equal(componentIds.Count(), componentIds.Distinct().Count());
+        var componentIds = set.AllComponents.Select(c => c.Id).ToList();
+        Assert.Equal(componentIds.Count, componentIds.Distinct().Count());
         Assert.DoesNotContain(ValidationEngine.Run(model).Findings, f => f.RuleId == "UNIQUE-COMPONENT-ID");
     }
 
@@ -214,7 +213,7 @@ internal sealed class MutableAppDirectory : IAppDirectory
 
     private static bool Matches(string name, string pattern)
     {
-        var star = pattern.IndexOf('*');
+        var star = pattern.IndexOf('*', StringComparison.Ordinal);
         if (star < 0)
             return string.Equals(name, pattern, StringComparison.Ordinal);
         var prefix = pattern[..star];

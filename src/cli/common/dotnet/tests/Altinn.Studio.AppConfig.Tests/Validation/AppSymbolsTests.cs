@@ -1,6 +1,4 @@
 using System.Text;
-using Altinn.Studio.AppConfig;
-using Altinn.Studio.AppConfig.Validation;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 
@@ -625,10 +623,10 @@ public sealed class AppSymbolsTests
 
         var bpmn = edits.Single(e => e.Span.File == "App/config/process/process.bpmn");
         Assert.Equal("\"oppgåve\"", bpmn.NewValue);
-        Assert.DoesNotContain("\\u00", bpmn.NewValue);
+        Assert.DoesNotContain("\\u00", bpmn.NewValue, StringComparison.Ordinal);
 
         var meta = edits.Single(e => e.Span.File == "App/config/applicationmetadata.json");
-        Assert.Contains("\\u00", meta.NewValue);
+        Assert.Contains("\\u00", meta.NewValue, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1024,11 +1022,11 @@ public sealed class AppSymbolsTests
         var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
 
         Assert.NotNull(hover);
-        Assert.Contains("**Component** `field-a` — Input", hover);
-        Assert.Contains("Page `P1`", hover);
-        Assert.Contains("layout-set `Task_1`", hover);
-        Assert.Contains("simpleBinding → `project.x`", hover);
-        Assert.Contains("1 reference", hover);
+        Assert.Contains("**Component** `field-a` — Input", hover, StringComparison.Ordinal);
+        Assert.Contains("Page `P1`", hover, StringComparison.Ordinal);
+        Assert.Contains("layout-set `Task_1`", hover, StringComparison.Ordinal);
+        Assert.Contains("simpleBinding → `project.x`", hover, StringComparison.Ordinal);
+        Assert.Contains("1 reference", hover, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1039,8 +1037,8 @@ public sealed class AppSymbolsTests
 
         var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
 
-        Assert.Contains("**Text key** `key.a`", hover);
-        Assert.Contains("nb: `A`", hover);
+        Assert.Contains("**Text key** `key.a`", hover, StringComparison.Ordinal);
+        Assert.Contains("nb: `A`", hover, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1065,8 +1063,8 @@ public sealed class AppSymbolsTests
 
         var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
 
-        Assert.Contains("**Text key** `general.back`", hover);
-        Assert.Contains("Built-in frontend text", hover);
+        Assert.Contains("**Text key** `general.back`", hover, StringComparison.Ordinal);
+        Assert.Contains("Built-in frontend text", hover, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1077,8 +1075,8 @@ public sealed class AppSymbolsTests
 
         var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
 
-        Assert.Contains("**Data model** `project.x`", hover);
-        Assert.Contains("string", hover);
+        Assert.Contains("**Data model** `project.x`", hover, StringComparison.Ordinal);
+        Assert.Contains("string", hover, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1089,9 +1087,9 @@ public sealed class AppSymbolsTests
 
         var (l, c) = At(settings, "\"P1\"", 1);
         var hover = symbols.SymbolHover("App/ui/Task_1/Settings.json", l, c);
-        Assert.Contains("**Page** `P1`", hover);
-        Assert.Contains("Layout-set `Task_1`", hover);
-        Assert.Contains("2 components", hover);
+        Assert.Contains("**Page** `P1`", hover, StringComparison.Ordinal);
+        Assert.Contains("Layout-set `Task_1`", hover, StringComparison.Ordinal);
+        Assert.Contains("2 components", hover, StringComparison.Ordinal);
 
         var (nl, nc) = At(NavLayout, "\"Input\"", 1);
         Assert.Null(symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", nl, nc));

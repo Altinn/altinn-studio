@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -28,7 +27,7 @@ public sealed class SelectionOptionsRuleTests
             .Validate();
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
-        Assert.Contains(type, finding.Message);
+        Assert.Contains(type, finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]

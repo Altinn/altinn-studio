@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Validation;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;

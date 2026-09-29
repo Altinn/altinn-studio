@@ -1,5 +1,4 @@
 using System.Text;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -50,7 +49,7 @@ public sealed class FileSystemAppDirectoryTests : IDisposable
     {
         var act = () => _dir.Delete("nothing-here.json");
         var ex = Assert.Throws<FileNotFoundException>(act);
-        Assert.Contains("cannot delete", ex.Message);
+        Assert.Contains("cannot delete", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -67,7 +66,7 @@ public sealed class FileSystemAppDirectoryTests : IDisposable
     {
         var act = () => _dir.Rename("missing.json", "anywhere.json");
         var ex = Assert.Throws<FileNotFoundException>(act);
-        Assert.Contains("source does not exist", ex.Message);
+        Assert.Contains("source does not exist", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -77,7 +76,7 @@ public sealed class FileSystemAppDirectoryTests : IDisposable
         _dir.WriteAllBytes("b.json", [2]);
         var act = () => _dir.Rename("a.json", "b.json");
         var ex = Assert.Throws<IOException>(act);
-        Assert.Contains("destination already exists", ex.Message);
+        Assert.Contains("destination already exists", ex.Message, StringComparison.Ordinal);
         Assert.True(_dir.Exists("a.json"));
     }
 
@@ -114,7 +113,7 @@ public sealed class FileSystemAppDirectoryTests : IDisposable
         var rel = "../" + Path.GetFileName(outside);
         var act = () => _dir.WriteAllBytes(rel, [1]);
         var ex = Assert.Throws<ArgumentException>(act);
-        Assert.Contains("escapes the app root", ex.Message);
+        Assert.Contains("escapes the app root", ex.Message, StringComparison.Ordinal);
         Assert.False(File.Exists(outside));
     }
 
@@ -124,7 +123,7 @@ public sealed class FileSystemAppDirectoryTests : IDisposable
         _dir.WriteAllBytes("a.json", [1]);
         var act = () => _dir.Rename("a.json", "../escaped.json");
         var ex = Assert.Throws<ArgumentException>(act);
-        Assert.Contains("escapes the app root", ex.Message);
+        Assert.Contains("escapes the app root", ex.Message, StringComparison.Ordinal);
         Assert.True(_dir.Exists("a.json"));
     }
 }

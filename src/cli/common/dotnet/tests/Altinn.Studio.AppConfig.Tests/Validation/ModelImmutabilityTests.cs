@@ -6,7 +6,7 @@ namespace Altinn.Studio.AppConfig.Tests.Validation;
 
 public sealed class ModelImmutabilityTests
 {
-    private static readonly Type[] MutableCollectionDefinitions =
+    private static readonly Type[] _mutableCollectionDefinitions =
     {
         typeof(List<>),
         typeof(Dictionary<,>),
@@ -32,7 +32,7 @@ public sealed class ModelImmutabilityTests
             foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var pt = prop.PropertyType;
-                if (pt.IsGenericType && MutableCollectionDefinitions.Contains(pt.GetGenericTypeDefinition()))
+                if (pt.IsGenericType && _mutableCollectionDefinitions.Contains(pt.GetGenericTypeDefinition()))
                     violations.Add($"{type.Name}.{prop.Name}: {pt.Name}");
             }
         }
@@ -69,7 +69,7 @@ public sealed class ModelImmutabilityTests
             var type = value.GetType();
             if (type.IsArray)
                 violations.Add($"{owner}.{property}: {type.Name}");
-            else if (type.IsGenericType && MutableCollectionDefinitions.Contains(type.GetGenericTypeDefinition()))
+            else if (type.IsGenericType && _mutableCollectionDefinitions.Contains(type.GetGenericTypeDefinition()))
                 violations.Add($"{owner}.{property}: {type.Name}");
         }
 
