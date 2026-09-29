@@ -36,6 +36,11 @@ const START_RUNTIME: &str = "Start Microsandbox VM";
 const UPDATE_RUNTIME_RESOURCES: &str = "Update Microsandbox VM resources";
 const UPDATE_RUNTIME_ENVIRONMENT: &str = "Update Microsandbox environment";
 
+/// How long a stopping runtime may take to shut its guest down before it is
+/// killed. Microsandbox's own `stop` waits indefinitely, so a wedged guest
+/// would otherwise block stopping and deleting the Sandbox.
+const STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
     pub(crate) client: Client,
@@ -184,18 +189,39 @@ impl MicrosandboxProvider {
             }
             if config.spec.resources.memory_mib != desired.memory_mib {
                 modification = modification
-                    .memory_mib(desired.memory_mib)
-                    .max_memory_mib(config.spec.resources.max_memory_mib.max(desired.memory_mib));
+                    .memory(desired.memory_mib)
+                    .max_memory(config.spec.resources.max_memory_mib.max(desired.memory_mib));
                 runtime_change = true;
             }
             if current_root_filesystem_mib < desired.root_filesystem_mib {
-                modification = modification.root_disk_size_mib(desired.root_filesystem_mib);
+                modification = modification.root_disk_size(desired.root_filesystem_mib);
                 runtime_change = true;
             }
             if runtime_change {
                 self.prepare_runtime_network(&record)?;
                 let step = progress.start_step(UPDATE_RUNTIME_RESOURCES).await;
-                modification.restart().apply().await.map_err(error::microsandbox)?;
+                // A running VM is restarted here rather than by Microsandbox,
+                // whose restart stops without a deadline and relaunches with
+                // whatever runtime the home holds. The change is persisted for
+                // the next start first, so a rejected change leaves the VM
+                // running, and the root disk grows before that start boots.
+                // The runtime is installed first, since a resource change can
+                // come before the first start after an upgrade.
+                let running = map_state(handle.status_snapshot()) == SandboxState::Running;
+                if running {
+                    self.client.ensure_installed().await?;
+                    modification = modification.next_start();
+                }
+                modification.apply().await.map_err(error::microsandbox)?;
+                if running {
+                    stop_runtime(&handle, &record.runtime_name).await?;
+                    self.runtime_handle(&record.runtime_name)
+                        .await?
+                        .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, &record.id))?
+                        .start_detached()
+                        .await
+                        .map_err(error::microsandbox)?;
+                }
                 step.complete().await;
             }
         }
@@ -264,7 +290,7 @@ impl MicrosandboxProvider {
         if let Some(handle) = self.runtime_handle(&record.runtime_name).await?
             && map_state(handle.status_snapshot()) == SandboxState::Running
         {
-            handle.stop().await.map_err(error::microsandbox)?;
+            stop_runtime(&handle, &record.runtime_name).await?;
         }
         self.executions
             .borrow_mut()
@@ -707,6 +733,22 @@ impl RuntimeMount {
     }
 }
 
+/// Stops a running VM gracefully, killing it after [`STOP_TIMEOUT`].
+async fn stop_runtime(handle: &microsandbox::sandbox::SandboxHandle, name: &str) -> Result<(), Error> {
+    match handle.stop_with_timeout(STOP_TIMEOUT).await {
+        Ok(()) => Ok(()),
+        Err(microsandbox::MicrosandboxError::StopTimeout { .. }) => {
+            tracing::warn!(
+                sandbox = %name,
+                timeout = ?STOP_TIMEOUT,
+                "Microsandbox VM did not stop in time; killing it"
+            );
+            handle.kill().await.map_err(error::microsandbox)
+        }
+        Err(error) => Err(error::microsandbox(error)),
+    }
+}
+
 const fn map_state(status: SandboxStatus) -> SandboxState {
     match status {
         SandboxStatus::Starting | SandboxStatus::Running | SandboxStatus::Draining | SandboxStatus::Paused => {
@@ -853,14 +895,14 @@ mod tests {
 
     #[tokio::test(flavor = "local")]
     async fn tmpfs_capacity_maps_to_microsandbox() {
-        let config = RuntimeMount::Tmpfs {
-            target: "/tmp".to_string(),
-            capacity_mib: 4096,
-        }
-        .apply(microsandbox::sandbox::SandboxBuilder::new("sandbox").image("alpine"))
-        .build()
-        .await
-        .expect("Sandbox configuration should build");
+        let config = Box::pin(crate::client::build_in_client_scope(
+            RuntimeMount::Tmpfs {
+                target: "/tmp".to_string(),
+                capacity_mib: 4096,
+            }
+            .apply(microsandbox::sandbox::SandboxBuilder::new("sandbox").image("alpine")),
+        ))
+        .await;
 
         assert!(matches!(
             config.spec.mounts.as_slice(),

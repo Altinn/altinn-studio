@@ -1,4 +1,5 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use microsandbox_network::control::NETWORK_CONTROL_PROTOCOL;
 use sandbox::{

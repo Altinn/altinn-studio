@@ -14,6 +14,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
+- Agents run on a newer sandbox runtime, which `agentd` installs by itself; running Agents move to it when they restart. Once the new `agentd` has started, earlier releases cannot read Agent state, so you cannot downgrade. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
 - On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
   inside an Agent as they do on the host.
 - `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer
@@ -29,8 +30,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Security
 
-- Changing a running Agent's resources after `agentd` restarted no longer restarts the Agent with network access that
-  bypasses network authorization and secret mediation.
+- Changing a running Agent's resources after an `agentd` restart no longer gives the Agent network access that bypasses network authorization and secret mediation. ([#20826](https://github.com/Altinn/altinn-studio/pull/20826))
+- An Agent can no longer tunnel non-HTTP traffic through an HTTPS connection to an allowed host to bypass network authorization and secret mediation. WebSocket connections keep working. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
 
 ## [0.1.0-preview.7] - 2026-09-28
 

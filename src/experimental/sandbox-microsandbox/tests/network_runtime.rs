@@ -1,4 +1,5 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use std::{cell::RefCell, panic::AssertUnwindSafe, rc::Rc};
 
@@ -236,6 +237,21 @@ async fn assert_mediated_secret_enforcement(sandbox: &SandboxHandle, policy: &Re
             ["header"]
         );
     }
+
+    // A placeholder the secret is not substituted into, such as conversation history in a model
+    // request body, does not block the request.
+    let history = sandbox
+        .run_execution(shell(
+            "wget -T 10 -S -O /dev/null --header='Authorization: Bearer $MEDIATED_TOKEN' \
+             --post-data='history: $MEDIATED_TOKEN' https://example.net 2>&1; true",
+        ))
+        .await
+        .expect("request with a body placeholder should execute");
+    let history = String::from_utf8_lossy(&history.stdout);
+    assert!(
+        history.contains("HTTP/1.1 "),
+        "a placeholder in the request body blocked the request: {history}"
+    );
 
     policy.deny("secret.use");
     let denied = sandbox
