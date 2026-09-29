@@ -206,4 +206,68 @@ public class TranslationServiceTests
         );
         Assert.Equal("Feltet er påkrevd", resultNb);
     }
+
+    [Theory]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
+    [InlineData("backend.validation_errors.missing_signatures", null, "Det mangler påkrevde signaturer.")]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.Nb,
+        "Signerte data er endret etter at signaturen ble utført."
+    )]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.Nn,
+        "Signerte data er endra etter at signaturen vart utført."
+    )]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.En,
+        "The signed data has been modified after the signature was made."
+    )]
+    [InlineData(
+        "backend.validation_errors.file_infected",
+        LanguageConst.En,
+        "The file is infected with malware and cannot be used."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback(string key, string? language, string expected)
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, language);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "backend.validation_errors.file_too_large",
+        "maxSize",
+        "25",
+        "Filen er for stor. Maks filstørrelse er 25 MB."
+    )]
+    [InlineData(
+        "backend.validation_errors.too_many_data_elements",
+        "maxCount",
+        "3",
+        "Du kan ikke laste opp flere enn 3 filer."
+    )]
+    [InlineData("backend.validation_errors.too_few_data_elements", "minCount", "2", "Du må laste opp minst 2 vedlegg.")]
+    public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
+        string key,
+        string parameter,
+        string value,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, LanguageConst.Nb, new() { [parameter] = value });
+
+        Assert.Equal(expected, result);
+    }
 }

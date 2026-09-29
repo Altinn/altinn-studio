@@ -68,12 +68,12 @@ public class SignatureHashValidatorTests
     }
 
     [Theory]
-    [InlineData(LanguageConst.Nb, "Signerte data er endret etter at signaturen ble utført.")]
-    [InlineData(LanguageConst.Nn, "Signerte data er endra etter at signaturen vart utført.")]
-    [InlineData(LanguageConst.En, "The signed data has been modified after the signature was made.")]
-    [InlineData(null, "Signerte data er endret etter at signaturen ble utført.")]
-    [InlineData("fr", "The signed data has been modified after the signature was made.")]
-    public async Task Validate_WithInvalidSignatureHash_ReturnsValidationIssue(string? language, string description)
+    [InlineData(LanguageConst.Nb)]
+    [InlineData(LanguageConst.Nn)]
+    [InlineData(LanguageConst.En)]
+    [InlineData(null)]
+    [InlineData("fr")]
+    public async Task Validate_WithInvalidSignatureHash_ReturnsValidationIssue(string? language)
     {
         const string testData = "test data";
         const string storedHash = "different-hash";
@@ -91,7 +91,8 @@ public class SignatureHashValidatorTests
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.InvalidSignatureHash, result[0].Code);
         Assert.Equal(ValidationIssueSeverity.Error, result[0].Severity);
-        Assert.Equal(description, result[0].Description);
+        Assert.Equal("backend.validation_errors.invalid_signature_hash", result[0].CustomTextKey);
+        Assert.Null(result[0].Description);
     }
 
     [Fact]

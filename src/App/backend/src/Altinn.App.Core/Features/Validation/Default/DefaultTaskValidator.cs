@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -38,7 +39,11 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
                 {
                     Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
+                    CustomTextKey = "backend.validation_errors.too_many_data_elements",
+                    CustomTextParameters = new Dictionary<string, string>
+                    {
+                        ["maxCount"] = dataType.MaxCount.ToString(CultureInfo.InvariantCulture),
+                    },
                     Field = dataType.Id,
                 };
                 messages.Add(message);
@@ -50,7 +55,11 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
                 {
                     Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
+                    CustomTextKey = "backend.validation_errors.too_few_data_elements",
+                    CustomTextParameters = new Dictionary<string, string>
+                    {
+                        ["minCount"] = dataType.MinCount.ToString(CultureInfo.InvariantCulture),
+                    },
                     Field = dataType.Id,
                 };
                 messages.Add(message);

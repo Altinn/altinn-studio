@@ -32,8 +32,7 @@ internal sealed class MimeTypeValidator : IFileValidator
             {
                 Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                 Severity = ValidationIssueSeverity.Error,
-                Description =
-                    $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}",
+                CustomTextKey = "backend.validation_errors.content_type_not_allowed",
             };
 
             errors.Add(error);

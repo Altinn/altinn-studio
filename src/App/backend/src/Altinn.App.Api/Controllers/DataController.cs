@@ -349,7 +349,12 @@ public class DataController : ControllerBase
                 bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
                 string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
 
-                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(dataType, bytes, filename);
+                var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
+                    dataType,
+                    bytes,
+                    filename,
+                    language
+                );
                 if (fileValidationIssues != null)
                 {
                     return new DataPostErrorResponse("File validation failed", fileValidationIssues);
@@ -588,7 +593,7 @@ public class DataController : ControllerBase
                 return await PutFormData(instance, versions, dataElement, dataTypeObject, language);
             }
 
-            return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject);
+            return await PutBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, dataTypeObject, language);
         }
         catch (PlatformHttpException e)
         {
@@ -1033,7 +1038,8 @@ public class DataController : ControllerBase
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
-        DataType dataType
+        DataType dataType,
+        string? language
     )
     {
         //TODO: Consider having a rule that disables PUT for binary data elements.
@@ -1073,7 +1079,8 @@ public class DataController : ControllerBase
         var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
             dataType,
             bytes,
-            contentDispositionHeader.FileName.ToString()
+            contentDispositionHeader.FileName.ToString(),
+            language
         );
         if (fileValidationIssues != null)
         {
