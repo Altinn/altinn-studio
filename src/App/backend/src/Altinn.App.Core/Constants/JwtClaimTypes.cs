@@ -1,9 +1,7 @@
-using Altinn.App.Core.Constants;
-
-namespace Altinn.App.Core.Features.Maskinporten.Constants;
+namespace Altinn.App.Core.Constants;
 
 /// <summary>
-/// Relevant known Digdir JWT claim types.
+/// JWT claim types the app reads or issues.
 /// </summary>
 internal static class JwtClaimTypes
 {

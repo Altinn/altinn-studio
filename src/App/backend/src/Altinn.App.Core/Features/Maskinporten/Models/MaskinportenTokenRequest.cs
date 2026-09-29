@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Features.Maskinporten.Models;
