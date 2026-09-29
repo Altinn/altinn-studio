@@ -870,6 +870,103 @@ public sealed class LspServerTests
         Assert.Contains(diagnostics, d => d.GetProperty("code").GetString() == "REF-PAGE-FILE");
     }
 
+    [Fact]
+    public void Initialize_AppDirectoryRoot_PublishesDiagnosticsForOpenBufferAtRepositoryPath()
+    {
+        using var app = new TempApp();
+        app.WriteFile(
+            "App/config/applicationmetadata.json",
+            """{"id":"ttd/lsp","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[]}"""
+        );
+        app.WriteFile("App/ui/Task_1/Settings.json", """{"pages":{"order":["Page1"]}}""");
+        app.WriteFile("App/ui/Task_1/layouts/Page1.json", """{"data":{"layout":[]}}""");
+        var settingsUri = app.Uri("App/ui/Task_1/Settings.json");
+
+        var messages = RunSession(Path.Combine(app.Root, "App"), ("ui/Task_1/Settings.json", SettingsJson));
+
+        Assert.Contains(
+            DiagnosticsFor(messages, settingsUri),
+            d => d.GetProperty("code").GetString() == "REF-PAGE-FILE"
+        );
+    }
+
+    [Fact]
+    public void Initialize_WorkspaceFolders_PicksAppDirectoryFolder()
+    {
+        using var app = new TempApp();
+        using var elsewhere = new TempApp();
+        app.WriteFile(
+            "App/config/applicationmetadata.json",
+            """{"id":"ttd/lsp","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[]}"""
+        );
+        app.WriteFile("App/ui/Task_1/Settings.json", """{"pages":{"order":["Page1"]}}""");
+        app.WriteFile("App/ui/Task_1/layouts/Page1.json", """{"data":{"layout":[]}}""");
+        var settingsUri = app.Uri("App/ui/Task_1/Settings.json");
+
+        var input = new MemoryStream();
+        WriteFrame(
+            input,
+            new
+            {
+                jsonrpc = "2.0",
+                id = 1,
+                method = "initialize",
+                @params = new
+                {
+                    workspaceFolders = new[]
+                    {
+                        new { uri = new Uri(elsewhere.Root).AbsoluteUri, name = "other" },
+                        new { uri = app.Uri("App"), name = "App" },
+                    },
+                },
+            }
+        );
+        WriteFrame(
+            input,
+            new
+            {
+                jsonrpc = "2.0",
+                method = "initialized",
+                @params = new { },
+            }
+        );
+        WriteFrame(
+            input,
+            new
+            {
+                jsonrpc = "2.0",
+                method = "textDocument/didOpen",
+                @params = new
+                {
+                    textDocument = new
+                    {
+                        uri = settingsUri,
+                        languageId = "json",
+                        version = 1,
+                        text = SettingsJson,
+                    },
+                },
+            }
+        );
+        input.Position = 0;
+        var output = new MemoryStream();
+
+        new LspServer(input, output, () => null).Run();
+
+        Assert.Contains(
+            DiagnosticsFor(ParseFrames(output.ToArray()), settingsUri),
+            d => d.GetProperty("code").GetString() == "REF-PAGE-FILE"
+        );
+    }
+
+    private static JsonElement.ArrayEnumerator DiagnosticsFor(List<JsonElement> messages, string uri) =>
+        messages
+            .Where(m => m.TryGetProperty("method", out var me) && me.GetString() == "textDocument/publishDiagnostics")
+            .Select(m => m.GetProperty("params"))
+            .Single(p => p.GetProperty("uri").GetString() == uri)
+            .GetProperty("diagnostics")
+            .EnumerateArray();
+
     // Protocol exit codes: 0 when exit follows shutdown (with late requests rejected as
     // InvalidRequest), 1 when the stream ends without an orderly shutdown.
     [Fact]

@@ -33,27 +33,29 @@ public sealed class AppConfigEngine
 
     public static AppConfigEngine Open(string root) => Open(ResolveDirectory(root));
 
-    internal static FileSystemAppDirectory ResolveDirectory(string root)
+    public static FileSystemAppDirectory? TryResolveDirectory(string root)
     {
-        var appDir = ResolveAppDir(root);
-        var parent =
-            Path.GetDirectoryName(appDir)
-            ?? throw new InvalidOperationException($"not an altinn app directory: {root} (App/ has no parent)");
-        return new FileSystemAppDirectory(parent);
+        ArgumentNullException.ThrowIfNull(root);
+        var abs = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
+        if (ContainsAppConfig(abs))
+            return new FileSystemAppDirectory(abs);
+        if (
+            string.Equals(Path.GetFileName(abs), "App", StringComparison.Ordinal)
+            && Path.GetDirectoryName(abs) is { } parent
+            && ContainsAppConfig(parent)
+        )
+            return new FileSystemAppDirectory(parent);
+        return null;
     }
 
-    private static string ResolveAppDir(string root)
-    {
-        var abs = Path.GetFullPath(root);
-        foreach (var candidate in new[] { abs, Path.Combine(abs, "App") })
-        {
-            if (Directory.Exists(Path.Combine(candidate, "config")))
-                return candidate;
-        }
-        throw new InvalidOperationException(
-            $"not an altinn app directory: {root} (expected {abs}/config or {abs}/App/config to exist)"
+    private static bool ContainsAppConfig(string repositoryRoot) =>
+        Directory.Exists(Path.Combine(repositoryRoot, "App", "config"));
+
+    internal static FileSystemAppDirectory ResolveDirectory(string root) =>
+        TryResolveDirectory(root)
+        ?? throw new InvalidOperationException(
+            $"not an altinn app directory: {root} (expected App/config beneath it, or config/ in it as the App directory)"
         );
-    }
 
     internal IReadOnlyList<string> LastReparsed { get; private set; } = Array.Empty<string>();
 

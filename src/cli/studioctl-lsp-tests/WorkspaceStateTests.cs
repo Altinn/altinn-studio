@@ -62,6 +62,28 @@ public sealed class WorkspaceStateTests
     }
 
     [Fact]
+    public void SetRoot_AppDirectory_MapsPathsFromRepositoryRoot()
+    {
+        var repository = Directory.CreateTempSubdirectory("ws-repo-");
+        try
+        {
+            var appDirectory = Path.Combine(repository.FullName, "App");
+            Directory.CreateDirectory(Path.Combine(appDirectory, "config"));
+            var settings = Path.Combine(appDirectory, "ui", "Task_1", "Settings.json");
+
+            var workspace = Workspace(appDirectory);
+
+            Assert.True(WorkspaceState.IsAppDirectory(appDirectory));
+            Assert.Equal("App/ui/Task_1/Settings.json", workspace.Relativize(settings));
+            Assert.Equal(new Uri(settings).AbsoluteUri, workspace.ToUri("App/ui/Task_1/Settings.json"));
+        }
+        finally
+        {
+            repository.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void Relativize_RootedRelativeResult_IsRejected()
     {
         if (!OperatingSystem.IsWindows())
