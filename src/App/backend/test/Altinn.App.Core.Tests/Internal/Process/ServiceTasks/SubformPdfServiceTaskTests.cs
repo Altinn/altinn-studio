@@ -12,7 +12,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 
@@ -36,7 +35,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -46,7 +44,6 @@ public class SubformPdfServiceTaskTests
                     IInstanceDataMutator _,
                     string? _,
                     SubformPdfContext subformContext,
-                    List<KeyValueEntry>? _,
                     StorageAuthenticationMethod? _,
                     CancellationToken _
                 ) =>
@@ -85,7 +82,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.Is<string?>(filename => filename == FileName),
                     It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -114,7 +110,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -142,7 +137,6 @@ public class SubformPdfServiceTaskTests
                     It.Is<SubformPdfContext>(ctx =>
                         ctx.DataElementId == "data-element-1" || ctx.DataElementId == "data-element-2"
                     ),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -168,7 +162,7 @@ public class SubformPdfServiceTaskTests
     // ===== METADATA TESTS =====
 
     [Fact]
-    public async Task Execute_Should_PassMetadataToGenerateAndStoreSubformPdf()
+    public async Task Execute_Should_PassSubformContextToGenerateAndStoreSubformPdf()
     {
         // Arrange
         SetupProcessReader();
@@ -178,20 +172,15 @@ public class SubformPdfServiceTaskTests
         // Act
         await _serviceTask.Execute(context);
 
-        // Assert - verify metadata was passed to the pdf service for both PDFs
+        // Assert - verify the subform was passed to the pdf service for both PDFs
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateAndStoreSubformPdf(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.Is<List<KeyValueEntry>?>(metadata =>
-                        metadata != null
-                        && metadata.Any(m => m.Key == "subformComponentId" && m.Value == SubformComponentId)
-                        && metadata.Any(m =>
-                            m.Key == "subformDataElementId"
-                            && (m.Value == "data-element-1" || m.Value == "data-element-2")
-                        )
+                    It.Is<SubformPdfContext>(subform =>
+                        subform.ComponentId == SubformComponentId
+                        && (subform.DataElementId == "data-element-1" || subform.DataElementId == "data-element-2")
                     ),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
@@ -290,7 +279,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.Is<string?>(filename => filename == null),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -314,7 +302,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -340,7 +327,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -350,7 +336,6 @@ public class SubformPdfServiceTaskTests
                     IInstanceDataMutator _,
                     string? _,
                     SubformPdfContext subformContext,
-                    List<KeyValueEntry>? _,
                     StorageAuthenticationMethod? _,
                     CancellationToken _
                 ) =>
@@ -389,7 +374,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -403,7 +387,7 @@ public class SubformPdfServiceTaskTests
     // ===== INTEGRATION SCENARIOS =====
 
     [Fact]
-    public async Task Execute_WithMultipleSubformDataElements_Should_PassCorrectMetadataForEach()
+    public async Task Execute_WithMultipleSubformDataElements_Should_PassCorrectSubformForEach()
     {
         // Arrange
         SetupProcessReader();
@@ -413,17 +397,13 @@ public class SubformPdfServiceTaskTests
         // Act
         await _serviceTask.Execute(context);
 
-        // Assert - verify each PDF gets metadata with correct data element id
+        // Assert - verify each PDF gets the correct data element id
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateAndStoreSubformPdf(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.Is<List<KeyValueEntry>?>(metadata =>
-                        metadata != null
-                        && metadata.Any(m => m.Key == "subformDataElementId" && m.Value == "data-element-1")
-                    ),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-1"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -435,11 +415,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateAndStoreSubformPdf(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.Is<List<KeyValueEntry>?>(metadata =>
-                        metadata != null
-                        && metadata.Any(m => m.Key == "subformDataElementId" && m.Value == "data-element-2")
-                    ),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-2"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -451,11 +427,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateAndStoreSubformPdf(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.Is<List<KeyValueEntry>?>(metadata =>
-                        metadata != null
-                        && metadata.Any(m => m.Key == "subformDataElementId" && m.Value == "data-element-3")
-                    ),
+                    It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-3"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -484,7 +456,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.Is<SubformPdfContext>(ctx => ctx.DataElementId == "single-data-element"),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -511,7 +482,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -538,7 +508,6 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string?>(),
                     It.IsAny<SubformPdfContext>(),
-                    It.IsAny<List<KeyValueEntry>?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.Is<CancellationToken>(cancellationToken => cancellationToken == cts.Token)
                 ),

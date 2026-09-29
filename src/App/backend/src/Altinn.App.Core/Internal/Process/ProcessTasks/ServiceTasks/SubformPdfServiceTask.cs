@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
@@ -50,17 +49,10 @@ internal sealed class SubformPdfServiceTask(
                 taskId
             );
 
-            var metadata = new List<KeyValueEntry>
-            {
-                new() { Key = "subformComponentId", Value = subformComponentId },
-                new() { Key = "subformDataElementId", Value = dataElement.Id },
-            };
-
             _ = await pdfService.GenerateAndStoreSubformPdf(
                 context.InstanceDataMutator,
                 filenameTextResourceKey,
                 new SubformPdfContext(subformComponentId, dataElement.Id),
-                metadata: metadata,
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                 cancellationToken: context.CancellationToken
             );

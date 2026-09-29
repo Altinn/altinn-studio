@@ -729,6 +729,62 @@ public class PdfServiceTests
         );
     }
 
+    [Fact]
+    public async Task GenerateAndStoreSubformPdf_Stores_Which_Subform_The_Pdf_Was_Made_From()
+    {
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+        var mutatorMock = CreateMutatorMock(instance);
+
+        await target.GenerateAndStoreSubformPdf(
+            mutatorMock.Object,
+            customFileNameTextResourceKey: null,
+            new SubformPdfContext("subform-component", "subform-data-element")
+        );
+
+        mutatorMock.Verify(
+            m =>
+                m.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    It.IsAny<string>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    "Task_1",
+                    It.Is<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>(metadata =>
+                        metadata != null
+                        && metadata.Count == 2
+                        && metadata.Any(entry =>
+                            entry.Key == "subformComponentId" && entry.Value == "subform-component"
+                        )
+                        && metadata.Any(entry =>
+                            entry.Key == "subformDataElementId" && entry.Value == "subform-data-element"
+                        )
+                    )
+                ),
+            Times.Once
+        );
+    }
+
     private static Mock<IInstanceDataMutator> CreateMutatorMock(
         Instance instance,
         Mock<IAppResources>? appResources = null

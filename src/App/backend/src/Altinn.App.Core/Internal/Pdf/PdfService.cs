@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
@@ -92,7 +91,6 @@ internal sealed class PdfService : IPdfService
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey,
         SubformPdfContext subformPdfContext,
-        List<KeyValueEntry>? metadata = null,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
@@ -109,7 +107,6 @@ internal sealed class PdfService : IPdfService
             subformPdfContext,
             null,
             authenticationMethod,
-            metadata,
             cancellationToken
         );
     }
@@ -214,7 +211,6 @@ internal sealed class PdfService : IPdfService
         SubformPdfContext? subformPdfContext,
         List<string>? autoGeneratePdfForTaskIds,
         StorageAuthenticationMethod? authenticationMethod,
-        List<KeyValueEntry>? metadata = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -258,7 +254,14 @@ internal sealed class PdfService : IPdfService
             fileName,
             pdfBytes,
             generatedFromTask: taskId,
-            metadata: metadata
+            // A subform PDF says which subform it was made from
+            metadata: subformPdfContext is null
+                ? null
+                :
+                [
+                    new() { Key = "subformComponentId", Value = subformPdfContext.ComponentId },
+                    new() { Key = "subformDataElementId", Value = subformPdfContext.DataElementId },
+                ]
         );
 
         return change;

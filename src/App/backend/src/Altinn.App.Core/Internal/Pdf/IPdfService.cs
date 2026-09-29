@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
-using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
@@ -28,12 +27,12 @@ public interface IPdfService
     );
 
     /// <summary>
-    /// Generate a PDF for a subform and store it via the instance data mutator.
+    /// Generate a PDF for a subform and store it via the instance data mutator. The stored PDF gets the metadata
+    /// <c>subformComponentId</c> and <c>subformDataElementId</c> from the subform context, so it can be matched to its subform.
     /// </summary>
     /// <param name="instanceDataMutator">The instance data mutator used for deferred storage.</param>
     /// <param name="customFileNameTextResourceKey">A text resource element id for the file name of the PDF. If no text resource is found, the literal value will be used. If null, a default file name will be used.</param>
     /// <param name="subformPdfContext">The subform-specific context containing component and data element identifiers.</param>
-    /// <param name="metadata">Optional metadata to associate with the created data element.</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     /// <returns>The created binary data change representing the deferred PDF.</returns>
@@ -41,7 +40,6 @@ public interface IPdfService
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey,
         SubformPdfContext subformPdfContext,
-        List<KeyValueEntry>? metadata = null,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
