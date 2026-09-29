@@ -28,7 +28,7 @@ class FatalSyncError extends Error {
 // --- Service & environment definitions ---
 
 function envDisplayName(name) {
-  return name.replace(/^(runtime_|studio_)/, '');
+  return name.replace(/^(runtime_|studio_|adminservices_)/, '');
 }
 
 function createEnv(name, aliases = [], ungated = false) {
@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio)-/, '')
+    .replace(/^deploy-(runtime|studio|admin)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -66,9 +66,12 @@ const STUDIO_ENVS = Object.freeze([
   createEnv('staging', [], true),
   createEnv('prod', ['preapproved-prod']),
 ]);
+// Admin workflows name their tag jobs after the matrix tag, e.g. "Tag syncroot (test)".
+const ADMIN_ENVS = Object.freeze([createEnv('adminservices_test', ['test'], true)]);
 const PLANE_DEFINITIONS = Object.freeze([
   { name: 'runtime', envs: RUNTIME_ENVS },
   { name: 'studio', envs: STUDIO_ENVS },
+  { name: 'admin', envs: ADMIN_ENVS },
 ]);
 
 function service(workflow, planeDefs) {
@@ -87,6 +90,18 @@ const STUDIO_WORKFLOWS = [
   'deploy-studio-otel-operator.yaml',
   'deploy-studio-observability.yaml',
   'deploy-lhci-server.yaml',
+  'deploy-runner-org-sync.yaml',
+  'deploy-studio-ai-agents.yaml',
+  'deploy-studio-external-secrets-operator.yaml',
+  'deploy-studio-keyvault-secret-store.yaml',
+  'deploy-studio-ssl-cert.yaml',
+];
+// Deployed to Studio prod only (override-default-studio-environments: prod).
+const STUDIO_PROD_WORKFLOWS = ['deploy-github-runners.yaml', 'deploy-sandbox-node.yaml'];
+const ADMIN_WORKFLOWS = [
+  'deploy-admin-syncroot.yaml',
+  'deploy-admin-workflow-engine-db.yaml',
+  'deploy-admin-workflow-engine-tenant-db-template.yaml',
 ];
 const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-gateway.yaml', RUNTIME_ENVS],
@@ -106,6 +121,8 @@ const SERVICES = [
     ['studio', STUDIO_ENVS],
   ]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
+  ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
+  ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
   ...STUDIO_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS]])),
 ];
