@@ -64,6 +64,9 @@ Invariants:
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.
+- The editor extensions are separate release components (`studioctl-vscode`, `studioctl-rider`) with
+  their own changelogs and `release/<component>` labels; see
+  [`studioctl-lsp/AGENTS.md`](studioctl-lsp/AGENTS.md).
 
 ### Local dev flows (build/serve from source)
 

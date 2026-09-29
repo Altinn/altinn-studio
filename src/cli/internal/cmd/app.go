@@ -116,11 +116,13 @@ func (c *AppCommand) Usage() string {
 		"  env       Print app environment for local development",
 		"  logs      Stream app logs",
 		"  maskinporten  Store the Maskinporten client the app uses for local runs",
+		"  lsp       Language server for apps",
 		"  ps        List running apps",
 		"  run       Run app locally",
 		"  stop      Stop running apps",
 		"  update    Update Altinn.App NuGet packages and frontend",
 		"  upgrade   Upgrade app structure",
+		"  vet       Vet app static configuration",
 		"",
 		fmt.Sprintf("Run '%s app <subcommand> --help' for more information.", osutil.CurrentBin()),
 	)
@@ -157,6 +159,10 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runUpdate(ctx, subArgs)
 	case "upgrade":
 		return c.runUpgrade(ctx, subArgs)
+	case "vet":
+		return c.runVet(ctx, subArgs)
+	case "lsp":
+		return c.runLsp(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil
