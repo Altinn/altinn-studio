@@ -140,8 +140,8 @@ jobs:
         run: |
           if gh release view "studioctl-rider/${VERSION}" >/dev/null 2>&1; then
             echo "Release studioctl-rider/${VERSION} already exists; continuing in retry mode"
-            mkdir -p ../../build/release
-            gh release view "studioctl-rider/${VERSION}" --json body -q .body > ../../build/release/release-notes.md
+            mkdir -p "${GITHUB_WORKSPACE}/build/release"
+            gh release view "studioctl-rider/${VERSION}" --json body -q .body > "${GITHUB_WORKSPACE}/build/release/release-notes.md"
           else
             go run . workflow --component studioctl-rider --base-branch "$BASE_BRANCH"
           fi
@@ -161,6 +161,7 @@ jobs:
         run: gh release upload "studioctl-rider/${VERSION}" src/cli/studioctl-lsp/rider/build/distributions/*.zip --clobber
 
       - name: Publish to JetBrains Marketplace
+        id: publish
         env:
           JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
           JETBRAINS_PUBLISH_CHANNEL: ${{ needs.resolve-release-context.outputs.channel }}
@@ -184,7 +185,10 @@ jobs:
               fi
               ;;
             404)
-              echo "Plugin not yet listed on the marketplace; proceeding to publish"
+              rm -f listing.txt
+              echo "::warning::studio.altinn.lsp is not on JetBrains Marketplace yet. Its first version must be uploaded manually through the Marketplace web UI, using the plugin zip attached to the studioctl-rider/${VERSION} GitHub release; skipping publish."
+              echo "first_upload_required=true" >> "$GITHUB_OUTPUT"
+              exit 0
               ;;
             *)
               echo "Marketplace lookup failed with HTTP ${status}:" >&2
@@ -208,6 +212,7 @@ jobs:
           PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
           RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}
           MARKETPLACE_CHANNEL: ${{ needs.resolve-release-context.outputs.channel }}
+          FIRST_UPLOAD_REQUIRED: ${{ steps.publish.outputs.first_upload_required }}
         run: |
           {
             echo "## Release Summary"
@@ -219,6 +224,9 @@ jobs:
             echo "- **Version**: ${RELEASE_VERSION}"
             echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
             echo "- **Marketplace channel**: ${MARKETPLACE_CHANNEL}"
+            if [[ "${FIRST_UPLOAD_REQUIRED}" == "true" ]]; then
+              echo "- **Marketplace publish**: skipped. The first version of studio.altinn.lsp must be uploaded manually through the JetBrains Marketplace web UI, using the plugin zip attached to the studioctl-rider/${RELEASE_VERSION} GitHub release."
+            fi
             echo "- **Version source**: latest released section in src/cli/studioctl-lsp/rider/CHANGELOG.md"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
