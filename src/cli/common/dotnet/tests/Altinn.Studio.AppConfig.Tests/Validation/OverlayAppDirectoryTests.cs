@@ -1,5 +1,4 @@
 using System.Text;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;

@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -38,8 +37,8 @@ public sealed class RepGroupChildIndexRuleTests
             .Validate();
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
-        Assert.Contains("items[0].subfield", finding.Message);
-        Assert.Contains("bind \"items.subfield\"", finding.Message);
+        Assert.Contains("items[0].subfield", finding.Message, StringComparison.Ordinal);
+        Assert.Contains("bind \"items.subfield\"", finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]

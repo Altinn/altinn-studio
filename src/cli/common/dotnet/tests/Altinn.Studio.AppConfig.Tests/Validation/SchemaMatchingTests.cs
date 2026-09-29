@@ -1,5 +1,4 @@
 using Altinn.Studio.AppConfig.Documents;
-using Altinn.Studio.AppConfig.Validation;
 using Altinn.Studio.AppConfig.Validation.Schemas;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -44,7 +43,7 @@ public sealed class SchemaMatchingTests
         var report = AppConfigEngine.Open(dir).ValidateSchemas(schemas);
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == "JSONSCHEMA-VALID");
-        Assert.Contains("size", finding.Message);
+        Assert.Contains("size", finding.Message, StringComparison.Ordinal);
         Assert.Equal("App/ui/Task_1/layouts/P1.json", finding.Position.File);
     }
 

@@ -1,5 +1,4 @@
 using System.Text;
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Validation.Schemas;
 using Altinn.Studio.AppDist;
@@ -88,7 +87,7 @@ public sealed class AppDistSchemasTests
         Assert.NotNull(schemas);
         var report = AppConfigEngine.Open(app).ValidateSchemas(schemas);
         var finding = Assert.Single(report.Findings, f => f.RuleId == "JSONSCHEMA-VALID");
-        Assert.Contains("size", finding.Message);
+        Assert.Contains("size", finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]

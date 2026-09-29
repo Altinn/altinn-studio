@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Validation;
 
@@ -73,7 +72,10 @@ public sealed class RuleFalsePositiveTests
         );
         var findings = Validate(dir);
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("sensitive"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("sensitive", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -90,7 +92,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", layout),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope", StringComparison.Ordinal)
+        );
     }
 
     private const string RecursiveModel = """
@@ -142,7 +147,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", layout),
             ("App/models/model.schema.json", RecursiveModel)
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -205,7 +213,10 @@ public sealed class RuleFalsePositiveTests
                 """{"properties":{"people":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}}}"""
             )
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("people.nope"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("people.nope", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -302,7 +313,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", layout),
             ("App/models/model.schema.json", """{"properties":{"title":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "BINDING-KIND" && f.Message.Contains("title"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "BINDING-KIND" && f.Message.Contains("title", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -345,7 +359,10 @@ public sealed class RuleFalsePositiveTests
                 """{"properties":{"people":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}}}"""
             )
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("0:nm"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("0:nm", StringComparison.Ordinal)
+        );
     }
 
     private const string WrappedModel = """
@@ -391,7 +408,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", layout),
             ("App/models/model.schema.json", WrappedModel)
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("nope", StringComparison.Ordinal)
+        );
     }
 
     private const string RootModelCs = """
@@ -442,7 +462,10 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"known":{"type":"string"}}}"""),
             ("App/models/Root.cs", RootModelCs)
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghost"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghost", StringComparison.Ordinal)
+        );
     }
 
     private const string ExprMeta =
@@ -468,7 +491,7 @@ public sealed class RuleFalsePositiveTests
     public void Expr_Component_MissingRef_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["component","ghost"],"y"]"""),
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost")
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -493,14 +516,14 @@ public sealed class RuleFalsePositiveTests
     public void Expr_DisplayValue_MissingRef_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["displayValue","ghost"],"y"]"""),
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost")
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost", StringComparison.Ordinal)
         );
 
     [Fact]
     public void Expr_DataModel_MissingPath_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["dataModel","ghostPath"],"y"]"""),
-            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostPath")
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostPath", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -516,7 +539,10 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}"""),
             ("App/models/other.schema.json", """{"properties":{"field":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("field"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("field", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -534,21 +560,24 @@ public sealed class RuleFalsePositiveTests
         );
         var findings = Validate(dir);
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("other"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("other", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
     public void Expr_DataModel_ThreeArg_UnknownDataType_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["dataModel","x","ghostType"],"y"]"""),
-            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType")
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType", StringComparison.Ordinal)
         );
 
     [Fact]
     public void Expr_Text_MissingKey_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["text","ghost.key"],"y"]"""),
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("ghost.key")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("ghost.key", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -568,29 +597,35 @@ public sealed class RuleFalsePositiveTests
     public void Expr_OptionLabel_MissingOptionsId_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["equals",["optionLabel","ghostList","v"],"y"]"""),
-            f => f.RuleId == "REF-OPTIONS-ID" && f.Message.Contains("ghostList")
+            f => f.RuleId == "REF-OPTIONS-ID" && f.Message.Contains("ghostList", StringComparison.Ordinal)
         );
 
     [Fact]
     public void Expr_LinkToComponent_RefIsArg2NotArg1()
     {
         var findings = ValidateExpr("""["linkToComponent","Click here","ghost",true]""");
-        Assert.Contains(findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost"));
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("Click here"));
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("Click here", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
     public void Expr_LinkToPage_MissingPage_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["linkToPage","Go","ghostPage",true]"""),
-            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("ghostPage")
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("ghostPage", StringComparison.Ordinal)
         );
 
     [Fact]
     public void Expr_CountDataElements_MissingDataType_IsFlagged() =>
         Assert.Contains(
             ValidateExpr("""["greaterThan",["countDataElements","ghostType"],0]"""),
-            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType")
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -604,7 +639,7 @@ public sealed class RuleFalsePositiveTests
     public void Expr_NestedExpressionArg_IsCollected() =>
         Assert.Contains(
             ValidateExpr("""["equals",["optionLabel","someList",["dataModel","ghostPath"]],"y"]"""),
-            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostPath")
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostPath", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -619,7 +654,10 @@ public sealed class RuleFalsePositiveTests
             ),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghost", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -649,7 +687,10 @@ public sealed class RuleFalsePositiveTests
             ),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostField"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("ghostField", StringComparison.Ordinal)
+        );
     }
 
     private const string OneTaskBpmn = """
@@ -670,7 +711,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}"""),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("ghostPage"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("ghostPage", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -701,7 +745,10 @@ public sealed class RuleFalsePositiveTests
             ),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -736,8 +783,14 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
         var findings = Validate(dir);
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Group1"));
-        Assert.Contains(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("group.title"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Group1", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("group.title", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -751,7 +804,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}"""),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("GhostTask"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-TASK-ID" && f.Message.Contains("GhostTask", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -770,7 +826,10 @@ public sealed class RuleFalsePositiveTests
         );
         var findings = Validate(dir);
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-TASK-ID");
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Utfylling"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("Utfylling", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -784,7 +843,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}"""),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("tasks.form"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("tasks.form", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -801,8 +863,14 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
         var findings = Validate(dir);
-        Assert.Contains(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("footer.privacy"));
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("altinn.no"));
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("footer.privacy", StringComparison.Ordinal)
+        );
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("altinn.no", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -870,8 +938,15 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
         var findings = Validate(dir);
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("general.back"));
-        Assert.Contains(findings, f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("not.a.builtin.key"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("general.back", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f =>
+                f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("not.a.builtin.key", StringComparison.Ordinal)
+        );
     }
 
     private const string V8Csproj = """
@@ -902,7 +977,7 @@ public sealed class RuleFalsePositiveTests
         var f = Assert.Single(findings);
         Assert.Equal("APP-VERSION-SUPPORTED", f.RuleId);
         Assert.Equal(Severity.Error, f.Severity);
-        Assert.Contains("Altinn.App.Api 8.12.0", f.Message);
+        Assert.Contains("Altinn.App.Api 8.12.0", f.Message, StringComparison.Ordinal);
         Assert.Equal("App/App.csproj", f.Position.File);
         Assert.DoesNotContain(findings, x => x.RuleId == "REF-PAGE-FILE");
     }
@@ -910,16 +985,23 @@ public sealed class RuleFalsePositiveTests
     [Fact]
     public void AppVersion_V9Package_ValidatesNormally()
     {
-        var findings = Validate(App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "9.1.0"))));
+        var findings = Validate(
+            App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "9.1.0", StringComparison.Ordinal)))
+        );
         Assert.DoesNotContain(findings, f => f.RuleId == "APP-VERSION-SUPPORTED");
-        Assert.Contains(findings, f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("GhostPage"));
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-PAGE-FILE" && f.Message.Contains("GhostPage", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
     public void AppVersion_SourceBuildAndResolvableIndirections_Pass()
     {
         Assert.DoesNotContain(
-            Validate(App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "9.0.0-preview.5")))),
+            Validate(
+                App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "9.0.0-preview.5", StringComparison.Ordinal)))
+            ),
             f => f.RuleId == "APP-VERSION-SUPPORTED"
         );
 
@@ -1030,10 +1112,12 @@ public sealed class RuleFalsePositiveTests
     [Fact]
     public void AppVersion_UndeterminableVersion_FailsLoudly()
     {
-        var undefined = Validate(App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "$(SomewhereElse)"))));
+        var undefined = Validate(
+            App(ExprMeta, BrokenAppFiles(V8Csproj.Replace("8.12.0", "$(SomewhereElse)", StringComparison.Ordinal)))
+        );
         var f = Assert.Single(undefined);
         Assert.Equal("APP-VERSION-SUPPORTED", f.RuleId);
-        Assert.Contains("could not determine", f.Message);
+        Assert.Contains("could not determine", f.Message, StringComparison.Ordinal);
 
         const string cpmCsproj = """
             <Project Sdk="Microsoft.NET.Sdk.Web">
@@ -1049,11 +1133,11 @@ public sealed class RuleFalsePositiveTests
             )
             .ToArray();
         var coreFinding = Assert.Single(Validate(App(ExprMeta, files)));
-        Assert.Contains("Altinn.App.Core 8.5.0", coreFinding.Message);
+        Assert.Contains("Altinn.App.Core 8.5.0", coreFinding.Message, StringComparison.Ordinal);
 
         const string noRef = """<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup /></Project>""";
         var noRefFinding = Assert.Single(Validate(App(ExprMeta, BrokenAppFiles(noRef))));
-        Assert.Contains("no Altinn.App package or project reference", noRefFinding.Message);
+        Assert.Contains("no Altinn.App package or project reference", noRefFinding.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1073,7 +1157,7 @@ public sealed class RuleFalsePositiveTests
 
         Assert.Single(engine.Validate().Findings, f => f.RuleId == "APP-VERSION-SUPPORTED");
 
-        dir.Set("App/App.csproj", V8Csproj.Replace("8.12.0", "9.1.0"));
+        dir.Set("App/App.csproj", V8Csproj.Replace("8.12.0", "9.1.0", StringComparison.Ordinal));
         var after = engine.Validate().Findings;
         Assert.DoesNotContain(after, f => f.RuleId == "APP-VERSION-SUPPORTED");
         Assert.Contains(after, f => f.RuleId == "REF-PAGE-FILE");
@@ -1095,7 +1179,7 @@ public sealed class RuleFalsePositiveTests
         Validate(
             App(
                 ExprMeta,
-                ("App/config/process/process.bpmn", ExprBpmn.Replace("EXPR", expr)),
+                ("App/config/process/process.bpmn", ExprBpmn.Replace("EXPR", expr, StringComparison.Ordinal)),
                 ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
                 ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}"""),
                 ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
@@ -1113,13 +1197,17 @@ public sealed class RuleFalsePositiveTests
     [Fact]
     public void Bpmn_ConditionExpression_BadPath_IsFlaggedAtItsToken()
     {
-        var bpmn = ExprBpmn.Replace("EXPR", """["equals",["dataModel","ghostPath","model"],true]""");
+        var bpmn = ExprBpmn.Replace(
+            "EXPR",
+            """["equals",["dataModel","ghostPath","model"],true]""",
+            StringComparison.Ordinal
+        );
         var findings = ValidateBpmnExpr("""["equals",["dataModel","ghostPath","model"],true]""");
         var f = Assert.Single(findings, x => x.RuleId == "REF-DATAMODEL-PATH");
-        Assert.Contains("ghostPath", f.Message);
+        Assert.Contains("ghostPath", f.Message, StringComparison.Ordinal);
         Assert.Equal("App/config/process/process.bpmn", f.Position.File);
         var lines = bpmn.Split('\n');
-        var line = Array.FindIndex(lines, l => l.Contains("\"ghostPath\"")) + 1;
+        var line = Array.FindIndex(lines, l => l.Contains("\"ghostPath\"", StringComparison.Ordinal)) + 1;
         Assert.Equal(line, f.Position.Line);
         Assert.Equal(lines[line - 1].IndexOf("\"ghostPath\"", StringComparison.Ordinal) + 1, f.Position.Column);
     }
@@ -1128,7 +1216,7 @@ public sealed class RuleFalsePositiveTests
     public void Bpmn_ConditionExpression_UnknownDataTypeArg_IsFlagged() =>
         Assert.Contains(
             ValidateBpmnExpr("""["equals",["dataModel","x","ghostType"],true]"""),
-            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType")
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -1140,7 +1228,7 @@ public sealed class RuleFalsePositiveTests
         );
         Assert.Contains(
             ValidateBpmnExpr("""["equals",["dataModel","inNoModelAtAll"],true]"""),
-            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("inNoModelAtAll")
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("inNoModelAtAll", StringComparison.Ordinal)
         );
     }
 
@@ -1148,7 +1236,7 @@ public sealed class RuleFalsePositiveTests
     public void Bpmn_ConditionExpression_MalformedJson_IsSyntaxFlagged() =>
         Assert.Contains(
             ValidateBpmnExpr("not valid json at all"),
-            f => f.RuleId == "SYNTAX-VALID" && f.Message.Contains("conditionExpression")
+            f => f.RuleId == "SYNTAX-VALID" && f.Message.Contains("conditionExpression", StringComparison.Ordinal)
         );
 
     [Fact]
@@ -1172,7 +1260,10 @@ public sealed class RuleFalsePositiveTests
         );
         var findings = Validate(dir);
         Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
-        Assert.DoesNotContain(findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("model"));
+        Assert.DoesNotContain(
+            findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("model", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1187,7 +1278,10 @@ public sealed class RuleFalsePositiveTests
                 """{"properties":{"a":{"type":"object","properties":{"b":{"type":"string"}}}}}"""
             )
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("a.ghost"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATAMODEL-PATH" && f.Message.Contains("a.ghost", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1199,7 +1293,10 @@ public sealed class RuleFalsePositiveTests
             ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}"""),
             ("App/models/model.schema.json", """{"properties":{"a":{"type":"string"}}}""")
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType"));
+        Assert.Contains(
+            Validate(dir),
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostType", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1214,7 +1311,12 @@ public sealed class RuleFalsePositiveTests
         );
         var findings = Validate(dir);
         Assert.Contains(findings, f => f.RuleId == "DEPRECATED-CONFIG" && f.Position.Pointer == "/eFormidling");
-        Assert.DoesNotContain(findings, f => f.Message.Contains("GhostTask") || f.Message.Contains("ghostType"));
+        Assert.DoesNotContain(
+            findings,
+            f =>
+                f.Message.Contains("GhostTask", StringComparison.Ordinal)
+                || f.Message.Contains("ghostType", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1227,8 +1329,14 @@ public sealed class RuleFalsePositiveTests
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
         var findings = Validate(dir);
-        Assert.Contains(findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostShadow"));
-        Assert.Contains(findings, f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostExcluded"));
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostShadow", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            findings,
+            f => f.RuleId == "REF-DATATYPE-ID" && f.Message.Contains("ghostExcluded", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -1242,7 +1350,7 @@ public sealed class RuleFalsePositiveTests
         );
         Assert.Contains(
             Validate(dir),
-            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("scope.error.key")
+            f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("scope.error.key", StringComparison.Ordinal)
         );
     }
 }

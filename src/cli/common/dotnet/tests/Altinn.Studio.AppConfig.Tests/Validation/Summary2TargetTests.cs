@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -25,7 +24,7 @@ public sealed class Summary2TargetTests
         var report = AppConfigEngine.Open(App("""{ "type": "layoutSet", "id": "Nope" }""")).Validate();
 
         var finding = Assert.Single(report.Findings, f => f.RuleId == "REF-LAYOUT-SET");
-        Assert.Contains("Nope", finding.Message);
+        Assert.Contains("Nope", finding.Message, StringComparison.Ordinal);
         Assert.Equal("/data/layout/0/target/id", finding.Position.Pointer);
     }
 

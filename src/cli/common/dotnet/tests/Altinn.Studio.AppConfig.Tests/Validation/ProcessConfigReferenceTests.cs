@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
@@ -58,10 +57,10 @@ public sealed class ProcessConfigReferenceTests
             .Findings.Where(f => f.RuleId == "REF-DATATYPE-ID")
             .ToList();
 
-        Assert.Contains(findings, f => f.Message.Contains("missing-shipment"));
-        Assert.Contains(findings, f => f.Message.Contains("missing-subform"));
-        Assert.DoesNotContain(findings, f => f.Message.Contains("\"model\""));
-        var shipment = findings.Single(f => f.Message.Contains("missing-shipment"));
+        Assert.Contains(findings, f => f.Message.Contains("missing-shipment", StringComparison.Ordinal));
+        Assert.Contains(findings, f => f.Message.Contains("missing-subform", StringComparison.Ordinal));
+        Assert.DoesNotContain(findings, f => f.Message.Contains("\"model\"", StringComparison.Ordinal));
+        var shipment = findings.Single(f => f.Message.Contains("missing-shipment", StringComparison.Ordinal));
         Assert.Equal("/process/task[2]/dataTypes/1", shipment.Position.Pointer);
     }
 
@@ -71,7 +70,7 @@ public sealed class ProcessConfigReferenceTests
         var findings = AppConfigEngine.Open(App()).Validate().Findings.Where(f => f.RuleId == "REF-TASK-ID").ToList();
 
         var missing = Assert.Single(findings);
-        Assert.Contains("Task_missing", missing.Message);
+        Assert.Contains("Task_missing", missing.Message, StringComparison.Ordinal);
         Assert.Equal("/process/task[1]/autoPdfTaskIds/1", missing.Position.Pointer);
     }
 
@@ -85,7 +84,7 @@ public sealed class ProcessConfigReferenceTests
             .ToList();
 
         var filename = Assert.Single(findings);
-        Assert.Contains("pdf.filename", filename.Message);
-        Assert.Contains("Task_pdf", filename.Message);
+        Assert.Contains("pdf.filename", filename.Message, StringComparison.Ordinal);
+        Assert.Contains("Task_pdf", filename.Message, StringComparison.Ordinal);
     }
 }

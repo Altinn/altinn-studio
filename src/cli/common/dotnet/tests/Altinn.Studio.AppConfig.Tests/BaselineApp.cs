@@ -2,7 +2,7 @@ using Altinn.Studio.AppConfig.Documents;
 
 namespace Altinn.Studio.AppConfig.Tests;
 
-public sealed record PatchCase(string Name, params (string Path, string Content)[] Files);
+internal sealed record PatchCase(string Name, params (string Path, string Content)[] Files);
 
 internal static class BaselineApp
 {
