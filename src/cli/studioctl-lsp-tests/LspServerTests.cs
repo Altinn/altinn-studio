@@ -549,7 +549,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output).Run();
+        new LspServer(input, output, () => null).Run();
 
         var messages = ParseFrames(output.ToArray());
         var parseError = messages.Single(m => m.TryGetProperty("error", out _));
@@ -603,7 +603,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output).Run();
+        new LspServer(input, output, () => null).Run();
 
         var messages = ParseFrames(output.ToArray());
         var failed = messages.Single(m =>
@@ -769,7 +769,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output).Run();
+        new LspServer(input, output, () => null).Run();
 
         // The diagnostic comes from the replayed buffer (MissingPage), not the clean disk file.
         var diagnostics = ParseFrames(output.ToArray())
@@ -846,7 +846,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output).Run();
+        new LspServer(input, output, () => null).Run();
 
         var messages = ParseFrames(output.ToArray());
         var init = messages.Single(m => m.TryGetProperty("id", out var id) && id.GetInt32() == 1);
@@ -901,7 +901,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        var exitCode = new LspServer(input, output).Run();
+        var exitCode = new LspServer(input, output, () => null).Run();
 
         Assert.Equal(0, exitCode);
         var late = ParseFrames(output.ToArray())
@@ -926,7 +926,7 @@ public sealed class LspServerTests
         );
         input.Position = 0;
 
-        Assert.Equal(1, new LspServer(input, new MemoryStream()).Run());
+        Assert.Equal(1, new LspServer(input, new MemoryStream(), () => null).Run());
     }
 
     // initialize(root) → initialized → optional didOpen(openDoc) → extraFrames, then runs the
@@ -981,7 +981,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output).Run();
+        new LspServer(input, output, () => null).Run();
 
         return ParseFrames(output.ToArray());
     }

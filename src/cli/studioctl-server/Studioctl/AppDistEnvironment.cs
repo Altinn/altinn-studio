@@ -1,10 +1,12 @@
-namespace Altinn.Studio.AppDist;
+using Altinn.Studio.AppDist;
+
+namespace Altinn.Studio.StudioctlServer.Studioctl;
 
 /// <summary>
 /// studioctl hands the cache directory to its .NET hosts in this variable. The Go side declares the
 /// same name as <c>config.EnvAppDistCache</c> in <c>internal/config/config.go</c>.
 /// </summary>
-public static class AppDistEnvironment
+internal static class AppDistEnvironment
 {
     public const string CacheDirectoryVariable = "STUDIOCTL_APP_DIST_CACHE";
 
