@@ -67,8 +67,9 @@ impl PlatformAdapter for NoopPlatform {
     }
 }
 
+/// Holds the first Sandbox ensure of the named Agent until released.
 struct Blocking {
-    agent: AgentId,
+    agent: &'static str,
     calls: Rc<Cell<usize>>,
     started: Rc<Notify>,
     release: Rc<Notify>,
@@ -121,7 +122,7 @@ impl Provider for MemoryProvider {
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             if let Some(blocking) = &self.blocking
-                && record.id == blocking.agent
+                && record.agent.metadata.name == blocking.agent
             {
                 let call = blocking.calls.get() + 1;
                 blocking.calls.set(call);
@@ -218,6 +219,12 @@ impl PlannedProvider {
             inner: MemoryProvider::new(backend),
             failures: RefCell::new(failures.into_iter().collect()),
         }
+    }
+
+    /// Holds the first ensure that has no planned failure left.
+    fn with_blocking(mut self, blocking: Blocking) -> Self {
+        self.inner = self.inner.with_blocking(blocking);
+        self
     }
 }
 
@@ -1480,11 +1487,16 @@ struct Waiting {
 }
 
 async fn waiting(failures: impl IntoIterator<Item = PlannedFailure>) -> Waiting {
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    waiting_on(backend.clone(), PlannedProvider::new(backend, failures)).await
+}
+
+/// Like [`waiting`], with a caller-built Provider over `backend`.
+async fn waiting_on(backend: Rc<sandbox_memory::Provider>, provider: PlannedProvider) -> Waiting {
     let changes = Changes::new();
     let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
-    let backend = Rc::new(sandbox_memory::Provider::new());
-    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(backend.clone(), failures));
+    let provider: Rc<dyn Provider> = Rc::new(provider);
     let provisioning = ProvisioningState::new(changes.clone());
     let reconciler = Rc::new(Reconciler::new(
         store.clone(),
@@ -1756,23 +1768,30 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
 
 #[tokio::test(flavor = "local")]
 async fn dropping_a_wait_does_not_stop_background_reconciliation() {
-    let fixture = waiting([PlannedFailure::Transient("temporary runtime failure".into())]).await;
-    let id = fixture.id().await;
+    // The retry after the transient failure is held, so no pass can succeed
+    // before the wait is dropped.
+    let started = Rc::new(Notify::new());
+    let release = Rc::new(Notify::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider = PlannedProvider::new(
+        backend.clone(),
+        [PlannedFailure::Transient("temporary runtime failure".into())],
+    )
+    .with_blocking(Blocking {
+        agent: "worker",
+        calls: Rc::default(),
+        started: started.clone(),
+        release: release.clone(),
+    });
+    let fixture = waiting_on(backend, provider).await;
     let waiting = fixture.execution.clone();
     let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
-    tokio::time::timeout(Duration::from_secs(1), async {
-        while !fixture.provisioning.get(id).is_some_and(|pass| {
-            matches!(
-                pass.progress.status(),
-                sandbox::progress::OperationStatus::Failed { .. }
-            )
-        }) {
-            tokio::time::sleep(Duration::from_millis(1)).await;
-        }
-    })
-    .await
-    .expect("transient failure recorded");
+    tokio::time::timeout(Duration::from_secs(1), started.notified())
+        .await
+        .expect("the retry after the transient failure should start");
+    assert!(!wait.is_finished(), "the wait follows the held retry");
     wait.abort();
+    release.notify_one();
 
     tokio::time::timeout(Duration::from_secs(1), async {
         while fixture.backend.count() == 0 {
@@ -1798,7 +1817,7 @@ async fn controller_runs_agents_concurrently_and_serializes_reruns_per_id() {
     let release = Rc::new(Notify::new());
     let slow_calls = Rc::new(Cell::new(0));
     let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()).with_blocking(Blocking {
-        agent: slow,
+        agent: "slow",
         calls: slow_calls.clone(),
         started: started.clone(),
         release: release.clone(),
