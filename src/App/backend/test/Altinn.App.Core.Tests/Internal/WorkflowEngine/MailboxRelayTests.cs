@@ -69,6 +69,8 @@ public class MailboxRelayTests
 
         public List<Guid> Closes { get; } = [];
 
+        public RecordingCallbackTokenGenerator Tokens { get; } = new();
+
         public List<(
             Guid DependsOn,
             string CollectionKey,
@@ -206,10 +208,7 @@ public class MailboxRelayTests
 
         return new MailboxRelay(
             new RecordingEngineClient(recorder),
-            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
-                g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
-                == "callback-token"
-            ),
+            recorder.Tokens,
             new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
             processEngine.Object
         );
@@ -716,11 +715,11 @@ public class MailboxRelayTests
                 CancellationToken.None
             );
 
-        AppWorkflowContext context = Assert
-            .Single(recorder.Enqueues)
-            .Request.Context!.Value.Deserialize<AppWorkflowContext>()!;
-        Assert.Equal("callback-token", context.CallbackToken);
+        WorkflowEnqueueRequest request = Assert.Single(recorder.Enqueues).Request;
+        AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
         Assert.Equal(_instanceGuid, context.InstanceGuid);
+        Assert.Equal(new Actor { UserId = 1337 }, context.Actor);
+        recorder.Tokens.AssertMintedFor(request);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -783,8 +782,7 @@ public class MailboxRelayTests
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
         Assert.Equal(ArchivingReplyIndex, payload.ItemIndex);
 
-        AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
-        Assert.Equal("callback-token", context.CallbackToken);
+        recorder.Tokens.AssertMintedFor(request);
     }
 
     /// <summary>
@@ -1428,8 +1426,8 @@ public class MailboxRelayTests
         Assert.Equal("Task_2", request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
 
         AppWorkflowContext context = request.Context!.Value.Deserialize<AppWorkflowContext>()!;
-        Assert.Equal("callback-token", context.CallbackToken);
         Assert.Equal(_instanceGuid, context.InstanceGuid);
+        recorder.Tokens.AssertMintedFor(request);
     }
 
     /// <summary>
