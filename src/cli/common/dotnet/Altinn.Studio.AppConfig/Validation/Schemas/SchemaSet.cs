@@ -38,6 +38,7 @@ public sealed class SchemaSet
 
     public static SchemaSet FromFiles(IEnumerable<KeyValuePair<string, string>> files)
     {
+        ArgumentNullException.ThrowIfNull(files);
         var map = new Dictionary<string, JsonSchema>(StringComparer.Ordinal);
         var warnings = new List<string>();
         foreach (var (path, text) in files)

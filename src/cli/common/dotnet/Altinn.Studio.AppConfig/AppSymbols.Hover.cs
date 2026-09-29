@@ -1,4 +1,3 @@
-using System.Text;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
@@ -9,6 +8,7 @@ public sealed partial class AppSymbols
 {
     public string? SymbolHover(string file, int line, int col)
     {
+        ArgumentNullException.ThrowIfNull(file);
         var model = _config.Current;
         if (SymbolAt(model, file, line, col) is not { } sym)
             return null;

@@ -196,7 +196,7 @@ public sealed partial class AppSymbols
             return el;
         foreach (var raw in pointer.Split('/').Skip(1))
         {
-            var seg = raw.Replace("~1", "/").Replace("~0", "~");
+            var seg = raw.Replace("~1", "/", StringComparison.Ordinal).Replace("~0", "~", StringComparison.Ordinal);
             if (el.ValueKind == JsonValueKind.Object)
             {
                 if (!el.TryGetProperty(seg, out el))

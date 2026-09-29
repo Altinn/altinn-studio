@@ -1,6 +1,3 @@
-using Altinn.Studio.AppConfig.Documents;
-using Altinn.Studio.AppConfig.Models;
-
 namespace Altinn.Studio.AppConfig;
 
 public sealed partial class AppSymbols

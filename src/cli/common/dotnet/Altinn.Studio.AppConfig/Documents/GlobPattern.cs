@@ -5,7 +5,7 @@ internal static class GlobPattern
 {
     public static bool Matches(string name, string pattern)
     {
-        var star = pattern.IndexOf('*');
+        var star = pattern.IndexOf('*', StringComparison.Ordinal);
         if (star < 0)
             return string.Equals(name, pattern, StringComparison.Ordinal);
         var prefix = pattern[..star];

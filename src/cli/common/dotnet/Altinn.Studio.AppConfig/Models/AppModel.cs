@@ -55,6 +55,7 @@ public sealed class AppModel
 
     public LayoutFolderRole FolderRole(LayoutSet set)
     {
+        ArgumentNullException.ThrowIfNull(set);
         if (Tasks.Any(t => string.Equals(t.Id, set.Id, StringComparison.Ordinal)))
             return LayoutFolderRole.Task;
         if (Refs.LayoutSets.Any(r => string.Equals(r.Value, set.Id, StringComparison.Ordinal)))

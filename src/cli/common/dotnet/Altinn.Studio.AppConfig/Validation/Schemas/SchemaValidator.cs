@@ -58,7 +58,7 @@ internal static class SchemaValidator
                 return findings;
             CollectInvalid(findings, schemaName, filePath, results);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             findings.Add(
                 new Finding(

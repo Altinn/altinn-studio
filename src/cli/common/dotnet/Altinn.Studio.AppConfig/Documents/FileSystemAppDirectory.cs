@@ -92,6 +92,7 @@ public sealed class FileSystemAppDirectory : IWritableAppDirectory, IHashingAppD
 
     public void WriteAllBytes(string relativePath, byte[] bytes)
     {
+        ArgumentNullException.ThrowIfNull(bytes);
         var p = AbsForWrite(relativePath);
         var parent = Path.GetDirectoryName(p);
         if (!string.IsNullOrEmpty(parent))

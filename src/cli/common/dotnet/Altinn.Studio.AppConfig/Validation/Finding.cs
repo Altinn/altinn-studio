@@ -1,5 +1,4 @@
 using Altinn.Studio.AppConfig.Documents.Text;
-using Altinn.Studio.AppConfig.Models;
 
 namespace Altinn.Studio.AppConfig.Validation;
 

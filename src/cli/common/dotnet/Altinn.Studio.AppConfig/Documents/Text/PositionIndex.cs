@@ -1,5 +1,3 @@
-using Altinn.Studio.AppConfig.Documents;
-
 namespace Altinn.Studio.AppConfig.Documents.Text;
 
 internal sealed class PositionIndex

@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.AppConfig.Building;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
@@ -26,7 +25,11 @@ public sealed class AppConfigEngine
         _snapshots = new SnapshotBuilder();
     }
 
-    public static AppConfigEngine Open(IAppDirectory dir) => new(dir);
+    public static AppConfigEngine Open(IAppDirectory dir)
+    {
+        ArgumentNullException.ThrowIfNull(dir);
+        return new(dir);
+    }
 
     public static AppConfigEngine Open(string root) => Open(ResolveDirectory(root));
 
@@ -89,5 +92,9 @@ public sealed class AppConfigEngine
 
     public SourceSpan ResolvePosition(SourceSpan span) => _positionIndex.Resolve(_dir, span);
 
-    public SourceSpan? ResolveNodeAt(string file, int line, int col) => _positionIndex.NodeAt(_dir, file, line, col);
+    public SourceSpan? ResolveNodeAt(string file, int line, int col)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        return _positionIndex.NodeAt(_dir, file, line, col);
+    }
 }

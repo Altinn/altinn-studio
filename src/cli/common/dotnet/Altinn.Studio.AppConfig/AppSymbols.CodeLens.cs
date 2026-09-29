@@ -1,4 +1,3 @@
-using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
 
@@ -8,6 +7,7 @@ public sealed partial class AppSymbols
 {
     public IReadOnlyList<CodeLensItem> CodeLenses(string file)
     {
+        ArgumentNullException.ThrowIfNull(file);
         var model = _config.Current;
 
         var byAnchor = new Dictionary<(int Line, int Column), (SourceSpan Range, List<SourceSpan> Locations)>();

@@ -5,11 +5,13 @@ internal static class JsonPointerEscaping
 {
     public static string Escape(string segment)
     {
-        if (segment.IndexOf('~') < 0 && segment.IndexOf('/') < 0)
+        if (segment.IndexOf('~', StringComparison.Ordinal) < 0 && segment.IndexOf('/', StringComparison.Ordinal) < 0)
             return segment;
-        return segment.Replace("~", "~0").Replace("/", "~1");
+        return segment.Replace("~", "~0", StringComparison.Ordinal).Replace("/", "~1", StringComparison.Ordinal);
     }
 
     public static string Unescape(string segment) =>
-        segment.IndexOf('~') < 0 ? segment : segment.Replace("~1", "/").Replace("~0", "~");
+        segment.IndexOf('~', StringComparison.Ordinal) < 0
+            ? segment
+            : segment.Replace("~1", "/", StringComparison.Ordinal).Replace("~0", "~", StringComparison.Ordinal);
 }

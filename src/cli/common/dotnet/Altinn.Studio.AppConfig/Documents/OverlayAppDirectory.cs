@@ -12,7 +12,11 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
 
     public string Root => _base.Root;
 
-    public void Set(string relativePath, byte[] bytes) => SetOwned(relativePath, (byte[])bytes.Clone());
+    public void Set(string relativePath, byte[] bytes)
+    {
+        ArgumentNullException.ThrowIfNull(bytes);
+        SetOwned(relativePath, (byte[])bytes.Clone());
+    }
 
     public void Set(string relativePath, string text) => SetOwned(relativePath, Encoding.UTF8.GetBytes(text));
 
@@ -73,6 +77,12 @@ public sealed class OverlayAppDirectory : IHashingAppDirectory
     }
 
     public IEnumerable<string> EnumerateFiles(string relativeDir, string searchPattern, bool recursive)
+    {
+        ArgumentNullException.ThrowIfNull(searchPattern);
+        return EnumerateMatchingFiles(relativeDir, searchPattern, recursive);
+    }
+
+    private IEnumerable<string> EnumerateMatchingFiles(string relativeDir, string searchPattern, bool recursive)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var file in _base.EnumerateFiles(relativeDir, searchPattern, recursive))
