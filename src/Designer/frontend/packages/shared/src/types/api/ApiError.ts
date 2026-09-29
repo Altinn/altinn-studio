@@ -5,5 +5,6 @@ export interface ApiError {
   title?: string;
   type?: string;
   errorCode?: string;
+  values?: Record<string, unknown>;
   customErrorMessages?: string[];
 }

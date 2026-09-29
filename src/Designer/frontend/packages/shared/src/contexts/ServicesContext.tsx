@@ -42,19 +42,24 @@ const handleError = (
     console.error(error);
   }
 
-  const renderToast = (key: string, detail?: string, options: ToastOptions = {}) => {
+  const renderToast = (
+    key: string,
+    values?: Record<string, unknown>,
+    detail?: string,
+    options: ToastOptions = {},
+  ) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
       const message = (
-        <>
-          {t(errorMessageKey)}{' '}
+        <div>
+          <Trans i18nKey={errorMessageKey} values={values} components={{ b: <strong /> }} />{' '}
           {detail && (
             <>
               <br />
               {`${t('app_error.details')}: ${detail}`}
             </>
           )}
-        </>
+        </div>
       );
       toast.error(message, {
         toastId: errorMessageKey,
@@ -66,6 +71,7 @@ const handleError = (
   };
 
   const errorCode = error?.response?.data?.errorCode;
+  const values = error?.response?.data?.values;
   const detail = error?.response?.data?.detail;
   const isSessionExpiredError =
     error?.response?.status === ServerCodes.Unauthorized &&
@@ -83,7 +89,7 @@ const handleError = (
     return;
 
   if (errorCode) {
-    return renderToast(errorCode, detail);
+    return renderToast(errorCode, values, detail);
   }
 
   renderDefaultToast();
