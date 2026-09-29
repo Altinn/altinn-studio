@@ -53,7 +53,7 @@ internal sealed class NotificationConditionTokenGenerator(INotificationCondition
             Claims = new Dictionary<string, object>
             {
                 [JwtClaimTypes.JwtId] = instanceGuid.ToString(),
-                [JwtClaimTypes.SecretId] = appCode.Id,
+                [JwtClaimTypes.AppCode.SecretId] = appCode.Id,
             },
             Expires = DateTime.UtcNow.AddDays(31),
             SigningCredentials = credentials,

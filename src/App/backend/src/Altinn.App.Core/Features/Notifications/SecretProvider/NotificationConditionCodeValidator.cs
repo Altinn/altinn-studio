@@ -67,7 +67,7 @@ internal sealed class NotificationConditionCodeValidator(
             return false;
         }
 
-        string? secretId = jwt.GetClaim(JwtClaimTypes.SecretId)?.Value;
+        string? secretId = jwt.GetClaim(JwtClaimTypes.AppCode.SecretId)?.Value;
         AppCode? appCode = secretId is not null
             ? secrets.FirstOrDefault(s => s.Id == secretId)
             : secrets.FirstOrDefault();
@@ -79,7 +79,10 @@ internal sealed class NotificationConditionCodeValidator(
                 secretId,
                 instanceGuid
             );
-            activity?.SetStatus(ActivityStatusCode.Error, $"No secret found for token {JwtClaimTypes.SecretId}.");
+            activity?.SetStatus(
+                ActivityStatusCode.Error,
+                $"No secret found for token {JwtClaimTypes.AppCode.SecretId}."
+            );
             return false;
         }
 

@@ -32,7 +32,7 @@ public class WorkflowCallbackTokenValidatorTests
         var claims = new Dictionary<string, object> { [JwtClaimTypes.JwtId] = instanceGuid.ToString() };
 
         if (secretId is not null)
-            claims[JwtClaimTypes.SecretId] = secretId;
+            claims[JwtClaimTypes.AppCode.SecretId] = secretId;
 
         return handler.CreateToken(
             new SecurityTokenDescriptor
