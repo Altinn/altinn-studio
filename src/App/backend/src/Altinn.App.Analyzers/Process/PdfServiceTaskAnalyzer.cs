@@ -3,9 +3,9 @@ using Altinn.App.Analyzers.Process;
 namespace Altinn.App.Analyzers;
 
 /// <summary>
-/// Validates the <c>pdf</c> service tasks in <c>config/process/process.bpmn</c> against the app's UI folders
-/// at build time. A PDF service task the frontend cannot render otherwise surfaces only when an instance
-/// reaches it - as a PDF generator timeout whose cause is logged only in the generator's browser console.
+/// Validates the <c>pdf</c> and <c>subformPdf</c> service tasks in <c>config/process/process.bpmn</c> against the
+/// app's UI folders at build time. A PDF service task the frontend cannot render otherwise surfaces only when an
+/// instance reaches it - as a PDF generator timeout whose cause is logged only in the generator's browser console.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class PdfServiceTaskAnalyzer : DiagnosticAnalyzer
@@ -15,6 +15,9 @@ public sealed class PdfServiceTaskAnalyzer : DiagnosticAnalyzer
             Diagnostics.Process.PdfServiceTaskHasNothingToRender,
             Diagnostics.Process.PdfServiceTaskConflictingContent,
             Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
+            Diagnostics.Process.SubformPdfServiceTaskIncomplete,
+            Diagnostics.Process.SubformPdfServiceTaskComponentNotFound,
+            Diagnostics.Process.SubformPdfServiceTaskDataTypeMismatch,
         ];
 
     public override void Initialize(AnalysisContext context)

@@ -154,6 +154,31 @@ public static class Diagnostics
             "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
                 + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
         );
+
+        public static readonly DiagnosticDescriptor SubformPdfServiceTaskIncomplete = Error(
+            "ALTINNAPP1003",
+            Category.Process,
+            "Subform PDF service task configuration is incomplete",
+            "Subform PDF service task '{0}' has no <altinn:{1}>, so generating its PDFs will fail. Configure "
+                + "<altinn:subformPdfConfig> with the <altinn:subformComponentId> and <altinn:subformDataTypeId> of "
+                + "the subform to render."
+        );
+
+        public static readonly DiagnosticDescriptor SubformPdfServiceTaskComponentNotFound = Error(
+            "ALTINNAPP1004",
+            Category.Process,
+            "Subform PDF service task cannot find its subform component",
+            "Subform PDF service task '{0}' renders the component '{1}', but {2}, so generating its PDFs will fail. "
+                + "The frontend looks the component up in the service task's own UI folder 'ui/{0}'."
+        );
+
+        public static readonly DiagnosticDescriptor SubformPdfServiceTaskDataTypeMismatch = Error(
+            "ALTINNAPP1005",
+            Category.Process,
+            "Subform PDF service task data type does not match its subform",
+            "Subform PDF service task '{0}' generates PDFs for data type '{1}', but its subform component '{2}' "
+                + "shows data type '{3}' (the defaultDataType of 'ui/{4}'). Set <altinn:subformDataTypeId> to '{3}'."
+        );
     }
 
     internal static class Deprecations

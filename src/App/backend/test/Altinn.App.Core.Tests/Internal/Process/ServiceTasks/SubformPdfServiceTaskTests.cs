@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
@@ -6,6 +7,8 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -21,10 +24,13 @@ public class SubformPdfServiceTaskTests
     private readonly Mock<IPdfService> _pdfServiceMock = new();
     private readonly Mock<ILogger<SubformPdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
+    private readonly Mock<IAppResources> _appResourcesMock = new();
     private readonly SubformPdfServiceTask _serviceTask;
 
+    private const string TaskId = "taskId";
     private const string SubformComponentId = "subform-mopeder";
     private const string SubformDataTypeId = "subform-data-type";
+    private const string SubformLayoutSet = "subform-layout";
     private const string FileName = "customFilenameTextResourceKey";
 
     public SubformPdfServiceTaskTests()
@@ -61,7 +67,21 @@ public class SubformPdfServiceTaskTests
                     )
             );
 
-        _serviceTask = new SubformPdfServiceTask(_processReaderMock.Object, _pdfServiceMock.Object, _loggerMock.Object);
+        // A renderable setup: the subform component in the task's own UI folder, pointing at a subform folder
+        // whose data type is the configured one.
+        _appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder(TaskId))
+            .Returns(LayoutModelWith(SubformComponentId, "Subform"));
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder(SubformLayoutSet))
+            .Returns(new LayoutSettings { DefaultDataType = SubformDataTypeId });
+
+        _serviceTask = new SubformPdfServiceTask(
+            _processReaderMock.Object,
+            _pdfServiceMock.Object,
+            _appResourcesMock.Object,
+            _loggerMock.Object
+        );
     }
 
     [Fact]
@@ -151,7 +171,7 @@ public class SubformPdfServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_WithNoPdfConfiguration_Should_Use_DefaultConfiguration()
+    public async Task Execute_WithNoPdfConfiguration_Should_FailPermanently()
     {
         // Arrange
         _processReaderMock
@@ -162,7 +182,12 @@ public class SubformPdfServiceTaskTests
         var context = CreateServiceTaskContext(instance);
 
         // Act
-        await Assert.ThrowsAsync<ApplicationConfigException>(async () => await _serviceTask.Execute(context));
+        var result = await _serviceTask.Execute(context);
+
+        // Assert - a configuration error does not go away on retry
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("subformPdfConfig node is missing", failed.ErrorMessage);
     }
 
     // ===== METADATA TESTS =====
@@ -203,7 +228,7 @@ public class SubformPdfServiceTaskTests
     // ===== CONFIGURATION VALIDATION TESTS =====
 
     [Fact]
-    public async Task Execute_WithMissingSubformComponentId_Should_ThrowApplicationConfigException()
+    public async Task Execute_WithMissingSubformComponentId_Should_FailPermanently()
     {
         // Arrange
         _processReaderMock
@@ -223,15 +248,17 @@ public class SubformPdfServiceTaskTests
         var instance = CreateInstanceWithSubformData();
         var context = CreateServiceTaskContext(instance);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await _serviceTask.Execute(context)
-        );
-        Assert.Contains("SubformComponentId", exception.Message);
+        // Act
+        var result = await _serviceTask.Execute(context);
+
+        // Assert
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("SubformComponentId", failed.ErrorMessage);
     }
 
     [Fact]
-    public async Task Execute_WithMissingSubformDataTypeId_Should_ThrowApplicationConfigException()
+    public async Task Execute_WithMissingSubformDataTypeId_Should_FailPermanently()
     {
         // Arrange
         _processReaderMock
@@ -251,11 +278,13 @@ public class SubformPdfServiceTaskTests
         var instance = CreateInstanceWithSubformData();
         var context = CreateServiceTaskContext(instance);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await _serviceTask.Execute(context)
-        );
-        Assert.Contains("SubformDataTypeId", exception.Message);
+        // Act
+        var result = await _serviceTask.Execute(context);
+
+        // Assert
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("SubformDataTypeId", failed.ErrorMessage);
     }
 
     [Fact]
@@ -544,6 +573,139 @@ public class SubformPdfServiceTaskTests
                 ),
             Times.AtLeastOnce
         );
+    }
+
+    // ===== RENDER CONFIGURATION TESTS =====
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_Task_Has_No_UI_Folder()
+    {
+        SetupProcessReader();
+        _appResourcesMock.Setup(x => x.GetLayoutModelForFolder(TaskId)).Returns((LayoutModel?)null);
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        AssertFailedPermanently(result, "there is no UI folder 'ui/taskId'");
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_Component_Is_Not_In_Own_UI_Folder()
+    {
+        SetupProcessReader();
+        _appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder(TaskId))
+            .Returns(LayoutModelWith("some-other-component", "Subform"));
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        AssertFailedPermanently(result, "no layout in 'ui/taskId' has a component with that id");
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_Component_Is_Not_A_Subform()
+    {
+        SetupProcessReader();
+        _appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder(TaskId))
+            .Returns(LayoutModelWith(SubformComponentId, "Input"));
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        AssertFailedPermanently(result, "it is a 'Input' component, not a Subform component");
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_Subform_Folder_Has_No_DefaultDataType()
+    {
+        SetupProcessReader();
+        _appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder(SubformLayoutSet)).Returns(new LayoutSettings());
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        AssertFailedPermanently(result, "its layoutSet 'subform-layout' is not a UI folder with a defaultDataType");
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_Data_Type_Does_Not_Match_The_Subform()
+    {
+        SetupProcessReader();
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder(SubformLayoutSet))
+            .Returns(new LayoutSettings { DefaultDataType = "other-type" });
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        AssertFailedPermanently(result, "shows data type 'other-type'");
+    }
+
+    [Fact]
+    public async Task Execute_Without_Subform_Data_Succeeds_Without_Checking_The_Layouts()
+    {
+        // Nothing is rendered, so an instance without subforms still completes - as it did before the check.
+        SetupProcessReader();
+        _appResourcesMock.Setup(x => x.GetLayoutModelForFolder(TaskId)).Returns((LayoutModel?)null);
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithoutSubformData()));
+
+        Assert.IsType<ServiceTaskSuccessResult>(result);
+        _appResourcesMock.Verify(x => x.GetLayoutModelForFolder(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Execute_Generates_Anyway_When_The_Layouts_Cannot_Be_Read()
+    {
+        // The check only blocks what it can positively rule out.
+        SetupProcessReader();
+        _appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder(TaskId))
+            .Throws(new InvalidOperationException("broken layout"));
+
+        var result = await _serviceTask.Execute(CreateServiceTaskContext(CreateInstanceWithSubformData()));
+
+        Assert.IsType<ServiceTaskSuccessResult>(result);
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateAndStoreSubformPdf(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<SubformPdfContext>(),
+                    It.IsAny<List<KeyValueEntry>?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Exactly(2)
+        );
+    }
+
+    private void AssertFailedPermanently(ServiceTaskResult result, string expectedReason)
+    {
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains(expectedReason, failed.ErrorMessage);
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateAndStoreSubformPdf(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<SubformPdfContext>(),
+                    It.IsAny<List<KeyValueEntry>?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    /// <summary>The task's own UI folder, with one component that points at the subform layout set.</summary>
+    private static LayoutModel LayoutModelWith(string componentId, string type)
+    {
+        using var document = JsonDocument.Parse(
+            $$"""
+            { "data": { "layout": [ { "id": "{{componentId}}", "type": "{{type}}", "layoutSet": "{{SubformLayoutSet}}" } ] } }
+            """
+        );
+        var page = PageComponent.Parse(document.RootElement, "Page1", TaskId);
+        return new LayoutModel([new UiFolderComponent([page], TaskId, new DataType { Id = "task-data-type" })], TaskId);
     }
 
     private void SetupProcessReader()

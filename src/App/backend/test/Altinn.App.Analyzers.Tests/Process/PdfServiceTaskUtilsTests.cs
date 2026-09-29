@@ -95,6 +95,22 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
+    public void Settings_Properties_Are_Read_Ignoring_Case_Like_The_Backend()
+    {
+        // The backend deserializes Settings.json case-insensitively and hands the result to the frontend.
+        var diagnostics = Collect(
+            Process(PdfTask("PdfTask", "Task_1")),
+            UiFolder("Task_1"),
+            new InMemoryAdditionalText(
+                AppRoot + "ui/PdfTask/Settings.json",
+                """{ "Pages": { "order": ["Page1"], "PdfLayoutName": "PdfLayout" } }"""
+            )
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public void Unreadable_Own_Settings_Is_Not_Reported_As_A_Conflict()
     {
         var diagnostics = Collect(
@@ -153,7 +169,7 @@ public class PdfServiceTaskUtilsTests
     [Fact]
     public void Other_Service_Task_Types_Are_Not_Checked()
     {
-        var diagnostics = Collect(Process(ServiceTask("SubformPdf", "subformPdf")), UiFolder("Task_1"));
+        var diagnostics = Collect(Process(ServiceTask("EFormidling", "eFormidling")), UiFolder("Task_1"));
 
         Assert.Empty(diagnostics);
     }

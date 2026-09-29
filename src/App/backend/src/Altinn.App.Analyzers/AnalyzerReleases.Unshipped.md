@@ -22,3 +22,6 @@ ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry referen
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
 ALTINNAPP1001 | Process | Error | PDF service task combines autoPdfTaskIds with a UI folder without pdfLayoutName
 ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
+ALTINNAPP1003 | Process | Error | Subform PDF service task configuration is incomplete
+ALTINNAPP1004 | Process | Error | Subform PDF service task cannot find its subform component
+ALTINNAPP1005 | Process | Error | Subform PDF service task data type does not match its subform
