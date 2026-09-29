@@ -24,13 +24,15 @@ spec:
       labelSelector:
         matchLabels:
           altinn.studio/otel-collector: otel-router
-  # On deletion the pod first leaves the Service and the gateway's headless DNS while still
-  # serving, then the Collector shuts down and flushes. Native sleep: the image has no shell.
+  # On deletion the pod first leaves the Service and the gateway's headless DNS and keeps
+  # working, retries included, while its queues drain; then the Collector shuts down and
+  # flushes, with one attempt per remaining batch. Telemetry can wait, so both are generous.
+  # Native sleep: the image has no shell.
   lifecycle:
     preStop:
       sleep:
-        seconds: 10 # the router re-resolves the gateway every 5s
-  terminationGracePeriodSeconds: 40 # the 10s above, the Collector's flush, and a sidecar's drain
+        seconds: 60 # beyond the gateway's 40s tail sampling wait and 5s batch timeout
+  terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
   config:
     extensions:
       # The operator derives the readiness and liveness probes from this extension, so a pod counts
