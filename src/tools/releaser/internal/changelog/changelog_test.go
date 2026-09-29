@@ -630,7 +630,7 @@ func TestValidateUnreleased(t *testing.T) {
 	}
 }
 
-// Sample git diffs for testing entry extraction.
+// Edited entries, and another copy of an entry already in base, count as new.
 func TestNewEntries(t *testing.T) {
 	base, err := changelog.Parse(`# Changelog
 
@@ -679,6 +679,7 @@ func TestNewEntries(t *testing.T) {
 	want := []changelog.Entry{
 		{Category: "Added", Text: "Entry that is edited, now longer"},
 		{Category: "Added", Text: "Entry with parts:\n  - first part"},
+		{Category: "Fixed", Text: "Released fix"},
 	}
 	if !slices.Equal(got, want) {
 		t.Fatalf("NewEntries() = %q, want %q", got, want)

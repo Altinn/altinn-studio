@@ -44,6 +44,7 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("fails on a new entry over the word limit", testStructureLongNewEntryFails)
 	t.Run("counts continuation lines toward the word limit", testStructureLongWrappedEntryFails)
 	t.Run("ignores a long entry that is unchanged since the merge base", testStructureLongExistingEntryPasses)
+	t.Run("ignores a long entry that reached base after head diverged", testStructureLongBaseOnlyEntryPasses)
 	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
 	t.Run("does not count pull request links or link targets", testStructureLinksNotCounted)
 }
@@ -99,6 +100,35 @@ func testStructureLongExistingEntryPasses(t *testing.T) {
 
 	if err := runStructureValidation(t, repo, base, head); err != nil {
 		t.Fatalf("RunStructureValidation() error = %v, want nil for an unchanged entry", err)
+	}
+}
+
+// On a pull request the checkout is head merged into base, so the working tree
+// also holds entries that reached base after head diverged.
+func testStructureLongBaseOnlyEntryPasses(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	runGitCmd(t, repo, "checkout", "-q", "-b", "feature")
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Existing
+
+### Fixed
+
+- A new fix
+`, "add fix")
+	runGitCmd(t, repo, "checkout", "-q", "main")
+	base := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		"# Changelog\n\n## [Unreleased]\n\n### Added\n\n- "+words(internal.MaxEntryWords+1)+"\n- Existing\n",
+		"long entry on base")
+	runGitCmd(t, repo, "checkout", "-q", "--detach", base)
+	runGitCmd(t, repo, "merge", "-q", "--no-edit", head)
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil for an entry only base added", err)
 	}
 }
 

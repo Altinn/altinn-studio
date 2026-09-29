@@ -69,20 +69,24 @@ func TestParseBackportConfig_Line(t *testing.T) {
 	}
 }
 
-// An entry added far below its section heading is found even though the
-// heading is outside the commit diff's context lines.
-func TestExtractEntriesFromCommit_EntryBelowHeadingContext(t *testing.T) {
+const backportChangelogPath = "CHANGELOG.md"
+
+// newChangelogRepo returns a Git repository and a function that commits a
+// changelog to it and returns the commit.
+func newChangelogRepo(t *testing.T) (*GitCLI, func(content, message string) string) {
+	t.Helper()
 	repo := t.TempDir()
 	git := NewGitCLI(WithWorkdir(repo), WithLogger(NopLogger{}))
-	const path = "CHANGELOG.md"
-	const base = "# Changelog\n\n## [Unreleased]\n\n### Added\n\n- One\n- Two\n- Three\n- Four\n- Five\n"
+	if err := git.RunWrite(t.Context(), "init", "-q"); err != nil {
+		t.Fatalf("git init: %v", err)
+	}
 	commit := func(content, message string) string {
 		t.Helper()
-		if err := os.WriteFile(filepath.Join(repo, path), []byte(content), 0o600); err != nil {
+		if err := os.WriteFile(filepath.Join(repo, backportChangelogPath), []byte(content), 0o600); err != nil {
 			t.Fatalf("write changelog: %v", err)
 		}
 		for _, args := range [][]string{
-			{"add", path},
+			{"add", backportChangelogPath},
 			{"-c", "user.name=test", "-c", "user.email=test@example.com", "commit", "-q", "-m", message},
 		} {
 			if err := git.RunWrite(t.Context(), args...); err != nil {
@@ -95,18 +99,43 @@ func TestExtractEntriesFromCommit_EntryBelowHeadingContext(t *testing.T) {
 		}
 		return sha
 	}
-	if err := git.RunWrite(t.Context(), "init", "-q"); err != nil {
-		t.Fatalf("git init: %v", err)
-	}
+	return git, commit
+}
+
+// An entry added far below its section heading is found even though the
+// heading is outside the commit diff's context lines.
+func TestExtractEntriesFromCommit_EntryBelowHeadingContext(t *testing.T) {
+	git, commit := newChangelogRepo(t)
+	const base = "# Changelog\n\n## [Unreleased]\n\n### Added\n\n- One\n- Two\n- Three\n- Four\n- Five\n"
 	commit(base, "base")
 	sha := commit(base+"- Six\n  - with a part\n", "add entry")
 
-	entries, msg, err := extractEntriesFromCommit(t.Context(), git, sha, path)
+	entries, msg, err := extractEntriesFromCommit(t.Context(), git, sha, backportChangelogPath)
 	if err != nil {
 		t.Fatalf("extractEntriesFromCommit() error = %v", err)
 	}
 	want := []changelog.Entry{{Category: "Added", Text: "Six\n  - with a part"}}
 	if msg != "add entry" || !slices.Equal(entries, want) {
 		t.Fatalf("extractEntriesFromCommit() = %q, %q, want %q, %q", entries, msg, want, "add entry")
+	}
+}
+
+// An entry with the same category and text as a released entry is still found.
+func TestExtractEntriesFromCommit_RepeatsReleasedEntry(t *testing.T) {
+	git, commit := newChangelogRepo(t)
+	const released = "## [1.0.0] - 2026-01-01\n\n### Changed\n\n- Update localtest image.\n"
+	commit("# Changelog\n\n## [Unreleased]\n\n"+released, "base")
+	sha := commit(
+		"# Changelog\n\n## [Unreleased]\n\n### Changed\n\n- Update localtest image.\n\n"+released,
+		"add entry",
+	)
+
+	entries, _, err := extractEntriesFromCommit(t.Context(), git, sha, backportChangelogPath)
+	if err != nil {
+		t.Fatalf("extractEntriesFromCommit() error = %v", err)
+	}
+	want := []changelog.Entry{{Category: "Changed", Text: "Update localtest image."}}
+	if !slices.Equal(entries, want) {
+		t.Fatalf("extractEntriesFromCommit() = %q, want %q", entries, want)
 	}
 }

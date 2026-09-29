@@ -216,6 +216,9 @@ func isVendoredChangelog(path string) bool {
 
 // validateChangelogStructure reads and parses a single changelog on disk,
 // surfacing structural (format) errors and, given a range, too-long new entries.
+// The length check reads the changelog at head rather than on disk: on a pull
+// request the checkout is head merged into base, which also holds entries that
+// reached base after head diverged.
 func validateChangelogStructure(ctx context.Context, git *GitCLI, root, clPath, base, head string) error {
 	changelogFile := clPath
 	if !filepath.IsAbs(changelogFile) {
@@ -228,8 +231,7 @@ func validateChangelogStructure(ctx context.Context, git *GitCLI, root, clPath, 
 		return fmt.Errorf("read changelog: %w", err)
 	}
 
-	cl, err := changelog.Parse(string(content))
-	if err != nil {
+	if _, err = changelog.Parse(string(content)); err != nil {
 		return fmt.Errorf("parse changelog: %w", err)
 	}
 
@@ -240,7 +242,11 @@ func validateChangelogStructure(ctx context.Context, git *GitCLI, root, clPath, 
 	if err != nil {
 		return err
 	}
-	return validateEntryLengths(previous, cl)
+	current, err := loadChangelogAt(ctx, git, head, clPath)
+	if err != nil {
+		return err
+	}
+	return validateEntryLengths(previous, current)
 }
 
 // loadChangelogAtMergeBase returns the changelog as it was where head diverged

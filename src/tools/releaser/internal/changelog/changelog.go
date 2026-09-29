@@ -669,17 +669,20 @@ func (c *Changelog) Entries() []Entry {
 }
 
 // NewEntries returns the entries in head that are not in base, in head's order.
-// An entry whose text changed counts as new.
+// An entry whose text changed counts as new, and so does another copy of an
+// entry base already has.
 func NewEntries(base, head []Entry) []Entry {
-	existing := make(map[Entry]struct{}, len(base))
+	existing := make(map[Entry]int, len(base))
 	for _, entry := range base {
-		existing[entry] = struct{}{}
+		existing[entry]++
 	}
 	var added []Entry
 	for _, entry := range head {
-		if _, ok := existing[entry]; !ok {
-			added = append(added, entry)
+		if existing[entry] > 0 {
+			existing[entry]--
+			continue
 		}
+		added = append(added, entry)
 	}
 	return added
 }
