@@ -158,7 +158,7 @@
     "react-leaflet": "5.0.0",
     "react-leaflet-draw": "0.21.0",
     "react-number-format": "5.4.5",
-    "react-router-dom": "6.30.5",
+    "react-router-dom": "6.30.6",
     "react-toastify": "11.1.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.59.3",
