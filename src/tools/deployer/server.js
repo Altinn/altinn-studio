@@ -125,6 +125,7 @@ const SERVICES = [
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
   ...STUDIO_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS]])),
+  service('deploy-studio-victoriametrics-operator.yaml', [['studio', STUDIO_ENVS.slice(2)]]),
 ];
 
 const SERVICE_BY_WORKFLOW = new Map(SERVICES.map((service) => [service.workflow, service]));
