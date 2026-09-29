@@ -89,7 +89,10 @@ Explains the mechanism instead of the effect:
 Better:
 
 ```markdown
-- The app loads its files in `config/`, `models/`, `options/` and `ui/` at startup, and refuses to start if `config/applicationmetadata.json` is missing or any file is invalid JSON, listing every problem. File and folder names are case-sensitive on every operating system. In `Development`, edits apply without a restart. ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+- App files in `config/`, `models/`, `options/` and `ui/`: ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+  - are checked at startup: the app does not start if one is invalid JSON or `config/applicationmetadata.json` is missing
+  - have case-sensitive names on every operating system
+  - are reloaded without a restart in `Development`
 ```
 
 Several entries for one feature:
