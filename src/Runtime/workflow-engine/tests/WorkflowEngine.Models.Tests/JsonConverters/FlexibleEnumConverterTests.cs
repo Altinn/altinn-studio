@@ -1,7 +1,6 @@
 using System.Text.Json;
-using WorkflowEngine.Resilience.Models;
 
-namespace WorkflowEngine.Resilience.Tests.JsonConverters;
+namespace WorkflowEngine.Models.Tests.JsonConverters;
 
 public class FlexibleEnumConverterTests
 {

@@ -86,9 +86,9 @@ The engine is a **reusable class library**, not a standalone application. Hosts 
 | --------------------------- | ------------------------------------------------------------------------------------- |
 | `WorkflowEngine.Core`       | Processing loop, HTTP endpoints, executor, host composition extensions                |
 | `WorkflowEngine.Commands`   | Built-in commands (WebhookCommand). Host-specific commands live in their own projects |
-| `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `CommandDefinition`, status enums, exceptions      |
+| `WorkflowEngine.Models`     | Domain models, wire contract, `RetryStrategy`. No project or package references       |
 | `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, PostgreSQL implementation                   |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), `RetryStrategy`               |
+| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), retry delay calculation       |
 | `WorkflowEngine.Telemetry`  | OpenTelemetry counters, histograms, observable gauges, activity source                |
 | `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers          |
 

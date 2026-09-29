@@ -11,7 +11,7 @@ public static class StepExtensions
     /// one (so a long wait does not consume the retry budget), otherwise the previous step's
     /// completion, otherwise the step's creation. Deliberately never <c>UpdatedAt</c>, which
     /// advances on every write-back and would slide the retry deadline forward per attempt until
-    /// <see cref="Resilience.Models.RetryStrategy.MaxDuration"/> stops binding.
+    /// <see cref="RetryStrategy.MaxDuration"/> stops binding.
     /// This field-level overload exists so callers that load the anchor inputs without hydrating
     /// full <see cref="Step"/> models (e.g. the throttle sweep's park-candidate query) share the
     /// exact same rule as the workflow handler.

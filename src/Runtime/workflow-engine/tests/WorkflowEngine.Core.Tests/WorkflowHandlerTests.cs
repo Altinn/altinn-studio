@@ -9,7 +9,6 @@ using Moq;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;

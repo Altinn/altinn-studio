@@ -6,7 +6,6 @@ using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 

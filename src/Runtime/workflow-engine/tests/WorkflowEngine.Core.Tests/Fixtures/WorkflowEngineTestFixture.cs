@@ -7,7 +7,6 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Models;
 
 // CA2000: Objects are transferred to the returned fixture record which handles disposal
 #pragma warning disable CA2000
