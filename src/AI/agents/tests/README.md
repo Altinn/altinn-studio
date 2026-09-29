@@ -1,10 +1,10 @@
 # Tests
 
-This directory contains the test suite for the Altinity Agents service.
+This directory contains the test suite for the Studio Assistant service.
 
-## Running Tests
+## Run the tests
 
-### Install dev dependencies
+### Install the development dependencies
 
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
@@ -16,20 +16,20 @@ pip install -r requirements.txt -r requirements-dev.txt
 python -m pytest
 ```
 
-### Run specific test file
+### Run one test file
 
 ```bash
 python -m pytest tests/api/test_main.py
 ```
 
-### Run tests with coverage report
+### Run the tests with a coverage report
 
 ```bash
 python -m pytest --cov --cov-report=term-missing --cov-report=html
 ```
 
-This will:
+This command does these steps:
 
-- Run all tests and measure code coverage
-- `--cov-report=term-missing` - Show which specific lines are not covered in the terminal
-- `--cov-report=html` - Save a detailed HTML report to `htmlcov/index.html`
+- It runs all tests and measures the code coverage.
+- `--cov-report=term-missing` shows the lines that the tests do not cover, in the terminal.
+- `--cov-report=html` writes a detailed HTML report to `htmlcov/index.html`.

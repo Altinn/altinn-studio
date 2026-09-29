@@ -1,8 +1,13 @@
 # The end to end benchmark
 
-The only eval that builds a real app: it runs the agent with tools, pushes a session
-branch, loads every page in a browser and scores the result against a structural rubric.
-Minutes rather than seconds, which is why `check` leaves it out unless asked.
+This is the only eval that builds a real app. It does these steps:
+
+1. It runs the agent with tools.
+2. The agent pushes a session branch.
+3. It loads each page in a browser.
+4. It compares the result with a structural rubric and gives scores.
+
+A run takes minutes, not seconds. For this reason, `check` does not run it unless you ask for it.
 
 ```bash
 python -m benchmarks.runner check --include-e2e
@@ -10,43 +15,46 @@ python -m benchmarks.runner check --include-e2e
 
 ## Start here
 
-[EVALS.md](EVALS.md) is the entry point: the manifest, the one command, and what a run
-records. This page is the end to end benchmark in detail, because it is the one with real
-prerequisites.
+[EVALS.md](EVALS.md) is the entry point. It gives the manifest, the one command, and the data that
+a run records. This page gives the details of the end to end benchmark, because it is the only
+eval with real prerequisites.
 
 ## When to run it
 
-Run a benchmark when you have changed something that could move output
-quality, and you want evidence rather than a hunch:
+Run a benchmark after a change that can make the output quality different. The benchmark gives
+evidence, not an opinion. Run it at these times:
 
-- **Before merging an agent change**: prompts, tools, the loop, model
-  or temperature. Name the run after the change so the two columns sit
-  next to each other in Langfuse.
-- **After a model or SDK bump**, where nothing in our code changed but
-  behavior may have.
-- **When a rubric or dataset item changes**, to re-baseline what "good"
-  means before comparing anything to it.
+- **Before you merge an agent change.** This includes changes to prompts, tools, the loop, the
+  model or the temperature. Describe the change with `--label`, so that you can find the run
+  again.
+- **After an update to a model or an SDK.** Our code did not change, but the behavior can change.
+- **When a rubric or a dataset item changes.** Make a new baseline for "good" before you compare
+  a run with it.
 
-It is not a test suite: a run costs a full agent workflow per dataset
-item (minutes and actor-model tokens), needs the local stack up, and the
-numeric scores move a little between runs on identical code. Treat a
-single score change as a signal to look, not a verdict, and don't wire
-it into CI expecting a clean pass/fail.
+The benchmark is not a test suite, for these reasons:
 
-For a fast check of one already-built app, skip the benchmark and run
-the [preview render check](#preview-render-check) standalone; it needs
-no agent run and posts nothing to Langfuse.
+- A run costs a full agent workflow for each dataset item. This takes minutes and actor-model
+  tokens.
+- The local stack must run.
+- The numeric scores change a little between runs on the same code.
+
+Thus, when one score changes, examine it. Do not think that it is a final decision. Do not
+connect the benchmark to CI and expect a clear pass or fail.
+
+To examine one app that is already built, do not run the benchmark. Run the
+[preview render check](#preview-render-check) alone. It does not run the agent, and it sends
+nothing to Langfuse.
 
 ## How it works
 
-Orchestration is `langfuse.run_experiment`. It runs the items, traces each task,
-isolates a failing item, records item scores, and links the dataset run. Ours
-is the task and the scorers.
+`langfuse.run_experiment` controls the run. It runs the items and traces each task. It keeps a
+failed item separate from the other items. It records the item scores and links the dataset run.
+Our code supplies the task and the scorers.
 
 ```
 langfuse.run_experiment(dataset items, task=AgentTask, evaluators)
         │
-        │  per item, one at a time
+        │  for each item, one at a time
         ▼
 POST /api/agent/start on the local stack ──► agent works ──► pushes assistant_<id>
         │                                                          │
@@ -62,35 +70,35 @@ poll /api/agent/status until terminal                     clone the session bran
                  item scores on the task trace, in the dataset run
 ```
 
-Two traces exist per item. The SDK traces the task on the runner side and hangs
-the item scores off it. The agent is a separate service with its own workflow
-trace, carrying the LLM calls and the Langfuse-managed judges. It is handed an
-experiment context at start and stamps it on that trace. The context is named
-after `--run-name` (default: the dataset name), while the SDK names its run
-`<timestamp>-<eval>-<model>-<suffix>`, so the two names differ.
+Each item has two traces:
 
-The runner records item scores only; `run_experiment` gets no run-level
-evaluators.
+- The SDK traces the task on the runner side. The item scores are on this trace.
+- The agent is a different service with its own workflow trace. This trace has the LLM calls and
+  the judges that Langfuse manages.
 
-Items run one at a time. An agent run pushes to a single repo and drives a single
-browser preview, so they cannot overlap however willing the SDK is to
-parallelise. The concurrency for e2e is fixed at 1 (`E2E_MAX_CONCURRENCY` in
-`check.py`); `--max-concurrency` applies to the other evals only.
+The runner gives the agent an experiment context at the start. The agent puts this context on
+its trace. The name of the context comes from `--run-name`. The default is the dataset name. The
+SDK gives its run the name `<timestamp>-<eval>-<model>-<suffix>`. Thus, the two names are
+different.
 
-An item that cannot be scored raises. `run_experiment` records it as a failed
-item rather than dropping it, which is the point: the previous runner printed a
-warning and continued, so a silently skipped item made a comparison
-into a four-item one without anybody noticing.
+The runner records only item scores. `run_experiment` gets no evaluators for the full run.
 
-The committed **repo is the ground truth**: evaluation never
-reconstructs the app from trace spans (spans truncate long payloads and
-don't carry every file).
+The items run one at a time. An agent run pushes to one repository and uses one browser preview.
+Thus, two runs cannot occur at the same time. For e2e, the concurrency is always 1
+(`E2E_MAX_CONCURRENCY` in `check.py`). `--max-concurrency` applies only to the other evals.
+
+When the runner cannot score an item, it raises an error. `run_experiment` then records a failed
+item. It does not remove the item. This is intentional. The previous runner showed a warning and
+continued. Thus, a comparison of five items became a comparison of four items, and nobody saw
+it.
+
+The committed **repository is the ground truth**. The evaluation does not build the app again
+from trace spans. Spans cut long payloads, and they do not have all files.
 
 ## The rubric
 
-The dataset item's `expectedOutput` is a _structural_ rubric, not a
-file listing, because page IDs, component IDs and data-model names legitimately
-differ between correct runs:
+The `expectedOutput` of the dataset item is a _structural_ rubric. It is not a list of files,
+because page IDs, component IDs and data model names can be different in two correct runs:
 
 ```json
 {
@@ -102,233 +110,236 @@ differ between correct runs:
 }
 ```
 
-Field titles are matched against the `resource.nb.json` values that the
-title bindings of the candidate's input components point to, after normalization (case, punctuation, leading "A.1"-style
-enumeration). One title may contain the other, so naming style doesn't matter but missing fields do.
+The evaluator compares the field titles with the values in `resource.nb.json`. It uses only the
+values that the title bindings of the input components point to. First, it normalizes the text:
+case, punctuation, and a number such as "A.1" at the start. A match occurs when one title
+contains the other. Thus, the name style has no effect, but a missing field has an effect.
 
 ## Scores
 
-| Score                          | Type    | Meaning                                                  |
-| ------------------------------ | ------- | -------------------------------------------------------- |
-| `bench_completed`              | boolean | workflow reached `done` with `success`                   |
-| `bench_pages`                  | boolean | ordered page count matches the rubric                    |
-| `bench_order_integrity`        | boolean | `pages.order` ⇔ layout files agree                       |
-| `bench_navigation`             | boolean | every ordered page has NavigationButtons/Bar             |
-| `bench_field_coverage`         | 0–1     | fraction of expected field titles present                |
-| `bench_input_count`            | 0–1     | input components vs rubric minimum                       |
-| `bench_texts_bound`            | 0–1     | text bindings resolving in resource.nb.json              |
-| `bench_renders`                | boolean | first ordered page renders in app preview (see below)¹   |
-| `bench_pages_render`           | 0–1     | fraction of ordered pages that render without error      |
-| `bench_render_fix_rounds`      | numeric | fix rounds sent back to the agent (only when a fix ran)  |
-| `bench_pages_render_after_fix` | 0–1     | render fraction after the fix loop (only when a fix ran) |
+| Score                          | Type    | Meaning                                                         |
+| ------------------------------ | ------- | --------------------------------------------------------------- |
+| `bench_completed`              | boolean | The workflow got to `done` with `success`.                      |
+| `bench_pages`                  | boolean | The number of ordered pages is the same as in the rubric.       |
+| `bench_order_integrity`        | boolean | `pages.order` and the layout files agree.                       |
+| `bench_navigation`             | boolean | Each ordered page has NavigationButtons or NavigationBar.       |
+| `bench_field_coverage`         | 0–1     | The fraction of the expected field titles that are present.     |
+| `bench_input_count`            | 0–1     | The input components compared with the minimum in the rubric.   |
+| `bench_texts_bound`            | 0–1     | The fraction of text bindings that resolve in resource.nb.json. |
+| `bench_renders`                | boolean | The first ordered page renders in the app preview (see below).¹ |
+| `bench_pages_render`           | 0–1     | The fraction of ordered pages that render without an error.     |
+| `bench_render_fix_rounds`      | numeric | The fix rounds sent back to the agent. Only when a fix ran.     |
+| `bench_pages_render_after_fix` | 0–1     | The render fraction after the fix loop. Only when a fix ran.    |
 
-¹ Not posted when the first page was never measured.
+¹ The runner does not send this score when it did not measure the first page.
 
 ## Prerequisites
 
-Work through these once; the run fails fast and unhelpfully if any are
-missing.
+Do these steps one time. If one is missing, the run fails quickly, and the error does not help.
 
-| #   | What                                      | Check                                                                    |
-| --- | ----------------------------------------- | ------------------------------------------------------------------------ |
-| 1   | Local Designer stack up                   | `curl -s -o /dev/null -w '%{http_code}' http://studio.localhost` → `200` |
-| 2   | Agents service up, reporting its models   | `curl -s http://localhost:8071/health` → `models` is not empty           |
-| 3   | `.env` in this directory                  | see below                                                                |
-| 4   | Designer API key minted                   | `python -m benchmarks.bootstrap_api_key --write-env`                     |
-| 5   | Score configs in Langfuse                 | `python -m benchmarks.runner ensure-configs`                             |
-| 6   | Playwright + Chromium (render check only) | `pip install -e '.[preview]' && playwright install chromium`             |
+| #   | What                                         | Check                                                                    |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| 1   | The local Designer stack runs                | `curl -s -o /dev/null -w '%{http_code}' http://studio.localhost` → `200` |
+| 2   | The agents service runs and gives its models | `curl -s http://localhost:8071/health` → `models` is not empty           |
+| 3   | A `.env` file is in this directory           | see below                                                                |
+| 4   | You have a Designer API key                  | `python -m benchmarks.bootstrap_api_key --write-env`                     |
+| 5   | The score configs are in Langfuse            | `python -m benchmarks.runner ensure-configs`                             |
+| 6   | Playwright and Chromium (render check only)  | `pip install -e '.[preview]' && playwright install chromium`             |
 
-Check **2** matters: `--include-e2e` exits at once when `/health` does not
-report `models`, because the scores could not be attributed to a model.
-Rebuild the agent image if it is missing.
+Check **2** is important. If `/health` does not give `models`, `--include-e2e` stops
+immediately. The reason: the runner cannot connect the scores to a model. If `models` is missing,
+build the agent image again.
 
-Re-run **4** after wiping the database volume, and **5** whenever a new
-`bench_*` score is added. A score with no config still posts, but
-without a data type or range Langfuse cannot aggregate it across runs.
+Do step **4** again after you delete the database volume. Do step **5** again after somebody adds
+a new `bench_*` score. A score without a config is sent. But without a data type or a range,
+Langfuse cannot aggregate it across runs.
 
 ## Usage
 
-The `.env` in this directory (or exported) holds:
+The `.env` file in this directory (or the exported environment) has these values:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is accepted for the host
-AGENT_DESIGNER_API_KEY=…            # X-Api-Key for agent API + Gitea proxy
+LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is also accepted for the host
+AGENT_DESIGNER_API_KEY=…            # X-Api-Key for the agent API and the Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
 BENCH_DEVELOPER=benchmark           # default; sent as X-Developer
 ```
 
-`BENCH_REPO_URL` points at a **disposable app repo you own**. The
-benchmark pushes an `assistant_*` branch to it per run, so use a
-blank test app, not anything you care about. The URL is as the _agent
-container_ resolves it (`gitea-proxy:81` on the local stack); the org is
-derived from the URL path.
+`BENCH_REPO_URL` must point to a **test app repository that you own and can discard**. The
+benchmark pushes one `assistant_*` branch to it for each run. Thus, use an empty test app. Do not
+use an app that is important to you. Write the URL as the _agent container_ resolves it
+(`gitea-proxy:81` on the local stack). The runner gets the organization from the URL path.
 
-`AGENT_DESIGNER_API_KEY` must be a **Designer user API key**. The
-gitea-proxy validates it against Designer's userinfo endpoint, so a
-Gitea personal access token does NOT work; mint one with
-`bootstrap_api_key` (prerequisite 4).
+`AGENT_DESIGNER_API_KEY` must be a **Designer user API key**. The gitea-proxy validates the key
+with the userinfo endpoint of Designer. Thus, a Gitea personal access token does NOT work. Make a
+key with `bootstrap_api_key` (prerequisite 4).
 
-Attachments referenced by dataset items (`metadata.attachments`) live in
-`benchmarks/assets/` (gitignored; binary test fixtures don't belong in
-the repo). `--assets-dir` points somewhere else.
+The dataset items refer to attachments in `metadata.attachments`. These files are in
+`benchmarks/assets/`. Git ignores this directory, because binary test fixtures must not be in the
+repository. To use a different directory, use `--assets-dir`.
 
 ```bash
-# one-time: create the bench_* score configs in Langfuse
+# One time: make the bench_* score configs in Langfuse
 python -m benchmarks.runner ensure-configs
 
-# (re)build the rubric from a known-good session branch
+# Make the rubric (again) from a session branch that you know is good
 git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch assistant_<id> \
     http://localhost/repos/<org>/<app>.git /tmp/golden
 python -m benchmarks.runner rubric --from-app /tmp/golden \
-    --update-item trace-34fddc78028268ea87078ae2d15e1715   # --dataset defaults to Benchmarks/forms
+    --update-item trace-34fddc78028268ea87078ae2d15e1715   # the default --dataset is Benchmarks/forms
 
-# benchmark the current agent build (add --only Benchmarks/forms to skip the other evals)
+# Benchmark the current agent build (add --only Benchmarks/forms to run no other evals)
 python -m benchmarks.runner check --include-e2e --label "agentic loop $(git rev-parse --short HEAD)"
 ```
 
-Describe the change you're testing with `--label`; it is stored with the
-run and in the Langfuse run metadata. The Langfuse run name is generated
-and unique, so it cannot be chosen. `--run-name` only names the
-experiment context handed to the agent. Each agent workflow times out
-after 30 minutes.
+Use `--label` to describe the change that you test. The runner keeps the label with the run and
+in the metadata of the Langfuse run. The runner makes a unique name for the Langfuse run. You
+cannot select this name. `--run-name` gives a name only to the experiment context of the agent.
+Each agent workflow stops after 30 minutes.
 
-### Reading the results
+### Read the results
 
-`check` prints progress per eval, then a verdict per behavior. It saves the run
-and writes the report to `benchmarks/reports/workbench.html`. For comparison across versions go to _Datasets → the dataset → Runs_ in Langfuse;
-each run is a column and each score a row.
+`check` shows the progress for each eval. Then it shows a verdict for each behavior. It saves the
+run and writes the report to `benchmarks/reports/workbench.html`.
 
-Read the boolean scores first. `bench_completed`, `bench_pages`,
-`bench_order_integrity`, `bench_navigation` are pass/fail statements
-about structure, so a 0 there is a definite regression. The 0–1 scores
-move a little run to run on identical code (the model does not produce
-byte-identical apps), so compare them as trends across several runs
-rather than treating a 0.95 → 0.93 as a regression.
+To compare versions, go to _Datasets → the dataset → Runs_ in Langfuse. Each run is a column.
+Each score is a row.
 
-Every score carries a comment naming what was missing or which page
-failed. Read it before investigating; it is usually the whole answer.
+Read the boolean scores first. `bench_completed`, `bench_pages`, `bench_order_integrity` and
+`bench_navigation` tell if the structure passes or fails. Thus, a 0 in one of them is a real
+regression.
+
+The 0–1 scores change a little between runs on the same code, because the model does not make
+the same app each time. Compare these scores as trends across many runs. A change from 0.95 to
+0.93 is not a regression.
+
+Each score has a comment. The comment tells what was missing or which page failed. Read it before
+you examine more. Usually, it gives the full answer.
 
 ## Preview render check
 
-The structural evaluators are blind to runtime failures: an unknown
-component type or a malformed expression can pass every check and still
-crash the form. The preview check closes that gap: it logs into Studio
-with headless Chromium, checks out the session branch through the
-Designer API with that browser session (mirroring the frontend's
-reset/checkout flow), loads the app in Studio's app preview, and
-verifies every ordered page renders (`#finishedLoading` present, no
-`AltinnError` page, no uncaught exception, no thrown error on the
-console). A component with an unknown type is caught by app-frontend:
-the page still reports itself loaded and nothing marks the DOM, so an
-exception on the console is the only signal that something did not
-render. Console output that is not exception-shaped (failed requests,
-warnings) is recorded in the score comment without failing the page.
+The structural evaluators cannot find runtime failures. For example, an unknown component type or
+an incorrect expression can pass all checks, but the form can still crash. The preview check
+finds these failures. It does these steps:
 
-Opt in with `BENCH_PREVIEW_CHECK=1`; without it a benchmark run behaves
-exactly as before. When enabled but Playwright or the stack login is
-unavailable, the check is skipped with a log line and no render scores.
+1. It logs in to Studio with headless Chromium.
+2. It checks out the session branch through the Designer API, with that browser session. This
+   copies the reset and checkout steps of the frontend.
+3. It loads the app in the app preview of Studio.
+4. It makes sure that each ordered page renders.
 
-Setup (once):
+A page renders when all these conditions are true:
+
+- `#finishedLoading` is present.
+- There is no `AltinnError` page.
+- There is no uncaught exception.
+- The console shows no thrown error.
+
+App-frontend catches a component with an unknown type. The page still tells that it loaded, and
+nothing in the DOM shows the problem. Thus, an exception on the console is the only signal that
+a component did not render. Other console output, for example failed requests and warnings, goes
+into the score comment. It does not make the page fail.
+
+To turn on the check, set `BENCH_PREVIEW_CHECK=1`. Without it, a benchmark run does not change. If
+the check is on but Playwright or the login to the stack is not available, the runner does not do
+the check. It writes a log line and sends no render scores.
+
+Setup (one time):
 
 ```bash
 pip install -e '.[preview]'        # or: pip install playwright
 playwright install chromium
 ```
 
-Extra environment (same `.env`):
+More environment variables (in the same `.env` file):
 
 ```
-BENCH_STUDIO_USER=localgiteaadmin   # default; needs access to the BENCH_REPO_URL app
+BENCH_STUDIO_USER=localgiteaadmin   # default; must have access to the app in BENCH_REPO_URL
 BENCH_STUDIO_BASE_URL=http://studio.localhost   # default
-BENCH_PREVIEW_CHECK=1               # required; the check is off otherwise
+BENCH_PREVIEW_CHECK=1               # necessary; without it, the check is off
 ```
 
-The browser logs in once (fake-Ansattporten user picker, no password
-locally) and caches the session in
-`benchmarks/.playwright-auth.json` (gitignored) for later items and
-runs. Checkout and preview both run as that browser user, so the
-preview always renders the working copy the check just switched to the
-session branch.
+The browser logs in one time. Locally, it uses the fake-Ansattporten user picker, without a
+password. It keeps the session in `benchmarks/.playwright-auth.json` for the next items and runs.
+Git ignores this file. The checkout and the preview use the same browser user. Thus, the preview
+always renders the working copy on the session branch that the check selected.
 
-Failure containment: `bench_renders` is 1 only when the first ordered
-page renders, and `bench_pages_render` is the fraction of pages that
-did, so a late failure shows up as a fraction below 1 rather than a
-zero. The failing page and an error snippet go in the comment.
-Infrastructure problems (Playwright missing, login or checkout failing,
-a preview url that cannot select layouts) skip the check with a log
-line and post no render scores; the benchmark run itself never fails.
+Failure containment:
 
-### The agent's own render check
+- `bench_renders` is 1 only when the first ordered page renders.
+- `bench_pages_render` is the fraction of pages that render. Thus, a failure on a later page gives
+  a fraction less than 1, not a zero.
+- The comment gives the page that failed and a part of the error.
 
-The same engine is available to the agent as a `preview_render_check`
-loop tool, so a run can verify its own work after
-`commit_session_branch`. It is off unless `PREVIEW_CHECK_ENABLED=true`
-is set **in the agent container's environment** (`.env.docker`, then
-`docker compose up -d altinity-agents`). Setting it in
-`benchmarks/.env` does nothing, because the tool runs inside the agent,
-not in the runner.
+Some problems are in the infrastructure. Examples are a missing Playwright, a login or checkout
+that fails, and a preview URL that cannot select layouts. For these problems, the runner does
+not do the check. It writes a log line and sends no render scores. The benchmark run does not
+fail.
 
-This changes what the benchmark measures. `bench_pages_render` scores
-the app as the agent left it, so with the tool on it reflects an agent
-that could see and fix its own render failures. That is a fair thing to
-measure, but it is not comparable with a run where the tool was off, so
-say which mode a run used in `--label`.
+### The render check of the agent
+
+The agent can use the same engine as the `preview_render_check` loop tool. Thus, a run can verify
+its own work after `commit_session_branch`. The tool is off unless `PREVIEW_CHECK_ENABLED=true` is
+set **in the environment of the agent container**. Set it in `.env.docker`, then run
+`docker compose up -d altinity-agents`. It has no effect in `benchmarks/.env`, because the tool
+runs in the agent, not in the runner.
+
+This setting changes what the benchmark measures. `bench_pages_render` gives a score to the app
+in the state that the agent left it. When the tool is on, the agent can see its render failures
+and correct them. This is a correct thing to measure. But you cannot compare it with a run where
+the tool was off. Thus, write the mode of the run in `--label`.
 
 ### Render-fix loop
 
-When pages fail the render check, the runner sends the failures back
-into the **same agent session** (same `session_id`, continuing on the
-session branch, with the page names and error snippets in the goal) and
-re-checks after the fix workflow finishes. `bench_renders` and
-`bench_pages_render` always reflect the state _before_ any fix, so runs
-stay comparable across agent versions; the after-fix state is scored
-separately (`bench_pages_render_after_fix`, `bench_render_fix_rounds`).
+When pages fail the render check, the runner sends the failures back to the **same agent
+session**. It uses the same `session_id` and continues on the session branch. The goal gives the
+page names and a part of each error. After the fix workflow is complete, the runner does the
+check again.
 
-Each fix round is a full agent workflow; that's where the cost is
-(actor-model tokens and minutes), the render check itself is free.
+`bench_renders` and `bench_pages_render` always show the state _before_ a fix. Thus, you can
+compare runs across agent versions. Different scores show the state after the fix:
+`bench_pages_render_after_fix` and `bench_render_fix_rounds`.
+
+Each fix round is a full agent workflow. This is the cost: actor-model tokens and minutes. The
+render check itself costs nothing.
 
 ```
-BENCH_RENDER_FIX=1        # enable the fix loop (off by default)
-BENCH_RENDER_FIX_ROUNDS=1 # max fix rounds per item (default)
+BENCH_RENDER_FIX=1        # turn on the fix loop (off by default)
+BENCH_RENDER_FIX_ROUNDS=1 # the maximum number of fix rounds for each item (default)
 ```
 
 ## Troubleshooting
 
-**Scores missing from Langfuse after a run that printed them.** The
-standalone `python -m benchmarks.preview_check --branch …` only prints
-to stdout. Nothing reaches Langfuse; only `runner check --include-e2e` records scores.
+**The run showed scores, but they are not in Langfuse.** The standalone
+`python -m benchmarks.preview_check --branch …` writes only to stdout. It sends nothing to
+Langfuse. Only `runner check --include-e2e` records scores.
 
-**A new `bench_*` score never appears.** Run `ensure-configs` again;
-score configs are created once and adding a score to the code does not
-create one.
+**A new `bench_*` score does not show.** Run `ensure-configs` again. The runner makes the score
+configs one time. When you add a score to the code, it does not make a config.
 
-**`clone of '…' failed` when running the standalone check.**
-`BENCH_REPO_URL` holds the URL as the _agent container_ resolves it
-(`gitea-proxy:81`), which the host cannot reach. Cloning uses
-`BENCH_GITEA_CLONE_BASE` instead (default `http://localhost/repos`); set
-it if your stack serves repositories elsewhere.
+**`clone of '…' failed` when you run the standalone check.** `BENCH_REPO_URL` has the URL as the
+_agent container_ resolves it (`gitea-proxy:81`). The host cannot get to this URL. For the clone,
+the check uses `BENCH_GITEA_CLONE_BASE`. The default is `http://localhost/repos`. Set it if your
+stack serves the repositories at a different URL.
 
-**Every page fails with a login or checkout error.** Delete
-`benchmarks/.playwright-auth.json` and re-run; a cached session survives
-a stack reset that invalidated it.
+**Each page fails with a login or checkout error.** Delete `benchmarks/.playwright-auth.json`
+and run again. A cached session stays after a stack reset, but the reset makes it incorrect.
 
-**A page renders in the browser but the check calls it failed.** Read
-the score comment. A component that cannot render throws but is caught
-by app-frontend, so the page looks fine and only the console shows it.
-the check fails the page on exception-shaped console output for exactly
-this reason.
+**A page renders in the browser, but the check tells that it failed.** Read the score comment. A
+component that cannot render throws an error, but app-frontend catches it. Thus, the page looks
+correct, and only the console shows the error. For this reason, the check fails the page when
+the console shows an exception.
 
-**`item <id> expectedOutput is not a v2 rubric`.** The item is recorded
-as failed. The dataset item predates the current rubric version; rebuild it with `runner rubric
---from-app … --update-item …`.
+**`item <id> expectedOutput is not a v2 rubric`.** The runner records the item as failed. The
+dataset item is older than the current rubric version. Make it again with
+`runner rubric --from-app … --update-item …`.
 
 ## Notes
 
-- The Langfuse SDK runs the experiments (`run_experiment`) and creates
-  datasets. Item upserts and score configs go through the public REST
-  API in `lf_api.py` instead.
-- After the server is upgraded to Langfuse v4: add a managed
-  LLM-as-a-judge evaluator on the dataset (it can see
-  `{{expected_output}}`), boolean-score-rate alerts, and optionally the
-  `langfuse/experiment-action` CI gate.
+- The Langfuse SDK runs the experiments (`run_experiment`) and makes datasets. The item upserts
+  and the score configs use the public REST API in `lf_api.py`.
+- After the update of the server to Langfuse v4, add these items:
+  - a managed LLM-as-a-judge evaluator on the dataset (it can see `{{expected_output}}`)
+  - alerts for the rate of boolean scores
+  - optionally, the `langfuse/experiment-action` CI gate.
