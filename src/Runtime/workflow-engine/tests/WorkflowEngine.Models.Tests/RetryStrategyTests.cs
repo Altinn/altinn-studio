@@ -1,7 +1,6 @@
 using System.Text.Json;
-using WorkflowEngine.Resilience.Models;
 
-namespace WorkflowEngine.Resilience.Tests;
+namespace WorkflowEngine.Models.Tests;
 
 public class RetryStrategyTests
 {

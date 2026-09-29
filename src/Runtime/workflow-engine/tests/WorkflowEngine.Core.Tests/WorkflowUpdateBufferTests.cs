@@ -6,7 +6,6 @@ using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 

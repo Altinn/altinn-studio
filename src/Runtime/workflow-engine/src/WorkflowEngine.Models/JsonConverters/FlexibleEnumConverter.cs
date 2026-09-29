@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace WorkflowEngine.Resilience.JsonConverters;
+namespace WorkflowEngine.Models.JsonConverters;
 
 /// <summary>
 /// Generic JSON converter for enums that supports both string and numeric values.

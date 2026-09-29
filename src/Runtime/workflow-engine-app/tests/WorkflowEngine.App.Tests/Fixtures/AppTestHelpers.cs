@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.App.Tests.Fixtures;

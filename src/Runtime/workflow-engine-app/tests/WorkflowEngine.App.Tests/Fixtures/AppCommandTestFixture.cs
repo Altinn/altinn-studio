@@ -7,7 +7,6 @@ using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 // CA2000: Objects are transferred to the returned fixture record which handles disposal
