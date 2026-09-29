@@ -6,6 +6,7 @@ import { DataLookupFuncName, StudioConfigCard } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
+import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from './Expression';
 import { useText } from '../../../hooks';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
@@ -42,7 +43,11 @@ export const ExpressionContent = ({
   );
 
   return (
-    <StudioConfigCard role='group' aria-labelledby={headingId}>
+    <StudioConfigCard
+      role='group'
+      aria-labelledby={headingId}
+      className={classes.expressionContent}
+    >
       <StudioConfigCard.Header
         cardLabel={heading}
         cardLabelId={headingId}
