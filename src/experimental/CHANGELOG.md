@@ -16,8 +16,9 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
   inside an Agent as they do on the host.
-- Inside an Agent, `.local` names, reverse lookups of private network addresses and names with non-ASCII characters no
-  longer resolve, so an Agent cannot discover devices on the host's local network.
+- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer
+  resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own
+  `/etc/hosts` still resolve.
 
 ### Fixed
 
