@@ -1,5 +1,6 @@
 using Altinn.Platform.Profile.Models;
 using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Profile.Implementation
@@ -25,7 +26,8 @@ namespace LocalTest.Services.Profile.Implementation
             var data = await _testDataService.GetTestData();
             if (data.Profile.User.TryGetValue(userId.ToString(), out UserProfile? user))
             {
-                user.Party = await _partiesService.GetParty(user.PartyId);
+                var party = await _partiesService.GetParty(user.PartyId);
+                user.Party = party;
                 return user;
             }
 
