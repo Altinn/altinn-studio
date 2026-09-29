@@ -237,8 +237,8 @@ def _format_message(step: dict, message: dict) -> str:
 
 def _restore_working_tree(repo_path: str) -> None:
     """The upgrade only runs on a clean working tree, so this discards only the upgrade's own changes."""
-    subprocess.run(_GIT_RESET_TO_HEAD, cwd=repo_path, capture_output=True, text=True)
-    subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True)
+    subprocess.run(_GIT_RESET_TO_HEAD, cwd=repo_path, capture_output=True, text=True, check=True)
+    subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True, check=True)
 
 
 def _record_changed_files(ctx: LoopContext, paths: list[str]) -> None:

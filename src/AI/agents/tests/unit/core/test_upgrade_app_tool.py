@@ -130,6 +130,16 @@ def _upgrade_that_fails_halfway(repo: Path) -> Callable[[], None]:
     return upgrade
 
 
+def _upgrade_that_fails_halfway_and_leaves_the_index_locked(repo: Path) -> Callable[[], None]:
+    """A left-over index.lock makes `git reset` fail, so the rollback cannot run."""
+
+    def upgrade() -> None:
+        _upgrade_that_fails_halfway(repo)()
+        (repo / ".git/index.lock").touch()
+
+    return upgrade
+
+
 def _upgrade_that_renames_the_layout_sets_file(repo: Path) -> Callable[[], None]:
     def upgrade() -> None:
         git(repo, "mv", "App/ui/layout-sets.json", "App/ui/layout-sets.old.json")
@@ -382,6 +392,17 @@ class TestUpgradeAppToV9:
         assert "discarded" in result.content
         assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
         assert not (repo / "App/ui/Task_1").exists()
+
+    async def test_raises_when_the_rollback_fails_so_the_model_is_not_told_the_changes_were_discarded(
+        self, monkeypatch, tmp_path: Path
+    ):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_fails_halfway_and_leaves_the_index_locked(repo), exit_code=_EXIT_ERROR
+        )
+
+        with pytest.raises(subprocess.CalledProcessError):
+            await _run(UpgradeAppToV9Tool(), _ctx(repo))
 
     async def test_success_switches_the_loop_context_to_the_v9_profile(self, monkeypatch, tmp_path: Path):
         repo = create_committed_repo(tmp_path, _V8_APP_FILES)
