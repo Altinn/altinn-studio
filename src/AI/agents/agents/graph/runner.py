@@ -8,6 +8,7 @@ from langgraph.graph import END, StateGraph
 from opentelemetry import trace as otel_trace
 
 from agents.services.events import AgentEvent, EventSink, sink
+from agents.services.git.repo_manager import get_repo_manager
 from agents.services.llm import (
     GATE_FAILED_ACTION,
     MINIMUM_INTENT_CONFIDENCE,
@@ -429,6 +430,8 @@ def run_in_background(state: AgentState, event_sink: EventSink = None):
             # the BatchSpanProcessor's periodic flush. Without this the trace can
             # sit invisible in the UI until the next batch tick (or process exit).
             flush_langfuse()
+            # A follow-up run clones the repository again.
+            get_repo_manager().cleanup_session(state.session_id)
 
     # Create background task
     task = asyncio.create_task(_run())

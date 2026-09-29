@@ -40,7 +40,8 @@ class RepoManager:
         self, repo_url: str, session_id: str, branch: str | None = None, api_key: str | None = None
     ) -> Path:
         """
-        Clone a repository for a specific session.
+        Clone a repository for a specific session. Every call starts from a fresh clone,
+        so a follow-up run sees the latest remote state of the branch.
 
         Args:
             repo_url: Git repository URL (e.g., http://altinn-repositories-public/user/repo.git)
@@ -69,30 +70,6 @@ class RepoManager:
 
         repo_path = self.temp_dir / repo_name
 
-        # Check if already cloned for this session
-        if session_id in self.active_repos:
-            existing_path = self.active_repos[session_id]
-            if existing_path.exists():
-                log.info(f"Using existing cloned repo for session {session_id}: {existing_path}")
-                # If a branch was specified and we're reusing an existing repo, checkout that branch
-                if branch:
-                    try:
-                        checkout_cmd = ["git", "checkout", branch]
-                        subprocess.run(checkout_cmd, cwd=existing_path, capture_output=True, text=True, check=True)
-                        log.info(f"Checked out branch {branch} for existing session {session_id}")
-                    except subprocess.CalledProcessError as e:
-                        log.warning(f"Failed to checkout branch {branch} for existing session: {e.stderr}")
-                        # Try to create and checkout the branch
-                        try:
-                            create_branch_cmd = ["git", "checkout", "-b", branch]
-                            subprocess.run(
-                                create_branch_cmd, cwd=existing_path, capture_output=True, text=True, check=True
-                            )
-                            log.info(f"Created and checked out new branch {branch} for existing session {session_id}")
-                        except subprocess.CalledProcessError as e2:
-                            log.error(f"Failed to create branch {branch}: {e2.stderr}")
-                return existing_path
-
         # Remove any existing directory with this name
         if repo_path.exists():
             log.info(f"Removing existing repo directory: {repo_path}")
@@ -107,22 +84,7 @@ class RepoManager:
 
             log.info(f"Successfully cloned {repo_url} for session {session_id}")
 
-            # If a branch was specified, checkout that branch
-            if branch:
-                try:
-                    # First try to checkout existing branch
-                    checkout_cmd = ["git", "checkout", branch]
-                    subprocess.run(checkout_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
-                    log.info(f"Checked out existing branch {branch} for session {session_id}")
-                except subprocess.CalledProcessError:
-                    # Branch doesn't exist, create it
-                    try:
-                        create_branch_cmd = ["git", "checkout", "-b", branch]
-                        subprocess.run(create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
-                        log.info(f"Created and checked out new branch {branch} for session {session_id}")
-                    except subprocess.CalledProcessError as e:
-                        log.error(f"Failed to create branch {branch}: {e.stderr}")
-                        # Continue anyway - we'll work on default branch
+            self._checkout_branch(repo_path, branch, session_id)
 
             # Store the active repo mapping (token already persisted above)
             self.active_repos[session_id] = repo_path
@@ -133,6 +95,23 @@ class RepoManager:
             error_msg = f"Failed to clone repository {repo_url}: {e.stderr}"
             log.error(error_msg)
             raise Exception(error_msg) from e
+
+    def _checkout_branch(self, repo_path: Path, branch: str | None, session_id: str) -> None:
+        """Check out `branch`, and create it when the remote does not have it."""
+        if not branch:
+            return
+        try:
+            checkout_cmd = ["git", "checkout", branch]
+            subprocess.run(checkout_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
+            log.info(f"Checked out existing branch {branch} for session {session_id}")
+        except subprocess.CalledProcessError:
+            try:
+                create_branch_cmd = ["git", "checkout", "-b", branch]
+                subprocess.run(create_branch_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
+                log.info(f"Created and checked out new branch {branch} for session {session_id}")
+            except subprocess.CalledProcessError as e:
+                log.error(f"Failed to create branch {branch}: {e.stderr}")
+                # Continue anyway - we'll work on default branch
 
     def push_branch(self, session_id: str, branch_name: str) -> bool:
         """
