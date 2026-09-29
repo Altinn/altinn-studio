@@ -4,12 +4,12 @@ Studio Assistant is an AI agent. It changes Altinn Studio apps from instructions
 
 ## What Studio Assistant does
 
-Studio Assistant knows the patterns of Altinn Studio development. LangGraph controls the steps of the agent. The agent can make, validate and apply code changes to your app. It can also answer questions about Altinn and not change the app.
+Studio Assistant knows the patterns of Altinn Studio development. The model selects the steps: it calls tools in one agentic loop. The agent can make, validate and apply code changes to your app. It can also answer questions about Altinn and not change the app.
 
 ## Prerequisites
 
 - Access to Azure AI models: Azure OpenAI, and Claude through Azure AI Foundry (`AZURE_ANTHROPIC_ENDPOINT`). If Azure is not available, the agent can use an OpenAI key.
-- A Langfuse project. The agent sends traces to Langfuse and gets prompts from Langfuse.
+- Optional: a Langfuse project. The agent runs without Langfuse. Without it, the agent records no traces and uses the local prompt files.
 - The local Designer stack. The agent clones and pushes through the Gitea proxy of this stack.
 
 ## Quick start
@@ -175,7 +175,7 @@ ws.onmessage = (event) => {
 
 ## Configuration
 
-`.env.example` shows all variables and their defaults. You must set these:
+`.env.example` shows all variables and their defaults. These are the important variables:
 
 ```env
 # Necessary: the Azure key. Azure OpenAI and Claude on Azure AI Foundry use it.
@@ -188,7 +188,8 @@ AZURE_API_KEY=your-key
 # header of each request, so you do not set a Gitea token here.
 GITEA_BASE_URL=http://host.docker.internal/repos
 
-# Necessary: Langfuse for observability and prompt management
+# Optional: Langfuse for traces and prompt management.
+# Set LANGFUSE_ENABLED=false to run without Langfuse. The default is true.
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
@@ -206,7 +207,7 @@ Each request goes through **pre-graph gates** first:
 - A scope check runs in the two modes. It refuses all requests that are not about Altinn app development.
 - Intent parsing runs in workflow mode only.
 
-Then a small LangGraph runs: **intake → [spec] → agentic loop**.
+Then a small LangGraph graph connects the three steps: **intake → [spec] → agentic loop**. The graph only sets the sequence of these steps. The agentic loop is our own code in `agents/core/loop.py`. In the loop, the model selects the tools.
 
 ### Workflow mode (`allow_app_changes: true`)
 
