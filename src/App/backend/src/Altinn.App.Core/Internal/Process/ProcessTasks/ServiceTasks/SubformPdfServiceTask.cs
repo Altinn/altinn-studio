@@ -9,13 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
 /// <summary>
-/// Generates one PDF per subform data element. There is deliberately no pre-generation cleanup
-/// here: stale PDFs from a previous visit to the task are removed by the CleanupGeneratedFromTask
-/// task-start command, and a failed attempt persists nothing (data changes commit only on callback
-/// success), so any element this task could see in its state-blob instance is already gone. The one
-/// remaining duplication window - a retry after a success the engine failed to record - cannot be
-/// closed from the blob (it predates the lost save) and is accepted until Storage-side idempotent
-/// aggregate mutations land (altinn-storage#1049).
+/// Generates and stores one PDF per subform data element. PDFs from an earlier visit to the task are removed
+/// when the task starts, not here.
 /// </summary>
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
