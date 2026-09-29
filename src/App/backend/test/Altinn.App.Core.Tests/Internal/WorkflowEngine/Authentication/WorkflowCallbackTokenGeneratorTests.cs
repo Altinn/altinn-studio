@@ -1,6 +1,8 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Moq;
@@ -9,6 +11,8 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Authentication;
 
 public class WorkflowCallbackTokenGeneratorTests
 {
+    private static readonly Actor _actor = new() { UserId = 1337, Language = "nb" };
+
     private readonly Mock<IWorkflowCallbackSecretProvider> _secretProviderMock = new(MockBehavior.Strict);
 
     private WorkflowCallbackTokenGenerator CreateSut(TimeProvider? timeProvider = null) =>
@@ -33,7 +37,7 @@ public class WorkflowCallbackTokenGeneratorTests
                 MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", DateTimeOffset.UtcNow.AddDays(186))
             );
 
-        var token = CreateSut().GenerateToken(instanceGuid);
+        var token = CreateSut().GenerateToken(instanceGuid, _actor, []);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         Assert.Equal(instanceGuid.ToString(), jwt.GetClaim(JwtClaimTypes.JwtId).Value);
@@ -48,7 +52,7 @@ public class WorkflowCallbackTokenGeneratorTests
             .Setup(x => x.GetSigningSecret())
             .Returns(MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", expiresAt));
 
-        var token = CreateSut().GenerateToken(Guid.NewGuid());
+        var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, []);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         // JWT exp is second-precision; compare with a tolerance.
@@ -63,7 +67,7 @@ public class WorkflowCallbackTokenGeneratorTests
             .Setup(x => x.GetSigningSecret())
             .Returns(MakeCode("secret-id-1", secret, DateTimeOffset.UtcNow.AddDays(186)));
 
-        var token = CreateSut().GenerateToken(Guid.NewGuid());
+        var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, []);
 
         // A token signed with HmacSha256 has three dot-separated segments.
         Assert.Equal(3, token.Split('.').Length);
@@ -80,7 +84,7 @@ public class WorkflowCallbackTokenGeneratorTests
             .Setup(x => x.GetSigningSecret())
             .Returns(MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", instant.AddDays(186)));
 
-        var token = CreateSut(timeProvider).GenerateToken(Guid.NewGuid());
+        var token = CreateSut(timeProvider).GenerateToken(Guid.NewGuid(), _actor, []);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         // iat is second-precision and is driven by the injected clock, not the wall clock.
@@ -94,6 +98,62 @@ public class WorkflowCallbackTokenGeneratorTests
             .Setup(x => x.GetSigningSecret())
             .Throws(new WorkflowCallbackSecretNotFoundException("no codes"));
 
-        Assert.Throws<WorkflowCallbackSecretNotFoundException>(() => CreateSut().GenerateToken(Guid.NewGuid()));
+        Assert.Throws<WorkflowCallbackSecretNotFoundException>(() =>
+            CreateSut().GenerateToken(Guid.NewGuid(), _actor, [])
+        );
     }
+
+    [Fact]
+    public void GenerateToken_BindsTheActor()
+    {
+        _secretProviderMock
+            .Setup(x => x.GetSigningSecret())
+            .Returns(
+                MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", DateTimeOffset.UtcNow.AddDays(186))
+            );
+
+        var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, []);
+
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        Assert.Equal(
+            WorkflowCallbackTokenBinding.ActorHash(_actor),
+            jwt.GetClaim(WorkflowCallbackTokenBinding.ActorClaim).Value
+        );
+    }
+
+    [Fact]
+    public void GenerateToken_BindsTheDistinctAppCommandKeysOfEveryWorkflow()
+    {
+        _secretProviderMock
+            .Setup(x => x.GetSigningSecret())
+            .Returns(
+                MakeCode("secret-id-1", "a-secret-that-is-long-enough-for-hmac", DateTimeOffset.UtcNow.AddDays(186))
+            );
+        WorkflowRequest[] workflows =
+        [
+            new() { OperationId = "first", Steps = [AppStep("mutate"), AppStep("commit"), WebhookStep()] },
+            new() { OperationId = "second", Steps = [AppStep("mutate"), AppStep("side-effect")] },
+        ];
+
+        var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, workflows);
+
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        Assert.True(jwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.CommandsClaim, out string[]? commands));
+        Assert.NotNull(commands);
+        Assert.Equal(["commit", "mutate", "side-effect"], commands);
+    }
+
+    private static StepRequest AppStep(string commandKey) =>
+        new()
+        {
+            OperationId = commandKey,
+            Command = CommandDefinition.Create("app", new AppCommandData { CommandKey = commandKey }),
+        };
+
+    private static StepRequest WebhookStep() =>
+        new()
+        {
+            OperationId = "webhook",
+            Command = CommandDefinition.Create("webhook", new AppCommandData { CommandKey = "not-an-app-command" }),
+        };
 }

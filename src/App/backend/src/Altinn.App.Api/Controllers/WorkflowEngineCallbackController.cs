@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -69,6 +70,26 @@ public class WorkflowEngineCallbackController : ControllerBase
 
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+
+        // The engine echoes the actor from its stored context; the token binds the one it was minted for.
+        if (
+            payload.Actor is not { } actor
+            || User.FindFirst(WorkflowCallbackTokenBinding.ActorClaim)?.Value
+                != WorkflowCallbackTokenBinding.ActorHash(actor)
+        )
+        {
+            _logger.LogError(
+                "Callback actor does not match the actor the callback token was minted for. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Actor mismatch");
+            return NonRetryableProblem(
+                "Actor Mismatch",
+                "The callback actor does not match the callback token.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
 
         IWorkflowEngineCommand? command = _serviceProvider
             .GetServices<IWorkflowEngineCommand>()

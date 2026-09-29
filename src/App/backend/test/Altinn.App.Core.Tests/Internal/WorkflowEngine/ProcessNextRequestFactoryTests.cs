@@ -76,7 +76,9 @@ public class ProcessNextRequestFactoryTests
         var appSettings = Options.Create(new AppSettings { RegisterEventsWithEventsComponent = registerEvents });
 
         var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>();
-        callbackTokenGeneratorMock.Setup(x => x.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
+        callbackTokenGeneratorMock
+            .Setup(x => x.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>()))
+            .Returns("test-callback-token");
 
         return new ProcessNextRequestFactory(
             appImplFactory,
