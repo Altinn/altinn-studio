@@ -19,7 +19,7 @@ class TestScoreAdaptation:
 
         assert evaluation.name == "bench_field_coverage"
         assert evaluation.value == 0.9302
-        assert "40/43" in evaluation.comment
+        assert "40/43" in (evaluation.comment or "")
 
     def test_an_item_replays_every_score_the_task_produced(self):
         assert len(structural_evaluator(output={"scores": [PAGES, COVERAGE]})) == 2

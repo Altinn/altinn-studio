@@ -260,6 +260,7 @@ class TestTheCommandCatalogue:
         parser = runner._parser()
         actions = [a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"]
         assert actions, "the parser has no subcommands"
+        assert actions[0].choices is not None
         assert set(actions[0].choices) == {e.name for e in runner.CATALOGUE}
 
     def test_help_text_comes_from_the_catalogue(self):
@@ -402,7 +403,7 @@ class TestTheOutputStaysReadable:
             ("langfuse", "Context error: No active span in current context."),
         ):
             record = self._record(name, message)
-            assert not all(f.filter(record) for f in logging.getLogger(name).filters), name
+            assert not logging.getLogger(name).filter(record), name
 
     def test_the_attribute_length_warning_is_dropped(self):
         import logging
@@ -415,7 +416,7 @@ class TestTheOutputStaysReadable:
             "Propagated attribute 'experiment_item_metadata.note' value is over 200 "
             "characters (207 chars). Dropping value.",
         )
-        assert not all(f.filter(dropped) for f in logging.getLogger("langfuse").filters)
+        assert not logging.getLogger("langfuse").filter(dropped)
 
     def test_a_real_error_from_those_loggers_still_prints(self):
         import logging
@@ -428,7 +429,7 @@ class TestTheOutputStaysReadable:
             ("langfuse", "authentication failed"),
         ):
             record = self._record(name, message)
-            assert all(f.filter(record) for f in logging.getLogger(name).filters), name
+            assert logging.getLogger(name).filter(record), name
 
     def test_applying_twice_does_not_stack_filters(self):
         import logging

@@ -6,12 +6,13 @@ import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from langfuse import get_client
 
 from benchmarks import manifest, provenance, registry, runstore
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models
-from benchmarks.experiment import SCORES_KEY, structural_evaluator
+from benchmarks.experiment import SCORES_KEY, ItemEvaluator, structural_evaluator
 from benchmarks.generation import ITEM_EVALUATORS, GenerationTask
 from benchmarks.generation import SCORE_NAMES as GENERATION_SCORE_NAMES
 from benchmarks.runstore import BehaviorResult, ItemResult, Run
@@ -69,7 +70,9 @@ def agent_models_for(planned) -> dict[str, str]:
     return _agent_models_or_die(_agent_base())
 
 
-def task_for(args, dataset, agent_models: dict[str, str] | None = None):
+def task_for(
+    args, dataset, agent_models: dict[str, str] | None = None
+) -> tuple[Any, list[ItemEvaluator], list[str], str]:
     """The task and scorers for a dataset, chosen by its kind."""
     if dataset.kind == E2E_KIND:
         agent_base = _agent_base()
@@ -92,7 +95,7 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         model = args.model or role_model("planner")
         entry = registry.by_name(dataset.name)
         task = PlannerTask(
-            prompt_name=entry.prompt,
+            prompt_name=entry.prompt_name,
             model=model,
             user_template=entry.user_template,
         )
@@ -108,7 +111,7 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         from .gates import GateTask
 
         model = args.model or role_model("default")
-        task = GateTask(prompt_name=dataset.prompt, model=model)
+        task = GateTask(prompt_name=dataset.prompt_name, model=model)
         return task, GATE_EVALUATORS, ["gate_verdict", "gate_decline_language"], model
 
     task = GenerationTask(role=args.role, max_tokens=args.max_tokens, model=args.model)
@@ -266,7 +269,8 @@ def _mean(values: list[float]) -> float | None:
 def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult, ...]:
     results = []
     for behavior in manifest.BEHAVIORS:
-        if not behavior.is_pinned:
+        pin = behavior.pin
+        if pin is None:
             results.append(
                 BehaviorResult(
                     behavior=behavior.id,
@@ -277,22 +281,23 @@ def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult,
                 )
             )
             continue
-        outcome = outcomes.get(behavior.eval)
+        eval_name, evaluator = pin
+        outcome = outcomes.get(eval_name)
         if outcome is None:
             results.append(
                 BehaviorResult(
                     behavior=behavior.id,
-                    evaluator=behavior.evaluator,
+                    evaluator=evaluator,
                     score=None,
                     items=(),
-                    skipped=f"{behavior.eval} was not run",
+                    skipped=f"{eval_name} was not run",
                 )
             )
             continue
         items = []
         values = []
         for item_id, scores in outcome.per_item.items():
-            value = scores.get(behavior.evaluator)
+            value = scores.get(evaluator)
             if value is not None:
                 values.append(value)
             items.append(
@@ -312,7 +317,7 @@ def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult,
         results.append(
             BehaviorResult(
                 behavior=behavior.id,
-                evaluator=behavior.evaluator,
+                evaluator=evaluator,
                 score=_mean(values),
                 items=tuple(items),
             )
@@ -363,7 +368,7 @@ def run(
         prompt_versions.update(versions)
         dataset_version = dataset_version or version_stamp
 
-    judged = {b.evaluator: b.judge_version for b in manifest.judged()}
+    judged = {b.evaluator: b.judge_version for b in manifest.judged() if b.evaluator}
     evaluator_versions = {name: int(str(version).lstrip("v")) for name, version in judged.items() if version}
 
     state = provenance.collect(
@@ -434,7 +439,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
             description=f"{entry.name} at {state.code}",
             data=items,
             task=task,
-            evaluators=evaluators,
+            evaluators=list(evaluators),  # A new list lets pyright accept the langfuse evaluator type
             max_concurrency=concurrency,
             metadata={
                 **state.as_langfuse_metadata(),

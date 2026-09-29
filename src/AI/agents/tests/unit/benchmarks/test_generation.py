@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 
 import pytest
 
@@ -19,6 +20,7 @@ from benchmarks.generation import (
     tool_choice,
     turn_from_reply,
 )
+from benchmarks.lf_api import LangfuseApi
 
 
 def _output(*calls, text="", stop_reason="tool_use"):
@@ -55,6 +57,7 @@ class TestReplayingTheConversation:
             {"role": "user", "tool_results": [{"tool_use_id": "t1", "content": "no", "is_error": True}]}
         )
 
+        assert isinstance(message.content[0], ToolResultBlock)
         assert message.content[0].is_error
 
     def test_an_assistant_turn_carries_its_tool_calls(self):
@@ -119,13 +122,13 @@ class TestToolChoice:
         scores = tool_choice(output=_output(("edit_file", {})), expected_output={"tool": "read_file"})
 
         assert scores[0].value == 0.0
-        assert "got edit_file" in scores[0].comment
+        assert "got edit_file" in (scores[0].comment or "")
 
     def test_no_tool_call_scores_zero_and_says_so(self):
         scores = tool_choice(output=_output(), expected_output={"tool": "read_file"})
 
         assert scores[0].value == 0.0
-        assert "no tool call" in scores[0].comment
+        assert "no tool call" in (scores[0].comment or "")
 
     def test_an_item_that_does_not_name_a_tool_is_not_scored(self):
         """Some items are only about stopping, or about JSON validity."""
@@ -158,7 +161,7 @@ class TestToolArguments:
             expected_output={"arguments": {"path": "a.json"}},
         )
 
-        assert "expected 'a.json'" in scores[0].comment
+        assert "expected 'a.json'" in (scores[0].comment or "")
 
     def test_no_call_at_all_scores_zero(self):
         scores = tool_arguments(output=_output(), expected_output={"arguments": {"path": "a"}})
@@ -183,7 +186,7 @@ class TestForbiddenTools:
         )
 
         assert scores[0].value == 0.0
-        assert "write_file" in scores[0].comment
+        assert "write_file" in (scores[0].comment or "")
 
 
 class TestStoppedCleanly:
@@ -198,7 +201,7 @@ class TestStoppedCleanly:
         scores = stopped_cleanly(output=_output(("preview_render_check", {})), expected_output={"stop": True})
 
         assert scores[0].value == 0.0
-        assert "got a tool call" in scores[0].comment
+        assert "got a tool call" in (scores[0].comment or "")
 
     def test_a_turn_that_should_continue_but_stops(self):
         scores = stopped_cleanly(output=_output(), expected_output={"stop": False})
@@ -358,7 +361,7 @@ class TestAllowedTools:
         )
 
         assert scores[0].value == 0.0
-        assert "accepted ['read_file', 'scan_repo']" in scores[0].comment
+        assert "accepted ['read_file', 'scan_repo']" in (scores[0].comment or "")
 
     def test_an_item_without_the_key_is_not_scored(self):
         from benchmarks.generation import allowed_tools
@@ -410,7 +413,7 @@ class TestExpectedOutputMirrorsTheAnswer:
                 expected = item["expectedOutput"]
                 output = _decision_output(expected)
                 for evaluator in ITEM_EVALUATORS:
-                    for score in evaluator(output=output, expected_output=expected) or []:
+                    for score in evaluator(input=None, output=output, expected_output=expected, metadata=None) or []:
                         want = "correct" if score.name == "gen_failure_mode" else 1.0
                         assert score.value == want, (
                             f"{dataset.name}/{item['id']}: {score.name} = {score.value} ({score.comment})"
@@ -461,7 +464,7 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
             kind="generation",
         )
 
-        _archive_orphans(Client(), Api(), dataset)
+        _archive_orphans(Client(), cast(LangfuseApi, Api()), dataset)
 
         assert archived == [("dropped", "ARCHIVED")]
 
@@ -484,7 +487,7 @@ class TestRenamingAnItemDoesNotLeaveADuplicate:
 
         _archive_orphans(
             Client(),
-            Api(),
+            cast(LangfuseApi, Api()),
             Dataset(name="d", prompt=None, description="d", path=Path("x"), items=[], kind="generation"),
         )
 
@@ -594,7 +597,7 @@ class TestRealTurnsCarrySeveralCalls:
         )
 
         assert scores[0].value == 0.5
-        assert "missing ['write_file']" in scores[0].comment
+        assert "missing ['write_file']" in (scores[0].comment or "")
 
     def test_a_forbidden_call_anywhere_in_the_turn_is_caught(self):
         """It could be the fourth of five calls, not the first."""
@@ -854,7 +857,7 @@ class TestContentPairings:
         scores = self._score([_write("Side1.json", _layout(nested))], _TIMESTAMP_RULE)
 
         assert scores[0].value == 0.0
-        assert "0/1" in scores[0].comment
+        assert "0/1" in (scores[0].comment or "")
 
     def test_an_item_that_declares_no_pairing_is_not_scored(self):
         assert self._score([_write("Side1.json", _layout(_datepicker("dato")))], {}) == []
@@ -900,4 +903,4 @@ class TestContentPairings:
         scores = content_pairings(output=_decision_output(expected), expected_output=expected)
 
         assert scores[0].value == 0.0
-        assert scores[0].comment.startswith("0/2 Datepicker(s)")
+        assert (scores[0].comment or "").startswith("0/2 Datepicker(s)")

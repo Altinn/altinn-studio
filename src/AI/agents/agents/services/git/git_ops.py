@@ -4,8 +4,8 @@ import subprocess
 from datetime import datetime
 
 
-def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str:
-    """Create branch if missing and commit, return hash"""
+def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
+    """Create branch if missing and commit, return hash, or None when nothing changed"""
     try:
         # Use provided branch name or create feature branch with timestamp
         if branch_name:
