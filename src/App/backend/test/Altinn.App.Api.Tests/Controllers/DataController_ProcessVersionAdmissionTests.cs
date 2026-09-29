@@ -19,7 +19,6 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-[Collection("Process version admission file-backed tests")]
 public class DataControllerProcessVersionAdmissionTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string Org = "ttd";
