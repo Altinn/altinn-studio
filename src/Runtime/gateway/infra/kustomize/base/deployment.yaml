@@ -38,9 +38,10 @@ spec:
       annotations:
         # for mTLS mainly
         linkerd.io/inject: enabled
-        # As a native sidecar, Linkerd's proxy is stopped only after the application has done its
-        # 5s drain and 20s shutdown, so it needs no wait before exit.
-        config.linkerd.io/shutdown-grace-period: "20s"
+        # Graceful shutdown relies on Kubernetes stopping the proxy only after the application has
+        # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
