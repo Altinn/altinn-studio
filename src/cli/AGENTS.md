@@ -57,6 +57,10 @@ Invariants:
 - `STUDIOCTL_IMAGE_*` pins one reference for a session. It replaced a home-directory override file,
   which an update deletes.
 
+### Language server
+
+`studioctl app lsp` and its VS Code and JetBrains clients live in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
+
 ### Releases
 
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
