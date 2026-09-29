@@ -43,9 +43,11 @@ export class DataModelPage extends BasePage {
       .click();
   }
 
-  public async clickOnObjectAddPropertyButton(): Promise<void> {
+  public async clickOnObjectAddPropertyButton(objectName: string): Promise<void> {
+    await this.getTreeItemProperty(objectName).hover();
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type'), exact: true })
+      .getByTitle(objectName, { exact: true })
+      .getByRole('button', { name: this.textMock('schema_editor.add_property'), exact: true })
       .click();
   }
 
@@ -88,14 +90,10 @@ export class DataModelPage extends BasePage {
     await this.page.getByRole('treeitem', { name }).click();
   }
 
-  public async focusOnTreeItemProperty(name: string): Promise<void> {
-    await this.page.getByRole('treeitem', { name }).focus();
-  }
-
   public async clickOnAddPropertyToObjectButton(property: 'string' | 'number'): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock(`schema_editor.${property}`),
+        name: this.textMock(`schema_editor.add_${property}`),
         exact: true,
       })
       .click();

@@ -67,8 +67,7 @@ test('Allows to add a data model, include an object with properties and a combin
 
   // Helper function to add a new property to the test object added
   const addPropertyToTheObjectNode = async (property: 'string' | 'number') => {
-    await dataModelPage.focusOnTreeItemProperty(treeItemTestName);
-    await dataModelPage.clickOnObjectAddPropertyButton();
+    await dataModelPage.clickOnObjectAddPropertyButton(treeItemTestName);
     await dataModelPage.clickOnAddPropertyToObjectButton(property);
   };
 
