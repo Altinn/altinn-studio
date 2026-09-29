@@ -1,6 +1,6 @@
 # System Prompts
 
-This directory contains all LLM system and user prompts used throughout the agent workflow.
+This directory contains the system and user prompts for the pre-graph gates and the intake and spec pipelines. The agentic loop's system prompt is not here: `agents/core/context.py` assembles it in code.
 
 ## Structure
 
@@ -171,7 +171,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL).
 - **Versionable**: Clear version tracking via frontmatter
 - **Organized**: One file per prompt, separate system vs user
 - **Type-safe**: Frontmatter provides metadata
-- **No Inline Strings**: All prompts external to code
+- **No Inline Strings**: The gate and pipeline prompts are external to code
 - **Reviewed publication**: CI publishes the repo copy to Langfuse on merge to main, so the served prompt has a reviewed commit behind it
 
 ## Prompt Files
@@ -182,7 +182,7 @@ The Langfuse SDK caches prompts internally (default 60s TTL).
 - `spec_extraction.md` - Extract a structured spec from attachments
 - `intent_security.md` - Security-focused intent parsing
 - `goal_suggestions.md` - Generate clear goal examples from unclear input
-- `scope_check.md` - Pre-gate classifier: is a Q&A question in scope for Altinn app development
+- `scope_check.md` - Pre-gate classifier: is a request in scope for Altinn app development (both modes)
 
 ### User Templates
 

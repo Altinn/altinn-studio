@@ -31,6 +31,8 @@ Edit them directly.
    ```markdown
    ---
    description: One sentence on what this covers and when to load it.
+   title: Display title for the chat UI's source chip
+   docs_url: https://docs.altinn.studio/...
    ---
 
    # Title
@@ -39,8 +41,13 @@ Edit them directly.
    ```
 
 3. Discovery is automatic at session start. Keep the description under
-   250 chars; the body can be as long as it needs to be (it only costs
-   tokens when actually loaded).
+   250 chars: the listing truncates longer ones. The body can be as long
+   as it needs to be (it only costs tokens when actually loaded).
+
+`description` is the only required field. `when_to_use` is appended to
+the description in the listing. `title` and `docs_url` are optional and
+show in the chat UI as the source chip and its link; `docs_url` must be
+a page verified to resolve.
 
 Reference files (indexes, data) live next to SKILL.md and are inlined
 into the loaded body via a frontmatter `include:` list (comma-separated

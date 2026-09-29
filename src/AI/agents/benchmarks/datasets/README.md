@@ -5,8 +5,10 @@ diff and reproducible on any clone. [../EVALS.md](../EVALS.md) is the entry poin
 `../registry.py` declares which file backs which dataset.
 
 Editing anything in this folder invalidates the baseline, because it changes what is
-measured. `python -m benchmarks.runner impact` says so, and CI fails the pull request
-unless it carries a new `BASELINE.json`.
+measured. `python -m benchmarks.runner impact` says so. CI runs
+`python -m benchmarks.impact --strict` with the changed files on stdin, and fails the
+pull request unless it carries a new `BASELINE.json`. Without `--strict` the report
+exits 0.
 
 ## Item shape
 
@@ -20,6 +22,7 @@ unless it carries a new `BASELINE.json`.
 ```
 
 `id` is the upsert key, so editing a case updates it in place and a sync is idempotent.
+A sync also archives remote items that the file no longer has.
 
 `note` is required. A case whose purpose is not written down gets deleted by the next
 person who cannot tell what it was for.
@@ -35,8 +38,8 @@ Neither gate puts its user message in the Langfuse prompt. `scope_checker` and
 `llm_client` build it in Python and the prompt holds only the system half, so an
 experiment handed just the goal would test framing production never sends.
 
-The files hold the readable fields, and `dataset_sync` renders `user_message` from the
-same builders production calls: `build_scope_check_message` and
+For the gate datasets, the files hold the readable fields, and `dataset_sync`
+renders `user_message` from the same builders production calls: `build_scope_check_message` and
 `build_intent_parse_message`. Nothing is duplicated, so nothing can drift, and a test
 asserts the rendered message equals what the builder returns.
 
@@ -45,13 +48,15 @@ asserts the rendered message equals what the builder returns.
 `loop_traces.jsonl` is rebuilt from production traces rather than written by hand, with
 `python -m benchmarks.harvest`. `harvest_spec.json` names the source traces and
 `loop_traces.prompts.json` holds each session's own recorded system prompt, so a replay
-sends what the session actually sent. Prefer harvesting to authoring: three defects in
+sends what the session actually sent. `harvest --planner` rebuilds
+`planner_intake.jsonl` from the same traces, and `harvest --list TRACE_ID` prints the
+decisions in one trace. Prefer harvesting to authoring: three defects in
 this harness came from items that encoded a wrong assumption about production.
 
 ## Syncing
 
 ```bash
 python -m benchmarks.dataset_sync --check          # validate the files, no network
-python -m benchmarks.dataset_sync                  # upsert all of them
+python -m benchmarks.dataset_sync                  # upsert all of them, archive orphans, describe the other evals
 python -m benchmarks.dataset_sync --dataset Gates/scope
 ```

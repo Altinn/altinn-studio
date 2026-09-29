@@ -4,11 +4,13 @@ An AI agent that modifies Altinn Studio applications through natural language in
 
 ## What is Altinity?
 
-Altinity is a multi-agent system powered by LangGraph that understands Altinn Studio development patterns. It can autonomously generate, validate, and apply code changes to your applications - or answer questions about Altinn concepts without making changes.
+Altinity is an agent, orchestrated with LangGraph, that understands Altinn Studio development patterns. It can autonomously generate, validate, and apply code changes to your applications - or answer questions about Altinn concepts without making changes.
 
 ## Prerequisites
 
-- Azure OpenAI API access (or OpenAI)
+- Access to Azure AI models: Azure OpenAI, and Claude through Azure AI Foundry (`AZURE_ANTHROPIC_ENDPOINT`). A plain OpenAI key is a fallback.
+- A Langfuse project, for traces and served prompts
+- The local Designer stack, for the Gitea proxy the agent clones from and pushes to
 
 ## Quick Start
 
@@ -19,8 +21,8 @@ Altinity is a multi-agent system powered by LangGraph that understands Altinn St
 cp .env.example .env.docker
 # Edit .env.docker with your API keys
 
-# 2. Start Altinity
-docker-compose up
+# 2. Start Altinity (the Designer stack must run: the container joins its designer_default network)
+docker compose up
 ```
 
 ### Local Python
@@ -40,21 +42,21 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ### Lint, format and test
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -r requirements.txt -r requirements-dev.txt
 
 ruff check .          # lint (add --fix to fix automatically)
 ruff format .         # format
 python -m pytest      # unit tests
 ```
 
-CI runs `ruff check`, `ruff format --check` and `pytest` on each pull request.
+CI (`.github/workflows/altinity-build-test.yaml`) runs `ruff check`, `ruff format --check` and `pytest` on each pull request, then starts the server and checks `/health`.
 
 ## Features
 
 - 🤖 **Code Generation** - Generates Altinn-compliant code using in-process Altinn tools
 - 💬 **Chat Mode** - Ask questions without making changes
 - ✅ **Validation** - Schema and business rule validation
-- 🔄 **Atomic Operations** - All-or-nothing changes with rollback
+- 🔄 **Surgical undo** - `discard_file_changes` reverts one file at a time
 - 🌲 **Git Integration** - Session-based branches for change tracking
 - 📊 **Observability** - Langfuse integration for tracing and cost monitoring
 
@@ -65,21 +67,32 @@ CI runs `ruff check`, `ruff format --check` and `pytest` on each pull request.
 ```bash
 POST /api/agent/start
 Content-Type: application/json
+X-Api-Key: <Designer API key>
+X-Developer: <developer username>
 
 {
   "session_id": "unique-session-id",
   "repo_url": "http://gitea:3000/org/app.git",
+  "org": "org",
   "goal": "Add a date field for 'birthDate' after the name field",
   "allow_app_changes": true
 }
 ```
 
+**Headers:**
+
+- `X-Api-Key` - Designer API key, used to clone and push through the Gitea proxy (required, `401` without it)
+- `X-Developer` - The developer who owns the session (required, `400` without it). Rate limits apply per developer (5) and in total (30).
+
 **Parameters:**
 
-- `session_id` - Unique identifier for this session
-- `repo_url` - Git URL of the Altinn app repository
+- `session_id` - Unique identifier for this session (1-128 letters, digits, `-` or `_`)
+- `repo_url` - Git URL of the Altinn app repository. Only the path is used; the host comes from `GITEA_BASE_URL`.
+- `org` - The organization that owns the app
 - `goal` - Natural language description of what to do
-- `allow_app_changes` - `true` for workflow mode, `false` for chat mode
+- `allow_app_changes` - `true` for workflow mode, `false` (the default) for chat mode
+- `branch` - Optional branch to continue work on
+- `attachments` - Optional list of `{name, mimeType, size, dataBase64}` files
 
 ### Chat Mode (Q&A)
 
@@ -87,6 +100,7 @@ Content-Type: application/json
 {
   "session_id": "unique-session-id",
   "repo_url": "http://gitea:3000/org/app.git",
+  "org": "org",
   "goal": "How do I use dynamic expressions to hide fields?",
   "allow_app_changes": false
 }
@@ -102,10 +116,16 @@ Returns session status for reconnection scenarios.
 
 ### Other Endpoints
 
-| Method | Endpoint  | Description                    |
-| ------ | --------- | ------------------------------ |
-| `GET`  | `/health` | Health check                   |
-| `WS`   | `/ws`     | WebSocket for real-time events |
+| Method   | Endpoint                             | Description                                            |
+| -------- | ------------------------------------ | ------------------------------------------------------ |
+| `POST`   | `/api/agent/permission/{session_id}` | Answer a `permission_request`: `{request_id, granted}` |
+| `POST`   | `/api/agent/cancel/{session_id}`     | Cancel a running session (session owner only)          |
+| `PUT`    | `/api/traces/{trace_id}/feedback`    | Record thumbs up/down feedback as a Langfuse score     |
+| `DELETE` | `/api/traces/{trace_id}/feedback`    | Remove that feedback                                   |
+| `POST`   | `/api/traces/delete-expired`         | Delete Langfuse traces older than the retention window |
+| `GET`    | `/api/token-usage/daily`             | Token usage per service owner for the previous day     |
+| `GET`    | `/health`                            | Health check; also reports the model for each role     |
+| `WS`     | `/ws`                                | WebSocket for real-time events                         |
 
 ## WebSocket Events
 
@@ -119,6 +139,7 @@ ws.onopen = () => {
     JSON.stringify({
       type: 'session',
       session_id: 'your-session-id',
+      developer: 'your-username', // required: the server closes the socket without it
     }),
   );
 };
@@ -130,8 +151,17 @@ ws.onmessage = (event) => {
     case 'status':
       // Workflow progress update
       break;
+    case 'assistant_message_chunk':
+      // Streamed part of the response
+      break;
     case 'assistant_message':
       // Final response from agent
+      break;
+    case 'permission_request':
+      // A read-only session wants to write; answer via /api/agent/permission
+      break;
+    case 'plan_proposed':
+      // Intake produced a change plan
       break;
     case 'done':
       // Workflow completed
@@ -145,29 +175,33 @@ ws.onmessage = (event) => {
 
 ## Configuration
 
+`.env.example` lists every variable with its default. The minimum:
+
 ```env
-# Required: Azure OpenAI
+# Required: Azure key (used for Azure OpenAI and for Claude on Azure AI Foundry)
 AZURE_API_KEY=your-key
-AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+# Optional: the endpoints have defaults in shared/config/base_config.py
+# AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+# AZURE_ANTHROPIC_ENDPOINT=https://<resource>.services.ai.azure.com/anthropic/
 
-# Required: Gitea for branch pushes
-GITEA_LOCAL_TOKEN=your-token
-GITEA_BASE_URL=http://localhost:3000
+# Required: Gitea proxy for clone and push. Git authenticates with the
+# X-Api-Key header of each request, so no Gitea token is configured here.
+GITEA_BASE_URL=http://host.docker.internal/repos
 
-# Optional: Multi-model setup
-LLM_MODEL_PLANNER=gpt-5.6-sol
-LLM_MODEL_ACTOR=gpt-5.6-terra
-
-# Optional: Langfuse observability
+# Required: Langfuse observability and prompt management
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_BASE_URL=https://langfuse.digdir.cloud
 LANGFUSE_ENABLED=true
+
+# Optional: one model per role
+LLM_MODEL_PLANNER=gpt-5.6-sol
+LLM_MODEL_ACTOR=gpt-5.6-terra
 ```
 
 ## How It Works
 
-Every request first passes **pre-graph gates** — intent parsing and a scope check that decline anything outside Altinn app development. It then runs a small LangGraph: **intake → [spec] → agentic loop**.
+Every request first passes **pre-graph gates**: a scope check in both modes that declines anything outside Altinn app development, and intent parsing in workflow mode. It then runs a small LangGraph: **intake → [spec] → agentic loop**.
 
 ### Workflow Mode (`allow_app_changes: true`)
 
@@ -175,17 +209,17 @@ Every request first passes **pre-graph gates** — intent parsing and a scope ch
 2. **Spec** (only when files are attached) - Extracts a structured FormSpec from the uploads.
 3. **Agentic loop** - A single model-driven loop does the work by calling tools: scan the repo, read/edit/write files, look up layout and datamodel schemas, load domain-knowledge skills, verify changes, and commit to a session branch. The model chooses the order.
 
-Changes are atomic: the loop commits a working change to the session branch or rolls back.
+The loop commits to the session branch with `commit_session_branch`. There is no automatic rollback: to undo a change, the model reverts one file at a time with `discard_file_changes`.
 
 ### Chat Mode (`allow_app_changes: false`)
 
-Runs the same agentic loop **read-only**: write tools are denied, so the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files. The denial is escalatable, so if the request genuinely needs a change, the first write-tool call prompts the user; granting it turns the session into a normal write session.
+Skips intake, runs spec when files are attached, and then runs the same agentic loop **read-only**: write tools are denied, so the model answers using the repo scan, documentation skills, and schema-lookup tools without modifying files. The denial is escalatable, so if the request genuinely needs a change, the first write-tool call prompts the user; granting it turns the session into a normal write session.
 
 ## Security model
 
 Three layers, each covering what the others cannot.
 
-**Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment *filenames*, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
+**Intent gate** (`intent_security.md`, write mode only) screens the user's goal text for abuse before the graph runs. It sees attachment _filenames_, never their bytes: a 13k-token PDF costs real money to screen and yields little signal.
 
 **Structural containment** (both modes) is the boundary that actually holds. Write tools are denied in read-only mode until the user approves an escalation, file access is confined to the app repository, `web_fetch` is allowlisted to Digdir hosts, and every change the agent makes to a repository lands on a session branch a human reviews before merge. The prompts Langfuse serves are covered too: CI publishes them when a prompt change merges to main, so a served prompt has a reviewed commit behind it (see [Prompts and Langfuse](#prompts-and-langfuse)).
 
@@ -207,16 +241,16 @@ python -m scripts.sync_prompts --promote spec_extraction --version 1   # roll ba
 
 Publishing runs from CI, not from a laptop. `.github/workflows/assistant-prompts.yaml` runs `--diff` on every pull request touching `agents/prompts/`, so drift is visible before merge, and runs `--push` on merge to main, which publishes every prompt that differs as a new version labeled `production` with the merge commit URL as its commit message. `--push` refuses to run unless `ALLOW_PROMPT_PUSH=1` is set, which CI does and a laptop should not. Roll back by promoting the previous version.
 
-A full `--diff` also lists the prompts Langfuse holds that have no repo file. Adding a file under one of those names serves the retired Langfuse version until CI publishes the new one, and anyone reading the Langfuse list sees a retired prompt labeled `production`. Archive them there rather than leaving them labeled.
+A full `--diff` also lists the prompts Langfuse holds that have no repo file. Adding a file under one of those names serves the retired Langfuse version until CI publishes the new one, and anyone reading the Langfuse list sees a retired prompt labeled `production`. Retire them with `python -m scripts.sync_prompts --retire`, which saves every version to `agents/prompts/retired.json` before it deletes the prompt (set `ALLOW_PROMPT_DELETE=1`).
 
-At the time of writing 11 of 17 prompts differ from their repo copies, so treat a diff as expected rather than alarming, and read it: the local file may be behind, not ahead.
+When a diff shows, read it before you act: the local file may be behind, not ahead.
 
 This is also why the attachment spotlighting above is implemented in code. A security control that lives only in a prompt file is inert the moment a managed version exists.
 
 ## Project Structure
 
 ```
-altinity-agents/
+src/AI/agents/
 ├── api/                  # FastAPI server
 │   ├── routes/           # Endpoints: agent, websocket, token_usage, traces
 │   └── main.py           # Application entry point
@@ -226,17 +260,24 @@ altinity-agents/
 │   │   ├── runner.py     # Graph build + pre-graph gates
 │   │   └── state.py      # AgentState
 │   ├── core/             # Agentic loop engine (loop, tool registry, skills, tools/)
-│   ├── altinn/           # Altinn domain library (datamodel, layout, resources)
+│   ├── altinn/           # Altinn domain library (app_version, datamodel, layout, resources)
+│   ├── schemas/          # Plan schema for intake
 │   ├── skills/           # Domain-knowledge skills, loaded on demand
-│   ├── prompts/          # System + user prompts (+ loader; Langfuse overrides these)
+│   ├── prompts/          # Gate and pipeline prompts (+ loader; Langfuse overrides these)
 │   ├── services/         # git, llm, events, preview, repo
 │   └── workflows/        # Up-front pipeline stages (intake, spec)
-└── shared/               # Config, models, utilities
+├── services/             # token_usage and traces, behind the api routes of the same name
+├── shared/               # Config, models, utilities
+├── benchmarks/           # Evals and the end to end benchmark (see benchmarks/EVALS.md)
+├── scripts/              # sync_prompts and test fixture tools
+├── infra/kustomize/      # Deployment manifests
+└── tests/                # pytest suite
 ```
 
 ## Dependencies
 
 - FastAPI
 - LangGraph
-- LangChain
+- LangChain (`langchain-core`, `langchain-openai`)
+- OpenAI and Anthropic SDKs
 - Langfuse

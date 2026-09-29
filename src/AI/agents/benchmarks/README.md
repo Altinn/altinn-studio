@@ -58,21 +58,24 @@ poll /api/agent/status until terminal                     clone the session bran
                                 ▼
                     scores returned as the task output
                                 │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-        item scores on the task     run scores across items
-        trace, in the dataset run   (completion rate, per-score means)
+                                ▼
+                 item scores on the task trace, in the dataset run
 ```
 
-Two traces exist per item and both belong to the run. The SDK traces the task on
-the runner side and hangs the item scores off it. The agent is a separate service
-with its own workflow trace, carrying the LLM calls and the Langfuse-managed
-judges, so it is handed the experiment context at start and joins the same
-dataset run.
+Two traces exist per item. The SDK traces the task on the runner side and hangs
+the item scores off it. The agent is a separate service with its own workflow
+trace, carrying the LLM calls and the Langfuse-managed judges. It is handed an
+experiment context at start and stamps it on that trace. The context is named
+after `--run-name` (default: the dataset name), while the SDK names its run
+`<timestamp>-<eval>-<model>-<suffix>`, so the two names differ.
+
+The runner records item scores only; `run_experiment` gets no run-level
+evaluators.
 
 Items run one at a time. An agent run pushes to a single repo and drives a single
 browser preview, so they cannot overlap however willing the SDK is to
-parallelise; `--max-concurrency` is there if that ever stops being true.
+parallelise. The concurrency for e2e is fixed at 1 (`E2E_MAX_CONCURRENCY` in
+`check.py`); `--max-concurrency` applies to the other evals only.
 
 An item that cannot be scored raises. `run_experiment` records it as a failed
 item rather than dropping it, which is the point: the previous runner printed a
@@ -99,9 +102,9 @@ differ between correct runs:
 }
 ```
 
-Field titles are matched against the candidate's `resource.nb.json`
-values after normalization (case, punctuation, leading "A.1"-style
-enumeration), so naming style doesn't matter but missing fields do.
+Field titles are matched against the `resource.nb.json` values that the
+title bindings of the candidate's input components point to, after normalization (case, punctuation, leading "A.1"-style
+enumeration). One title may contain the other, so naming style doesn't matter but missing fields do.
 
 ## Scores
 
@@ -114,10 +117,12 @@ enumeration), so naming style doesn't matter but missing fields do.
 | `bench_field_coverage`         | 0–1     | fraction of expected field titles present                |
 | `bench_input_count`            | 0–1     | input components vs rubric minimum                       |
 | `bench_texts_bound`            | 0–1     | text bindings resolving in resource.nb.json              |
-| `bench_renders`                | boolean | first ordered page renders in app preview (see below)    |
+| `bench_renders`                | boolean | first ordered page renders in app preview (see below)¹   |
 | `bench_pages_render`           | 0–1     | fraction of ordered pages that render without error      |
 | `bench_render_fix_rounds`      | numeric | fix rounds sent back to the agent (only when a fix ran)  |
 | `bench_pages_render_after_fix` | 0–1     | render fraction after the fix loop (only when a fix ran) |
+
+¹ Not posted when the first page was never measured.
 
 ## Prerequisites
 
@@ -127,11 +132,15 @@ missing.
 | #   | What                                      | Check                                                                    |
 | --- | ----------------------------------------- | ------------------------------------------------------------------------ |
 | 1   | Local Designer stack up                   | `curl -s -o /dev/null -w '%{http_code}' http://studio.localhost` → `200` |
-| 2   | Agents service up                         | `curl -s -o /dev/null -w '%{http_code}' http://localhost:8071/health`    |
+| 2   | Agents service up, reporting its models   | `curl -s http://localhost:8071/health` → `models` is not empty           |
 | 3   | `.env` in this directory                  | see below                                                                |
 | 4   | Designer API key minted                   | `python -m benchmarks.bootstrap_api_key --write-env`                     |
 | 5   | Score configs in Langfuse                 | `python -m benchmarks.runner ensure-configs`                             |
 | 6   | Playwright + Chromium (render check only) | `pip install -e '.[preview]' && playwright install chromium`             |
+
+Check **2** matters: `--include-e2e` exits at once when `/health` does not
+report `models`, because the scores could not be attributed to a model.
+Rebuild the agent image if it is missing.
 
 Re-run **4** after wiping the database volume, and **5** whenever a new
 `bench_*` score is added. A score with no config still posts, but
@@ -142,10 +151,11 @@ without a data type or range Langfuse cannot aggregate it across runs.
 The `.env` in this directory (or exported) holds:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…
+LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is accepted for the host
 AGENT_DESIGNER_API_KEY=…            # X-Api-Key for agent API + Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
+BENCH_DEVELOPER=benchmark           # default; sent as X-Developer
 ```
 
 `BENCH_REPO_URL` points at a **disposable app repo you own**. The
@@ -161,7 +171,7 @@ Gitea personal access token does NOT work; mint one with
 
 Attachments referenced by dataset items (`metadata.attachments`) live in
 `benchmarks/assets/` (gitignored; binary test fixtures don't belong in
-the repo).
+the repo). `--assets-dir` points somewhere else.
 
 ```bash
 # one-time: create the bench_* score configs in Langfuse
@@ -171,20 +181,22 @@ python -m benchmarks.runner ensure-configs
 git -c 'http.extraHeader=X-Api-Key: <key>' clone --branch assistant_<id> \
     http://localhost/repos/<org>/<app>.git /tmp/golden
 python -m benchmarks.runner rubric --from-app /tmp/golden \
-    --update-item trace-34fddc78028268ea87078ae2d15e1715
+    --update-item trace-34fddc78028268ea87078ae2d15e1715   # --dataset defaults to Benchmarks/forms
 
-# benchmark the current agent build
-python -m benchmarks.runner run --run-name agentic-loop-$(git rev-parse --short HEAD)
+# benchmark the current agent build (add --only Benchmarks/forms to skip the other evals)
+python -m benchmarks.runner check --include-e2e --label "agentic loop $(git rev-parse --short HEAD)"
 ```
 
-Name runs after the agent version you're testing (`--run-name`); every
-run appears in the Langfuse run table with aggregated scores, so a
-regression shows up as a column that got worse.
+Describe the change you're testing with `--label`; it is stored with the
+run and in the Langfuse run metadata. The Langfuse run name is generated
+and unique, so it cannot be chosen. `--run-name` only names the
+experiment context handed to the agent. Each agent workflow times out
+after 30 minutes.
 
 ### Reading the results
 
-The run prints each score as it is computed, then a summary of the item averages.
-For comparison across versions go to _Datasets → the dataset → Runs_ in Langfuse;
+`check` prints progress per eval, then a verdict per behavior. It saves the run
+and writes the report to `benchmarks/reports/workbench.html`. For comparison across versions go to _Datasets → the dataset → Runs_ in Langfuse;
 each run is a column and each score a row.
 
 Read the boolean scores first. `bench_completed`, `bench_pages`,
@@ -261,7 +273,7 @@ This changes what the benchmark measures. `bench_pages_render` scores
 the app as the agent left it, so with the tool on it reflects an agent
 that could see and fix its own render failures. That is a fair thing to
 measure, but it is not comparable with a run where the tool was off, so
-say which mode a run used in `--run-description`.
+say which mode a run used in `--label`.
 
 ### Render-fix loop
 
@@ -307,15 +319,15 @@ by app-frontend, so the page looks fine and only the console shows it.
 the check fails the page on exception-shaped console output for exactly
 this reason.
 
-**`skip <item>: expectedOutput is not a vN rubric`.** The dataset item
-predates the current rubric version; rebuild it with `runner rubric
+**`item <id> expectedOutput is not a v2 rubric`.** The item is recorded
+as failed. The dataset item predates the current rubric version; rebuild it with `runner rubric
 --from-app … --update-item …`.
 
 ## Notes
 
-- The Langfuse SDK is deliberately not used: the self-hosted v3 server
-  omits fields newer SDK models require. Everything goes through the
-  public REST API (`lf_api.py`).
+- The Langfuse SDK runs the experiments (`run_experiment`) and creates
+  datasets. Item upserts and score configs go through the public REST
+  API in `lf_api.py` instead.
 - After the server is upgraded to Langfuse v4: add a managed
   LLM-as-a-judge evaluator on the dataset (it can see
   `{{expected_output}}`), boolean-score-rate alerts, and optionally the
