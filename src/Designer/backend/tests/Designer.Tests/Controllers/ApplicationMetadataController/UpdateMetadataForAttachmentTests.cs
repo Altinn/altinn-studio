@@ -74,6 +74,51 @@ public class UpdateMetadataForAttachmentTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UpdateMetadataForAttachment_ShouldKeepExistingEnableFileScan(bool existingEnableFileScan)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+
+        string addPayload = JsonSerializer.Serialize(
+            new
+            {
+                id = "testId",
+                maxCount = 1,
+                minCount = 1,
+                maxSize = 25,
+                enableFileScan = existingEnableFileScan,
+            }
+        );
+        using var addPayloadContent = new StringContent(addPayload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var addResponse = await HttpClient.PostAsync(url, addPayloadContent);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+
+        string updatePayload = @"{ ""id"": ""testId"", ""maxCount"": 2, ""minCount"": 0, ""maxSize"": 10 }";
+        using var updatePayloadContent = new StringContent(
+            updatePayload,
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using var updateResponse = await HttpClient.PutAsync(url, updatePayloadContent);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        string applicationMetadataFile = await File.ReadAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json")
+        );
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+            applicationMetadataFile,
+            _jsonSerializerOptions
+        );
+
+        var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
+        Assert.Equal(existingEnableFileScan, attachmentDataType.EnableFileScan);
+        Assert.Equal(2, attachmentDataType.MaxCount);
+    }
+
     // Payload should have strong type instead in controller.
     public static IEnumerable<object[]> TestData =>
         new List<object[]>
