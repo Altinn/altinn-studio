@@ -22,6 +22,8 @@ from benchmarks.generation import (
 )
 from benchmarks.lf_api import LangfuseApi
 
+from .conftest import comment_of
+
 
 def _output(*calls, text="", stop_reason="tool_use"):
     return GeneratedTurn(
@@ -122,13 +124,13 @@ class TestToolChoice:
         scores = tool_choice(output=_output(("edit_file", {})), expected_output={"tool": "read_file"})
 
         assert scores[0].value == 0.0
-        assert "got edit_file" in (scores[0].comment or "")
+        assert "got edit_file" in comment_of(scores[0])
 
     def test_no_tool_call_scores_zero_and_says_so(self):
         scores = tool_choice(output=_output(), expected_output={"tool": "read_file"})
 
         assert scores[0].value == 0.0
-        assert "no tool call" in (scores[0].comment or "")
+        assert "no tool call" in comment_of(scores[0])
 
     def test_an_item_that_does_not_name_a_tool_is_not_scored(self):
         """Some items are only about stopping, or about JSON validity."""
@@ -161,7 +163,7 @@ class TestToolArguments:
             expected_output={"arguments": {"path": "a.json"}},
         )
 
-        assert "expected 'a.json'" in (scores[0].comment or "")
+        assert "expected 'a.json'" in comment_of(scores[0])
 
     def test_no_call_at_all_scores_zero(self):
         scores = tool_arguments(output=_output(), expected_output={"arguments": {"path": "a"}})
@@ -186,7 +188,7 @@ class TestForbiddenTools:
         )
 
         assert scores[0].value == 0.0
-        assert "write_file" in (scores[0].comment or "")
+        assert "write_file" in comment_of(scores[0])
 
 
 class TestStoppedCleanly:
@@ -201,7 +203,7 @@ class TestStoppedCleanly:
         scores = stopped_cleanly(output=_output(("preview_render_check", {})), expected_output={"stop": True})
 
         assert scores[0].value == 0.0
-        assert "got a tool call" in (scores[0].comment or "")
+        assert "got a tool call" in comment_of(scores[0])
 
     def test_a_turn_that_should_continue_but_stops(self):
         scores = stopped_cleanly(output=_output(), expected_output={"stop": False})
@@ -361,7 +363,7 @@ class TestAllowedTools:
         )
 
         assert scores[0].value == 0.0
-        assert "accepted ['read_file', 'scan_repo']" in (scores[0].comment or "")
+        assert "accepted ['read_file', 'scan_repo']" in comment_of(scores[0])
 
     def test_an_item_without_the_key_is_not_scored(self):
         from benchmarks.generation import allowed_tools
@@ -597,7 +599,7 @@ class TestRealTurnsCarrySeveralCalls:
         )
 
         assert scores[0].value == 0.5
-        assert "missing ['write_file']" in (scores[0].comment or "")
+        assert "missing ['write_file']" in comment_of(scores[0])
 
     def test_a_forbidden_call_anywhere_in_the_turn_is_caught(self):
         """It could be the fourth of five calls, not the first."""
@@ -857,7 +859,7 @@ class TestContentPairings:
         scores = self._score([_write("Side1.json", _layout(nested))], _TIMESTAMP_RULE)
 
         assert scores[0].value == 0.0
-        assert "0/1" in (scores[0].comment or "")
+        assert "0/1" in comment_of(scores[0])
 
     def test_an_item_that_declares_no_pairing_is_not_scored(self):
         assert self._score([_write("Side1.json", _layout(_datepicker("dato")))], {}) == []
@@ -903,4 +905,4 @@ class TestContentPairings:
         scores = content_pairings(output=_decision_output(expected), expected_output=expected)
 
         assert scores[0].value == 0.0
-        assert (scores[0].comment or "").startswith("0/2 Datepicker(s)")
+        assert comment_of(scores[0]).startswith("0/2 Datepicker(s)")
