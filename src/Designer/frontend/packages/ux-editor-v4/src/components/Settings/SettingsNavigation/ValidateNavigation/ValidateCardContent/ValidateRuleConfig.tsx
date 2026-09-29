@@ -22,6 +22,7 @@ export const ValidateRuleConfig = ({
   return (
     <>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         selected={selectedTypes}
         label={t('ux_editor.settings.navigation_validation_type_label')}
         emptyText={t('ux_editor.settings.navigation_validation_type_empty')}
@@ -35,6 +36,7 @@ export const ValidateRuleConfig = ({
         ))}
       </StudioSuggestion>
       <StudioSuggestion
+        clearButtonLabel={t('general.clear_selection')}
         selected={selectedPageScope}
         label={t('ux_editor.settings.navigation_validation_scope')}
         emptyText={t('ux_editor.settings.navigation_validation_scope_empty')}

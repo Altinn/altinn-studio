@@ -157,6 +157,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
         return (
           <StudioTextResourcePicker
             emptyText={texts.emptyTextResourceList ?? ''}
+            clearButtonLabel={texts.clearSelection}
             className={cn(className, classes.searchField)}
             label={texts.textResourcePickerLabel}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}

@@ -29,14 +29,10 @@ async def get_previous_day_token_usage() -> list[DailyTokenUsageRow]:
     return await _token_usage_for_window(observation_window_start, window_end)
 
 
-async def _token_usage_for_window(
-    observation_window_start: datetime, window_end: datetime
-) -> list[DailyTokenUsageRow]:
+async def _token_usage_for_window(observation_window_start: datetime, window_end: datetime) -> list[DailyTokenUsageRow]:
     """Fetch and aggregate token usage rows for an arbitrary UTC window."""
     trace_window_start = observation_window_start - TRACE_LOOKBACK_BUFFER
-    traces, observations = await fetch_traces_and_observations(
-        trace_window_start, observation_window_start, window_end
-    )
+    traces, observations = await fetch_traces_and_observations(trace_window_start, observation_window_start, window_end)
 
     trace_objects = [_as_trace(item) for item in traces]
     traces_by_id = {trace["id"]: trace for trace in trace_objects}

@@ -48,7 +48,7 @@ internal sealed class SignDocumentManager(
             signatureConfiguration.SignatureDataType
             ?? throw new ApplicationConfigException("SignatureDataType is not set in the signature configuration.");
 
-        ApplicationMetadata applicationMetadata = await appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
         instanceDataAccessor.OverrideAuthenticationMethodForRestrictedDataTypes(
             applicationMetadata,
             [signatureDataTypeId],

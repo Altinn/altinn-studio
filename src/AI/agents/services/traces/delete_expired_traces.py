@@ -1,6 +1,6 @@
 """Deletes Langfuse traces older than the retention window via the public API."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -23,9 +23,7 @@ EARLIEST_START_TIME = "2020-01-01T00:00:00Z"
 
 async def delete_expired_traces() -> int:
     """Requests deletion of every production Langfuse trace older than the retention window. Returns the number of traces submitted for deletion."""
-    cutoff = datetime.now(timezone.utc) - timedelta(
-        days=get_config().LANGFUSE_TRACE_RETENTION_DAYS
-    )
+    cutoff = datetime.now(UTC) - timedelta(days=get_config().LANGFUSE_TRACE_RETENTION_DAYS)
     async with create_public_api_client() as client:
         return await _delete_traces_before(client, cutoff)
 
@@ -42,9 +40,7 @@ async def _delete_traces_before(client: httpx.AsyncClient, cutoff: datetime) -> 
     return len(trace_ids)
 
 
-async def _fetch_expired_trace_ids(
-    client: httpx.AsyncClient, cutoff: datetime
-) -> list[str]:
+async def _fetch_expired_trace_ids(client: httpx.AsyncClient, cutoff: datetime) -> list[str]:
     """One id per expired trace. Root spans repeat per trace, so dedupe."""
     root_spans = await fetch_observations(
         client,

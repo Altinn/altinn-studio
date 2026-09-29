@@ -7,7 +7,7 @@ import json
 import os
 import subprocess
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
@@ -161,10 +161,12 @@ def _sampling_value(value: object) -> str:
 def _actor_prompt_digest() -> str | None:
     """A hash of the actor's static system prompt."""
     try:
+        from agents.altinn.app_version import V8_PROFILE
         from agents.core.context import stable_prefix_sections
 
-        sections = stable_prefix_sections()
-    except Exception:  # noqa: BLE001
+        # The benchmark items run against v8 apps.
+        sections = stable_prefix_sections(V8_PROFILE)
+    except Exception:
         return None
     payload = "\n\n".join(sections).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
@@ -176,7 +178,7 @@ def _tools_digest() -> str | None:
         from agents.graph.nodes.agentic_loop_node import _build_registry
 
         schema = _build_registry().to_schema()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
     payload = json.dumps(schema, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
@@ -205,7 +207,7 @@ def collect(
     if agent_roles:
         models = {**models, **{r: agent_models[r] for r in agent_roles}}
     provenance = Provenance(
-        recorded_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        recorded_at=datetime.now(UTC).isoformat(timespec="seconds"),
         environment=_environment(),
         code=_code(),
         models=models,
@@ -223,8 +225,7 @@ def collect(
         notes.append(f"axes not recorded: {', '.join(missing)}")
     if agent_roles:
         notes.append(
-            f"models axis for {', '.join(agent_roles)} came from the agent that built "
-            "the app, not this checkout"
+            f"models axis for {', '.join(agent_roles)} came from the agent that built the app, not this checkout"
         )
     if notes:
         provenance = Provenance(

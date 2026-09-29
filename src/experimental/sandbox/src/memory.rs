@@ -18,7 +18,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     Error, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode, RootFilesystemModeSet, Sandbox,
-    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxPhase, SandboxResources, SandboxState,
+    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxResources, SandboxState,
     backend::{CreateSandboxRequest, SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
     mount::{MountKind, MountKindSet},
@@ -308,7 +308,7 @@ impl SandboxBackend for Provider {
     }
 
     fn create(&self, request: CreateSandboxRequest) -> PendingOperation<'_, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxCreate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 if let Some(id) = storage.by_name.get(&request.name) {
@@ -348,7 +348,7 @@ impl SandboxBackend for Provider {
     }
 
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -369,7 +369,7 @@ impl SandboxBackend for Provider {
         id: &'a SandboxId,
         environment: BTreeMap<String, String>,
     ) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -412,9 +412,7 @@ impl SandboxBackend for Provider {
     }
 
     fn start<'a>(&'a self, id: &'a SandboxId) -> PendingOperation<'a, ()> {
-        PendingOperation::run(SandboxPhase::SandboxStart, move |_progress| {
-            Box::pin(async move { self.set_state(id, SandboxState::Running) })
-        })
+        PendingOperation::run(move |_progress| Box::pin(async move { self.set_state(id, SandboxState::Running) }))
     }
 
     fn stop<'a>(&'a self, id: &'a SandboxId) -> LocalFuture<'a, Result<(), Error>> {
@@ -961,7 +959,7 @@ impl image::ImageBackend for MemoryImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
@@ -1041,9 +1039,7 @@ fn update_digest_part(digest: &mut Sha256, value: &[u8]) {
 }
 
 fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
-    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
-        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
-    })
+    PendingOperation::run(move |_progress| Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) }))
 }
 
 fn test_platform() -> Platform {

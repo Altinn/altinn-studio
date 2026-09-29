@@ -86,9 +86,9 @@ The engine is a **reusable class library**, not a standalone application. Hosts 
 | --------------------------- | ------------------------------------------------------------------------------------- |
 | `WorkflowEngine.Core`       | Processing loop, HTTP endpoints, executor, host composition extensions                |
 | `WorkflowEngine.Commands`   | Built-in commands (WebhookCommand). Host-specific commands live in their own projects |
-| `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `CommandDefinition`, status enums, exceptions      |
+| `WorkflowEngine.Models`     | Domain models, wire contract, `RetryStrategy`. No project or package references       |
 | `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, PostgreSQL implementation                   |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), `RetryStrategy`               |
+| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), retry delay calculation       |
 | `WorkflowEngine.Telemetry`  | OpenTelemetry counters, histograms, observable gauges, activity source                |
 | `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers          |
 
@@ -193,13 +193,15 @@ The `CommandRegistry` maps type strings to `ICommand` singletons. Commands valid
 
 | Result                                    | Meaning                      |
 | ----------------------------------------- | ---------------------------- |
-| `ExecutionResult.Success()`               | Step completed               |
+| `ExecutionResult.Success(state)`          | Step completed               |
 | `ExecutionResult.RetryableError(message)` | Transient failure — retry    |
 | `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry |
 
 ### State Passing
 
-Each step's `StateOut` becomes the next step's `StateIn`:
+A command returns its output state on the result (`ExecutionResult.Success(state)` or
+`ExecutionResult.Defer(delay, reason, state)`). The engine stores it as the step's `StateOut`, and each
+step's `StateOut` becomes the next step's `StateIn`:
 
 ```
 Step 1 (validate) → StateOut: {"validated": true}
@@ -230,6 +232,10 @@ Per-step, configurable:
 | Constant    | `base`                   | 1s, 1s, 1s...                          |
 | Linear      | `base × iteration`       | 1s, 2s, 3s...                          |
 | Exponential | `base × 2^(iteration-1)` | 1s, 2s, 4s, 8s... (capped at MaxDelay) |
+
+A collection head reports `failedAttempts`: how many consecutive attempts of its current step have
+failed and been scheduled for retry. It holds steady while a retry attempt runs, so a consumer can
+tell a failing head from a slow one without a per-workflow lookup.
 
 ### Failure Outcomes
 
@@ -1968,7 +1974,7 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 ### State Passing
 
-AppCommand reads `{ "state": "..." }` from the response body and stores it as `step.StateOut`. The next step receives it as `state` in its callback payload.
+AppCommand reads `{ "state": "..." }` from the response body and returns it on the `ExecutionResult`. The next step receives it as `state` in its callback payload.
 
 ### Configuration
 

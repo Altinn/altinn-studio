@@ -5,8 +5,8 @@ use std::{io::Cursor, path::PathBuf, rc::Rc};
 use bytes::Bytes;
 use futures_util::StreamExt as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Hostname, OperationEvent, Platform, RetentionPolicy,
-    RootFilesystem, Sandbox, SandboxEvent, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Hostname, OperationEvent, Platform, ProgressEvent,
+    RetentionPolicy, RootFilesystem, Sandbox, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
     backend::SandboxBackend as _,
     execution::{self, ExecutionSpec, StartExecutionRequest},
     image::ImageSource,
@@ -252,7 +252,7 @@ async fn assert_resource_update_and_root_growth(
     assert_eq!(resized.id, sandbox.id);
     assert_eq!(resized.resources, request.spec().resources);
     assert!(events.iter().any(
-        |event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == "Update Microsandbox VM resources")
+        |event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == "Update Microsandbox VM resources")
     ));
 
     let root_size = run(backend, &resized.id, shell("df -kP / | awk 'END { print $2 }'")).await;
@@ -306,7 +306,7 @@ async fn assert_reference_image_resolves(backend_home: PathBuf) {
     assert!(
         events
             .iter()
-            .any(|event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == "Pull OCI image"))
+            .any(|event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == "Pull OCI image"))
     );
     let output = run(backend.as_ref(), &sandbox.id, shell("cat /etc/alpine-release")).await;
     assert!(output.status.success());
@@ -352,15 +352,10 @@ async fn assert_build_cache_reused(
         .await
         .expect("Sandbox should rebuild from the retained Docker cache");
     assert!(
-        events.iter().any(|event| {
-            matches!(
-                event,
-                SandboxEvent::StepOutput { name, bytes, .. }
-                    if name == "Build Docker image"
-                        && [b"CACHED".as_slice(), b"Using cache".as_slice()]
-                            .iter()
-                            .any(|marker| bytes.windows(marker.len()).any(|window| window == *marker))
-            )
+        step_output(&events, "Build Docker image").iter().any(|bytes| {
+            [b"CACHED".as_slice(), b"Using cache".as_slice()]
+                .iter()
+                .any(|marker| bytes.windows(marker.len()).any(|window| window == *marker))
         }),
         "second Docker build should report a reused layer; events: {events:#?}"
     );
@@ -368,7 +363,7 @@ async fn assert_build_cache_reused(
         assert!(
             !events
                 .iter()
-                .any(|event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == skipped)),
+                .any(|event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == skipped)),
             "reused Microsandbox image should skip {skipped}"
         );
     }
@@ -431,7 +426,7 @@ async fn assert_terminal_execution(backend: &dyn sandbox::backend::SandboxBacken
 
 async fn collect_progress(
     mut pending: sandbox::PendingSandbox<'_>,
-) -> Result<(Sandbox, Vec<SandboxEvent>), sandbox::Error> {
+) -> Result<(Sandbox, Vec<ProgressEvent>), sandbox::Error> {
     let mut events = Vec::new();
     while let Some(event) = pending.next().await {
         match event? {
@@ -443,7 +438,25 @@ async fn collect_progress(
     Err(sandbox::Error::OperationStreamEnded)
 }
 
-fn assert_provisioning_progress(events: &[SandboxEvent]) {
+/// Output of every occurrence of the named step.
+fn step_output<'a>(events: &'a [ProgressEvent], step: &str) -> Vec<&'a [u8]> {
+    let ids = events
+        .iter()
+        .filter_map(|event| match event {
+            ProgressEvent::StepStarted { id, name, .. } if name == step => Some(id),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    events
+        .iter()
+        .filter_map(|event| match event {
+            ProgressEvent::StepOutput { id, bytes, .. } if ids.contains(&id) => Some(bytes.as_ref()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn assert_provisioning_progress(events: &[ProgressEvent]) {
     for expected in [
         "Check Docker Engine",
         "Build Docker image",
@@ -454,7 +467,7 @@ fn assert_provisioning_progress(events: &[SandboxEvent]) {
         assert!(
             events
                 .iter()
-                .any(|event| { matches!(event, SandboxEvent::StepStarted { name, .. } if name == expected) })
+                .any(|event| { matches!(event, ProgressEvent::StepStarted { name, .. } if name == expected) })
         );
     }
 }

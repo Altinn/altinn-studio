@@ -44,6 +44,7 @@ export const EditStringValue = ({
       renderField={({ fieldProps }) =>
         enumValues ? (
           <StudioSuggestion
+            clearButtonLabel={t('general.clear_selection')}
             {...fieldProps}
             onChange={(e: any) => fieldProps.onChange(e)}
             multiple={multiple}

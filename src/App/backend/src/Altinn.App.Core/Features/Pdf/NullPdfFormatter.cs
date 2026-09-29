@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Features.Pdf;
 [Obsolete(
     "This class was used for the old PDF generator, and is used for backwards compatibility in the new one. Create a custom pdf layout instead if you need to customize the PDF layout."
 )]
-public class NullPdfFormatter : IPdfFormatter
+internal sealed class NullPdfFormatter : IPdfFormatter
 {
     /// <inheritdoc/>
     public Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

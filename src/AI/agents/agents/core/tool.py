@@ -12,10 +12,13 @@ machinery — tools should be testable in isolation.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from pydantic import BaseModel
+
+from agents.altinn.app_version import V8_PROFILE, AppVersionProfile
 
 
 @dataclass
@@ -44,6 +47,7 @@ class LoopContext:
     # True (granted) or False (declined/timeout).  Wired by the loop node
     # in read-only sessions; None means denials are final.
     permission_requester: Callable[[str], Awaitable[bool]] | None = None
+    app_version_profile: AppVersionProfile = V8_PROFILE
     extras: dict[str, Any] = field(default_factory=dict)
 
 
@@ -64,11 +68,11 @@ class PermissionResult:
     escalatable: bool = False
 
     @classmethod
-    def allow(cls) -> "PermissionResult":
+    def allow(cls) -> PermissionResult:
         return cls(allowed=True)
 
     @classmethod
-    def deny(cls, reason: str, escalatable: bool = False) -> "PermissionResult":
+    def deny(cls, reason: str, escalatable: bool = False) -> PermissionResult:
         return cls(allowed=False, reason=reason, escalatable=escalatable)
 
 
@@ -129,9 +133,7 @@ class Tool(ABC):
         `rm` is not)."""
         return self.is_read_only
 
-    async def check_permission(
-        self, args: BaseModel, ctx: LoopContext
-    ) -> PermissionResult:
+    async def check_permission(self, args: BaseModel, ctx: LoopContext) -> PermissionResult:
         return PermissionResult.allow()
 
     @abstractmethod

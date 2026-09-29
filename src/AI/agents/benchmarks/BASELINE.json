@@ -1,8 +1,8 @@
 {
   "axes": {
-    "actor_prompt": "07e319515e6a",
-    "code": "3811d8c clean",
-    "dataset": "115 items be00f7b53c3b",
+    "actor_prompt": "9766b2fc3ce5",
+    "code": "c2579bd clean",
+    "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-5.6-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "c8bbdb44ee0f"
   },
-  "check_id": "20260922T131717Z-rename-altinity-to-assistant-10c6",
-  "label": "rename Altinity to assistant",
-  "recorded_at": "2026-09-22T13:23:31+00:00",
-  "why": "session branch prefix renamed; tool, prompt and dataset digests identical to the previous baseline"
+  "check_id": "20260928T124324Z-fast-verify-changes-892a",
+  "label": "fast verify_changes",
+  "recorded_at": "2026-09-28T12:48:27+00:00",
+  "why": "Fast verify_changes for nested v9 expressions and JSON files with a UTF-8 BOM, #20776"
 }

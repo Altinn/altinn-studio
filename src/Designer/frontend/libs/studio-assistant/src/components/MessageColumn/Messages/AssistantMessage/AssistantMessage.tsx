@@ -44,7 +44,9 @@ export function AssistantMessage({
         />
       </div>
       {sources.length > 0 && <SourceList sources={sources} label={texts.sourcesLabel} />}
-      {filesChanged.length > 0 && <FilesChangedList filePaths={filesChanged} />}
+      {filesChanged.length > 0 && (
+        <FilesChangedList filePaths={filesChanged} label={texts.filesChangedLabel} />
+      )}
       {criticalFiles.length > 0 && (
         <CriticalFileAlert criticalFiles={criticalFiles} texts={texts.criticalFileAlert} />
       )}

@@ -23,7 +23,6 @@
     <PackageReference Include="Verify.Moq" />
     <PackageReference Include="Verify.Xunit"/>
     <PackageReference Include="FluentAssertions"/>
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk"/>
     <PackageReference Include="Moq"/>
     <PackageReference Include="xunit"/>

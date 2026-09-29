@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.Options;
 /// Factory class for resolving <see cref="IInstanceAppOptionsProvider"/> implementations
 /// based on the name/id of the app options requested.
 /// </summary>
-public class InstanceAppOptionsFactory
+internal sealed class InstanceAppOptionsFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.App;
@@ -38,11 +39,9 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
     {
         using var activity = _telemetry?.StartNotificationOrderCancelActivity(notificationOrderId);
 
-        HttpResponseMessage? httpResponseMessage = null;
-        string? httpContent = null;
         try
         {
-            var application = await _appMetadata.GetApplicationMetadata();
+            var application = _appMetadata.ApplicationMetadata;
 
             var uri = _platformSettings.ApiNotificationEndpoint.TrimEnd('/') + $"/orders/{notificationOrderId}/cancel";
 
@@ -53,17 +52,30 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-
-            if (httpResponseMessage.IsSuccessStatusCode is false)
+            using var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            string? httpContent = null;
+            try
             {
-                throw new HttpRequestException(
-                    $"Got error status code for notification order cancellation: {(int)httpResponseMessage.StatusCode}"
+                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+                if (httpResponseMessage.IsSuccessStatusCode is false)
+                {
+                    throw new HttpRequestException(
+                        $"Got error status code for notification order cancellation: {(int)httpResponseMessage.StatusCode}"
+                    );
+                }
+
+                _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Success);
+            }
+            catch (Exception e)
+            {
+                throw CancelFailed(
+                    notificationOrderId,
+                    e,
+                    httpResponseMessage.StatusCode,
+                    httpResponseMessage.ReasonPhrase,
+                    httpContent
                 );
             }
-
-            _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Success);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -72,20 +84,28 @@ internal sealed class NotificationCancelClient : INotificationCancelClient
         }
         catch (Exception e) when (e is not NotificationCancelException)
         {
-            _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Error);
+            throw CancelFailed(notificationOrderId, e, statusCode: null, reasonPhrase: null, content: null);
+        }
+    }
 
-            var ex = new NotificationCancelException(
-                $"Something went wrong when cancelling notification order {notificationOrderId}",
-                httpResponseMessage,
-                httpContent,
-                e
-            );
-            _logger.LogError(ex, "Error when cancelling notification order");
-            throw ex;
-        }
-        finally
-        {
-            httpResponseMessage?.Dispose();
-        }
+    private NotificationCancelException CancelFailed(
+        Guid notificationOrderId,
+        Exception innerException,
+        HttpStatusCode? statusCode,
+        string? reasonPhrase,
+        string? content
+    )
+    {
+        _telemetry?.RecordNotificationOrderCancel(Telemetry.Notifications.CancelResult.Error);
+
+        var ex = new NotificationCancelException(
+            $"Something went wrong when cancelling notification order {notificationOrderId}",
+            statusCode,
+            reasonPhrase,
+            content,
+            innerException
+        );
+        _logger.LogError(ex, "Error when cancelling notification order");
+        return ex;
     }
 }

@@ -6,8 +6,6 @@ root span, so the caller that owns the dataset passes this in at session start.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 EXPERIMENT_ID = "langfuse.experiment.id"
@@ -27,7 +25,7 @@ class ExperimentContext(BaseModel):
     experiment_name: str = Field(alias="experimentName")
     dataset_id: str = Field(alias="datasetId")
     item_id: str = Field(alias="itemId")
-    description: Optional[str] = None
+    description: str | None = None
 
     def span_attributes(self, root_observation_id: str) -> dict[str, str]:
         """`root_observation_id` must be the root span's own id, per the spec."""

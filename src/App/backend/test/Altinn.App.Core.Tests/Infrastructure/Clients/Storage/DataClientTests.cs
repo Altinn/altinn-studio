@@ -2062,7 +2062,7 @@ public class DataClientTests
         )
         {
             var mocks = new FixtureMocks();
-            mocks.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
+            mocks.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(_appMetadata);
             mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(_defaultAuth);
             mocks
                 .MaskinportenClientMock.Setup(x =>

@@ -63,6 +63,7 @@ export const PolicyActions = (): React.ReactElement => {
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       multiple
       className={classes.dropdownWrapper}
       label={t('policy_editor.rule_card_actions_title')}

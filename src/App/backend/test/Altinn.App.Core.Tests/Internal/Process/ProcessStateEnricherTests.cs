@@ -54,8 +54,10 @@ public class ProcessStateEnricherTests
         // step counts maps to an omitted progress object, and no enqueue time to an omitted
         // startedAt.
         Assert.Null(result.Workflow.Retrying);
+        Assert.Null(result.Workflow.FailedAttempts);
         Assert.Null(result.Workflow.Progress);
         Assert.Null(result.Workflow.StartedAt);
+        Assert.Null(result.Workflow.ResumedAt);
     }
 
     [Fact]
@@ -72,7 +74,8 @@ public class ProcessStateEnricherTests
                     Failure: null,
                     Retrying: true,
                     Progress: new WorkflowStepProgress(Completed: 7, Total: 12),
-                    StartedAt: startedAt
+                    StartedAt: startedAt,
+                    FailedAttempts: 2
                 )
             );
 
@@ -83,6 +86,7 @@ public class ProcessStateEnricherTests
         Assert.NotNull(result.Workflow);
         Assert.Equal(WorkflowActivityStatus.Processing, result.Workflow.Status);
         Assert.True(result.Workflow.Retrying);
+        Assert.Equal(2, result.Workflow.FailedAttempts);
         Assert.NotNull(result.Workflow.Progress);
         Assert.Equal(7, result.Workflow.Progress.Completed);
         Assert.Equal(12, result.Workflow.Progress.Total);

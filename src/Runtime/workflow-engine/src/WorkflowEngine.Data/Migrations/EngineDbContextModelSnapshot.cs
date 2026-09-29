@@ -483,6 +483,10 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("reclaim_count");
 
+                    b.Property<DateTimeOffset?>("ResumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resumed_at");
+
                     b.Property<DateTimeOffset?>("StartAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("start_at");

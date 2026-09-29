@@ -16,6 +16,7 @@ const mockAppVersion: AppVersion = {
 const defaultProps: ProcessEditorProps = {
   bpmnXml: mockBPMNXML,
   saveBpmn: jest.fn(),
+  getSavedBpmn: jest.fn(),
   appVersion: mockAppVersion,
   availableDataTypeIds: [],
   availableDataModelIds: [],

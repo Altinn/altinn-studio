@@ -26,9 +26,7 @@ class Line:
 
 def _remote_items(lf: LangfuseApi, name: str) -> int | None:
     try:
-        rows = lf._get(
-            "/api/public/dataset-items", datasetName=name, limit=100
-        ).get("data") or []
+        rows = lf._get("/api/public/dataset-items", datasetName=name, limit=100).get("data") or []
     except Exception:
         return None
     return len([r for r in rows if r.get("status") != "ARCHIVED"])
@@ -36,12 +34,15 @@ def _remote_items(lf: LangfuseApi, name: str) -> int | None:
 
 def _is_scored(lf: LangfuseApi, experiment_id: str) -> bool:
     """Whether any item in an experiment carries a score."""
-    rows = lf._get(
-        "/api/public/experiment-items",
-        experimentId=experiment_id,
-        limit=50,
-        fromStartTime=_since(),
-    ).get("data") or []
+    rows = (
+        lf._get(
+            "/api/public/experiment-items",
+            experimentId=experiment_id,
+            limit=50,
+            fromStartTime=_since(),
+        ).get("data")
+        or []
+    )
     for row in rows[:5]:
         trace = row.get("traceId")
         if not trace:
@@ -61,13 +62,16 @@ def _runs(lf: LangfuseApi, name: str) -> list[str]:
         pass
     try:
         identity = lf._get(f"/api/public/v2/datasets/{encoded}")
-        experiments = lf._get(
-            "/api/public/experiments",
-            fromStartTime=_since(),
-            datasetId=identity.get("id"),
-            limit=100,
-            fields="core",
-        ).get("data") or []
+        experiments = (
+            lf._get(
+                "/api/public/experiments",
+                fromStartTime=_since(),
+                datasetId=identity.get("id"),
+                limit=100,
+                fields="core",
+            ).get("data")
+            or []
+        )
         known = {name.split(":", 1)[1] for name in found}
         for x in experiments:
             label = x.get("name") or ""
@@ -90,20 +94,15 @@ def survey() -> list[Line]:
         remote = _remote_items(lf, entry.name)
         runs = _runs(lf, entry.name)
 
-        if entry.status == "live" and local is not None and remote is not None:
-            if local != remote:
-                problems.append(
-                    f"{local} items here, {remote} in Langfuse; run dataset_sync"
-                )
+        if entry.status == "live" and local is not None and remote is not None and local != remote:
+            problems.append(f"{local} items here, {remote} in Langfuse; run dataset_sync")
         if entry.status == "live" and not remote:
             problems.append("no active items in Langfuse")
         behaviors = manifest.for_eval(entry.name)
         if entry.status == "live" and not behaviors:
             problems.append("no behavior in manifest.py claims this dataset")
         if behaviors and not any(b.is_pinned for b in behaviors):
-            problems.append(
-                "runs but nothing scores it, so it is declared as a gap rather than coverage"
-            )
+            problems.append("runs but nothing scores it, so it is declared as a gap rather than coverage")
         lines.append(
             Line(
                 name=entry.name,
@@ -158,22 +157,14 @@ def render(lines: list[Line], drift: list[str], prompts: list[tuple[str, str]]) 
     out = ["", "EVALS"]
     unscored: list[str] = []
     for line in lines:
-        counts = (
-            f"{line.items_local}/{line.items_remote}"
-            if line.items_local is not None
-            else f"-/{line.items_remote}"
-        )
+        counts = f"{line.items_local}/{line.items_remote}" if line.items_local is not None else f"-/{line.items_remote}"
         out.append(
             f"  {line.name:<{width}}  {line.status:<8} {line.kind:<10} "
             f"items={counts:<7} behaviors={len(line.behaviors)}"
         )
         for problem in line.problems:
             out.append(f"  {'':<{width}}  ! {problem}")
-        unscored += [
-            f"{line.name}: {run.split(':', 1)[1]}"
-            for run in line.runs
-            if run.startswith("ui-unscored:")
-        ]
+        unscored += [f"{line.name}: {run.split(':', 1)[1]}" for run in line.runs if run.startswith("ui-unscored:")]
 
     out += ["", "BEHAVIORS"]
     for component in manifest.COMPONENTS:
@@ -204,8 +195,7 @@ def render(lines: list[Line], drift: list[str], prompts: list[tuple[str, str]]) 
     out += ["", "SUMMARY"]
     out.append(f"  {len(registry.live())} live evals")
     out.append(
-        f"  {counts['pinned']}/{counts['behaviors']} behaviors pinned, "
-        f"{counts['gaps']} with nothing holding them"
+        f"  {counts['pinned']}/{counts['behaviors']} behaviors pinned, {counts['gaps']} with nothing holding them"
     )
     if unclaimed:
         out.append(f"  {len(unclaimed)} live eval(s) no behavior claims: {', '.join(unclaimed)}")

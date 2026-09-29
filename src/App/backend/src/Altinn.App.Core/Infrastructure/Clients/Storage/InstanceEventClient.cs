@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on instance events in Altinn Platform.
 /// </summary>
-public class InstanceEventClient : IInstanceEventClient
+internal sealed class InstanceEventClient : IInstanceEventClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly HttpClient _client;
