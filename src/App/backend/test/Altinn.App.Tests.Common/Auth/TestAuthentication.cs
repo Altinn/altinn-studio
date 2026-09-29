@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;

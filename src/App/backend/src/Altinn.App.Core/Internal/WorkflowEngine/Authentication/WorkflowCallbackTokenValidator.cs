@@ -1,5 +1,5 @@
 using System.Text;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -72,7 +72,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
             return false;
         }
 
-        if (!jwt.TryGetClaim(JwtClaimTypes.SecretId, out var secretIdClaim))
+        if (!jwt.TryGetClaim(JwtClaimTypes.AppCode.SecretId, out var secretIdClaim))
         {
             _logger.LogWarning(
                 "Workflow callback token validation failed: token has no secret_id claim for instance {InstanceGuid}.",

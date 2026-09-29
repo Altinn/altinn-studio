@@ -1,5 +1,5 @@
 using System.Text;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -46,7 +46,7 @@ internal sealed class WorkflowCallbackTokenGenerator : IWorkflowCallbackTokenGen
             Claims = new Dictionary<string, object>
             {
                 [JwtClaimTypes.JwtId] = instanceGuid.ToString(),
-                [JwtClaimTypes.SecretId] = appCode.Id,
+                [JwtClaimTypes.AppCode.SecretId] = appCode.Id,
             },
             // Bind the token lifetime to the signing code: the engine replays the same token on every
             // callback, so it must remain valid for as long as the code that signed it is accepted.

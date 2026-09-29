@@ -1,9 +1,7 @@
-using Altinn.App.Core.Constants;
-
-namespace Altinn.App.Core.Features.Maskinporten.Constants;
+namespace Altinn.App.Core.Constants;
 
 /// <summary>
-/// Relevant known Digdir JWT claim types.
+/// JWT claim types the app reads or issues.
 /// </summary>
 internal static class JwtClaimTypes
 {
@@ -13,7 +11,18 @@ internal static class JwtClaimTypes
     public const string Audience = "aud";
     public const string Scope = "scope";
     public const string Issuer = "iss";
-    public const string SecretId = "secret_id";
+
+    /// <summary>
+    /// Claims of the tokens the app signs with its own app codes: notification condition and workflow-engine
+    /// callback tokens.
+    /// </summary>
+    public static class AppCode
+    {
+        /// <summary>
+        /// The id of the app code that signed the token, so a validator can pick it out.
+        /// </summary>
+        public const string SecretId = "secret_id";
+    }
 
     public static class Altinn
     {
