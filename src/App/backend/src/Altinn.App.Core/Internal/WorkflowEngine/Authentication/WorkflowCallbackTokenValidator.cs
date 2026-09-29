@@ -24,7 +24,7 @@ internal interface IWorkflowCallbackTokenValidator
 /// A callback token that passed validation, carrying what the request itself must still be checked against.
 /// </summary>
 /// <param name="ActorHash">
-/// <see cref="WorkflowCallbackTokenBinding.ActorHash"/> of the actor the token was minted for.
+/// <see cref="WorkflowCallbackTokenGenerator.ActorHash"/> of the actor the token was minted for.
 /// </param>
 internal sealed record ValidatedWorkflowCallbackToken(string ActorHash);
 
@@ -161,7 +161,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
 
         var validatedJwt = (JsonWebToken)result.SecurityToken;
         if (
-            !validatedJwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.CommandsClaim, out string[]? commandKeys)
+            !validatedJwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.Commands, out string[]? commandKeys)
             || commandKeys?.Contains(commandKey, StringComparer.Ordinal) is not true
         )
         {
@@ -174,7 +174,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
         }
 
         if (
-            !validatedJwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.ActorClaim, out string? actorHash)
+            !validatedJwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.ActorHash, out string? actorHash)
             || string.IsNullOrEmpty(actorHash)
         )
         {

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -940,7 +941,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             new ClaimsIdentity(
                 [
                     new Claim(ClaimTypes.NameIdentifier, context.InstanceGuid.ToString()),
-                    new Claim(WorkflowCallbackTokenBinding.ActorClaim, validated.ActorHash),
+                    new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
                 ],
                 WorkflowEngineCallbackDefaults.AuthenticationScheme
             )

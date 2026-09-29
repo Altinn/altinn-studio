@@ -3,7 +3,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Authentication;
 
-public class WorkflowCallbackTokenBindingTests
+public class WorkflowCallbackTokenGeneratorActorHashTests
 {
     private static readonly Actor _actor = new()
     {
@@ -58,8 +58,8 @@ public class WorkflowCallbackTokenBindingTests
     public void ActorHash_ChangesWithEveryIdentityField(Actor changed)
     {
         Assert.NotEqual(
-            WorkflowCallbackTokenBinding.ActorHash(_actor),
-            WorkflowCallbackTokenBinding.ActorHash(changed)
+            WorkflowCallbackTokenGenerator.ActorHash(_actor),
+            WorkflowCallbackTokenGenerator.ActorHash(changed)
         );
     }
 
@@ -67,8 +67,8 @@ public class WorkflowCallbackTokenBindingTests
     public void ActorHash_IgnoresLanguage()
     {
         Assert.Equal(
-            WorkflowCallbackTokenBinding.ActorHash(_actor),
-            WorkflowCallbackTokenBinding.ActorHash(_actor with { Language = "en" })
+            WorkflowCallbackTokenGenerator.ActorHash(_actor),
+            WorkflowCallbackTokenGenerator.ActorHash(_actor with { Language = "en" })
         );
     }
 
@@ -76,8 +76,8 @@ public class WorkflowCallbackTokenBindingTests
     public void ActorHash_DistinguishesNullFromEmpty()
     {
         Assert.NotEqual(
-            WorkflowCallbackTokenBinding.ActorHash(_actor with { OrgId = null }),
-            WorkflowCallbackTokenBinding.ActorHash(_actor with { OrgId = "" })
+            WorkflowCallbackTokenGenerator.ActorHash(_actor with { OrgId = null }),
+            WorkflowCallbackTokenGenerator.ActorHash(_actor with { OrgId = "" })
         );
     }
 
@@ -92,6 +92,9 @@ public class WorkflowCallbackTokenBindingTests
         };
         var joined = _actor with { SystemUserOwnerOrgNo = "a\",\"b", SystemUserName = null };
 
-        Assert.NotEqual(WorkflowCallbackTokenBinding.ActorHash(split), WorkflowCallbackTokenBinding.ActorHash(joined));
+        Assert.NotEqual(
+            WorkflowCallbackTokenGenerator.ActorHash(split),
+            WorkflowCallbackTokenGenerator.ActorHash(joined)
+        );
     }
 }

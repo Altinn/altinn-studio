@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
@@ -448,10 +449,10 @@ public class ProcessNextRequestFactoryTests
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(context.CallbackToken);
 
         Assert.Equal(
-            WorkflowCallbackTokenBinding.ActorHash(context.Actor),
-            jwt.GetClaim(WorkflowCallbackTokenBinding.ActorClaim).Value
+            WorkflowCallbackTokenGenerator.ActorHash(context.Actor),
+            jwt.GetClaim(JwtClaimTypes.WorkflowCallback.ActorHash).Value
         );
-        Assert.True(jwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.CommandsClaim, out string[]? commands));
+        Assert.True(jwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.Commands, out string[]? commands));
         Assert.Equal(
             envelope.Request.Workflows.SelectMany(ExtractCommandKeys).Distinct().Order(StringComparer.Ordinal),
             commands

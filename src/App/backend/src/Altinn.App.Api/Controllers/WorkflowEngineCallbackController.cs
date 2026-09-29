@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -74,8 +75,8 @@ public class WorkflowEngineCallbackController : ControllerBase
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
         if (
             payload.Actor is not { } actor
-            || User.FindFirst(WorkflowCallbackTokenBinding.ActorClaim)?.Value
-                != WorkflowCallbackTokenBinding.ActorHash(actor)
+            || User.FindFirst(JwtClaimTypes.WorkflowCallback.ActorHash)?.Value
+                != WorkflowCallbackTokenGenerator.ActorHash(actor)
         )
         {
             _logger.LogError(

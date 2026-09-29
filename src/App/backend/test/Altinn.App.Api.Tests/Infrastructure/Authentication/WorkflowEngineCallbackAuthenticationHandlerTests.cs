@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -137,7 +138,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
             instanceGuid.ToString(),
             result.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value
         );
-        Assert.Equal("actor-hash", result.Principal.FindFirst(WorkflowCallbackTokenBinding.ActorClaim)!.Value);
+        Assert.Equal("actor-hash", result.Principal.FindFirst(JwtClaimTypes.WorkflowCallback.ActorHash)!.Value);
     }
 
     [Fact]

@@ -89,7 +89,7 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, instanceGuid.ToString()),
-            new Claim(WorkflowCallbackTokenBinding.ActorClaim, validated.ActorHash),
+            new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
         };
         var identity = new ClaimsIdentity(claims, WorkflowEngineCallbackDefaults.AuthenticationScheme);
         var ticket = new AuthenticationTicket(

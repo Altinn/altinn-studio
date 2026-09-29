@@ -40,9 +40,9 @@ public class WorkflowCallbackTokenValidatorTests
         if (secretId is not null)
             claims[JwtClaimTypes.AppCode.SecretId] = secretId;
         if (!omitCommands)
-            claims[WorkflowCallbackTokenBinding.CommandsClaim] = commands ?? [CommandKey];
+            claims[JwtClaimTypes.WorkflowCallback.Commands] = commands ?? [CommandKey];
         if (!omitActor)
-            claims[WorkflowCallbackTokenBinding.ActorClaim] = ActorHash;
+            claims[JwtClaimTypes.WorkflowCallback.ActorHash] = ActorHash;
 
         return handler.CreateToken(
             new SecurityTokenDescriptor

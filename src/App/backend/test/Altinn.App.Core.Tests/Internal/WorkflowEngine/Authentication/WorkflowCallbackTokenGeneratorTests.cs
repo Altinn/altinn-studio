@@ -116,8 +116,8 @@ public class WorkflowCallbackTokenGeneratorTests
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         Assert.Equal(
-            WorkflowCallbackTokenBinding.ActorHash(_actor),
-            jwt.GetClaim(WorkflowCallbackTokenBinding.ActorClaim).Value
+            WorkflowCallbackTokenGenerator.ActorHash(_actor),
+            jwt.GetClaim(JwtClaimTypes.WorkflowCallback.ActorHash).Value
         );
     }
 
@@ -138,7 +138,7 @@ public class WorkflowCallbackTokenGeneratorTests
         var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, workflows);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
-        Assert.True(jwt.TryGetPayloadValue(WorkflowCallbackTokenBinding.CommandsClaim, out string[]? commands));
+        Assert.True(jwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.Commands, out string[]? commands));
         Assert.NotNull(commands);
         Assert.Equal(["commit", "mutate", "side-effect"], commands);
     }

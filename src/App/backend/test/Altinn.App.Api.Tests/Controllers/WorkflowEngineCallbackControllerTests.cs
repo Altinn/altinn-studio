@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
@@ -1324,8 +1325,8 @@ public class WorkflowEngineCallbackControllerTests
                 new ClaimsIdentity(
                     [
                         new Claim(
-                            WorkflowCallbackTokenBinding.ActorClaim,
-                            WorkflowCallbackTokenBinding.ActorHash(payload.Actor)
+                            JwtClaimTypes.WorkflowCallback.ActorHash,
+                            WorkflowCallbackTokenGenerator.ActorHash(payload.Actor)
                         ),
                     ],
                     WorkflowEngineCallbackDefaults.AuthenticationScheme
