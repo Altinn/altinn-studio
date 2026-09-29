@@ -31,17 +31,61 @@ public sealed class SelectionOptionsRuleTests
     }
 
     [Fact]
-    public void List_WithOptionsId_IsClean()
+    public void Dropdown_WithOptionsId_IsClean()
     {
         var report = AppConfigEngine
             .Open(
                 App(
-                    """{ "id": "c", "type": "List", "optionsId": "countries", "dataModelBindings": { "simpleBinding": "field" } }"""
+                    """{ "id": "c", "type": "Dropdown", "optionsId": "countries", "dataModelBindings": { "simpleBinding": "field" } }"""
                 )
             )
             .Validate();
 
         Assert.DoesNotContain(report.Findings, f => f.RuleId == Rule);
+    }
+
+    [Fact]
+    public void List_WithDataListId_IsClean()
+    {
+        var report = AppConfigEngine
+            .Open(
+                App(
+                    """{ "id": "c", "type": "List", "dataListId": "people", "dataModelBindings": { "name": "field" } }"""
+                )
+            )
+            .Validate();
+
+        Assert.DoesNotContain(report.Findings, f => f.RuleId == Rule);
+    }
+
+    [Fact]
+    public void List_WithOnlyOptionsId_Fires()
+    {
+        var report = AppConfigEngine
+            .Open(
+                App(
+                    """{ "id": "c", "type": "List", "optionsId": "countries", "dataModelBindings": { "name": "field" } }"""
+                )
+            )
+            .Validate();
+
+        var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
+        Assert.Contains("dataListId", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Dropdown_WithOnlyDataListId_Fires()
+    {
+        var report = AppConfigEngine
+            .Open(
+                App(
+                    """{ "id": "c", "type": "Dropdown", "dataListId": "people", "dataModelBindings": { "simpleBinding": "field" } }"""
+                )
+            )
+            .Validate();
+
+        var finding = Assert.Single(report.Findings, f => f.RuleId == Rule);
+        Assert.Contains("optionsId", finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]
