@@ -67,9 +67,8 @@ impl PlatformAdapter for NoopPlatform {
     }
 }
 
-/// Holds the first Sandbox ensure of the named Agent until released.
 struct Blocking {
-    agent: &'static str,
+    agent: AgentId,
     calls: Rc<Cell<usize>>,
     started: Rc<Notify>,
     release: Rc<Notify>,
@@ -122,7 +121,7 @@ impl Provider for MemoryProvider {
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             if let Some(blocking) = &self.blocking
-                && record.agent.metadata.name == blocking.agent
+                && record.id == blocking.agent
             {
                 let call = blocking.calls.get() + 1;
                 blocking.calls.set(call);
@@ -192,10 +191,9 @@ struct UnsupportedProvider {
 
 /// A planned Sandbox ensure failure.
 ///
-/// A transient failure fails only the pass that takes it. A permanent one fails
-/// every pass, as a real Provider would until desired state changes, so the
-/// controller's background ticks cannot use it up before or overwrite it after
-/// the pass a test waits on.
+/// A permanent failure fails every pass, as agentd's Providers do until the
+/// manifest or `.env` changes. A transient failure fails only the pass that
+/// takes it.
 #[derive(Clone)]
 enum PlannedFailure {
     Invalid(String),
@@ -204,6 +202,11 @@ enum PlannedFailure {
     /// Floods telemetry past the lossy channel's capacity, then fails as invalid.
     InvalidAfterFlood(String),
     Transient(String),
+    /// Fails transiently on every pass until `ended` is set.
+    Outage {
+        message: String,
+        ended: Rc<Cell<bool>>,
+    },
 }
 
 const TELEMETRY_FLOOD: usize = 4_096;
@@ -219,12 +222,6 @@ impl PlannedProvider {
             inner: MemoryProvider::new(backend),
             failures: RefCell::new(failures.into_iter().collect()),
         }
-    }
-
-    /// Holds the first ensure that has no planned failure left.
-    fn with_blocking(mut self, blocking: Blocking) -> Self {
-        self.inner = self.inner.with_blocking(blocking);
-        self
     }
 }
 
@@ -245,6 +242,9 @@ impl Provider for PlannedProvider {
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         let planned = {
             let mut failures = self.failures.borrow_mut();
+            if matches!(failures.front(), Some(PlannedFailure::Outage { ended, .. }) if ended.get()) {
+                failures.pop_front();
+            }
             if matches!(failures.front(), Some(PlannedFailure::Transient(_))) {
                 failures.pop_front()
             } else {
@@ -270,7 +270,7 @@ impl Provider for PlannedProvider {
                 }
                 Err(Error::Invalid(message))
             }),
-            Some(PlannedFailure::Transient(message)) => Box::pin(async move {
+            Some(PlannedFailure::Transient(message) | PlannedFailure::Outage { message, .. }) => Box::pin(async move {
                 let _phase = progress.start_phase(sandbox::SandboxPhase::SandboxStart).await;
                 Err(Error::Sandbox(sandbox::Error::Backend(message)))
             }),
@@ -1486,25 +1486,24 @@ struct Waiting {
     task: tokio::task::JoinHandle<()>,
 }
 
-async fn waiting(failures: impl IntoIterator<Item = PlannedFailure>) -> Waiting {
-    let backend = Rc::new(sandbox_memory::Provider::new());
-    waiting_on(backend.clone(), PlannedProvider::new(backend, failures)).await
-}
+/// A controller interval short enough for a test to wait through background retries.
+const BACKGROUND_RETRIES: Duration = Duration::from_millis(20);
+/// A controller interval long enough that only a test's own wakeups reconcile.
+const NO_BACKGROUND_PASSES: Duration = Duration::from_mins(1);
 
-/// Like [`waiting`], with a caller-built Provider over `backend`.
-async fn waiting_on(backend: Rc<sandbox_memory::Provider>, provider: PlannedProvider) -> Waiting {
+async fn waiting(failures: impl IntoIterator<Item = PlannedFailure>, interval: Duration) -> Waiting {
     let changes = Changes::new();
     let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
-    let provider: Rc<dyn Provider> = Rc::new(provider);
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(PlannedProvider::new(backend.clone(), failures));
     let provisioning = ProvisioningState::new(changes.clone());
     let reconciler = Rc::new(Reconciler::new(
         store.clone(),
         sandbox_service(provider),
         provisioning.clone(),
     ));
-    let (controller, wakeup) =
-        Controller::new(store.clone(), reconciler, Duration::from_millis(20), Rc::new(|_, _| {}));
+    let (controller, wakeup) = Controller::new(store.clone(), reconciler, interval, Rc::new(|_, _| {}));
     let execution = Rc::new(ExecutionService::new(
         store.clone(),
         Convergence::new(wakeup.clone(), store.clone(), changes),
@@ -1530,7 +1529,7 @@ impl Waiting {
 
 #[tokio::test(flavor = "local")]
 async fn execution_target_waits_for_agent_convergence() {
-    let fixture = waiting([]).await;
+    let fixture = waiting([], NO_BACKGROUND_PASSES).await;
     let target = tokio::time::timeout(
         Duration::from_secs(1),
         fixture.execution.ensure("worker", WaitPolicy::FirstPass),
@@ -1548,9 +1547,12 @@ async fn execution_target_waits_for_agent_convergence() {
 
 #[tokio::test(flavor = "local")]
 async fn an_invalid_failure_fails_the_wait_immediately() {
-    let fixture = waiting([PlannedFailure::Invalid(
-        ".env does not define required variable \"GITHUB_TOKEN\"".into(),
-    )])
+    let fixture = waiting(
+        [PlannedFailure::Invalid(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+        NO_BACKGROUND_PASSES,
+    )
     .await;
     let error = fixture
         .execution
@@ -1571,7 +1573,7 @@ async fn an_invalid_failure_fails_the_wait_immediately() {
 
 #[tokio::test(flavor = "local")]
 async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
-    let fixture = waiting([PlannedFailure::Rejected]).await;
+    let fixture = waiting([PlannedFailure::Rejected], NO_BACKGROUND_PASSES).await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
         fixture.execution.ensure("worker", WaitPolicy::UntilReady),
@@ -1586,9 +1588,12 @@ async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
 
 #[tokio::test(flavor = "local")]
 async fn a_flood_of_progress_does_not_stall_the_wait() {
-    let fixture = waiting([PlannedFailure::InvalidAfterFlood(
-        ".env does not define required variable \"GITHUB_TOKEN\"".into(),
-    )])
+    let fixture = waiting(
+        [PlannedFailure::InvalidAfterFlood(
+            ".env does not define required variable \"GITHUB_TOKEN\"".into(),
+        )],
+        NO_BACKGROUND_PASSES,
+    )
     .await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
@@ -1604,10 +1609,13 @@ async fn a_flood_of_progress_does_not_stall_the_wait() {
 
 #[tokio::test(flavor = "local")]
 async fn waiting_follows_background_retries_after_transient_failures() {
-    let fixture = waiting([
-        PlannedFailure::Transient("temporary runtime failure".into()),
-        PlannedFailure::Transient("temporary runtime failure".into()),
-    ])
+    let fixture = waiting(
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+        BACKGROUND_RETRIES,
+    )
     .await;
     let target = tokio::time::timeout(
         Duration::from_secs(1),
@@ -1743,10 +1751,13 @@ async fn progress_trims_only_the_output_of_the_pass_the_follower_has_seen() {
 
 #[tokio::test(flavor = "local")]
 async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_retries() {
-    let fixture = waiting([
-        PlannedFailure::Transient("temporary runtime failure".into()),
-        PlannedFailure::Transient("temporary runtime failure".into()),
-    ])
+    let fixture = waiting(
+        [
+            PlannedFailure::Transient("temporary runtime failure".into()),
+            PlannedFailure::Transient("temporary runtime failure".into()),
+        ],
+        BACKGROUND_RETRIES,
+    )
     .await;
     let error = fixture
         .execution
@@ -1768,30 +1779,34 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
 
 #[tokio::test(flavor = "local")]
 async fn dropping_a_wait_does_not_stop_background_reconciliation() {
-    // The retry after the transient failure is held, so no pass can succeed
-    // before the wait is dropped.
-    let started = Rc::new(Notify::new());
-    let release = Rc::new(Notify::new());
-    let backend = Rc::new(sandbox_memory::Provider::new());
-    let provider = PlannedProvider::new(
-        backend.clone(),
-        [PlannedFailure::Transient("temporary runtime failure".into())],
+    // Every pass fails until the wait is dropped, so the failure stays visible
+    // and only a pass that starts after the drop can succeed.
+    let ended = Rc::new(Cell::new(false));
+    let fixture = waiting(
+        [PlannedFailure::Outage {
+            message: "temporary runtime failure".into(),
+            ended: ended.clone(),
+        }],
+        BACKGROUND_RETRIES,
     )
-    .with_blocking(Blocking {
-        agent: "worker",
-        calls: Rc::default(),
-        started: started.clone(),
-        release: release.clone(),
-    });
-    let fixture = waiting_on(backend, provider).await;
+    .await;
+    let id = fixture.id().await;
     let waiting = fixture.execution.clone();
     let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
-    tokio::time::timeout(Duration::from_secs(1), started.notified())
-        .await
-        .expect("the retry after the transient failure should start");
-    assert!(!wait.is_finished(), "the wait follows the held retry");
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while !fixture.provisioning.get(id).is_some_and(|pass| {
+            matches!(
+                pass.progress.status(),
+                sandbox::progress::OperationStatus::Failed { .. }
+            )
+        }) {
+            tokio::time::sleep(Duration::from_millis(1)).await;
+        }
+    })
+    .await
+    .expect("transient failure recorded");
     wait.abort();
-    release.notify_one();
+    ended.set(true);
 
     tokio::time::timeout(Duration::from_secs(1), async {
         while fixture.backend.count() == 0 {
@@ -1817,7 +1832,7 @@ async fn controller_runs_agents_concurrently_and_serializes_reruns_per_id() {
     let release = Rc::new(Notify::new());
     let slow_calls = Rc::new(Cell::new(0));
     let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()).with_blocking(Blocking {
-        agent: "slow",
+        agent: slow,
         calls: slow_calls.clone(),
         started: started.clone(),
         release: release.clone(),
