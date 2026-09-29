@@ -8,7 +8,7 @@ internal static class AppPaths
         if (!file.StartsWith(prefix, StringComparison.Ordinal))
             return "";
         var rest = file[prefix.Length..];
-        var slash = rest.IndexOf('/');
+        var slash = rest.IndexOf('/', StringComparison.Ordinal);
         return slash < 0 ? "" : rest[..slash];
     }
 

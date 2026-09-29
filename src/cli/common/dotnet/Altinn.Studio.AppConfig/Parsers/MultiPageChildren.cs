@@ -14,7 +14,7 @@ internal static class MultiPageChildren
     {
         if (!multiPage)
             return child;
-        var colon = child.IndexOf(':');
+        var colon = child.IndexOf(':', StringComparison.Ordinal);
         if (colon <= 0)
             return child;
         for (var i = 0; i < colon; i++)

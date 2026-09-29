@@ -9,7 +9,7 @@ internal static class JsonRead
 
     public static bool LooksLikeTextKey(string? v)
     {
-        if (string.IsNullOrEmpty(v) || v.Length > 128 || !v.Contains('.'))
+        if (string.IsNullOrEmpty(v) || v.Length > 128 || !v.Contains('.', StringComparison.Ordinal))
             return false;
         foreach (var ch in v)
             if (ch is ' ' or '\t' or '\n' or '\r' or '<' or '>' or '@' or ':' or '/' or '+')

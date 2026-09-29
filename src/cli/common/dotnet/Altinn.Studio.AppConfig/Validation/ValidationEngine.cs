@@ -9,6 +9,7 @@ public static class ValidationEngine
 
     public static ValidationReport Run(AppModel app)
     {
+        ArgumentNullException.ThrowIfNull(app);
         var rules = app.UnsupportedAppVersion is null
             ? AllRules
             : AllRules.Where(r => r.Metadata.Id == Rules.Meta.AppVersionSupportedRule.RuleId).ToList();
@@ -22,7 +23,7 @@ public static class ValidationEngine
                     findings.Add(ApplyDefaultSeverity(rule.Metadata, f));
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 findings.Add(
                     new Finding(

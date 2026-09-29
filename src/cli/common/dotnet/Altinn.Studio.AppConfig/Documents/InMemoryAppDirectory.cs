@@ -29,6 +29,12 @@ public sealed class InMemoryAppDirectory : IWritableAppDirectory
 
     public IEnumerable<string> EnumerateFiles(string relativeDir, string searchPattern, bool recursive)
     {
+        ArgumentNullException.ThrowIfNull(searchPattern);
+        return EnumerateMatchingFiles(relativeDir, searchPattern, recursive);
+    }
+
+    private IEnumerable<string> EnumerateMatchingFiles(string relativeDir, string searchPattern, bool recursive)
+    {
         foreach (var key in _files.Keys)
         {
             if (
@@ -42,6 +48,7 @@ public sealed class InMemoryAppDirectory : IWritableAppDirectory
 
     public void WriteAllBytes(string relativePath, byte[] bytes)
     {
+        ArgumentNullException.ThrowIfNull(bytes);
         var hadBom = _files.TryGetValue(relativePath, out var existing) && Utf8Bom.Has(existing);
         _files[relativePath] = hadBom && !Utf8Bom.Has(bytes) ? Utf8Bom.Prepend(bytes) : (byte[])bytes.Clone();
     }

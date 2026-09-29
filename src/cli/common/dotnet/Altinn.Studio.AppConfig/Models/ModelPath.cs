@@ -7,7 +7,7 @@ internal static class ModelPath
 {
     public static string StripArrayIndices(string path)
     {
-        if (path.IndexOf('[') < 0)
+        if (path.IndexOf('[', StringComparison.Ordinal) < 0)
             return path;
         var sb = new StringBuilder(path.Length);
         var depth = 0;

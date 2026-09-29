@@ -10,6 +10,7 @@ public sealed partial class AppSymbols
 {
     public IReadOnlyList<Edit> ProposeRename(string file, int line, int col, string newName)
     {
+        ArgumentNullException.ThrowIfNull(file);
         var model = _config.Current;
         return SymbolAt(model, file, line, col) is { } sym ? ProposeRename(model, sym, newName) : Array.Empty<Edit>();
     }
@@ -132,6 +133,7 @@ public sealed partial class AppSymbols
 
     public RenamePrepare? PrepareRename(string file, int line, int col)
     {
+        ArgumentNullException.ThrowIfNull(file);
         if (
             SymbolAt(_config.Current, file, line, col) is not { } sym
             || sym.Kind is SymbolKind.OptionsId or SymbolKind.LayoutSet or SymbolKind.CSharpClass

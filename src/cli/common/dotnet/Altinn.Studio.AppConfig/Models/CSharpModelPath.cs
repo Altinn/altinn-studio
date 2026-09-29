@@ -89,7 +89,7 @@ internal static class CSharpModelPath
 
     private static string StripIndex(string segment)
     {
-        var bracket = segment.IndexOf('[');
+        var bracket = segment.IndexOf('[', StringComparison.Ordinal);
         return bracket < 0 ? segment : segment[..bracket];
     }
 }

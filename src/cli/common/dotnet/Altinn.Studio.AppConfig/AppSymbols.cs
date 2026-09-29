@@ -1,4 +1,3 @@
-using System.Text;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
@@ -13,6 +12,7 @@ public sealed partial class AppSymbols
 
     public IReadOnlyList<SourceSpan> Definition(string file, int line, int col)
     {
+        ArgumentNullException.ThrowIfNull(file);
         var model = _config.Current;
         return SymbolAt(model, file, line, col) is { } sym ? DefinitionsOf(model, sym) : Array.Empty<SourceSpan>();
     }
@@ -21,6 +21,7 @@ public sealed partial class AppSymbols
 
     public IReadOnlyList<SourceSpan> References(string file, int line, int col, bool includeDeclaration)
     {
+        ArgumentNullException.ThrowIfNull(file);
         var model = _config.Current;
         return SymbolAt(model, file, line, col) is { } sym
             ? References(model, sym, includeDeclaration)

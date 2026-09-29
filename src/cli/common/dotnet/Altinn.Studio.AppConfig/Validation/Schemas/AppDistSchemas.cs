@@ -12,6 +12,7 @@ public static class AppDistSchemas
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(appDist);
         var content = await appDist.GetLayer(version, AppDistLayer.Schemas, cancellationToken);
         return content is null ? null : SchemaSet.FromFiles(await content.GetFiles(SchemaDirectory, cancellationToken));
     }
