@@ -1,5 +1,4 @@
 using System.Security;
-using System.Text;
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
@@ -26,7 +25,6 @@ public sealed partial class AppSymbols
             SymbolKind.Component or SymbolKind.DataType or SymbolKind.TextKey => UniformRename(model, symbol, newName),
             SymbolKind.Task => TaskRename(model, symbol, newName),
             SymbolKind.Page => PageRename(model, symbol, newName),
-            SymbolKind.DataModelPath => DataPathRename(model, symbol.Value, newName),
             _ => Array.Empty<Edit>(),
         };
 
@@ -105,40 +103,16 @@ public sealed partial class AppSymbols
     private static bool HasExtent(SourceSpan span) =>
         span.Line > 0 && span.Column > 0 && span.EndLine > 0 && span.EndColumn > 0;
 
-    private IReadOnlyList<Edit> DataPathRename(AppModel model, string oldPath, string newLeaf)
-    {
-        var edits = new List<Edit>();
-        var dot = oldPath.LastIndexOf('.');
-        var newPath = dot < 0 ? newLeaf : oldPath[..(dot + 1)] + newLeaf;
-
-        if (model.SchemaPropertyPositions.TryGetValue(oldPath, out var schemaSpan))
-        {
-            var resolved = _config.ResolvePosition(schemaSpan);
-            edits.Add(new ReplaceEdit(resolved, CaptureInnerText(resolved), JsonSerializer.Serialize(newLeaf)));
-        }
-
-        foreach (var r in model.Refs.DataModel)
-        {
-            string? value = null;
-            if (string.Equals(r.Value, oldPath, StringComparison.Ordinal))
-                value = newPath;
-            else if (r.Value.StartsWith(oldPath + ".", StringComparison.Ordinal))
-                value = newPath + r.Value[oldPath.Length..];
-            if (value is not null)
-            {
-                var resolved = _config.ResolvePosition(r.Position);
-                edits.Add(new ReplaceEdit(resolved, CaptureInnerText(resolved), JsonSerializer.Serialize(value)));
-            }
-        }
-        return edits;
-    }
-
     public RenamePrepare? PrepareRename(string file, int line, int col)
     {
         ArgumentNullException.ThrowIfNull(file);
         if (
             SymbolAt(_config.Current, file, line, col) is not { } sym
-            || sym.Kind is SymbolKind.OptionsId or SymbolKind.LayoutSet or SymbolKind.CSharpClass
+            || sym.Kind
+                is SymbolKind.OptionsId
+                    or SymbolKind.LayoutSet
+                    or SymbolKind.CSharpClass
+                    or SymbolKind.DataModelPath
         )
             return null;
         if (_config.ResolveNodeAt(file, line, col) is not { } node)
@@ -147,25 +121,10 @@ public sealed partial class AppSymbols
             return null;
 
         var innerEnd = node.EndColumn - 1;
-        if (sym.Kind == SymbolKind.DataModelPath)
-        {
-            var segment = LeafOf(sym.Value);
-            var valueBytes = Encoding.UTF8.GetByteCount(sym.Value);
-            var segmentBytes = Encoding.UTF8.GetByteCount(segment);
-            var startCol = node.Key ? node.Column + 1 : node.Column + 1 + (valueBytes - segmentBytes);
-            var endCol = node.Key ? innerEnd : node.Column + 1 + valueBytes;
-            return new RenamePrepare(new SourceSpan(node.File, "", node.Line, startCol, node.EndLine, endCol), segment);
-        }
         return new RenamePrepare(
             new SourceSpan(node.File, "", node.Line, node.Column + 1, node.EndLine, innerEnd),
             sym.Value
         );
-    }
-
-    private static string LeafOf(string path)
-    {
-        var dot = path.LastIndexOf('.');
-        return dot < 0 ? path : path[(dot + 1)..];
     }
 
     private List<SourceSpan> DeclarationTokens(AppModel model, Symbol sym)

@@ -19,7 +19,10 @@ public sealed class AppModel
         IReadOnlyDictionary<string, string>
     > SchemaPropertiesByFile { get; init; }
 
-    public required IReadOnlyDictionary<string, SourceSpan> SchemaPropertyPositions { get; init; }
+    public required IReadOnlyDictionary<
+        string,
+        IReadOnlyDictionary<string, SourceSpan>
+    > SchemaPropertyPositionsByFile { get; init; }
 
     public required IReadOnlyDictionary<string, bool> CSharpClasses { get; init; }
 
