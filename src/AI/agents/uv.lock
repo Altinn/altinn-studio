@@ -26,6 +26,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "regex" },
     { name = "uvicorn" },
     { name = "websockets" },
 ]
@@ -60,6 +61,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "regex", specifier = ">=2026.5.9" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.8" },
     { name = "uvicorn", specifier = ">=0.42.0" },
     { name = "websockets", specifier = ">=16.0" },
