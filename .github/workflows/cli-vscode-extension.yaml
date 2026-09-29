@@ -1,0 +1,45 @@
+name: CLI (VS Code extension) - Build and package
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - "src/cli/studioctl-lsp/vscode/**"
+      - .github/workflows/cli-vscode-extension.yaml
+      - "!**/*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Compile and package
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: src/cli/studioctl-lsp/vscode
+        run: npm ci
+
+      - name: Compile
+        working-directory: src/cli/studioctl-lsp/vscode
+        run: npm run compile
+
+      - name: Package
+        working-directory: src/cli/studioctl-lsp/vscode
+        run: npx vsce package -o altinn-studio-lsp.vsix --skip-license
