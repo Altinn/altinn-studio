@@ -13,7 +13,7 @@ internal static class SourceParse
     {
         try
         {
-            doc = JsonDocument.Parse(data);
+            doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
             return true;
         }
         catch (JsonException ex)

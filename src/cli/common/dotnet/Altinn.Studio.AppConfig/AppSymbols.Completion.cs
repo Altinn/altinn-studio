@@ -92,7 +92,7 @@ public sealed partial class AppSymbols
         JsonDocument doc;
         try
         {
-            doc = JsonDocument.Parse(bytes);
+            doc = JsonDocument.Parse(bytes, JsonRead.AppFileOptions);
         }
         catch (JsonException)
         {
