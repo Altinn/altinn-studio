@@ -73,8 +73,6 @@ internal sealed class LanguageFeatures(
         return new CompletionList(IsIncomplete: false, items);
     }
 
-    // Rename the symbol under the cursor everywhere: a WorkspaceEdit replacing each
-    // token with its (JSON-quoted) new value. Null when nothing renameable.
     public WorkspaceEdit? OnRename(RenameParams p)
     {
         if (!TryResolveRequest(p.TextDocument, out var rel, out var symbols))
@@ -100,7 +98,6 @@ internal sealed class LanguageFeatures(
                     var uri = workspace.ToUri(re.Span.File);
                     if (!textByUri.TryGetValue(uri, out var list))
                         textByUri[uri] = list = new List<TextEdit>();
-                    // ReplaceEdit.NewValue is the literal splice text (already JSON-quoted for a string token).
                     list.Add(new TextEdit(convert.LspRange(re.Span), re.NewValue));
                     break;
                 case RenameFileEdit mv:
