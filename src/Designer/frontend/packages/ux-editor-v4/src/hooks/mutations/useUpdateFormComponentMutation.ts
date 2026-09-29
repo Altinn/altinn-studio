@@ -108,7 +108,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
     updatedLayout,
   }: UseHandleFileUploadComponentUpdateParams): Promise<void> => {
     const oldDataType = appMetadata?.dataTypes?.find(
-      (dataType) => dataType.id === updatedComponent.id,
+      (dataType) => dataType.id === oldId,
     ) as ApplicationAttachmentMetadata;
     const metadataParams = buildDataTypeForFileUpload(
       updatedComponent,
@@ -121,6 +121,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
       await addAppAttachmentMetadataMutation.mutateAsync({
         ...metadataParams,
         id: updatedComponent.id,
+        enableFileScan: oldDataType?.enableFileScan,
       });
       await deleteAppAttachmentMetadataMutation.mutateAsync(oldId);
       await updateBpmn(updateDataTypeIdsToSign([{ oldId, newId: updatedComponent.id }]));
