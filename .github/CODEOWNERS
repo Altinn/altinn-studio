@@ -27,7 +27,6 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
-src/AI/agents/**/docker-compose.*.yml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
 src/AI/agents/**/dockerfile*                                              @ErlingHauan
 src/AI/agents/**/pyproject.toml                                           @ErlingHauan
