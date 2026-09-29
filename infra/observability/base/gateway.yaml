@@ -6,7 +6,7 @@ metadata:
     altinn.studio/otel-collector: otel-gateway
 spec:
   mode: deployment
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.148.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -51,9 +51,10 @@ spec:
               - set(span.attributes["db.system"], span.attributes["db.system.name"]) where span.attributes["db.system.name"] != nil
               - set(span.attributes["http.route"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and span.attributes["http.route"] == nil
               - replace_pattern(span.attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and span.attributes["http.route"] != nil
-              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              # Guard on service.name: `set` writes an empty value when its source is nil (ottl.set.allowNil, on by default since collector 0.161.0).
+              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
+              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
+              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil and resource.attributes["service.name"] != nil
       transform/pdf3_expected_429_success:
         error_mode: ignore
         trace_statements:

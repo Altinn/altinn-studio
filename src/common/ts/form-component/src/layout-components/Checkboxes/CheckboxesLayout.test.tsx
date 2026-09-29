@@ -175,6 +175,8 @@ describe('Checkboxes', () => {
 
     it('renders the alert message and its buttons for the option', () => {
       renderWithAlert({ value: ['norge'] });
+      fireEvent.click(getCheckbox('Norge', true));
+
       expect(screen.getByText('Are you sure you want to uncheck?')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Confirm' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
@@ -196,12 +198,14 @@ describe('Checkboxes', () => {
       renderWithAlert({ value: ['norge'], onChange });
 
       fireEvent.click(getCheckbox('Norge', true));
+      // Keep a reference while the popover is open, since cancelling hides it.
+      const confirmButton = screen.getByRole('button', { name: 'Confirm' });
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
       expect(onChange).not.toHaveBeenCalled();
 
       // The suspended change is dropped, so confirming afterwards does not apply it either.
-      fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+      fireEvent.click(confirmButton);
       expect(onChange).not.toHaveBeenCalled();
     });
 

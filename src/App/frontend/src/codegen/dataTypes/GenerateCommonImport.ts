@@ -6,16 +6,16 @@ import { type CodeGeneratorWithProperties, DescribableCodeGenerator } from 'src/
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { getSourceForCommon, isSerializedCommonType } from 'src/codegen/Common';
 import { GenerateObject } from 'src/codegen/dataTypes/GenerateObject';
-import type { ValidCommonKeys } from 'src/codegen/Common';
+import type { CommonValue, ValidCommonKeys } from 'src/codegen/Common';
 import type { GenerateProperty } from 'src/codegen/dataTypes/GenerateProperty';
 
 /**
  * Generates an import statement for a common type (one of those defined in Common.ts).
  * In TypeScript, this is a regular import statement, and in JSON Schema, this is a reference to the definition.
+ * Val is the type of the value in a layout file, used to check defaults and examples.
  */
-export class GenerateCommonImport<T extends ValidCommonKeys>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extends DescribableCodeGenerator<any>
+export class GenerateCommonImport<T extends ValidCommonKeys, Val = CommonValue<T>>
+  extends DescribableCodeGenerator<Val>
   implements CodeGeneratorWithProperties
 {
   public readonly realKey?: string;
