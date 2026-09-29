@@ -12,13 +12,13 @@ public sealed class AppDistSchemasServiceTests
     {
         public string Version => "fake";
 
-        public Task<Stream> OpenFileAsync(string path, CancellationToken cancellationToken = default) =>
+        public Task<Stream> OpenFile(string path, CancellationToken cancellationToken = default) =>
             Task.FromResult<Stream>(new MemoryStream(Encoding.UTF8.GetBytes(files[path])));
 
-        public Task<string> GetFileTextAsync(string path, CancellationToken cancellationToken = default) =>
+        public Task<string> GetFileText(string path, CancellationToken cancellationToken = default) =>
             Task.FromResult(files[path]);
 
-        public Task<IReadOnlyDictionary<string, string>> GetFilesAsync(
+        public Task<IReadOnlyDictionary<string, string>> GetFiles(
             string pathPrefix = "",
             CancellationToken cancellationToken = default
         )
@@ -30,10 +30,10 @@ public sealed class AppDistSchemasServiceTests
             return Task.FromResult(matched);
         }
 
-        public Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken cancellationToken = default) =>
+        public Task<IReadOnlyList<string>> ListFiles(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<string>>(files.Keys.Order(StringComparer.Ordinal).ToArray());
 
-        public Task CopyToDirectoryAsync(string targetDirectory, CancellationToken cancellationToken = default) =>
+        public Task CopyToDirectory(string targetDirectory, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
     }
 
@@ -41,10 +41,10 @@ public sealed class AppDistSchemasServiceTests
     {
         public int LayerRequests { get; private set; }
 
-        public Task<IAppDistContent?> GetVersionAsync(string version, CancellationToken cancellationToken = default) =>
-            GetLayerAsync(version, AppDistLayer.Schemas, cancellationToken);
+        public Task<IAppDistContent?> GetVersion(string version, CancellationToken cancellationToken = default) =>
+            GetLayer(version, AppDistLayer.Schemas, cancellationToken);
 
-        public Task<IAppDistContent?> GetLayerAsync(
+        public Task<IAppDistContent?> GetLayer(
             string version,
             AppDistLayer layer,
             CancellationToken cancellationToken = default
@@ -54,10 +54,10 @@ public sealed class AppDistSchemasServiceTests
             return Task.FromResult<IAppDistContent?>(files is null ? null : new FakeContent(files));
         }
 
-        public Task<IReadOnlyList<string>> ListVersionsAsync(CancellationToken cancellationToken = default) =>
+        public Task<IReadOnlyList<string>> ListVersions(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<IReadOnlyList<string>> ListCachedVersionsAsync(
+        public Task<IReadOnlyList<string>> ListCachedVersions(
             AppDistLayer layer,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();

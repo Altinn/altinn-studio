@@ -56,7 +56,7 @@ public sealed class LspServer
         if (AppDistEnvironment.CreateFromEnvironment() is not { } appDist)
             return null;
         using (appDist)
-            return await AppDistSchemas.LoadAsync(appDist, version);
+            return await AppDistSchemas.Load(appDist, version);
     }
 
     /// <summary>
