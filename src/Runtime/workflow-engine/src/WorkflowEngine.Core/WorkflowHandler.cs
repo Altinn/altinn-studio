@@ -319,6 +319,9 @@ internal sealed class WorkflowHandler(
         ExecutionResult result
     )
     {
+        if ((result.IsSuccess() || result.IsDeferred()) && result.StateOut is not null)
+            currentStep.StateOut = result.StateOut;
+
         if (result.IsSuccess())
         {
             currentStep.Status = PersistentItemStatus.Completed;

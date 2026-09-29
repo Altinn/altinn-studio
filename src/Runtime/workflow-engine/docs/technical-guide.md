@@ -193,13 +193,15 @@ The `CommandRegistry` maps type strings to `ICommand` singletons. Commands valid
 
 | Result                                    | Meaning                      |
 | ----------------------------------------- | ---------------------------- |
-| `ExecutionResult.Success()`               | Step completed               |
+| `ExecutionResult.Success(state)`          | Step completed               |
 | `ExecutionResult.RetryableError(message)` | Transient failure — retry    |
 | `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry |
 
 ### State Passing
 
-Each step's `StateOut` becomes the next step's `StateIn`:
+A command returns its output state on the result (`ExecutionResult.Success(state)` or
+`ExecutionResult.Defer(delay, reason, state)`). The engine stores it as the step's `StateOut`, and each
+step's `StateOut` becomes the next step's `StateIn`:
 
 ```
 Step 1 (validate) → StateOut: {"validated": true}
@@ -1972,7 +1974,7 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 
 ### State Passing
 
-AppCommand reads `{ "state": "..." }` from the response body and stores it as `step.StateOut`. The next step receives it as `state` in its callback payload.
+AppCommand reads `{ "state": "..." }` from the response body and returns it on the `ExecutionResult`. The next step receives it as `state` in its callback payload.
 
 ### Configuration
 
