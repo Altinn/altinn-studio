@@ -15,8 +15,8 @@ internal static class ModelAssembler
             TextResources = Merge(fragments, f => f.TextResources),
             TitleLanguages = Merge(fragments, f => f.TitleLanguages),
             SchemaProperties = Fold(fragments, f => f.SchemaProperties),
-            SchemaPropertiesByFile = FoldByFile(fragments),
-            SchemaPropertyPositions = Fold(fragments, f => f.SchemaPropertyPositions, StringComparer.Ordinal),
+            SchemaPropertiesByFile = FoldByFile(fragments, f => f.SchemaPropertiesByFile),
+            SchemaPropertyPositionsByFile = FoldByFile(fragments, f => f.SchemaPropertyPositionsByFile),
             CSharpClasses = Fold(fragments, f => f.CSharpClasses),
             CSharpModel = Fold(fragments, f => f.CSharpModel),
             OptionsFiles = Fold(fragments, f => f.OptionsFiles),
@@ -61,29 +61,30 @@ internal static class ModelAssembler
         return result.ToFrozenSet(StringComparer.Ordinal);
     }
 
-    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> FoldByFile(
-        IReadOnlyList<AppModelBuilder> fragments
+    private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, TValue>> FoldByFile<TValue>(
+        IReadOnlyList<AppModelBuilder> fragments,
+        Func<AppModelBuilder, Dictionary<string, Dictionary<string, TValue>>> select
     )
     {
-        var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+        var result = new Dictionary<string, Dictionary<string, TValue>>(StringComparer.Ordinal);
         foreach (var fragment in fragments)
         {
-            foreach (var (file, props) in fragment.SchemaPropertiesByFile)
+            foreach (var (file, values) in select(fragment))
             {
                 if (result.TryGetValue(file, out var existing))
                 {
-                    foreach (var kv in props)
+                    foreach (var kv in values)
                         existing[kv.Key] = kv.Value;
                 }
                 else
                 {
-                    result[file] = new Dictionary<string, string>(props, StringComparer.Ordinal);
+                    result[file] = new Dictionary<string, TValue>(values, StringComparer.Ordinal);
                 }
             }
         }
         return result.ToFrozenDictionary(
             kv => kv.Key,
-            IReadOnlyDictionary<string, string> (kv) => kv.Value.ToFrozenDictionary(StringComparer.Ordinal),
+            IReadOnlyDictionary<string, TValue> (kv) => kv.Value.ToFrozenDictionary(StringComparer.Ordinal),
             StringComparer.Ordinal
         );
     }

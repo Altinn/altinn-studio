@@ -12,7 +12,8 @@ internal sealed class AppModelBuilder
 
     public Dictionary<string, string> SchemaProperties { get; } = new();
     public Dictionary<string, Dictionary<string, string>> SchemaPropertiesByFile { get; } = new(StringComparer.Ordinal);
-    public Dictionary<string, SourceSpan> SchemaPropertyPositions { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, Dictionary<string, SourceSpan>> SchemaPropertyPositionsByFile { get; } =
+        new(StringComparer.Ordinal);
 
     public Dictionary<string, bool> CSharpClasses { get; } = new();
     public Dictionary<string, ModelTypeInfo> CSharpModel { get; } = new();

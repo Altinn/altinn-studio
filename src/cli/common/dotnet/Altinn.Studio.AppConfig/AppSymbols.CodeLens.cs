@@ -38,12 +38,11 @@ public sealed partial class AppSymbols
             }
         }
 
-        if (file.EndsWith(".schema.json", StringComparison.Ordinal))
+        if (model.SchemaPropertyPositionsByFile.TryGetValue(file, out var schemaPositions))
         {
             var dataType = DataTypeForSchemaFile(model, file);
-            foreach (var (path, span) in model.SchemaPropertyPositions)
-                if (string.Equals(span.File, file, StringComparison.Ordinal))
-                    Add(span, ReferenceSites(model, new Symbol(SymbolKind.DataModelPath, path, dataType)));
+            foreach (var (path, span) in schemaPositions)
+                Add(span, ReferenceSites(model, new Symbol(SymbolKind.DataModelPath, path, dataType)));
         }
         else if (file.EndsWith(".cs", StringComparison.Ordinal))
         {

@@ -79,9 +79,10 @@ public sealed partial class AppSymbols
                     EffectivePath(r.Value, node, col),
                     BindingResolver.Resolve(model, r) ?? ""
                 );
-        foreach (var (path, span) in model.SchemaPropertyPositions)
-            if (Same(span, file, ptr))
-                return new Symbol(SymbolKind.DataModelPath, path, DataTypeForSchemaFile(model, file));
+        if (model.SchemaPropertyPositionsByFile.TryGetValue(file, out var schemaPositions))
+            foreach (var (path, span) in schemaPositions)
+                if (Same(span, file, ptr))
+                    return new Symbol(SymbolKind.DataModelPath, path, DataTypeForSchemaFile(model, file));
 
         if (model.SymbolTable.At(file, ptr) is { } sym)
             return sym;
@@ -104,8 +105,9 @@ public sealed partial class AppSymbols
                 && CSharpModelPath.Resolve(model.CSharpModel, dt.ClassRef, sym.Value) is { } csharp
             )
                 result.Add(csharp);
-            if (model.SchemaPropertyPositions.TryGetValue(sym.Value, out var prop))
-                result.Add(ResolveSpan(prop));
+            foreach (var positions in SchemaPositionsInScope(model, sym.Scope))
+                if (positions.TryGetValue(sym.Value, out var prop))
+                    result.Add(ResolveSpan(prop));
             return result;
         }
         return model.SymbolTable.DeclarationsOf(sym).Select(ResolveSpan).ToList();
@@ -116,12 +118,18 @@ public sealed partial class AppSymbols
         if (sym.Kind == SymbolKind.DataModelPath)
         {
             var result = new List<SourceSpan>();
-            foreach (var r in model.Refs.DataModel)
+            foreach (var binding in model.SymbolTable.Bindings)
+            {
+                var path = binding.Reference.Value;
                 if (
-                    string.Equals(r.Value, sym.Value, StringComparison.Ordinal)
-                    || r.Value.StartsWith(sym.Value + ".", StringComparison.Ordinal)
+                    MayShareDataType(binding.EffectiveDataType, sym.Scope)
+                    && (
+                        string.Equals(path, sym.Value, StringComparison.Ordinal)
+                        || path.StartsWith(sym.Value + ".", StringComparison.Ordinal)
+                    )
                 )
-                    result.Add(_config.ResolvePosition(r.Position));
+                    result.Add(_config.ResolvePosition(binding.Reference.Position));
+            }
             return result;
         }
         return model.SymbolTable.UsesOf(sym).Select(ResolveSpan).ToList();
@@ -147,6 +155,23 @@ public sealed partial class AppSymbols
             chars += rune.Utf16SequenceLength;
         }
         return chars;
+    }
+
+    private static bool MayShareDataType(string? bindingDataType, string scope) =>
+        string.IsNullOrEmpty(bindingDataType)
+        || scope.Length == 0
+        || string.Equals(bindingDataType, scope, StringComparison.Ordinal);
+
+    private static IEnumerable<IReadOnlyDictionary<string, SourceSpan>> SchemaPositionsInScope(
+        AppModel model,
+        string dataType
+    )
+    {
+        if (dataType.Length > 0)
+            return model.SchemaPropertyPositionsByFile.TryGetValue(AppPaths.SchemaFile(dataType), out var positions)
+                ? [positions]
+                : [];
+        return model.SchemaPropertyPositionsByFile.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Value);
     }
 
     private static string DataTypeForSchemaFile(AppModel model, string file)

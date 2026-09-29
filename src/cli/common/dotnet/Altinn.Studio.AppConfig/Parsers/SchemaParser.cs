@@ -16,6 +16,7 @@ internal static class SchemaParser
         public required AppModelBuilder App;
         public required string File;
         public required Dictionary<string, string> FileProps;
+        public required Dictionary<string, SourceSpan> FilePositions;
         public required JsonElement Root;
         public readonly Dictionary<string, int> DepthByRef = new(StringComparer.Ordinal);
         public bool DepthNoteEmitted;
@@ -37,11 +38,14 @@ internal static class SchemaParser
             using var _ = doc;
             if (!app.SchemaPropertiesByFile.TryGetValue(file, out var fileProps))
                 app.SchemaPropertiesByFile[file] = fileProps = new(StringComparer.Ordinal);
+            if (!app.SchemaPropertyPositionsByFile.TryGetValue(file, out var filePositions))
+                app.SchemaPropertyPositionsByFile[file] = filePositions = new(StringComparer.Ordinal);
             var ctx = new WalkContext
             {
                 App = app,
                 File = file,
                 FileProps = fileProps,
+                FilePositions = filePositions,
                 Root = doc.RootElement,
             };
             var (startNode, startPointer) = ModelRoot(doc.RootElement, classRefs.GetValueOrDefault(DataTypeOf(file)));
@@ -149,7 +153,7 @@ internal static class SchemaParser
         var type = ResolveType(node, ctx.Root);
         ctx.App.SchemaProperties[path] = type;
         ctx.FileProps[path] = type;
-        ctx.App.SchemaPropertyPositions[path] = new SourceSpan(ctx.File, pointer, Key: true);
+        ctx.FilePositions[path] = new SourceSpan(ctx.File, pointer, Key: true);
         ExpandInto(ctx, path, pointer, node);
     }
 

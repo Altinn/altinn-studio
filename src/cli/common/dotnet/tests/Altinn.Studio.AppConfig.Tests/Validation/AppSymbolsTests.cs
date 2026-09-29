@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 
 public sealed class AppSymbolsTests
@@ -421,7 +419,7 @@ public sealed class AppSymbolsTests
     }
 
     [Fact]
-    public void ProposeRename_CoverComponentAndDataPath()
+    public void ProposeRename_CoversComponent_RefusesDataPath()
     {
         var symbols = OpenSymbols(NavApp());
         const string p1 = "App/ui/Task_1/layouts/P1.json";
@@ -433,14 +431,12 @@ public sealed class AppSymbolsTests
         Assert.All(comp, e => Assert.True(e.OldValue == "\"field-a\""));
 
         var (xl, xc) = At(NavLayout, ".x\"", 1);
-        var leaf = symbols.ProposeRename(p1, xl, xc, "y").Cast<ReplaceEdit>().ToList();
-        Assert.Contains(leaf, e => e.Span.File == "App/models/model.schema.json" && e.NewValue == "\"y\"");
-        Assert.Contains(leaf, e => e.Span.File == p1 && e.NewValue == "\"project.y\"");
+        Assert.Null(symbols.PrepareRename(p1, xl, xc));
+        Assert.Empty(symbols.ProposeRename(p1, xl, xc, "y"));
 
         var (nl, nc) = At(NavLayout, "\"project.x\"", 1);
-        var node = symbols.ProposeRename(p1, nl, nc, "proj").Cast<ReplaceEdit>().ToList();
-        Assert.Contains(node, e => e.Span.File == "App/models/model.schema.json" && e.NewValue == "\"proj\"");
-        Assert.Contains(node, e => e.Span.File == p1 && e.NewValue == "\"proj.x\"");
+        Assert.Null(symbols.PrepareRename(p1, nl, nc));
+        Assert.Empty(symbols.ProposeRename(p1, nl, nc, "proj"));
     }
 
     [Fact]
@@ -627,34 +623,6 @@ public sealed class AppSymbolsTests
 
         var meta = edits.Single(e => e.Span.File == "App/config/applicationmetadata.json");
         Assert.Contains("\\u00", meta.NewValue, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void PrepareRename_MultiBytePath_RangeCoversTheLeafExactly()
-    {
-        const string layout =
-            """{"data":{"layout":[{"id":"a","type":"Input","dataModelBindings":{"simpleBinding":"beløp.sum"}}]}}""";
-        var dir = new MutableAppDirectory(
-            new()
-            {
-                ["App/config/applicationmetadata.json"] =
-                    """{"id":"ttd/mb","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"}]}""",
-                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
-                ["App/ui/Task_1/layouts/P1.json"] = layout,
-                ["App/models/model.schema.json"] =
-                    """{"properties":{"beløp":{"type":"object","properties":{"sum":{"type":"string"}}}}}""",
-            }
-        );
-        var symbols = OpenSymbols(dir);
-        var bytes = Encoding.UTF8.GetBytes(layout);
-        var sumByteCol = Encoding.UTF8.GetByteCount(layout[..layout.IndexOf("sum", StringComparison.Ordinal)]) + 1;
-
-        var prep =
-            symbols.PrepareRename("App/ui/Task_1/layouts/P1.json", 1, sumByteCol)
-            ?? throw new InvalidOperationException("PrepareRename returned null");
-        Assert.Equal("sum", prep.Placeholder);
-        Assert.Equal(sumByteCol, prep.Range.Column);
-        Assert.Equal("sum", Encoding.UTF8.GetString(bytes[(prep.Range.Column - 1)..(prep.Range.EndColumn - 1)]));
     }
 
     [Theory]
