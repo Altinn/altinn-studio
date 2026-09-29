@@ -1,4 +1,6 @@
+using System.Security;
 using System.Text;
+using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Models;
@@ -32,15 +34,12 @@ public sealed partial class AppSymbols
     {
         if (!IsSafePathSegment(newName) || string.Equals(newName, sym.Value, StringComparison.Ordinal))
             return Array.Empty<Edit>();
-        var jsonQuoted = System.Text.Json.JsonSerializer.Serialize(newName);
-        var xmlQuoted = "\"" + System.Security.SecurityElement.Escape(newName) + "\"";
-        var edits = new List<Edit>();
-        foreach (var r in model.Refs.TaskIds)
-            if (string.Equals(r.Value, sym.Value, StringComparison.Ordinal))
-            {
-                var span = _config.ResolvePosition(r.Position);
-                edits.Add(new ReplaceEdit(span, CaptureInnerText(span), jsonQuoted));
-            }
+        var uses = model
+            .Refs.TaskIds.Where(r => string.Equals(r.Value, sym.Value, StringComparison.Ordinal))
+            .Select(r => _config.ResolvePosition(r.Position));
+        if (ReplaceTokens(uses, newName) is not { } edits)
+            return Array.Empty<Edit>();
+        var xmlQuoted = "\"" + SecurityElement.Escape(newName) + "\"";
         var bpmn = _config.ReadAllBytes("App/config/process/process.bpmn");
         if (bpmn is not null)
             foreach (var span in ProcessParser.TaskIdAttributeSites(bpmn, sym.Value))
@@ -69,10 +68,8 @@ public sealed partial class AppSymbols
                 return Array.Empty<Edit>();
         }
 
-        var quoted = System.Text.Json.JsonSerializer.Serialize(newName);
-        var edits = new List<Edit>();
-        foreach (var s in ReferenceSites(model, sym))
-            edits.Add(new ReplaceEdit(s, CaptureInnerText(s), quoted));
+        if (ReplaceTokens(ReferenceSites(model, sym), newName) is not { } edits)
+            return Array.Empty<Edit>();
         if (oldFile is not null)
             edits.Add(new RenameFileEdit(oldFile, oldFile[..(oldFile.LastIndexOf('/') + 1)] + newName + ".json"));
         return edits;
@@ -87,9 +84,26 @@ public sealed partial class AppSymbols
     {
         var sites = ReferenceSites(model, sym);
         sites.AddRange(DeclarationTokens(model, sym));
-        var quoted = System.Text.Json.JsonSerializer.Serialize(newName);
-        return sites.Select(s => (Edit)new ReplaceEdit(s, CaptureInnerText(s), quoted)).ToList();
+        return ReplaceTokens(sites, newName) is { } edits ? edits : Array.Empty<Edit>();
     }
+
+    private List<Edit>? ReplaceTokens(IEnumerable<SourceSpan> sites, string newName)
+    {
+        var edits = new List<Edit>();
+        foreach (var site in sites)
+        {
+            if (!HasExtent(site))
+                return null;
+            var literal = ProcessParser.IsElementTextSite(site)
+                ? SecurityElement.Escape(newName)
+                : JsonSerializer.Serialize(newName);
+            edits.Add(new ReplaceEdit(site, CaptureInnerText(site), literal));
+        }
+        return edits;
+    }
+
+    private static bool HasExtent(SourceSpan span) =>
+        span.Line > 0 && span.Column > 0 && span.EndLine > 0 && span.EndColumn > 0;
 
     private IReadOnlyList<Edit> DataPathRename(AppModel model, string oldPath, string newLeaf)
     {
@@ -100,13 +114,7 @@ public sealed partial class AppSymbols
         if (model.SchemaPropertyPositions.TryGetValue(oldPath, out var schemaSpan))
         {
             var resolved = _config.ResolvePosition(schemaSpan);
-            edits.Add(
-                new ReplaceEdit(
-                    resolved,
-                    CaptureInnerText(resolved),
-                    System.Text.Json.JsonSerializer.Serialize(newLeaf)
-                )
-            );
+            edits.Add(new ReplaceEdit(resolved, CaptureInnerText(resolved), JsonSerializer.Serialize(newLeaf)));
         }
 
         foreach (var r in model.Refs.DataModel)
@@ -119,13 +127,7 @@ public sealed partial class AppSymbols
             if (value is not null)
             {
                 var resolved = _config.ResolvePosition(r.Position);
-                edits.Add(
-                    new ReplaceEdit(
-                        resolved,
-                        CaptureInnerText(resolved),
-                        System.Text.Json.JsonSerializer.Serialize(value)
-                    )
-                );
+                edits.Add(new ReplaceEdit(resolved, CaptureInnerText(resolved), JsonSerializer.Serialize(value)));
             }
         }
         return edits;

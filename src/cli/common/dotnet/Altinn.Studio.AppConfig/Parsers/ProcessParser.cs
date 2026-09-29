@@ -12,6 +12,8 @@ internal static class ProcessParser
 {
     private const string FileRel = "App/config/process/process.bpmn";
 
+    private const string ConditionExpression = "conditionExpression";
+
     public static void Parse(AppModelBuilder app, IAppDirectory dir)
     {
         var data = dir.ReadAllBytes(FileRel);
@@ -53,10 +55,10 @@ internal static class ProcessParser
         var flows = process.Elements().Where(e => e.Name.LocalName == "sequenceFlow").ToArray();
         for (int i = 0; i < flows.Length; i++)
         {
-            var cond = flows[i].Elements().FirstOrDefault(e => e.Name.LocalName == "conditionExpression");
+            var cond = flows[i].Elements().FirstOrDefault(e => e.Name.LocalName == ConditionExpression);
             if (cond is null)
                 continue;
-            var xmlPtr = $"/process/sequenceFlow[{i}]/conditionExpression";
+            var xmlPtr = $"/process/sequenceFlow[{i}]/{ConditionExpression}";
             var (eLine, eCol) = XmlPositions.LineCol(cond, data, lineStarts);
             var elementPos = new SourceSpan(FileRel, xmlPtr, eLine, eCol);
 
@@ -203,6 +205,8 @@ internal static class ProcessParser
         }
     }
 
+    private static readonly byte[] _xmlWhitespace = " \t\r\n"u8.ToArray();
+
     private static readonly string[] _singleDataTypeElements =
     {
         "signatureDataType",
@@ -260,8 +264,7 @@ internal static class ProcessParser
             var value = el.Value.Trim();
             if (value.Length == 0)
                 continue;
-            var (line, col) = XmlPositions.LineCol(el, data, lineStarts);
-            yield return (value, new SourceSpan(FileRel, $"{taskPtr}/{name}", line, col));
+            yield return (value, TextValueSpan(el, value, $"{taskPtr}/{name}", data, lineStarts));
         }
     }
 
@@ -281,14 +284,38 @@ internal static class ProcessParser
             {
                 var value = item.Value.Trim();
                 if (value.Length != 0)
-                {
-                    var (line, col) = XmlPositions.LineCol(item, data, lineStarts);
-                    yield return (value, new SourceSpan(FileRel, $"{taskPtr}/{listName}/{j}", line, col));
-                }
+                    yield return (value, TextValueSpan(item, value, $"{taskPtr}/{listName}/{j}", data, lineStarts));
                 j++;
             }
         }
     }
+
+    private static SourceSpan TextValueSpan(XElement el, string value, string pointer, byte[] data, int[] lineStarts)
+    {
+        var (line, col) = XmlPositions.LineCol(el, data, lineStarts);
+        var elementStart = new SourceSpan(FileRel, pointer, line, col);
+        if (el.FirstNode is not XText text || text is XCData || text.NextNode is not null)
+            return elementStart;
+        var info = (IXmlLineInfo)text;
+        if (!info.HasLineInfo())
+            return elementStart;
+        var textStart = XmlPositions.ByteOffset(data, lineStarts, info.LineNumber, info.LinePosition);
+        var textLength = data.AsSpan(textStart).IndexOf((byte)'<');
+        if (textLength < 0)
+            return elementStart;
+        var raw = data.AsSpan(textStart, textLength);
+        var expected = Encoding.UTF8.GetBytes(value);
+        if (!raw.Trim(_xmlWhitespace).SequenceEqual(expected))
+            return elementStart;
+        var valueStart = textStart + raw.Length - raw.TrimStart(_xmlWhitespace).Length;
+        var (startLine, startCol) = Spans.LineColOf(lineStarts, valueStart);
+        var (endLine, endCol) = Spans.LineColOf(lineStarts, valueStart + expected.Length);
+        return new SourceSpan(FileRel, pointer, startLine, startCol, endLine, endCol);
+    }
+
+    public static bool IsElementTextSite(SourceSpan site) =>
+        string.Equals(site.File, FileRel, StringComparison.Ordinal)
+        && !site.Pointer.Contains("/" + ConditionExpression, StringComparison.Ordinal);
 
     private static string ExtractTaskType(XElement task)
     {
