@@ -108,17 +108,8 @@ internal static class ProcessParser
             return null;
         var info = (IXmlLineInfo)text;
         var start = XmlPositions.ByteOffset(data, lineStarts, info.LineNumber, info.LinePosition);
-        var span = data.AsSpan(start);
-        if (span.StartsWith("<![CDATA["u8))
-        {
-            start += 9;
-            var close = data.AsSpan(start).IndexOf("]]>"u8);
-            return close > 0 ? (start, start + close) : null;
-        }
-        var end = start;
-        while (end < data.Length && data[end] != (byte)'<')
-            end++;
-        return end > start ? (start, end) : null;
+        var length = data.AsSpan(start).IndexOf(text is XCData ? "]]>"u8 : "<"u8);
+        return length > 0 ? (start, start + length) : null;
     }
 
     private static Dictionary<string, (int Start, int End)> StringTokenSpans(ReadOnlySpan<byte> json)
