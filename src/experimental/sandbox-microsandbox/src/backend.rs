@@ -120,11 +120,7 @@ impl MicrosandboxProvider {
     async fn create_record(&self, request: CreateSandboxRequest) -> Result<Sandbox, Error> {
         platform::require_supported(&request.image.platform)?;
         RuntimeResources::try_from(request.resources)?;
-        if let Some(network) = &request.network
-            && !is_network_control(&network.endpoint)
-        {
-            return Err(Error::UnsupportedNetworkEndpoint(network.endpoint.clone()));
-        }
+        RuntimeNetwork::for_attachment(request.network.as_ref())?;
         match self.state.sandbox_by_name(&request.name).await {
             Ok(_) => return Err(Error::Backend(format!("Sandbox '{}' already exists", request.name))),
             Err(error) if error.is_not_found() => {}
@@ -197,6 +193,7 @@ impl MicrosandboxProvider {
                 runtime_change = true;
             }
             if runtime_change {
+                self.prepare_runtime_network(&record)?;
                 let step = progress.start_step(UPDATE_RUNTIME_RESOURCES).await;
                 modification.restart().apply().await.map_err(error::microsandbox)?;
                 step.complete().await;
@@ -244,17 +241,11 @@ impl MicrosandboxProvider {
     }
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
+        let record = self.state.sandbox_by_id(id).await?;
+        let network = self.prepare_runtime_network(&record)?;
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
         step.complete().await;
-        let record = self.state.sandbox_by_id(id).await?;
-        self.client.local().set_network_controlled(
-            &record.runtime_name,
-            record
-                .network
-                .as_ref()
-                .is_some_and(|network| is_network_control(&network.endpoint)),
-        );
         let _running = match self.runtime_handle(&record.runtime_name).await? {
             Some(handle) if map_state(handle.status_snapshot()) == SandboxState::Running => return Ok(()),
             Some(handle) => {
@@ -263,7 +254,7 @@ impl MicrosandboxProvider {
                 step.complete().await;
                 running
             }
-            None => Box::pin(self.create_runtime(&record, progress)).await?,
+            None => Box::pin(self.create_runtime(&record, network, progress)).await?,
         };
         Ok(())
     }
@@ -291,6 +282,18 @@ impl MicrosandboxProvider {
         self.state.remove_sandbox(&record).await
     }
 
+    /// Tells Microsandbox whether this runtime must start under host network
+    /// control. Call it before every operation that can start the runtime: the
+    /// setting lives only in this process, while a runtime can outlive the
+    /// process that started it.
+    fn prepare_runtime_network(&self, record: &SandboxRecord) -> Result<RuntimeNetwork, Error> {
+        let network = RuntimeNetwork::for_attachment(record.network.as_ref())?;
+        self.client
+            .local()
+            .set_network_controlled(&record.runtime_name, network == RuntimeNetwork::Controlled);
+        Ok(network)
+    }
+
     async fn runtime_handle(&self, name: &str) -> Result<Option<microsandbox::sandbox::SandboxHandle>, Error> {
         match self.client.scope(microsandbox::Sandbox::get(name)).await {
             Ok(handle) => Ok(Some(handle)),
@@ -310,6 +313,7 @@ impl MicrosandboxProvider {
     async fn create_runtime(
         &self,
         record: &SandboxRecord,
+        network: RuntimeNetwork,
         progress: &SandboxProgress,
     ) -> Result<microsandbox::Sandbox, Error> {
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
@@ -325,11 +329,7 @@ impl MicrosandboxProvider {
             .pull_policy(PullPolicy::Never)
             .hostname(record.hostname().as_str());
         builder = builder.envs(record.environment.clone());
-        if record
-            .network
-            .as_ref()
-            .is_some_and(|network| is_network_control(&network.endpoint))
-        {
+        if network == RuntimeNetwork::Controlled {
             builder =
                 builder.network(|network| network.policy(microsandbox::NetworkPolicy::allow_all()).tls(|tls| tls));
         }
@@ -567,14 +567,12 @@ impl SandboxBackend for MicrosandboxProvider {
     ) -> LocalFuture<'a, Result<network::NetworkEndpoint, Error>> {
         Box::pin(async move {
             let record = self.state.sandbox_by_id(id).await?;
-            match record.network {
-                Some(attachment) if is_network_control(&attachment.endpoint) => {
-                    self.client.local().set_network_controlled(&record.runtime_name, true);
+            match self.prepare_runtime_network(&record)? {
+                RuntimeNetwork::Controlled => {
                     let controller = self.client.bind_network_controller(&record.runtime_name).await?;
                     network_endpoint::open(controller).map(network::NetworkEndpoint::Control)
                 }
-                Some(attachment) => Err(Error::UnsupportedNetworkEndpoint(attachment.endpoint)),
-                None => Err(Error::invalid("network", "Sandbox has no attachment")),
+                RuntimeNetwork::Unattached => Err(Error::invalid("network", "Sandbox has no attachment")),
             }
         })
     }
@@ -715,20 +713,139 @@ const fn map_state(status: SandboxStatus) -> SandboxState {
     }
 }
 
-fn is_network_control(selection: &network::NetworkEndpointSelection) -> bool {
-    matches!(
-        selection,
-        network::NetworkEndpointSelection::Control(protocol)
-            if protocol.as_str() == microsandbox_network::control::NETWORK_CONTROL_PROTOCOL
-    )
+/// How a runtime's network is wired, decided once from the Sandbox's immutable
+/// Network attachment.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum RuntimeNetwork {
+    /// No Network Backend is attached; the runtime keeps Microsandbox's own network.
+    Unattached,
+    /// The attached Network Backend authorizes traffic through the control
+    /// protocol this build implements.
+    Controlled,
+}
+
+impl RuntimeNetwork {
+    /// Refuses every attachment this build cannot enforce. Microsandbox only
+    /// offers its own control protocol, so any other recorded endpoint, such as
+    /// a control protocol from a different version, would otherwise start
+    /// without host network control.
+    fn for_attachment(attachment: Option<&network::NetworkAttachment>) -> Result<Self, Error> {
+        match attachment.map(|attachment| &attachment.endpoint) {
+            None => Ok(Self::Unattached),
+            Some(network::NetworkEndpointSelection::Control(protocol))
+                if protocol.as_str() == microsandbox_network::control::NETWORK_CONTROL_PROTOCOL =>
+            {
+                Ok(Self::Controlled)
+            }
+            Some(endpoint) => Err(Error::UnsupportedNetworkEndpoint(endpoint.clone())),
+        }
+    }
 }
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use microsandbox::sandbox::VolumeMount;
+    use std::{collections::BTreeMap, path::PathBuf};
 
-    use super::RuntimeMount;
+    use microsandbox::sandbox::VolumeMount;
+    use sandbox::{
+        ByteQuantity, CpuQuantity, Error, Hostname, Platform, RootFilesystem, SandboxId, SandboxName, SandboxResources,
+        backend::{CreateSandboxRequest, SandboxBackend as _},
+        image,
+        init::InitSystem,
+        network::{
+            NetworkAttachment, NetworkBackendId, NetworkControlProtocolId, NetworkEndpointSelection, PacketMedium,
+        },
+    };
+
+    use super::{MicrosandboxProvider, RuntimeMount, RuntimeNetwork};
+    use crate::state::SandboxRecord;
+
+    fn record_with_network(id: &str, endpoint: NetworkEndpointSelection) -> SandboxRecord {
+        SandboxRecord::new(CreateSandboxRequest {
+            id: id.parse::<SandboxId>().expect("test Sandbox ID should be a UUID"),
+            name: SandboxName::new("worker").expect("test Sandbox name should be valid"),
+            hostname: Hostname::new("worker").expect("test hostname should be valid"),
+            image: image::ResolvedImage {
+                source: image::ImageSource::Reference {
+                    reference: "docker.io/library/alpine:3.22".to_string(),
+                },
+                platform: Platform::new("linux", "amd64"),
+                manifest_digest: "sha256:1234".to_string(),
+            },
+            resources: SandboxResources::new(
+                "1".parse::<CpuQuantity>().expect("test CPU should be valid"),
+                "512Mi".parse::<ByteQuantity>().expect("test memory should be valid"),
+                RootFilesystem::layered(
+                    "4Gi"
+                        .parse::<ByteQuantity>()
+                        .expect("test root filesystem should be valid"),
+                ),
+            ),
+            init_system: InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: Some(NetworkAttachment {
+                backend: NetworkBackendId::new("microsandbox"),
+                endpoint,
+            }),
+        })
+    }
+
+    #[test]
+    fn only_an_absent_attachment_or_this_builds_control_protocol_is_accepted() {
+        assert_eq!(
+            RuntimeNetwork::for_attachment(None).ok(),
+            Some(RuntimeNetwork::Unattached)
+        );
+        let controlled = record_with_network(
+            "00000000-0000-4000-8000-000000000010",
+            NetworkEndpointSelection::Control(NetworkControlProtocolId::new(
+                microsandbox_network::control::NETWORK_CONTROL_PROTOCOL,
+            )),
+        );
+        assert_eq!(
+            RuntimeNetwork::for_attachment(controlled.network.as_ref()).ok(),
+            Some(RuntimeNetwork::Controlled)
+        );
+    }
+
+    // A persisted attachment that this build cannot enforce must never reach
+    // the runtime, where it would start without host network control.
+    #[tokio::test(flavor = "local")]
+    async fn start_refuses_a_recorded_endpoint_this_build_cannot_control() {
+        let home = tempfile::tempdir().expect("temporary home should be created");
+        let provider = MicrosandboxProvider::open(PathBuf::from(home.path()).join("microsandbox"))
+            .await
+            .expect("Provider should open without starting a VM");
+        let endpoints = [
+            NetworkEndpointSelection::Control(NetworkControlProtocolId::new("microsandbox.network-control.v0")),
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+            NetworkEndpointSelection::Intercepted,
+        ];
+        for (index, endpoint) in endpoints.into_iter().enumerate() {
+            let mut record =
+                record_with_network(&format!("00000000-0000-4000-8000-00000000000{}", index + 1), endpoint);
+            record.name = SandboxName::new(format!("worker-{index}")).expect("test Sandbox name should be valid");
+            provider
+                .state
+                .save_sandbox(&record)
+                .await
+                .expect("record should be saved");
+
+            let result = provider.start(&record.id).await;
+
+            let expected = &record
+                .network
+                .as_ref()
+                .expect("record should have an attachment")
+                .endpoint;
+            assert!(
+                matches!(&result, Err(Error::UnsupportedNetworkEndpoint(actual)) if actual == expected),
+                "starting a Sandbox recorded with {expected:?} should be refused, got {result:?}"
+            );
+        }
+    }
 
     #[tokio::test(flavor = "local")]
     async fn tmpfs_capacity_maps_to_microsandbox() {
