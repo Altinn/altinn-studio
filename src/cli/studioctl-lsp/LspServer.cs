@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.AppConfig.Validation.Schemas;
-using Altinn.Studio.AppDist;
 using StreamJsonRpc;
 
 namespace Altinn.Studio.AppConfigLsp;
@@ -27,13 +26,13 @@ public sealed class LspServer
     private readonly LanguageFeatures _features;
 
     private readonly SchemaSetLoader _schemaLoader;
-    private readonly Func<IAppDistProvider?> _createAppDist;
+    private readonly Func<string, CancellationToken, Task<SchemaSetResult>> _loadSchemas;
 
     private bool _shutdownRequested;
 
-    public LspServer(Stream input, Stream output, Func<IAppDistProvider?> createAppDist)
+    public LspServer(Stream input, Stream output, Func<string, CancellationToken, Task<SchemaSetResult>> loadSchemas)
     {
-        _createAppDist = createAppDist;
+        _loadSchemas = loadSchemas;
         _log = new Logger(Logger.ParseLevel(Environment.GetEnvironmentVariable("STUDIOCTL_LSP_LOG")));
         _transport = new LspTransport(input, output, _log);
         _workspace = new WorkspaceState(_transport, _log);
@@ -55,16 +54,11 @@ public sealed class LspServer
 
     private async Task<SchemaSet?> LoadSchemasAsync(string version)
     {
-        if (_createAppDist() is not { } appDist)
-            return null;
-        try
-        {
-            return await AppDistSchemas.Load(appDist, version);
-        }
-        finally
-        {
-            (appDist as IDisposable)?.Dispose();
-        }
+        var result = await _loadSchemas(version, CancellationToken.None);
+        if (result.Status.Ran)
+            return result.Schemas;
+        _log.Log(LogLevel.Info, $"schema validation skipped: {result.Status.Reason}");
+        return null;
     }
 
     /// <summary>

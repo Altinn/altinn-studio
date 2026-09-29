@@ -4,24 +4,10 @@ using Altinn.Studio.AppDist;
 
 namespace Altinn.Studio.StudioctlServer.Studioctl;
 
-internal sealed record SchemaValidationStatus(
-    bool Ran,
-    string? Version,
-    string? Reason,
-    IReadOnlyList<string> Warnings
-);
-
-internal sealed record SchemaSetResult(SchemaSet Schemas, SchemaValidationStatus Status)
-{
-    public static SchemaSetResult Skipped(string reason, string? version = null) =>
-        new(SchemaSet.Empty, new SchemaValidationStatus(false, version, reason, Array.Empty<string>()));
-
-    public static SchemaSetResult Loaded(string version, SchemaSet schemas) =>
-        new(schemas, new SchemaValidationStatus(true, version, null, schemas.LoadWarnings));
-}
-
 internal sealed class AppDistSchemasService : IDisposable
 {
+    private const string SchemaDirectory = "schemas/json";
+
     private readonly ILogger<AppDistSchemasService> _logger;
     private readonly Lazy<IAppDistProvider?> _appDist;
     private readonly ConcurrentDictionary<string, SchemaSet> _byVersion = new(StringComparer.Ordinal);
@@ -44,11 +30,12 @@ internal sealed class AppDistSchemasService : IDisposable
         if (_byVersion.TryGetValue(version, out var cached))
             return SchemaSetResult.Loaded(version, cached);
 
-        if (await AppDistSchemas.Load(appDist, version, cancellationToken) is not { } schemas)
+        if (await appDist.GetLayer(version, AppDistLayer.Schemas, cancellationToken) is not { } content)
         {
             _logger.LogWarning("app-dist {Version} unreachable and not cached; schema validation skipped", version);
             return SchemaSetResult.Skipped($"app-dist {version} is unreachable and not cached", version);
         }
+        var schemas = SchemaSet.FromFiles(await content.GetFiles(SchemaDirectory, cancellationToken));
         return SchemaSetResult.Loaded(version, _byVersion.GetOrAdd(version, schemas));
     }
 

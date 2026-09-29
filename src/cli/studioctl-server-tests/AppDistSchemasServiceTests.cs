@@ -1,4 +1,6 @@
 using System.Text;
+using Altinn.Studio.AppConfig;
+using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppDist;
 using Altinn.Studio.StudioctlServer.Studioctl;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -132,6 +134,40 @@ public sealed class AppDistSchemasServiceTests
 
         Assert.True(result.Status.Ran);
         Assert.Contains(result.Status.Warnings, w => w.Contains("text-resources") && w.Contains("missing"));
+    }
+
+    [Fact]
+    public async Task LoadedSet_ValidatesLayoutsByKind()
+    {
+        var provider = new FakeAppDist(
+            new(StringComparer.Ordinal)
+            {
+                ["schemas/json/layout/layout.schema.v1.json"] = """
+                {"properties":{"data":{"properties":{"layout":{"items":{"required":["size"]}}}}}}
+                """,
+                ["altinn-app-frontend.js"] = "console.log('not a schema')",
+            }
+        );
+        var app = new InMemoryAppDirectory(
+            new()
+            {
+                ["App/App.csproj"] = """
+                <Project Sdk="Microsoft.NET.Sdk.Web"><ItemGroup><PackageReference Include="Altinn.App.Api" Version="9.0.0" /></ItemGroup></Project>
+                """,
+                ["App/config/applicationmetadata.json"] = """
+                {"id":"ttd/x","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[]}
+                """,
+                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                ["App/ui/Task_1/layouts/P1.json"] = """{"data":{"layout":[{"id":"h","type":"Header"}]}}""",
+            }
+        );
+
+        var result = await Service(provider).GetAsync("9.1.0", CancellationToken.None);
+
+        Assert.True(result.Status.Ran);
+        var report = AppConfigEngine.Open(app).ValidateSchemas(result.Schemas);
+        var finding = Assert.Single(report.Findings, f => f.RuleId == "JSONSCHEMA-VALID");
+        Assert.Contains("size", finding.Message);
     }
 
     [Fact]

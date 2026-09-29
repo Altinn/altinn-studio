@@ -16,8 +16,8 @@ picture.
   snapshot on change.
 - `DiagnosticsPublisher.cs`, `LanguageFeatures.cs`, `LspConversions.cs`, `Utf16Mapper.cs` — map engine
   findings and symbols to LSP diagnostics, hover, completion, rename, references and code lenses.
-- `SchemaSetLoader.cs` — loads the schema set for the app's frontend version in the background, through
-  `AppDistSchemas` in the shared library.
+- `SchemaSetLoader.cs` — loads the schema set for the app's frontend version in the background, through the
+  schema lookup `studioctl-server` passes in.
 - `vscode/` — the VS Code extension (TypeScript, published as `altinnstudio.altinn-studio-lsp`).
 - `rider/` — the JetBrains plugin (Kotlin, Gradle, LSP4IJ). Both clients launch `studioctl app lsp`, so
   `studioctl` must be on `PATH`.
@@ -27,8 +27,9 @@ picture.
 The server is compiled into `studioctl-server` and started with the `lsp` argument
 (`../studioctl-server/Program.cs`). `studioctl app lsp` (`../internal/cmd/app_lsp.go`) execs the installed
 server binary with stdio attached. Logging goes to stderr because stdout carries the protocol.
-`studioctl-server` owns the app-dist configuration: it reads `STUDIOCTL_APP_DIST_CACHE` and passes
-`LspServer` a provider factory, so the language server and the shared libraries never read the environment.
+`studioctl-server` owns app-dist: it reads `STUDIOCTL_APP_DIST_CACHE`, fetches and caches schema sets per app
+version in `AppDistSchemasService`, and passes `LspServer` that service's lookup. The language server and the
+shared libraries never read the environment or talk to the registry.
 
 ## Build & test
 

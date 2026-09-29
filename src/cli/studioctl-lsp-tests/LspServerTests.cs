@@ -1,12 +1,16 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Altinn.Studio.AppConfig.Validation.Schemas;
 using Altinn.Studio.AppConfigLsp;
 
 namespace Altinn.Studio.AppConfigLsp.Tests;
 
 public sealed class LspServerTests
 {
+    private static Task<SchemaSetResult> NoSchemas(string version, CancellationToken cancellationToken) =>
+        Task.FromResult(SchemaSetResult.Skipped("app-dist fetching is not configured", version));
+
     // "MissingPage" is on line 5 (1-based) of Settings.json -> 0-based LSP line 4.
     private const string SettingsJson =
         "{\n  \"pages\": {\n    \"order\": [\n      \"Page1\",\n      \"MissingPage\"\n    ]\n  }\n}";
@@ -549,7 +553,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         var messages = ParseFrames(output.ToArray());
         var parseError = messages.Single(m => m.TryGetProperty("error", out _));
@@ -603,7 +607,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         var messages = ParseFrames(output.ToArray());
         var failed = messages.Single(m =>
@@ -769,7 +773,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         // The diagnostic comes from the replayed buffer (MissingPage), not the clean disk file.
         var diagnostics = ParseFrames(output.ToArray())
@@ -846,7 +850,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         var messages = ParseFrames(output.ToArray());
         var init = messages.Single(m => m.TryGetProperty("id", out var id) && id.GetInt32() == 1);
@@ -951,7 +955,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         Assert.Contains(
             DiagnosticsFor(ParseFrames(output.ToArray()), settingsUri),
@@ -998,7 +1002,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        var exitCode = new LspServer(input, output, () => null).Run();
+        var exitCode = new LspServer(input, output, NoSchemas).Run();
 
         Assert.Equal(0, exitCode);
         var late = ParseFrames(output.ToArray())
@@ -1023,7 +1027,7 @@ public sealed class LspServerTests
         );
         input.Position = 0;
 
-        Assert.Equal(1, new LspServer(input, new MemoryStream(), () => null).Run());
+        Assert.Equal(1, new LspServer(input, new MemoryStream(), NoSchemas).Run());
     }
 
     // initialize(root) → initialized → optional didOpen(openDoc) → extraFrames, then runs the
@@ -1078,7 +1082,7 @@ public sealed class LspServerTests
         input.Position = 0;
         var output = new MemoryStream();
 
-        new LspServer(input, output, () => null).Run();
+        new LspServer(input, output, NoSchemas).Run();
 
         return ParseFrames(output.ToArray());
     }
