@@ -1,8 +1,7 @@
-using System.Text.RegularExpressions;
+using System.Runtime.ExceptionServices;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Options;
-using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -15,23 +14,17 @@ namespace Altinn.App.Api.Controllers;
 /// </summary>
 [Route("{org}/{app}/api/options")]
 [ApiController]
-public partial class OptionsController : ControllerBase
+public class OptionsController : ControllerBase
 {
     private readonly IAppOptionsService _appOptionsService;
-    private readonly IAltinn3LibraryCodeListService _altinn3LibraryCodeListService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OptionsController"/> class.
     /// </summary>
     /// <param name="appOptionsService">Service for handling app options</param>
-    /// <param name="altinn3LibraryCodeListService">Service for handling Altinn 3 library code lists.</param>
-    public OptionsController(
-        IAppOptionsService appOptionsService,
-        IAltinn3LibraryCodeListService altinn3LibraryCodeListService
-    )
+    public OptionsController(IAppOptionsService appOptionsService)
     {
         _appOptionsService = appOptionsService;
-        _altinn3LibraryCodeListService = altinn3LibraryCodeListService;
     }
 
     /// <summary>
@@ -58,21 +51,14 @@ public partial class OptionsController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        var libRefMatch = LibraryRefRegex().Match(optionsIdOrLibraryRef);
-        AppOptions appOptions;
-        try
-        {
-            appOptions = libRefMatch.Success is false
-                ? await _appOptionsService.GetOptionsAsync(optionsIdOrLibraryRef, language, queryParams)
-                : await _altinn3LibraryCodeListService.GetAppOptionsAsync(
-                    libRefMatch.Groups["org"].Value,
-                    libRefMatch.Groups["codeListId"].Value,
-                    libRefMatch.Groups["version"].Value,
-                    language,
-                    HttpContext.RequestAborted
-                );
-        }
-        catch (HttpRequestException exception)
+        var results = await _appOptionsService.GetOptionsAsync(
+            [new AppOptionsLookup(optionsIdOrLibraryRef, queryParams)],
+            language,
+            dataAccessor: null,
+            HttpContext.RequestAborted
+        );
+        var result = results[0];
+        if (result.Error is HttpRequestException exception)
         {
             return Problem(
                 statusCode: (int?)exception.StatusCode,
@@ -81,9 +67,14 @@ public partial class OptionsController : ControllerBase
             );
         }
 
-        if (appOptions?.Options == null)
+        if (result.Error is { } error)
         {
-            if (_appOptionsService.IsInstanceAppOptionsProviderRegistered(optionsIdOrLibraryRef))
+            ExceptionDispatchInfo.Throw(error);
+        }
+
+        if (result.AppOptions?.Options == null)
+        {
+            if (result.Source == AppOptionsSource.InstanceProvider)
             {
                 return NotFound(
                     "An instance app options provider was found. "
@@ -95,10 +86,10 @@ public partial class OptionsController : ControllerBase
 
         HttpContext.Response.Headers.Append(
             "Altinn-DownstreamParameters",
-            appOptions.Parameters.ToUrlEncodedNameValueString(',')
+            result.AppOptions.Parameters.ToUrlEncodedNameValueString(',')
         );
 
-        return Ok(appOptions.Options);
+        return Ok(result.AppOptions.Options);
     }
 
     /// <summary>
@@ -147,19 +138,10 @@ public partial class OptionsController : ControllerBase
                 queryParams
             );
 
-            // Try to get non instance specific options if no options provider was found.
+            // Try to get non instance specific options if no instance options provider was found.
             if (appOptions?.Options == null)
             {
-                var libRefMatch = LibraryRefRegex().Match(optionsIdOrLibraryRef);
-                appOptions = libRefMatch.Success is false
-                    ? await _appOptionsService.GetOptionsAsync(optionsIdOrLibraryRef, language, queryParams)
-                    : await _altinn3LibraryCodeListService.GetAppOptionsAsync(
-                        libRefMatch.Groups["org"].Value,
-                        libRefMatch.Groups["codeListId"].Value,
-                        libRefMatch.Groups["version"].Value,
-                        language,
-                        HttpContext.RequestAborted
-                    );
+                appOptions = await _appOptionsService.GetOptionsAsync(optionsIdOrLibraryRef, language, queryParams);
             }
         }
         catch (HttpRequestException exception)
@@ -185,7 +167,4 @@ public partial class OptionsController : ControllerBase
 
         return Ok(appOptions.Options);
     }
-
-    [GeneratedRegex(@"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$")]
-    private static partial Regex LibraryRefRegex();
 }

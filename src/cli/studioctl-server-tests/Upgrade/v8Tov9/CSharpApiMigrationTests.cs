@@ -411,6 +411,49 @@ public sealed class CSharpApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void AppOptionsTypeDetector_FlagsJoinedProviderReference()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IAppOptionsProvider>(sp => new JoinedAppOptionsProvider("all", ["a", "b"], sp.GetRequiredService<IAppOptionsService>()));
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("JoinedAppOptionsProvider"));
+        Assert.Contains(result.Todos, t => t.Contains("AddJoinedAppOptions"));
+    }
+
+    [Fact]
+    public void AppOptionsTypeDetector_FlagsIsInstanceAppOptionsProviderRegisteredCall()
+    {
+        _app.Write(
+            "logic/Consumer.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class Consumer(IAppOptionsService options)
+            {
+                public bool Check(string id) => options.IsInstanceAppOptionsProviderRegistered(id);
+            }
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Consumer.cs") && w.Contains("IsInstanceAppOptionsProviderRegistered")
+        );
+        Assert.Contains(result.Todos, t => t.Contains("AppOptionsSource.InstanceProvider"));
+    }
+
+    [Fact]
     public void AppOptionsTypeDetector_LeavesAnOptionsProviderAlone()
     {
         _app.Write(
@@ -428,7 +471,17 @@ public sealed class CSharpApiMigrationTests : IDisposable
             "logic/Consumer.cs",
             """
             using Altinn.App.Core.Features.Options;
-            public class Consumer(IAppOptionsService options) { }
+            public class Consumer(IAppOptionsService options)
+            {
+                public Task<AppOptions> Load(string id) => options.GetOptionsAsync(id, "nb", []);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddJoinedAppOptions("all", "a", "b");
             """
         );
 

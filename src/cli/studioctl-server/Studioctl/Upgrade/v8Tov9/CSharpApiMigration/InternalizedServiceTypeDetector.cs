@@ -65,7 +65,6 @@ internal sealed class InternalizedServiceTypeDetector
         ["FormBootstrapService"] = new("Altinn.App.Core.Features.Bootstrap", null),
         ["InstanceDataListsFactory"] = new("Altinn.App.Core.Features.DataLists", null),
         ["InstanceEventClient"] = new("Altinn.App.Core.Infrastructure.Clients.Storage", "IInstanceEventClient"),
-        ["JoinedAppOptionsProvider"] = new("Altinn.App.Core.Features.Options", "IAppOptionsProvider"),
         ["LayoutEvaluatorStateInitializer"] = new(
             "Altinn.App.Core.Internal.Expressions",
             "ILayoutEvaluatorStateInitializer"

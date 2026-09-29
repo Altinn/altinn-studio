@@ -1911,9 +1911,37 @@ namespace Altinn.App.Core.Features.Options.Altinn3LibraryCodeList
 }
 namespace Altinn.App.Core.Features.Options
 {
+    public sealed class AppOptionsLookup : System.IEquatable<Altinn.App.Core.Features.Options.AppOptionsLookup>
+    {
+        public AppOptionsLookup(string OptionId, System.Collections.Generic.Dictionary<string, string> KeyValuePairs) { }
+        public System.Collections.Generic.Dictionary<string, string> KeyValuePairs { get; init; }
+        public string OptionId { get; init; }
+    }
+    public abstract class AppOptionsRegistration : System.IEquatable<Altinn.App.Core.Features.Options.AppOptionsRegistration>
+    {
+        protected AppOptionsRegistration(string OptionId) { }
+        public string OptionId { get; init; }
+    }
+    public sealed class AppOptionsResult : System.IEquatable<Altinn.App.Core.Features.Options.AppOptionsResult>
+    {
+        public AppOptionsResult() { }
+        public Altinn.App.Core.Models.AppOptions? AppOptions { get; init; }
+        public System.Exception? Error { get; init; }
+        public required Altinn.App.Core.Features.Options.AppOptionsLookup Lookup { get; init; }
+        public required Altinn.App.Core.Features.Options.AppOptionsSource Source { get; init; }
+    }
     public static class AppOptionsServiceExtensions
     {
         public static void AddJoinedAppOptions(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string id, params string[] subLists) { }
+    }
+    public enum AppOptionsSource
+    {
+        None = 0,
+        InstanceProvider = 1,
+        Joined = 2,
+        Library = 3,
+        AppProvider = 4,
+        File = 5,
     }
     public static class CommonOptionProviderServiceCollectionExtensions
     {
@@ -1923,12 +1951,38 @@ namespace Altinn.App.Core.Features.Options
             "b**{creatorOrg}**{codeListId}**{version})")]
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAltinn3CodeList(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string optionId, string org, string codeListId, string? version = null) { }
     }
+    public sealed class FileOptionsRegistration : Altinn.App.Core.Features.Options.AppOptionsRegistration, System.IEquatable<Altinn.App.Core.Features.Options.FileOptionsRegistration>
+    {
+        public FileOptionsRegistration(string OptionId) { }
+    }
     public interface IAppOptionsService
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions> GetOptionsAsync(string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
         System.Threading.Tasks.Task<Altinn.App.Core.Models.AppOptions?> GetOptionsAsync(Altinn.App.Core.Models.InstanceIdentifier instanceIdentifier, string optionId, string? language, System.Collections.Generic.Dictionary<string, string> keyValuePairs);
-        bool IsInstanceAppOptionsProviderRegistered(string optionId);
-        bool IsStatic(string optionId);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Options.AppOptionsResult[]> GetOptionsAsync(System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Options.AppOptionsLookup> lookups, string? language, Altinn.App.Core.Features.IInstanceDataAccessor? dataAccessor, System.Threading.CancellationToken cancellationToken);
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Features.Options.AppOptionsRegistration> GetRegistrations();
+    }
+    public sealed class InstanceProviderOptionsRegistration : Altinn.App.Core.Features.Options.AppOptionsRegistration, System.IEquatable<Altinn.App.Core.Features.Options.InstanceProviderOptionsRegistration>
+    {
+        public InstanceProviderOptionsRegistration(string OptionId, System.Type ProviderType) { }
+        public System.Type ProviderType { get; init; }
+    }
+    public sealed class JoinedOptionsRegistration : Altinn.App.Core.Features.Options.AppOptionsRegistration, System.IEquatable<Altinn.App.Core.Features.Options.JoinedOptionsRegistration>
+    {
+        public JoinedOptionsRegistration(string OptionId, System.Collections.Generic.IReadOnlyList<string> SubOptionIds) { }
+        public System.Collections.Generic.IReadOnlyList<string> SubOptionIds { get; init; }
+    }
+    public sealed class LibraryOptionsRegistration : Altinn.App.Core.Features.Options.AppOptionsRegistration, System.IEquatable<Altinn.App.Core.Features.Options.LibraryOptionsRegistration>
+    {
+        public LibraryOptionsRegistration(string OptionId, string Org, string CodeListId, string? Version) { }
+        public string CodeListId { get; init; }
+        public string Org { get; init; }
+        public string? Version { get; init; }
+    }
+    public sealed class ProviderOptionsRegistration : Altinn.App.Core.Features.Options.AppOptionsRegistration, System.IEquatable<Altinn.App.Core.Features.Options.ProviderOptionsRegistration>
+    {
+        public ProviderOptionsRegistration(string OptionId, System.Type ProviderType) { }
+        public System.Type ProviderType { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Payment.Exceptions

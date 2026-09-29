@@ -2,10 +2,10 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
-using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process;
@@ -33,8 +33,7 @@ public class CustomOpenApiController : Controller
     private readonly SchemaGenerator _schemaGenerator;
     private readonly SchemaRepository _schemaRepository;
     private readonly IProcessReader _processReader;
-    private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly AppFilesAccessor _appFiles;
+    private readonly IAppOptionsService _appOptionsService;
 
     /// <summary>
     /// Constructor with services from dependency injection
@@ -57,8 +56,7 @@ public class CustomOpenApiController : Controller
             dataContractResolver
         );
         _schemaRepository = new SchemaRepository();
-        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
-        _appFiles = serviceProvider.GetRequiredService<AppFilesAccessor>();
+        _appOptionsService = serviceProvider.GetRequiredService<IAppOptionsService>();
     }
 
     internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
@@ -761,8 +759,9 @@ public class CustomOpenApiController : Controller
         // Options endpoint
         var optionsTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Options") };
         document.Tags.Add(new OpenApiTag { Name = "Options", Description = "Operations for getting app options" });
-        var allOptionsSchemaCollection = GetInstanceAppOptionsSchemaCollection();
-        allOptionsSchemaCollection.AddRange(GetAppOptionsSchemaCollection(appMetadata));
+        var optionsRegistrations = _appOptionsService.GetRegistrations();
+        var allOptionsSchemaCollection = GetInstanceAppOptionsSchemaCollection(optionsRegistrations);
+        allOptionsSchemaCollection.AddRange(GetAppOptionsSchemaCollection(appMetadata, optionsRegistrations));
         document.Paths.Add(
             $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/options/{{optionsId}}",
             new OpenApiPathItem()
@@ -835,7 +834,7 @@ public class CustomOpenApiController : Controller
                 },
             }
         );
-        var appOptionsSchemaCollection = GetAppOptionsSchemaCollection(appMetadata);
+        var appOptionsSchemaCollection = GetAppOptionsSchemaCollection(appMetadata, optionsRegistrations);
         document.Paths.Add(
             $"/{appMetadata.Id}/api/options/{{optionsId}}",
             new OpenApiPathItem()
@@ -985,32 +984,37 @@ public class CustomOpenApiController : Controller
         );
     }
 
-    private List<JsonNode> GetInstanceAppOptionsSchemaCollection()
+    private static List<JsonNode> GetInstanceAppOptionsSchemaCollection(
+        IReadOnlyList<AppOptionsRegistration> registrations
+    )
     {
-        var optionsIds = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>().Select(a => a.Id);
-
-        return optionsIds.Select(optionsId => (JsonNode)optionsId).ToList();
+        return registrations
+            .OfType<InstanceProviderOptionsRegistration>()
+            .Select(registration => (JsonNode)registration.OptionId)
+            .ToList();
     }
 
-    private List<JsonNode> GetAppOptionsSchemaCollection(ApplicationMetadata appMetadata)
+    private List<JsonNode> GetAppOptionsSchemaCollection(
+        ApplicationMetadata appMetadata,
+        IReadOnlyList<AppOptionsRegistration> registrations
+    )
     {
-        // Get Altinn 3 library code lists references configured in ApplicationMetadata:
-        const string libraryRefRegex =
-            @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
+        // Get Altinn 3 library code lists referenced directly from the layouts:
         var optionsIds = appMetadata
             .DataTypes.Select(d => d.TaskId)
             .Distinct()
             .Select(taskId => _appResources.GetLayoutModelForFolder(taskId))
             .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
-            .Where(o => !string.IsNullOrWhiteSpace(o) && Regex.IsMatch(o, libraryRefRegex))
+            .Where(o => !string.IsNullOrWhiteSpace(o) && LibraryCodeListReference.TryParse(o, out _))
             .Distinct()
             .ToList();
 
-        // Get all ids from IAppOptionsProviders:
-        optionsIds.AddRange(_appImplementationFactory.GetAll<IAppOptionsProvider>().Select(a => a.Id));
-
-        // Get ids of the option lists shipped as json files:
-        optionsIds.AddRange(_appFiles.Current.GetOptionIds());
+        // Get the ids of every list the app registered or ships, except the instance specific ones:
+        optionsIds.AddRange(
+            registrations
+                .Where(registration => registration is not InstanceProviderOptionsRegistration)
+                .Select(registration => registration.OptionId)
+        );
 
         return optionsIds.WhereNotNull().Select(optionsId => (JsonNode)optionsId).ToList();
     }

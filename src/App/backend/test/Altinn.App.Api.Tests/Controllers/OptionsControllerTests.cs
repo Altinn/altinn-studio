@@ -1,6 +1,8 @@
 using System.Net;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
@@ -197,6 +199,60 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             "[{\"value\":null,\"label\":\"\"},{\"value\":\"SomeString\",\"label\":\"False\"},{\"value\":true,\"label\":\"True\"},{\"value\":0,\"label\":\"Zero\"},{\"value\":1,\"label\":\"One\",\"description\":\"This is a description\",\"helpText\":\"This is a help text\"}]",
             content
         );
+    }
+
+    [Fact]
+    public async Task Get_JoinedList_ReturnsTheSubListsInOrderWithPrefixedParameters()
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IAppOptionsProvider, DummyProvider>();
+            services.AddJoinedAppOptions("joined", "test", "fileSourceOptions");
+        };
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        HttpClient client = GetRootedClient(org, app);
+
+        string url = $"/{org}/{app}/api/options/joined?language=nb";
+        HttpResponseMessage response = await client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("test_lang=nb", response.Headers.GetValues("Altinn-DownstreamParameters").Single());
+        var options = JsonSerializer.Deserialize<List<AppOption>>(content)!;
+        // The provider's 5 options come first, then the 5 from the json file
+        Assert.Equal(10, options.Count);
+        Assert.Equal("SomeString", options[1].Value);
+        Assert.Equal("string-value", options[6].Value);
+    }
+
+    [Fact]
+    public async Task Get_LibraryCodeListRegisteredUnderAnId_IsServedByTheLibraryService()
+    {
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton<IAltinn3LibraryCodeListService, DummyAltinn3LibraryCodeListService>();
+#pragma warning disable CS0618 // The registration is obsolete, but still supported
+            services.AddAltinn3CodeList("aliased", "ttd", "someNewCodeListId");
+#pragma warning restore CS0618
+        };
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        HttpClient client = GetRootedClient(org, app);
+        var altinn3LibraryCodeListService = (DummyAltinn3LibraryCodeListService)
+            Services.GetRequiredService<IAltinn3LibraryCodeListService>();
+
+        string url = $"/{org}/{app}/api/options/aliased";
+        HttpResponseMessage response = await client.GetAsync(url);
+        var content = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(1, altinn3LibraryCodeListService.CallCounter);
+        Assert.Contains("\"tags\":{\"test-tag-name\":\"test-tag\"}", content);
     }
 
     [Fact]

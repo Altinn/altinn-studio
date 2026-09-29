@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -50,6 +51,21 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
 
+    /// <summary>
+    /// The ids the app ships as <c>options/{optionId}.json</c>, which bootstrap probes directly.
+    /// </summary>
+    private readonly HashSet<string> _optionFiles = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// What the options service answers for each id in a batch. Ids without an entry get an empty provider list.
+    /// </summary>
+    private readonly Dictionary<string, Func<AppOptionsLookup, AppOptionsResult>> _optionResults = new();
+
+    /// <summary>
+    /// Every batch the bootstrap service requested from the options service.
+    /// </summary>
+    private readonly List<(IReadOnlyList<AppOptionsLookup> Lookups, IInstanceDataAccessor? DataAccessor)> _batches = [];
+
     public FormBootstrapServiceTests()
     {
         _metadataDataClient = _dataClient.As<IDataClientWithStorageMetadata>();
@@ -57,23 +73,87 @@ public class FormBootstrapServiceTests
         _metadataInstanceClient = _instanceClient.As<IInstanceClientWithStorageMetadata>();
     }
 
+    private void GivenOptions(
+        string optionId,
+        AppOptions appOptions,
+        AppOptionsSource source = AppOptionsSource.AppProvider
+    ) =>
+        _optionResults[optionId] = lookup => new AppOptionsResult
+        {
+            Lookup = lookup,
+            Source = source,
+            AppOptions = appOptions,
+        };
+
+    private void GivenOptionsError(string optionId, Exception error) =>
+        _optionResults[optionId] = lookup => new AppOptionsResult
+        {
+            Lookup = lookup,
+            Source = AppOptionsSource.AppProvider,
+            Error = error,
+        };
+
     /// <summary>
-    /// Makes the options service report the list as static, the way it does for an <c>options/{optionId}.json</c>,
-    /// and serve these options for it.
+    /// Ships the list as <c>options/{optionId}.json</c> and makes the options service serve these options for it.
     /// </summary>
-    private void SetupStaticOptions(string optionId, List<AppOption> options)
+    private void GivenOptionsFile(string optionId, List<AppOption> options)
     {
-        _appOptionsService.Setup(x => x.IsStatic(optionId)).Returns(true);
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync(optionId, It.IsAny<string?>(), It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync(new AppOptions { Options = options });
+        _optionFiles.Add(optionId);
+        GivenOptions(optionId, new AppOptions { Options = options }, AppOptionsSource.File);
     }
+
+    private void SetupOptionsBatch() =>
+        _appOptionsService
+            .Setup(x =>
+                x.GetOptionsAsync(
+                    It.IsAny<IReadOnlyList<AppOptionsLookup>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<IInstanceDataAccessor?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    IReadOnlyList<AppOptionsLookup> lookups,
+                    string? _,
+                    IInstanceDataAccessor? dataAccessor,
+                    CancellationToken _
+                ) =>
+                {
+                    _batches.Add((lookups, dataAccessor));
+                    return lookups
+                        .Select(lookup =>
+                            _optionResults.TryGetValue(lookup.OptionId, out var result)
+                                ? result(lookup)
+                                : new AppOptionsResult
+                                {
+                                    Lookup = lookup,
+                                    Source = AppOptionsSource.AppProvider,
+                                    AppOptions = new AppOptions { Options = [] },
+                                }
+                        )
+                        .ToArray();
+                }
+            );
+
+    private AppFilesAccessor CreateAppFiles() =>
+        new(
+            new AppFiles(
+                applicationMetadata: "{\"id\":\"ttd/test\"}"u8.ToArray(),
+                options: _optionFiles.ToImmutableSortedDictionary(
+                    id => id,
+                    _ => (ReadOnlyMemory<byte>)"[]"u8.ToArray(),
+                    StringComparer.Ordinal
+                )
+            )
+        );
 
     private FormBootstrapService CreateService(IAppModel? appModel = null) =>
         new(
             _appResources.Object,
             _appMetadata.Object,
             _appOptionsService.Object,
+            CreateAppFiles(),
             appModel ?? _appModel,
             _prefillService.Object,
             _authenticationContext.Object,
@@ -452,21 +532,18 @@ public class FormBootstrapServiceTests
                 ["regions"] = [new Dictionary<string, string>()],
             }
         );
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync(
-                new AppOptions
-                {
-                    Options =
-                    [
-                        new AppOption { Value = "NO", Label = "Norway" },
-                        new AppOption { Value = "SE", Label = "Sweden" },
-                    ],
-                }
-            );
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync("regions", "nb", It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Region 1" }] });
+        GivenOptions(
+            "countries",
+            new AppOptions
+            {
+                Options =
+                [
+                    new AppOption { Value = "NO", Label = "Norway" },
+                    new AppOption { Value = "SE", Label = "Sweden" },
+                ],
+            }
+        );
+        GivenOptions("regions", new AppOptions { Options = [new AppOption { Value = "1", Label = "Region 1" }] });
 
         var service = CreateService();
 
@@ -484,6 +561,12 @@ public class FormBootstrapServiceTests
         Assert.True(result.StaticOptions.ContainsKey("countries"));
         Assert.True(result.StaticOptions.ContainsKey("regions"));
         Assert.Equal(2, result.StaticOptions["countries"].Options.Count);
+        // Both lists come from one batch, with the instance and without parameters
+        var batch = Assert.Single(_batches);
+        Assert.Equal(["countries", "regions"], batch.Lookups.Select(l => l.OptionId).Order());
+        Assert.All(batch.Lookups, lookup => Assert.Empty(lookup.KeyValuePairs));
+        Assert.NotNull(batch.DataAccessor);
+        Assert.Same(instance, batch.DataAccessor.Instance);
     }
 
     [Fact]
@@ -501,12 +584,9 @@ public class FormBootstrapServiceTests
                 ["invalid"] = [new Dictionary<string, string>()],
             }
         );
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync("valid", "nb", It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Valid" }] });
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
-            .ThrowsAsync(new Exception("Not found"));
+        GivenOptions("valid", new AppOptions { Options = [new AppOption { Value = "1", Label = "Valid" }] });
+        var error = new Exception("Not found");
+        GivenOptionsError("invalid", error);
 
         var service = CreateService();
 
@@ -522,6 +602,17 @@ public class FormBootstrapServiceTests
         // Assert - Should return valid options, not fail entirely
         Assert.Single(result.StaticOptions);
         Assert.True(result.StaticOptions.ContainsKey("valid"));
+        _logger.Verify(
+            x =>
+                x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains("invalid")),
+                    error,
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -586,7 +677,7 @@ public class FormBootstrapServiceTests
         };
         SetupMocks(appMetadata, staticOptions: dynamicReference);
 
-        SetupStaticOptions("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
+        GivenOptionsFile("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
 
         var service = CreateService();
 
@@ -595,10 +686,119 @@ public class FormBootstrapServiceTests
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
         Assert.Single(result.StaticOptions["fileBased"].Options);
         // The file makes the list static, and the values still come through the service without the parameters
-        _appOptionsService.Verify(
-            x => x.GetOptionsAsync("fileBased", "nb", It.Is<Dictionary<string, string>>(d => d.Count == 0)),
-            Times.Once
+        var batch = Assert.Single(_batches);
+        var lookup = Assert.Single(batch.Lookups);
+        Assert.Equal("fileBased", lookup.OptionId);
+        Assert.Empty(lookup.KeyValuePairs);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_SkipsDynamicOptionsWithoutAFile()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                ["dynamic"] = [new Dictionary<string, string> { ["region"] = "europe" }],
+                ["static"] = [new Dictionary<string, string>()],
+            }
         );
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        // The provider may use the parameters, so the frontend loads the dynamic list itself
+        var batch = Assert.Single(_batches);
+        Assert.Equal("static", Assert.Single(batch.Lookups).OptionId);
+        Assert.Equal(["static"], result.StaticOptions.Keys);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_LeavesAProviderThatShadowsAFileToTheFrontend_WhenComponentConfigIsDynamic()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                ["shadowed"] = [new Dictionary<string, string> { ["region"] = "europe" }],
+            }
+        );
+        _optionFiles.Add("shadowed");
+        GivenOptions(
+            "shadowed",
+            new AppOptions { Options = [new AppOption { Value = "1", Label = "From the provider" }] },
+            AppOptionsSource.AppProvider
+        );
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Empty(result.StaticOptions);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_PreloadsLibraryReferences_EvenWhenComponentConfigIsDynamic()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+        const string libraryRef = "lib**ttd**countries**latest";
+
+        SetupMocks(
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                [libraryRef] = [new Dictionary<string, string> { ["region"] = "europe" }],
+            }
+        );
+        GivenOptions(
+            libraryRef,
+            new AppOptions
+            {
+                Options = [new AppOption { Value = "NO", Label = "Norway" }],
+                Parameters = new Dictionary<string, string?> { ["version"] = "3" },
+            },
+            AppOptionsSource.Library
+        );
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        // A library list never varies with the parameters, so the frontend gets it without a request
+        Assert.Equal(libraryRef, Assert.Single(Assert.Single(_batches).Lookups).OptionId);
+        Assert.Equal("version=3", result.StaticOptions[libraryRef].DownstreamParameters);
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_LoadsStaticOptionsWithoutAnInstance()
+    {
+        var appMetadata = CreateAppMetadata("model");
+        SetupStatelessMocks(
+            appMetadata,
+            layoutsJson: CreateLayoutsJson(
+                new Dictionary<string, List<Dictionary<string, string>>>
+                {
+                    ["countries"] = [new Dictionary<string, string>()],
+                }
+            )
+        );
+        GivenOptions("countries", new AppOptions { Options = [new AppOption { Value = "NO", Label = "Norway" }] });
+
+        var service = CreateService();
+
+        var result = await service.GetStatelessFormBootstrap("stateless", "nb", ["model"]);
+
+        var batch = Assert.Single(_batches);
+        Assert.Null(batch.DataAccessor);
+        Assert.Equal(["countries"], result.StaticOptions.Keys);
     }
 
     [Fact]
@@ -616,16 +816,15 @@ public class FormBootstrapServiceTests
             }
         );
 
-        SetupStaticOptions("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
-        _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
-            .ReturnsAsync(
-                new AppOptions
-                {
-                    Options = [new AppOption { Value = "NO", Label = "Norway" }],
-                    Parameters = new Dictionary<string, string?> { ["version"] = "1", ["language"] = "nb" },
-                }
-            );
+        GivenOptionsFile("fileBased", [new AppOption { Value = "1", Label = "From file" }]);
+        GivenOptions(
+            "countries",
+            new AppOptions
+            {
+                Options = [new AppOption { Value = "NO", Label = "Norway" }],
+                Parameters = new Dictionary<string, string?> { ["version"] = "1", ["language"] = "nb" },
+            }
+        );
 
         var service = CreateService();
         var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
@@ -1194,21 +1393,7 @@ public class FormBootstrapServiceTests
                 )
             )
             .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
-        _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(
-                    It.IsAny<InstanceIdentifier>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<Dictionary<string, string>>()
-                )
-            )
-            .ReturnsAsync((AppOptions?)null);
-        _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
-            .ReturnsAsync(new AppOptions { Options = [] });
+        SetupOptionsBatch();
         _validationService
             .Setup(x =>
                 x.ValidateInstanceAtTask(
@@ -1264,11 +1449,7 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
-        _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
-            .ReturnsAsync(new AppOptions { Options = [] });
+        SetupOptionsBatch();
 
         // Default to unauthenticated - GetStatelessInstanceOwner returns null so only query-parameter prefill can run.
         _authenticationContext.Setup(x => x.Current).Returns(TestAuthentication.GetNoneAuthentication());
