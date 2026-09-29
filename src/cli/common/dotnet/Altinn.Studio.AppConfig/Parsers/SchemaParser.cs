@@ -116,7 +116,7 @@ internal static class SchemaParser
         JsonDocument doc;
         try
         {
-            doc = JsonDocument.Parse(data);
+            doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
         }
         catch (JsonException)
         {

@@ -1437,4 +1437,34 @@ public sealed class RuleFalsePositiveTests
             f => f.RuleId == "REF-TEXT-RESOURCE-KEY" && f.Message.Contains("scope.error.key", StringComparison.Ordinal)
         );
     }
+
+    [Fact]
+    public void SyntaxValid_CommentsAndTrailingCommas_AreAcceptedLikeTheAppRuntime()
+    {
+        const string layout = """
+            {
+              "data": {
+                "layout": [
+                  // comment
+                  { "id": "in", "type": "Input", "dataModelBindings": { "simpleBinding": "ghostPath", }, },
+                ],
+              },
+            }
+            """;
+        var engine = AppConfigEngine.Open(
+            App(
+                ExprMeta,
+                ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"],},}"""),
+                ("App/ui/Task_1/layouts/P1.json", layout),
+                ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"},},}""")
+            )
+        );
+
+        var findings = engine.Validate().Findings;
+
+        Assert.DoesNotContain(findings, f => f.RuleId == "SYNTAX-VALID");
+        var finding = Assert.Single(findings, f => f.RuleId == "REF-DATAMODEL-PATH");
+        Assert.Contains("ghostPath", finding.Message, StringComparison.Ordinal);
+        Assert.Equal(5, engine.ResolvePosition(finding.Position).Line);
+    }
 }

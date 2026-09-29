@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents.Text;
+using Altinn.Studio.AppConfig.Parsers;
 using Json.Schema;
 
 namespace Altinn.Studio.AppConfig.Validation.Schemas;
@@ -38,7 +39,7 @@ internal static class SchemaValidator
         JsonDocument doc;
         try
         {
-            doc = JsonDocument.Parse(data);
+            doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
         }
         catch (JsonException)
         {

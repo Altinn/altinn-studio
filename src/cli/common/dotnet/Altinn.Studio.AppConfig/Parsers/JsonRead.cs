@@ -4,6 +4,12 @@ namespace Altinn.Studio.AppConfig.Parsers;
 
 internal static class JsonRead
 {
+    public static readonly JsonDocumentOptions AppFileOptions = new()
+    {
+        AllowTrailingCommas = true,
+        CommentHandling = JsonCommentHandling.Skip,
+    };
+
     public static string? TryString(JsonElement el, string name) =>
         el.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
 
