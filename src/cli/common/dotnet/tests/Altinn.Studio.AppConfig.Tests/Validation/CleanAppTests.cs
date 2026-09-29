@@ -41,6 +41,16 @@ public sealed class CleanAppTests
         Assert.Equal("/data/layout/1/textResourceBindings/title/2/1", reference.Position.Pointer);
     }
 
+    [Theory]
+    [InlineData("component-library")]
+    [InlineData("frontend-test")]
+    [InlineData("multiple-datamodels-test")]
+    public void TestApp_ListsWithDataListId_HaveNoSelectionOptionsFinding(string name)
+    {
+        var app = AppConfigEngine.Open(new FileSystemAppDirectory(TestAppDir(name))).Build();
+        Assert.DoesNotContain(ValidationEngine.Run(app).Findings, f => f.RuleId == "SELECTION-OPTIONS");
+    }
+
     private static void AssertNoErrors(ValidationReport report, string app)
     {
         Assert.False(

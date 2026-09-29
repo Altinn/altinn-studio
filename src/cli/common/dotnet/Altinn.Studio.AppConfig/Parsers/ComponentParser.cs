@@ -32,10 +32,7 @@ internal static class ComponentParser
                 LayoutSet = set.Id,
                 Bindings = ExtractBindings(c).AsReadOnly(),
                 Children = ExtractChildren(c, multiPage).AsReadOnly(),
-                HasOptionSource =
-                    c.TryGetProperty("optionsId", out _)
-                    || c.TryGetProperty("options", out _)
-                    || c.TryGetProperty("source", out _),
+                HasOptionSource = OptionSourceProperties.For(type).Any(p => c.TryGetProperty(p, out _)),
                 Position = pos,
             };
             set.AllComponents.Add(comp);
