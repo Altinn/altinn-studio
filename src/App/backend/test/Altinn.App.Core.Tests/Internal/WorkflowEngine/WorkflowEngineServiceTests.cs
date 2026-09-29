@@ -117,7 +117,10 @@ public class WorkflowEngineServiceTests
         // scheduling, so the wait always reaches its second poll before timing out.
         var service = CreateService(client, instanceClient.Object, timeProvider: new TimeSkippingTimeProvider());
         service.WorkflowPollingTimeoutMs = 500;
-        var result = await service.EnqueueAndWaitForProcessNext(instance, versions, "state", action: null);
+        // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
+        var result = await service
+            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null)
+            .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateChanged);
         Assert.True(polls >= 2);
         switch (continuationStatus)
