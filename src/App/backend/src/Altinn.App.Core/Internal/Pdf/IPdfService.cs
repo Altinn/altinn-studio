@@ -1,6 +1,5 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 using KeyValueEntry = Altinn.Platform.Storage.Interface.Models.KeyValueEntry;
 
 namespace Altinn.App.Core.Internal.Pdf;
