@@ -27,8 +27,9 @@ internal sealed class WorkspaceState(LspTransport transport, Logger log)
 
     public void SetRoot(string root)
     {
-        _root = root;
-        _workspace = new OverlayAppDirectory(new FileSystemAppDirectory(root));
+        var directory = AppConfigEngine.TryResolveDirectory(root) ?? new FileSystemAppDirectory(root);
+        _root = directory.Root;
+        _workspace = new OverlayAppDirectory(directory);
         _engine = null;
         _symbols = null;
         _engineOpenFailureShown = false;
@@ -36,7 +37,7 @@ internal sealed class WorkspaceState(LspTransport transport, Logger log)
         foreach (var (path, text) in _openDocuments)
             if (Relativize(path) is { } rel)
                 _workspace.Set(rel, text);
-        log.Log(LogLevel.Info, $"workspace root = {root}");
+        log.Log(LogLevel.Info, $"workspace root = {_root}");
     }
 
     /// <summary>True when the document is inside the app, so diagnostics need refreshing.</summary>
@@ -110,7 +111,7 @@ internal sealed class WorkspaceState(LspTransport transport, Logger log)
     }
 
     public static bool IsAppDirectory(string? path) =>
-        !string.IsNullOrEmpty(path) && Directory.Exists(Path.Combine(path, "App", "config"));
+        !string.IsNullOrEmpty(path) && AppConfigEngine.TryResolveDirectory(path) is not null;
 
     public static string? LocalPath(string? uri)
     {
