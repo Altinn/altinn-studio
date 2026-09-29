@@ -16,16 +16,20 @@ public sealed class DataModelPathScopeTests
 
     private static readonly string _appDir = RepoFiles.Path("src", "test", "apps", "multiple-datamodels-test");
 
-    private static readonly string[] _modell1TekstfeltBindings =
+    private static readonly string[] _modell1TekstfeltReferences =
     [
         ReceiptPage + "#/data/layout/0/dataModelBindings/simpleBinding/field",
         Task1Page + "#/data/layout/2/dataModelBindings/simpleBinding/field",
+        Task1Page + "#/data/layout/5/textResourceBindings/title/1/1/1/1/1",
+        Task1Page + "#/data/layout/5/textResourceBindings/title/1/2/1/1",
         Task2Page + "#/data/layout/5/dataModelBindings/simpleBinding/field",
     ];
 
-    private static readonly string[] _modell2TekstfeltBindings =
+    private static readonly string[] _modell2TekstfeltReferences =
     [
+        ReceiptPage + "#/data/layout/1/textResourceBindings/title/2/1",
         Task1Page + "#/data/layout/4/dataModelBindings/simpleBinding/field",
+        Task1Page + "#/data/layout/5/textResourceBindings/title/1/2/2/1",
         Task2Page + "#/data/layout/6/dataModelBindings/simpleBinding/field",
     ];
 
@@ -68,7 +72,7 @@ public sealed class DataModelPathScopeTests
 
         var references = symbols.References(Modell2Schema, line, col, includeDeclaration: false);
 
-        Assert.Equal(_modell2TekstfeltBindings, Sorted(references));
+        Assert.Equal(_modell2TekstfeltReferences, Sorted(references));
     }
 
     [Fact]
@@ -79,7 +83,7 @@ public sealed class DataModelPathScopeTests
 
         var references = symbols.References(Modell2Class, line, col, includeDeclaration: false);
 
-        Assert.Equal(_modell2TekstfeltBindings, Sorted(references));
+        Assert.Equal(_modell2TekstfeltReferences, Sorted(references));
     }
 
     [Fact]
@@ -101,7 +105,7 @@ public sealed class DataModelPathScopeTests
 
         var lens = Assert.Single(symbols.CodeLenses(Modell1Schema), l => l.Range.Line == keyLine);
 
-        Assert.Equal(_modell1TekstfeltBindings, Sorted(lens.Locations));
+        Assert.Equal(_modell1TekstfeltReferences, Sorted(lens.Locations));
     }
 
     [Fact]
