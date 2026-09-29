@@ -4,6 +4,7 @@ using Altinn.Studio.StudioctlServer.HostBridge;
 using Altinn.Studio.StudioctlServer.Platform;
 using Altinn.Studio.StudioctlServer.Studioctl;
 using Altinn.Studio.StudioctlServer.Topology;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Altinn.Studio.StudioctlServer;
 
@@ -16,11 +17,8 @@ internal static class Program
             var stdin = Console.OpenStandardInput();
             var stdout = Console.OpenStandardOutput();
             Console.SetOut(Console.Error);
-            Environment.ExitCode = new AppConfigLsp.LspServer(
-                stdin,
-                stdout,
-                AppDistEnvironment.CreateFromEnvironment
-            ).Run();
+            using var schemas = new AppDistSchemasService(NullLogger<AppDistSchemasService>.Instance);
+            Environment.ExitCode = new AppConfigLsp.LspServer(stdin, stdout, schemas.GetAsync).Run();
             return Task.CompletedTask;
         }
 

@@ -1,6 +1,7 @@
 using Altinn.Studio.AppConfig;
 using Altinn.Studio.AppConfig.Models;
 using Altinn.Studio.AppConfig.Validation;
+using Altinn.Studio.AppConfig.Validation.Schemas;
 
 namespace Altinn.Studio.StudioctlServer.Studioctl;
 

@@ -43,7 +43,7 @@ internal sealed class SchemaSetLoader(object sync, Func<string, Task<SchemaSet?>
         }
         if (schemas is null)
         {
-            log.Log(LogLevel.Info, $"app-dist {version} unreachable and not cached; schema pass disabled");
+            log.Log(LogLevel.Info, $"app-dist {version} schemas unavailable; schema pass disabled");
         }
         else
         {
