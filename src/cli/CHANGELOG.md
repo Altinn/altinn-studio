@@ -21,6 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
+- `studioctl app upgrade v9` no longer swaps a custom PDF for an automatically generated one when it replaces `enablePdfCreation` with a PDF service task. When the task's settings name a PDF layout in `pdfLayoutName`, the PDF service task now gets a layout set of its own, as Altinn Studio sets up a custom PDF: that PDF layout, with its summaries pointing at the task, and a waiting page. Legacy `Summary` components in the PDF layout become `Summary2`, since `Summary` cannot show another task's components, so they may look different. If the PDF layout refers to other parts of the task's form, the PDF service task gets a copy of the task's whole UI folder instead, so the PDF looks as before, and the upgrade reports a TODO describing the rest of the conversion. Either way, the task's own `pdfLayoutName` and PDF layout are then removed, since the PDF no longer uses them, unless the layout is also one of the task's pages or something else in the app refers to it. If neither can be made, for example because the task's layout set still needs manual work, the upgrade reports a TODO and keeps `enablePdfCreation` until it is run again.
 
 ## [0.1.0-preview.27] - 2026-09-23
 
