@@ -53,7 +53,7 @@ public class CallbackTokenLifetimeInvariantTests
 
         Assert.Equal(TimeSpan.FromDays(21), settings.MaxMailboxTimeout);
         Assert.Equal(TimeSpan.FromMinutes(5), settings.MailboxSweepInterval);
-        Assert.Equal(TimeSpan.FromDays(110) + TimeSpan.FromMinutes(5), BoundedWorstCaseReceiverLifetime(settings));
+        Assert.Equal(TimeSpan.FromDays(140) + TimeSpan.FromMinutes(5), BoundedWorstCaseReceiverLifetime(settings));
     }
 
     [Fact]

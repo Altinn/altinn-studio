@@ -106,7 +106,7 @@ public sealed record EngineSettings
     /// callback tokens are minted once at enqueue and never refresh, valid until their signing
     /// app-code expires. Under the operator's rotation policy (<c>appcodesync</c>: 365d acceptance,
     /// 24d rotation) a token has ≥341d of validity left at enqueue, and the worst-case workflow
-    /// lifetime — a full wait, a resume at the retention edge (60d), and a second full wait, each
+    /// lifetime — a full wait, a resume at the retention edge (90d), and a second full wait, each
     /// resume replaying the original token — must stay below that floor.
     /// </remarks>
     [JsonPropertyName("maxStepWaitBudget")]

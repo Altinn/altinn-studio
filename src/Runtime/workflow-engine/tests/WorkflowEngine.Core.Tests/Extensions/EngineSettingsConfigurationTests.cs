@@ -72,7 +72,7 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(5_000, settings.UpdateBuffer.MaxQueueSize);
 
         // Retention
-        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
 
@@ -328,7 +328,7 @@ public class EngineSettingsConfigurationTests
     {
         var settings = Resolve("""{ "EngineSettings": {} }""");
 
-        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
     }
@@ -372,7 +372,7 @@ public class EngineSettingsConfigurationTests
             """
         );
 
-        Assert.Equal(TimeSpan.FromDays(60), settings.Retention.RetentionPeriod);
+        Assert.Equal(TimeSpan.FromDays(90), settings.Retention.RetentionPeriod);
         Assert.Equal(1000, settings.Retention.BatchSize);
         Assert.Equal(TimeSpan.FromHours(2), settings.Retention.Interval);
     }
