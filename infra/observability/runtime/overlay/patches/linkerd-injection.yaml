@@ -6,11 +6,12 @@ spec:
   podAnnotations:
     linkerd.io/inject: "enabled"
     config.linkerd.io/skip-outbound-ports: "443"
-    # As a native sidecar, Linkerd's proxy is stopped only after the Collector has exited, so it
-    # needs no wait before exit, and some Linkerd versions refuse a native sidecar with one. "0"
-    # rather than no annotation, because the operator leaves one it no longer sets in place.
+    # Graceful shutdown relies on Kubernetes stopping the proxy only after the Collector has
+    # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+    # The wait is "0" rather than absent: the operator leaves an annotation it no longer sets.
+    config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
     config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "0"
-    config.linkerd.io/shutdown-grace-period: "20s" # the proxy's drain once the Collector has exited
+    config.linkerd.io/shutdown-grace-period: "5s"
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
 ---
 apiVersion: opentelemetry.io/v1beta1
@@ -21,9 +22,10 @@ spec:
   podAnnotations:
     linkerd.io/inject: "enabled"
     config.linkerd.io/skip-outbound-ports: "443"
-    # As a native sidecar, Linkerd's proxy is stopped only after the Collector has exited, so it
-    # needs no wait before exit, and some Linkerd versions refuse a native sidecar with one. "0"
-    # rather than no annotation, because the operator leaves one it no longer sets in place.
+    # Graceful shutdown relies on Kubernetes stopping the proxy only after the Collector has
+    # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+    # The wait is "0" rather than absent: the operator leaves an annotation it no longer sets.
+    config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
     config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "0"
-    config.linkerd.io/shutdown-grace-period: "20s" # the proxy's drain once the Collector has exited
+    config.linkerd.io/shutdown-grace-period: "5s"
     cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
