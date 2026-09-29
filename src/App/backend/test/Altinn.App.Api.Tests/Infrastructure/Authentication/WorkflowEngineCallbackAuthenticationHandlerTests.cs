@@ -134,10 +134,7 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
         var (result, _) = await Authenticate("good-token", instanceGuid);
 
         Assert.True(result.Succeeded);
-        Assert.Equal(
-            instanceGuid.ToString(),
-            result.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value
-        );
+        Assert.Equal(instanceGuid.ToString(), result.Principal!.FindFirst(JwtClaimTypes.JwtId)!.Value);
         Assert.Equal("actor-hash", result.Principal.FindFirst(JwtClaimTypes.WorkflowCallback.ActorHash)!.Value);
     }
 

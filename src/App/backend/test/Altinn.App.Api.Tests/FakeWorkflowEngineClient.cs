@@ -940,7 +940,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return new ClaimsPrincipal(
             new ClaimsIdentity(
                 [
-                    new Claim(ClaimTypes.NameIdentifier, context.InstanceGuid.ToString()),
+                    new Claim(JwtClaimTypes.JwtId, context.InstanceGuid.ToString()),
                     new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
                 ],
                 WorkflowEngineCallbackDefaults.AuthenticationScheme
