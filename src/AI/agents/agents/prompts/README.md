@@ -93,19 +93,22 @@ When `LANGFUSE_ENABLED=true`, the loader tries to get the prompt from Langfuse f
 
 If Langfuse is not available, or the prompt is not in Langfuse, the loader uses the local file. It does not show an error.
 
-### Set up a prompt in Langfuse
+### Add or change a prompt
 
-Do these steps to use a prompt from Langfuse, not the local file:
+Edit or add the file in this directory, and merge the change. Do not edit the prompt in the Langfuse UI. `.github/workflows/assistant-prompts.yaml` does these steps:
 
-1. Open your Langfuse dashboard, for example `https://langfuse.digdir.cloud`.
-2. Select **Prompts** in the sidebar.
-3. Make a new prompt with these settings:
-   - **Name**: Use the local file name without `.md`, for example `intake_planning`. Refer to the naming table below. The evaluator prompts in `llm-as-a-judge/` have a different procedure. Refer to [LLM-as-a-judge prompts](#llm-as-a-judge-prompts).
-   - **Type**: `Text`, not `Chat`.
-   - **Content**: Paste the prompt content. Do not include the YAML frontmatter of a system prompt.
-4. Give the prompt the label `production`. By default, `get_prompt()` gets the version with the label `production`. If no version has this label, the call fails and the loader uses the local file.
+- On each pull request that changes `agents/prompts/`, it runs `--diff`. Thus, you see the differences before the merge.
+- On each merge to main, it runs `--push`. This publishes each changed prompt as a new version with the label `production`. If the prompt is not in Langfuse, `--push` makes it. The commit message of the version is the URL of the merge commit.
 
-If the prompt already has a file in this directory, do not do steps 3 and 4 in the UI. Edit the file and merge the change. `.github/workflows/assistant-prompts.yaml` then publishes it with the label `production`. If you edit the served prompt in the UI, the repository copy becomes old. The workflow then shows a difference on the next pull request.
+`--push` does not run unless `ALLOW_PROMPT_PUSH=1` is set. CI sets it. Do not set it on a laptop.
+
+A change in the Langfuse UI does not show in a code review. The workflow shows it as a difference on the next pull request. When `--diff` shows a difference, read it before you do an action. The local file can be older than the Langfuse version.
+
+```bash
+python -m scripts.sync_prompts --diff                    # all prompts, repository and Langfuse
+python -m scripts.sync_prompts --diff spec_extraction    # one prompt
+python -m scripts.sync_prompts --promote spec_extraction --version 1   # go back to an earlier version
+```
 
 ### Prompt names
 
@@ -115,15 +118,15 @@ The Langfuse prompt name is the local file name without the `.md` extension and 
 get_prompt_with_langfuse("intake_planning")
 ```
 
-| Local file                          | Langfuse prompt name   |
-| ----------------------------------- | ---------------------- |
-| `intake_planning.md`                | `intake_planning`      |
-| `spec_extraction.md`                | `spec_extraction`      |
-| `intent_security.md`                | `intent_check`         |
-| `goal_suggestions.md`               | `goal_suggestions`     |
-| `scope_check.md`                    | `scope_check`          |
-| `templates/intake_planning_user.md` | `intake_planning_user` |
-| `templates/spec_extraction_user.md` | `spec_extraction_user` |
+| Local file                          | Langfuse prompt name   | Purpose                                                          |
+| ----------------------------------- | ---------------------- | ---------------------------------------------------------------- |
+| `intake_planning.md`                | `intake_planning`      | Makes the first high-level plan from the user request.           |
+| `spec_extraction.md`                | `spec_extraction`      | Gets a structured spec from the attachments.                     |
+| `intent_security.md`                | `intent_check`         | Parses the intent, with a focus on security. Workflow mode only. |
+| `goal_suggestions.md`               | `goal_suggestions`     | Makes clear examples of goals when the input is not clear.       |
+| `scope_check.md`                    | `scope_check`          | Decides if a request is about Altinn app development.            |
+| `templates/intake_planning_user.md` | `intake_planning_user` | User goal → high-level plan                                      |
+| `templates/spec_extraction_user.md` | `spec_extraction_user` | User goal → structured spec                                      |
 
 `intent_security.md` is the only file with a name that is different from its prompt. When the two names are different, give `local_path` to the loader. Also add the pair to `SERVED_FROM` in `scripts/sync_prompts.py`, so that the drift report finds the file.
 
@@ -146,40 +149,6 @@ The local files are the version-controlled source of the evaluator prompts. To c
 | `llm-as-a-judge/faithful_summary.md`        | `faithful_summary`        |
 | `llm-as-a-judge/no_irrelevant_responses.md` | `no_irrelevant_responses` |
 
-### Necessary environment variables
-
-```bash
-LANGFUSE_ENABLED=true                          # Turns on the traces AND the prompt fetch
-LANGFUSE_SECRET_KEY=sk-lf-...                  # Your Langfuse secret key
-LANGFUSE_PUBLIC_KEY=pk-lf-...                  # Your Langfuse public key
-LANGFUSE_BASE_URL=https://langfuse.digdir.cloud  # Your Langfuse host
-```
-
 ### Cache
 
 The Langfuse SDK keeps prompts in a cache. The default time to live is 60 seconds.
-
-## Benefits
-
-- **Easy to read**: The prompts have many lines and a correct format.
-- **Easy to maintain**: You can edit a prompt without escape characters or joined strings.
-- **Versions**: The frontmatter shows the version.
-- **Clear structure**: Each prompt has its own file. System prompts and user prompts are in different directories.
-- **Metadata**: The frontmatter gives the metadata.
-- **No strings in code**: The gate prompts and pipeline prompts are not in the code.
-- **Reviewed publication**: CI publishes the repository copy to Langfuse after the merge to main. Thus, each served prompt has a reviewed commit.
-
-## Prompt files
-
-### System prompts
-
-- `intake_planning.md`: Makes the first high-level plan from the user request.
-- `spec_extraction.md`: Gets a structured spec from the attachments.
-- `intent_security.md`: Parses the intent, with a focus on security.
-- `goal_suggestions.md`: Makes clear examples of goals when the input is not clear.
-- `scope_check.md`: The classifier of the pre-graph gate. It decides if a request is about Altinn app development. It runs in the two modes.
-
-### User templates
-
-- `templates/intake_planning_user.md`: User goal → high-level plan
-- `templates/spec_extraction_user.md`: User goal → structured spec

@@ -28,8 +28,4 @@ python -m pytest tests/api/test_main.py
 python -m pytest --cov --cov-report=term-missing --cov-report=html
 ```
 
-This command does these steps:
-
-- It runs all tests and measures the code coverage.
-- `--cov-report=term-missing` shows the lines that the tests do not cover, in the terminal.
-- `--cov-report=html` writes a detailed HTML report to `htmlcov/index.html`.
+The HTML report is in `htmlcov/index.html`.

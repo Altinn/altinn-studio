@@ -31,15 +31,9 @@ evidence, not an opinion. Run it at these times:
 - **When a rubric or a dataset item changes.** Make a new baseline for "good" before you compare
   a run with it.
 
-The benchmark is not a test suite, for these reasons:
-
-- A run costs a full agent workflow for each dataset item. This takes minutes and actor-model
-  tokens.
-- The local stack must run.
-- The numeric scores change a little between runs on the same code.
-
-Thus, when one score changes, examine it. Do not think that it is a final decision. Do not
-connect the benchmark to CI and expect a clear pass or fail.
+The benchmark is not a test suite. Each item costs a full agent workflow, the local stack must
+run, and the scores change a little between runs. To read the noise, refer to
+[EVALS.md](EVALS.md#scores-are-not-the-whole-answer).
 
 To examine one app that is already built, do not run the benchmark. Run the
 [preview render check](#preview-render-check) alone. It does not run the agent, and it sends
@@ -49,7 +43,8 @@ nothing to Langfuse.
 
 `langfuse.run_experiment` controls the run. It runs the items and traces each task. It keeps a
 failed item separate from the other items. It records the item scores and links the dataset run.
-Our code supplies the task and the scorers.
+Our code supplies the task and the scorers. Item upserts and score configs use the REST API in
+`lf_api.py`.
 
 ```
 langfuse.run_experiment(dataset items, task=AgentTask, evaluators)
@@ -87,10 +82,8 @@ The items run one at a time. An agent run pushes to one repository and uses one 
 Thus, two runs cannot occur at the same time. For e2e, the concurrency is always 1
 (`E2E_MAX_CONCURRENCY` in `check.py`). `--max-concurrency` applies only to the other evals.
 
-When the runner cannot score an item, it raises an error. `run_experiment` then records a failed
-item. It does not remove the item. This is intentional. The previous runner showed a warning and
-continued. Thus, a comparison of five items became a comparison of four items, and nobody saw
-it.
+When the runner cannot score an item, `run_experiment` records a failed item. It does not remove
+the item, so a comparison always has all items.
 
 The committed **repository is the ground truth**. The evaluation does not build the app again
 from trace spans. Spans cut long payloads, and they do not have all files.
@@ -334,12 +327,3 @@ the console shows an exception.
 **`item <id> expectedOutput is not a v2 rubric`.** The runner records the item as failed. The
 dataset item is older than the current rubric version. Make it again with
 `runner rubric --from-app … --update-item …`.
-
-## Notes
-
-- The Langfuse SDK runs the experiments (`run_experiment`) and makes datasets. The item upserts
-  and the score configs use the public REST API in `lf_api.py`.
-- After the update of the server to Langfuse v4, add these items:
-  - a managed LLM-as-a-judge evaluator on the dataset (it can see `{{expected_output}}`)
-  - alerts for the rate of boolean scores
-  - optionally, the `langfuse/experiment-action` CI gate.

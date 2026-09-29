@@ -51,15 +51,6 @@ python -m pytest      # unit tests
 
 CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check` and `pytest`. Then it starts the server and examines `/health`.
 
-## Features
-
-- 🤖 **Code generation**: The agent makes Altinn code with Altinn tools that run in the same process.
-- 💬 **Chat mode**: You can ask questions. The agent does not change the app.
-- ✅ **Validation**: The agent validates the schema and the business rules.
-- 🔄 **Undo one file**: `discard_file_changes` removes the changes in one file.
-- 🌲 **Git integration**: Each session has its own branch. You can see all changes on this branch.
-- 📊 **Observability**: Langfuse records traces and costs.
-
 ## API
 
 ### Start a workflow
@@ -94,18 +85,6 @@ X-Developer: <developer username>
 - `branch`: Optional. A branch where the agent continues work.
 - `attachments`: Optional. A list of files, each with `{name, mimeType, size, dataBase64}`.
 
-### Chat mode (questions and answers)
-
-```json
-{
-  "session_id": "unique-session-id",
-  "repo_url": "http://gitea:3000/org/app.git",
-  "org": "org",
-  "goal": "How do I use dynamic expressions to hide fields?",
-  "allow_app_changes": false
-}
-```
-
 ### Get the session status
 
 ```bash
@@ -129,49 +108,23 @@ This endpoint returns the status of the session. Use it after a client connects 
 
 ## WebSocket events
 
-Connect to the WebSocket to get the workflow events in real time:
+Connect to `ws://localhost:8071/ws`. Then send a registration message:
 
-```javascript
-const ws = new WebSocket('ws://localhost:8071/ws');
-
-ws.onopen = () => {
-  ws.send(
-    JSON.stringify({
-      type: 'session',
-      session_id: 'your-session-id',
-      developer: 'your-username', // Necessary. Without it, the server closes the socket.
-    }),
-  );
-};
-
-ws.onmessage = (event) => {
-  const { type, data } = JSON.parse(event.data);
-
-  switch (type) {
-    case 'status':
-      // The workflow progress changed
-      break;
-    case 'assistant_message_chunk':
-      // One part of the streamed response
-      break;
-    case 'assistant_message':
-      // The final response from the agent
-      break;
-    case 'permission_request':
-      // A read-only session asks for write access. Answer with /api/agent/permission.
-      break;
-    case 'plan_proposed':
-      // Intake made a change plan
-      break;
-    case 'done':
-      // The workflow is complete
-      break;
-    case 'error':
-      // An error occurred
-      break;
-  }
-};
+```json
+{ "type": "session", "session_id": "your-session-id", "developer": "your-username" }
 ```
+
+`developer` is necessary. Without it, the server closes the socket. After the registration, the server sends all events for the sessions of this developer. Each event has `type`, `session_id` and `data`.
+
+| Type                      | Meaning                                                               |
+| ------------------------- | --------------------------------------------------------------------- |
+| `status`                  | The workflow progress changed.                                        |
+| `plan_proposed`           | Intake made a change plan.                                            |
+| `assistant_message_chunk` | One part of the streamed response.                                    |
+| `assistant_message`       | The final response from the agent.                                    |
+| `permission_request`      | A read-only session asks for write access. Answer with `/permission`. |
+| `done`                    | The workflow is complete.                                             |
+| `error`                   | An error occurred.                                                    |
 
 ## Configuration
 
@@ -257,33 +210,7 @@ The code puts the two in `<attachment_content>` and `<form_spec>` delimiters. Ea
 
 ## Prompts and Langfuse
 
-The files in `agents/prompts/` are a **fallback**. They are not the source of truth. When Langfuse is configured, `get_prompt_with_langfuse` serves the version with the label `production`. The agent does not read the local file.
-
-The two copies can become different, and nobody sees it:
-
-- A code review does not show a prompt change in the Langfuse UI.
-- A prompt change in the repository has no effect until somebody publishes it.
-
-`scripts/sync_prompts.py` shows these differences and can correct them.
-
-```bash
-python -m scripts.sync_prompts --diff                    # all prompts, repository and Langfuse
-python -m scripts.sync_prompts --diff spec_extraction    # one prompt
-python -m scripts.sync_prompts --promote spec_extraction --version 1   # go back to an earlier version
-```
-
-CI publishes the prompts. Do not publish them from a laptop. `.github/workflows/assistant-prompts.yaml` does these steps:
-
-- On each pull request that changes `agents/prompts/`, it runs `--diff`. Thus, you see the differences before the merge.
-- On each merge to main, it runs `--push`. This publishes each changed prompt as a new version with the label `production`. The commit message of the version is the URL of the merge commit.
-
-`--push` does not run unless `ALLOW_PROMPT_PUSH=1` is set. CI sets it. Do not set it on a laptop. To go back to an earlier version, promote that version.
-
-A full `--diff` also shows the Langfuse prompts that have no file in the repository. Be careful with these names. If you add a file with one of these names, the agent serves the old Langfuse version until CI publishes the new one. Also, the Langfuse list shows an old prompt with the label `production`.
-
-Retire these prompts with `python -m scripts.sync_prompts --retire`. This command saves all versions to `agents/prompts/retired.json`. Then it deletes the prompt in Langfuse. Set `ALLOW_PROMPT_DELETE=1` before you use it.
-
-When `--diff` shows a difference, read it before you do an action. The local file can be older than the Langfuse version.
+The files in `agents/prompts/` are a **fallback**. When Langfuse is configured, the agent serves the Langfuse version with the label `production`, not the local file. CI publishes each changed prompt file to Langfuse after the merge to main. For the publication, the drift report and the retired prompts, refer to [agents/prompts/README.md](agents/prompts/README.md).
 
 ## Project structure
 
@@ -311,11 +238,3 @@ src/AI/agents/
 ├── infra/kustomize/      # Deployment manifests
 └── tests/                # pytest suite
 ```
-
-## Dependencies
-
-- FastAPI
-- LangGraph
-- LangChain (`langchain-core`, `langchain-openai`)
-- OpenAI and Anthropic SDKs
-- Langfuse
