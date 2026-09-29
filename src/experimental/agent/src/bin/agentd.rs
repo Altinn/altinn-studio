@@ -12,6 +12,12 @@ use agent::{
 use clap::Parser;
 use tokio::runtime::LocalRuntime;
 
+/// Image materialization runs in this process and briefly allocates hundreds
+/// of MB. glibc kept about 270 MB of it after it was freed; mimalloc returns
+/// freed memory to the operating system on every supported platform.
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 #[derive(Parser)]
 #[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
