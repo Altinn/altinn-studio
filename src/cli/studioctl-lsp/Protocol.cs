@@ -5,7 +5,19 @@ namespace Altinn.Studio.AppConfigLsp;
 public sealed record InitializeParams(
     string? RootUri = null,
     string? RootPath = null,
-    WorkspaceFolder[]? WorkspaceFolders = null
+    WorkspaceFolder[]? WorkspaceFolders = null,
+    ClientCapabilities? Capabilities = null
+);
+
+public sealed record ClientCapabilities(TextDocumentClientCapabilities? TextDocument = null);
+
+public sealed record TextDocumentClientCapabilities(CompletionClientCapabilities? Completion = null);
+
+public sealed record CompletionClientCapabilities(CompletionItemClientCapabilities? CompletionItem = null);
+
+public sealed record CompletionItemClientCapabilities(
+    string[]? DocumentationFormat = null,
+    bool LabelDetailsSupport = false
 );
 
 public sealed record WorkspaceFolder(string? Uri = null, string? Name = null);
@@ -85,7 +97,15 @@ public sealed record Hover(MarkupContent Contents, Range Range);
 
 public sealed record CompletionList(bool IsIncomplete, IReadOnlyList<CompletionItem> Items);
 
-public sealed record CompletionItem(string Label, string? Detail, int Kind);
+public sealed record CompletionItemLabelDetails(string Description);
+
+public sealed record CompletionItem(
+    string Label,
+    string? Detail,
+    int Kind,
+    CompletionItemLabelDetails? LabelDetails = null,
+    object? Documentation = null
+);
 
 public sealed record Diagnostic(Range Range, int Severity, string? Source, object? Code, string? Message);
 

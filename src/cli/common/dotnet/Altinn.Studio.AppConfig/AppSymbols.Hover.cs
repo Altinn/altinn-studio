@@ -6,6 +6,8 @@ namespace Altinn.Studio.AppConfig;
 
 public sealed partial class AppSymbols
 {
+    private const int HoverValueMaxLength = 120;
+
     public string? SymbolHover(string file, int line, int col)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -16,8 +18,8 @@ public sealed partial class AppSymbols
         {
             SymbolKind.Component => ComponentHover(model, sym),
             SymbolKind.Page => PageHover(model, sym),
-            SymbolKind.DataModelPath => DataModelHover(model, sym),
-            SymbolKind.TextKey => TextKeyHover(model, sym),
+            SymbolKind.DataModelPath => DataModelHover(model, sym, MarkupFormat.Markdown),
+            SymbolKind.TextKey => TextKeyHover(model, sym, MarkupFormat.Markdown),
             SymbolKind.DataType => DataTypeHover(model, sym),
             SymbolKind.OptionsId => OptionsHover(model, sym),
             SymbolKind.Task => TaskHover(model, sym),
@@ -30,8 +32,24 @@ public sealed partial class AppSymbols
 
         var refs = ReferenceSites(model, sym).Count;
         lines.Add($"{refs} reference{(refs == 1 ? "" : "s")}");
-        return lines[0] + "\n\n" + string.Join("  \n", lines.Skip(1));
+        return Card(MarkupFormat.Markdown, lines);
     }
+
+    private static string? Card(MarkupFormat format, List<string>? lines)
+    {
+        if (lines is null)
+            return null;
+        if (lines.Count == 1)
+            return lines[0];
+        var lineBreak = format == MarkupFormat.Markdown ? "  \n" : "\n";
+        return lines[0] + "\n\n" + string.Join(lineBreak, lines.Skip(1));
+    }
+
+    private static string Strong(MarkupFormat format, string text) =>
+        format == MarkupFormat.Markdown ? $"**{text}**" : text;
+
+    private static string Code(MarkupFormat format, string text) =>
+        format == MarkupFormat.Markdown ? $"`{text.Replace('`', '\'')}`" : text;
 
     private static List<string>? ComponentHover(AppModel model, Symbol sym)
     {
@@ -61,7 +79,7 @@ public sealed partial class AppSymbols
         return new List<string> { $"**Page** `{sym.Value}`", $"Layout-set `{sym.Scope}`" + suffix };
     }
 
-    private static List<string>? DataModelHover(AppModel model, Symbol sym)
+    private static List<string>? DataModelHover(AppModel model, Symbol sym, MarkupFormat format)
     {
         var schemaFile = sym.Scope.Length > 0 ? AppPaths.SchemaFile(sym.Scope) : null;
         var props =
@@ -75,29 +93,31 @@ public sealed partial class AppSymbols
             return null;
         var lines = new List<string>
         {
-            $"**Data model** `{sym.Value}`" + (type is { Length: > 0 } ? $" — {type}" : ""),
+            $"{Strong(format, "Data model")} {Code(format, sym.Value)}" + (type is { Length: > 0 } ? $" — {type}" : ""),
         };
         lines.Add(
             sym.Scope.Length > 0
-                ? $"Model `{sym.Scope}` ({AppPaths.SchemaFile(sym.Scope)})"
+                ? $"Model {Code(format, sym.Scope)} ({AppPaths.SchemaFile(sym.Scope)})"
                 : "Model: unpinned (checked against all schemas)"
         );
         return lines;
     }
 
-    private static List<string>? TextKeyHover(AppModel model, Symbol sym)
+    private static List<string>? TextKeyHover(AppModel model, Symbol sym, MarkupFormat format)
     {
         var builtin = BuiltinTextKeys.Keys.Contains(sym.Value);
         if (!builtin && model.SymbolTable.DeclarationsOf(sym).Count == 0)
             return null;
-        var lines = new List<string> { $"**Text key** `{sym.Value}`" };
+        var lines = new List<string> { $"{Strong(format, "Text key")} {Code(format, sym.Value)}" };
         var hasValue = false;
         foreach (var tr in model.TextResources.OrderBy(t => t.Language, StringComparer.Ordinal))
         {
             if (!tr.Values.TryGetValue(sym.Value, out var value))
                 continue;
             hasValue = true;
-            lines.Add($"{(tr.Language.Length > 0 ? tr.Language : "?")}: `{Display(value)}`");
+            lines.Add(
+                $"{(tr.Language.Length > 0 ? tr.Language : "?")}: {Code(format, SingleLine(value, HoverValueMaxLength))}"
+            );
         }
         if (!hasValue && builtin)
             lines.Add("Built-in frontend text (value ships with the app frontend)");
@@ -169,9 +189,14 @@ public sealed partial class AppSymbols
         return lines;
     }
 
-    private static string Display(string value)
+    private static string SingleLine(string value, int maxLength)
     {
-        var flat = value.ReplaceLineEndings(" ").Replace('`', '\'');
-        return flat.Length <= 120 ? flat : flat[..117] + "…";
+        var flat = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (flat.Length <= maxLength)
+            return flat;
+        var cut = maxLength - 1;
+        if (char.IsHighSurrogate(flat[cut - 1]))
+            cut--;
+        return flat[..cut].TrimEnd() + "…";
     }
 }
