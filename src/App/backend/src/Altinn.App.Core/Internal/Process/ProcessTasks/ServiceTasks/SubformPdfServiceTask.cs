@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 
 /// <summary>
-/// Generates and stores one PDF per subform data element. PDFs from an earlier visit to the task are removed
-/// when the task starts, not here.
+/// Generates a PDF of each subform data element and adds it to the instance. PDFs from an earlier visit to the task
+/// are removed when the task starts, not here.
 /// </summary>
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
@@ -44,7 +44,7 @@ internal sealed class SubformPdfServiceTask(
                 taskId
             );
 
-            _ = await pdfService.GenerateAndStoreSubformPdf(
+            _ = await pdfService.GenerateAndAddSubformPdf(
                 context.InstanceDataMutator,
                 filenameTextResourceKey,
                 new SubformPdfContext(subformComponentId, dataElement.Id),

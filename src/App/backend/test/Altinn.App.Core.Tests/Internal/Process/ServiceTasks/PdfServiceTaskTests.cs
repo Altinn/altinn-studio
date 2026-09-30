@@ -37,7 +37,7 @@ public class PdfServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_Should_Call_GenerateAndStorePdf()
+    public async Task Execute_Should_Call_GenerateAndAddPdf()
     {
         // Arrange
         var instance = new Instance
@@ -64,7 +64,7 @@ public class PdfServiceTaskTests
         // Assert
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndStorePdf(
+                x.GenerateAndAddPdf(
                     instanceMutatorMock.Object,
                     FileName,
                     It.IsAny<List<string>?>(),
@@ -121,7 +121,7 @@ public class PdfServiceTaskTests
         // Assert
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndStorePdf(
+                x.GenerateAndAddPdf(
                     instanceMutatorMock.Object,
                     "customFilenameTextResourceKey",
                     taskIds,

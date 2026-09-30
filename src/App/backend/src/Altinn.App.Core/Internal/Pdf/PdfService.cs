@@ -18,7 +18,7 @@ using Microsoft.Extensions.Primitives;
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
-/// Service for handling the creation and storage of receipt Pdf.
+/// Generates PDFs of an instance with the PDF generator.
 /// </summary>
 internal sealed class PdfService : IPdfService
 {
@@ -61,7 +61,7 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<BinaryDataChange> GenerateAndStorePdf(
+    public async Task<BinaryDataChange> GenerateAndAddPdf(
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey = null,
         List<string>? autoGeneratePdfForTaskIds = null,
@@ -75,7 +75,7 @@ internal sealed class PdfService : IPdfService
             ?? throw new InvalidOperationException("Instance does not have a current task");
         using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
 
-        return await GenerateAndStorePdfInternal(
+        return await GenerateAndAddPdfInternal(
             instanceDataMutator,
             taskId,
             customFileNameTextResourceKey,
@@ -87,7 +87,7 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<BinaryDataChange> GenerateAndStoreSubformPdf(
+    public async Task<BinaryDataChange> GenerateAndAddSubformPdf(
         IInstanceDataMutator instanceDataMutator,
         string? customFileNameTextResourceKey,
         SubformPdfContext subformPdfContext,
@@ -100,7 +100,7 @@ internal sealed class PdfService : IPdfService
             instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance does not have a current task");
 
-        return await GenerateAndStorePdfInternal(
+        return await GenerateAndAddPdfInternal(
             instanceDataMutator,
             taskId,
             customFileNameTextResourceKey,
@@ -204,7 +204,7 @@ internal sealed class PdfService : IPdfService
         );
     }
 
-    private async Task<BinaryDataChange> GenerateAndStorePdfInternal(
+    private async Task<BinaryDataChange> GenerateAndAddPdfInternal(
         IInstanceDataMutator instanceDataMutator,
         string taskId,
         string? customFileNameTextResourceKey,

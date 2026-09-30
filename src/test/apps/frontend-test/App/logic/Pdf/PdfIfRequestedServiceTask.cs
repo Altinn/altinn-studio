@@ -44,7 +44,7 @@ namespace Altinn.App.logic.Pdf
                 var taskId = mutator.Instance.Process.CurrentTask.ElementId;
                 var pdfConfig = _processReader.GetAltinnTaskExtension(taskId)?.PdfConfiguration;
 
-                await _pdfService.GenerateAndStorePdf(
+                await _pdfService.GenerateAndAddPdf(
                     mutator,
                     pdfConfig?.FilenameTextResourceKey,
                     pdfConfig?.AutoPdfTaskIds,

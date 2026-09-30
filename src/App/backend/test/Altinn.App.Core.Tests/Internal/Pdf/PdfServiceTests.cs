@@ -279,7 +279,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf()
+    public async Task GenerateAndAddPdf()
     {
         // Arrange
         TelemetrySink telemetrySink = new();
@@ -312,7 +312,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -348,7 +348,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_with_generatedFrom()
+    public async Task GenerateAndAddPdf_with_generatedFrom()
     {
         // Arrange
         _pdfGeneratorClient
@@ -388,7 +388,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -461,7 +461,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
+    public async Task GenerateAndAddPdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
     {
         // Arrange
         var autoGeneratePdfForTaskIds = new List<string> { "Task_1", "Task_2", "Task_3" };
@@ -494,7 +494,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance);
 
         // Act
-        await target.GenerateAndStorePdf(
+        await target.GenerateAndAddPdf(
             mutatorMock.Object,
             null,
             autoGeneratePdfForTaskIds,
@@ -523,7 +523,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithCustomFileNameTextResourceKey_ShouldUseCustomFileName()
+    public async Task GenerateAndAddPdf_WithCustomFileNameTextResourceKey_ShouldUseCustomFileName()
     {
         // Arrange
         const string customTextResourceKey = "custom.pdf.filename";
@@ -574,7 +574,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(
+        await target.GenerateAndAddPdf(
             mutatorMock.Object,
             customTextResourceKey,
             null,
@@ -597,7 +597,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithCustomFileNameIncludingPdfExtension_ShouldNotDuplicateExtension()
+    public async Task GenerateAndAddPdf_WithCustomFileNameIncludingPdfExtension_ShouldNotDuplicateExtension()
     {
         // Arrange
         const string customTextResourceKey = "custom.pdf.filename.with.extension";
@@ -648,7 +648,7 @@ public class PdfServiceTests
         var mutatorMock = CreateMutatorMock(instance, mockAppResources);
 
         // Act
-        await target.GenerateAndStorePdf(
+        await target.GenerateAndAddPdf(
             mutatorMock.Object,
             customTextResourceKey,
             null,
@@ -671,7 +671,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_DefaultFileName_KeepsSpaces()
+    public async Task GenerateAndAddPdf_DefaultFileName_KeepsSpaces()
     {
         var mockAppResources = new Mock<IAppResources>();
         var resource = new TextResource()
@@ -713,7 +713,7 @@ public class PdfServiceTests
 
         var mutatorMock = CreateMutatorMock(instance);
 
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         mutatorMock.Verify(
             m =>
@@ -730,7 +730,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStoreSubformPdf_Stores_Which_Subform_The_Pdf_Was_Made_From()
+    public async Task GenerateAndAddSubformPdf_Adds_Which_Subform_The_Pdf_Was_Made_From()
     {
         _pdfGeneratorClient
             .Setup(s =>
@@ -756,7 +756,7 @@ public class PdfServiceTests
         };
         var mutatorMock = CreateMutatorMock(instance);
 
-        await target.GenerateAndStoreSubformPdf(
+        await target.GenerateAndAddSubformPdf(
             mutatorMock.Object,
             customFileNameTextResourceKey: null,
             new SubformPdfContext("subform-component", "subform-data-element")
@@ -851,7 +851,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
+    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
     {
         // Arrange
         _appResources
@@ -896,7 +896,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -911,7 +911,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
+    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
     {
         // Arrange
         _appResources
@@ -945,7 +945,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -961,7 +961,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
+    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
     {
         // Arrange
         _appResources
@@ -995,7 +995,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1011,7 +1011,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithDisplayFooter_NoUiSettings_FooterShouldContainAppName()
+    public async Task GenerateAndAddPdf_WithDisplayFooter_NoUiSettings_FooterShouldContainAppName()
     {
         // Arrange
         _pdfGeneratorClient
@@ -1042,7 +1042,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1058,7 +1058,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndStorePdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
+    public async Task GenerateAndAddPdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
     {
         // Arrange
         _appResources.Setup(s => s.GetGlobalUiSettings()).Throws<System.Text.Json.JsonException>();
@@ -1090,7 +1090,7 @@ public class PdfServiceTests
 
         // Act
         var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndStorePdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
