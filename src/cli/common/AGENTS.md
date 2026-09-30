@@ -15,6 +15,10 @@ as errors, like `Altinn.Studio.Common`; a rule that does not make sense for thes
 off with a reason in `dotnet/.editorconfig` rather than suppressed at the call site. Test projects live
 under `dotnet/tests/` and use xunit v3, like `studioctl-server-tests`.
 
+- `dotnet/Altinn.Studio.AppConfig` — parser, symbol model and validation rules for an Altinn app's
+  configuration files. Rules live under `Validation/Rules` and are registered in `Validation/RuleRegistry.cs`.
+  Schemas come in as a `SchemaSet`; fetching them from app-dist is the hosts' job, so the library has no
+  dependency on `Altinn.Studio.AppDist`.
 - `dotnet/Altinn.Studio.AppDist` — fetches and caches the per-version Altinn app resource artifact
   (`ghcr.io/altinn/altinn-studio/app-dist`) published by `release-app.yaml`. An OCI layer is the unit of
   availability and caching; consumers ask for a version and get file entries back.
