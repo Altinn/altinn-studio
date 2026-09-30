@@ -7,9 +7,9 @@ namespace Altinn.App.Core.Internal.Pdf;
 public class PdfPreviewRateLimitSettings
 {
     /// <summary>
-    /// The number of previews allowed in each window. Set to 0 to turn the limit off. Default is 10.
+    /// The number of previews allowed in each window. Set to 0 to turn the limit off. Default is 20.
     /// </summary>
-    public int PermitLimit { get; set; } = 10;
+    public int PermitLimit { get; set; } = 20;
 
     /// <summary>
     /// The length of each window, such as "00:01:00" for one minute. Default is one minute.

@@ -31,7 +31,7 @@ public class PdfGeneratorSettings
     public bool DisplayFooter { get; set; }
 
     /// <summary>
-    /// Limits how many PDF previews the app generates, across all instances. Default is 10 per minute.
+    /// Limits how many PDF previews the app generates, across all instances. Default is 20 per minute.
     /// </summary>
     public PdfPreviewRateLimitSettings PreviewRateLimit { get; set; } = new();
 }
