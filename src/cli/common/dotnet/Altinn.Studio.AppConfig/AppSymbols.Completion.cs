@@ -95,18 +95,8 @@ public sealed partial class AppSymbols
         var slash = ptr.LastIndexOf('/');
         if (slash < 0 || !int.TryParse(ptr[(slash + 1)..], out var argIndex) || argIndex < 1)
             return null;
-        var bytes = _config.ReadAllBytes(file);
-        if (bytes is null)
+        if (ParseFile(file) is not { } doc)
             return null;
-        JsonDocument doc;
-        try
-        {
-            doc = JsonDocument.Parse(bytes, JsonRead.AppFileOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
         using var _ = doc;
         if (
             Navigate(doc.RootElement, ptr[..slash]) is not { ValueKind: JsonValueKind.Array } arr
@@ -265,12 +255,47 @@ public sealed partial class AppSymbols
     private static IReadOnlyDictionary<string, string> EffectiveSchema(AppModel model, DataModelReference r) =>
         SchemaScopeFor(model, BindingResolver.Resolve(model, r)).Properties;
 
-    private static SchemaScope EffectiveSchemaAt(AppModel model, string file, string pointer)
+    private SchemaScope EffectiveSchemaAt(AppModel model, string file, string pointer)
     {
         foreach (var r in model.Refs.DataModel)
             if (Same(r.Position, file, pointer))
                 return SchemaScopeFor(model, BindingResolver.Resolve(model, r));
-        return SchemaScopeFor(model, null);
+        var explicitDataType = ExplicitDataTypeOfBindingAt(file, pointer);
+        return SchemaScopeFor(
+            model,
+            string.IsNullOrEmpty(explicitDataType)
+                ? BindingResolver.DefaultDataTypeFor(model, AppPaths.SetIdOf(file))
+                : explicitDataType
+        );
+    }
+
+    private string? ExplicitDataTypeOfBindingAt(string file, string pointer)
+    {
+        if (!pointer.EndsWith("/field", StringComparison.Ordinal) || ParseFile(file) is not { } doc)
+            return null;
+        using var _ = doc;
+        return
+            Navigate(doc.RootElement, pointer[..pointer.LastIndexOf('/')])
+                is { ValueKind: JsonValueKind.Object } binding
+            && binding.TryGetProperty("dataType", out var dataType)
+            && dataType.ValueKind == JsonValueKind.String
+            ? dataType.GetString()
+            : null;
+    }
+
+    private JsonDocument? ParseFile(string file)
+    {
+        var bytes = _config.ReadAllBytes(file);
+        if (bytes is null)
+            return null;
+        try
+        {
+            return JsonDocument.Parse(bytes, JsonRead.AppFileOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static SchemaScope SchemaScopeFor(AppModel model, string? dataType) =>
