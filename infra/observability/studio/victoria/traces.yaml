@@ -116,6 +116,10 @@ spec:
   # vtagent only forwards to remoteWrite and never calls the Kubernetes API.
   disableAutomountServiceAccountToken: true
   replicaCount: 2
+  # vtagent-traces-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
+  serviceSpec:
+    spec:
+      type: ClusterIP
   image:
     repository: victoriametrics/vtagent
     tag: v0.12.0

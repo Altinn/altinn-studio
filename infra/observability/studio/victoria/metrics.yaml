@@ -188,6 +188,13 @@ spec:
   # also stops the operator creating its own.
   serviceAccountName: vmagent-metrics-no-api-access
   replicaCount: 2
+  # The operator's own Service for an agent is headless, as a StatefulSet needs, so a
+  # client resolving it connects to the first pod DNS returns. This second Service,
+  # vmagent-metrics-additional-service, has a cluster IP instead, so each new connection
+  # to it is placed on one of the replicas, and writes spread across them.
+  serviceSpec:
+    spec:
+      type: ClusterIP
   image:
     repository: victoriametrics/vmagent
     tag: v1.153.0

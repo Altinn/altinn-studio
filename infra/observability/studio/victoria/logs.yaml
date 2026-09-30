@@ -123,6 +123,10 @@ spec:
   # log collector mode, which is off. The operator mounts no token for it.
   disableAutomountServiceAccountToken: true
   replicaCount: 2
+  # vlagent-logs-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
+  serviceSpec:
+    spec:
+      type: ClusterIP
   image:
     repository: victoriametrics/vlagent
     tag: v1.52.0
