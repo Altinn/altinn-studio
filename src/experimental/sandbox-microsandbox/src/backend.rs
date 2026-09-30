@@ -177,10 +177,15 @@ impl MicrosandboxProvider {
             let reference = reference
                 .parse::<microsandbox_image::Reference>()
                 .map_err(error::backend)?;
+            let pinned = microsandbox_image::Reference::with_digest(
+                reference.registry().to_string(),
+                reference.repository().to_string(),
+                manifest_digest.clone(),
+            );
             self.image_backend
                 .resolve(&sandbox::image::ResolveRequest {
                     source: sandbox::image::ImageSource::Reference {
-                        reference: crate::image::pinned_reference(&reference, manifest_digest),
+                        reference: pinned.to_string(),
                     },
                     platform: record.image.platform.clone(),
                     root_filesystem_mode: record.resources.root_filesystem().mode(),
@@ -408,7 +413,11 @@ impl MicrosandboxProvider {
     }
 
     async fn runtime_handle(&self, name: &str) -> Result<Option<microsandbox::sandbox::SandboxHandle>, Error> {
-        self.client.runtime_handle(name).await
+        match self.client.scope(microsandbox::Sandbox::get(name)).await {
+            Ok(handle) => Ok(Some(handle)),
+            Err(microsandbox::MicrosandboxError::SandboxNotFound(_)) => Ok(None),
+            Err(error) => Err(error::microsandbox(error)),
+        }
     }
 
     pub(crate) async fn connect_running(&self, record: &SandboxRecord) -> Result<microsandbox::Sandbox, Error> {
@@ -533,18 +542,9 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
-    /// Removes cached images that no Sandbox needs once they have not been used for
-    /// `retention`.
-    ///
-    /// A Sandbox keeps its image until it is deleted, whether or not it is running. An image no
-    /// Sandbox keeps is removed once `retention` has passed since it was last resolved or
-    /// imported, or since the last Sandbox using it was deleted. `retention` must be at least
-    /// an hour. Removal runs when the Provider opens, after each image is resolved or imported
-    /// and after each Sandbox is deleted, so an unused image can outlive `retention` until the
-    /// next of these. Only resolving and importing add images.
-    ///
-    /// The first time the Provider opens a home from before this, image versions no Sandbox
-    /// uses are removed.
+    /// Removes cached images no Sandbox uses once `retention`, at least an hour, has passed
+    /// since each was last resolved, imported or released by a deleted Sandbox. A Sandbox keeps
+    /// its image until it is deleted, running or not.
     ///
     /// Enable this only for the Provider that owns its home. It cannot be combined with
     /// [`Self::cache_directory`], since another Provider may use a shared cache.
@@ -880,8 +880,7 @@ impl RuntimeNetwork {
 }
 
 #[cfg(test)]
-// Test Providers live for the whole test; tightening their drop adds nothing.
-#[allow(clippy::expect_used, clippy::significant_drop_tightening)]
+#[allow(clippy::expect_used)]
 mod tests {
     use std::{collections::BTreeMap, path::PathBuf};
 
