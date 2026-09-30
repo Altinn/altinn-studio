@@ -101,6 +101,39 @@ public sealed class RepGroupChildIndexRuleTests
     }
 
     [Fact]
+    public void RepeatingGroupRemovedAsDuplicate_IsNotChecked()
+    {
+        var dir = new InMemoryAppDirectory(
+            new()
+            {
+                ["App/config/applicationmetadata.json"] =
+                    """{"id":"ttd/rg","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","taskId":"Task_1"}]}""",
+                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1","P2"]},"defaultDataType":"model"}""",
+                ["App/ui/Task_1/layouts/P1.json"] = """
+                { "data": { "layout": [
+                  { "id": "rg", "type": "RepeatingGroup", "dataModelBindings": { "group": "items" }, "children": ["under"] },
+                  { "id": "under", "type": "Input", "dataModelBindings": { "simpleBinding": "items.subfield" } }
+                ] } }
+                """,
+                ["App/ui/Task_1/layouts/P2.json"] = """
+                { "data": { "layout": [
+                  { "id": "rg", "type": "RepeatingGroup", "dataModelBindings": { "group": "items" }, "children": ["indexed"] },
+                  { "id": "indexed", "type": "Input", "dataModelBindings": { "simpleBinding": "items[0].subfield" } }
+                ] } }
+                """,
+                ["App/models/model.schema.json"] = """
+                {"properties":{"items":{"type":"array","items":{"type":"object","properties":{"subfield":{"type":"string"}}}}}}
+                """,
+            }
+        );
+
+        var report = AppConfigEngine.Open(dir).Validate();
+
+        Assert.DoesNotContain(report.Findings, f => f.RuleId == Rule);
+        Assert.Contains(report.Findings, f => f.RuleId == "UNIQUE-COMPONENT-ID");
+    }
+
+    [Fact]
     public void SiblingArrayWithSharedPrefix_IsClean()
     {
         var report = AppConfigEngine

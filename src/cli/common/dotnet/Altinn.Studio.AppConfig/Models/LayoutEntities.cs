@@ -12,6 +12,12 @@ public sealed class LayoutSet
     public required IReadOnlyDictionary<string, LayoutComponent> Components { get; init; }
     public required IReadOnlyList<LayoutComponent> AllComponents { get; init; }
     public required SourceSpan Position { get; init; }
+
+    public bool IsRemovedDuplicate(LayoutComponent component)
+    {
+        ArgumentNullException.ThrowIfNull(component);
+        return Components.TryGetValue(component.Id, out var kept) && !ReferenceEquals(kept, component);
+    }
 }
 
 internal sealed class LayoutSetBuilder

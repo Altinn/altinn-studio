@@ -21,6 +21,8 @@ internal sealed class RepGroupChildIndexRule : IValidationRule
     {
         foreach (var (set, group) in app.ComponentsOfType("RepeatingGroup"))
         {
+            if (set.IsRemovedDuplicate(group))
+                continue;
             if (!group.Bindings.TryGetValue("group", out var groupBinding) || groupBinding.Path.Length == 0)
                 continue;
             var indexedGroupPrefix = groupBinding.Path + "[";
