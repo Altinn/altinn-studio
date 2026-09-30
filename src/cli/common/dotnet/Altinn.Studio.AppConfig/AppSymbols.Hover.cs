@@ -150,6 +150,8 @@ public sealed partial class AppSymbols
             detail = $"`App/options/{sym.Value}.json`";
         else if (model.OptionsProviders.TryGetValue(sym.Value, out var provider))
             detail = $"Registered in code by `{provider.RegisteredBy}` in `{provider.Position.File}`";
+        else if (LibraryCodeListReference.Parse(sym.Value) is { } library)
+            detail = $"Code list `{library.CodeListId}` from the `{library.Org}` library, version `{library.Version}`";
         else
             detail = "Not found (no file or registered provider)";
         return new List<string> { $"**Option list** `{sym.Value}`", detail };

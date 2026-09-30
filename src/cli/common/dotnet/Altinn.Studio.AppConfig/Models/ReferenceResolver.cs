@@ -86,7 +86,11 @@ internal static class ReferenceResolver
                 );
 
         foreach (var r in model.Refs.OptionsIds)
-            if (!model.OptionsFiles.ContainsKey(r.Value) && !model.OptionsProviders.ContainsKey(r.Value))
+            if (
+                !model.OptionsFiles.ContainsKey(r.Value)
+                && !model.OptionsProviders.ContainsKey(r.Value)
+                && LibraryCodeListReference.Parse(r.Value) is null
+            )
                 unresolved.Add(new UnresolvedReference(SymbolKind.OptionsId, r.Value, "", r.Position));
 
         foreach (var r in model.Refs.CSharp)
