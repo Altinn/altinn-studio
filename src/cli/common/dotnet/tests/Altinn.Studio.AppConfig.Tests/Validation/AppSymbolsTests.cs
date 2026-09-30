@@ -244,6 +244,35 @@ public sealed class AppSymbolsTests
     }
 
     [Fact]
+    public void Completions_ForASummary2Override_OfferTheComponentsOfTheFoldersSubforms()
+    {
+        const string layout =
+            """{ "data": { "layout": [ { "id": "sf", "type": "Subform", "layoutSet": "sub-set" }, { "id": "sum", "type": "Summary2", "overrides": [ { "componentId": "x" } ] } ] } }""";
+        var symbols = OpenSymbols(
+            new MutableAppDirectory(
+                new()
+                {
+                    ["App/config/applicationmetadata.json"] = TestMeta.Json("ttd/sum", "model", "sub"),
+                    ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]},"defaultDataType":"model"}""",
+                    ["App/ui/Task_1/layouts/P1.json"] = layout,
+                    ["App/ui/sub-set/Settings.json"] = """{"pages":{"order":["S1"]},"defaultDataType":"sub"}""",
+                    ["App/ui/sub-set/layouts/S1.json"] =
+                        """{ "data": { "layout": [ { "id": "brand", "type": "Input" } ] } }""",
+                    ["App/ui/Task_2/Settings.json"] = """{"pages":{"order":["P2"]},"defaultDataType":"model"}""",
+                    ["App/ui/Task_2/layouts/P2.json"] =
+                        """{ "data": { "layout": [ { "id": "elsewhere", "type": "Input" } ] } }""",
+                }
+            )
+        );
+        var (l, c) = At(layout, "\"x\"", 1);
+        var labels = symbols.Completions("App/ui/Task_1/layouts/P1.json", l, c).Select(s => s.Label).ToList();
+
+        Assert.Contains("sf", labels);
+        Assert.Contains("brand", labels);
+        Assert.DoesNotContain("elsewhere", labels);
+    }
+
+    [Fact]
     public void Completions_SuggestPageNames_ForSummary2TargetPage()
     {
         var symbols = OpenSymbols(Summary2NavApp());

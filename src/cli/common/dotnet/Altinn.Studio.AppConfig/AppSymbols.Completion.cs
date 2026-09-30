@@ -49,9 +49,17 @@ public sealed partial class AppSymbols
                     : model.LayoutSets.FirstOrDefault(s =>
                         string.Equals(s.Id, AppPaths.SetIdOf(r.Position.File), StringComparison.Ordinal)
                     );
-                var ids = (set?.AllComponents ?? model.LayoutSets.SelectMany(s => s.AllComponents)).Select(comp =>
-                    comp.Id
-                );
+                var subforms = model
+                    .ScopesOf(r)
+                    .Skip(1)
+                    .SelectMany(scope =>
+                        model.LayoutSets.Where(s => string.Equals(s.Id, scope, StringComparison.Ordinal))
+                    );
+                var ids = (
+                    set is null
+                        ? model.LayoutSets.SelectMany(s => s.AllComponents)
+                        : subforms.Prepend(set).SelectMany(s => s.AllComponents)
+                ).Select(comp => comp.Id);
                 return ids.Distinct(StringComparer.Ordinal)
                     .OrderBy(v => v, StringComparer.Ordinal)
                     .Select(v => new Suggestion(v, "component", SuggestionKind.Component))
