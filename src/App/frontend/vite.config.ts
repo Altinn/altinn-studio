@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
       // Serves /altinn-app-frontend.js as a loader script that dynamically imports the real
       // app code, plus an empty /altinn-app-frontend.css so the backend HTML doesn't 404.
       devEntryPlugin(),
-      // Serve the same shared schemas that `yarn copy-schemas` includes in production builds.
+      // Serve and publish schemas directly from the shared layout contract.
       schemaPlugin(),
     ],
     resolve: {
