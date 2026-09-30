@@ -103,6 +103,57 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
     }
 
     [Fact]
+    public void SetMarkedAsSubformKeepsItsFolderEvenWithTasks()
+    {
+        // Studio marks a subform's set with "type": "subform", also before any Subform component uses it.
+        _app.Write(
+            "ui/layout-sets.json",
+            """
+            {
+              "sets": [
+                { "id": "main", "dataType": "Main", "tasks": ["Task_1"] },
+                { "id": "subform", "dataType": "Subform", "type": "subform", "tasks": ["Task_1"] }
+              ]
+            }
+            """
+        );
+        _app.Write("ui/main/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
+        _app.Write("ui/subform/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
+
+        var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.True(result.LayoutSetsDeleted);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "layouts", "Page.json")));
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "subform", "layouts", "Page.json")));
+        Assert.Contains("\"type\": \"subform\"", _app.Read("ui/subform/Settings.json"), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"type\"", _app.Read("ui/Task_1/Settings.json"), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("""{ "id": "subform", "dataType": "Subform", "type": "subform", "tasks": ["Task_2"] }""", true)]
+    [InlineData("""{ "id": "subform", "dataType": "Subform", "tasks": ["Task_2"] }""", false)]
+    public void TaskOnlyASubformSetListsGetsATodo(string subformSet, bool marked)
+    {
+        // The v8 app showed the subform's pages for Task_2, which the subform's folder is not moved to.
+        _app.Write(
+            "ui/layout-sets.json",
+            $$"""{ "sets": [{ "id": "main", "dataType": "Main", "tasks": ["Task_1"] }, {{subformSet}}] }"""
+        );
+        _app.Write("ui/main/layouts/Page.json", PageWithSubform);
+        _app.Write("ui/subform/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
+
+        var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
+
+        Assert.True(result.LayoutSetsDeleted);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "subform", "layouts", "Page.json")));
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Task_2")));
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("copy folder 'subform' to 'Task_2'", todo, StringComparison.Ordinal);
+        Assert.Equal(marked, todo.Contains("remove \"type\"", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void CompatiblePartialCopyIsCompletedAndCanThenBeRunAgain()
     {
         _app.Write(

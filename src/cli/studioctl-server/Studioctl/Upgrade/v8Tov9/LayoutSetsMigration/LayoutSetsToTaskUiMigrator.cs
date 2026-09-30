@@ -109,6 +109,20 @@ internal sealed class LayoutSetsToTaskUiMigrator
             }
         }
 
+        // In v8, a task that only a subform's set listed showed the subform's pages. It has no folder now.
+        foreach (var plan in plans)
+        {
+            foreach (var taskId in plan.IgnoredTaskIds.Where(id => !Directory.Exists(Path.Combine(uiPath, id))))
+            {
+                todos.Add(
+                    $"Layout set '{plan.SourceId}' is a subform, so it kept its folder instead of moving to task folder "
+                        + $"'{taskId}', which it also lists. Task '{taskId}' has no UI folder now: if it should show the "
+                        + $"subform's pages, copy folder '{plan.SourceId}' to '{taskId}'"
+                        + (plan.Type is null ? "." : " and remove \"type\" from the copy's Settings.json.")
+                );
+            }
+        }
+
         var migratedGlobalSettings = false;
         if (parsed["uiSettings"] is JsonObject { Count: > 0 } uiSettingsObject)
         {
@@ -186,10 +200,12 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 continue;
             }
 
-            // A set referenced by a Subform component is never bound to a task — the v9 task-folder
-            // layout is for top-level layouts. Ignore any 'tasks' it has and keep the folder name.
-            var tasks = subformReferencedSets.Contains(sourceId) ? null : setObject["tasks"] as JsonArray;
-            var destinationIds = ResolveDestinationFolderIds(sourceId, tasks);
+            // A subform's set - one a Subform component uses, or one marked "type": "subform" - is never
+            // bound to a task: the v9 task-folder layout is for top-level layouts. Ignore any 'tasks' it has
+            // and keep the folder name.
+            var isSubform = subformReferencedSets.Contains(sourceId) || IsSubformType(setObject["type"]);
+            var tasks = setObject["tasks"] as JsonArray;
+            var destinationIds = ResolveDestinationFolderIds(sourceId, isSubform ? null : tasks);
             var sourcePath = Path.Combine(uiPath, sourceId);
             if (!Directory.Exists(sourcePath) && destinationIds.Any(id => !Directory.Exists(Path.Combine(uiPath, id))))
                 throw new InvalidOperationException(
@@ -202,7 +218,8 @@ internal sealed class LayoutSetsToTaskUiMigrator
                     sourcePath,
                     destinationIds,
                     setObject["dataType"]?.GetValue<string>(),
-                    setObject["type"]?.GetValue<string>()
+                    setObject["type"]?.GetValue<string>(),
+                    isSubform ? TaskIds(tasks) : []
                 )
             );
         }
@@ -337,15 +354,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
 
     private static List<string> ResolveDestinationFolderIds(string sourceId, JsonArray? tasks)
     {
-        var taskIds =
-            tasks
-                ?.Select(n => n?.GetValue<string>())
-                .Where(id => !string.IsNullOrWhiteSpace(id))
-                .Cast<string>()
-                .Distinct(StringComparer.Ordinal)
-                .ToList()
-            ?? [];
-
+        var taskIds = TaskIds(tasks);
         if (taskIds.Count == 0)
         {
             return [sourceId];
@@ -353,6 +362,21 @@ internal sealed class LayoutSetsToTaskUiMigrator
 
         return taskIds;
     }
+
+    private static List<string> TaskIds(JsonArray? tasks) =>
+        tasks
+            ?.Select(n => n?.GetValue<string>())
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Cast<string>()
+            .Distinct(StringComparer.Ordinal)
+            .ToList()
+        ?? [];
+
+    /// <summary>Whether a layout set's <c>type</c> is the one Studio marks subforms with.</summary>
+    private static bool IsSubformType(JsonNode? type) =>
+        type is JsonValue value
+        && value.TryGetValue<string>(out var name)
+        && string.Equals(name, "subform", StringComparison.OrdinalIgnoreCase);
 
     private void UpsertLayoutSetMetadata(string folderPath, string? dataType, string? type)
     {
@@ -456,10 +480,12 @@ internal sealed class MigrationResult
     public IReadOnlyList<string> Todos { get; init; } = [];
 }
 
+/// <param name="IgnoredTaskIds">The tasks a subform's set lists, which it does not become the folder of.</param>
 internal sealed record LayoutSetMigrationPlan(
     string SourceId,
     string SourcePath,
     List<string> DestinationIds,
     string? DataType,
-    string? Type
+    string? Type,
+    List<string> IgnoredTaskIds
 );
