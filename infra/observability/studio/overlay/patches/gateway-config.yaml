@@ -25,8 +25,6 @@ spec:
       azure_monitor:
         spaneventsenabled: true
         connection_string: $${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
-      # Sink metrics while preserving pipeline structure for future re-enable.
-      nop: {}
       # The Victoria backend in Studio prod. Every Studio environment exports here through
       # the public endpoint; Studio prod overrides the endpoint with the in-cluster proxy
       # (env/prod/kustomization.yaml).
@@ -62,10 +60,11 @@ spec:
           receivers: [otlp]
           processors: [tail_sampling, batch]
           exporters: [otlp_http/victoria]
+        # Metrics go to Victoria only, not to Application Insights.
         metrics:
           receivers: [otlp]
           processors: [filter/metrics_allowlist, batch]
-          exporters: [nop]
+          exporters: [otlp_http/victoria]
         logs:
           receivers: [otlp]
           processors: [batch]
