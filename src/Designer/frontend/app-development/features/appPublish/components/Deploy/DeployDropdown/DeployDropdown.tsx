@@ -6,17 +6,19 @@ import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { DeployPopover } from './DeployPopover';
+import { DeployDialog } from './DeployDialog';
 import { type AppRelease } from 'app-shared/types/AppRelease';
 import { filterSucceededReleases, mapAppReleasesToImageOptions } from './utils';
+import type { DeployAppStatus } from 'app-shared/types/AppStatus';
 
 export type DeployDropdownProps = {
   appDeployedVersion: string;
   disabled: boolean;
   setSelectedImageTag: (tag: string) => void;
   selectedImageTag: string;
-  startDeploy: () => void;
+  startDeploy: (appStatus: DeployAppStatus) => void;
   isPending: boolean;
+  isProduction: boolean;
 };
 
 export const DeployDropdown = ({
@@ -26,6 +28,7 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
   isPending,
+  isProduction,
 }: DeployDropdownProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
@@ -78,11 +81,12 @@ export const DeployDropdown = ({
         })}
       </StudioSuggestion>
       <div className={classes.deployButton}>
-        <DeployPopover
+        <DeployDialog
           appDeployedVersion={appDeployedVersion}
           selectedImageTag={selectedImageTag}
           disabled={disabled}
           isPending={isPending}
+          isProduction={isProduction}
           onConfirm={startDeploy}
         />
       </div>
