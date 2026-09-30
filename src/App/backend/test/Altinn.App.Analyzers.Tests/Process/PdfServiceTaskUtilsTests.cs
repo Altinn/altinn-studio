@@ -94,16 +94,21 @@ public class PdfServiceTaskUtilsTests
         Assert.Empty(diagnostics);
     }
 
-    [Fact]
-    public void Settings_Properties_Are_Read_Ignoring_Case_Like_The_Backend()
+    [Theory]
+    [InlineData("pages", "pdfLayoutName")]
+    [InlineData("Pages", "pdfLayoutName")]
+    [InlineData("pages", "PdfLayoutName")]
+    [InlineData("Pages", "PdfLayoutName")]
+    public void PdfLayoutName_Is_Read_Ignoring_Case_Like_The_Backend(string pagesProperty, string pdfLayoutNameProperty)
     {
-        // The backend deserializes Settings.json case-insensitively and hands the result to the frontend.
+        // The backend deserializes Settings.json case-insensitively and hands the result to the frontend, so every
+        // spelling renders the custom layout and the listed tasks are ignored rather than a conflict.
         var diagnostics = Collect(
             Process(PdfTask("PdfTask", "Task_1")),
             UiFolder("Task_1"),
             new InMemoryAdditionalText(
                 AppRoot + "ui/PdfTask/Settings.json",
-                """{ "Pages": { "order": ["Page1"], "PdfLayoutName": "PdfLayout" } }"""
+                $$"""{ "{{pagesProperty}}": { "order": ["Page1"], "{{pdfLayoutNameProperty}}": "PdfLayout" } }"""
             )
         );
 
