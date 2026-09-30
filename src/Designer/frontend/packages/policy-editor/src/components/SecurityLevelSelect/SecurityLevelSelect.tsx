@@ -107,7 +107,6 @@ export const SecurityLevelSelect = ({
             </StudioParagraph>
             <StudioCheckbox
               label={t('policy_editor.system_user_auth_level_checkbox_label')}
-              description={t('policy_editor.system_user_auth_level_checkbox_description')}
               value={SYSTEM_USER_AUTH_LEVEL_VALUE}
               checked={isSystemUserAllowed}
               onChange={(event) => handleSystemUserAllowedChange(event.target.checked)}
