@@ -4,6 +4,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 
 import { devEntryPlugin } from './scripts/vite/devEntryPlugin.ts';
+import { schemaPlugin } from './scripts/vite/schemaPlugin.ts';
 
 export default defineConfig(({ mode }) => {
   const isDevBuild = mode === 'development';
@@ -19,12 +20,12 @@ export default defineConfig(({ mode }) => {
       babel({ presets: [reactCompilerPreset()] }),
       // Serves /altinn-app-frontend.js as a loader script that dynamically imports the real
       // app code, plus an empty /altinn-app-frontend.css so the backend HTML doesn't 404.
-      // The /schemas URLs need no plugin: the dev server serves project-root files statically,
-      // and `yarn copy-schemas` puts them next to the bundle in production builds.
       devEntryPlugin(),
+      // Serve and publish schemas directly from the shared layout contract.
+      schemaPlugin(),
     ],
     resolve: {
-      // Resolves import aliases from tsconfig.json `paths` (src/*, test/*, schemas/*, ...),
+      // Resolves import aliases from tsconfig.json `paths` (src/*, test/*, ...),
       // including the @app/* packages' self-references through their own tsconfig files.
       tsconfigPaths: true,
       // See the shim for why bare `leaflet-draw` imports cannot be bundled directly.
