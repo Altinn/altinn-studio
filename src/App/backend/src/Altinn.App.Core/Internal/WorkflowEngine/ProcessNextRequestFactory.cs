@@ -159,7 +159,7 @@ internal sealed class ProcessNextRequestFactory
         [
             new WorkflowRequest
             {
-                OperationId = $"{MainOperationIdPrefix} acquire",
+                OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
                 Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
                 State = state,
             },
