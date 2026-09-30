@@ -20,7 +20,7 @@ ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not 
 ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
 ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
-ALTINNAPP1001 | Process | Error | PDF service task combines autoPdfTaskIds with a UI folder without pdfLayoutName
+ALTINNAPP1001 | Process | Error | PDF service task has a UI folder without pdfLayoutName
 ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
 ALTINNAPP1003 | Process | Error | Subform PDF service task configuration is incomplete
 ALTINNAPP1004 | Process | Error | Subform PDF service task cannot find its subform component

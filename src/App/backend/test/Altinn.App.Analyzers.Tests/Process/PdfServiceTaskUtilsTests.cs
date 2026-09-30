@@ -12,7 +12,7 @@ public class PdfServiceTaskUtilsTests
     private const string ProcessPath = AppRoot + "config/process/process.bpmn";
 
     private const string NothingToRender = "ALTINNAPP1000";
-    private const string ConflictingContent = "ALTINNAPP1001";
+    private const string MissingPdfLayoutName = "ALTINNAPP1001";
     private const string TaskWithoutUi = "ALTINNAPP1002";
 
     [Fact]
@@ -39,13 +39,20 @@ public class PdfServiceTaskUtilsTests
         Assert.Empty(diagnostics);
     }
 
-    [Fact]
-    public void Own_UI_Folder_Without_PdfLayoutName_Is_Valid_Without_AutoPdfTaskIds()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Own_UI_Folder_Without_PdfLayoutName_Is_An_Error(string? pdfLayoutName)
     {
-        // The frontend then generates the PDF from the folder's own pages.
-        var diagnostics = Collect(Process(PdfTask("PdfTask")), UiFolder("Task_1"), UiFolder("PdfTask"));
+        // The folder's pages are what people see while the process is at the task, so the frontend would render
+        // those - in the folder Altinn Studio creates, the waiting page - instead of a PDF layout.
+        var diagnostics = Collect(Process(PdfTask("PdfTask")), UiFolder("Task_1"), UiFolder("PdfTask", pdfLayoutName));
 
-        Assert.Empty(diagnostics);
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(MissingPdfLayoutName, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Contains("'ui/PdfTask/Settings.json'", diagnostic.GetMessage());
     }
 
     [Fact]
@@ -71,12 +78,13 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
-    public void AutoPdfTaskIds_With_Own_UI_Folder_Without_PdfLayoutName_Conflict()
+    public void Own_UI_Folder_Without_PdfLayoutName_Is_An_Error_With_AutoPdfTaskIds_Too()
     {
+        // The frontend rejects the task parameters outright in this case, so listing tasks does not help.
         var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1")), UiFolder("Task_1"), UiFolder("PdfTask"));
 
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(ConflictingContent, diagnostic.Id);
+        Assert.Equal(MissingPdfLayoutName, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
     }
 
@@ -102,7 +110,7 @@ public class PdfServiceTaskUtilsTests
     public void PdfLayoutName_Is_Read_Ignoring_Case_Like_The_Backend(string pagesProperty, string pdfLayoutNameProperty)
     {
         // The backend deserializes Settings.json case-insensitively and hands the result to the frontend, so every
-        // spelling renders the custom layout and the listed tasks are ignored rather than a conflict.
+        // spelling renders the custom layout, and the listed tasks are ignored.
         var diagnostics = Collect(
             Process(PdfTask("PdfTask", "Task_1")),
             UiFolder("Task_1"),
@@ -116,7 +124,7 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
-    public void Unreadable_Own_Settings_Is_Not_Reported_As_A_Conflict()
+    public void Unreadable_Own_Settings_Are_Not_Reported()
     {
         var diagnostics = Collect(
             Process(PdfTask("PdfTask", "Task_1")),

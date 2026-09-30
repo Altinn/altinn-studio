@@ -137,14 +137,17 @@ public static class Diagnostics
                 + "Settings.json to design the PDF yourself."
         );
 
-        public static readonly DiagnosticDescriptor PdfServiceTaskConflictingContent = Error(
+        // Stricter than the runtime backstop, which fails only when autoPdfTaskIds lists tasks too. Without
+        // them the frontend renders the folder's pages, which in the folder Altinn Studio creates is the
+        // waiting page, so the PDF is never what the author designed.
+        public static readonly DiagnosticDescriptor PdfServiceTaskMissingPdfLayoutName = Error(
             "ALTINNAPP1001",
             Category.Process,
-            "PDF service task combines autoPdfTaskIds with a UI folder without pdfLayoutName",
-            "PDF service task '{0}' lists tasks in <altinn:autoPdfTaskIds> and also has its own UI folder "
-                + "'ui/{0}' without a pdfLayoutName, so generating its PDF will fail. Remove "
-                + "<altinn:autoPdfTaskIds> or the UI folder, or set pdfLayoutName in 'ui/{0}/Settings.json' to "
-                + "render a custom PDF layout."
+            "PDF service task has a UI folder without pdfLayoutName",
+            "PDF service task '{0}' has its own UI folder 'ui/{0}' without a pdfLayoutName. The folder's pages are "
+                + "what people see while the process is at the task, and pdfLayoutName names the layout to render "
+                + "as the PDF. Set pdfLayoutName in 'ui/{0}/Settings.json', or remove the UI folder and list the "
+                + "tasks to include in <altinn:pdfConfig><altinn:autoPdfTaskIds>."
         );
 
         public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
