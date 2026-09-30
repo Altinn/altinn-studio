@@ -32,6 +32,10 @@ const DETACH_KEYS: &str = "ctrl-b,d";
 // Set history-limit before pane creation; reapply on attach for existing servers.
 // Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
 // Reserve index 99: appending would grow terminal-features on every attach.
+// Ctrl-Z would stop the harness with no shell to resume it, so swallow it in a Session's
+// own harness pane (a pane started with a command). It is bound on the shared tmux server,
+// so the guard is scoped to agent-session-* names; every other pane, including a shell
+// opened with Ctrl-b c, keeps normal job control and has Ctrl-Z forwarded.
 fn terminal_options() -> Vec<String> {
     [
         "set-option",
@@ -58,6 +62,15 @@ fn terminal_options() -> Vec<String> {
         "-s",
         "terminal-features[99]",
         "xterm*:extkeys",
+        ";",
+        "bind-key",
+        "-n",
+        "C-z",
+        "if-shell",
+        "-F",
+        "#{&&:#{m:agent-session-*,#{session_name}},#{!=:#{pane_start_command},}}",
+        "",
+        "send-keys C-z",
         ";",
     ]
     .into_iter()
@@ -792,6 +805,26 @@ mod tests {
         let session = test_session(crate::ModelSelection::default());
         let output = std::process::Command::new("node")
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_scrollback.mjs"))
+            .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
+            .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
+            .arg(super::session_name(&session))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    #[ignore = "requires Node.js, tmux and script; exercises Ctrl-Z in an isolated terminal server"]
+    fn suspend_is_refused_in_a_real_terminal() {
+        let session = test_session(crate::ModelSelection::default());
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_suspend.mjs"))
             .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
             .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
             .arg(super::session_name(&session))
