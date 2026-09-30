@@ -34,7 +34,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
+- The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 
 ### Removed
 
