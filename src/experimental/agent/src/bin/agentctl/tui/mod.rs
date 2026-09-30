@@ -13,8 +13,8 @@ use std::{
 };
 
 use agent::{
-    Agent, Error, control_api::Client, control_plane::WaitPolicy, local::home::ControlPlaneHome, manifest,
-    resources::Resources, sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn,
+    Agent, Error, control_api::Client, local::home::ControlPlaneHome, manifest, resources::Resources,
+    sessions::Session, sessions::SessionName, sessions::SessionRequest, sessions::Turn, wait::Policy,
 };
 use crossterm::event::{
     Event, EventStream, KeyCode, KeyEventKind, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
@@ -43,6 +43,9 @@ const REDRAW_INTERVAL: Duration = Duration::from_secs(1);
 const DOUBLE_CLICK_INTERVAL: Duration = Duration::from_millis(500);
 /// Deepest directory level below the working directory searched for manifests.
 const DISCOVERY_DEPTH: usize = 8;
+/// Longest a background request waits for its outcome. The daemon keeps
+/// working on the request after the TUI stops waiting.
+const BACKGROUND_WAIT: Duration = Duration::from_mins(10);
 
 enum Input {
     Event(Option<std::io::Result<Event>>),
@@ -458,7 +461,7 @@ fn spawn_watch(socket_path: PathBuf, inputs: Inputs) {
         let client = Client::for_path(socket_path);
         let mut after = None;
         loop {
-            let reply = match client.watch_resources(after).await {
+            let reply = match client.watch(after, agent::resources::Selector::default()).await {
                 Ok(resources) => {
                     after = Some(resources.revision);
                     Ok(resources)
@@ -576,7 +579,7 @@ fn spawn_open(
     let socket_path = home.socket_path();
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
-        let outcome = async {
+        let outcome = within_deadline(async {
             let (launch, what, forward) = match outside {
                 Outside::Editor {
                     agent,
@@ -584,7 +587,7 @@ fn spawn_open(
                     launcher,
                 } => {
                     client
-                        .ensure_execution(&agent, WaitPolicy::UntilReady)
+                        .ensure_execution(&agent, Policy::UntilReady)
                         .await
                         .map_err(|error| error.to_string())?;
                     let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
@@ -603,8 +606,9 @@ fn spawn_open(
                 Outside::Forward(url) => (crate::launch::Launch::Url(url.clone()), url, None),
             };
             hand_over(launch, &what, forward, copy).await
-        }
-        .await;
+        })
+        .await
+        .and_then(|outcome| outcome);
         let _ = inputs.send(Input::Opened { waiting, outcome });
     });
 }
@@ -689,7 +693,7 @@ async fn desktop_forward(
     viewer: DesktopViewer,
 ) -> Result<PortForward, String> {
     let target = client
-        .ensure_execution(agent, WaitPolicy::UntilReady)
+        .ensure_execution(agent, Policy::UntilReady)
         .await
         .map_err(|error| error.to_string())?;
     let access = client.vnc_access(agent).await.map_err(|error| error.to_string())?;
@@ -735,8 +739,10 @@ fn spawn_prompt(socket_path: PathBuf, inputs: Inputs, form: PromptForm) {
 /// is stopped, and the watch removes the row.
 fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName) {
     tokio::task::spawn_local(async move {
-        if let Err(error) = Client::for_path(socket_path).delete_session(&agent, session).await {
-            let _ = inputs.send(Input::SessionChangeFailed(error.to_string()));
+        let client = Client::for_path(socket_path);
+        let deleted = within_deadline(client.delete_session(&agent, session)).await;
+        if let Err(error) = deleted.and_then(|deleted| deleted.map_err(|error| error.to_string())) {
+            let _ = inputs.send(Input::SessionChangeFailed(error));
         }
     });
 }
@@ -744,13 +750,12 @@ fn spawn_session_delete(socket_path: PathBuf, inputs: Inputs, agent: String, ses
 /// Archives or unarchives a Session off the event loop, which stopping its harness would block.
 fn spawn_session_archive(socket_path: PathBuf, inputs: Inputs, agent: String, session: SessionName, archived: bool) {
     tokio::task::spawn_local(async move {
+        let client = Client::for_path(socket_path);
+        let changed = within_deadline(client.set_session_archived(&agent, session, archived)).await;
         let _ = inputs.send(
-            match Client::for_path(socket_path)
-                .set_session_archived(&agent, session, archived)
-                .await
-            {
+            match changed.and_then(|changed| changed.map_err(|error| error.to_string())) {
                 Ok(session) => Input::ArchiveChanged(session),
-                Err(error) => Input::SessionChangeFailed(error.to_string()),
+                Err(error) => Input::SessionChangeFailed(error),
             },
         );
     });
@@ -762,15 +767,26 @@ fn spawn_create(home: &ControlPlaneHome, inputs: Inputs, agent: String, spec: Fo
     let socket_path = home.socket_path();
     tokio::task::spawn_local(async move {
         let client = Client::for_path(socket_path);
-        let result = async {
+        let result = within_deadline(async {
             // The TUI has no place to render progress while on screen, so a failing
             // first pass is reported instead of waited through.
-            let target = client.ensure_execution(&agent, WaitPolicy::FirstPass).await?;
+            let target = client.ensure_execution(&agent, Policy::FirstPass).await?;
             PortForward::start(home_path, target.sandbox, spec.clone()).await
-        }
-        .await;
+        })
+        .await
+        .unwrap_or_else(|timed_out| Err(Error::Daemon(timed_out)));
         let _ = inputs.send(Input::ForwardCreated((agent, spec, replace, result)));
     });
+}
+
+/// Bounds a background request by [`BACKGROUND_WAIT`].
+async fn within_deadline<T>(request: impl Future<Output = T>) -> Result<T, String> {
+    tokio::time::timeout(BACKGROUND_WAIT, request).await.map_err(|_| {
+        format!(
+            "stopped waiting after {}m; agentd keeps working on the request",
+            BACKGROUND_WAIT.as_secs() / 60
+        )
+    })
 }
 
 /// Discovers create-agent candidates off the event loop so a slow filesystem never freezes the UI.
@@ -975,11 +991,7 @@ async fn attach(
 ) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(
-            client,
-            agent,
-            client.ensure_session(agent, session, request, WaitPolicy::UntilReady),
-        )
+        .until(client, agent, client.ensure_session(agent, session, request))
         .await?;
     agent::sessions::attach(home.path(), &target).await
 }
@@ -987,7 +999,7 @@ async fn attach(
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
+        .until(client, agent, client.ensure_execution(agent, Policy::UntilReady))
         .await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
@@ -1011,7 +1023,7 @@ async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(
 /// process, which is the TUI's.
 async fn ssh_shell(client: &Client, agent: &str) -> Result<(), Error> {
     let wait = Wait::start();
-    wait.until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
+    wait.until(client, agent, client.ensure_execution(agent, Policy::UntilReady))
         .await?;
     let access = client.ssh_access(agent).await?;
     // Awaited, not waited on: the TUI's forwards and watch share this thread.

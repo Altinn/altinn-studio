@@ -20,12 +20,16 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
 - `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
 - `agentctl get sessions -o json` reports why a Session is waiting or failed as `lifecycle.reason`, such as `agentNotReady` or `harnessBackoff`, with a `failureKind`. ([#20879](https://github.com/Altinn/altinn-studio/pull/20879))
+- `agentctl get agents -o json` reports each Agent's `metadata.uid`, which changes when an Agent is deleted and applied again. ([#20880](https://github.com/Altinn/altinn-studio/pull/20880))
 
 ### Changed
 
 - `agentctl tui` port forwards: ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
   - `q` asks before quitting would close them
   - they close when their Agent is deleted or re-created
+- `agentctl apply --wait` also waits for the Agent to pick up an apply that changed nothing in the manifest, such as after editing only its `.env` file. ([#20880](https://github.com/Altinn/altinn-studio/pull/20880))
+- Commands that wait, such as `agentctl exec`, `attach` and `prompt --wait`, keep waiting while `agentd` restarts, and fail with "agentd stopped while this command was waiting" if it is gone for 10 seconds. ([#20880](https://github.com/Altinn/altinn-studio/pull/20880))
+- `agentctl tui` stops waiting for an open, a port forward, a delete or an archive after 10 minutes; `agentd` keeps working on it. ([#20880](https://github.com/Altinn/altinn-studio/pull/20880))
 
 ### Fixed
 

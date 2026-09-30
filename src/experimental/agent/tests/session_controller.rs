@@ -11,7 +11,8 @@ use std::{
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _, Convergence},
+    control_api::Client,
+    control_plane::{AgentRecord, AgentStore as _, ControlPlane},
     local::home::ControlPlaneHome,
     persistence,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
@@ -27,6 +28,8 @@ use tempfile::TempDir;
 use tokio::sync::Notify;
 
 struct BlockingReconcile {
+    /// Every pass started, in order.
+    passes: Rc<RefCell<Vec<SessionId>>>,
     slow: SessionId,
     slow_calls: Rc<Cell<usize>>,
     active_slow: Rc<Cell<usize>>,
@@ -81,7 +84,55 @@ impl Reconcile<AgentId> for BlockingAgentReady {
     }
 }
 
+/// A Control API client of `service`, served in process as agentd serves agentctl.
+fn api(database: &persistence::Database, service: &Rc<agent::sessions::Service>) -> Client {
+    let agents: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+    support::in_process_client(
+        Rc::new(ControlPlane::new(agents.clone(), Rc::new(support::Unreachable))),
+        Rc::new(agent::sandbox::ExecutionService::new(agents)),
+        service.clone(),
+        database.changes(),
+    )
+}
+
 struct MarkSessionReady(persistence::Database);
+
+/// Counts the passes of `R` that have finished.
+struct Counted<R>(R, Rc<Cell<usize>>);
+
+impl<R: Reconcile<SessionId>> Reconcile<SessionId> for Counted<R> {
+    fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            let result = self.0.reconcile(id).await;
+            self.1.set(self.1.get() + 1);
+            result
+        })
+    }
+}
+
+/// Launches a Session only once its Agent is Ready, and holds it Starting
+/// until then, as the real reconciler does.
+struct LaunchOnceAgentReady(persistence::Database);
+
+impl Reconcile<SessionId> for LaunchOnceAgentReady {
+    fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            let session = self.0.get_session(id).await?;
+            let ready = self.0.get(session.agent_id).await?.agent.status.is_ready();
+            let (lifecycle, outcome) = if ready {
+                (agent::sessions::Lifecycle::running(), Some(session.generation))
+            } else {
+                let held = agent::sessions::Lifecycle::held(
+                    agent::sessions::LifecycleReason::AgentNotReady,
+                    "Agent is not Ready",
+                    false,
+                );
+                (held, None)
+            };
+            self.0.update_session_lifecycle(id, lifecycle, 0, outcome).await
+        })
+    }
+}
 
 /// An Agent pass that changes nothing but records that it handled the
 /// Agent's requests, as the real reconciler does for a Ready Agent.
@@ -205,6 +256,7 @@ impl Provider for CountingProvider {
 impl Reconcile<SessionId> for BlockingReconcile {
     fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
+            self.passes.borrow_mut().push(id);
             if id == self.slow {
                 assert_eq!(self.active_slow.replace(self.active_slow.get() + 1), 0);
                 let call = self.slow_calls.get() + 1;
@@ -658,20 +710,20 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
 
-    let sending_service = service.clone();
+    let sending_service = api(&database, &service);
     let sending_name = name.clone();
     let delivered = runtime.delivered.notified();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_session(
                 "worker",
-                &sending_name,
-                "do the thing",
+                sending_name,
+                "do the thing".into(),
                 true,
                 Some(Duration::from_secs(10)),
             )
@@ -722,8 +774,8 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     send.await.expect("send task").expect("turn completed");
 
     // Without wait the delivery returns immediately and reads nothing.
-    service
-        .prompt("worker", &name, "and another", false, None)
+    api(&database, &service)
+        .prompt_session("worker", name.clone(), "and another".into(), false, None)
         .await
         .expect("send");
     assert_eq!(runtime.sent.borrow().len(), 2);
@@ -762,19 +814,19 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         Rc::new(FakeRuntime::default()),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
 
-    let sending_service = service.clone();
+    let sending_service = api(&database, &service);
     let sending_name = name.clone();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_session(
                 "worker",
-                &sending_name,
-                "do the thing",
+                sending_name,
+                "do the thing".into(),
                 true,
                 Some(Duration::from_mins(1)),
             )
@@ -832,7 +884,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -840,14 +892,14 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
 
     // The Session has launched but its harness has not reported its start:
     // nothing is delivered until it does.
-    let sending_service = service.clone();
+    let sending_service = api(&database, &service);
     let sending_name = name.clone();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_session(
                 "worker",
-                &sending_name,
-                "steer left",
+                sending_name,
+                "steer left".into(),
                 true,
                 Some(Duration::from_secs(10)),
             )
@@ -948,9 +1000,10 @@ impl ServiceHarness {
             Duration::from_mins(1),
             Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
         );
+        let passes = Rc::new(Cell::new(0));
         let (session_controller, session_wakeup) = agent::sessions::Controller::new(
             session_store.clone(),
-            Rc::new(MarkSessionReady(database.clone())),
+            Rc::new(Counted(MarkSessionReady(database.clone()), passes.clone())),
             Duration::from_mins(1),
             Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
         );
@@ -960,15 +1013,18 @@ impl ServiceHarness {
         ];
         // The controller's startup pass writes a lifecycle. Finish it here so
         // it cannot land after a lifecycle the test writes itself.
-        session_wakeup
-            .reconcile(session.id)
-            .await
-            .expect("startup Session reconciliation");
+        tokio::time::timeout(Duration::from_secs(1), async {
+            while passes.get() == 0 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("startup Session reconciliation");
         let service = Rc::new(agent::sessions::Service::new(
             session_store,
             Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
             runtime.clone(),
-            Convergence::new(agent_wakeup, agent_store, database.changes()),
+            Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
             session_wakeup,
         ));
         Self {
@@ -1006,14 +1062,19 @@ impl ServiceHarness {
             .push(message);
     }
 
+    /// A Control API client of this harness's Session service.
+    fn client(&self) -> Client {
+        api(&self.database, &self.service)
+    }
+
     fn prompt(&self, text: &'static str) -> tokio::task::JoinHandle<Result<(), Error>> {
-        let service = self.service.clone();
+        let client = self.client();
         tokio::task::spawn_local(async move {
-            service
-                .prompt(
+            client
+                .prompt_session(
                     "worker",
-                    &SessionName::new("s1").expect("name"),
-                    text,
+                    SessionName::new("s1").expect("name"),
+                    text.into(),
                     true,
                     Some(Duration::from_secs(10)),
                 )
@@ -1350,13 +1411,13 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
             .await
             .expect("no conversation yet");
         harness.runtime.ready_without_report.set(true);
-        let service = harness.service.clone();
+        let client = harness.client();
         let mut answer = tokio::task::spawn_local(async move {
-            service
-                .prompt(
+            client
+                .prompt_session(
                     "worker",
-                    &SessionName::new("s1").expect("name"),
-                    "first input",
+                    SessionName::new("s1").expect("name"),
+                    "first input".into(),
                     wait,
                     Some(Duration::from_secs(10)),
                 )
@@ -1413,14 +1474,20 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         session_store,
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
     ));
     let fire_and_forget = {
-        let service = service.clone();
+        let client = api(&database, &service);
         tokio::task::spawn_local(async move {
-            service
-                .prompt("worker", &SessionName::new("s1").expect("name"), "go", false, None)
+            client
+                .prompt_session(
+                    "worker",
+                    SessionName::new("s1").expect("name"),
+                    "go".into(),
+                    false,
+                    None,
+                )
                 .await
         })
     };
@@ -1762,7 +1829,7 @@ async fn transient_resume_readiness_failure_is_retried() {
 struct SelectionFixture {
     database: persistence::Database,
     record: agent::control_plane::AgentRecord,
-    service: agent::sessions::Service,
+    service: Rc<agent::sessions::Service>,
     agent_task: tokio::task::JoinHandle<()>,
     session_task: tokio::task::JoinHandle<()>,
 }
@@ -1802,16 +1869,16 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(
+    let service = Rc::new(agent::sessions::Service::new(
         session_store,
         Rc::new(agent::sessions::AgentSandboxes::new(
             agent_store.clone(),
             unused_sandboxes(),
         )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
-    );
+    ));
 
     SelectionFixture {
         database,
@@ -2209,7 +2276,9 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
 impl SelectionFixture {
     async fn ensure(&self, name: &str, request: SessionRequest) -> Result<agent::sessions::Session, Error> {
         let name = SessionName::new(name).expect("name");
-        let target = self.service.ensure("worker", &name, request).await?;
+        let target = api(&self.database, &self.service)
+            .ensure_session("worker", name, request)
+            .await?;
         Ok(target.session)
     }
 }
@@ -2572,17 +2641,18 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
         started: started.clone(),
         release: release.clone(),
     });
-    let session_reconciler: Rc<dyn Reconcile<SessionId>> = Rc::new(MarkSessionReady(database.clone()));
+    let session_reconciler: Rc<dyn Reconcile<SessionId>> = Rc::new(LaunchOnceAgentReady(database.clone()));
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
         agent_reconciler,
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
+    // Nothing tells the Session its Agent became Ready here, so it is retried soon.
     let (session_controller, session_wakeup) = agent::sessions::Controller::new(
         session_store.clone(),
         session_reconciler,
-        Duration::from_mins(1),
+        Duration::from_millis(20),
         Rc::new(|_, error| panic!("unexpected Session reconciliation error: {error}")),
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
@@ -2612,15 +2682,15 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             unused_sandboxes(),
         )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
     ));
-    let ensure_service = service.clone();
+    let client = api(&database, &service);
     let ensure = tokio::task::spawn_local(async move {
-        ensure_service
-            .ensure(
+        client
+            .ensure_session(
                 "worker",
-                &SessionName::new("s1").expect("name"),
+                SessionName::new("s1").expect("name"),
                 SessionRequest::default(),
             )
             .await
@@ -2665,7 +2735,9 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
     let slow_calls = Rc::new(Cell::new(0));
     let started = Rc::new(Notify::new());
     let release = Rc::new(Notify::new());
+    let passes = Rc::new(RefCell::new(Vec::new()));
     let reconciler: Rc<dyn Reconcile<SessionId>> = Rc::new(BlockingReconcile {
+        passes: passes.clone(),
         slow: slow.id,
         slow_calls: slow_calls.clone(),
         active_slow: Rc::new(Cell::new(0)),
@@ -2682,10 +2754,9 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
 
     // The startup scan performs the first slow pass and blocks it.
     started.notified().await;
-    let first_wakeup = wakeup.clone();
-    let first = tokio::task::spawn_local(async move { first_wakeup.reconcile(slow.id).await });
-    let rerun_wakeup = wakeup.clone();
-    let rerun = tokio::task::spawn_local(async move { rerun_wakeup.reconcile(slow.id).await });
+    // Two wakeups during the pass schedule one more pass after it.
+    wakeup.wake(slow.id).await.expect("first wakeup");
+    wakeup.wake(slow.id).await.expect("second wakeup");
 
     let fast = database
         .ensure_session(
@@ -2695,15 +2766,26 @@ async fn controller_is_concurrent_across_sessions_and_serial_per_session() {
         )
         .await
         .expect("fast Session");
-    tokio::time::timeout(Duration::from_secs(1), wakeup.reconcile(fast.id))
-        .await
-        .expect("fast Session should not wait for slow Session")
-        .expect("fast reconciliation");
+    wakeup.wake(fast.id).await.expect("fast wakeup");
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while !passes.borrow().contains(&fast.id) {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("fast Session should not wait for slow Session");
+    assert_eq!(slow_calls.get(), 1, "the slow pass is still running");
 
     release.notify_one();
-    first.await.expect("first task").expect("first reconciliation");
-    rerun.await.expect("rerun task").expect("rerun reconciliation");
-    assert_eq!(slow_calls.get(), 2);
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while slow_calls.get() < 2 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("the wakeups during the slow pass rerun it");
+    tokio::time::sleep(Duration::from_millis(50)).await;
+    assert_eq!(slow_calls.get(), 2, "both wakeups are served by one rerun");
     controller_task.abort();
 }
 
@@ -2752,7 +2834,10 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
         .expect("original Session removal ends wait")
         .expect("task")
         .expect_err("original Session disappeared");
-    assert!(matches!(error, Error::NotFound));
+    assert!(
+        matches!(error, Error::Rpc(ref error) if error.is_not_found()),
+        "{error}"
+    );
     harness.finish();
 }
 
@@ -2763,11 +2848,11 @@ async fn completion_timeout_starts_after_delivery() {
     harness.runtime.delivery_delay.set(Duration::from_millis(300));
     let started = tokio::time::Instant::now();
     let error = harness
-        .service
-        .prompt(
+        .client()
+        .prompt_session(
             "worker",
-            &harness.session.name,
-            "go",
+            harness.session.name.clone(),
+            "go".into(),
             true,
             Some(Duration::from_millis(100)),
         )
@@ -2785,11 +2870,11 @@ async fn an_unsupported_completion_timeout_is_rejected_before_delivery() {
     let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
 
     let error = harness
-        .service
-        .prompt(
+        .client()
+        .prompt_session(
             "worker",
-            &harness.session.name,
-            "go",
+            harness.session.name.clone(),
+            "go".into(),
             true,
             Some(Duration::from_mins(31)),
         )
@@ -2806,14 +2891,11 @@ async fn queued_deliveries_do_not_expire_and_remain_serialized() {
     let directory = TempDir::new().expect("directory");
     let harness = ServiceHarness::start(&directory, "44444444-4444-4444-8444-444444444444").await;
     harness.runtime.hold_completion.set(true);
-    let send = |text| {
-        let service = harness.service.clone();
+    let send = |text: &str| {
+        let client = harness.client();
         let name = harness.session.name.clone();
-        tokio::task::spawn_local(async move {
-            service
-                .prompt("worker", &name, text, false, Some(Duration::from_millis(50)))
-                .await
-        })
+        let text = text.to_owned();
+        tokio::task::spawn_local(async move { client.prompt_session("worker", name, text, false, None).await })
     };
     let mut first = send("first");
     harness.await_delivery(&mut first).await;
@@ -2943,17 +3025,20 @@ async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(
+    let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
-    );
+    ));
     let name = SessionName::new("s1").expect("name");
 
     assert_eq!(service.list(None).await.expect("sessions").len(), 1);
-    service.delete("worker", &name).await.expect("delete Session");
+    api(&database, &service)
+        .delete_session("worker", name.clone())
+        .await
+        .expect("delete Session");
 
     assert_eq!(runtime.stop_calls.get(), 1, "the harness is stopped, not left running");
     assert!(matches!(service.get("worker", &name).await, Err(Error::NotFound)));
@@ -3000,16 +3085,19 @@ async fn a_delete_that_cannot_stop_the_harness_yet_reports_that_it_is_pending() 
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(
+    let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
-    );
+    ));
     let name = SessionName::new("s1").expect("name");
 
-    let pending = service.delete("worker", &name).await.expect_err("the stop failed");
+    let pending = api(&database, &service)
+        .delete_session("worker", name.clone())
+        .await
+        .expect_err("the stop failed");
     assert!(
         pending
             .to_string()
@@ -3255,26 +3343,33 @@ async fn an_archived_session_is_attached_again_only_after_unarchiving() {
     );
     let agent_task = tokio::task::spawn_local(agent_controller.run());
     let session_task = tokio::task::spawn_local(session_controller.run());
-    let service = agent::sessions::Service::new(
+    let service = Rc::new(agent::sessions::Service::new(
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, database.changes()),
+        Rc::new(ControlPlane::new(agent_store, Rc::new(agent_wakeup))),
         session_wakeup,
-    );
+    ));
     let name = SessionName::new("s1").expect("name");
-    let attach = || service.ensure("worker", &name, agent::sessions::SessionRequest::default());
+    let client = api(&database, &service);
+    let attach = || client.ensure_session("worker", name.clone(), agent::sessions::SessionRequest::default());
 
-    let archived = service.set_archived("worker", &name, true).await.expect("archive");
+    let archived = client
+        .set_session_archived("worker", name.clone(), true)
+        .await
+        .expect("archive");
     assert_eq!(archived.status.state, agent::sessions::State::Archived);
     let refused = attach().await.expect_err("archived Sessions are not attached");
     assert!(refused.to_string().contains("is archived"), "{refused}");
-    service
-        .set_archived("worker", &name, true)
+    client
+        .set_session_archived("worker", name.clone(), true)
         .await
         .expect("archiving again is safe");
 
-    let unarchived = service.set_archived("worker", &name, false).await.expect("unarchive");
+    let unarchived = client
+        .set_session_archived("worker", name.clone(), false)
+        .await
+        .expect("unarchive");
     assert_eq!(unarchived.status.state, agent::sessions::State::Idle);
     runtime.ready_without_report.set(true);
     attach().await.expect("the first attach after unarchiving works");
@@ -3327,11 +3422,11 @@ async fn a_retried_archive_pass_still_waits_for_the_turn() {
 async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
     let directory = TempDir::new().expect("directory");
     let harness = ServiceHarness::start(&directory, "a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2").await;
-    let service = harness.service.clone();
+    let client = harness.client();
     let name = harness.session.name.clone();
     let mut waiting = tokio::task::spawn_local(async move {
-        service
-            .prompt("worker", &name, "go", true, Some(Duration::from_secs(5)))
+        client
+            .prompt_session("worker", name, "go".into(), true, Some(Duration::from_secs(5)))
             .await
     });
     harness.await_delivery(&mut waiting).await;

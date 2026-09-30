@@ -196,6 +196,7 @@ pub(super) fn finalize_deletion(connection: &mut Connection, id: AgentId, genera
 
 fn encode_desired(agent: &Agent) -> Result<String, Error> {
     let mut desired = agent.clone();
+    desired.metadata.uid = None;
     desired.metadata.deletion_timestamp = None;
     desired.status = Status::default();
     serde_json::to_string(&desired).map_err(Error::from)

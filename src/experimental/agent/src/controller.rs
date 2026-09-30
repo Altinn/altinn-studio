@@ -1,14 +1,10 @@
 //! Generic keyed at-least-once reconciliation scheduling.
 
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    rc::Rc,
-    time::Duration,
-};
+use std::{collections::BTreeSet, rc::Rc, time::Duration};
 
 use futures_util::{FutureExt as _, StreamExt as _, stream::FuturesUnordered};
 use tokio::{
-    sync::{mpsc, oneshot},
+    sync::mpsc,
     time::{Instant, MissedTickBehavior},
 };
 
@@ -30,11 +26,6 @@ pub(crate) trait Source<Key> {
 
 /// Observes recoverable reconciliation errors without stopping the controller.
 pub(crate) type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
-
-struct Request<Key> {
-    key: Key,
-    response: Option<oneshot::Sender<Result<(), ReconcileFailure>>>,
-}
 
 /// Whether a failed reconciliation pass can succeed later without operator action.
 #[derive(Clone, Copy, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
@@ -99,19 +90,12 @@ impl std::fmt::Display for ReconcileFailure {
     }
 }
 
-impl From<ReconcileFailure> for Error {
-    fn from(failure: ReconcileFailure) -> Self {
-        match failure.kind {
-            FailureKind::Invalid => Self::Invalid(failure.message),
-            FailureKind::Transient => Self::Daemon(failure.message),
-            FailureKind::Unavailable => Self::Unavailable(failure.message),
-        }
-    }
-}
-
 /// A handle for requesting immediate keyed convergence.
+///
+/// A request never waits for a pass: callers record what they want durably
+/// first, and a waiter reads the recorded outcome instead.
 pub struct Wakeup<Key> {
-    sender: mpsc::Sender<Request<Key>>,
+    sender: mpsc::Sender<Key>,
     resource: &'static str,
 }
 
@@ -125,25 +109,6 @@ impl<Key> Clone for Wakeup<Key> {
 }
 
 impl<Key> Wakeup<Key> {
-    /// Queues convergence and waits for the resulting reconciliation pass.
-    ///
-    /// # Errors
-    ///
-    /// Returns the pass's classified failure, or a transient failure when the controller stops.
-    pub async fn reconcile(&self, key: Key) -> Result<(), ReconcileFailure> {
-        let (response, receiver) = oneshot::channel();
-        self.sender
-            .send(Request {
-                key,
-                response: Some(response),
-            })
-            .await
-            .map_err(|_| transient(format!("{} controller stopped", self.resource)))?;
-        receiver
-            .await
-            .map_err(|_| transient(format!("{} controller dropped a response", self.resource)))?
-    }
-
     /// Queues convergence of already-durable state without waiting for a pass.
     ///
     /// Unlike [`Self::notify`], it waits for room in the queue instead of
@@ -151,33 +116,31 @@ impl<Key> Wakeup<Key> {
     ///
     /// # Errors
     ///
-    /// Returns a transient failure when the controller stopped.
-    pub async fn wake(&self, key: Key) -> Result<(), ReconcileFailure> {
+    /// Returns an error when the controller stopped.
+    pub async fn wake(&self, key: Key) -> Result<(), Error> {
         self.sender
-            .send(Request { key, response: None })
+            .send(key)
             .await
-            .map_err(|_| transient(format!("{} controller stopped", self.resource)))
+            .map_err(|_| Error::Daemon(format!("{} controller stopped", self.resource)))
     }
 
     /// Provides a best-effort low-latency hint for already-durable state.
     pub fn notify(&self, key: Key) {
-        let _ignored = self.sender.try_send(Request { key, response: None });
+        let _ignored = self.sender.try_send(key);
     }
 }
 
-type Response = oneshot::Sender<Result<(), ReconcileFailure>>;
-type ReconcileResult<Key> = (Key, Vec<Response>, Result<(), Error>);
+type ReconcileResult<Key> = (Key, Result<(), Error>);
 type ReconcileFuture<Key> = futures_util::future::LocalBoxFuture<'static, ReconcileResult<Key>>;
 
 /// Continuously schedules independent reconciliations keyed by durable identity.
 ///
 /// At most one reconciliation runs for a key. A wakeup received during a pass
-/// schedules a subsequent pass, and waiters complete only after the pass that
-/// observed their request.
+/// schedules a subsequent pass, so a pass always starts after the request.
 pub(crate) struct Controller<Key> {
     source: Rc<dyn Source<Key>>,
     reconciler: Rc<dyn Reconcile<Key>>,
-    receiver: mpsc::Receiver<Request<Key>>,
+    receiver: mpsc::Receiver<Key>,
     interval: Duration,
     on_error: ErrorHandler<Key>,
 }
@@ -210,7 +173,7 @@ where
     pub(crate) async fn run(mut self) {
         let mut ticker = tokio::time::interval_at(Instant::now() + self.interval, self.interval);
         ticker.set_missed_tick_behavior(MissedTickBehavior::Skip);
-        let mut pending = BTreeMap::<Key, Vec<Response>>::new();
+        let mut pending = BTreeSet::<Key>::new();
         let mut running = BTreeSet::new();
         let mut reconciliations = FuturesUnordered::<ReconcileFuture<Key>>::new();
         self.enqueue_all(&mut pending).await;
@@ -219,67 +182,45 @@ where
             self.start_pending(&mut pending, &mut running, &reconciliations);
             tokio::select! {
                 biased;
-                request = self.receiver.recv() => {
-                    let Some(request) = request else { return; };
-                    enqueue(request, &mut pending);
-                    while let Ok(request) = self.receiver.try_recv() {
-                        enqueue(request, &mut pending);
+                key = self.receiver.recv() => {
+                    let Some(key) = key else { return; };
+                    pending.insert(key);
+                    while let Ok(key) = self.receiver.try_recv() {
+                        pending.insert(key);
                     }
                 }
                 _ = ticker.tick() => self.enqueue_all(&mut pending).await,
-                Some((key, responses, result)) = reconciliations.next(), if !reconciliations.is_empty() => {
+                Some((key, result)) = reconciliations.next(), if !reconciliations.is_empty() => {
                     running.remove(&key);
                     if let Err(error) = &result {
                         (self.on_error)(Some(key), error);
-                    }
-                    let response = result.as_ref().copied().map_err(ReconcileFailure::classify);
-                    for sender in responses {
-                        let _ignored = sender.send(response.clone());
                     }
                 }
             }
         }
     }
 
-    async fn enqueue_all(&self, pending: &mut BTreeMap<Key, Vec<Response>>) {
+    async fn enqueue_all(&self, pending: &mut BTreeSet<Key>) {
         match self.source.list_keys().await {
-            Ok(keys) => {
-                for key in keys {
-                    pending.entry(key).or_default();
-                }
-            }
+            Ok(keys) => pending.extend(keys),
             Err(error) => (self.on_error)(None, &error),
         }
     }
 
     fn start_pending(
         &self,
-        pending: &mut BTreeMap<Key, Vec<Response>>,
+        pending: &mut BTreeSet<Key>,
         running: &mut BTreeSet<Key>,
         reconciliations: &FuturesUnordered<ReconcileFuture<Key>>,
     ) {
         while running.len() < MAX_CONCURRENT_RECONCILES {
-            let Some(key) = pending.keys().find(|key| !running.contains(key)).copied() else {
+            let Some(key) = pending.iter().find(|key| !running.contains(key)).copied() else {
                 break;
             };
-            let responses = pending.remove(&key).unwrap_or_default();
+            pending.remove(&key);
             running.insert(key);
             let reconciler = self.reconciler.clone();
-            reconciliations.push(async move { (key, responses, reconciler.reconcile(key).await) }.boxed_local());
+            reconciliations.push(async move { (key, reconciler.reconcile(key).await) }.boxed_local());
         }
-    }
-}
-
-const fn transient(message: String) -> ReconcileFailure {
-    ReconcileFailure {
-        kind: FailureKind::Transient,
-        message,
-    }
-}
-
-fn enqueue<Key: Ord>(request: Request<Key>, pending: &mut BTreeMap<Key, Vec<Response>>) {
-    let responses = pending.entry(request.key).or_default();
-    if let Some(response) = request.response {
-        responses.push(response);
     }
 }

@@ -184,15 +184,13 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     );
     let responsiveness =
         agent::control_plane::ResponsivenessMonitor::new(store.clone(), sandboxes.clone(), wakeup.clone());
-    let control_plane =
-        Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())).with_provisioning(provisioning));
-    let convergence = agent::control_plane::Convergence::new(wakeup, store.clone(), changes.clone());
-    let executions = Rc::new(ExecutionService::new(store.clone(), convergence.clone()));
+    let control_plane = Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup)).with_provisioning(provisioning));
+    let executions = Rc::new(ExecutionService::new(store.clone()));
     let sessions = Rc::new(SessionService::new(
         session_store,
         agent_sandboxes,
         session_runtime,
-        convergence,
+        control_plane.clone(),
         session_wakeup,
     ));
     agent::upgrade::consume_pending_session_relaunch(&home, &sessions).await?;

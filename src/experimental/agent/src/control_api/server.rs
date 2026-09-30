@@ -7,19 +7,19 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio::sync::Notify;
 
 use crate::{
-    Agent, Error, control_plane, control_plane::WaitPolicy, harness, progress::AgentProgress, resources::Changes,
-    sessions,
+    Agent, AgentId, Error, control_plane, harness, progress::AgentProgress, resources::Changes, sessions, wait,
 };
 
 use super::protocol::{
-    CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
-    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    AgentIdParams, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_PARSE_ERROR,
+    CODE_UPDATING, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
+    METHOD_EXECUTION_TARGET, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY,
+    METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_ATTACH_TARGET, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
-    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
-    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_SYNC, METHOD_VNC_ACCESS, NameParams,
+    PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionIdParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    error_response, read_message, response_error,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -39,6 +39,12 @@ pub trait AgentApi {
 
     /// Gets an Agent by name.
     fn get<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>>;
+
+    /// Gets an Agent by identity, also while it is being deleted.
+    fn get_by_id(&self, id: AgentId) -> LocalFuture<'_, Result<Agent, Error>>;
+
+    /// Records a request to converge an Agent now; see [`control_plane::ControlPlane::sync`].
+    fn sync(&self, id: AgentId) -> LocalFuture<'_, Result<wait::AgentRequest, Error>>;
 
     /// Lists every active Agent.
     fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>>;
@@ -69,6 +75,14 @@ impl AgentApi for control_plane::ControlPlane {
 
     fn get<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>> {
         Box::pin(async move { Self::get(self, name).await })
+    }
+
+    fn get_by_id(&self, id: AgentId) -> LocalFuture<'_, Result<Agent, Error>> {
+        Box::pin(async move { Self::get_by_id(self, id).await })
+    }
+
+    fn sync(&self, id: AgentId) -> LocalFuture<'_, Result<wait::AgentRequest, Error>> {
+        Box::pin(async move { Self::sync(self, id).await })
     }
 
     fn list(&self) -> LocalFuture<'_, Result<Vec<Agent>, Error>> {
@@ -124,13 +138,19 @@ impl AuthenticationApi for harness::AuthenticationManager {
 
 /// Host-tracked session operations exposed through the local control API.
 pub trait SessionApi {
-    /// Creates or resolves one named session attach target; see [`sessions::Service::ensure`].
+    /// Creates or gets one named Session and requests it running; see [`sessions::Service::ensure`].
     fn ensure<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
-    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>>;
+
+    /// Resolves a running Session into its attach target; see [`sessions::Service::attach_target`].
+    fn attach_target(&self, id: sessions::SessionId) -> LocalFuture<'_, Result<sessions::AttachTarget, Error>>;
+
+    /// Gets a Session by identity, also while it is marked for deletion.
+    fn get_by_id(&self, id: sessions::SessionId) -> LocalFuture<'_, Result<sessions::Session, Error>>;
 
     /// Gets one named Session scoped to an Agent.
     fn get<'a>(
@@ -142,16 +162,13 @@ pub trait SessionApi {
     /// Lists tracked Sessions, optionally scoped to one Agent.
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
 
-    /// Delivers a prompt to a running Session's harness, optionally waiting for
-    /// a completed turn and settled activity; see [`sessions::Service::prompt`].
+    /// Delivers a prompt to a running Session's harness; see [`sessions::Service::prompt`].
     fn prompt<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>>;
+    ) -> LocalFuture<'a, Result<sessions::Delivered, Error>>;
 
     /// Reads the harness transcript of a Session as ordered turns.
     fn turns<'a>(
@@ -162,15 +179,19 @@ pub trait SessionApi {
     ) -> LocalFuture<'a, Result<Vec<sessions::Turn>, Error>>;
 
     /// Requests release of one Session; see [`sessions::Service::delete`].
-    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>>;
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>>;
 
-    /// Archives or unarchives one Session; see [`sessions::Service::set_archived`].
+    /// Requests one Session archived or unarchived; see [`sessions::Service::set_archived`].
     fn set_archived<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         archived: bool,
-    ) -> LocalFuture<'a, Result<sessions::Session, Error>>;
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>>;
 
     /// Lists Sessions whose work or terminal attachment prevents an upgrade.
     fn upgrade_readiness(&self) -> LocalFuture<'_, Result<sessions::UpgradeReadiness, Error>>;
@@ -182,8 +203,16 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
-    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>> {
         Box::pin(async move { Self::ensure(self, agent, name, request).await })
+    }
+
+    fn attach_target(&self, id: sessions::SessionId) -> LocalFuture<'_, Result<sessions::AttachTarget, Error>> {
+        Box::pin(async move { Self::attach_target(self, id).await })
+    }
+
+    fn get_by_id(&self, id: sessions::SessionId) -> LocalFuture<'_, Result<sessions::Session, Error>> {
+        Box::pin(async move { Self::get_by_id(self, id).await })
     }
 
     fn prompt<'a>(
@@ -191,10 +220,8 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(async move { Self::prompt(self, agent, name, prompt, wait, timeout).await })
+    ) -> LocalFuture<'a, Result<sessions::Delivered, Error>> {
+        Box::pin(async move { Self::prompt(self, agent, name, prompt).await })
     }
 
     fn turns<'a>(
@@ -223,11 +250,15 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         archived: bool,
-    ) -> LocalFuture<'a, Result<sessions::Session, Error>> {
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>> {
         Box::pin(async move { Self::set_archived(self, agent, name, archived).await })
     }
 
-    fn delete<'a>(&'a self, agent: &'a str, name: &'a sessions::SessionName) -> LocalFuture<'a, Result<(), Error>> {
+    fn delete<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+    ) -> LocalFuture<'a, Result<sessions::Requested, Error>> {
         Box::pin(async move { Self::delete(self, agent, name).await })
     }
 
@@ -238,21 +269,13 @@ impl SessionApi for sessions::Service {
 
 /// Transient Agent Execution target resolution exposed through the local control API.
 pub trait ExecutionApi {
-    /// Converges an Agent and returns its exact ready Sandbox assignment.
-    fn ensure<'a>(
-        &'a self,
-        name: &'a str,
-        wait: WaitPolicy,
-    ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
+    /// Returns a Ready Agent's exact Sandbox assignment; see [`crate::sandbox::ExecutionService::target`].
+    fn target(&self, id: AgentId) -> LocalFuture<'_, Result<crate::sandbox::ExecutionTarget, Error>>;
 }
 
 impl ExecutionApi for crate::sandbox::ExecutionService {
-    fn ensure<'a>(
-        &'a self,
-        name: &'a str,
-        wait: WaitPolicy,
-    ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, name, wait).await })
+    fn target(&self, id: AgentId) -> LocalFuture<'_, Result<crate::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async move { Self::target(self, id).await })
     }
 }
 
@@ -494,7 +517,8 @@ impl Server {
             METHOD_PROGRESS => self.handle_progress(request.id, request.params).await,
             METHOD_RESOURCES_WATCH => self.handle_resources_watch(request.id, request.params).await,
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
-            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
+            METHOD_SYNC => self.handle_sync(request.id, request.params).await,
+            METHOD_EXECUTION_TARGET => self.handle_execution_target(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
@@ -507,6 +531,7 @@ impl Server {
             METHOD_SESSION_DELETE => self.handle_session_delete(request.id, request.params).await,
             METHOD_SESSION_ARCHIVE => self.handle_session_archive(request.id, request.params, true).await,
             METHOD_SESSION_UNARCHIVE => self.handle_session_archive(request.id, request.params, false).await,
+            METHOD_SESSION_ATTACH_TARGET => self.handle_session_attach_target(request.id, request.params).await,
             _ => error_response(request.id, CODE_METHOD_NOT_FOUND, "method not found"),
         }
     }
@@ -625,22 +650,42 @@ impl Server {
     }
 
     /// Long-polls for a resource change after the caller's revision, then
-    /// returns every Agent and Session. Draining returns at once so an upgrade
-    /// is never held by a watcher.
+    /// returns every Agent and Session, or only the selected ones. Draining
+    /// returns at once so an upgrade is never held by a watcher.
     async fn handle_resources_watch(&self, id: u64, value: Value) -> Response {
         let Ok(params) = serde_json::from_value::<ResourcesWatchParams>(value) else {
-            return error_response(id, CODE_INVALID_PARAMS, "after must be a resource revision");
+            return error_response(
+                id,
+                CODE_INVALID_PARAMS,
+                "after must be a resource revision, and the selector must name resource IDs",
+            );
         };
         tokio::select! {
             _changed = self.changes.changed_since(params.after, WATCH_SETTLE, WATCH_KEEPALIVE) => {}
             () = self.shutdown_requested() => {}
         }
         let revision = self.changes.revision();
+        let now = time::OffsetDateTime::now_utc();
+        let selector = params.selector;
         let resources = async {
+            let (agents, sessions) = if selector.is_all() {
+                (self.agents.list().await?, self.sessions.list(None).await?)
+            } else {
+                let agents = match selector.agent {
+                    Some(agent) => vec![self.agents.get_by_id(agent).await?],
+                    None => Vec::new(),
+                };
+                let sessions = match selector.session {
+                    Some(session) => vec![self.sessions.get_by_id(session).await?],
+                    None => Vec::new(),
+                };
+                (agents, sessions)
+            };
             Ok(crate::resources::Resources {
                 revision,
-                agents: self.agents.list().await?,
-                sessions: self.sessions.list(None).await?,
+                now,
+                agents,
+                sessions,
             })
         };
         result_response(id, resources.await)
@@ -654,17 +699,18 @@ impl Server {
         result_response(id, self.vnc.describe(&params.name).await)
     }
 
-    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
-        let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
-            return error_response(id, CODE_INVALID_PARAMS, "name is required");
+    async fn handle_sync(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<AgentIdParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "Agent ID is required");
         };
-        if params.name.is_empty() {
-            return error_response(id, CODE_INVALID_PARAMS, "name is required");
-        }
-        result_response(
-            id,
-            self.executions.ensure(&params.name, wait_policy(params.follow)).await,
-        )
+        result_response(id, self.agents.sync(params.id).await)
+    }
+
+    async fn handle_execution_target(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<AgentIdParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "Agent ID is required");
+        };
+        result_response(id, self.executions.target(params.id).await)
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -692,8 +738,6 @@ impl Server {
                 );
             }
         };
-        // A Session wait always ends at the outcome of the Session pass that
-        // handled the request, so `follow` changes nothing for it.
         let request = sessions::SessionRequest {
             harness: params.harness,
             model_selection: params.model_selection,
@@ -708,10 +752,7 @@ impl Server {
         };
         result_response(
             id,
-            self.sessions
-                .prompt(&params.agent, &params.name, &params.prompt, params.wait, params.timeout)
-                .await
-                .map(|()| serde_json::json!({})),
+            self.sessions.prompt(&params.agent, &params.name, &params.prompt).await,
         )
     }
 
@@ -733,13 +774,14 @@ impl Server {
         let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
         };
-        result_response(
-            id,
-            self.sessions
-                .delete(&params.agent, &params.name)
-                .await
-                .map(|()| serde_json::json!({})),
-        )
+        result_response(id, self.sessions.delete(&params.agent, &params.name).await)
+    }
+
+    async fn handle_session_attach_target(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionIdParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "Session ID is required");
+        };
+        result_response(id, self.sessions.attach_target(params.id).await)
     }
 
     async fn handle_session_archive(&self, id: u64, value: Value, archived: bool) -> Response {
@@ -760,20 +802,12 @@ impl Server {
     }
 }
 
-const fn wait_policy(follow: bool) -> WaitPolicy {
-    if follow {
-        WaitPolicy::UntilReady
-    } else {
-        WaitPolicy::FirstPass
-    }
-}
-
 fn is_mutating(method: &str) -> bool {
     matches!(
         method,
         METHOD_APPLY
             | METHOD_DELETE
-            | METHOD_EXECUTION_ENSURE
+            | METHOD_SYNC
             | METHOD_AUTH_LOGIN
             | METHOD_SESSION_ENSURE
             | METHOD_SESSION_PROMPT
@@ -806,11 +840,12 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
                 error: None,
             },
         ),
-        Err(Error::NotFound) => error_response(id, CODE_NOT_FOUND, Error::NotFound.to_string()),
-        Err(Error::Immutable(field)) => error_response(id, CODE_IMMUTABLE, Error::Immutable(field).to_string()),
-        Err(Error::Conflict) => error_response(id, CODE_IMMUTABLE, Error::Conflict.to_string()),
-        Err(Error::Invalid(message)) => error_response(id, CODE_INVALID_PARAMS, message),
-        Err(error) => error_response(id, CODE_INTERNAL, error.to_string()),
+        Err(error) => Response {
+            jsonrpc: JSON_RPC_VERSION.into(),
+            id,
+            result: None,
+            error: Some(response_error(error)),
+        },
     }
 }
 

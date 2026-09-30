@@ -60,8 +60,8 @@ The Sandbox crates do not depend on Agent automation.
 `agentd` owns the durable desired state and all lifecycle effects. `agentctl` starts the adjacent daemon on demand and
 communicates through the versioned local control API. Its resource-oriented commands follow `verb resource [name]`;
 Session scope is explicit through `--agent` or inferred from the closest unique persisted Agent source directory.
-Transient `exec` commands similarly converge the Agent first, then target its exact materialized Sandbox without
-creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
+Transient `exec` commands similarly request a pass of the Agent and wait until it is Ready, then target its exact
+materialized Sandbox without creating durable Session state or taking Sandbox lifecycle ownership away from `agentd`.
 
 An Agent owns one retained Sandbox incarnation. The Agent controller is the sole owner of Sandbox selection,
 materialization, setup, network mediation and release. A Session controller can only open the already-materialized
@@ -72,6 +72,14 @@ Desired state is persisted before reconciliation. Wakeups provide low-latency pr
 scans ensure dropped notifications or daemon restarts do not lose work. Provider assignment is sticky for an Agent
 incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
+
+No Control API request waits for reconciliation. Each request a caller can wait for bumps a counter on its resource: an
+Agent's `generation`, or its sync counter, which `apply` and every access command such as `exec` or `ssh` bump through
+`agents.v1.sync`; or a Session's `generation`, bumped by ensure, archive, unarchive and delete. The reconciler records
+the matching observed counter only together with a final outcome. `agentctl` waits in the client: it follows the one
+resource with `resources.v1.watch`, selected by ID, and decides with a check shared with the daemon. A wait therefore
+never depends on catching a particular pass, and it continues across a daemon restart. In the daemon, only prompt
+delivery (up to 15 seconds for the harness to accept input) and the upgrade shutdown still wait.
 
 A running Sandbox's guest can stall while its VM process keeps running. The Sandbox SDK reports the guest's heartbeat
 without a round trip to the guest, and `agentd` records when each heartbeat last advanced on the host clock. After 15
@@ -85,8 +93,8 @@ Provisioning progress is observed as state, not as a stream. The Sandbox SDK fol
 value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
 Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
 durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
-with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
-drains.
+with `agents.v1.progress`, and every Agent and Session, or one selected by ID, with `resources.v1.watch`, long-polls that
+return when the daemon drains.
 
 `agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
 one Agent's provisioning, and derives each Agent's state from its conditions and failure class.

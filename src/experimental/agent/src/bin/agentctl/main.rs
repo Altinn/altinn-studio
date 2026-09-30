@@ -9,11 +9,11 @@ use agent::{
     Agent, AgentVariantName, Error,
     control_api::Client,
     control_plane::ApplyRequest,
-    control_plane::WaitPolicy,
     local::home::ControlPlaneHome,
     manifest,
     sandbox::forward,
     sessions::{Session, SessionName, SessionRequest},
+    wait::Policy,
 };
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -513,10 +513,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
                 request.agent.metadata.name = name;
             }
             let applied = client.apply(request).await?;
-            let name = applied.metadata.name;
+            let name = &applied.metadata.name;
             println!("agent/{name} applied");
             if wait {
-                wait_for_ready(client, &name, timeout).await?;
+                wait_for_ready(client, name, Some(&applied), timeout).await?;
                 println!("agent/{name} ready");
             }
         }
@@ -718,7 +718,7 @@ async fn attach(
         .until(
             client,
             &agent,
-            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+            client.ensure_session(&agent, session, selection.request(None)),
         )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
@@ -745,7 +745,7 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -806,7 +806,7 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -864,7 +864,7 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+    wait.until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
@@ -915,7 +915,7 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -988,7 +988,7 @@ async fn vnc(
     client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     // Read again now the Agent is Ready: which ports its image offers is something a
     // reconciliation pass observes, so before converging the browser viewer's port is unknown
@@ -1047,7 +1047,7 @@ async fn vnc_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let access = client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(client, &agent, client.ensure_execution(&agent, Policy::UntilReady))
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -1119,10 +1119,7 @@ async fn create_session(
     wait.until(
         client,
         &agent,
-        tokio::time::timeout_at(
-            deadline,
-            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
-        ),
+        tokio::time::timeout_at(deadline, client.ensure_session(&agent, session.clone(), request)),
     )
     .await
     .map_err(|_| timed_out())??;
@@ -1284,7 +1281,7 @@ async fn wait(
         return Err(Error::Invalid("only --for=condition=Ready is supported".into()).into());
     }
     let name = require_name(name, "Agent")?;
-    wait_for_ready(client, &name, timeout).await?;
+    wait_for_ready(client, &name, None, timeout).await?;
     println!("agent/{name} condition met");
     Ok(())
 }
@@ -1351,17 +1348,28 @@ fn inference_error(error: Error) -> CommandError {
 }
 
 /// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
-async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
+///
+/// After `applied`, it waits for the pass that handles that apply; otherwise
+/// it requests a pass of its own.
+async fn wait_for_ready(client: &Client, name: &str, applied: Option<&Agent>, timeout: Duration) -> CommandResult<()> {
+    let ready = async {
+        let Some(applied) = applied else {
+            return client.sync_and_wait(name, Policy::UntilReady).await.map(drop);
+        };
+        let id = applied
+            .metadata
+            .uid
+            .ok_or_else(|| Error::Invalid("agentd did not report the applied Agent's identity".into()))?;
+        let request = agent::wait::AgentRequest {
+            generation: applied.metadata.generation,
+            sync: applied.status.sync.requested,
+        };
+        client.wait_for_agent(id, request, Policy::UntilReady).await.map(drop)
+    };
     let wait = progress::Wait::start();
-    let waited = wait
-        .until(
-            client,
-            name,
-            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
-        )
-        .await;
+    let waited = wait.until(client, name, tokio::time::timeout(timeout, ready)).await;
     match waited {
-        Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
+        Ok(result) => result.map_err(CommandError::from),
         Err(_elapsed) => {
             let ready = match client.get(name).await {
                 Ok(agent) => agent.status.ready_condition().cloned(),
@@ -1730,36 +1738,49 @@ mod tests {
         }
     }
 
-    struct DelayedHealthConnector {
-        remaining: std::rc::Rc<std::cell::Cell<Option<Duration>>>,
-    }
+    /// A daemon whose health check takes 600 ms and whose Session never
+    /// completes a turn after a delivered prompt.
+    struct DelayedHealthConnector;
 
     impl agent::control_api::Connector for DelayedHealthConnector {
         fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, Error>> {
             Box::pin(async move {
                 use tokio::io::AsyncBufReadExt as _;
                 let (client, server) = tokio::io::duplex(4096);
-                let remaining = self.remaining.clone();
                 tokio::task::spawn_local(async move {
                     let mut server = tokio::io::BufReader::new(server);
                     let mut line = String::new();
                     server.read_line(&mut line).await.expect("request");
                     let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
-                    if request["method"] == "control.v1.health" {
-                        tokio::time::sleep(Duration::from_millis(600)).await;
-                    } else {
-                        assert_eq!(request["method"], "sessions.v1.prompt");
-                        remaining.set(Some(
-                            serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
-                        ));
-                    }
-                    let result = if request["method"] == "control.v1.health" {
-                        serde_json::json!({
-                            "protocolVersion": agent::control_api::PROTOCOL_VERSION,
-                            "buildVersion": agent::build_version()
-                        })
-                    } else {
-                        serde_json::json!({})
+                    let session = serde_json::json!({
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "agentId": "00000000-0000-4000-8000-000000000002",
+                        "agent": "worker",
+                        "name": "s1",
+                        "harness": "claudeCode",
+                        "createdAt": "2026-09-25T00:00:00Z",
+                    });
+                    let result = match request["method"].as_str() {
+                        Some("control.v1.health") => {
+                            tokio::time::sleep(Duration::from_millis(600)).await;
+                            serde_json::json!({
+                                "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                                "buildVersion": agent::build_version()
+                            })
+                        }
+                        Some("sessions.v1.prompt") => serde_json::json!({"session": session, "turns": 0}),
+                        Some("resources.v1.watch") => {
+                            if !request["params"]["after"].is_null() {
+                                tokio::time::sleep(Duration::from_secs(30)).await;
+                            }
+                            serde_json::json!({
+                                "revision": "00000000-0000-4000-8000-000000000003:0",
+                                "now": "2026-09-25T00:00:00Z",
+                                "agents": [],
+                                "sessions": [session],
+                            })
+                        }
+                        method => panic!("unexpected method {method:?}"),
                     };
                     let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":result});
                     server
@@ -1774,13 +1795,11 @@ mod tests {
 
     #[tokio::test(flavor = "local", start_paused = true)]
     async fn prompt_setup_does_not_consume_the_completion_timeout() {
-        let remaining = std::rc::Rc::new(std::cell::Cell::new(None));
-        let client = Client::new(std::rc::Rc::new(DelayedHealthConnector {
-            remaining: remaining.clone(),
-        }));
+        let client = Client::new(std::rc::Rc::new(DelayedHealthConnector));
         let directory = tempfile::TempDir::new().expect("home");
         let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
-        prompt_session(
+        let started = tokio::time::Instant::now();
+        let result = prompt_session(
             &home,
             &client,
             SessionTarget {
@@ -1798,9 +1817,16 @@ mod tests {
                 timeout: Duration::from_secs(1),
             },
         )
-        .await
-        .expect("prompt");
-        assert_eq!(remaining.get(), Some(Duration::from_secs(1)));
+        .await;
+        assert!(
+            matches!(&result, Err(error) if error.to_string().contains("timed out waiting for Session")),
+            "the turn never completes"
+        );
+        assert!(
+            started.elapsed() >= Duration::from_millis(1600),
+            "the completion timeout starts after setup and delivery, took {:?}",
+            started.elapsed()
+        );
     }
 
     #[test]

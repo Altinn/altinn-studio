@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::path::PathBuf;
+use std::{path::PathBuf, rc::Rc};
 
 use agent::{
     API_VERSION, Agent, Harness, HarnessAuthMode, HarnessSpec, HomeSpec, InstructionsSpec, KIND, Metadata,
@@ -14,6 +14,7 @@ pub(crate) fn agent(name: &str) -> Agent {
         api_version: API_VERSION.into(),
         kind: KIND.into(),
         metadata: Metadata {
+            uid: None,
             name: name.into(),
             generation: 0,
             deletion_timestamp: None,
@@ -87,5 +88,154 @@ impl TempDirectory {
 
     pub(crate) fn path(&self) -> &std::path::Path {
         self.0.path()
+    }
+}
+
+/// Serves a Control API server over in-memory streams, one per call, as
+/// agentd serves agentctl over its socket.
+pub(crate) struct InProcess(pub(crate) Rc<agent::control_api::Server>);
+
+impl agent::control_api::Connector for InProcess {
+    fn connect(&self) -> sandbox::LocalFuture<'_, Result<Box<dyn agent::control_api::Connection>, agent::Error>> {
+        Box::pin(async move {
+            let (client, server) = tokio::io::duplex(64 * 1024);
+            let api = self.0.clone();
+            tokio::task::spawn_local(async move {
+                let _ignored = api.serve_connection(server).await;
+            });
+            Ok(Box::new(client) as Box<dyn agent::control_api::Connection>)
+        })
+    }
+}
+
+/// A client of a server over `agents`, `executions` and `sessions`, whose
+/// watches follow `changes`. Authentication and access are unreachable.
+pub(crate) fn in_process_client(
+    agents: Rc<dyn agent::control_api::AgentApi>,
+    executions: Rc<dyn agent::control_api::ExecutionApi>,
+    sessions: Rc<dyn agent::control_api::SessionApi>,
+    changes: agent::resources::Changes,
+) -> agent::control_api::Client {
+    let server = agent::control_api::Server::new(
+        agents,
+        Rc::new(Unreachable),
+        executions,
+        sessions,
+        Rc::new(Unreachable),
+        Rc::new(Unreachable),
+        changes,
+        // A failed connection reaches the client that made it.
+        Rc::new(|_error| {}),
+    );
+    agent::control_api::Client::new(Rc::new(InProcess(Rc::new(server))))
+}
+
+/// Every API a test does not reach, and a notifier that wakes nothing.
+pub(crate) struct Unreachable;
+
+type Reply<'a, T> = sandbox::LocalFuture<'a, Result<T, agent::Error>>;
+
+fn unreachable<'a, T: 'a>() -> Reply<'a, T> {
+    Box::pin(async { Err(agent::Error::NotFound) })
+}
+
+impl agent::control_api::AuthenticationApi for Unreachable {
+    fn login<'a>(
+        &'a self,
+        _harness: Harness,
+        _credential: &'a str,
+        _imported: bool,
+    ) -> Reply<'a, agent::harness::ImportedAuthentication> {
+        unreachable()
+    }
+}
+
+impl agent::control_api::SshAccessApi for Unreachable {
+    fn describe<'a>(&'a self, _name: &'a str) -> Reply<'a, agent::ssh::AccessInfo> {
+        unreachable()
+    }
+}
+
+impl agent::control_api::VncAccessApi for Unreachable {
+    fn describe<'a>(&'a self, _name: &'a str) -> Reply<'a, agent::vnc::AccessInfo> {
+        unreachable()
+    }
+}
+
+impl agent::control_plane::Notifier for Unreachable {
+    fn notify(&self, _id: agent::AgentId) {}
+
+    fn wake(&self, _id: agent::AgentId) -> Reply<'_, ()> {
+        Box::pin(async { Ok(()) })
+    }
+}
+
+impl agent::control_api::SessionApi for Unreachable {
+    fn ensure<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _request: agent::sessions::SessionRequest,
+    ) -> Reply<'a, agent::sessions::Requested> {
+        unreachable()
+    }
+
+    fn attach_target(&self, _id: agent::sessions::SessionId) -> Reply<'_, agent::sessions::AttachTarget> {
+        unreachable()
+    }
+
+    fn get_by_id(&self, _id: agent::sessions::SessionId) -> Reply<'_, agent::sessions::Session> {
+        unreachable()
+    }
+
+    fn get<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+    ) -> Reply<'a, agent::sessions::Session> {
+        unreachable()
+    }
+
+    fn list<'a>(&'a self, _agent: Option<&'a str>) -> Reply<'a, Vec<agent::sessions::Session>> {
+        Box::pin(async { Ok(Vec::new()) })
+    }
+
+    fn prompt<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _prompt: &'a str,
+    ) -> Reply<'a, agent::sessions::Delivered> {
+        unreachable()
+    }
+
+    fn turns<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _last: Option<usize>,
+    ) -> Reply<'a, Vec<agent::sessions::Turn>> {
+        unreachable()
+    }
+
+    fn delete<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+    ) -> Reply<'a, agent::sessions::Requested> {
+        unreachable()
+    }
+
+    fn set_archived<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _archived: bool,
+    ) -> Reply<'a, agent::sessions::Requested> {
+        unreachable()
+    }
+
+    fn upgrade_readiness(&self) -> Reply<'_, agent::sessions::UpgradeReadiness> {
+        Box::pin(async { Ok(agent::sessions::UpgradeReadiness::default()) })
     }
 }

@@ -2,17 +2,21 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
-    Error,
+    Condition, ConditionStatus, Error, FailureKind, Status,
     control_api::{
         AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
     },
-    control_plane::WaitPolicy,
-    control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
+    control_plane::{AgentStore as _, ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
     resources::Changes,
+    wait::Policy,
 };
 use sandbox::LocalFuture;
 use tokio::{
@@ -22,7 +26,14 @@ use tokio::{
 
 use support::agent;
 
-struct IgnoreNotifications;
+/// Stands in for the Agent controller: a woken Agent is reconciled at once
+/// to `failure`, or to Ready without one.
+struct FakeController {
+    store: Rc<InMemoryAgentStore>,
+    failure: RefCell<Option<(FailureKind, String)>>,
+    /// Leaves a woken Agent unreconciled, as a controller still busy with it would.
+    hold: Cell<bool>,
+}
 
 struct FakeAuthentication;
 struct FakeSshAccess;
@@ -68,8 +79,8 @@ impl VncAccessApi for FakeVncAccess {
     }
 }
 struct FakeExecutions;
-/// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
-type SentMessage = (String, bool, Option<std::time::Duration>);
+/// The prompt of one `sessions.v1.prompt` as the fake saw it.
+type SentMessage = String;
 
 #[derive(Default)]
 struct UpgradeGates {
@@ -80,6 +91,8 @@ struct UpgradeGates {
 }
 
 struct FakeSessions {
+    /// The Session the last request left, as a read by identity finds it.
+    recorded: RefCell<Option<agent::sessions::Session>>,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
@@ -110,8 +123,85 @@ fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
     }
 }
 
-impl Notifier for IgnoreNotifications {
+impl Notifier for FakeController {
     fn notify(&self, _id: agent::AgentId) {}
+
+    fn wake(&self, id: agent::AgentId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            if self.hold.get() {
+                return Ok(());
+            }
+            let record = self.store.get(id).await?;
+            let generation = record.agent.metadata.generation;
+            let failure = self.failure.borrow().clone();
+            let ready = Condition {
+                kind: Condition::READY.into(),
+                status: if failure.is_some() {
+                    ConditionStatus::False
+                } else {
+                    ConditionStatus::True
+                },
+                reason: if failure.is_some() {
+                    "SandboxReconcileFailed"
+                } else {
+                    "SandboxReady"
+                }
+                .into(),
+                message: failure.as_ref().map(|(_, message)| message.clone()).unwrap_or_default(),
+                last_transition_time: None,
+            };
+            let mut status = Status::observed(generation, Some(fake_assignment()?), vec![ready]);
+            status.failure = failure.map(|(kind, _)| kind);
+            status.sync.observed = record.agent.status.sync.requested;
+            self.store.update_status(id, generation, status).await.map(drop)
+        })
+    }
+}
+
+fn fake_assignment() -> Result<agent::sandbox::Assignment, Error> {
+    Ok(agent::sandbox::Assignment::Materialized {
+        provider: agent::sandbox::ProviderId::new("memory")?,
+        id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
+            .parse()
+            .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
+        harnesses: Vec::new(),
+    })
+}
+
+/// A Session as the fake records it: every request handled at once, and one
+/// completed turn after each prompt.
+fn fake_session(
+    agent: &str,
+    name: &agent::sessions::SessionName,
+    archived: bool,
+    turns: u64,
+) -> agent::sessions::Session {
+    let mut session: agent::sessions::Session = serde_json::from_value(serde_json::json!({
+        "id": "00000000-0000-4000-8000-000000000001",
+        "agentId": "00000000-0000-4000-8000-000000000002",
+        "agent": agent,
+        "name": name,
+        "harness": "claudeCode",
+        "createdAt": "2026-09-25T00:00:00Z",
+        "archivedAt": archived.then_some("2026-09-25T00:00:01Z"),
+        "generation": 1,
+        "observedGeneration": 1,
+    }))
+    .expect("fake Session");
+    session.status = agent::sessions::Status::new(
+        agent::sessions::Lifecycle::running(),
+        agent::sessions::Reported {
+            harness_session_id: Some("native".into()),
+            activity: agent::sessions::Activity {
+                phase: agent::sessions::Phase::WaitingForInput,
+                turns,
+                last_event_at: Some(time::OffsetDateTime::UNIX_EPOCH),
+                ..agent::sessions::Activity::default()
+            },
+            ..agent::sessions::Reported::default()
+        },
+    );
+    session
 }
 
 impl AuthenticationApi for FakeAuthentication {
@@ -136,9 +226,21 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         request: agent::sessions::SessionRequest,
-    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
+    ) -> LocalFuture<'a, Result<agent::sessions::Requested, Error>> {
         self.ensured.borrow_mut().push(request);
         Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn attach_target(
+        &self,
+        _id: agent::sessions::SessionId,
+    ) -> LocalFuture<'_, Result<agent::sessions::AttachTarget, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn get_by_id(&self, _id: agent::sessions::SessionId) -> LocalFuture<'_, Result<agent::sessions::Session, Error>> {
+        let recorded = self.recorded.borrow().clone();
+        Box::pin(async move { recorded.ok_or(Error::NotFound) })
     }
 
     fn get<'a>(
@@ -156,12 +258,10 @@ impl SessionApi for FakeSessions {
     fn prompt<'a>(
         &'a self,
         agent: &'a str,
-        _name: &'a agent::sessions::SessionName,
+        name: &'a agent::sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>> {
-        self.sent.borrow_mut().push((prompt.to_owned(), wait, timeout));
+    ) -> LocalFuture<'a, Result<agent::sessions::Delivered, Error>> {
+        self.sent.borrow_mut().push(prompt.to_owned());
         let gate = self.upgrade_gates.prompt.borrow().clone();
         let upgrade_gates = self.upgrade_gates.clone();
         let blockers = self.upgrade_blockers.clone();
@@ -174,7 +274,13 @@ impl SessionApi for FakeSessions {
                 gate.notified().await;
                 blockers.borrow_mut().push("session/worker/s1 (working)".into());
             }
-            Ok(())
+            let turns = self.sent.borrow().len() as u64;
+            let name = name.clone();
+            *self.recorded.borrow_mut() = Some(fake_session(agent, &name, false, turns));
+            Ok(agent::sessions::Delivered {
+                session: fake_session(agent, &name, false, turns - 1),
+                turns: turns - 1,
+            })
         })
     }
 
@@ -201,7 +307,7 @@ impl SessionApi for FakeSessions {
         agent: &'a str,
         name: &'a agent::sessions::SessionName,
         archived: bool,
-    ) -> LocalFuture<'a, Result<agent::sessions::Session, Error>> {
+    ) -> LocalFuture<'a, Result<agent::sessions::Requested, Error>> {
         self.archived
             .borrow_mut()
             .push((agent.to_owned(), name.clone(), archived));
@@ -209,16 +315,9 @@ impl SessionApi for FakeSessions {
             if agent != "worker" {
                 return Err(Error::NotFound);
             }
-            let session = serde_json::json!({
-                "id": "00000000-0000-4000-8000-000000000001",
-                "agentId": "00000000-0000-4000-8000-000000000002",
-                "agent": agent,
-                "name": name,
-                "harness": "claudeCode",
-                "createdAt": "2026-09-25T00:00:00Z",
-                "archivedAt": archived.then_some("2026-09-25T00:00:01Z"),
-            });
-            Ok(serde_json::from_value(session).expect("archived Session"))
+            let session = fake_session(agent, name, archived, 0);
+            *self.recorded.borrow_mut() = Some(session.clone());
+            Ok(agent::sessions::Requested { session, generation: 1 })
         })
     }
 
@@ -226,14 +325,18 @@ impl SessionApi for FakeSessions {
         &'a self,
         agent: &'a str,
         name: &'a agent::sessions::SessionName,
-    ) -> LocalFuture<'a, Result<(), Error>> {
+    ) -> LocalFuture<'a, Result<agent::sessions::Requested, Error>> {
         self.deleted.borrow_mut().push((agent.to_owned(), name.clone()));
         Box::pin(async move {
-            if agent == "worker" {
-                Ok(())
-            } else {
-                Err(Error::NotFound)
+            if agent != "worker" {
+                return Err(Error::NotFound);
             }
+            // Released at once: a read by identity finds nothing.
+            *self.recorded.borrow_mut() = None;
+            Ok(agent::sessions::Requested {
+                session: fake_session(agent, name, false, 0),
+                generation: 1,
+            })
         })
     }
 
@@ -253,23 +356,10 @@ impl SessionApi for FakeSessions {
 }
 
 impl ExecutionApi for FakeExecutions {
-    fn ensure<'a>(
-        &'a self,
-        name: &'a str,
-        _wait: WaitPolicy,
-    ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+    fn target(&self, _id: agent::AgentId) -> LocalFuture<'_, Result<agent::sandbox::ExecutionTarget, Error>> {
         Box::pin(async move {
-            if name != "worker" {
-                return Err(Error::NotFound);
-            }
             Ok(agent::sandbox::ExecutionTarget {
-                sandbox: agent::sandbox::Assignment::Materialized {
-                    provider: agent::sandbox::ProviderId::new("memory")?,
-                    id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
-                        .parse()
-                        .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
-                    harnesses: Vec::new(),
-                },
+                sandbox: fake_assignment()?,
                 operating_system: "linux".into(),
             })
         })
@@ -287,6 +377,7 @@ struct ScriptedConnector {
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
+    controller: Rc<FakeController>,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     changes: Changes,
@@ -327,16 +418,19 @@ impl Connector for ScriptedConnector {
 }
 
 fn api() -> ApiFixture {
-    let control_plane = Rc::new(ControlPlane::new(
-        Rc::new(InMemoryAgentStore::new()),
-        Rc::new(IgnoreNotifications),
-    ));
+    let changes = Changes::new();
+    let store = Rc::new(InMemoryAgentStore::with_changes(changes.clone()));
+    let controller = Rc::new(FakeController {
+        store: store.clone(),
+        failure: RefCell::default(),
+        hold: Cell::new(false),
+    });
+    let control_plane = Rc::new(ControlPlane::new(store, controller.clone()));
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
     let deleted = Rc::new(RefCell::new(Vec::new()));
     let archived = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
-    let changes = Changes::new();
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
@@ -345,6 +439,7 @@ fn api() -> ApiFixture {
         Rc::new(FakeAuthentication),
         Rc::new(FakeExecutions),
         Rc::new(FakeSessions {
+            recorded: RefCell::default(),
             ensured: ensured.clone(),
             sent: sent.clone(),
             deleted: deleted.clone(),
@@ -362,6 +457,7 @@ fn api() -> ApiFixture {
     ApiFixture {
         server,
         client,
+        controller,
         ensured,
         sent,
         changes,
@@ -373,41 +469,25 @@ fn api() -> ApiFixture {
     }
 }
 
-struct DelayedConnector {
-    inner: InProcessConnector,
-}
-
-impl Connector for DelayedConnector {
-    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
-        Box::pin(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-            self.inner.connect().await
-        })
-    }
-}
-
 #[tokio::test(flavor = "local")]
-async fn prompt_completion_timeout_is_unchanged_by_transit() {
+async fn a_prompt_timeout_above_the_ceiling_is_refused_before_delivery() {
     let fixture = api();
-    let client = Client::new(Rc::new(DelayedConnector {
-        inner: InProcessConnector {
-            server: fixture.server.clone(),
-        },
-    }));
-    client
+    let error = fixture
+        .client
         .prompt_session(
             "worker",
             agent::sessions::SessionName::new("s1").expect("name"),
             "go".into(),
             true,
-            Some(Duration::from_millis(20)),
+            Some(agent::control_api::PROMPT_TIMEOUT_MAX + Duration::from_secs(1)),
         )
         .await
-        .expect("delivered");
-    assert_eq!(
-        fixture.sent.borrow().as_slice(),
-        [("go".into(), true, Some(Duration::from_millis(20)))]
+        .expect_err("timeout above the ceiling");
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.is_invalid_params() && error.message.contains("must not exceed 30m")),
+        "{error}"
     );
+    assert!(fixture.sent.borrow().is_empty(), "nothing was delivered");
 }
 
 #[tokio::test(flavor = "local")]
@@ -431,13 +511,7 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
         .prompt_session("worker", name.clone(), "fire and forget".into(), false, None)
         .await
         .expect("send without wait");
-    {
-        let sent = fixture.sent.borrow();
-        assert_eq!(sent.len(), 2);
-        assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
-        assert_eq!(sent[0].2, Some(Duration::from_secs(90)));
-        assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
-    }
+    assert_eq!(fixture.sent.borrow().as_slice(), ["do it", "fire and forget"]);
 
     let last = fixture
         .client
@@ -544,14 +618,17 @@ async fn login_returns_only_non_secret_readiness() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
-    assert_eq!(daemon.protocol_version.as_deref(), Some("v4"));
+    assert_eq!(
+        daemon.protocol_version.as_deref(),
+        Some(agent::control_api::PROTOCOL_VERSION)
+    );
     assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
 }
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
     let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
-        "protocolVersion": "v4",
+        "protocolVersion": agent::control_api::PROTOCOL_VERSION,
         "buildVersion": agent::build_version(),
         "futureCapability": true
     }))
@@ -564,7 +641,7 @@ fn daemon_identity_rejects_preview_1_and_mixed_builds() {
             build_version: None,
         },
         agent::control_api::DaemonInfo {
-            protocol_version: Some("v4".into()),
+            protocol_version: Some(agent::control_api::PROTOCOL_VERSION.into()),
             build_version: Some("another-build".into()),
         },
     ] {
@@ -770,7 +847,7 @@ async fn client_and_server_exchange_versioned_agent_operations() {
         applied
     );
     let execution = client
-        .ensure_execution("worker", WaitPolicy::FirstPass)
+        .ensure_execution("worker", Policy::FirstPass)
         .await
         .expect("execution target");
     assert_eq!(execution.operating_system, "linux");
@@ -789,7 +866,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s1").expect("Session name"),
             request.clone(),
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -799,7 +875,6 @@ async fn client_and_server_exchange_versioned_agent_operations() {
             "worker",
             agent::sessions::SessionName::new("s2").expect("Session name"),
             agent::sessions::SessionRequest::default(),
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("fake Session ensure should fail after decoding parameters");
@@ -821,9 +896,167 @@ async fn client_and_server_exchange_versioned_agent_operations() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn an_agent_wait_ends_with_the_failure_of_the_pass_it_requested() {
+    let fixture = api();
+    fixture.client.apply(request("worker")).await.expect("apply");
+    *fixture.controller.failure.borrow_mut() = Some((FailureKind::Invalid, "the image does not exist".into()));
+    let error = fixture
+        .client
+        .ensure_execution("worker", Policy::UntilReady)
+        .await
+        .expect_err("an invalid Agent ends the wait");
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.is_invalid_params() && error.message == "the image does not exist"),
+        "the outcome reads as the daemon reported it: {error}"
+    );
+
+    *fixture.controller.failure.borrow_mut() = None;
+    fixture
+        .client
+        .ensure_execution("worker", Policy::UntilReady)
+        .await
+        .expect("a later pass that succeeds ends the next wait");
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_wait_gives_up_once_agentd_has_been_gone_for_a_while() {
+    let fixture = api();
+    let applied = fixture.client.apply(request("worker")).await.expect("apply");
+    // The daemon answers the first watch, then goes away.
+    let client = Client::new(Rc::new(GoneAfter {
+        inner: InProcessConnector {
+            server: fixture.server.clone(),
+        },
+        calls: Cell::new(1),
+    }));
+    let request = agent::wait::AgentRequest {
+        generation: applied.metadata.generation + 1,
+        sync: 0,
+    };
+    let started = tokio::time::Instant::now();
+    let error = client
+        .wait_for_agent(applied.metadata.uid.expect("uid"), request, Policy::UntilReady)
+        .await
+        .expect_err("a daemon that stays away ends the wait");
+    assert!(
+        error
+            .to_string()
+            .contains("agentd stopped while this command was waiting"),
+        "{error}"
+    );
+    assert!(started.elapsed() >= Duration::from_secs(10), "{:?}", started.elapsed());
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_wait_continues_on_a_restarted_agentd() {
+    let fixture = api();
+    let id = fixture
+        .client
+        .apply(request("worker"))
+        .await
+        .expect("apply")
+        .metadata
+        .uid
+        .expect("uid");
+    fixture.controller.hold.set(true);
+    let restarted = Rc::new(Server::new(
+        Rc::new(ControlPlane::new(
+            fixture.controller.store.clone(),
+            fixture.controller.clone(),
+        )),
+        Rc::new(FakeAuthentication),
+        Rc::new(FakeExecutions),
+        Rc::new(support::Unreachable),
+        Rc::new(FakeSshAccess),
+        Rc::new(FakeVncAccess),
+        // A new process starts a new change history.
+        Changes::new(),
+        Rc::new(|_| {}),
+    ));
+    let connector = Rc::new(Restarting {
+        before: InProcessConnector {
+            server: fixture.server.clone(),
+        },
+        after: InProcessConnector { server: restarted },
+        restarted: Cell::new(false),
+        refused: Cell::new(0),
+        served_after: Cell::new(0),
+    });
+    let client = Client::new(connector.clone());
+    let wait = tokio::task::spawn_local(async move { client.ensure_execution("worker", Policy::UntilReady).await });
+    tokio::time::sleep(Duration::from_secs(1)).await;
+    assert!(!wait.is_finished(), "the requested pass has not run");
+
+    // agentd drains for an upgrade, is gone for two connections, then a new
+    // process answers; the requested pass runs meanwhile.
+    connector.restarted.set(true);
+    connector.refused.set(2);
+    fixture.client.shutdown_for_upgrade().await.expect("drain");
+    fixture.controller.hold.set(false);
+    fixture.controller.wake(id).await.expect("the requested pass");
+
+    let target = tokio::time::timeout(Duration::from_mins(1), wait)
+        .await
+        .expect("the wait ends on the new daemon")
+        .expect("wait task")
+        .expect("execution target");
+    assert_eq!(target.operating_system, "linux");
+    assert_eq!(connector.refused.get(), 0, "the wait reconnected");
+    assert!(connector.served_after.get() >= 2, "the new daemon answered the wait");
+}
+
+/// Connects to `before` until `restarted`, then refuses `refused` connections
+/// and connects to `after`.
+struct Restarting {
+    before: InProcessConnector,
+    after: InProcessConnector,
+    restarted: Cell<bool>,
+    refused: Cell<usize>,
+    served_after: Cell<usize>,
+}
+
+impl Connector for Restarting {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            if !self.restarted.get() {
+                return self.before.connect().await;
+            }
+            if self.refused.get() > 0 {
+                self.refused.set(self.refused.get() - 1);
+                return Err(Error::Io(std::io::ErrorKind::ConnectionRefused.into()));
+            }
+            self.served_after.set(self.served_after.get() + 1);
+            self.after.connect().await
+        })
+    }
+}
+
+/// Connects `calls` times, then fails as a stopped daemon's socket does.
+struct GoneAfter {
+    inner: InProcessConnector,
+    calls: Cell<usize>,
+}
+
+impl Connector for GoneAfter {
+    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+        Box::pin(async move {
+            if self.calls.get() == 0 {
+                return Err(Error::Io(std::io::ErrorKind::ConnectionRefused.into()));
+            }
+            self.calls.set(self.calls.get() - 1);
+            self.inner.connect().await
+        })
+    }
+}
+
+#[tokio::test(flavor = "local")]
 async fn resource_watch_returns_current_state_then_waits_for_the_next_change() {
     let fixture = api();
-    let initial = fixture.client.watch_resources(None).await.expect("initial state");
+    let initial = fixture
+        .client
+        .watch(None, agent::resources::Selector::default())
+        .await
+        .expect("initial state");
     assert!(initial.agents.is_empty());
     assert!(initial.sessions.is_empty());
 
@@ -831,7 +1064,11 @@ async fn resource_watch_returns_current_state_then_waits_for_the_next_change() {
         server: fixture.server.clone(),
     }));
     let revision = initial.revision;
-    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(revision)).await });
+    let watch = tokio::task::spawn_local(async move {
+        watcher
+            .watch(Some(revision), agent::resources::Selector::default())
+            .await
+    });
     tokio::task::yield_now().await;
     assert!(!watch.is_finished(), "a current revision waits for a change");
 
@@ -845,25 +1082,41 @@ async fn resource_watch_returns_current_state_then_waits_for_the_next_change() {
 #[tokio::test(flavor = "local", start_paused = true)]
 async fn resource_watch_replies_unchanged_after_the_keepalive() {
     let fixture = api();
-    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let current = fixture
+        .client
+        .watch(None, agent::resources::Selector::default())
+        .await
+        .expect("initial state");
     let started = tokio::time::Instant::now();
     let unchanged = fixture
         .client
-        .watch_resources(Some(current.revision))
+        .watch(Some(current.revision), agent::resources::Selector::default())
         .await
         .expect("keepalive state");
-    assert_eq!(unchanged, current);
+    assert_eq!(
+        (unchanged.revision, unchanged.agents, unchanged.sessions),
+        (current.revision, current.agents, current.sessions)
+    );
+    assert!(unchanged.now >= current.now, "the reply reads the daemon's clock again");
     assert_eq!(started.elapsed(), Duration::from_secs(30));
 }
 
 #[tokio::test(flavor = "local")]
 async fn resource_watch_neither_holds_nor_outlives_an_upgrade_drain() {
     let fixture = api();
-    let current = fixture.client.watch_resources(None).await.expect("initial state");
+    let current = fixture
+        .client
+        .watch(None, agent::resources::Selector::default())
+        .await
+        .expect("initial state");
     let watcher = Client::new(Rc::new(InProcessConnector {
         server: fixture.server.clone(),
     }));
-    let watch = tokio::task::spawn_local(async move { watcher.watch_resources(Some(current.revision)).await });
+    let watch = tokio::task::spawn_local(async move {
+        watcher
+            .watch(Some(current.revision), agent::resources::Selector::default())
+            .await
+    });
     tokio::task::yield_now().await;
 
     fixture
@@ -913,7 +1166,7 @@ async fn a_frame_that_is_not_the_response_fails_the_call() {
     };
     let client = Client::new(Rc::new(notification));
     let error = client
-        .ensure_execution("worker", WaitPolicy::UntilReady)
+        .ensure_execution("worker", Policy::UntilReady)
         .await
         .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");

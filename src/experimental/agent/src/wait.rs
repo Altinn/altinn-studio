@@ -52,11 +52,13 @@ pub enum Settled {
 }
 
 /// The Agent counters a wait must see handled.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct AgentRequest {
     /// Desired generation at the time of the request.
     pub generation: u64,
     /// Sync request the wait made, or 0 for none.
+    #[serde(rename = "syncRequested")]
     pub sync: u64,
 }
 
@@ -95,9 +97,9 @@ pub fn agent_outcome(status: &Status) -> Outcome {
     )
 }
 
-/// The error a waiter reports for an Agent outcome that ended its wait.
+/// The error a waiter reports for an outcome that ended its wait, by its failure class.
 #[must_use]
-pub fn agent_error(outcome: Outcome) -> Error {
+pub fn outcome_error(outcome: Outcome) -> Error {
     match outcome.failure {
         Some(FailureKind::Invalid) => Error::Invalid(outcome.message),
         Some(FailureKind::Unavailable) => Error::Unavailable(outcome.message),
@@ -114,6 +116,9 @@ pub enum Expected {
     Archived,
     /// No longer archived, after unarchive.
     Unarchived,
+    /// Gone, after delete. A Session still present is either not released
+    /// yet or its release failed.
+    Deleted,
 }
 
 /// Decides a Session wait for request `requested`.
@@ -132,8 +137,13 @@ pub fn session(session: &Session, requested: u64, expected: Expected) -> Settled
     let lifecycle = &session.status.lifecycle;
     let matches = match expected {
         Expected::Running => lifecycle.state == LifecycleState::Running && !session.is_archived(),
-        Expected::Archived => session.is_archived(),
+        // A stop that failed leaves the Session archived, but its outcome is
+        // the failure. A turn still finishing keeps whatever lifecycle it had.
+        Expected::Archived => {
+            session.is_archived() && !(lifecycle.state == LifecycleState::Archived && lifecycle.failure_kind.is_some())
+        }
         Expected::Unarchived => !session.is_archived(),
+        Expected::Deleted => false,
     };
     if matches {
         return Settled::Done;
@@ -383,6 +393,43 @@ mod tests {
         ));
         let unarchived = session(Lifecycle::idle(), 4, 4);
         assert_eq!(super::session(&unarchived, 4, Expected::Unarchived), Settled::Done);
+
+        let mut finishing_a_turn = session(
+            Lifecycle::failed(
+                LifecycleReason::HarnessBackoff,
+                "harness exited",
+                FailureKind::Transient,
+            ),
+            3,
+            3,
+        );
+        finishing_a_turn.archived_at = Some(OffsetDateTime::UNIX_EPOCH);
+        assert_eq!(
+            super::session(&finishing_a_turn, 3, Expected::Archived),
+            Settled::Done,
+            "a pass that waits for the turn keeps the lifecycle it had, failure included"
+        );
+
+        let mut stop_failed = session(Lifecycle::archived_with("unreachable", FailureKind::Transient), 3, 3);
+        stop_failed.archived_at = Some(OffsetDateTime::UNIX_EPOCH);
+        assert!(matches!(
+            super::session(&stop_failed, 3, Expected::Archived),
+            Settled::Failed(outcome) if outcome.message == "unreachable"
+        ));
+    }
+
+    #[test]
+    fn a_delete_waits_for_the_session_to_go_or_its_release_to_fail() {
+        let mut deleting = session(Lifecycle::running(), 5, 4);
+        deleting.deletion_timestamp = Some(OffsetDateTime::UNIX_EPOCH);
+        assert_eq!(super::session(&deleting, 5, Expected::Deleted), Settled::Pending);
+        let release_failed = Lifecycle::failed(LifecycleReason::ReleaseFailed, "stop failed", FailureKind::Transient);
+        deleting.status = SessionStatus::new(release_failed, Reported::default());
+        deleting.observed_generation = 5;
+        assert!(matches!(
+            super::session(&deleting, 5, Expected::Deleted),
+            Settled::Failed(outcome) if outcome.reason == "ReleaseFailed"
+        ));
     }
 
     fn turn_session(state: Phase, turns: u64, last_event_at: OffsetDateTime) -> Session {

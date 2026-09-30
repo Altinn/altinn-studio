@@ -5,23 +5,14 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, control_plane, wait};
+use serde::{Deserialize, Serialize};
+
+use crate::{Error, control_plane};
 
 use super::{
     AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
     SessionRuntime, SharedStore, State, Turn, Wakeup,
 };
-
-/// Ceiling for completion waiting after prompt submission.
-const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
-
-/// Polls durable activity while a caller waits for completion.
-const ACTIVITY_POLL: Duration = Duration::from_millis(250);
-
-/// How long a Session waiter lets changes gather before rereading the Session.
-const SESSION_SETTLE: Duration = Duration::from_millis(50);
-/// Longest a Session waiter goes without rereading the Session.
-const SESSION_RECHECK: Duration = Duration::from_secs(30);
 
 /// Maximum time to wait for a newly launched harness to accept input.
 const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
@@ -38,12 +29,43 @@ pub struct UpgradeReadiness {
     pub warnings: Vec<String>,
 }
 
+/// A recorded Session request: the Session as recorded, and the request
+/// counter a wait for its outcome must see handled; see [`crate::wait::session`].
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct Requested {
+    /// The Session once the request was recorded.
+    pub session: Session,
+    /// Its request counter, which the Session reconciler reports as handled
+    /// with the request's outcome.
+    pub generation: u64,
+}
+
+impl Requested {
+    const fn new(session: Session) -> Self {
+        Self {
+            generation: session.generation,
+            session,
+        }
+    }
+}
+
+/// A delivered prompt, with what a wait for its turn starts from; see [`crate::wait::turn`].
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct Delivered {
+    /// The Session as the prompt found it.
+    pub session: Session,
+    /// Turns the harness had completed before the prompt.
+    pub turns: u64,
+}
+
 /// Durable Session registry whose effects are owned by the daemon controller.
 pub struct Service {
     store: SharedStore,
     sandboxes: Rc<AgentSandboxes>,
     runtime: Rc<dyn SessionRuntime>,
-    convergence: control_plane::Convergence,
+    agents: Rc<control_plane::ControlPlane>,
     wakeup: Wakeup,
     /// Sessions with a delivery in flight, each with the signal its waiters
     /// sleep on. Two concurrent prompts would interleave their keystrokes in
@@ -86,118 +108,93 @@ impl Drop for Delivering<'_> {
 
 impl Service {
     /// Creates a Session service over durable storage, Agent Sandboxes,
-    /// Agent convergence and the Session controller.
+    /// the Agent Control Plane and the Session controller.
     #[must_use]
     pub fn new(
         store: SharedStore,
         sandboxes: Rc<AgentSandboxes>,
         runtime: Rc<dyn SessionRuntime>,
-        convergence: control_plane::Convergence,
+        agents: Rc<control_plane::ControlPlane>,
         wakeup: Wakeup,
     ) -> Self {
         Self {
             store,
             sandboxes,
             runtime,
-            convergence,
+            agents,
             wakeup,
             deliveries: RefCell::default(),
         }
     }
 
-    /// Creates or gets one named Session and waits until its driver is ready.
+    /// Creates or gets one named Session and requests it running, without
+    /// waiting for the outcome.
     ///
     /// `request` applies only when this call creates the Session. Its harness,
     /// model and effort resolve in that order of precedence: the explicit
     /// request, then the selected installation's manifest defaults, then the
     /// harness's own defaults; the resolved values are recorded with the
     /// Session. The initial prompt is handed to the harness at its first
-    /// launch, so the harness starts working before this call returns.
+    /// launch.
+    ///
+    /// The request also asks the Agent to converge, and the Session pass holds
+    /// the launch until the Agent has handled that, so a stopped Sandbox is
+    /// started first. A caller waits for the returned request with
+    /// [`crate::wait::session`] and then reads [`Self::attach_target`].
     ///
     /// # Errors
     ///
-    /// Returns an error when persistence fails, an explicit selection conflicts
-    /// with an existing Session, or the Session pass that handled the request
-    /// ended without a running harness: its Agent is invalid, being deleted or
-    /// unavailable, the harness is not installed, or the launch failed.
-    ///
-    /// The request asks the Agent to converge, and the Session is held until
-    /// the Agent has, so a stopped Sandbox is started before the Session
-    /// launches in it. An Agent that fails only transiently keeps the Session
-    /// held, and the wait goes on.
-    pub async fn ensure(
-        &self,
-        agent: &str,
-        name: &SessionName,
-        request: SessionRequest,
-    ) -> Result<AttachTarget, Error> {
+    /// Returns an error when persistence fails, an explicit selection
+    /// conflicts with an existing Session, or the Agent is being deleted.
+    pub async fn ensure(&self, agent: &str, name: &SessionName, request: SessionRequest) -> Result<Requested, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        // The Agent converges first: the Session is held until the Agent has
-        // handled this sync, so a stopped Sandbox is started before it launches.
-        let sync = self.convergence.request(owner.id).await?.sync;
+        // The Session is held until the Agent has handled this sync, so a
+        // stopped Sandbox is started before it launches.
+        let sync = self.agents.sync(owner.id).await?.sync;
         self.store.activate_session_after_agent_sync(session.id, sync).await?;
-        let requested = self.live_session(session.id).await?.generation;
+        let session = self.live_session(session.id).await?;
         self.wakeup.wake(session.id).await?;
-        let current = self.settle(session.id, requested, wait::Expected::Running).await?;
-        self.store.session_attach_target(current.id).await
+        Ok(Requested::new(session))
     }
 
-    /// Waits until a Session pass has handled request `requested`, and
-    /// returns the Session once its outcome is the expected one.
-    async fn settle(&self, id: SessionId, requested: u64, expected: wait::Expected) -> Result<Session, Error> {
-        let changes = self.convergence.changes();
-        loop {
-            let revision = changes.revision();
-            let current = self.live_session(id).await?;
-            match wait::session(&current, requested, expected) {
-                wait::Settled::Done => return Ok(current),
-                wait::Settled::Failed(outcome) => return Err(wait::session_error(&current, outcome)),
-                wait::Settled::Superseded(_) => return Err(current.not_running_error()),
-                wait::Settled::Pending => {}
-            }
-            changes
-                .changed_since(Some(revision), SESSION_SETTLE, SESSION_RECHECK)
-                .await;
-        }
+    /// Resolves a running Session into its terminal attachment target.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is missing, being deleted or not
+    /// running, or its Agent is not Ready.
+    pub async fn attach_target(&self, id: SessionId) -> Result<AttachTarget, Error> {
+        self.live_session(id).await?;
+        self.store.session_attach_target(id).await
     }
 
-    /// Delivers a prompt to a running Session's harness.
+    /// Gets a Session by identity, also while it is marked for deletion, so a
+    /// waiter can tell a failed release from a finished one.
     ///
-    /// With `wait`, snapshots the completed-turn counter before delivery and
-    /// waits for it to advance with identical waiting activity in two consecutive
-    /// polls, 250 ms apart. Work observed during settling requires another
-    /// completion. This is a timing heuristic, not identification of an answer
-    /// to this prompt.
-    /// Read the conversation separately with [`Self::turns`].
+    /// # Errors
     ///
-    /// In both modes delivery waits for input readiness. The runtime may establish
-    /// readiness before the harness reports its first conversation. The completion
-    /// timeout starts after submission; queuing, readiness and delivery are excluded.
-    /// Activity is polled from the local database every 250 ms.
+    /// Returns `Error::NotFound` once the Session is gone, or a storage error.
+    pub async fn get_by_id(&self, id: SessionId) -> Result<Session, Error> {
+        self.store.get_session(id).await
+    }
+
+    /// Delivers a prompt to a running Session's harness and returns the
+    /// completed-turn count from before it, which a wait for the prompt's turn
+    /// starts from; see [`crate::wait::turn`].
+    ///
+    /// Delivery waits for input readiness. The runtime may establish readiness
+    /// before the harness reports its first conversation. Deliveries to one
+    /// Session take turns, and one that cannot start within the readiness bound
+    /// fails. Read the conversation separately with [`Self::turns`].
     ///
     /// # Errors
     ///
     /// Returns an error when the Session is not running, the harness has not
-    /// become ready for input within a short grace period, the input cannot be
-    /// delivered, the Session fails mid-turn, or the wait exceeds `timeout`.
-    pub async fn prompt(
-        &self,
-        agent: &str,
-        name: &SessionName,
-        prompt: &str,
-        wait: bool,
-        timeout: Option<Duration>,
-    ) -> Result<(), Error> {
-        if timeout.is_some_and(|timeout| timeout > PROMPT_TIMEOUT_MAX) {
-            return Err(Error::Invalid(format!(
-                "completion timeout must not exceed {}m",
-                PROMPT_TIMEOUT_MAX.as_secs() / 60
-            )));
-        }
+    /// become ready for input within a short grace period, another delivery
+    /// holds the Session for as long, or the input cannot be delivered.
+    pub async fn prompt(&self, agent: &str, name: &SessionName, prompt: &str) -> Result<Delivered, Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
-        // Deliveries to one Session take turns. One that cannot start within
-        // the input-readiness bound fails instead of queueing without end.
         let delivering = tokio::time::timeout(INPUT_READY_TIMEOUT, Delivering::acquire(&self.deliveries, id))
             .await
             .map_err(|_| {
@@ -206,50 +203,10 @@ impl Service {
                 ))
             })?;
         let session = self.ready_to_prompt(id, name, &sandbox).await?;
-        let completed_before = session.status.reported.activity.turns;
+        let turns = session.status.reported.activity.turns;
         self.runtime.prompt(&session, &sandbox, prompt).await?;
         drop(delivering);
-        if !wait {
-            return Ok(());
-        }
-        tokio::time::timeout(
-            timeout.unwrap_or(PROMPT_TIMEOUT_MAX),
-            self.wait_for_completion(id, name, completed_before),
-        ).await.map_err(|_| Error::Session(format!(
-            "timed out waiting for Session \"{name}\" to complete; the prompt was submitted; inspect turns before retrying"
-        )))?
-    }
-
-    async fn wait_for_completion(
-        &self,
-        id: SessionId,
-        name: &SessionName,
-        mut completed_before: u64,
-    ) -> Result<(), Error> {
-        loop {
-            let current = self.store.get_session(id).await?;
-            match wait::turn(&mut completed_before, &current, time::OffsetDateTime::now_utc()) {
-                wait::Turn::Completed => return Ok(()),
-                wait::Turn::Ended(State::Failed) => {
-                    return Err(Error::Session(format!(
-                        "Session \"{name}\" failed while waiting for turn completion: {}",
-                        current.status.lifecycle.failure.as_deref().unwrap_or("unknown error")
-                    )));
-                }
-                wait::Turn::Ended(State::Archived) => {
-                    return Err(Error::Session(format!(
-                        "Session \"{name}\" was archived while waiting for turn completion"
-                    )));
-                }
-                wait::Turn::Ended(_) => {
-                    return Err(Error::Session(format!(
-                        "Session \"{name}\" was stopped while waiting for turn completion"
-                    )));
-                }
-                wait::Turn::Pending { .. } => {}
-            }
-            tokio::time::sleep(ACTIVITY_POLL).await;
-        }
+        Ok(Delivered { session, turns })
     }
 
     /// Waits for a report or runtime-observed input readiness. A harness may
@@ -426,30 +383,29 @@ impl Service {
         Ok(live(self.store.list_agent_sessions(agent).await?))
     }
 
-    /// Releases one Session: its harness is stopped and the Session is removed.
+    /// Requests release of one Session: its harness is stopped and the
+    /// Session is removed. Returns once the request is recorded.
     ///
     /// The request is recorded first, so a Session that cannot be released yet
     /// stays marked and is retried by the Session controller instead of leaving
     /// a harness running with nothing tracking it. The Session is no longer
     /// listed or resolvable by name from the moment it is marked, and its name
-    /// becomes available again once the harness is gone. Repeating the request
-    /// while the release is still pending is safe.
+    /// becomes available again once the harness is gone. A caller waits for the
+    /// Session to be gone, or for a failed release, by reading it by identity.
+    /// Repeating the request while the release is still pending is safe.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent or Session is missing, the request
-    /// cannot be recorded, or the release pass fails; the marker survives a
-    /// failed pass.
-    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<(), Error> {
+    /// Returns an error when the Agent or Session is missing or the request
+    /// cannot be recorded.
+    pub async fn delete(&self, agent: &str, name: &SessionName) -> Result<Requested, Error> {
         let session = self.store.mark_session_deleting(agent, name).await?;
-        self.wakeup.reconcile(session.id).await.map_err(|error| {
-            Error::Session(format!(
-                "Session \"{name}\" is marked for deletion and will be retried; stopping its harness failed: {error}"
-            ))
-        })
+        self.wakeup.wake(session.id).await?;
+        Ok(Requested::new(session))
     }
 
-    /// Archives or unarchives one Session and returns it as recorded.
+    /// Requests one Session archived or unarchived. Returns once the request
+    /// is recorded.
     ///
     /// Archiving stops the harness and keeps it stopped, once any turn in
     /// progress has ended; the Session keeps its name and conversation.
@@ -458,12 +414,12 @@ impl Service {
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent or Session is missing, the request
-    /// cannot be recorded, or the pass fails; the request survives a failed pass.
-    pub async fn set_archived(&self, agent: &str, name: &SessionName, archived: bool) -> Result<Session, Error> {
+    /// Returns an error when the Agent or Session is missing or the request
+    /// cannot be recorded.
+    pub async fn set_archived(&self, agent: &str, name: &SessionName, archived: bool) -> Result<Requested, Error> {
         let session = self.store.set_session_archived(agent, name, archived).await?;
-        self.wakeup.reconcile(session.id).await?;
-        self.store.get_session(session.id).await
+        self.wakeup.wake(session.id).await?;
+        Ok(Requested::new(session))
     }
 
     /// Every Session that is not being deleted. One already on its way out

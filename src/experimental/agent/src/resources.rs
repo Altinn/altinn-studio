@@ -79,6 +79,14 @@ impl Changes {
     }
 }
 
+impl Revision {
+    /// Whether both revisions come from the same daemon process.
+    #[must_use]
+    pub fn same_history(&self, other: &Self) -> bool {
+        self.epoch == other.epoch
+    }
+}
+
 impl Default for Changes {
     fn default() -> Self {
         Self::new()
@@ -117,7 +125,7 @@ impl<'de> serde::Deserialize<'de> for Revision {
     }
 }
 
-/// Every Agent and Session as of one revision.
+/// Every Agent and Session as of one revision, or the selected ones.
 ///
 /// The revision is taken before the state is read, so a change made while it
 /// is read is also reported by the next watch from this revision.
@@ -126,10 +134,56 @@ impl<'de> serde::Deserialize<'de> for Revision {
 pub struct Resources {
     /// Revision to watch from next.
     pub revision: Revision,
-    /// Active Agents ordered by name, with provisioning progress projected.
+    /// The daemon's clock when the state was read, which stamps Session activity.
+    #[serde(with = "time::serde::rfc3339")]
+    pub now: time::OffsetDateTime,
+    /// Active Agents ordered by name, with provisioning progress projected;
+    /// with a selector, only the selected Agent, also while it is deleting.
     pub agents: Vec<crate::Agent>,
-    /// Durable Sessions of those Agents.
+    /// Durable Sessions of those Agents; with a selector, only the selected
+    /// Session, also while it is marked for deletion.
     pub sessions: Vec<crate::sessions::Session>,
+}
+
+/// Resources a watch reads by identity instead of listing every Agent and Session.
+///
+/// A selected resource that does not exist ends the watch with a not-found
+/// error, so a waiter can tell a deleted resource from an unchanged one.
+#[derive(Clone, Copy, Debug, Default, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct Selector {
+    /// The Agent to read.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent: Option<crate::AgentId>,
+    /// The Session to read.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session: Option<crate::sessions::SessionId>,
+}
+
+impl Selector {
+    /// Selects one Agent.
+    #[must_use]
+    pub const fn agent(id: crate::AgentId) -> Self {
+        Self {
+            agent: Some(id),
+            session: None,
+        }
+    }
+
+    /// Selects one Session.
+    #[must_use]
+    pub const fn session(id: crate::sessions::SessionId) -> Self {
+        Self {
+            agent: None,
+            session: Some(id),
+        }
+    }
+
+    /// Whether nothing is selected, so a watch reads every Agent and Session.
+    #[must_use]
+    pub const fn is_all(&self) -> bool {
+        self.agent.is_none() && self.session.is_none()
+    }
 }
 
 #[cfg(test)]

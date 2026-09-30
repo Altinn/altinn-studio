@@ -30,11 +30,19 @@ pub struct ApplyRequest {
 pub trait Notifier {
     /// Schedules reconciliation without blocking the API request.
     fn notify(&self, id: crate::AgentId);
+
+    /// Schedules reconciliation of a recorded request, waiting for room in
+    /// the queue rather than leaving the request to the periodic scan.
+    fn wake(&self, id: crate::AgentId) -> sandbox::LocalFuture<'_, Result<(), Error>>;
 }
 
 impl Notifier for Wakeup {
     fn notify(&self, id: crate::AgentId) {
         self.notify(id);
+    }
+
+    fn wake(&self, id: crate::AgentId) -> sandbox::LocalFuture<'_, Result<(), Error>> {
+        Box::pin(Self::wake(self, id))
     }
 }
 
@@ -111,7 +119,7 @@ impl ControlPlane {
                         // An unchanged apply still asks for a pass, so a wait
                         // after editing only an environment file sees it.
                         let id = current.id;
-                        return self.request_pass(id, self.resource(current)).await;
+                        return self.applied(id, self.resource(current), true).await;
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -167,21 +175,23 @@ impl ControlPlane {
                         manifest_path,
                         env_file,
                     });
-                    if existed {
-                        return self.request_pass(id, desired).await;
-                    }
-                    // A new Agent's first generation already asks for a pass.
-                    self.notifier.notify(id);
-                    return Ok(desired);
+                    return self.applied(id, desired, existed).await;
                 }
             }
         }
     }
 
-    /// Records a sync request for an applied Agent and wakes its controller.
-    async fn request_pass(&self, id: AgentId, mut agent: Agent) -> Result<Agent, Error> {
-        agent.status.sync.requested = self.store.request_sync(id).await?;
-        self.notifier.notify(id);
+    /// Wakes the controller for an applied Agent and returns it with its
+    /// identity. Applying an existing Agent also records a sync request; a
+    /// new Agent's first generation already asks for a pass.
+    async fn applied(&self, id: AgentId, mut agent: Agent, existed: bool) -> Result<Agent, Error> {
+        agent.metadata.uid = Some(id);
+        if existed {
+            agent.status.sync.requested = self.store.request_sync(id).await?;
+            self.notifier.wake(id).await?;
+        } else {
+            self.notifier.notify(id);
+        }
         Ok(agent)
     }
 
@@ -248,6 +258,29 @@ impl ControlPlane {
     /// Returns an error when the Agent does not exist or storage fails.
     pub async fn get(&self, name: &str) -> Result<Agent, Error> {
         self.store.get_by_name(name).await.map(|record| self.resource(record))
+    }
+
+    /// Gets an Agent by identity, also while it is being deleted.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent does not exist or storage fails.
+    pub async fn get_by_id(&self, id: AgentId) -> Result<Agent, Error> {
+        self.store.get(id).await.map(|record| self.resource(record))
+    }
+
+    /// Records a request to converge an Agent now and wakes its controller.
+    /// The returned counters are what a wait for the request must see handled.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::Conflict` when the Agent is being deleted, `Error::NotFound`
+    /// when it does not exist, or a storage error.
+    pub async fn sync(&self, id: AgentId) -> Result<crate::wait::AgentRequest, Error> {
+        let sync = self.store.request_sync(id).await?;
+        let generation = self.store.get(id).await?.agent.metadata.generation;
+        self.notifier.wake(id).await?;
+        Ok(crate::wait::AgentRequest { generation, sync })
     }
 
     /// Lists every active Agent ordered by name.
@@ -445,6 +478,7 @@ impl ControlPlane {
     /// provisioning progress and provenance into status.
     fn resource(&self, record: AgentRecord) -> Agent {
         let mut agent = record.agent;
+        agent.metadata.uid = Some(record.id);
         agent.status.progress = self.provisioning.summary(record.id);
         agent.status.provenance = Some(crate::Provenance {
             source_directory: record.source_directory,

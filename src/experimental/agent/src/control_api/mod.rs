@@ -4,9 +4,11 @@ mod client;
 mod protocol;
 mod server;
 mod socket;
+mod waits;
 
 pub use client::{Client, Connection, Connector};
 pub use protocol::{DaemonInfo, PROTOCOL_VERSION, ResponseError};
 pub use server::{
     AgentApi, AuthenticationApi, ErrorHandler, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
 };
+pub use waits::PROMPT_TIMEOUT_MAX;

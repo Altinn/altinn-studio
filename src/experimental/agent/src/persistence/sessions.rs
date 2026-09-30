@@ -183,22 +183,22 @@ pub(super) fn activate(connection: &Connection, id: SessionId, agent_sync: Optio
 pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &SessionName) -> Result<Session, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let owner = agents::get_by_name(&transaction, agent)?;
-    let mut session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
-    if !session.is_deleting() {
-        let changed = transaction
-            .execute(
-                "UPDATE sessions SET deletion_timestamp = ?1, generation = generation + 1 \
-                 WHERE id = ?2 AND deletion_timestamp IS NULL",
-                params![time::OffsetDateTime::now_utc().unix_timestamp(), session.id.to_string()],
-            )
-            .map_err(database_error)?;
-        if changed != 1 {
-            return Err(Error::Conflict);
-        }
-        // Read the marker back so callers see the stored second, not a
-        // higher-precision value this Session would never report again.
-        session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
+    // Every request is counted, so repeating one after a failed release
+    // waits for a new pass; the first request's time is kept.
+    let changed = transaction
+        .execute(
+            "UPDATE sessions SET deletion_timestamp = COALESCE(deletion_timestamp, ?1), \
+             generation = generation + 1 WHERE id = ?2",
+            params![time::OffsetDateTime::now_utc().unix_timestamp(), session.id.to_string()],
+        )
+        .map_err(database_error)?;
+    if changed != 1 {
+        return Err(Error::Conflict);
     }
+    // Read the marker back so callers see the stored second, not a
+    // higher-precision value this Session would never report again.
+    let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
     transaction.commit().map_err(database_error)?;
     Ok(session)
 }
@@ -217,15 +217,22 @@ pub(super) fn set_archived(
     if session.is_deleting() {
         return Err(Error::NotFound);
     }
-    if session.is_archived() != archived {
-        let archived_at = archived.then(|| time::OffsetDateTime::now_utc().unix_timestamp());
-        transaction
-            .execute(
-                "UPDATE sessions SET archived_at = ?1, generation = generation + 1 WHERE id = ?2",
-                params![archived_at, session.id.to_string()],
-            )
-            .map_err(database_error)?;
-    }
+    // Every request is counted, so repeating one after a failed stop waits
+    // for a new pass; archiving an archived Session keeps its time.
+    let archived_at = if archived {
+        Some(session.archived_at.map_or_else(
+            || time::OffsetDateTime::now_utc().unix_timestamp(),
+            time::OffsetDateTime::unix_timestamp,
+        ))
+    } else {
+        None
+    };
+    transaction
+        .execute(
+            "UPDATE sessions SET archived_at = ?1, generation = generation + 1 WHERE id = ?2",
+            params![archived_at, session.id.to_string()],
+        )
+        .map_err(database_error)?;
     let session = query_named(&transaction, owner.id, name)?.ok_or(Error::NotFound)?;
     transaction.commit().map_err(database_error)?;
     Ok(session)

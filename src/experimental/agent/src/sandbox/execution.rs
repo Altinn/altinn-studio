@@ -5,11 +5,11 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, control_plane, control_plane::WaitPolicy};
+use crate::{Error, control_plane};
 
 use super::Assignment;
 
-/// Exact materialized Sandbox selected after Agent convergence.
+/// Exact materialized Sandbox of a Ready Agent.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct ExecutionTarget {
@@ -22,39 +22,25 @@ pub struct ExecutionTarget {
 /// Resolves transient executions without taking ownership of Sandbox lifecycle effects.
 pub struct ExecutionService {
     agents: Rc<dyn control_plane::AgentStore>,
-    convergence: control_plane::Convergence,
 }
 
 impl ExecutionService {
-    /// Creates an execution-target resolver over the Agent controller.
+    /// Creates an execution-target resolver over the stored Agents.
     #[must_use]
-    pub const fn new(agents: Rc<dyn control_plane::AgentStore>, convergence: control_plane::Convergence) -> Self {
-        Self { agents, convergence }
+    pub const fn new(agents: Rc<dyn control_plane::AgentStore>) -> Self {
+        Self { agents }
     }
 
-    /// Wakes Agent convergence and returns its exact ready Sandbox assignment.
+    /// Returns the exact Sandbox assignment of a Ready Agent. It never
+    /// converges the Agent: a caller requests a sync and waits for it first.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, or invalid; with
-    /// [`WaitPolicy::FirstPass`] also when the single pass fails or leaves the
-    /// Agent without a ready materialized Sandbox.
-    pub async fn ensure(&self, name: &str, wait: WaitPolicy) -> Result<ExecutionTarget, Error> {
-        let record = self.load_active(name).await?;
-        self.convergence.converge(record.id, wait).await?;
-        self.target(record.id, name).await
-    }
-
-    async fn load_active(&self, name: &str) -> Result<control_plane::AgentRecord, Error> {
-        let record = self.agents.get_by_name(name).await?;
-        if record.agent.metadata.deletion_timestamp.is_some() {
-            return Err(Error::Conflict);
-        }
-        Ok(record)
-    }
-
-    async fn target(&self, id: crate::AgentId, name: &str) -> Result<ExecutionTarget, Error> {
+    /// Returns an error when the Agent is missing or deleting, or is not Ready
+    /// with a materialized Sandbox.
+    pub async fn target(&self, id: crate::AgentId) -> Result<ExecutionTarget, Error> {
         let record = self.agents.get(id).await?;
+        let name = &record.agent.metadata.name;
         if record.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }

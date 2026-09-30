@@ -4,16 +4,17 @@ use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
+use crate::{Agent, AgentId, Error, control_plane, harness, resources, sessions, wait};
 
 use super::protocol::{
-    DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
-    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    AgentIdParams, DaemonInfo, DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
+    METHOD_DELETE, METHOD_EXECUTION_TARGET, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_ATTACH_TARGET,
+    METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT,
+    METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_SYNC, METHOD_VNC_ACCESS,
+    NameParams, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionIdParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -87,7 +88,8 @@ impl Client {
         Ok(result.warnings)
     }
 
-    /// Creates or updates an Agent resource.
+    /// Creates or updates an Agent resource. The returned generation and sync
+    /// request are what [`Self::wait_for_agent`] waits for.
     ///
     /// # Errors
     ///
@@ -137,29 +139,23 @@ impl Client {
             .await
     }
 
-    /// Converges an Agent and resolves its exact transient Execution target.
-    ///
-    /// `wait` decides whether the call returns after one reconciliation pass or
-    /// waits through background retries until Ready. Follow progress alongside
-    /// with [`Self::agent_progress`].
+    /// Records a request to converge an Agent now and wakes its controller.
+    /// The reply is what a wait for the request must see handled.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, invalid, or fails to
-    /// reach a ready materialized Sandbox.
-    pub async fn ensure_execution(
-        &self,
-        name: &str,
-        wait: WaitPolicy,
-    ) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(
-            METHOD_EXECUTION_ENSURE,
-            ExecutionEnsureParams {
-                name: name.into(),
-                follow: wait == WaitPolicy::UntilReady,
-            },
-        )
-        .await
+    /// Returns an error when the Agent is missing or being deleted.
+    pub async fn sync_agent(&self, id: AgentId) -> Result<wait::AgentRequest, Error> {
+        self.call(METHOD_SYNC, AgentIdParams { id }).await
+    }
+
+    /// Resolves a Ready Agent's exact transient Execution target, without converging it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing, deleting, or not Ready with a materialized Sandbox.
+    pub async fn execution_target(&self, id: AgentId) -> Result<crate::sandbox::ExecutionTarget, Error> {
+        self.call(METHOD_EXECUTION_TARGET, AgentIdParams { id }).await
     }
 
     /// Waits for a change after `after`, then returns the Agent's stored status
@@ -189,18 +185,22 @@ impl Client {
     }
 
     /// Waits for an Agent or Session to change after `after`, then returns
-    /// every Agent and Session. Without a revision, or with one from an earlier
-    /// daemon process, it returns the current state at once; with a current
-    /// revision it may return the unchanged state after a keepalive interval.
+    /// every Agent and Session, or only those `selector` names. Without a
+    /// revision, or with one from an earlier daemon process, it returns the
+    /// current state at once; with a current revision it may return the
+    /// unchanged state after a keepalive interval.
     ///
     /// # Errors
     ///
-    /// Returns an error when transport, protocol validation, or daemon reads fail.
-    pub async fn watch_resources(
+    /// Returns an error when a selected resource does not exist, or transport,
+    /// protocol validation, or daemon reads fail.
+    pub async fn watch(
         &self,
-        after: Option<crate::resources::Revision>,
-    ) -> Result<crate::resources::Resources, Error> {
-        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after }).await
+        after: Option<resources::Revision>,
+        selector: resources::Selector,
+    ) -> Result<resources::Resources, Error> {
+        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after, selector })
+            .await
     }
 
     /// Describes how to reach an Agent over SSH.
@@ -253,25 +253,23 @@ impl Client {
         .await
     }
 
-    /// Creates or resolves one named session attach target.
+    /// Creates or gets one named Session and requests it running, without
+    /// waiting; see [`Self::ensure_session`] for the wait.
     ///
     /// `request` selects the harness, model, effort and first prompt of a
     /// Session this call creates; see [`sessions::Service::ensure`] for the
-    /// precedence against manifest defaults. `wait` decides whether the call
-    /// returns after one Agent reconciliation pass or waits through background
-    /// retries until Ready. Follow progress alongside with [`Self::agent_progress`].
+    /// precedence against manifest defaults.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is not ready, a selection conflicts with
-    /// an existing Session, or the registry cannot persist the session.
-    pub async fn ensure_session(
+    /// Returns an error when a selection conflicts with an existing Session,
+    /// the Agent is being deleted, or the registry cannot persist the Session.
+    pub async fn request_session(
         &self,
         agent: &str,
         name: sessions::SessionName,
         request: sessions::SessionRequest,
-        wait: WaitPolicy,
-    ) -> Result<sessions::AttachTarget, Error> {
+    ) -> Result<sessions::Requested, Error> {
         self.call(
             METHOD_SESSION_ENSURE,
             SessionEnsureParams {
@@ -280,43 +278,41 @@ impl Client {
                 harness: request.harness,
                 model_selection: request.model_selection,
                 initial_prompt: request.initial_prompt,
-                follow: wait == WaitPolicy::UntilReady,
             },
         )
         .await
     }
 
-    /// Delivers a prompt to a running Session's harness. With `wait`, waits for
-    /// its completed-turn counter to advance with identical waiting activity in
-    /// two consecutive polls, 250 ms apart.
-    /// Work observed during settling requires another completion.
-    /// The timeout bounds completion waiting after submission, excluding setup and delivery.
-    /// Conversation output is read separately with [`Self::session_turns`].
+    /// Resolves a running Session into its terminal attachment target.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is missing or not running, or its Agent is not Ready.
+    pub async fn session_attach_target(&self, id: sessions::SessionId) -> Result<sessions::AttachTarget, Error> {
+        self.call(METHOD_SESSION_ATTACH_TARGET, SessionIdParams { id }).await
+    }
+
+    /// Delivers a prompt to a running Session's harness without waiting for
+    /// its turn; see [`Self::prompt_session`] for the wait.
     ///
     /// # Errors
     ///
     /// Returns an error when the Session is not running or the input cannot be delivered.
-    pub async fn prompt_session(
+    pub async fn deliver_prompt(
         &self,
         agent: &str,
         name: sessions::SessionName,
         prompt: String,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> Result<(), Error> {
-        let _result: serde_json::Value = self
-            .call(
-                METHOD_SESSION_PROMPT,
-                SessionPromptParams {
-                    agent: agent.into(),
-                    name,
-                    prompt,
-                    wait,
-                    timeout,
-                },
-            )
-            .await?;
-        Ok(())
+    ) -> Result<sessions::Delivered, Error> {
+        self.call(
+            METHOD_SESSION_PROMPT,
+            SessionPromptParams {
+                agent: agent.into(),
+                name,
+                prompt,
+            },
+        )
+        .await
     }
 
     /// Reads the harness transcript of a Session as ordered turns.
@@ -358,39 +354,40 @@ impl Client {
         .await
     }
 
-    /// Requests release of one Session: its harness is stopped and the Session
-    /// is removed, freeing its name.
+    /// Requests release of one Session without waiting; see
+    /// [`Self::delete_session`] for the wait.
     ///
     /// # Errors
     ///
-    /// Returns an error when either resource is missing, or the release pass fails.
-    pub async fn delete_session(&self, agent: &str, name: sessions::SessionName) -> Result<(), Error> {
-        let _result: serde_json::Value = self
-            .call(
-                METHOD_SESSION_DELETE,
-                SessionParams {
-                    agent: agent.into(),
-                    name,
-                    harness: None,
-                },
-            )
-            .await?;
-        Ok(())
+    /// Returns an error when either resource is missing or the request cannot be recorded.
+    pub async fn request_session_deletion(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+    ) -> Result<sessions::Requested, Error> {
+        self.call(
+            METHOD_SESSION_DELETE,
+            SessionParams {
+                agent: agent.into(),
+                name,
+                harness: None,
+            },
+        )
+        .await
     }
 
-    /// Archives or unarchives one Session and returns it as recorded. Archiving
-    /// stops its harness until it is unarchived; the Session keeps its name and
-    /// conversation.
+    /// Requests one Session archived or unarchived without waiting; see
+    /// [`Self::set_session_archived`] for the wait.
     ///
     /// # Errors
     ///
-    /// Returns an error when either resource is missing or the pass fails.
-    pub async fn set_session_archived(
+    /// Returns an error when either resource is missing or the request cannot be recorded.
+    pub async fn request_session_archived(
         &self,
         agent: &str,
         name: sessions::SessionName,
         archived: bool,
-    ) -> Result<sessions::Session, Error> {
+    ) -> Result<sessions::Requested, Error> {
         self.call(
             if archived {
                 METHOD_SESSION_ARCHIVE
@@ -439,7 +436,14 @@ impl Client {
         let mut stream = BufReader::new(stream);
         let line = match read_message(&mut stream).await? {
             ReadMessage::Complete(line) => line,
-            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+            // The daemon went away mid-call, which a waiting caller retries.
+            ReadMessage::EndOfStream => {
+                return Err(Error::Io(std::io::Error::new(
+                    std::io::ErrorKind::UnexpectedEof,
+                    "agentd closed the connection before replying",
+                )));
+            }
+            ReadMessage::TooLarge => {
                 return Err(Error::Invalid("invalid Agent Control API response".into()));
             }
         };

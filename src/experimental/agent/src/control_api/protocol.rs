@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v4";
+pub const PROTOCOL_VERSION: &str = "v5";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
@@ -13,7 +13,8 @@ pub(crate) const METHOD_LIST: &str = "agents.v1.list";
 pub(crate) const METHOD_PROGRESS: &str = "agents.v1.progress";
 pub(crate) const METHOD_RESOURCES_WATCH: &str = "resources.v1.watch";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
-pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
+pub(crate) const METHOD_SYNC: &str = "agents.v1.sync";
+pub(crate) const METHOD_EXECUTION_TARGET: &str = "agents.v1.executionTarget";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
 pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
 pub(crate) const METHOD_VNC_ACCESS: &str = "agents.v1.vncAccess";
@@ -26,6 +27,7 @@ pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
 pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
 pub(crate) const METHOD_SESSION_ARCHIVE: &str = "sessions.v1.archive";
 pub(crate) const METHOD_SESSION_UNARCHIVE: &str = "sessions.v1.unarchive";
+pub(crate) const METHOD_SESSION_ATTACH_TARGET: &str = "sessions.v1.attachTarget";
 
 pub(crate) const CODE_PARSE_ERROR: i32 = -32700;
 pub(crate) const CODE_INVALID_REQUEST: i32 = -32600;
@@ -96,10 +98,14 @@ pub(crate) struct NameParams {
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct ExecutionEnsureParams {
-    pub name: String,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub follow: bool,
+pub(crate) struct AgentIdParams {
+    pub id: crate::AgentId,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionIdParams {
+    pub id: crate::sessions::SessionId,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -108,6 +114,9 @@ pub(crate) struct ResourcesWatchParams {
     /// Revision of the previous reply; absent requests the current state now.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub after: Option<crate::resources::Revision>,
+    /// Resources to read instead of every Agent and Session.
+    #[serde(default, skip_serializing_if = "crate::resources::Selector::is_all")]
+    pub selector: crate::resources::Selector,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -143,8 +152,6 @@ pub(crate) struct SessionEnsureParams {
     pub model_selection: crate::ModelSelection,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_prompt: Option<String>,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub follow: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -153,10 +160,6 @@ pub(crate) struct SessionPromptParams {
     pub agent: String,
     pub name: crate::sessions::SessionName,
     pub prompt: String,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub wait: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub timeout: Option<std::time::Duration>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -242,6 +245,20 @@ pub(crate) struct ShutdownResult {
     pub warnings: Vec<String>,
 }
 
+/// The protocol error the daemon reports for `error`. A client that decides
+/// a wait itself reports its outcome the same way, so the caller sees the same
+/// text and error class wherever the wait ran.
+pub(crate) fn response_error(error: crate::Error) -> ResponseError {
+    let (code, message) = match error {
+        crate::Error::Rpc(error) => return error,
+        error @ crate::Error::NotFound => (CODE_NOT_FOUND, error.to_string()),
+        error @ (crate::Error::Immutable(_) | crate::Error::Conflict) => (CODE_IMMUTABLE, error.to_string()),
+        crate::Error::Invalid(message) => (CODE_INVALID_PARAMS, message),
+        error => (CODE_INTERNAL, error.to_string()),
+    };
+    ResponseError { code, message }
+}
+
 pub(crate) fn error_response(id: u64, code: i32, message: impl Into<String>) -> Response {
     Response {
         jsonrpc: JSON_RPC_VERSION.into(),
@@ -279,9 +296,4 @@ pub(crate) async fn read_message<R: AsyncBufRead + Unpin>(reader: &mut R) -> std
             return Ok(ReadMessage::Complete(message));
         }
     }
-}
-
-#[allow(clippy::trivially_copy_pass_by_ref)]
-const fn is_false(value: &bool) -> bool {
-    !*value
 }

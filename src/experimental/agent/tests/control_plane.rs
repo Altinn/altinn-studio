@@ -12,15 +12,16 @@ use std::{
 
 use agent::{
     AgentId, ConditionStatus, EnvironmentSpec, Error, FailureKind, MountSpec, SecretSpec, Status,
+    control_api::Client,
     control_plane::{
-        AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Reconciler, ResponsivenessMonitor,
-        WaitPolicy, memory,
+        AgentRecord, AgentStore, ControlPlane, Controller, Notifier, Reconciler, ResponsivenessMonitor, memory,
     },
     progress::{OutputPosition, ProvisioningState, SandboxObserver},
     resources::Changes,
     sandbox::{
         ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service, UNRESPONSIVE_AFTER,
     },
+    wait::Policy,
 };
 use sandbox::{
     EnsureSandboxRequest, GuestHeartbeat, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle,
@@ -41,6 +42,26 @@ impl Notifier for NotificationCounter {
     fn notify(&self, _id: AgentId) {
         self.0.set(self.0.get() + 1);
     }
+
+    fn wake(&self, _id: AgentId) -> LocalFuture<'_, Result<(), Error>> {
+        self.0.set(self.0.get() + 1);
+        Box::pin(async { Ok(()) })
+    }
+}
+
+/// A Control API client of Agents in `store`, whose requests wake `wakeup`,
+/// served in process as agentd serves agentctl.
+fn agent_client(
+    store: &Rc<memory::InMemoryAgentStore>,
+    wakeup: agent::control_plane::Wakeup,
+    changes: Changes,
+) -> Rc<Client> {
+    Rc::new(support::in_process_client(
+        Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup))),
+        Rc::new(ExecutionService::new(store.clone())),
+        Rc::new(support::Unreachable),
+        changes,
+    ))
 }
 
 #[derive(Default)]
@@ -1522,7 +1543,7 @@ struct Waiting {
     store: Rc<memory::InMemoryAgentStore>,
     backend: Rc<sandbox_memory::Provider>,
     provisioning: ProvisioningState,
-    execution: Rc<ExecutionService>,
+    client: Rc<Client>,
     wakeup: agent::control_plane::Wakeup,
     task: tokio::task::JoinHandle<()>,
 }
@@ -1545,10 +1566,7 @@ async fn waiting(failures: impl IntoIterator<Item = PlannedFailure>, interval: D
         provisioning.clone(),
     ));
     let (controller, wakeup) = Controller::new(store.clone(), reconciler, interval, Rc::new(|_, _| {}));
-    let execution = Rc::new(ExecutionService::new(
-        store.clone(),
-        Convergence::new(wakeup.clone(), store.clone(), changes),
-    ));
+    let client = agent_client(&store, wakeup.clone(), changes);
     let task = tokio::task::spawn_local(controller.run());
     tokio::task::yield_now().await;
     control_plane.apply(apply_request("worker")).await.expect("apply");
@@ -1556,7 +1574,7 @@ async fn waiting(failures: impl IntoIterator<Item = PlannedFailure>, interval: D
         store,
         backend,
         provisioning,
-        execution,
+        client,
         wakeup,
         task,
     }
@@ -1573,7 +1591,7 @@ async fn execution_target_waits_for_agent_convergence() {
     let fixture = waiting([], NO_BACKGROUND_PASSES).await;
     let target = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::FirstPass),
+        fixture.client.ensure_execution("worker", Policy::FirstPass),
     )
     .await
     .expect("execution target should not wait for the periodic scan")
@@ -1596,12 +1614,15 @@ async fn an_invalid_failure_fails_the_wait_immediately() {
     )
     .await;
     let error = fixture
-        .execution
-        .ensure("worker", WaitPolicy::UntilReady)
+        .client
+        .ensure_execution("worker", Policy::UntilReady)
         .await
         .expect_err("invalid preparation must fail fast");
 
-    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.is_invalid_params() && error.message.contains("GITHUB_TOKEN")),
+        "{error}"
+    );
     let stored = fixture.store.get(fixture.id().await).await.expect("stored Agent");
     assert_eq!(stored.agent.status.failure, Some(FailureKind::Invalid));
     let provisioning = fixture.provisioning.get(stored.id).expect("failed pass");
@@ -1617,13 +1638,16 @@ async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
     let fixture = waiting([PlannedFailure::Rejected], NO_BACKGROUND_PASSES).await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.client.ensure_execution("worker", Policy::UntilReady),
     )
     .await
     .expect("a permanent rejection must not be waited through")
     .expect_err("rejected request fails");
 
-    assert!(matches!(error, Error::Invalid(message) if message.contains("fractional CPUs")));
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.is_invalid_params() && error.message.contains("fractional CPUs")),
+        "{error}"
+    );
     fixture.task.abort();
 }
 
@@ -1638,13 +1662,16 @@ async fn a_flood_of_progress_does_not_stall_the_wait() {
     .await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.client.ensure_execution("worker", Policy::UntilReady),
     )
     .await
     .expect("progress volume must not stall the request")
     .expect_err("invalid preparation must fail");
 
-    assert!(matches!(error, Error::Invalid(message) if message.contains("GITHUB_TOKEN")));
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.is_invalid_params() && error.message.contains("GITHUB_TOKEN")),
+        "{error}"
+    );
     fixture.task.abort();
 }
 
@@ -1660,7 +1687,7 @@ async fn waiting_follows_background_retries_after_transient_failures() {
     .await;
     let target = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.client.ensure_execution("worker", Policy::UntilReady),
     )
     .await
     .expect("background retry should complete")
@@ -1801,15 +1828,18 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
     )
     .await;
     let error = fixture
-        .execution
-        .ensure("worker", WaitPolicy::FirstPass)
+        .client
+        .ensure_execution("worker", Policy::FirstPass)
         .await
         .expect_err("first pass fails");
-    assert!(matches!(error, Error::Daemon(message) if message.contains("temporary runtime failure")));
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.message.contains("temporary runtime failure")),
+        "{error}"
+    );
 
     let id = fixture.id().await;
-    let waiting = fixture.execution.clone();
-    let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
+    let waiting = fixture.client.clone();
+    let wait = tokio::task::spawn_local(async move { waiting.ensure_execution("worker", Policy::UntilReady).await });
     // The pass this wait requested fails as well; the wait outlasts it.
     tokio::time::timeout(Duration::from_secs(1), async {
         loop {
@@ -1853,8 +1883,8 @@ async fn dropping_a_wait_does_not_stop_background_reconciliation() {
     )
     .await;
     let id = fixture.id().await;
-    let waiting = fixture.execution.clone();
-    let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
+    let waiting = fixture.client.clone();
+    let wait = tokio::task::spawn_local(async move { waiting.ensure_execution("worker", Policy::UntilReady).await });
     tokio::time::timeout(Duration::from_secs(1), async {
         while !fixture.provisioning.get(id).is_some_and(|pass| {
             matches!(
@@ -2298,9 +2328,9 @@ async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
         Rc::new(|_, _| {}),
     );
     let task = tokio::task::spawn_local(controller.run());
-    let convergence = Convergence::new(wakeup, fixture.store.clone(), changes);
-    convergence
-        .converge(fixture.id, WaitPolicy::UntilReady)
+    let client = agent_client(&fixture.store, wakeup, changes);
+    client
+        .ensure_execution("worker", Policy::UntilReady)
         .await
         .expect("the healthy Agent should become Ready");
     fixture.beat(1).await;
@@ -2308,10 +2338,10 @@ async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
     fixture.beat(1).await;
 
     let started = tokio::time::Instant::now();
-    let result = convergence.converge(fixture.id, WaitPolicy::UntilReady).await;
+    let result = client.ensure_execution("worker", Policy::UntilReady).await;
 
     assert!(
-        matches!(&result, Err(Error::Unavailable(message)) if message.contains("not responding")),
+        matches!(&result, Err(Error::Rpc(error)) if error.message.contains("not responding")),
         "{result:?}"
     );
     assert!(

@@ -542,8 +542,11 @@ async fn turns(session: &Session, sandbox: &SandboxHandle, last: Option<usize>) 
     if last == Some(0) {
         return Ok(Vec::new());
     }
-    let read = sandbox
-        .run_execution(ExecutionSpec::command(
+    // Bounded like the other runtime executions, so a guest that stopped
+    // making progress fails the read instead of holding it.
+    let read = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
@@ -552,8 +555,10 @@ async fn turns(session: &Session, sandbox: &SandboxHandle, last: Option<usize>) 
                 path.into(),
                 (MAX_TRANSCRIPT_BYTES + 1).to_string(),
             ],
-        ))
-        .await?;
+        ),
+        "reading the Session conversation",
+    )
+    .await?;
     if !read.status.success() {
         return Err(Error::Session(format!(
             "reading the conversation of Session {} failed with exit code {}",

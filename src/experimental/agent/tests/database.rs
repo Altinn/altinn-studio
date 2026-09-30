@@ -1594,3 +1594,48 @@ async fn an_unchanged_session_lifecycle_write_is_not_a_change() {
     assert_eq!(archived.generation, generation + 1, "archiving is a request");
     assert_eq!(archived.observed_generation, generation);
 }
+
+#[tokio::test(flavor = "local")]
+async fn repeating_an_archive_or_delete_is_a_new_request() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let name = SessionName::new("s1").expect("name");
+    let created = database
+        .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+        .await
+        .expect("Session");
+
+    let archived = database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive");
+    let again = database
+        .set_session_archived("worker", &name, true)
+        .await
+        .expect("archive again");
+    assert_eq!(
+        (archived.generation, again.generation),
+        (created.generation + 1, created.generation + 2),
+        "a retry after a failed stop waits for a new pass"
+    );
+    assert_eq!(again.archived_at, archived.archived_at, "the archive keeps its time");
+
+    let marked = database.mark_session_deleting("worker", &name).await.expect("delete");
+    let retried = database
+        .mark_session_deleting("worker", &name)
+        .await
+        .expect("delete again while the release is pending");
+    assert_eq!(
+        (marked.generation, retried.generation),
+        (again.generation + 1, again.generation + 2),
+        "a retry after a failed release waits for a new pass"
+    );
+    assert_eq!(
+        retried.deletion_timestamp, marked.deletion_timestamp,
+        "the first request's time is kept"
+    );
+}
