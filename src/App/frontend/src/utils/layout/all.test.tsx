@@ -162,6 +162,7 @@ describe('All known UI folders should render successfully', () => {
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
+        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
             obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
