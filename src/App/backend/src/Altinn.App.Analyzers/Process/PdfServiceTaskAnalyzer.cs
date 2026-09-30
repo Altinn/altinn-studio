@@ -13,7 +13,7 @@ public sealed class PdfServiceTaskAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         [
             Diagnostics.Process.PdfServiceTaskHasNothingToRender,
-            Diagnostics.Process.PdfServiceTaskConflictingContent,
+            Diagnostics.Process.PdfServiceTaskMissingPdfLayoutName,
             Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
         ];
 

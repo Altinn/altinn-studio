@@ -7,11 +7,11 @@ namespace Altinn.App.Analyzers.Process;
 
 /// <summary>
 /// Checks that every <c>pdf</c> service task in <c>config/process/process.bpmn</c> has something the app
-/// frontend can render. The frontend renders a PDF service task from exactly one of two sources: its own UI
-/// folder (<c>ui/{taskId}</c>, using the folder's <c>pdfLayoutName</c> when set), or - when the task has no
-/// UI folder - the tasks the backend passes as <c>task</c> query parameters, taken from
-/// <c>autoPdfTaskIds</c>. See <c>PdfWrapper</c> and <c>PdfFromLayout</c> in the app frontend; the runtime
-/// backstop is <c>PdfServiceTask</c> in Altinn.App.Core.
+/// frontend can render. The frontend renders a PDF service task from exactly one of two sources: the layout that
+/// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when the task has no UI folder -
+/// the tasks the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See
+/// <c>PdfWrapper</c> and <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c>
+/// in Altinn.App.Core.
 /// </summary>
 internal static class PdfServiceTaskUtils
 {
@@ -27,8 +27,8 @@ internal static class PdfServiceTaskUtils
     private static readonly XNamespace _altinn = "http://altinn.no/process";
 
     /// <summary>
-    /// Appends a diagnostic for every <c>pdf</c> service task that cannot be rendered, and for every
-    /// <c>autoPdfTaskIds</c> entry that would contribute nothing to its PDF.
+    /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF, and for
+    /// every <c>autoPdfTaskIds</c> entry that would contribute nothing to its PDF.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -63,29 +63,27 @@ internal static class PdfServiceTaskUtils
             var location = FileLocationHelper.GetXmlElementLocation(processFile, content, pdfTask.Element);
             var hasOwnUiFolder = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings);
 
-            if (pdfTask.AutoPdfTaskIds.Count == 0)
+            if (hasOwnUiFolder)
             {
-                if (!hasOwnUiFolder)
+                // The folder's pages are what people see while the process is at the task, so only
+                // pdfLayoutName says which layout is the PDF. The frontend then renders that layout and ignores
+                // autoPdfTaskIds. Without one it renders the folder's pages instead, or rejects the task
+                // parameters outright when autoPdfTaskIds lists any.
+                if (HasPdfLayoutName(ownSettings, token) is false)
                 {
                     diagnostics.Add(
-                        Diagnostic.Create(Diagnostics.Process.PdfServiceTaskHasNothingToRender, location, pdfTask.Id)
+                        Diagnostic.Create(Diagnostics.Process.PdfServiceTaskMissingPdfLayoutName, location, pdfTask.Id)
                     );
                 }
 
                 continue;
             }
 
-            if (hasOwnUiFolder)
+            if (pdfTask.AutoPdfTaskIds.Count == 0)
             {
-                // With a pdfLayoutName the frontend renders that layout and ignores the listed tasks, so there
-                // is nothing more to check. Without one it rejects the task parameters outright.
-                if (HasPdfLayoutName(ownSettings, token) is false)
-                {
-                    diagnostics.Add(
-                        Diagnostic.Create(Diagnostics.Process.PdfServiceTaskConflictingContent, location, pdfTask.Id)
-                    );
-                }
-
+                diagnostics.Add(
+                    Diagnostic.Create(Diagnostics.Process.PdfServiceTaskHasNothingToRender, location, pdfTask.Id)
+                );
                 continue;
             }
 
