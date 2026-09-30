@@ -68,6 +68,18 @@ public sealed class AppModel
         return LayoutFolderRole.Unused;
     }
 
+    public IEnumerable<LayoutSet> SubformFolders() =>
+        LayoutSets.Where(set => Refs.SubformFolders.Any(r => string.Equals(r.Value, set.Id, StringComparison.Ordinal)));
+
+    public IReadOnlySet<string> SubformDataTypes()
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var set in SubformFolders())
+            if (set.DefaultDataReq is { } dataType)
+                ids.Add(dataType.Value);
+        return ids;
+    }
+
     public IEnumerable<TextResources> LanguageTextResources() => TextResources.Where(IsServedLanguage);
 
     private static bool IsServedLanguage(TextResources texts) =>

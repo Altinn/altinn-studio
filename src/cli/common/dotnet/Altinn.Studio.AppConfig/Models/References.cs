@@ -11,6 +11,8 @@ public sealed record ComponentIdReference(
 
 public sealed record LayoutSetReference(string Value, SourceSpan Position);
 
+public sealed record SubformFolderReference(string Value, string OwningComponentId, SourceSpan Position);
+
 public sealed record DataTypeReference(string Value, SourceSpan Position);
 
 public sealed record TaskIdReference(string Value, SourceSpan Position);
@@ -44,6 +46,7 @@ public sealed class SemanticReferences
 {
     public required IReadOnlyList<ComponentIdReference> ComponentIds { get; init; }
     public required IReadOnlyList<LayoutSetReference> LayoutSets { get; init; }
+    public required IReadOnlyList<SubformFolderReference> SubformFolders { get; init; }
     public required IReadOnlyList<DataTypeReference> DataTypes { get; init; }
     public required IReadOnlyList<TaskIdReference> TaskIds { get; init; }
     public required IReadOnlyList<PageFileReference> PageFiles { get; init; }
@@ -58,6 +61,7 @@ internal sealed class SemanticReferencesBuilder
 {
     public List<ComponentIdReference> ComponentIds { get; } = new();
     public List<LayoutSetReference> LayoutSets { get; } = new();
+    public List<SubformFolderReference> SubformFolders { get; } = new();
     public List<DataTypeReference> DataTypes { get; } = new();
     public List<TaskIdReference> TaskIds { get; } = new();
     public List<PageFileReference> PageFiles { get; } = new();

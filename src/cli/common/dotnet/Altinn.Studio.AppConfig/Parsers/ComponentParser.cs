@@ -44,7 +44,7 @@ internal static class ComponentParser
         CollectSummaryRef(app, id, file, basePtr, c);
         if (type == "Summary2")
             Summary2RefsCollector.CollectSummary2Refs(app, id, file, basePtr, c);
-        CollectSubformRef(app, file, basePtr, c);
+        CollectLayoutSetRef(app, id, type, file, basePtr, c);
         ComponentBindingsCollector.CollectDataModelBindings(app, id, type, file, basePtr, c);
         ComponentBindingsCollector.CollectTextResourceBindings(app, id, file, basePtr, c);
         OptionTextCollector.CollectOptionTextKeys(app, id, file, basePtr, c);
@@ -117,12 +117,22 @@ internal static class ComponentParser
         );
     }
 
-    private static void CollectSubformRef(AppModelBuilder app, string file, string basePtr, JsonElement c)
+    private static void CollectLayoutSetRef(
+        AppModelBuilder app,
+        string ownerId,
+        string type,
+        string file,
+        string basePtr,
+        JsonElement c
+    )
     {
         var v = TryString(c, "layoutSet");
         if (string.IsNullOrEmpty(v))
             return;
-        app.Refs.LayoutSets.Add(new LayoutSetReference(v, new SourceSpan(file, basePtr + "/layoutSet")));
+        var pos = new SourceSpan(file, basePtr + "/layoutSet");
+        app.Refs.LayoutSets.Add(new LayoutSetReference(v, pos));
+        if (type == "Subform")
+            app.Refs.SubformFolders.Add(new SubformFolderReference(v, ownerId, pos));
     }
 
     private static void CollectOptionsId(
