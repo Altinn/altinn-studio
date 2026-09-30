@@ -64,6 +64,12 @@ export const StudioExpression = ({
   );
 };
 
+type ManualDraft = {
+  savedExpressionString: string;
+  isValid: boolean;
+  expression?: BooleanExpression;
+};
+
 type ValidExpressionProps = Pick<
   StudioExpressionProps,
   'expression' | 'onChange' | 'showAddSubexpression'
@@ -78,34 +84,39 @@ const ValidExpression = ({
   const isSimplified = useMemo(() => isExpressionSimple(expression), [expression]);
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
-  const [isValid, setIsValid] = useState<boolean>(true);
-  const [draftExpression, setDraftExpression] = useState<BooleanExpression | undefined>(undefined);
+  const [draft, setDraft] = useState<ManualDraft | null>(null);
   const [manualEditorKey, setManualEditorKey] = useState<number>(0);
+  const savedExpressionString = expressionToString(expression);
 
+  const currentDraft = draft?.savedExpressionString === savedExpressionString ? draft : null;
+  const isValid = currentDraft?.isValid ?? true;
   const hasUnsavedChanges =
-    !isValid ||
-    (draftExpression !== undefined &&
-      expressionToString(draftExpression) !== expressionToString(expression));
+    !!currentDraft &&
+    (!currentDraft.isValid ||
+      expressionToString(currentDraft.expression) !== savedExpressionString);
 
-  const resetDraft = (): void => {
-    setDraftExpression(undefined);
-    setIsValid(true);
+  const handleValidExpressionChange = (newExpression: BooleanExpression): void => {
+    setDraft({ savedExpressionString, isValid: true, expression: newExpression });
+  };
+
+  const handleValidityChange = (isNewValid: boolean): void => {
+    if (!isNewValid) setDraft({ savedExpressionString, isValid: false });
   };
 
   const handleChangeTab = (tab: TabId): void => {
     if (!hasUnsavedChanges || confirm(texts.changeToSimplifiedWarning)) {
-      resetDraft();
+      setDraft(null);
       setSelectedTab(tab);
     }
   };
 
   const handleSave = (): void => {
-    onChange(draftExpression);
-    setDraftExpression(undefined);
+    onChange(currentDraft.expression);
+    setDraft(null);
   };
 
   const handleDiscard = (): void => {
-    resetDraft();
+    setDraft(null);
     setManualEditorKey((key) => key + 1);
   };
 
@@ -126,10 +137,10 @@ const ValidExpression = ({
         {selectedTab === TabId.Manual && (
           <>
             <StudioManualExpression
-              key={`${manualEditorKey}-${expressionToString(expression)}`}
+              key={`${manualEditorKey}-${savedExpressionString}`}
               expression={expression}
-              onValidExpressionChange={setDraftExpression}
-              onValidityChange={setIsValid}
+              onValidExpressionChange={handleValidExpressionChange}
+              onValidityChange={handleValidityChange}
               texts={texts}
             />
             <StudioFormActions

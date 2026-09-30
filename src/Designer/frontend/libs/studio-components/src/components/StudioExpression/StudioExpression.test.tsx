@@ -333,8 +333,33 @@ describe('StudioExpression', () => {
         'aria-selected',
         'true',
       );
+      expect(getSaveButton()).toBeDisabled();
+      expect(getDiscardButton()).toBeDisabled();
     },
   );
+
+  it('Switches tab without asking for confirmation when the expression is changed externally after the user has typed in the manual editor', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = jest.spyOn(window, 'confirm');
+    const { rerender } = renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'tru');
+    rerender(
+      <StudioExpression
+        expression={null}
+        onChange={onChange}
+        dataLookupOptions={dataLookupOptions}
+        texts={texts}
+      />,
+    );
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
 
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
     const user = userEvent.setup();
