@@ -289,6 +289,55 @@ function TestMultiDelayedSelector({ onGetValue }: Props) {
 }
 
 describe('useDelayedSelector', () => {
+  it('reuses a selector for equivalent object arguments and updates it when the store changes', async () => {
+    const directSelector = jest.fn(
+      (reference: { dataType: string; field: string }) => (state: State) =>
+        `${reference.dataType}.${reference.field}: ${state.state}`,
+    );
+    const laxSelector = jest.fn(
+      (reference: { dataType: string; field: string }) => (state: State) =>
+        `${reference.dataType}.${reference.field}: ${state.state}`,
+    );
+    const cacheKey = ([arg]: unknown[]) => {
+      const reference = arg as { dataType: string; field: string };
+      return [reference.dataType, reference.field];
+    };
+
+    function Probe() {
+      const [renderCount, setRenderCount] = useState(0);
+      const selectDirect = Ctx1.useDelayedSelector({ mode: 'simple', selector: directSelector }, undefined, cacheKey);
+      const laxProps = Ctx1.useLaxDelayedSelectorProps({ mode: 'simple', selector: laxSelector }, undefined, cacheKey);
+      const [selectLax] = useMultipleDelayedSelectors(laxProps);
+      const increment = Ctx1.useSelector((state) => state.increment);
+
+      return (
+        <>
+          <div data-testid='direct-value'>{selectDirect({ dataType: 'model', field: 'value' })}</div>
+          <div data-testid='lax-value'>{selectLax({ dataType: 'model', field: 'value' })}</div>
+          <button onClick={() => setRenderCount(renderCount + 1)}>Re-render</button>
+          <button onClick={increment}>Change store</button>
+        </>
+      );
+    }
+
+    render(
+      <Ctx1.Provider>
+        <Probe />
+      </Ctx1.Provider>,
+    );
+    expect(directSelector).toHaveBeenCalledTimes(1);
+    expect(laxSelector).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByText('Re-render'));
+    await userEvent.click(screen.getByText('Re-render'));
+    expect(directSelector).toHaveBeenCalledTimes(1);
+    expect(laxSelector).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByText('Change store'));
+    expect(screen.getByTestId('direct-value')).toHaveTextContent('model.value: 1');
+    expect(screen.getByTestId('lax-value')).toHaveTextContent('model.value: 1');
+  });
+
   it('should cache according to cache key', async () => {
     const fn = jest.fn();
     render(<TestComponent onGetValue={fn} />);

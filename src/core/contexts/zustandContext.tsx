@@ -171,43 +171,51 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     mode: Mode,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     deps?: any[],
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> =>
     useDelayedSelector({
       store: useLaxCtx(),
       strictness: SelectorStrictness.returnWhenNotProvided,
       mode,
       deps,
+      makeCacheKey,
     });
 
   const useDS = <Mode extends DSMode<Type>>(
     mode: Mode,
     deps?: unknown[],
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> =>
     useDelayedSelector({
       store: useCtx(),
       strictness: SelectorStrictness.throwWhenNotProvided,
       mode,
       deps,
+      makeCacheKey,
     });
 
   const useDSProps = <Mode extends DSMode<Type>>(
     mode: Mode,
     deps?: unknown[],
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSProps<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> => ({
     store: useCtx(),
     strictness: SelectorStrictness.throwWhenNotProvided,
     mode,
     deps,
+    makeCacheKey,
   });
 
   const useLaxDSProps = <Mode extends DSMode<Type>>(
     mode: Mode,
     deps?: unknown[],
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSProps<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> => ({
     store: useLaxCtx(),
     strictness: SelectorStrictness.returnWhenNotProvided,
     mode,
     deps,
+    makeCacheKey,
   });
 
   return {

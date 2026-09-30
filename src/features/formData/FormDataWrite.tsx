@@ -731,6 +731,11 @@ const debouncedSelector = (reference: IDataModelReference) => (state: FormDataCo
 const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
   dot.pick(reference.field, state.dataModels[reference.dataType]?.invalidDebouncedCurrentData);
 
+const dataModelReferenceCacheKey = ([arg]: unknown[]): string[] => {
+  const reference = arg as IDataModelReference;
+  return [reference.dataType, reference.field];
+};
+
 const debouncedRowSelector = (reference: IDataModelReference) => (state: FormDataContext) => {
   const rawRows = dot.pick(reference.field, state.dataModels[reference.dataType]?.debouncedCurrentData);
   if (!Array.isArray(rawRows) || !rawRows.length) {
@@ -746,10 +751,14 @@ export const FD = {
    * model).
    */
   useCurrentSelector(): FormDataSelector {
-    return useDelayedSelector({
-      mode: 'simple',
-      selector: currentSelector,
-    });
+    return useDelayedSelector(
+      {
+        mode: 'simple',
+        selector: currentSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -759,17 +768,25 @@ export const FD = {
    * pretend to have the full data model available to look up values from.
    */
   useDebouncedSelector(): FormDataSelector {
-    return useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return useDelayedSelector(
+      {
+        mode: 'simple',
+        selector: debouncedSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   useLaxDebouncedSelectorProps() {
-    return useLaxDelayedSelectorProps({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return useLaxDelayedSelectorProps(
+      {
+        mode: 'simple',
+        selector: debouncedSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -778,20 +795,28 @@ export const FD = {
    * inside them (and re-render if that data changes).
    */
   useDebouncedRowsSelector(): FormDataRowsSelector {
-    return useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedRowSelector,
-    });
+    return useDelayedSelector(
+      {
+        mode: 'simple',
+        selector: debouncedRowSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
    * Same as useDebouncedSelector(), but for invalid data.
    */
   useInvalidDebouncedSelector(): FormDataSelector {
-    return useDelayedSelector({
-      mode: 'simple',
-      selector: invalidDebouncedSelector,
-    });
+    return useDelayedSelector(
+      {
+        mode: 'simple',
+        selector: invalidDebouncedSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -819,10 +844,14 @@ export const FD = {
    * provider is not present.
    */
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
-    return useLaxDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return useLaxDelayedSelector(
+      {
+        mode: 'simple',
+        selector: debouncedSelector,
+      },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
