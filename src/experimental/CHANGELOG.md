@@ -27,6 +27,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - An Agent started while the host has no network connection resolves names once the host is back online.
 - `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
 
+### Security
+
+- Changing a running Agent's resources after `agentd` restarted no longer restarts the Agent with network access that
+  bypasses network authorization and secret mediation.
+
 ## [0.1.0-preview.7] - 2026-09-28
 
 ### Added
