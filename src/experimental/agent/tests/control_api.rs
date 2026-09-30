@@ -535,6 +535,10 @@ async fn cli_uses_tcp_without_touching_local_state_or_stdout() {
         vec!["get", "agents", "-o", "json"],
         vec!["prompt", "session/s1", "--agent", "worker", "--prompt", "hello"],
         vec!["turns", "session/s1", "--agent", "worker"],
+        vec!["archive", "session/s1", "--agent", "worker"],
+        vec!["unarchive", "session/s1", "--agent", "worker"],
+        vec!["delete", "session/s1", "--agent", "worker"],
+        vec!["vnc-info", "agent/worker", "-o", "json"],
     ] {
         let output = tokio::time::timeout(
             Duration::from_secs(10),
@@ -559,6 +563,8 @@ async fn cli_uses_tcp_without_touching_local_state_or_stdout() {
         assert!(!home.exists(), "remote commands must not prepare a local home");
     }
     assert_eq!(fixture.sent.borrow().len(), 1);
+    assert_eq!(fixture.archived.borrow().len(), 2);
+    assert_eq!(fixture.deleted.borrow().len(), 1);
     fixture.client.shutdown_for_upgrade().await.expect("shutdown");
     tokio::time::timeout(Duration::from_secs(5), task)
         .await

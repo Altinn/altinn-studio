@@ -1941,6 +1941,8 @@ mod tests {
             vec!["ssh", "worker"],
             vec!["ssh-proxy", "worker"],
             vec!["ssh-config", "install"],
+            vec!["vnc", "agent/worker"],
+            vec!["vnc-proxy", "agent/worker"],
         ] {
             let arguments = Arguments::try_parse_from(std::iter::once("agentctl").chain(command)).expect("command");
             assert!(

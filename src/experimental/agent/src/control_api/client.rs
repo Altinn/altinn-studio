@@ -586,6 +586,40 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local", start_paused = true)]
+    async fn watch_calls_allow_keepalives_but_still_time_out_on_silent_peers() {
+        for progress in [false, true] {
+            for replies in [false, true] {
+                let connector = Rc::new(ScriptedConnector {
+                    frames: if replies {
+                        vec![(
+                            Duration::from_secs(35),
+                            b"{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32004,\"message\":\"not found\"}}\n",
+                        )]
+                    } else {
+                        Vec::new()
+                    },
+                    ..Default::default()
+                });
+                let client = Client::new(connector.clone());
+                let started = tokio::time::Instant::now();
+                let result = if progress {
+                    client.agent_progress("test", None, None).await.map(|_| ())
+                } else {
+                    client.watch_resources(None).await.map(|_| ())
+                };
+                if replies {
+                    assert!(matches!(result, Err(Error::Rpc(_))));
+                    assert_eq!(started.elapsed(), Duration::from_secs(35));
+                } else {
+                    assert!(matches!(result, Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::TimedOut));
+                    assert_eq!(started.elapsed(), WATCH_RESPONSE_TIMEOUT);
+                }
+                assert_eq!(connector.calls.get(), 1);
+            }
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
     async fn provisioning_prompt_and_shutdown_keep_their_longer_wait_policies() {
         for operation in 0..4 {
             let client = Client::new(Rc::new(ScriptedConnector {

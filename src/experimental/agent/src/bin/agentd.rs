@@ -54,7 +54,10 @@ fn run() -> Result<(), Error> {
     let _lock = acquire_home_lock(&home)?;
     let database = persistence::Database::open(&home.path().join("agent.db"))?;
     let runtime = LocalRuntime::new()?;
-    runtime.block_on(run_control_plane(home, database, arguments.insecure_tcp_port))
+    runtime.block_on(async {
+        let tcp_listener = bind_insecure_tcp(arguments.insecure_tcp_port).await?;
+        run_control_plane(home, database, tcp_listener).await
+    })
 }
 
 fn acquire_home_lock(home: &ControlPlaneHome) -> Result<agent::local::home::Lock, Error> {
@@ -166,9 +169,8 @@ async fn serve_control_api(
 async fn run_control_plane(
     home: ControlPlaneHome,
     database: persistence::Database,
-    insecure_tcp_port: Option<NonZeroU16>,
+    tcp_listener: Option<tokio::net::TcpListener>,
 ) -> Result<(), Error> {
-    let tcp_listener = bind_insecure_tcp(insecure_tcp_port).await?;
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
     let policy = Rc::new(agent::authorization::AgentPolicyEngine::new());

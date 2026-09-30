@@ -129,10 +129,10 @@ Use matching builds of `agentctl` and `agentd`.
 
 ### What works over TCP?
 
-- Supported: `apply` (including `--wait`), `get`, `describe`, `delete`, `wait`, `create`, `prompt`, `turns`,
-  and `ssh-info`. Paths returned by `ssh-info` refer to the daemon's machine.
+- Supported: `apply` (including `--wait`), `get`, `describe`, `delete`, `archive`, `unarchive`, `wait`, `create`,
+  `prompt`, `turns`, `ssh-info`, and `vnc-info`. Connection details refer to the daemon's machine.
 - Still local-only: `attach`, `exec`, `port-forward`, `ssh`, `ssh-proxy`, `ssh-config`, harness login,
-  `self`, and the terminal UI. These commands reject `--endpoint`.
+  `vnc`, `vnc-proxy`, `self`, and the terminal UI. These commands reject `--endpoint`.
 
 Remote terminal access and named contexts are planned for later work. The daemon also rejects credential import
 and upgrade shutdown over TCP; this does not make the other commands safe for untrusted callers.
@@ -155,7 +155,8 @@ matching paths; use an explicit Agent name when they differ.
 - With `--endpoint`, the client never starts or updates a local daemon, or switches to the local socket if the
   connection fails. Automatic daemon startup and self-update do not preserve the TCP startup flag.
 - TCP connections time out after 10 seconds. Ordinary API replies have a separate 30-second timeout on either
-  connection type. Provisioning and prompts keep their own wait policies; upgrade shutdown allows 90 seconds.
+  connection type. Progress and resource watches allow 60 seconds for the daemon's keepalive reply.
+  Provisioning and prompts keep their own wait policies; upgrade shutdown allows 90 seconds.
 - A timed-out operation may still finish on the daemon. The client does not automatically send it again.
 - During local startup, disconnected health checks are retried. Invalid responses and incompatible builds fail
   without starting another daemon.

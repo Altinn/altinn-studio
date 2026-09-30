@@ -14,10 +14,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Added
 
-- For trusted development, `agentd --insecure-tcp-port PORT` (`-p PORT`) enables an unauthenticated, unencrypted
-  loopback TCP listener alongside the local socket. `agentctl --endpoint tcp://HOST:PORT` can manage resources
-  and create, prompt, and read Sessions through that daemon. Local usage needs no new configuration; attachment,
-  execution, forwarding, and the TUI still require running the client on the daemon host.
+- `agentd --insecure-tcp-port PORT` enables loopback-only TCP access for resource and Session management with `agentctl --endpoint tcp://HOST:PORT`. TCP has no authentication or encryption; use only for trusted development. Interactive tools still require local access. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
 
 ### Changed
 
@@ -34,6 +31,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - An Agent started while the host has no network connection resolves names once the host is back online.
 - `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
 - Pressing Ctrl-Z in an attached Session no longer freezes it.
+- Ordinary `agentctl` control commands no longer hang indefinitely when the daemon stops responding. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
+- `agentd` no longer becomes unavailable after temporary connection failures. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
 
 ### Security
 
@@ -94,11 +93,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.280.
 - Altinn, self-development and worktree Agents install Codex CLI 0.156.0, with workspace routing and activity hooks updated for its startup flow.
-
-### Fixed
-
-- Ordinary control commands report a timeout when the daemon stops responding, without shortening provisioning
-  or prompt waits. Temporary connection failures no longer stop the daemon from serving other clients.
 
 ## [0.1.0-preview.5] - 2026-09-22
 
