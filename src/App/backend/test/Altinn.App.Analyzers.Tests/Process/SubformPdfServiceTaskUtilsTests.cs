@@ -62,6 +62,19 @@ public class SubformPdfServiceTaskUtilsTests
     }
 
     [Fact]
+    public void An_App_Without_UI_Folders_Is_Still_Checked()
+    {
+        // Missing configuration is established by the process alone, and a complete one still needs the task's
+        // own UI folder.
+        var incomplete = Assert.Single(Collect(Process(ServiceTask(SubformPdfTaskId, config: ""))));
+        var complete = Assert.Single(Collect(Process(SubformPdfTask())));
+
+        Assert.Equal(Incomplete, incomplete.Id);
+        Assert.Equal(ComponentNotFound, complete.Id);
+        Assert.Contains("there is no UI folder 'ui/SubformPdf'", complete.GetMessage());
+    }
+
+    [Fact]
     public void No_Own_UI_Folder_Means_The_Component_Cannot_Be_Found()
     {
         var diagnostics = Collect(
