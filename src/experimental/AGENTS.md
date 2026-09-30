@@ -70,8 +70,9 @@ version; the Rust workspace version is a build detail and is not tracked there.
 Every pull request that changes something a user of the Agent will notice, anywhere under `src/experimental` or
 `agents/`, adds an entry under `## [Unreleased]`. Describe the change from the user's side, including a change in
 `sandbox*` in terms of what an Agent user notices, and leave implementation detail out unless it changes how people
-use the platform. Apply the `skip-changelog` label instead when the change is a refactor, or is test-only or
-CI-only; `.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
+use the platform. Apply the `skip-changelog` label instead when the change is a refactor, is test-only or CI-only,
+or is already described by an `[Unreleased]` entry with its issue linked;
+`.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
 
 Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
 [changelog.sh](changelog.sh) itself. `make check` runs the validation, and `make test` runs the tests.

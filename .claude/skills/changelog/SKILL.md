@@ -14,7 +14,8 @@ changelog needs to know what changed for them and whether they must act.
 - **One entry per change a reader notices**, however many pull requests it took. Do not join unrelated changes in one
   sentence, even when one pull request made them: make them separate entries, or sub-bullets under what they change.
   If `[Unreleased]` already has an entry for the same feature, extend or rewrite that entry instead of adding another.
-  No entry for refactors, tests or CI: apply the `skip-changelog` label.
+  No entry for refactors, tests or CI, or for a change an `[Unreleased]` entry already describes with its issue
+  linked: apply the `skip-changelog` label.
 - **Short.** One or two sentences, 40 words or fewer as a rule. `releaser validate-changelogs` fails a new or changed
   `[Unreleased]` entry over 60 words.
 - **Lead with what changed for the reader**, then say what they can do now or what they must do.
@@ -26,13 +27,13 @@ changelog needs to know what changed for them and whether they must act.
 - **Breaking changes, deprecations and removals** say what to do instead, and breaking changes start with `Breaking:`.
   Step-by-step migration belongs in the documentation (`altinn-studio-docs`); link to it. Say so when a tool, such as
   `studioctl app upgrade`, makes the change for the reader.
-- **End with the references in parentheses**: the documentation link first, when there is one, then every issue the
-  entry resolves: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
+- **End with the references in parentheses**: the documentation link first, when there is one, then every issue whose
+  problem or request the entry describes: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
   Links do not count toward the word limit.
 - **Link the issue, not its pull requests.** An issue says what readers asked for or ran into and leads to the pull
-  requests that resolved it, so link it once, however many pull requests it took. When the issue is part of a larger
-  one about the same change, such as a feature, link the larger one, but not an issue that gathers unrelated work,
-  such as an epic or a list of findings. Do not link an issue the change is only related to. Write an issue in another
+  requests for it, so link it once, however many pull requests it took. When the issue is part of a larger one about the
+  same change, such as a feature, link the larger one, but not an issue that gathers unrelated work, such as an epic or
+  a list of findings. Do not link an issue the change is only related to. Write an issue or pull request in another
   repository as `[Altinn/app-frontend-react#123](https://github.com/Altinn/app-frontend-react/issues/123)`.
 - **Without an issue, link the pull request.** Do not open an issue afterwards to have one to link.
 - **Sub-bullets group changes by what readers know them by**, such as a command, an endpoint or a component: the top
@@ -56,8 +57,8 @@ notice after upgrading, not from what you did:
 3. Merge it with any related `[Unreleased]` entry, keeping that entry's references. Link the issue for this pull
    request, as the rules above describe, and reference it in the pull request description (`Closes #1234`, or
    `Part of #1234`) so readers can get from the issue to the change. Without an issue, add this pull request's link
-   once it is open. If the entry already describes the change and links its issue, leave it as it is and use the
-   `skip-changelog` label.
+   once it is open. If an `[Unreleased]` entry already describes the change and links its issue, leave it as it is and
+   use the `skip-changelog` label.
 4. Commit, then check every changelog you changed with
    `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
 
@@ -132,9 +133,9 @@ Two changes in one entry, each described by its mechanism:
 Better, grouped under the command they change:
 
 ```markdown
-- `studioctl app upgrade v9` converts more app code correctly:
-  - legacy calculation rules become code that compiles and gives the same results as before ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
-  - obsolete package references are removed even when their names are written in lowercase ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
+- `studioctl app upgrade v9` converts more app code correctly: ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
+  - legacy calculation rules become code that compiles and gives the same results as before
+  - obsolete package references are removed even when their names are written in lowercase
 ```
 
 A fix described by its cause:
