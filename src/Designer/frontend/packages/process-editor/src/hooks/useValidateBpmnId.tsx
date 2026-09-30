@@ -1,21 +1,22 @@
-import { useTaskIds } from './useTaskIds';
+import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import { StringUtils } from '@studio/pure-functions';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
-import { isLayoutSetNamedAfterTask } from '../utils/processEditorUtils';
 
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
-  const { bpmnDetails, appVersion } = useBpmnContext();
+  const { bpmnDetails } = useBpmnContext();
   const { layoutSets } = useBpmnApiContext();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const otherTaskIds = useTaskIds().filter((id) => id !== bpmnDetails.id);
-  const hasLayoutSetNamedAfterTask =
-    isLayoutSetNamedAfterTask(appVersion) &&
-    !!layoutSets?.some((layoutSet) => layoutSet.id === bpmnDetails.id);
+  const otherElementIds = new StudioModeler()
+    .getAllElementIds()
+    .filter((id) => id !== bpmnDetails.id);
+  const isLayoutSetNamedAfterTask = layoutSets?.some(
+    (layoutSet) => layoutSet.id === bpmnDetails.id,
+  );
 
   const validateBpmnTaskId = (newId: string): string => {
     const errorMessages = {
@@ -33,8 +34,8 @@ export const useValidateBpmnTaskId = () => {
     const validationRules = [
       {
         name: 'unique',
-        condition: otherTaskIds.some((taskId) =>
-          StringUtils.areCaseInsensitiveEqual(taskId, newId),
+        condition: otherElementIds.some((elementId) =>
+          StringUtils.areCaseInsensitiveEqual(elementId, newId),
         ),
       },
       { name: 'required', condition: newId.length === 0 },
@@ -54,7 +55,7 @@ export const useValidateBpmnTaskId = () => {
     }
 
     // Renaming the task renames its layout set, so the new id must also be a valid layout set name.
-    if (hasLayoutSetNamedAfterTask) {
+    if (isLayoutSetNamedAfterTask) {
       return validateLayoutSetName(newId, layoutSets, bpmnDetails.id);
     }
 

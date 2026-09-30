@@ -12,6 +12,12 @@ use agent::{
 use clap::Parser;
 use tokio::runtime::LocalRuntime;
 
+/// Image materialization runs in this process and allocates heavily for a
+/// short time. mimalloc returns unused pages to the operating system after a
+/// short delay, so agentd's memory use falls again once an image is ready.
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 #[derive(Parser)]
 #[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {

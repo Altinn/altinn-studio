@@ -102,12 +102,14 @@ const ValidExpression = ({
         />
       </StudioTabs.Panel>
       <StudioTabs.Panel value={TabId.Manual}>
-        <StudioManualExpression
-          expression={expression}
-          onValidExpressionChange={onChange}
-          onValidityChange={setIsValid}
-          texts={texts}
-        />
+        {selectedTab === TabId.Manual && (
+          <StudioManualExpression
+            expression={expression}
+            onValidExpressionChange={onChange}
+            onValidityChange={setIsValid}
+            texts={texts}
+          />
+        )}
       </StudioTabs.Panel>
     </StudioTabs>
   );

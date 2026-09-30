@@ -3652,7 +3652,11 @@ public sealed class ProcessEngineTest
                 )
             );
             var callbackTokenGeneratorMock = new Mock<IWorkflowCallbackTokenGenerator>(MockBehavior.Strict);
-            callbackTokenGeneratorMock.Setup(g => g.GenerateToken(It.IsAny<Guid>())).Returns("test-callback-token");
+            callbackTokenGeneratorMock
+                .Setup(g =>
+                    g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                )
+                .Returns("test-callback-token");
             services.TryAddTransient<IWorkflowCallbackTokenGenerator>(_ => callbackTokenGeneratorMock.Object);
 
             // WorkflowCallbackStateService now signs the captured state with WorkflowStateSigner, which needs

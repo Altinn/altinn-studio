@@ -1,6 +1,5 @@
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Tests.Entities;
 

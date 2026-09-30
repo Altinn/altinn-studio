@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.JsonConverters;
+using WorkflowEngine.Models.JsonConverters;
 
 namespace WorkflowEngine.App.Commands.AppCommand;
 

@@ -17,13 +17,13 @@ use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
 
-// Published runtime bundle digests for Microsandbox 0.6.18-digdir.3. Update these
+// Published runtime bundle digests for Microsandbox 0.6.18-digdir.4. Update these
 // together with the pinned Microsandbox revisions in the workspace manifest.
-const LINUX_X86_64_RUNTIME_SHA256: &str = "62be72cf92724092f0dbb758dc9fe2ef688fca35b25a122197dc8a8d532a77a1";
-const LINUX_AARCH64_RUNTIME_SHA256: &str = "d99c24933fbcc7dd8064ab66e79d4a8529851870fe3912a4cbad8ecad8ea966a";
-const MACOS_AARCH64_RUNTIME_SHA256: &str = "a3c439f5e89afa647f8b45318c3316e05d081c31e18a9c01663ec39855998957";
-const WINDOWS_X86_64_RUNTIME_SHA256: &str = "88d89550ba569343a4dbc50d54bca1930e0cf15f3209c9db4364515dac08b630";
-const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "b066137c0a60e002654fa22a403948f6b28ac85c2c96051ea4c72cf6edd95b2e";
+const LINUX_X86_64_RUNTIME_SHA256: &str = "8fea1982487406486644fc153e518dc549ac5e7cd99d41cf9d8502184500950f";
+const LINUX_AARCH64_RUNTIME_SHA256: &str = "d29f6bfeca66de92a93e646aa11eccb5ccbdfa6a74af4eabd7a63e60d44293b2";
+const MACOS_AARCH64_RUNTIME_SHA256: &str = "1ee5ffcc2ef807179bf76d360c30925314225cb526ddb3b46321b402b170ec9e";
+const WINDOWS_X86_64_RUNTIME_SHA256: &str = "be59e73aa0ce73905955fc10b507955e37a7c9624720fc7ceb5fe95d79d98ef8";
+const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "e540ffa28bc9f2439ada1fe56c6b335e4da099d882b87a7c0d4bbb6612edc52a";
 
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
