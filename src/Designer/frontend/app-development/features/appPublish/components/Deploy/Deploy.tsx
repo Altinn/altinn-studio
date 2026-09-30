@@ -13,6 +13,7 @@ export interface DeployProps {
   envName: string;
   isProduction: boolean;
   orgName: string;
+  defaultAppStatus: DeployAppStatus;
 }
 
 export const Deploy = ({
@@ -21,6 +22,7 @@ export const Deploy = ({
   envName,
   isProduction,
   orgName,
+  defaultAppStatus,
 }: DeployProps) => {
   const [selectedImageTag, setSelectedImageTag] = useState(null);
   const { t } = useTranslation();
@@ -70,7 +72,7 @@ export const Deploy = ({
       selectedImageTag={selectedImageTag}
       setSelectedImageTag={setSelectedImageTag}
       startDeploy={startDeploy}
-      isProduction={isProduction}
+      defaultAppStatus={defaultAppStatus}
     />
   );
 };

@@ -5,6 +5,7 @@ import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { BuildResult } from 'app-shared/types/Build';
+import { getDefaultAppStatus } from './Deploy/utils';
 
 export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
@@ -47,6 +48,7 @@ export const DeploymentEnvironment = ({
           envName={envName}
           isProduction={isProduction}
           orgName={orgName}
+          defaultAppStatus={getDefaultAppStatus(pipelineDeploymentList, isProduction)}
         />
         <DeploymentEnvironmentLogList
           envName={envName}
