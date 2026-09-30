@@ -13,7 +13,7 @@
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
-    <bpmn:serviceTask id="PdfTask_Task_1" name="Generate PDF">
+    <bpmn:serviceTask id="PdfTask_Task_1" name="Lag PDF">
       <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
       <bpmn:outgoing>Flow_PdfTask_Task_1_to_EndEvent_1</bpmn:outgoing>
       <bpmn:extensionElements>
