@@ -65,10 +65,8 @@ public sealed partial class AppSymbols
                     && col < s.EndColumn
                 )
                     return new Symbol(SymbolKind.CSharpClass, fqn);
-            foreach (var provider in model.OptionsProviders.Values)
-                if (Covers(provider.Position, file, line, col))
-                    return new Symbol(SymbolKind.OptionsId, provider.Id);
-            return null;
+            var covering = model.OptionsProviders.Values.Where(p => Covers(p.Position, file, line, col)).ToList();
+            return covering is [var provider] ? new Symbol(SymbolKind.OptionsId, provider.Id) : null;
         }
 
         if (_config.ResolveNodeAt(file, line, col) is not { } node)
