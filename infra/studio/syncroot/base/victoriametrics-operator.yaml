@@ -17,7 +17,11 @@ metadata:
   namespace: default
 spec:
   interval: 5m
-  targetNamespace: victoriametrics-operator
+  # The operator is installed into the one namespace it watches, the one the
+  # Victoria resources live in, because only then does the chart give it a
+  # namespaced Role instead of a cluster-wide ClusterRole. Terraform creates and
+  # owns the namespace.
+  targetNamespace: observability
   sourceRef:
     kind: OCIRepository
     name: victoriametrics-operator

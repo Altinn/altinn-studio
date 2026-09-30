@@ -1,6 +1,6 @@
 # The operator only talks to the Kubernetes API server, and nothing needs to
-# talk to it. Every pod in this namespace is the operator, so the policy selects
-# them all and denies anything the rules below do not allow.
+# talk to it. The policy selects the operator's pods only; the namespace also
+# holds the workloads it manages and the OpenTelemetry Collectors.
 #
 # Egress to the API server is allowed by port, to any destination, because it
 # cannot be allowed by address. Pods reach it through the kubernetes Service,
@@ -9,19 +9,23 @@
 # the API server's IP outside the cluster, which no selector matches and which
 # can change during control plane maintenance, so an ipBlock pinned to it would
 # eventually cut the operator off. AKS serves the API on 443; 6443 is the
-# Kubernetes default that kind uses, so these manifests also run locally. Every
-# other port stays closed, which keeps the operator away from instance metadata
-# and from in-cluster services, including the workloads it manages.
+# Kubernetes default that kind uses, so these manifests also run locally. Those
+# two ports are open to any address, in the cluster and outside it; every other
+# port is closed, which keeps the operator away from instance metadata (port
+# 80) and from the ports the Victoria workloads listen on.
 #
 # If the operator is ever given VMAuth resources, it also scrapes their
-# config-reloader sidecars on port 8435 in observability; add that here.
+# config-reloader sidecars on port 8435; add that here.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: victoriametrics-operator
-  namespace: victoriametrics-operator
+  namespace: observability
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: victoria-metrics-operator
+      app.kubernetes.io/instance: victoriametrics-operator
   policyTypes:
     - Ingress
     - Egress

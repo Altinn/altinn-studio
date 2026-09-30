@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: victoriametrics-operator
-  namespace: victoriametrics-operator
+  namespace: observability
 spec:
   interval: 1h
   timeout: 5m
@@ -24,8 +24,24 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: victoriametrics-oci
-        namespace: victoriametrics-operator
+        namespace: observability
       version: 0.67.3
+  # With the release in its watched namespace the chart binds a namespaced Role,
+  # but still renders a ClusterRoleBinding to a ClusterRole of the same name that
+  # it no longer creates. Nothing is granted through it today; it is removed so a
+  # ClusterRole that later takes that name is not granted to the operator.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: ClusterRoleBinding
+              name: victoriametrics-operator
+            patch: |
+              $patch: delete
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRoleBinding
+              metadata:
+                name: victoriametrics-operator
   values:
     # Without this every resource is named
     # victoriametrics-operator-victoria-metrics-operator.
@@ -50,12 +66,14 @@ spec:
       aggregatedClusterRoles:
         enabled: false
     # watchNamespaces limits what the operator watches and reconciles, not what
-    # it is allowed to do. It still gets a ClusterRole, bound cluster-wide, with
-    # every verb on secrets, pods, services, workloads, roles, cluster roles and
-    # their bindings, among others; see templates/role.yaml in the chart. The
-    # chart only drops to a namespaced Role when the single watched namespace is
-    # the operator's own. Treat the operator's service account as cluster-admin
-    # equivalent.
+    # it is allowed to do. The chart grants its permissions, every verb on
+    # secrets, pods, services, workloads, roles and their bindings among others,
+    # through a namespaced Role only when the single watched namespace is the
+    # release's own (templates/role.yaml); otherwise through a ClusterRole bound
+    # cluster-wide, which would make the service account cluster-admin
+    # equivalent. The release is therefore installed into observability. Within
+    # that namespace the operator can still read every Secret and grant any
+    # namespaced permission.
     watchNamespaces:
       - observability
     operator:
