@@ -245,7 +245,7 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 continue;
             }
             Input::Opened { waiting, outcome } => {
-                open_finished(&mut app, &mut forwards, waiting, outcome)?;
+                open_finished(&mut app, &mut forwards, waiting, outcome);
                 continue;
             }
             Input::Event(None) => {
@@ -376,6 +376,20 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     }
 }
 
+/// Whether `forward` dials the Sandbox the Agent named `agent` has now. An
+/// Agent whose Sandbox is not materialized yet keeps what it has.
+fn dials_current_sandbox(agents: &[Agent], agent: &str, forward: &PortForward) -> bool {
+    agents.iter().any(|listed| {
+        listed.metadata.name == agent
+            && listed
+                .status
+                .sandbox
+                .as_ref()
+                .and_then(agent::sandbox::Assignment::id)
+                .is_none_or(|id| Some(id) == forward.assignment().id())
+    })
+}
+
 /// Process-owned port forwards keyed by a stable per-run identity.
 #[derive(Default)]
 struct ActiveForwards {
@@ -384,10 +398,17 @@ struct ActiveForwards {
 }
 
 impl ActiveForwards {
-    fn push(&mut self, agent: String, forward: PortForward) {
+    /// Holds `forward` while its Agent still has the Sandbox it dials. A
+    /// forward that finished starting after its Agent was deleted or re-created
+    /// is stopped at once, and `false` says so.
+    fn push(&mut self, agent: String, forward: PortForward, agents: &[Agent]) -> bool {
+        if !dials_current_sandbox(agents, &agent, &forward) {
+            return false;
+        }
         let id = self.next_id;
         self.next_id += 1;
         self.active.push((id, agent, forward));
+        true
     }
 
     fn remove(&mut self, id: u64) {
@@ -398,17 +419,8 @@ impl ActiveForwards {
     /// deleted, or re-created under the same name with a Sandbox of its own.
     /// An Agent whose Sandbox is not materialized yet keeps its forwards.
     fn prune(&mut self, agents: &[Agent]) {
-        self.active.retain(|(_, name, forward)| {
-            agents.iter().any(|agent| {
-                agent.metadata.name == *name
-                    && agent
-                        .status
-                        .sandbox
-                        .as_ref()
-                        .and_then(agent::sandbox::Assignment::id)
-                        .is_none_or(|id| Some(id) == forward.assignment().id())
-            })
-        });
+        self.active
+            .retain(|(_, name, forward)| dials_current_sandbox(agents, name, forward));
     }
 
     /// The address that opens the Agent's forward to `viewer`, while it still serves.
@@ -643,27 +655,28 @@ fn launched(
 }
 
 /// Applies a finished background open: keeps a forward it started, copies an
-/// address it left, and shows how it ended.
+/// address it left, and shows how it ended. A failed copy is shown like any
+/// other failure, so the forwards the TUI holds stay open.
 fn open_finished(
     app: &mut App,
     forwards: &mut ActiveForwards,
     waiting: Option<(String, OpenTarget)>,
     outcome: Result<OpenOutcome, String>,
-) -> Result<(), Error> {
-    let result = match outcome {
-        Ok(opened) => {
-            if let Some((agent, forward)) = opened.forward {
-                forwards.push(agent, forward);
-            }
-            if let Some(url) = &opened.copy {
-                terminal::copy_to_clipboard(url)?;
-            }
-            Ok(opened.notice)
+) {
+    let result = outcome.and_then(|opened| {
+        if let Some((agent, forward)) = opened.forward
+            && !forwards.push(agent.clone(), forward, &app.agents)
+        {
+            return Err(format!(
+                "{agent} was deleted or re-created while it opened, so its address no longer works"
+            ));
         }
-        Err(error) => Err(error),
-    };
+        if let Some(url) = &opened.copy {
+            terminal::copy_to_clipboard(url).map_err(|error| format!("could not copy {url}: {error}"))?;
+        }
+        Ok(opened.notice)
+    });
     app.opened(waiting, result, Instant::now());
-    Ok(())
 }
 
 /// Forwards the Agent's desktop to a free local port once it is Ready. The
@@ -896,7 +909,11 @@ fn forward_created(app: &mut App, forwards: &mut ActiveForwards, outcome: Create
     let (agent, spec, replace, result) = outcome;
     app.creating = app.creating.saturating_sub(1);
     match result {
-        Ok(forward) => forwards.push(agent, forward),
+        Ok(forward) => {
+            if !forwards.push(agent.clone(), forward, &app.agents) {
+                app.error = Some(format!("{agent} was deleted or re-created before its forward started"));
+            }
+        }
         Err(error) => {
             app.modal = Some(Modal::PortForward(ForwardForm::rejected(
                 agent,
@@ -1414,9 +1431,13 @@ mod tests {
         let first = materialized("00000000-0000-0000-0000-00000000000a");
         let second = materialized("00000000-0000-0000-0000-00000000000b");
         let mut forwards = ActiveForwards::default();
-        forwards.push("desk".into(), forward(&first, agent::vnc::WEB_GUEST_PORT).await);
         let mut desk = recorded_agent("desk", None);
-        desk.status.sandbox = Some(first);
+        desk.status.sandbox = Some(first.clone());
+        assert!(forwards.push(
+            "desk".into(),
+            forward(&first, agent::vnc::WEB_GUEST_PORT).await,
+            std::slice::from_ref(&desk)
+        ));
 
         forwards.prune(std::slice::from_ref(&desk));
         assert!(
@@ -1443,19 +1464,62 @@ mod tests {
             "re-created under the same name, so the old forward is dead"
         );
 
-        forwards.push("desk".into(), forward(&second, 3000).await);
+        assert!(forwards.push("desk".into(), forward(&second, 3000).await, std::slice::from_ref(&desk)));
         forwards.prune(&[]);
         assert!(forwards.entries().is_empty(), "the Agent is gone");
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn a_forward_that_starts_after_its_agent_was_re_created_is_not_kept() {
+        let first = materialized("00000000-0000-0000-0000-00000000000a");
+        let mut desk = recorded_agent("desk", None);
+        desk.status.sandbox = Some(materialized("00000000-0000-0000-0000-00000000000b"));
+        let mut app = App::new();
+        app.agents = vec![desk];
+        let mut forwards = ActiveForwards::default();
+        let target = OpenTarget::Desktop(DesktopViewer::Browser);
+        app.start_opening("desk", target, Instant::now());
+
+        let opened = OpenOutcome {
+            notice: "opening the desktop".into(),
+            forward: Some(("desk".into(), forward(&first, agent::vnc::WEB_GUEST_PORT).await)),
+            copy: None,
+        };
+        open_finished(&mut app, &mut forwards, Some(("desk".into(), target)), Ok(opened));
+
+        assert!(forwards.entries().is_empty());
+        assert_eq!(
+            app.error.as_deref(),
+            Some("desk was deleted or re-created while it opened, so its address no longer works")
+        );
+        assert!(app.opening.is_empty(), "the wait ends");
+
+        let spec = ForwardSpec::parse("127.0.0.1:0:3000").expect("spec");
+        app.error = None;
+        app.creating = 1;
+        let started = forward(&first, 3000).await;
+        forward_created(&mut app, &mut forwards, ("desk".into(), spec, None, Ok(started)));
+        assert!(forwards.entries().is_empty());
+        assert_eq!(
+            app.error.as_deref(),
+            Some("desk was deleted or re-created before its forward started")
+        );
     }
 
     #[tokio::test(flavor = "local")]
     async fn an_edited_desktop_forward_is_still_the_desktop() {
         let assignment = materialized("00000000-0000-0000-0000-00000000000a");
         let mut forwards = ActiveForwards::default();
-        forwards.push("desk".into(), forward(&assignment, agent::vnc::WEB_GUEST_PORT).await);
+        let desk = recorded_agent("desk", None);
+        forwards.push(
+            "desk".into(),
+            forward(&assignment, agent::vnc::WEB_GUEST_PORT).await,
+            std::slice::from_ref(&desk),
+        );
         let id = forwards.entries()[0].id;
         forwards.remove(id);
         let mut app = App::new();
+        app.agents = vec![desk];
         app.creating = 1;
         let spec = ForwardSpec::parse("127.0.0.1:0:6080").expect("spec");
         let edited = forward(&assignment, agent::vnc::WEB_GUEST_PORT).await;
