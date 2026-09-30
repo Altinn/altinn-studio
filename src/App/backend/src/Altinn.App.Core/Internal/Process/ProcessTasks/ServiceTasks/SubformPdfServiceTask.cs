@@ -15,6 +15,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 internal sealed class SubformPdfServiceTask(
     IProcessReader processReader,
     IPdfService pdfService,
+    IPdfFileNameResolver pdfFileNameResolver,
     ILogger<SubformPdfServiceTask> logger
 ) : IServiceTask
 {
@@ -22,8 +23,9 @@ internal sealed class SubformPdfServiceTask(
 
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
-        Instance instance = context.InstanceDataMutator.Instance;
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
+        Instance instance = dataMutator.Instance;
 
         logger.LogDebug("Calling PdfService for Subform PDF Service Task {TaskId}.", taskId);
 
@@ -44,12 +46,35 @@ internal sealed class SubformPdfServiceTask(
                 taskId
             );
 
-            _ = await pdfService.GenerateAndAddSubformPdf(
-                context.InstanceDataMutator,
+            var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
+            await using Stream pdf = await pdfService.GenerateSubformPdf(
+                dataMutator,
+                taskId,
+                subformPdfContext,
+                StorageAuthenticationMethod.ServiceOwner(),
+                context.CancellationToken
+            );
+            string fileName = await pdfFileNameResolver.GetFileName(
+                dataMutator,
                 filenameTextResourceKey,
-                new SubformPdfContext(subformComponentId, dataElement.Id),
-                authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
-                cancellationToken: context.CancellationToken
+                subformPdfContext
+            );
+            using var pdfBytes = new MemoryStream();
+            await pdf.CopyToAsync(pdfBytes, context.CancellationToken);
+
+            // Generated from the task, so the PDF is removed if the task starts again, and says which subform it
+            // was made from
+            dataMutator.AddBinaryDataElement(
+                PdfService.PdfElementType,
+                PdfService.PdfContentType,
+                fileName,
+                pdfBytes.ToArray(),
+                generatedFromTask: taskId,
+                metadata:
+                [
+                    new() { Key = "subformComponentId", Value = subformComponentId },
+                    new() { Key = "subformDataElementId", Value = dataElement.Id },
+                ]
             );
 
             logger.LogDebug(

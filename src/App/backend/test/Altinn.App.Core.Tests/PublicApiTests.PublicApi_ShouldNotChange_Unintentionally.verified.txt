@@ -3259,6 +3259,10 @@ namespace Altinn.App.Core.Internal.Language
 }
 namespace Altinn.App.Core.Internal.Pdf
 {
+    public interface IPdfFileNameResolver
+    {
+        System.Threading.Tasks.Task<string> GetFileName(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string? customFileNameTextResourceKey = null, Altinn.App.Core.Internal.Pdf.SubformPdfContext? subformPdfContext = null);
+    }
     public interface IPdfGeneratorClient
     {
         System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
@@ -3267,10 +3271,9 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public interface IPdfService
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.BinaryDataChange> GenerateAndAddPdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey = null, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.BinaryDataChange> GenerateAndAddSubformPdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.IO.Stream> GeneratePreviewPdf(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.IO.Stream> GenerateSubformPdf(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<System.IO.Stream> GenerateSubformPreviewPdf(Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, System.Threading.CancellationToken cancellationToken = default);
     }
     public class PdfGenerationException : Altinn.App.Core.Exceptions.AltinnException

@@ -15,15 +15,22 @@ internal interface IPdfServiceTask : IServiceTask { }
 internal sealed class PdfServiceTask : IPdfServiceTask
 {
     private readonly IPdfService _pdfService;
+    private readonly IPdfFileNameResolver _pdfFileNameResolver;
     private readonly IProcessReader _processReader;
     private readonly ILogger<PdfServiceTask> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfServiceTask"/> class.
     /// </summary>
-    public PdfServiceTask(IPdfService pdfService, IProcessReader processReader, ILogger<PdfServiceTask> logger)
+    public PdfServiceTask(
+        IPdfService pdfService,
+        IPdfFileNameResolver pdfFileNameResolver,
+        IProcessReader processReader,
+        ILogger<PdfServiceTask> logger
+    )
     {
         _pdfService = pdfService;
+        _pdfFileNameResolver = pdfFileNameResolver;
         _processReader = processReader;
         _logger = logger;
     }
@@ -34,18 +41,31 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
 
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
 
-        _ = await _pdfService.GenerateAndAddPdf(
-            context.InstanceDataMutator,
-            config.FilenameTextResourceKey,
+        await using Stream pdf = await _pdfService.GeneratePdf(
+            dataMutator,
+            taskId,
             config.AutoPdfTaskIds,
             StorageAuthenticationMethod.ServiceOwner(),
-            cancellationToken: context.CancellationToken
+            context.CancellationToken
+        );
+        string fileName = await _pdfFileNameResolver.GetFileName(dataMutator, config.FilenameTextResourceKey);
+        using var pdfBytes = new MemoryStream();
+        await pdf.CopyToAsync(pdfBytes, context.CancellationToken);
+
+        // Generated from the task, so the PDF is removed if the task starts again
+        dataMutator.AddBinaryDataElement(
+            PdfService.PdfElementType,
+            PdfService.PdfContentType,
+            fileName,
+            pdfBytes.ToArray(),
+            generatedFromTask: taskId
         );
 
         _logger.LogDebug(

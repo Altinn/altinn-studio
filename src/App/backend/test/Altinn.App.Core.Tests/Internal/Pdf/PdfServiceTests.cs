@@ -279,7 +279,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf()
+    public async Task GeneratePdf()
     {
         // Arrange
         TelemetrySink telemetrySink = new();
@@ -309,10 +309,10 @@ public class PdfServiceTests
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
 
-        var mutatorMock = CreateMutatorMock(instance);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
 
         // Act
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -327,98 +327,11 @@ public class PdfServiceTests
                     It.Is<string?>(s => s == null),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "not-really-an-app.pdf"),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.Is<string?>(s => s == "Task_1"),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
                 ),
             Times.Once
         );
 
         await Verify(telemetrySink.GetSnapshot());
-    }
-
-    [Fact]
-    public async Task GenerateAndAddPdf_with_generatedFrom()
-    {
-        // Arrange
-        _pdfGeneratorClient
-            .Setup(s =>
-                s.GeneratePdf(
-                    It.IsAny<Uri>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new MemoryStream());
-
-        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
-
-        var target = SetupPdfService(
-            pdfGeneratorClient: _pdfGeneratorClient,
-            generalSettingsOptions: _generalSettingsOptions
-        );
-
-        var dataModelId = Guid.NewGuid();
-        var attachmentId = Guid.NewGuid();
-
-        Instance instance = new()
-        {
-            Id = $"509378/{Guid.NewGuid()}",
-            AppId = "digdir/not-really-an-app",
-            Org = "digdir",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
-            Data = new()
-            {
-                new() { Id = dataModelId.ToString(), DataType = "Model" },
-                new() { Id = attachmentId.ToString(), DataType = "attachment" },
-            },
-        };
-
-        var mutatorMock = CreateMutatorMock(instance);
-
-        // Act
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
-
-        // Asserts
-        _pdfGeneratorClient.Verify(
-            s =>
-                s.GeneratePdf(
-                    It.Is<Uri>(u =>
-                        u.Scheme == "https"
-                        && u.Host == $"{instance.Org}.apps.{HostName}"
-                        && u.AbsoluteUri.Contains(instance.AppId)
-                        && u.AbsoluteUri.Contains(instance.Id)
-                    ),
-                    It.Is<string?>(s => s == null),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.IsAny<string>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.Is<string?>(s => s == "Task_1"),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
-                ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -461,7 +374,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
+    public async Task GeneratePdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
     {
         // Arrange
         var autoGeneratePdfForTaskIds = new List<string> { "Task_1", "Task_2", "Task_3" };
@@ -491,12 +404,12 @@ public class PdfServiceTests
             Process = new() { CurrentTask = new() { ElementId = "Task_PDF" } },
         };
 
-        var mutatorMock = CreateMutatorMock(instance);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
 
         // Act
-        await target.GenerateAndAddPdf(
-            mutatorMock.Object,
-            null,
+        await target.GeneratePdf(
+            dataAccessorMock.Object,
+            "Task_PDF",
             autoGeneratePdfForTaskIds,
             cancellationToken: CancellationToken.None
         );
@@ -523,214 +436,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithCustomFileNameTextResourceKey_ShouldUseCustomFileName()
-    {
-        // Arrange
-        const string customTextResourceKey = "custom.pdf.filename";
-        const string customFileName = "My Custom Receipt";
-
-        var mockAppResources = new Mock<IAppResources>();
-        var resource = new TextResource()
-        {
-            Id = "digdir-not-really-an-app-nb",
-            Language = LanguageConst.Nb,
-            Org = "digdir",
-            Resources = [new() { Id = customTextResourceKey, Value = customFileName }],
-        };
-        mockAppResources
-            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(resource);
-
-        _pdfGeneratorClient
-            .Setup(s =>
-                s.GeneratePdf(
-                    It.IsAny<Uri>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new MemoryStream());
-        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
-
-        var target = SetupPdfService(
-            appResources: mockAppResources,
-            pdfGeneratorClient: _pdfGeneratorClient,
-            generalSettingsOptions: _generalSettingsOptions
-        );
-
-        Instance instance = new()
-        {
-            Id = $"509378/{Guid.NewGuid()}",
-            AppId = "digdir/not-really-an-app",
-            Org = "digdir",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
-            Data = new()
-            {
-                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
-            },
-        };
-
-        var mutatorMock = CreateMutatorMock(instance, mockAppResources);
-
-        // Act
-        await target.GenerateAndAddPdf(
-            mutatorMock.Object,
-            customTextResourceKey,
-            null,
-            cancellationToken: CancellationToken.None
-        );
-
-        // Assert
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "My Custom Receipt.pdf"),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.Is<string?>(s => s == "Task_1"),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task GenerateAndAddPdf_WithCustomFileNameIncludingPdfExtension_ShouldNotDuplicateExtension()
-    {
-        // Arrange
-        const string customTextResourceKey = "custom.pdf.filename.with.extension";
-        const string customFileName = "My Custom Receipt.pdf";
-
-        var mockAppResources = new Mock<IAppResources>();
-        var resource = new TextResource()
-        {
-            Id = "digdir-not-really-an-app-nb",
-            Language = LanguageConst.Nb,
-            Org = "digdir",
-            Resources = [new() { Id = customTextResourceKey, Value = customFileName }],
-        };
-        mockAppResources
-            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(resource);
-
-        _pdfGeneratorClient
-            .Setup(s =>
-                s.GeneratePdf(
-                    It.IsAny<Uri>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new MemoryStream());
-        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
-
-        var target = SetupPdfService(
-            appResources: mockAppResources,
-            pdfGeneratorClient: _pdfGeneratorClient,
-            generalSettingsOptions: _generalSettingsOptions
-        );
-
-        Instance instance = new()
-        {
-            Id = $"509378/{Guid.NewGuid()}",
-            AppId = "digdir/not-really-an-app",
-            Org = "digdir",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
-            Data = new()
-            {
-                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
-            },
-        };
-
-        var mutatorMock = CreateMutatorMock(instance, mockAppResources);
-
-        // Act
-        await target.GenerateAndAddPdf(
-            mutatorMock.Object,
-            customTextResourceKey,
-            null,
-            cancellationToken: CancellationToken.None
-        );
-
-        // Assert
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "My Custom Receipt.pdf"),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.Is<string?>(s => s == "Task_1"),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task GenerateAndAddPdf_DefaultFileName_KeepsSpaces()
-    {
-        var mockAppResources = new Mock<IAppResources>();
-        var resource = new TextResource()
-        {
-            Id = "digdir-not-really-an-app-nb",
-            Language = LanguageConst.Nb,
-            Org = "digdir",
-            Resources = [new() { Id = "appName", Value = "Not Really An App" }],
-        };
-        mockAppResources
-            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(resource);
-
-        _pdfGeneratorClient
-            .Setup(s =>
-                s.GeneratePdf(
-                    It.IsAny<Uri>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new MemoryStream());
-        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
-
-        var target = SetupPdfService(
-            appResources: mockAppResources,
-            pdfGeneratorClient: _pdfGeneratorClient,
-            generalSettingsOptions: _generalSettingsOptions
-        );
-
-        Instance instance = new()
-        {
-            Id = $"509378/{Guid.NewGuid()}",
-            AppId = "digdir/not-really-an-app",
-            Org = "digdir",
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
-        };
-
-        var mutatorMock = CreateMutatorMock(instance);
-
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
-
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    It.Is<string>(s => s == "ref-data-as-pdf"),
-                    It.Is<string>(s => s == "application/pdf"),
-                    It.Is<string>(s => s == "Not Really An App.pdf"),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.Is<string?>(s => s == "Task_1"),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task GenerateAndAddSubformPdf_Adds_Which_Subform_The_Pdf_Was_Made_From()
+    public async Task GenerateSubformPdf_ShouldRenderTheSubform()
     {
         _pdfGeneratorClient
             .Setup(s =>
@@ -754,104 +460,38 @@ public class PdfServiceTests
             Org = "digdir",
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
-        var mutatorMock = CreateMutatorMock(instance);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
 
-        await target.GenerateAndAddSubformPdf(
-            mutatorMock.Object,
-            customFileNameTextResourceKey: null,
+        await target.GenerateSubformPdf(
+            dataAccessorMock.Object,
+            "Task_1",
             new SubformPdfContext("subform-component", "subform-data-element")
         );
 
-        mutatorMock.Verify(
-            m =>
-                m.AddBinaryDataElement(
-                    "ref-data-as-pdf",
-                    "application/pdf",
-                    It.IsAny<string>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    "Task_1",
-                    It.Is<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>(metadata =>
-                        metadata != null
-                        && metadata.Count == 2
-                        && metadata.Any(entry =>
-                            entry.Key == "subformComponentId" && entry.Value == "subform-component"
-                        )
-                        && metadata.Any(entry =>
-                            entry.Key == "subformDataElementId" && entry.Value == "subform-data-element"
-                        )
-                    )
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u =>
+                        u.AbsoluteUri.Contains(instance.Id)
+                        && u.AbsoluteUri.Contains("/Task_1/subform/subform-component/subform-data-element")
+                    ),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
     }
 
-    private static Mock<IInstanceDataMutator> CreateMutatorMock(
-        Instance instance,
-        Mock<IAppResources>? appResources = null
-    )
+    private static Mock<IInstanceDataAccessor> CreateDataAccessorMock(Instance instance)
     {
-        var mutatorMock = new Mock<IInstanceDataMutator>();
-        mutatorMock.Setup(m => m.Instance).Returns(instance);
-
-        var pdfDataType = new DataType { Id = "ref-data-as-pdf" };
-        var modelDataType = new DataType { Id = "Model" };
-        mutatorMock.Setup(m => m.DataTypes).Returns(new List<DataType> { pdfDataType, modelDataType });
-
-        mutatorMock
-            .Setup(m =>
-                m.AddBinaryDataElement(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<ReadOnlyMemory<byte>>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>?>()
-                )
-            )
-            .Returns(
-                (
-                    string dataTypeId,
-                    string contentType,
-                    string? filename,
-                    ReadOnlyMemory<byte> bytes,
-                    string? generatedFromTask,
-                    List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? metadata
-                ) =>
-                    new BinaryDataChange(
-                        ChangeType.Created,
-                        pdfDataType,
-                        contentType,
-                        null,
-                        filename,
-                        bytes,
-                        generatedFromTask,
-                        metadata
-                    )
-            );
-
-        // Setup LayoutEvaluatorState for variable substitution
-        if (appResources != null)
-        {
-            var uiFolderComponent = new UiFolderComponent(new List<PageComponent>(), "layout", modelDataType);
-            var layoutModel = new LayoutModel([uiFolderComponent], null);
-            appResources.Setup(x => x.GetLayoutModelForFolder(It.IsAny<string>())).Returns(layoutModel);
-
-            var layoutEvaluatorState = new LayoutEvaluatorState(
-                mutatorMock.Object,
-                layoutModel,
-                Mock.Of<ITranslationService>(),
-                new FrontEndSettings(),
-                gatewayAction: null,
-                language: null
-            );
-            mutatorMock.Setup(m => m.GetLayoutEvaluatorState()).Returns(layoutEvaluatorState);
-        }
-
-        return mutatorMock;
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        dataAccessorMock.Setup(m => m.Instance).Returns(instance);
+        return dataAccessorMock;
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
+    public async Task GeneratePdf_WithDisplayFooter_HideAppNameInPdfExpression_EvaluatesToTrue_FooterShouldNotContainAppName()
     {
         // Arrange
         _appResources
@@ -895,8 +535,8 @@ public class PdfServiceTests
         };
 
         // Act
-        var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -911,7 +551,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
+    public async Task GeneratePdf_WithDisplayFooter_HideAppNameInPdfTrue_FooterShouldNotContainAppName()
     {
         // Arrange
         _appResources
@@ -944,8 +584,8 @@ public class PdfServiceTests
         };
 
         // Act
-        var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -961,7 +601,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
+    public async Task GeneratePdf_WithDisplayFooter_HideAppNameInPdfFalse_FooterShouldContainAppName()
     {
         // Arrange
         _appResources
@@ -994,8 +634,8 @@ public class PdfServiceTests
         };
 
         // Act
-        var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1011,7 +651,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithDisplayFooter_NoUiSettings_FooterShouldContainAppName()
+    public async Task GeneratePdf_WithDisplayFooter_NoUiSettings_FooterShouldContainAppName()
     {
         // Arrange
         _pdfGeneratorClient
@@ -1041,8 +681,8 @@ public class PdfServiceTests
         };
 
         // Act
-        var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -1058,7 +698,7 @@ public class PdfServiceTests
     }
 
     [Fact]
-    public async Task GenerateAndAddPdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
+    public async Task GeneratePdf_WithDisplayFooter_MalformedLayoutSets_ShouldStillGeneratePdfWithAppName()
     {
         // Arrange
         _appResources.Setup(s => s.GetGlobalUiSettings()).Throws<System.Text.Json.JsonException>();
@@ -1089,8 +729,8 @@ public class PdfServiceTests
         };
 
         // Act
-        var mutatorMock = CreateMutatorMock(instance);
-        await target.GenerateAndAddPdf(mutatorMock.Object, cancellationToken: CancellationToken.None);
+        var dataAccessorMock = CreateDataAccessorMock(instance);
+        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(

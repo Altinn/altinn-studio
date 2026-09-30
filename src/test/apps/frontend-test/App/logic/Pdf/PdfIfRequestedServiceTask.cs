@@ -18,11 +18,17 @@ namespace Altinn.App.logic.Pdf
     public sealed class PdfIfRequestedServiceTask : IServiceTask
     {
         private readonly IPdfService _pdfService;
+        private readonly IPdfFileNameResolver _pdfFileNameResolver;
         private readonly IProcessReader _processReader;
 
-        public PdfIfRequestedServiceTask(IPdfService pdfService, IProcessReader processReader)
+        public PdfIfRequestedServiceTask(
+            IPdfService pdfService,
+            IPdfFileNameResolver pdfFileNameResolver,
+            IProcessReader processReader
+        )
         {
             _pdfService = pdfService;
+            _pdfFileNameResolver = pdfFileNameResolver;
             _processReader = processReader;
         }
 
@@ -44,12 +50,24 @@ namespace Altinn.App.logic.Pdf
                 var taskId = mutator.Instance.Process.CurrentTask.ElementId;
                 var pdfConfig = _processReader.GetAltinnTaskExtension(taskId)?.PdfConfiguration;
 
-                await _pdfService.GenerateAndAddPdf(
+                await using var pdf = await _pdfService.GeneratePdf(
                     mutator,
-                    pdfConfig?.FilenameTextResourceKey,
+                    taskId,
                     pdfConfig?.AutoPdfTaskIds,
                     StorageAuthenticationMethod.ServiceOwner(),
                     context.CancellationToken
+                );
+                var fileName = await _pdfFileNameResolver.GetFileName(mutator, pdfConfig?.FilenameTextResourceKey);
+                using var pdfBytes = new MemoryStream();
+                await pdf.CopyToAsync(pdfBytes, context.CancellationToken);
+
+                // Generated from the task, so the PDF is removed if the task starts again
+                mutator.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    fileName,
+                    pdfBytes.ToArray(),
+                    generatedFromTask: taskId
                 );
             }
 

@@ -18,6 +18,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 public class SubformPdfServiceTaskTests
 {
     private readonly Mock<IPdfService> _pdfServiceMock = new();
+    private readonly Mock<IPdfFileNameResolver> _pdfFileNameResolverMock = new();
     private readonly Mock<ILogger<SubformPdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly SubformPdfServiceTask _serviceTask;
@@ -28,41 +29,34 @@ public class SubformPdfServiceTaskTests
 
     public SubformPdfServiceTaskTests()
     {
-        // Setup PDF service to return a BinaryDataChange
+        // A new stream for each PDF, since the task disposes each one
         _pdfServiceMock
             .Setup(x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                (
-                    IInstanceDataMutator _,
-                    string? _,
-                    SubformPdfContext subformContext,
-                    StorageAuthenticationMethod? _,
-                    CancellationToken _
-                ) =>
-                    new BinaryDataChange(
-                        ChangeType.Created,
-                        new DataType { Id = "ref-data-as-pdf" },
-                        "application/pdf",
-                        null,
-                        null,
-                        ReadOnlyMemory<byte>.Empty,
-                        generatedFromTask: "taskId"
-                    )
-            );
+            .ReturnsAsync(() => new MemoryStream());
+        _pdfFileNameResolverMock
+            .Setup(x =>
+                x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())
+            )
+            .ReturnsAsync("subform.pdf");
 
-        _serviceTask = new SubformPdfServiceTask(_processReaderMock.Object, _pdfServiceMock.Object, _loggerMock.Object);
+        _serviceTask = new SubformPdfServiceTask(
+            _processReaderMock.Object,
+            _pdfServiceMock.Object,
+            _pdfFileNameResolverMock.Object,
+            _loggerMock.Object
+        );
     }
 
     [Fact]
-    public async Task Execute_Should_Call_GenerateAndAddPdf_ForEachDataElement()
+    public async Task Execute_Should_Call_GenerateSubformPdf_ForEachDataElement()
     {
         // Arrange
         SetupProcessReader();
@@ -75,22 +69,26 @@ public class SubformPdfServiceTaskTests
         // Assert
         result.Should().BeOfType<ServiceTaskSuccessResult>();
 
-        // Verify that GenerateAndAddSubformPdf was called for each data element
+        // Verify that GenerateSubformPdf was called for each data element
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.Is<string?>(filename => filename == FileName),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    "taskId",
                     It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Exactly(2) // Should be called twice for the two data elements
         );
+        _pdfFileNameResolverMock.Verify(
+            x => x.GetFileName(It.IsAny<IInstanceDataAccessor>(), FileName, It.IsAny<SubformPdfContext?>()),
+            Times.Exactly(2)
+        );
     }
 
     [Fact]
-    public async Task Execute_WithNoMatchingDataElements_Should_Not_Call_GenerateAndAddPdf()
+    public async Task Execute_WithNoMatchingDataElements_Should_Not_Call_GenerateSubformPdf()
     {
         // Arrange
         SetupProcessReader();
@@ -103,12 +101,12 @@ public class SubformPdfServiceTaskTests
         // Assert
         result.Should().BeOfType<ServiceTaskSuccessResult>();
 
-        // Verify that GenerateAndAddSubformPdf was not called
+        // Verify that GenerateSubformPdf was not called
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -118,7 +116,7 @@ public class SubformPdfServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_WithSpecificDataElements_Should_Call_GenerateAndAddPdf_WithCorrectIds()
+    public async Task Execute_WithSpecificDataElements_Should_Call_GenerateSubformPdf_WithCorrectIds()
     {
         // Arrange
         SetupProcessReader();
@@ -131,9 +129,9 @@ public class SubformPdfServiceTaskTests
         // Assert - verify that the correct data element IDs were used
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(ctx =>
                         ctx.DataElementId == "data-element-1" || ctx.DataElementId == "data-element-2"
                     ),
@@ -162,7 +160,7 @@ public class SubformPdfServiceTaskTests
     // ===== METADATA TESTS =====
 
     [Fact]
-    public async Task Execute_Should_PassSubformContextToGenerateAndAddSubformPdf()
+    public async Task Execute_Should_PassSubformContextToGenerateSubformPdf()
     {
         // Arrange
         SetupProcessReader();
@@ -175,9 +173,9 @@ public class SubformPdfServiceTaskTests
         // Assert - verify the subform was passed to the pdf service for both PDFs
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform =>
                         subform.ComponentId == SubformComponentId
                         && (subform.DataElementId == "data-element-1" || subform.DataElementId == "data-element-2")
@@ -187,6 +185,54 @@ public class SubformPdfServiceTaskTests
                 ),
             Times.Exactly(2)
         );
+    }
+
+    [Fact]
+    public async Task Execute_Should_Add_Each_Pdf_Generated_From_The_Task_With_Its_Subform()
+    {
+        // Arrange
+        SetupProcessReader();
+        var instance = CreateInstanceWithSubformData();
+        var context = CreateServiceTaskContext(instance);
+
+        // Act
+        await _serviceTask.Execute(context);
+
+        // Assert - each PDF is named from its subform's data and says which subform it was made from
+        var mutatorMock = Mock.Get(context.InstanceDataMutator);
+        foreach (string dataElementId in new[] { "data-element-1", "data-element-2" })
+        {
+            _pdfFileNameResolverMock.Verify(
+                x =>
+                    x.GetFileName(
+                        context.InstanceDataMutator,
+                        FileName,
+                        It.Is<SubformPdfContext?>(subform => subform != null && subform.DataElementId == dataElementId)
+                    ),
+                Times.Once
+            );
+            mutatorMock.Verify(
+                x =>
+                    x.AddBinaryDataElement(
+                        "ref-data-as-pdf",
+                        "application/pdf",
+                        "subform.pdf",
+                        It.IsAny<ReadOnlyMemory<byte>>(),
+                        "taskId",
+                        It.Is<List<KeyValueEntry>?>(metadata =>
+                            metadata != null
+                            && metadata.Count == 2
+                            && metadata.Any(entry =>
+                                entry.Key == "subformComponentId" && entry.Value == SubformComponentId
+                            )
+                            && metadata.Any(entry =>
+                                entry.Key == "subformDataElementId" && entry.Value == dataElementId
+                            )
+                        )
+                    ),
+                Times.Once
+            );
+        }
     }
 
     // ===== CONFIGURATION VALIDATION TESTS =====
@@ -273,14 +319,12 @@ public class SubformPdfServiceTaskTests
         await _serviceTask.Execute(context);
 
         // Assert - should be called with null filename
-        _pdfServiceMock.Verify(
+        _pdfFileNameResolverMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
+                x.GetFileName(
+                    It.IsAny<IInstanceDataAccessor>(),
                     It.Is<string?>(filename => filename == null),
-                    It.IsAny<SubformPdfContext>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
+                    It.IsAny<SubformPdfContext?>()
                 ),
             Times.AtLeastOnce
         );
@@ -298,9 +342,9 @@ public class SubformPdfServiceTaskTests
 
         _pdfServiceMock
             .Setup(x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -323,9 +367,9 @@ public class SubformPdfServiceTaskTests
         var callCount = 0;
         _pdfServiceMock
             .Setup(x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -333,9 +377,9 @@ public class SubformPdfServiceTaskTests
             )
             .ReturnsAsync(
                 (
-                    IInstanceDataMutator _,
-                    string? _,
-                    SubformPdfContext subformContext,
+                    IInstanceDataAccessor _,
+                    string _,
+                    SubformPdfContext _,
                     StorageAuthenticationMethod? _,
                     CancellationToken _
                 ) =>
@@ -343,14 +387,7 @@ public class SubformPdfServiceTaskTests
                     callCount++;
                     if (callCount == 2)
                         throw new Exception("Second PDF failed");
-                    return new BinaryDataChange(
-                        ChangeType.Created,
-                        new DataType { Id = "ref-data-as-pdf" },
-                        "application/pdf",
-                        null,
-                        null,
-                        ReadOnlyMemory<byte>.Empty
-                    );
+                    return new MemoryStream();
                 }
             );
 
@@ -370,9 +407,9 @@ public class SubformPdfServiceTaskTests
 
         _pdfServiceMock
             .Setup(x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -400,9 +437,9 @@ public class SubformPdfServiceTaskTests
         // Assert - verify each PDF gets the correct data element id
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-1"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -412,9 +449,9 @@ public class SubformPdfServiceTaskTests
 
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-2"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -424,9 +461,9 @@ public class SubformPdfServiceTaskTests
 
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-3"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -452,9 +489,9 @@ public class SubformPdfServiceTaskTests
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.Is<SubformPdfContext>(ctx => ctx.DataElementId == "single-data-element"),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -478,9 +515,9 @@ public class SubformPdfServiceTaskTests
         result.Should().BeOfType<ServiceTaskSuccessResult>();
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -504,9 +541,9 @@ public class SubformPdfServiceTaskTests
         // Assert - verify cancellation token was passed to dependencies
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndAddSubformPdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GenerateSubformPdf(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.Is<CancellationToken>(cancellationToken => cancellationToken == cts.Token)
