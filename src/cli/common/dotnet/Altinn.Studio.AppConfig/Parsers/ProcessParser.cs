@@ -32,6 +32,7 @@ internal static class ProcessParser
 
         var lineStarts = Spans.LineStarts(data);
         CollectKind(app, process, "task", data, lineStarts);
+        CollectKind(app, process, "serviceTask", data, lineStarts);
         CollectKind(app, process, "userTask", data, lineStarts);
         CollectKind(app, process, "callActivity", data, lineStarts);
         CollectKind(app, process, "subProcess", data, lineStarts);
@@ -164,6 +165,12 @@ internal static class ProcessParser
         return map;
     }
 
+    private static readonly HashSet<string> _runtimeTaskElements = new(StringComparer.Ordinal)
+    {
+        "task",
+        "serviceTask",
+    };
+
     private static void CollectKind(AppModelBuilder app, XElement process, string kind, byte[] data, int[] lineStarts)
     {
         var tasks = process.Elements().Where(e => e.Name.LocalName == kind).ToArray();
@@ -180,12 +187,13 @@ internal static class ProcessParser
 
             CollectConfigRefs(app, t, id, ptr, data, lineStarts);
 
-            if (string.IsNullOrEmpty(taskType) && kind == "task")
+            var isRuntimeTask = _runtimeTaskElements.Contains(kind);
+            if (string.IsNullOrEmpty(taskType) && isRuntimeTask)
             {
                 app.RecordCoverageGap("bpmn.missingTaskType", $"task \"{id}\" has no <altinn:taskType> extension", pos);
             }
 
-            if (kind != "task")
+            if (!isRuntimeTask)
             {
                 app.RecordCoverageGap(
                     "bpmn." + kind,
