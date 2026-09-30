@@ -14,6 +14,7 @@ internal static class LayoutParser
         if (!SourceParse.TryJson(app, file, data, out var doc))
             return;
         using var _ = doc;
+        StringLiteralCollector.Collect(app.StringLiterals, doc.RootElement);
 
         if (!doc.RootElement.TryGetProperty("data", out var dataEl))
             return;

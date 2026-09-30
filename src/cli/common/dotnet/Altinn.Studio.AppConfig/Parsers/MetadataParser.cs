@@ -20,6 +20,7 @@ internal static class MetadataParser
             return;
         using var _ = doc;
         var root = doc.RootElement;
+        StringLiteralCollector.Collect(app.StringLiterals, root);
 
         if (root.TryGetProperty("id", out var idEl) && idEl.ValueKind == JsonValueKind.String)
         {

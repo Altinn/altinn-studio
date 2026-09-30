@@ -24,6 +24,7 @@ internal sealed class RoslynSyntaxIntrospector
             var tree = CSharpSyntaxTree.ParseText(System.Text.Encoding.UTF8.GetString(data));
             var root = tree.GetRoot();
             sources.Add((file, root));
+            CollectStringLiterals(app, root);
             foreach (var typeDecl in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 RecordType(app, typeDecl, file);
@@ -31,6 +32,19 @@ internal sealed class RoslynSyntaxIntrospector
             ProcessTaskTypeScanner.Collect(root, app);
         }
         OptionProviderScanner.Collect(sources, app);
+    }
+
+    private static void CollectStringLiterals(AppModelBuilder app, SyntaxNode root)
+    {
+        foreach (var token in root.DescendantTokens())
+            if (
+                token.Kind()
+                    is SyntaxKind.StringLiteralToken
+                        or SyntaxKind.SingleLineRawStringLiteralToken
+                        or SyntaxKind.MultiLineRawStringLiteralToken
+                && token.ValueText.Length > 0
+            )
+                app.StringLiterals.Add(token.ValueText);
     }
 
     private static void RecordType(AppModelBuilder app, BaseTypeDeclarationSyntax decl, string file)

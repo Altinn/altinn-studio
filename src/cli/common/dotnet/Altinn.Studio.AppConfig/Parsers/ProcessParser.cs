@@ -22,6 +22,7 @@ internal static class ProcessParser
 
         if (!SourceParse.TryXml(app, FileRel, data, out var doc))
             return;
+        StringLiteralCollector.Collect(app.StringLiterals, doc);
 
         var defs = doc.Root;
         if (defs is null)

@@ -57,6 +57,7 @@ internal static class LayoutSetsParser
         if (!SourceParse.TryJson(app, path, data, out var doc))
             return;
         using var _ = doc;
+        StringLiteralCollector.Collect(app.StringLiterals, doc.RootElement);
 
         var defaultType = TryString(doc.RootElement, "defaultDataType");
         if (!string.IsNullOrEmpty(defaultType))
@@ -192,6 +193,7 @@ internal static class LayoutSetsParser
         if (!SourceParse.TryJson(app, path, data, out var doc))
             return;
         using var _ = doc;
+        StringLiteralCollector.Collect(app.StringLiterals, doc.RootElement);
 
         if (
             doc.RootElement.TryGetProperty("taskNavigation", out var taskNavEl)

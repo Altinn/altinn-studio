@@ -269,6 +269,7 @@ public sealed class InMemoryAppDirectoryTests
                     """{"language":"nb","resources":[{"id":"shared","value":"Delt"},{"id":"only-nb","value":"Bare bokmål"}]}""",
                 ["App/config/texts/resource.nn.json"] =
                     """{"language":"nn","resources":[{"id":"shared","value":"Delt"}]}""",
+                ["App/options/answers.json"] = """[{"value":"a","label":"shared"},{"value":"b","label":"only-nb"}]""",
             }
         );
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());

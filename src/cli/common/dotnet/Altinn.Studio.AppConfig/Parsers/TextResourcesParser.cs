@@ -42,6 +42,7 @@ internal static class TextResourcesParser
                             ids[id] = new SourceSpan(file, $"/resources/{i}/id");
                             if (JsonRead.TryString(r, "value") is { } value)
                                 values[id] = value;
+                            CollectTextVariableKeys(app, r);
                         }
                     }
                     i++;
@@ -57,5 +58,18 @@ internal static class TextResourcesParser
                 }
             );
         }
+    }
+
+    private static void CollectTextVariableKeys(AppModelBuilder app, JsonElement resource)
+    {
+        if (!resource.TryGetProperty("variables", out var variables) || variables.ValueKind != JsonValueKind.Array)
+            return;
+        foreach (var variable in variables.EnumerateArray())
+            if (
+                variable.ValueKind == JsonValueKind.Object
+                && JsonRead.TryString(variable, "dataSource") == "text"
+                && JsonRead.TryString(variable, "key") is { Length: > 0 } key
+            )
+                app.StringLiterals.Add(key);
     }
 }
