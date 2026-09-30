@@ -61,7 +61,6 @@ public static class TracingDI
         services.AddSingleton<IValidator, Validator>();
         services.AddSingleton<IExternalApiClient, ExternalApiClient>();
         services.AddSingleton<IFileAnalyzer, FileAnalyzer>();
-        services.AddSingleton<IAppOptionsFileHandler, AppOptionsFileHandler>();
         services.AddSingleton<IFileValidator, FileValidator>();
         services.AddSingleton<IEFormidlingMetadata, EFormidlingMetadata>();
         services.AddSingleton<IEFormidlingReceivers, EFormidlingReceivers>();
@@ -395,15 +394,6 @@ internal sealed class FileAnalyzer : IFileAnalyzer
     {
         SnapshotLogger.LogInfo("IFileAnalyzer.Analyze");
         return Task.FromResult(new FileAnalysisResult(Id));
-    }
-}
-
-internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
-{
-    public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId)
-    {
-        SnapshotLogger.LogInfo("IAppOptionsFileHandler.ReadOptionsFromFileAsync");
-        return Task.FromResult<List<AppOption>?>([]);
     }
 }
 

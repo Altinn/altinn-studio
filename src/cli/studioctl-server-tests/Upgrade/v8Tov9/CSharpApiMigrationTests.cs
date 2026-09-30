@@ -357,6 +357,140 @@ public sealed class CSharpApiMigrationTests : IDisposable
         Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
     }
 
+    // --- RemovedAppOptionsTypeDetector -----------------------------------------------------------
+
+    [Fact]
+    public void AppOptionsTypeDetector_FlagsFileHandlerImplementationAndRegistration()
+    {
+        _app.Write(
+            "logic/MyOptionsFileHandler.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class MyOptionsFileHandler : IAppOptionsFileHandler
+            {
+                public Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId) => Task.FromResult<List<AppOption>?>(null);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IAppOptionsFileHandler, MyOptionsFileHandler>();
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyOptionsFileHandler.cs") && w.Contains("MyOptionsFileHandler : IAppOptionsFileHandler")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IAppOptionsFileHandler"));
+    }
+
+    [Fact]
+    public void AppOptionsTypeDetector_FlagsDefaultProviderSubclass()
+    {
+        _app.Write(
+            "logic/MyOptions.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class MyOptions : DefaultAppOptionsProvider
+            {
+                public MyOptions(IServiceProvider sp) : base("my-options", sp) { }
+            }
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("MyOptions.cs") && w.Contains("DefaultAppOptionsProvider"));
+    }
+
+    [Fact]
+    public void AppOptionsTypeDetector_FlagsJoinedProviderReference()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IAppOptionsProvider>(sp => new JoinedAppOptionsProvider("all", ["a", "b"], sp.GetRequiredService<IAppOptionsService>()));
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("JoinedAppOptionsProvider"));
+        Assert.Contains(result.Todos, t => t.Contains("AddJoinedAppOptions"));
+    }
+
+    [Fact]
+    public void AppOptionsTypeDetector_FlagsIsInstanceAppOptionsProviderRegisteredCall()
+    {
+        _app.Write(
+            "logic/Consumer.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class Consumer(IAppOptionsService options)
+            {
+                public bool Check(string id) => options.IsInstanceAppOptionsProviderRegistered(id);
+            }
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Consumer.cs") && w.Contains("IsInstanceAppOptionsProviderRegistered")
+        );
+        Assert.Contains(result.Todos, t => t.Contains("AppOptionsSource.InstanceProvider"));
+    }
+
+    [Fact]
+    public void AppOptionsTypeDetector_LeavesAnOptionsProviderAlone()
+    {
+        _app.Write(
+            "logic/MyOptions.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyOptions : IAppOptionsProvider
+            {
+                public string Id => "my-options";
+                public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs) => throw new NotImplementedException();
+            }
+            """
+        );
+        _app.Write(
+            "logic/Consumer.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class Consumer(IAppOptionsService options)
+            {
+                public Task<AppOptions> Load(string id) => options.GetOptionsAsync(id, "nb", []);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddJoinedAppOptions("all", "a", "b");
+            """
+        );
+
+        var result = new RemovedAppOptionsTypeDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
     // --- EFormidlingReceiversSignatureMigration --------------------------------------------------
 
     [Fact]

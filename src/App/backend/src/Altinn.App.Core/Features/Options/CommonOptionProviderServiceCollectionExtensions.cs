@@ -80,13 +80,11 @@ public static class CommonOptionProviderServiceCollectionExtensions
         string? version = null
     )
     {
-        serviceCollection.AddSingleton<IAppOptionsProvider>(sp => new Altinn3LibraryOptionsProvider(
-            optionId,
-            org,
-            codeListId,
-            version,
-            sp.GetRequiredService<IAltinn3LibraryCodeListService>()
-        ));
+        ArgumentException.ThrowIfNullOrWhiteSpace(optionId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(org);
+        ArgumentException.ThrowIfNullOrWhiteSpace(codeListId);
+
+        serviceCollection.AddSingleton(new LibraryCodeListDefinition(optionId, org, codeListId, version));
         return serviceCollection;
     }
 }

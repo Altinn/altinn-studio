@@ -349,7 +349,6 @@ public class FormBootstrapControllerTests
         implementationServices.AddAppImplementationFactory();
         implementationServices.AddSingleton(Mock.Of<IValidationService>());
         implementationServices.AddSingleton(Mock.Of<IFormDataReader>());
-        implementationServices.AddSingleton(Mock.Of<IAppOptionsFileHandler>());
         var implementationServiceProvider = implementationServices.BuildServiceProvider();
         var appImplementationFactory = implementationServiceProvider.GetRequiredService<AppImplementationFactory>();
 
@@ -357,6 +356,7 @@ public class FormBootstrapControllerTests
             appResources,
             appMetadataMock.Object,
             Mock.Of<IAppOptionsService>(),
+            new AppFilesAccessor(new AppFiles(applicationMetadata: "{\"id\":\"ttd/test\"}"u8.ToArray())),
             new AppModelMock<DummyModel>(),
             Mock.Of<IPrefill>(),
             authenticationContext ?? Mock.Of<IAuthenticationContext>(),

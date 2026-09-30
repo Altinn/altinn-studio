@@ -435,7 +435,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/options")]
     public class OptionsController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public OptionsController(Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService, Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.IAltinn3LibraryCodeListService altinn3LibraryCodeListService) { }
+        public OptionsController(Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{optionsIdOrLibraryRef}")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]

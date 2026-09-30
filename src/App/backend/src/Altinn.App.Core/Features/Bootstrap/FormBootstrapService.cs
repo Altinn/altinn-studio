@@ -3,6 +3,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -33,8 +34,8 @@ internal sealed class FormBootstrapService
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppOptionsService _appOptionsService;
+    private readonly AppFilesAccessor _appFiles;
     private readonly IServiceProvider _serviceProvider;
-    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IValidationService _validationService;
     private readonly IFormDataReader _formDataReader;
     private readonly IAppModel _appModel;
@@ -49,6 +50,7 @@ internal sealed class FormBootstrapService
         IAppResources appResources,
         IAppMetadata appMetadata,
         IAppOptionsService appOptionsService,
+        AppFilesAccessor appFiles,
         IAppModel appModel,
         IPrefill prefillService,
         IAuthenticationContext authenticationContext,
@@ -59,8 +61,8 @@ internal sealed class FormBootstrapService
         _appResources = appResources;
         _appMetadata = appMetadata;
         _appOptionsService = appOptionsService;
+        _appFiles = appFiles;
         _serviceProvider = serviceProvider;
-        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _validationService = serviceProvider.GetRequiredService<IValidationService>();
         _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
         _appModel = appModel;
@@ -111,17 +113,13 @@ internal sealed class FormBootstrapService
         var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        var optionsTask = LoadStaticOptions(
-            staticOptionsReferences,
-            language,
-            new InstanceIdentifier(instance),
-            cancellationToken
-        );
-
         var taskId = instance.Process?.CurrentTask?.ElementId;
         var dataAccessor = await _serviceProvider
             .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
             .Init(instance, versions, taskId, language);
+
+        var optionsTask = LoadStaticOptions(staticOptionsReferences, language, dataAccessor, cancellationToken);
+
         var dataModels = await LoadInstanceDataModels(
             dataAccessor,
             referencedDataTypes,
@@ -184,12 +182,7 @@ internal sealed class FormBootstrapService
             prefillFromQueryParams,
             cancellationToken
         );
-        var optionsTask = LoadStaticOptions(
-            staticOptionsReferences,
-            language,
-            instanceIdentifier: null,
-            cancellationToken
-        );
+        var optionsTask = LoadStaticOptions(staticOptionsReferences, language, dataAccessor: null, cancellationToken);
 
         await Task.WhenAll(dataModelsTask, optionsTask);
 
@@ -390,86 +383,72 @@ internal sealed class FormBootstrapService
         return party is null ? null : InstantiationHelper.PartyToInstanceOwner(party);
     }
 
+    /// <summary>
+    /// Loads the option lists the frontend can use without a request of its own: every list a component
+    /// references without mapping or query parameters, and every list that never varies with them, which is a
+    /// list the app ships as json or a code list from the library. A provider may use the parameters, so a
+    /// dynamically configured component keeps loading its provider-backed list itself.
+    /// </summary>
     private async Task<Dictionary<string, StaticOptionSet>> LoadStaticOptions(
         StaticOptionsAnalysisResult optionsAnalysis,
         string language,
-        InstanceIdentifier? instanceIdentifier,
+        IInstanceDataAccessor? dataAccessor,
         CancellationToken cancellationToken
     )
     {
-        _ = cancellationToken;
-        var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
-        var result = new Dictionary<string, StaticOptionSet>();
-        var tasks = optionsAnalysis.AllReferencedOptionIds.Select(async optionsId =>
+        var appFiles = _appFiles.Current;
+        var lookups = new List<AppOptionsLookup>(optionsAnalysis.AllReferencedOptionIds.Count);
+        foreach (var optionsId in optionsAnalysis.AllReferencedOptionIds)
         {
-            try
+            if (
+                optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId)
+                || appFiles.GetOptions(optionsId) is not null
+                || LibraryCodeListReference.TryParse(optionsId, out _)
+            )
             {
-                var isStaticallyConfigured = optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId);
-                var optionsFromFile = await appOptionsFileHandler.ReadOptionsFromFileAsync(optionsId);
-                var isPlainJsonFile = optionsFromFile is not null;
-
-                if (!isStaticallyConfigured && !isPlainJsonFile)
-                {
-                    return (optionsId, null);
-                }
-
-                var options = optionsFromFile;
-                string? downstreamParameters = null;
-                if (options is null)
-                {
-                    var appOptions = await GetAppOptions(optionsId, language, [], instanceIdentifier);
-                    options = appOptions?.Options;
-                    var encodedParameters = appOptions?.Parameters.ToUrlEncodedNameValueString(',');
-                    downstreamParameters = string.IsNullOrEmpty(encodedParameters) ? null : encodedParameters;
-                }
-
-                return (
-                    optionsId,
-                    options is null
-                        ? null
-                        : new StaticOptionSet { Options = options, DownstreamParameters = downstreamParameters }
-                );
+                lookups.Add(new AppOptionsLookup(optionsId, []));
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to load options {OptionsId}", optionsId);
-                return (optionsId, null);
-            }
-        });
+        }
 
-        foreach (var (optionsId, info) in await Task.WhenAll(tasks))
+        var result = new Dictionary<string, StaticOptionSet>(lookups.Count);
+        if (lookups.Count == 0)
         {
-            if (info is not null)
+            return result;
+        }
+
+        var results = await _appOptionsService.GetOptionsAsync(lookups, language, dataAccessor, cancellationToken);
+        foreach (var optionsResult in results)
+        {
+            var optionsId = optionsResult.Lookup.OptionId;
+            if (optionsResult.Error is { } error)
             {
-                result[optionsId] = info;
+                _logger.LogWarning(error, "Failed to load options {OptionsId}", optionsId);
+                continue;
             }
+
+            if (optionsResult.AppOptions?.Options is not { } options)
+            {
+                continue;
+            }
+
+            // A provider that shadows the json file may use the parameters a dynamic component passes
+            if (
+                !optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId)
+                && optionsResult.Source is not (AppOptionsSource.File or AppOptionsSource.Library)
+            )
+            {
+                continue;
+            }
+
+            var encodedParameters = optionsResult.AppOptions.Parameters.ToUrlEncodedNameValueString(',');
+            result[optionsId] = new StaticOptionSet
+            {
+                Options = options,
+                DownstreamParameters = string.IsNullOrEmpty(encodedParameters) ? null : encodedParameters,
+            };
         }
 
         return result;
-    }
-
-    private async Task<AppOptions?> GetAppOptions(
-        string optionsId,
-        string language,
-        Dictionary<string, string> queryParameters,
-        InstanceIdentifier? instanceIdentifier
-    )
-    {
-        if (instanceIdentifier is not null)
-        {
-            var instanceOptions = await _appOptionsService.GetOptionsAsync(
-                instanceIdentifier,
-                optionsId,
-                language,
-                queryParameters
-            );
-            if (instanceOptions?.Options is not null)
-            {
-                return instanceOptions;
-            }
-        }
-
-        return await _appOptionsService.GetOptionsAsync(optionsId, language, queryParameters);
     }
 
     private async Task<PartitionedInitialValidations?> LoadAndPartitionInitialValidations(

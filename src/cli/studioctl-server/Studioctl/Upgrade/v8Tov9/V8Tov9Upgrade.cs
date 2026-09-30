@@ -907,7 +907,8 @@ internal static class V8Tov9Upgrade
                 new InternalizedServiceTypeDetector(pristineView, ProjectGlobalUsings.Read(projectFile)).Detect(),
                 new RemovedFeatureManagementDetector(scanner).Detect(),
                 new RemovedAppSettingsMemberDetector(pristineView).Detect(),
-                new InternalizedAppTypeDetector(pristineView).Detect()
+                new InternalizedAppTypeDetector(pristineView).Detect(),
+                new RemovedAppOptionsTypeDetector(scanner).Detect()
             );
 
             return ReportMigrationResult(
