@@ -59,6 +59,49 @@ public sealed class LspServerTests
     }
 
     [Fact]
+    public void TextResourceCoverage_PublishesOneInformationDiagnosticOnTheLanguageLackingTheKeys()
+    {
+        const string english = "{\n  \"language\": \"en\",\n  \"resources\": []\n}";
+        using var app = new TempApp();
+        app.WriteFile(
+            "App/config/applicationmetadata.json",
+            """{"id":"ttd/lsp","org":"ttd","title":{"nb":"x","en":"x"},"partyTypesAllowed":{},"dataTypes":[]}"""
+        );
+        app.WriteFile(
+            "App/config/texts/resource.nb.json",
+            """{"language":"nb","resources":[{"id":"a","value":"A"},{"id":"b","value":"B"}]}"""
+        );
+        app.WriteFile("App/config/texts/resource.en.json", english);
+
+        var messages = RunSession(app.Root, ("App/config/texts/resource.en.json", english));
+
+        var diagnostic = Assert.Single(
+            messages
+                .Where(m =>
+                    m.TryGetProperty("method", out var me) && me.GetString() == "textDocument/publishDiagnostics"
+                )
+                .Select(m => m.GetProperty("params"))
+                .Single(p =>
+                    p.GetProperty("uri").GetString() is { } u
+                    && u.EndsWith("resource.en.json", StringComparison.Ordinal)
+                )
+                .GetProperty("diagnostics")
+                .EnumerateArray()
+        );
+        Assert.Equal("TEXT-RESOURCE-COVERAGE", diagnostic.GetProperty("code").GetString());
+        Assert.Equal(3, diagnostic.GetProperty("severity").GetInt32());
+        Assert.Equal(
+            "2 text-resource keys are declared in resource.nb.json but missing from resource.en.json: \"a\" and \"b\"",
+            diagnostic.GetProperty("message").GetString()
+        );
+        var range = diagnostic.GetProperty("range");
+        Assert.Equal(1, range.GetProperty("start").GetProperty("line").GetInt32());
+        Assert.Equal(14, range.GetProperty("start").GetProperty("character").GetInt32());
+        Assert.Equal(1, range.GetProperty("end").GetProperty("line").GetInt32());
+        Assert.Equal(18, range.GetProperty("end").GetProperty("character").GetInt32());
+    }
+
+    [Fact]
     public void Hover_OnSymbol_ReturnsSymbolCardAndTokenRange()
     {
         using var app = new TempApp();
