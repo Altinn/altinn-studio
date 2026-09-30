@@ -26,6 +26,7 @@ vi.mock('src/features/options/useSourceOptions', () => ({
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
 const MODE: 'critical' | 'all' = env.parsed?.ALTINN_ALL_APPS_MODE === 'critical' ? 'critical' : 'all';
+const RENDER_COMPONENTS = process.env.ALTINN_ALL_APPS_RENDER_COMPONENTS !== 'false';
 
 const ignoreLogAndErrors = [
   ...ignoredConsoleMessages,
@@ -153,7 +154,7 @@ describe('All known UI folders should render successfully', () => {
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
+    const children = RENDER_COMPONENTS ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
       initialPath: pathname,
