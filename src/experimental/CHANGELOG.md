@@ -12,24 +12,20 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.8] - 2026-09-30
+
 ### Changed
 
 - Agents run on a newer sandbox runtime, which `agentd` installs by itself; running Agents move to it when they restart. Once the new `agentd` has started, earlier releases cannot read Agent state, so you cannot downgrade. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
-- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
-  inside an Agent as they do on the host.
-- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer
-  resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own
-  `/etc/hosts` still resolve.
+- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work inside an Agent as they do on the host. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own `/etc/hosts` still resolve. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
 
 ### Fixed
 
-- Agents keep resolving names after the host changes networks, for example when a laptop moves between Wi-Fi networks,
-  without restarting the Agent.
-- An Agent started while the host has no network connection resolves names once the host is back online.
-- `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
-- Pressing Ctrl-Z in an attached Session no longer freezes it.
-- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of
-  failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+- Agents resolve names again, without a restart, after the host changes networks or comes back online, for example when a laptop moves between Wi-Fi networks or an Agent was started while the host was offline. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `agentd` gives back the memory it used to prepare an Agent image once the image is ready. ([#20799](https://github.com/Altinn/altinn-studio/pull/20799))
+- Pressing Ctrl-Z in an attached Session no longer freezes it. ([#20830](https://github.com/Altinn/altinn-studio/pull/20830))
+- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
 
 ### Security
 
