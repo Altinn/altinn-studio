@@ -245,6 +245,54 @@ public sealed class OptionsRegistrationTests
         );
 
     [Fact]
+    public void Definition_FromACodelistsId_LandsOnTheRegisteringCall_AndTheCallAnswersNoSingleId()
+    {
+        string[] codelistsIds =
+        [
+            "fylker-kv",
+            "kommuner-kv",
+            "kjønn",
+            "næringsgruppering",
+            "yrker",
+            "sivilstand",
+            "grunnbeløpfolketrygden",
+            "fylker",
+            "kommuner",
+            "land",
+            "poststed",
+        ];
+        var dropdowns = codelistsIds.Select((id, i) => $$"""{"id":"dd{{i}}","type":"Dropdown","optionsId":"{{id}}"}""");
+        var layout = """{"data":{"layout":[""" + string.Join(",", dropdowns) + "]}}";
+        var program = Program("services.AddAltinnCodelists();");
+        var engine = AppConfigEngine.Open(
+            new InMemoryAppDirectory(
+                new()
+                {
+                    ["App/config/applicationmetadata.json"] = TestMeta.Json("ttd/o"),
+                    ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                    ["App/ui/Task_1/layouts/P1.json"] = layout,
+                    ["App/Program.cs"] = program,
+                }
+            )
+        );
+        var symbols = new AppSymbols(engine);
+
+        var def = Assert.Single(
+            symbols.Definition(
+                "App/ui/Task_1/layouts/P1.json",
+                1,
+                layout.IndexOf("\"kommuner\"", StringComparison.Ordinal) + 2
+            )
+        );
+
+        Assert.Equal("App/Program.cs", def.File);
+        var callLine =
+            program[..program.IndexOf("AddAltinnCodelists", StringComparison.Ordinal)].Count(c => c == '\n') + 1;
+        Assert.Equal(callLine, def.Line);
+        Assert.Empty(symbols.References("App/Program.cs", def.Line, def.Column, includeDeclaration: false));
+    }
+
+    [Fact]
     public void Hover_NamesTheRegisteringCall()
     {
         const string layout = """{"data":{"layout":[{"id":"dd","type":"Dropdown","optionsId":"landIso2"}]}}""";
