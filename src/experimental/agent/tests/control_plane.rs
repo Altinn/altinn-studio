@@ -2027,3 +2027,87 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
             .contains("Host ")
     );
 }
+
+#[tokio::test(flavor = "local")]
+async fn observing_takes_the_running_pass_while_reconciling_waits_for_the_next() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("slow")).await.expect("slow Agent");
+    let slow = store.get_by_name("slow").await.expect("slow record").id;
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let started = Rc::new(Notify::new());
+    let release = Rc::new(Notify::new());
+    let calls = Rc::new(Cell::new(0));
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend).with_blocking(Blocking {
+        agent: slow,
+        calls: calls.clone(),
+        started: started.clone(),
+        release: release.clone(),
+    }));
+    let reconciler = Rc::new(reconciler(store, provider));
+    let (controller, wakeup) = Controller::new(
+        Rc::new(memory::InMemoryAgentStore::new()),
+        reconciler,
+        Duration::from_mins(1),
+        Rc::new(|_, _| {}),
+    );
+    let task = tokio::task::spawn_local(controller.run());
+    let first = tokio::task::spawn_local({
+        let wakeup = wakeup.clone();
+        async move { wakeup.reconcile(slow).await }
+    });
+    started.notified().await;
+
+    let observing = tokio::task::spawn_local({
+        let wakeup = wakeup.clone();
+        async move { wakeup.observe(slow).await }
+    });
+    tokio::task::yield_now().await;
+    release.notify_one();
+
+    first.await.expect("first task").expect("first pass");
+    observing.await.expect("observing task").expect("the running pass");
+    assert_eq!(calls.get(), 1, "observing queues no pass of its own");
+
+    wakeup.reconcile(slow).await.expect("a new pass");
+    assert_eq!(calls.get(), 2);
+    task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_execution_follow_up_waits_without_waking_and_never_follows_a_recreated_agent() {
+    let fixture = waiting([], NO_BACKGROUND_PASSES).await;
+    let control_plane = ControlPlane::new(fixture.store.clone(), Rc::new(NotificationCounter::default()));
+    let first = fixture.execution.resolve("worker").await.expect("worker");
+
+    // Nothing reconciles on its own here, so a follow-up that woke convergence would finish.
+    let following = fixture.execution.follow(first, "worker", None);
+    let mut following = std::pin::pin!(following);
+    assert!(
+        tokio::time::timeout(Duration::from_millis(100), &mut following)
+            .await
+            .is_err(),
+        "a follow-up does not wake convergence"
+    );
+    fixture.wakeup.notify(first);
+    let target = following.await.expect("ready once another pass ran");
+    assert_eq!(target.operating_system, "linux");
+
+    control_plane.delete("worker").await.expect("delete request");
+    fixture.wakeup.reconcile(first).await.expect("release");
+    control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("re-created Agent");
+    let second = fixture.execution.resolve("worker").await.expect("re-created worker");
+    assert_ne!(first, second);
+
+    let stale = fixture.execution.follow(first, "worker", None).await;
+    assert!(matches!(stale, Err(Error::Conflict)), "{stale:?}");
+    fixture
+        .execution
+        .follow(second, "worker", Some(WaitPolicy::UntilReady))
+        .await
+        .expect("the re-created Agent");
+    fixture.task.abort();
+}

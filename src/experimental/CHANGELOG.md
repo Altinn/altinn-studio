@@ -28,7 +28,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
-- `agentctl` keeps answering after interrupted `exec`, `attach`, `ssh` or `port-forward` commands against an Agent that is not Ready. ([#20866](https://github.com/Altinn/altinn-studio/pull/20866))
+- `agentctl` keeps answering after interrupted `exec`, `attach`, `ssh` or `port-forward` commands against an Agent that is not Ready, and after interrupted `prompt --wait` commands. ([#20866](https://github.com/Altinn/altinn-studio/pull/20866))
 
 ## [0.1.0-preview.8] - 2026-09-30
 

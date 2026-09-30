@@ -76,22 +76,46 @@ impl VncAccessApi for FakeVncAccess {
 /// ready once `ready` is set and `became_ready` notified.
 #[derive(Default)]
 struct FakeExecutions {
-    calls: Rc<RefCell<Vec<&'static str>>>,
+    /// Each wait as `ensure` (woke convergence) or `follow`, with the Agent it named.
+    calls: Rc<RefCell<Vec<(&'static str, agent::AgentId)>>>,
     ready: Rc<Cell<bool>>,
     became_ready: Rc<Notify>,
 }
 
+/// Identity of the fake Agent `name`, or none for an unknown Agent.
+fn fake_agent(name: &str) -> Option<agent::AgentId> {
+    let id = match name {
+        "worker" => "38f41de4-6ff7-4679-ae46-678bc61e4dcb",
+        "late" => "7a1d7c9e-39b2-4d5c-8a0e-6b7c0b1a2f10",
+        "stuck" => "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
+        _ => return None,
+    };
+    Some(id.parse().expect("test Agent ID"))
+}
+
+/// The Session the fake creates for the Agent `late`.
+const LATE_SESSION: &str = "00000000-0000-4000-8000-00000000a7e0";
+
 impl FakeExecutions {
     async fn wait_until_ready(&self, name: &str) -> Result<agent::sandbox::ExecutionTarget, Error> {
+        wait_until(name, &self.ready, &self.became_ready).await?;
+        worker_target()
+    }
+}
+
+/// Waits like an Agent named `name`: `stuck` never becomes ready, and `late`
+/// once `ready` is set and `became_ready` notified.
+async fn wait_until(name: &str, ready: &Cell<bool>, became_ready: &Notify) -> Result<(), Error> {
+    {
         match name {
             "stuck" => std::future::pending().await,
             "late" => {
-                while !self.ready.get() {
-                    self.became_ready.notified().await;
+                while !ready.get() {
+                    became_ready.notified().await;
                 }
-                worker_target()
+                Ok(())
             }
-            "worker" => worker_target(),
+            "worker" => Ok(()),
             _ => Err(Error::NotFound),
         }
     }
@@ -128,6 +152,10 @@ struct FakeSessions {
     awaited: Rc<RefCell<Vec<u64>>>,
     /// Replies for the next turn waits; once empty, turns never complete.
     turn_waits: Rc<RefCell<VecDeque<agent::sessions::TurnWait>>>,
+    /// Each Session follow with the Session it named and whether it woke convergence.
+    follows: Rc<RefCell<Vec<(agent::sessions::SessionId, bool)>>>,
+    ready: Rc<Cell<bool>>,
+    became_ready: Rc<Notify>,
     deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
     archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
@@ -177,34 +205,42 @@ impl AuthenticationApi for FakeAuthentication {
 }
 
 impl SessionApi for FakeSessions {
-    fn ensure<'a>(
-        &'a self,
-        _agent: &'a str,
-        _name: &'a agent::sessions::SessionName,
-        request: agent::sessions::SessionRequest,
-        _wait: WaitPolicy,
-    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
-        self.ensured.borrow_mut().push(request);
-        Box::pin(async { Err(Error::NotFound) })
-    }
-
     fn create<'a>(
         &'a self,
-        _agent: &'a str,
+        agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         request: agent::sessions::SessionRequest,
-    ) -> LocalFuture<'a, Result<(), Error>> {
+    ) -> LocalFuture<'a, Result<agent::sessions::SessionId, Error>> {
         self.ensured.borrow_mut().push(request);
-        Box::pin(async { Err(Error::NotFound) })
+        Box::pin(async move {
+            if agent == "late" {
+                return Ok(LATE_SESSION.parse().expect("test Session ID"));
+            }
+            Err(Error::NotFound)
+        })
     }
 
-    fn follow<'a>(
-        &'a self,
-        _agent: &'a str,
-        _name: &'a agent::sessions::SessionName,
-        _wake: bool,
-    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
-        Box::pin(async { Err(Error::NotFound) })
+    fn follow(
+        &self,
+        session: agent::sessions::SessionId,
+        wake: Option<WaitPolicy>,
+    ) -> LocalFuture<'_, Result<agent::sessions::AttachTarget, Error>> {
+        self.follows.borrow_mut().push((session, wake.is_some()));
+        Box::pin(async move {
+            wait_until("late", &self.ready, &self.became_ready).await?;
+            let session = serde_json::json!({
+                "id": session,
+                "agentId": fake_agent("late"),
+                "agent": "late",
+                "name": "s1",
+                "harness": "claudeCode",
+                "createdAt": "2026-09-25T00:00:00Z",
+            });
+            Ok(agent::sessions::AttachTarget {
+                session: serde_json::from_value(session).expect("attached Session"),
+                sandbox: worker_target()?.sandbox,
+            })
+        })
     }
 
     fn get<'a>(
@@ -224,7 +260,7 @@ impl SessionApi for FakeSessions {
         agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         prompt: &'a str,
-    ) -> LocalFuture<'a, Result<u64, Error>> {
+    ) -> LocalFuture<'a, Result<(agent::sessions::SessionId, u64), Error>> {
         self.sent.borrow_mut().push(prompt.to_owned());
         let gate = self.upgrade_gates.prompt.borrow().clone();
         let upgrade_gates = self.upgrade_gates.clone();
@@ -238,16 +274,15 @@ impl SessionApi for FakeSessions {
                 gate.notified().await;
                 blockers.borrow_mut().push("session/worker/s1 (working)".into());
             }
-            Ok(TURNS_BEFORE_PROMPT)
+            Ok((LATE_SESSION.parse().expect("test Session ID"), TURNS_BEFORE_PROMPT))
         })
     }
 
     fn await_turn<'a>(
         &'a self,
-        _agent: &'a str,
-        _name: &'a agent::sessions::SessionName,
+        _session: agent::sessions::SessionId,
         after: u64,
-        bound: Duration,
+        until: LocalFuture<'a, ()>,
     ) -> LocalFuture<'a, Result<agent::sessions::TurnWait, Error>> {
         self.awaited.borrow_mut().push(after);
         let next = self.turn_waits.borrow_mut().pop_front();
@@ -255,7 +290,7 @@ impl SessionApi for FakeSessions {
             if let Some(next) = next {
                 return Ok(next);
             }
-            tokio::time::sleep(bound).await;
+            until.await;
             Ok(agent::sessions::TurnWait::Pending { after })
         })
     }
@@ -335,17 +370,18 @@ impl SessionApi for FakeSessions {
 }
 
 impl ExecutionApi for FakeExecutions {
-    fn ensure<'a>(
-        &'a self,
-        name: &'a str,
-        _wait: WaitPolicy,
-    ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        self.calls.borrow_mut().push("ensure");
-        Box::pin(self.wait_until_ready(name))
+    fn resolve<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::AgentId, Error>> {
+        Box::pin(async move { fake_agent(name).ok_or(Error::NotFound) })
     }
 
-    fn follow<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        self.calls.borrow_mut().push("follow");
+    fn follow<'a>(
+        &'a self,
+        agent: agent::AgentId,
+        name: &'a str,
+        wake: Option<WaitPolicy>,
+    ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+        let call = if wake.is_some() { "ensure" } else { "follow" };
+        self.calls.borrow_mut().push((call, agent));
         Box::pin(self.wait_until_ready(name))
     }
 }
@@ -365,6 +401,7 @@ struct ApiFixture {
     sent: Rc<RefCell<Vec<String>>>,
     awaited: Rc<RefCell<Vec<u64>>>,
     turn_waits: Rc<RefCell<VecDeque<agent::sessions::TurnWait>>>,
+    follows: Rc<RefCell<Vec<(agent::sessions::SessionId, bool)>>>,
     executions: Rc<FakeExecutions>,
     changes: Changes,
     deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
@@ -412,6 +449,7 @@ fn api() -> ApiFixture {
     let sent = Rc::new(RefCell::new(Vec::new()));
     let awaited = Rc::new(RefCell::new(Vec::new()));
     let turn_waits = Rc::new(RefCell::new(VecDeque::new()));
+    let follows = Rc::new(RefCell::new(Vec::new()));
     let executions = Rc::new(FakeExecutions::default());
     let deleted = Rc::new(RefCell::new(Vec::new()));
     let archived = Rc::new(RefCell::new(Vec::new()));
@@ -429,6 +467,9 @@ fn api() -> ApiFixture {
             sent: sent.clone(),
             awaited: awaited.clone(),
             turn_waits: turn_waits.clone(),
+            follows: follows.clone(),
+            ready: executions.ready.clone(),
+            became_ready: executions.became_ready.clone(),
             deleted: deleted.clone(),
             archived: archived.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
@@ -448,6 +489,7 @@ fn api() -> ApiFixture {
         sent,
         awaited,
         turn_waits,
+        follows,
         executions,
         changes,
         deleted,
@@ -1209,7 +1251,11 @@ async fn a_followed_ensure_replies_pending_after_one_long_poll() {
 
     let response = read_response(&mut client).await;
 
-    assert_eq!(response["result"], "pending", "{response}");
+    assert_eq!(
+        response["result"],
+        serde_json::json!({"pending": {"id": fake_agent("stuck")}}),
+        "{response}"
+    );
     assert_eq!(started.elapsed(), Duration::from_secs(30));
 }
 
@@ -1229,10 +1275,11 @@ async fn the_client_follows_pending_waits_until_the_agent_is_ready() {
 
     let target = waiting.await.expect("wait task").expect("ready target");
     assert_eq!(target.operating_system, "linux");
+    let late = fake_agent("late").expect("late Agent");
     assert_eq!(
         fixture.executions.calls.borrow().as_slice(),
-        ["ensure", "follow", "follow"],
-        "the ensure and every follow-up ended after one long-poll"
+        [("ensure", late), ("follow", late), ("follow", late)],
+        "the ensure and every follow-up ended after one long-poll, and each follow-up named the Agent"
     );
 }
 
@@ -1254,9 +1301,44 @@ async fn a_following_wait_neither_holds_nor_outlives_an_upgrade_drain() {
         .await
         .expect("the follower's poll ends with the drain")
         .expect("wait task");
+    let error = ended.expect_err("a draining daemon does not take the follow-up");
     assert!(
-        ended.is_err(),
-        "a draining daemon does not take the follow-up: {ended:?}"
+        error
+            .to_string()
+            .contains("agentd stopped while this command was waiting"),
+        "{error}"
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn the_client_follows_a_pending_session_ensure_with_its_identity() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let waiting = tokio::task::spawn_local(async move {
+        client
+            .ensure_session(
+                "late",
+                agent::sessions::SessionName::new("s1").expect("name"),
+                agent::sessions::SessionRequest::default(),
+                WaitPolicy::UntilReady,
+            )
+            .await
+    });
+    tokio::time::sleep(Duration::from_secs(75)).await;
+    assert!(!waiting.is_finished());
+
+    fixture.executions.ready.set(true);
+    fixture.executions.became_ready.notify_waiters();
+
+    let target = waiting.await.expect("wait task").expect("attach target");
+    let session: agent::sessions::SessionId = LATE_SESSION.parse().expect("test Session ID");
+    assert_eq!(target.session.id, session);
+    assert_eq!(
+        fixture.follows.borrow().as_slice(),
+        [(session, true), (session, false), (session, false)],
+        "only the ensure wakes convergence, and every follow-up names the Session it created"
     );
 }
 
@@ -1293,15 +1375,15 @@ async fn abandoned_waits_free_the_socket_connections_after_one_long_poll() {
     tokio::task::yield_now().await;
     drop(abandoned);
 
-    let started = tokio::time::Instant::now();
+    // The listener serves the first 128 at once. The rest wait for one
+    // long-poll, and so does this call, which a lower limit would delay by
+    // another round.
     let client = Client::for_path(socket_path.clone());
-    let agents = client.list_agents().await.expect("list");
+    let agents = tokio::time::timeout(Duration::from_secs(31), client.list_agents())
+        .await
+        .expect("the abandoned waits should end within one long-poll")
+        .expect("list");
     assert!(agents.is_empty());
-    assert!(
-        started.elapsed() <= Duration::from_mins(1),
-        "the abandoned waits should end within their long-polls, took {:?}",
-        started.elapsed()
-    );
     client.shutdown_for_upgrade().await.expect("graceful shutdown");
     server_task.await.expect("server task").expect("server result");
 }

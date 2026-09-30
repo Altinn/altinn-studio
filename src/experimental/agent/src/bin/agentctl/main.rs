@@ -1137,6 +1137,12 @@ async fn prompt_session(
     input: PromptInput,
     completion: CompletionOptions,
 ) -> CommandResult<()> {
+    // Checked here too, so the reason prints without the Agent error prefix.
+    if completion.wait
+        && let Err(Error::Invalid(message)) = agent::sessions::validate_completion_timeout(Some(completion.timeout))
+    {
+        return Err(CommandError::Message(message));
+    }
     ensure_daemon(home, client).await?;
     let (agent, session) = session_target(client, target).await?;
     let prompt = read_prompt_arg(input)?.ok_or_else(|| Error::Invalid("a prompt is required".into()))?;
@@ -1753,7 +1759,9 @@ mod tests {
                                 "buildVersion": agent::build_version()
                             })
                         }
-                        Some("sessions.v1.prompt") => serde_json::json!({"turns": 0}),
+                        Some("sessions.v1.prompt") => {
+                            serde_json::json!({"session": "00000000-0000-4000-8000-000000000001", "turns": 0})
+                        }
                         Some("sessions.v1.awaitTurn") => {
                             // Together with the health check this takes longer than the timeout.
                             tokio::time::sleep(Duration::from_millis(900)).await;

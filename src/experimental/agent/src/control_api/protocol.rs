@@ -162,6 +162,8 @@ pub(crate) struct SessionPromptParams {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub(crate) struct PromptReceipt {
+    /// The Session that received the prompt, which a completion wait follows.
+    pub session: crate::sessions::SessionId,
     /// Completed turns before delivery, which a completion wait must exceed.
     pub turns: u64,
 }
@@ -169,10 +171,26 @@ pub(crate) struct PromptReceipt {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct SessionAwaitTurnParams {
-    pub agent: String,
-    pub name: crate::sessions::SessionName,
-    /// Completed turns to wait past, from a receipt or the previous reply.
+    /// The Session from the prompt's receipt, never another one of the same name.
+    pub session: crate::sessions::SessionId,
+    /// Completed turns to wait past, from the receipt or the previous reply.
     pub after: u64,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ExecutionFollowParams {
+    /// Agent name, for messages.
+    pub name: String,
+    /// The Agent the pending reply named, never another one of the same name.
+    pub agent: crate::AgentId,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionFollowParams {
+    /// The Session the pending reply named, never another one of the same name.
+    pub session: crate::sessions::SessionId,
 }
 
 /// Reply to one bounded wait: its result, or that the caller should ask again.
@@ -181,11 +199,16 @@ pub(crate) struct SessionAwaitTurnParams {
 /// has gone away frees its connection by itself.
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
-pub(crate) enum Following<T> {
+pub(crate) enum Following<T, Id> {
     /// The wait finished.
     Done(T),
-    /// The wait has not finished yet; follow it with the method's follow-up call.
-    Pending,
+    /// The wait has not finished yet; follow up with `id`, the identity the
+    /// wait resolved, so a resource re-created under the same name is not
+    /// followed instead.
+    Pending {
+        /// Identity to follow up with.
+        id: Id,
+    },
 }
 
 #[derive(Deserialize, Serialize)]

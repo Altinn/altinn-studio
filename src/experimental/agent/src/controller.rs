@@ -34,6 +34,8 @@ pub(crate) type ErrorHandler<Key> = Rc<dyn Fn(Option<Key>, &Error)>;
 struct Request<Key> {
     key: Key,
     response: Option<oneshot::Sender<Result<(), ReconcileFailure>>>,
+    /// Answer from the pass already running for the key, when there is one.
+    join: bool,
 }
 
 /// Whether a failed reconciliation pass can succeed later without operator action.
@@ -129,6 +131,33 @@ impl<Key> Wakeup<Key> {
             .send(Request {
                 key,
                 response: Some(response),
+                join: false,
+            })
+            .await
+            .map_err(|_| transient(format!("{} controller stopped", self.resource)))?;
+        receiver
+            .await
+            .map_err(|_| transient(format!("{} controller dropped a response", self.resource)))?
+    }
+
+    /// Waits for the outcome of the pass running for `key`, or of a new pass
+    /// when none runs.
+    ///
+    /// Unlike [`Self::reconcile`], the pass may have started before this call
+    /// and so may not observe changes made just before it. Use it to follow up
+    /// a [`Self::reconcile`] whose wait ended early, without queueing a pass
+    /// behind the one that is already running.
+    ///
+    /// # Errors
+    ///
+    /// Returns the pass's classified failure, or a transient failure when the controller stops.
+    pub async fn observe(&self, key: Key) -> Result<(), ReconcileFailure> {
+        let (response, receiver) = oneshot::channel();
+        self.sender
+            .send(Request {
+                key,
+                response: Some(response),
+                join: true,
             })
             .await
             .map_err(|_| transient(format!("{} controller stopped", self.resource)))?;
@@ -139,7 +168,11 @@ impl<Key> Wakeup<Key> {
 
     /// Provides a best-effort low-latency hint for already-durable state.
     pub fn notify(&self, key: Key) {
-        let _ignored = self.sender.try_send(Request { key, response: None });
+        let _ignored = self.sender.try_send(Request {
+            key,
+            response: None,
+            join: false,
+        });
     }
 }
 
@@ -151,7 +184,8 @@ type ReconcileFuture<Key> = futures_util::future::LocalBoxFuture<'static, Reconc
 ///
 /// At most one reconciliation runs for a key. A wakeup received during a pass
 /// schedules a subsequent pass, and waiters complete only after the pass that
-/// observed their request.
+/// observed their request. A waiter that asks to join is answered by the pass
+/// already running instead.
 pub(crate) struct Controller<Key> {
     source: Rc<dyn Source<Key>>,
     reconciler: Rc<dyn Reconcile<Key>>,
@@ -190,6 +224,7 @@ where
         ticker.set_missed_tick_behavior(MissedTickBehavior::Skip);
         let mut pending = BTreeMap::<Key, Vec<Response>>::new();
         let mut running = BTreeSet::new();
+        let mut joined = BTreeMap::<Key, Vec<Response>>::new();
         let mut reconciliations = FuturesUnordered::<ReconcileFuture<Key>>::new();
         self.enqueue_all(&mut pending).await;
 
@@ -199,9 +234,9 @@ where
                 biased;
                 request = self.receiver.recv() => {
                     let Some(request) = request else { return; };
-                    enqueue(request, &mut pending);
+                    enqueue(request, &running, &mut pending, &mut joined);
                     while let Ok(request) = self.receiver.try_recv() {
-                        enqueue(request, &mut pending);
+                        enqueue(request, &running, &mut pending, &mut joined);
                     }
                 }
                 _ = ticker.tick() => self.enqueue_all(&mut pending).await,
@@ -211,7 +246,7 @@ where
                         (self.on_error)(Some(key), error);
                     }
                     let response = result.as_ref().copied().map_err(ReconcileFailure::classify);
-                    for sender in responses {
+                    for sender in responses.into_iter().chain(joined.remove(&key).unwrap_or_default()) {
                         let _ignored = sender.send(response.clone());
                     }
                 }
@@ -255,7 +290,19 @@ const fn transient(message: String) -> ReconcileFailure {
     }
 }
 
-fn enqueue<Key: Ord>(request: Request<Key>, pending: &mut BTreeMap<Key, Vec<Response>>) {
+fn enqueue<Key: Ord>(
+    request: Request<Key>,
+    running: &BTreeSet<Key>,
+    pending: &mut BTreeMap<Key, Vec<Response>>,
+    joined: &mut BTreeMap<Key, Vec<Response>>,
+) {
+    if request.join
+        && running.contains(&request.key)
+        && let Some(response) = request.response
+    {
+        joined.entry(request.key).or_default().push(response);
+        return;
+    }
     let responses = pending.entry(request.key).or_default();
     if let Some(response) = request.response {
         responses.push(response);

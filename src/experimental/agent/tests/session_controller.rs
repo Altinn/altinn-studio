@@ -53,12 +53,12 @@ impl PromptAndWait for agent::sessions::Service {
         timeout: Option<Duration>,
     ) -> Result<(), Error> {
         agent::sessions::validate_completion_timeout(timeout)?;
-        let after = self.prompt(agent, name, prompt).await?;
+        let (session, after) = self.prompt(agent, name, prompt).await?;
         if !wait {
             return Ok(());
         }
         agent::sessions::complete_turn(name, after, timeout, |after| {
-            self.await_turn(agent, name, after, TURN_POLL)
+            self.await_turn(session, after, tokio::time::sleep(TURN_POLL))
         })
         .await
     }
@@ -3280,4 +3280,204 @@ async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
         .expect("turn completed");
     waiting.await.expect("task").expect("the wait ends with the turn");
     harness.finish();
+}
+
+/// A Session reconciler whose next pass a test can hold and make fail.
+#[derive(Default)]
+struct ScriptedSessionReconcile {
+    passes: Cell<usize>,
+    hold: Cell<bool>,
+    /// How many of the next passes fail.
+    failures: Cell<usize>,
+    started: Notify,
+    release: Notify,
+}
+
+impl Reconcile<SessionId> for ScriptedSessionReconcile {
+    fn reconcile(&self, _id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            self.passes.set(self.passes.get() + 1);
+            if self.hold.replace(false) {
+                self.started.notify_one();
+                self.release.notified().await;
+            }
+            if self.failures.get() > 0 {
+                self.failures.set(self.failures.get() - 1);
+                return Err(Error::Session("scripted Session pass failure".into()));
+            }
+            Ok(())
+        })
+    }
+}
+
+/// A Session service over a Ready Agent whose Session passes the test scripts.
+struct ScriptedSessions {
+    database: persistence::Database,
+    service: Rc<agent::sessions::Service>,
+    passes: Rc<ScriptedSessionReconcile>,
+    session: agent::sessions::Session,
+    tasks: Vec<tokio::task::JoinHandle<()>>,
+}
+
+impl ScriptedSessions {
+    async fn start(directory: &TempDir) -> Self {
+        let (database, sandboxes, session) =
+            running_session(directory, "55555555-5555-4555-8555-555555555555", true).await;
+        let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+        let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
+        let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
+            agent_store.clone(),
+            Rc::new(NoopAgentReconcile),
+            Duration::from_mins(1),
+            Rc::new(|_, _| {}),
+        );
+        let passes = Rc::new(ScriptedSessionReconcile::default());
+        let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+            session_store.clone(),
+            passes.clone(),
+            Duration::from_mins(1),
+            Rc::new(|_, _| {}),
+        );
+        let tasks = vec![
+            tokio::task::spawn_local(agent_controller.run()),
+            tokio::task::spawn_local(session_controller.run()),
+        ];
+        session_wakeup
+            .reconcile(session.id)
+            .await
+            .expect("startup Session reconciliation");
+        let service = Rc::new(agent::sessions::Service::new(
+            session_store,
+            Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
+            Rc::new(FakeRuntime::default()),
+            Convergence::new(agent_wakeup, agent_store, Changes::new()),
+            session_wakeup,
+        ));
+        Self {
+            database,
+            service,
+            passes,
+            session,
+            tasks,
+        }
+    }
+
+    /// Starts a follow that wakes a new Session pass, held until released, and
+    /// abandons it once the pass runs, as a long-poll that ends does.
+    async fn abandon_a_follow_during_a_held_pass(&self, failures: usize) {
+        self.passes.hold.set(true);
+        self.passes.failures.set(failures);
+        let first = tokio::task::spawn_local({
+            let service = self.service.clone();
+            let id = self.session.id;
+            async move { service.follow(id, Some(WaitPolicy::UntilReady)).await }
+        });
+        self.passes.started.notified().await;
+        first.abort();
+    }
+
+    /// Follows up the abandoned follow once it has reached the controller,
+    /// then releases the held pass.
+    async fn follow_up_and_release(&self) -> Result<agent::sessions::AttachTarget, Error> {
+        let following = tokio::task::spawn_local({
+            let service = self.service.clone();
+            let id = self.session.id;
+            async move { service.follow(id, None).await }
+        });
+        // Long enough for the follow-up's two local reads before it joins the pass.
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        assert!(!following.is_finished(), "the follow-up waits for the running pass");
+        self.passes.release.notify_one();
+        following.await.expect("follow-up task")
+    }
+
+    fn finish(self) {
+        for task in self.tasks {
+            task.abort();
+        }
+        drop(self.database);
+    }
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_follow_up_takes_the_pass_already_running() {
+    let directory = TempDir::new().expect("directory");
+    let fixture = ScriptedSessions::start(&directory).await;
+    fixture.abandon_a_follow_during_a_held_pass(0).await;
+    let passes = fixture.passes.passes.get();
+
+    let target = fixture.follow_up_and_release().await.expect("attach target");
+
+    assert_eq!(target.session.id, fixture.session.id);
+    assert_eq!(
+        fixture.passes.passes.get(),
+        passes,
+        "the follow-up queued no pass of its own"
+    );
+    fixture.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_follow_up_does_not_report_a_failure_a_new_pass_clears() {
+    let directory = TempDir::new().expect("directory");
+    let fixture = ScriptedSessions::start(&directory).await;
+    fixture.abandon_a_follow_during_a_held_pass(1).await;
+    let passes = fixture.passes.passes.get();
+
+    let target = fixture.follow_up_and_release().await.expect("cleared by a new pass");
+
+    assert_eq!(target.session.id, fixture.session.id);
+    assert_eq!(fixture.passes.passes.get(), passes + 1);
+    fixture.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_follow_up_reports_a_failure_a_new_pass_confirms() {
+    let directory = TempDir::new().expect("directory");
+    let fixture = ScriptedSessions::start(&directory).await;
+    fixture.abandon_a_follow_during_a_held_pass(2).await;
+    let passes = fixture.passes.passes.get();
+
+    let error = fixture.follow_up_and_release().await.expect_err("confirmed failure");
+
+    assert!(error.to_string().contains("scripted Session pass failure"), "{error}");
+    assert_eq!(
+        fixture.passes.passes.get(),
+        passes + 1,
+        "the follow-up took the failing pass and confirmed it with exactly one new pass"
+    );
+    fixture.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn follow_ups_by_identity_never_reach_a_replacement_with_the_same_name() {
+    let directory = TempDir::new().expect("directory");
+    let fixture = ScriptedSessions::start(&directory).await;
+    let original = fixture.session.id;
+    fixture
+        .database
+        .mark_session_deleting("worker", &fixture.session.name)
+        .await
+        .expect("delete the original");
+    fixture
+        .database
+        .finalize_session_deletion(original)
+        .await
+        .expect("remove the original");
+    let replacement = fixture
+        .database
+        .ensure_session(
+            "worker",
+            &fixture.session.name,
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("replacement");
+    assert_ne!(replacement.id, original);
+
+    let follow = fixture.service.follow(original, None).await;
+    assert!(matches!(follow, Err(Error::NotFound)), "{follow:?}");
+    let turn = fixture.service.await_turn(original, 0, std::future::ready(())).await;
+    assert!(matches!(turn, Err(Error::NotFound)), "{turn:?}");
+    fixture.finish();
 }

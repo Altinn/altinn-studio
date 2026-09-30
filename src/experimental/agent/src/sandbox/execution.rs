@@ -40,21 +40,39 @@ impl ExecutionService {
     /// [`WaitPolicy::FirstPass`] also when the single pass fails or leaves the
     /// Agent without a ready materialized Sandbox.
     pub async fn ensure(&self, name: &str, wait: WaitPolicy) -> Result<ExecutionTarget, Error> {
-        let record = self.load_active(name).await?;
-        self.convergence.converge(record.id, wait).await?;
-        self.target(record.id, name).await
+        let id = self.resolve(name).await?;
+        self.follow(id, name, Some(wait)).await
     }
 
-    /// Waits, without waking convergence, until the Agent is Ready and returns
-    /// its exact ready Sandbox assignment.
+    /// Returns the identity of the named Agent unless it is being deleted.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, or invalid.
-    pub async fn follow(&self, name: &str) -> Result<ExecutionTarget, Error> {
-        let record = self.load_active(name).await?;
-        self.convergence.follow(record.id).await?;
-        self.target(record.id, name).await
+    /// Returns an error when the Agent is missing or deleting.
+    pub async fn resolve(&self, name: &str) -> Result<crate::AgentId, Error> {
+        Ok(self.load_active(name).await?.id)
+    }
+
+    /// Waits for the Agent `id` to become Ready and returns its exact ready
+    /// Sandbox assignment. With `wake`, first wakes convergence and waits
+    /// according to it; without, it continues such a wait without waking.
+    /// `name` only labels errors.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is gone, deleting, or invalid; with
+    /// [`WaitPolicy::FirstPass`] also when the single pass fails.
+    pub async fn follow(
+        &self,
+        id: crate::AgentId,
+        name: &str,
+        wake: Option<WaitPolicy>,
+    ) -> Result<ExecutionTarget, Error> {
+        match wake {
+            Some(wait) => self.convergence.converge(id, wait).await?,
+            None => self.convergence.follow(id).await?,
+        }
+        self.target(id, name).await
     }
 
     async fn load_active(&self, name: &str) -> Result<control_plane::AgentRecord, Error> {

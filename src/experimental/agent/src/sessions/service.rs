@@ -13,7 +13,7 @@ use super::{
 };
 
 /// Ceiling for completion waiting after prompt submission.
-pub const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
+const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
 
 /// Polls durable activity while a caller waits for completion.
 const ACTIVITY_POLL: Duration = Duration::from_millis(250);
@@ -187,48 +187,60 @@ impl Service {
         request: SessionRequest,
         wait: WaitPolicy,
     ) -> Result<AttachTarget, Error> {
-        let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait).await?;
-        self.attach(agent, &session).await
+        let id = self.create(agent, name, request).await?;
+        self.follow(id, Some(wait)).await
     }
 
-    /// Creates or gets one named Session without waiting for its Agent; the
-    /// first half of [`Self::ensure`], continued with [`Self::follow`].
+    /// Creates or gets one named Session without waiting for its Agent, and
+    /// returns its identity; the first half of [`Self::ensure`], continued
+    /// with [`Self::follow`].
     ///
     /// # Errors
     ///
     /// Returns an error when persistence fails, the Agent is missing, deleting
     /// or invalid, or an explicit selection conflicts with an existing Session.
-    pub async fn create(&self, agent: &str, name: &SessionName, request: SessionRequest) -> Result<(), Error> {
-        self.prepare(agent, name, request).await.map(drop)
+    pub async fn create(&self, agent: &str, name: &SessionName, request: SessionRequest) -> Result<SessionId, Error> {
+        let (_owner, session) = self.prepare(agent, name, request).await?;
+        Ok(session.id)
     }
 
-    /// Waits until an existing Session's Agent is Ready, then returns the
-    /// Session's attach target once its driver is ready. With `wake`, first
-    /// wakes Agent convergence, as [`Self::ensure`] does.
+    /// Waits until a Session's Agent is Ready, then returns the Session's
+    /// attach target once a Session pass has run.
+    ///
+    /// With `wake`, first wakes Agent convergence and waits according to it,
+    /// then waits for a new Session pass, as [`Self::ensure`] does. Without,
+    /// it continues such a wait: it follows the Agent without waking it and
+    /// takes the outcome of the Session pass already running. A failure from
+    /// that pass, which may have started before the Agent was Ready, is
+    /// confirmed by a new pass before it is returned.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Session is missing, its Agent is deleted or
-    /// invalid, or its harness is an optional installation that is absent.
-    pub async fn follow(&self, agent: &str, name: &SessionName, wake: bool) -> Result<AttachTarget, Error> {
-        let session = self.visible(agent, name).await?;
-        if wake {
-            self.convergence
-                .converge(session.agent_id, WaitPolicy::UntilReady)
-                .await?;
-        } else {
-            self.convergence.follow(session.agent_id).await?;
+    /// Returns an error when the Session is gone, its Agent is deleted or
+    /// invalid, its harness is an optional installation that is absent, or the
+    /// Session pass fails.
+    pub async fn follow(&self, id: SessionId, wake: Option<WaitPolicy>) -> Result<AttachTarget, Error> {
+        let session = self.live(id).await?;
+        match wake {
+            Some(wait) => self.convergence.converge(session.agent_id, wait).await?,
+            None => self.convergence.follow(session.agent_id).await?,
         }
-        self.attach(agent, &session).await
+        // On a brand-new Agent this is the first moment the answer exists.
+        let owner = self.sandboxes.agent(session.agent_id).await?;
+        Self::reject_omitted_optional_harness(&owner, session.harness)?;
+        if wake.is_some() || self.wakeup.observe(id).await.is_err() {
+            self.wakeup.reconcile(id).await?;
+        }
+        self.store.session_attach_target(id).await
     }
 
-    async fn attach(&self, agent: &str, session: &Session) -> Result<AttachTarget, Error> {
-        // On a brand-new Agent this is the first moment the answer exists.
-        let converged = self.sandboxes.agent_by_name(agent).await?;
-        Self::reject_omitted_optional_harness(&converged, session.harness)?;
-        self.wakeup.reconcile(session.id).await?;
-        self.store.session_attach_target(session.id).await
+    /// Reads a Session by identity, as long as it has not been deleted.
+    async fn live(&self, id: SessionId) -> Result<Session, Error> {
+        let session = self.store.get_session(id).await?;
+        if session.is_deleting() {
+            return Err(Error::NotFound);
+        }
+        Ok(session)
     }
 
     /// Delivers a prompt to a running Session's harness and returns its
@@ -244,7 +256,7 @@ impl Service {
     /// Returns an error when the Session is not running, the harness has not
     /// become ready for input within a short grace period, or the input cannot
     /// be delivered.
-    pub async fn prompt(&self, agent: &str, name: &SessionName, prompt: &str) -> Result<u64, Error> {
+    pub async fn prompt(&self, agent: &str, name: &SessionName, prompt: &str) -> Result<(SessionId, u64), Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
         let delivering = Delivering::acquire(&self.deliveries, id).await;
@@ -252,10 +264,11 @@ impl Service {
         let completed_before = session.status.reported.activity.turns;
         self.runtime.prompt(&session, &sandbox, prompt).await?;
         drop(delivering);
-        Ok(completed_before)
+        Ok((id, completed_before))
     }
 
-    /// Waits up to `bound` for the Session to complete a turn past `after`.
+    /// Waits until the Session completes a turn past `after`, or until `until`
+    /// completes, which ends the wait with the count the next wait continues from.
     ///
     /// A turn counts as complete when the completed-turn counter exceeds
     /// `after` with identical waiting activity in two consecutive polls, 250 ms
@@ -265,18 +278,16 @@ impl Service {
     ///
     /// # Errors
     ///
-    /// Returns an error when the Session is missing, or fails, stops or is
+    /// Returns an error when the Session is gone, or fails, stops or is
     /// archived while waited on.
     pub async fn await_turn(
         &self,
-        agent: &str,
-        name: &SessionName,
+        id: SessionId,
         after: u64,
-        bound: Duration,
+        until: impl Future<Output = ()>,
     ) -> Result<TurnWait, Error> {
-        let id = self.visible(agent, name).await?.id;
-        self.wait_for_completion(id, name, after, tokio::time::Instant::now() + bound)
-            .await
+        let name = self.live(id).await?.name;
+        self.wait_for_completion(id, &name, after, until).await
     }
 
     async fn wait_for_completion(
@@ -284,8 +295,9 @@ impl Service {
         id: SessionId,
         name: &SessionName,
         mut completed_before: u64,
-        deadline: tokio::time::Instant,
+        until: impl Future<Output = ()>,
     ) -> Result<TurnWait, Error> {
+        let mut until = std::pin::pin!(until);
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
@@ -323,12 +335,14 @@ impl Service {
                 completed_before = completed_before.max(activity.turns);
                 settling = None;
             }
-            if tokio::time::Instant::now() >= deadline {
-                return Ok(TurnWait::Pending {
-                    after: completed_before,
-                });
+            tokio::select! {
+                () = tokio::time::sleep(ACTIVITY_POLL) => {}
+                () = &mut until => {
+                    return Ok(TurnWait::Pending {
+                        after: completed_before,
+                    });
+                }
             }
-            tokio::time::sleep(ACTIVITY_POLL).await;
         }
     }
 

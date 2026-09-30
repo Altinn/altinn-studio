@@ -7,14 +7,15 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
-    DaemonInfo, DirectoryParams, ExecutionEnsureParams, Following, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
-    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_FOLLOW, METHOD_GET, METHOD_HEALTH,
-    METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE,
-    METHOD_SESSION_AWAIT_TURN, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_FOLLOW, METHOD_SESSION_GET,
-    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN,
-    METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams, PromptReceipt, ReadMessage, Request,
-    ResourcesWatchParams, Response, SessionAwaitTurnParams, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    DaemonInfo, DirectoryParams, ExecutionEnsureParams, ExecutionFollowParams, Following, JSON_RPC_VERSION,
+    LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_FOLLOW,
+    METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH,
+    METHOD_SESSION_ARCHIVE, METHOD_SESSION_AWAIT_TURN, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE,
+    METHOD_SESSION_FOLLOW, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
+    PromptReceipt, ReadMessage, Request, ResourcesWatchParams, Response, SessionAwaitTurnParams, SessionEnsureParams,
+    SessionFollowParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    ShutdownResult, read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -164,10 +165,17 @@ impl Client {
         loop {
             match polled {
                 Following::Done(target) => return Ok(target),
-                Following::Pending => {
+                Following::Pending { id } => {
                     polled = self
-                        .call(METHOD_EXECUTION_FOLLOW, NameParams { name: name.into() })
-                        .await?;
+                        .call(
+                            METHOD_EXECUTION_FOLLOW,
+                            ExecutionFollowParams {
+                                name: name.into(),
+                                agent: id,
+                            },
+                        )
+                        .await
+                        .map_err(stopped_while_waiting)?;
                 }
             }
         }
@@ -298,17 +306,11 @@ impl Client {
         loop {
             match polled {
                 Following::Done(target) => return Ok(target),
-                Following::Pending => {
+                Following::Pending { id } => {
                     polled = self
-                        .call(
-                            METHOD_SESSION_FOLLOW,
-                            SessionParams {
-                                agent: agent.into(),
-                                name: name.clone(),
-                                harness: None,
-                            },
-                        )
-                        .await?;
+                        .call(METHOD_SESSION_FOLLOW, SessionFollowParams { session: id })
+                        .await
+                        .map_err(stopped_while_waiting)?;
                 }
             }
         }
@@ -348,15 +350,16 @@ impl Client {
         if !wait {
             return Ok(());
         }
-        sessions::complete_turn(&name, receipt.turns, timeout, |after| {
+        sessions::complete_turn(&name, receipt.turns, timeout, |after| async move {
             self.call(
                 METHOD_SESSION_AWAIT_TURN,
                 SessionAwaitTurnParams {
-                    agent: agent.into(),
-                    name: name.clone(),
+                    session: receipt.session,
                     after,
                 },
             )
+            .await
+            .map_err(stopped_while_waiting)
         })
         .await
     }
@@ -481,7 +484,8 @@ impl Client {
         let mut stream = BufReader::new(stream);
         let line = match read_message(&mut stream).await? {
             ReadMessage::Complete(line) => line,
-            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+            ReadMessage::EndOfStream => return Err(Error::Daemon(CLOSED_WITHOUT_ANSWER.into())),
+            ReadMessage::TooLarge => {
                 return Err(Error::Invalid("invalid Agent Control API response".into()));
             }
         };
@@ -499,4 +503,18 @@ impl Client {
         )
         .map_err(Error::from)
     }
+}
+
+/// agentd closed a connection without answering its request, as a draining daemon does.
+const CLOSED_WITHOUT_ANSWER: &str = "agentd closed the connection without answering";
+
+/// Explains a follow-up that could not reach agentd: it stopped while the
+/// command waited, typically for an upgrade, so waiting cannot continue.
+fn stopped_while_waiting(error: Error) -> Error {
+    match error {
+        Error::Io(_) => {}
+        Error::Daemon(ref message) if message == CLOSED_WITHOUT_ANSWER => {}
+        error => return error,
+    }
+    Error::Daemon("agentd stopped while this command was waiting, for example for an upgrade; run it again".into())
 }
