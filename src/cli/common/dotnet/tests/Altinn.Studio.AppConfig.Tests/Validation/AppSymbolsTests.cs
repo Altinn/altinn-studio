@@ -647,6 +647,66 @@ public sealed class AppSymbolsTests
         Assert.Single(symbols.References("App/options/utils.json", 1, 1, includeDeclaration: false));
     }
 
+    private const string ProviderLayout =
+        """{ "data": { "layout": [ { "id": "dd", "type": "Dropdown", "optionsId": "land" } ] } }""";
+
+    private const string ProviderSource = """
+        namespace App.Options;
+        public class LandProvider : IAppOptionsProvider
+        {
+            public string Id => "land";
+        }
+        """;
+
+    private static AppSymbols OpenProviderApp() =>
+        OpenSymbols(
+            new MutableAppDirectory(
+                new()
+                {
+                    ["App/config/applicationmetadata.json"] = TestMeta.Json("ttd/o"),
+                    ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                    ["App/ui/Task_1/layouts/P1.json"] = ProviderLayout,
+                    ["App/logic/LandProvider.cs"] = ProviderSource,
+                }
+            )
+        );
+
+    [Fact]
+    public void Options_CodeRegisteredProvider_DefinitionLandsOnTheIdInCode()
+    {
+        var symbols = OpenProviderApp();
+        var (l, c) = At(ProviderLayout, "\"land\"", 1);
+
+        var def = Assert.Single(symbols.Definition("App/ui/Task_1/layouts/P1.json", l, c));
+
+        Assert.Equal("App/logic/LandProvider.cs", def.File);
+        var (idLine, idCol) = At(ProviderSource, "\"land\"", 1);
+        Assert.Equal((idLine, idCol - 1), (def.Line, def.Column));
+    }
+
+    [Fact]
+    public void Options_CodeRegisteredProvider_ReferencesFromTheIdInCode()
+    {
+        var symbols = OpenProviderApp();
+        var (l, c) = At(ProviderSource, "\"land\"", 1);
+
+        var refs = symbols.References("App/logic/LandProvider.cs", l, c, includeDeclaration: false);
+
+        Assert.Equal("App/ui/Task_1/layouts/P1.json", Assert.Single(refs).File);
+    }
+
+    [Fact]
+    public void Options_CodeRegisteredProvider_HoverNamesTheRegistration()
+    {
+        var symbols = OpenProviderApp();
+        var (l, c) = At(ProviderLayout, "\"land\"", 1);
+
+        var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
+
+        Assert.NotNull(hover);
+        Assert.Contains("`LandProvider` in `App/logic/LandProvider.cs`", hover, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Definition_NestedSchemaPath_LandsAtDefsDeclaration()
     {

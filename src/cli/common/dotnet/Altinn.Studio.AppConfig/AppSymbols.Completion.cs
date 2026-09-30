@@ -172,7 +172,7 @@ public sealed partial class AppSymbols
                 var ids = new SortedSet<string>(StringComparer.Ordinal);
                 foreach (var id in model.OptionsFiles.Keys)
                     ids.Add(id);
-                foreach (var id in model.OptionsProviders)
+                foreach (var id in model.OptionsProviders.Keys)
                     ids.Add(id);
                 return ids.Select(v => new Suggestion(v, "option list", SuggestionKind.OptionsId)).ToList();
             }

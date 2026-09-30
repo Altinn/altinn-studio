@@ -22,7 +22,7 @@ internal sealed class RoslynSyntaxIntrospector
                 continue;
             var tree = CSharpSyntaxTree.ParseText(System.Text.Encoding.UTF8.GetString(data));
             var root = tree.GetRoot();
-            OptionProviderScanner.Collect(root, app);
+            OptionProviderScanner.Collect(root, file, app);
             foreach (var typeDecl in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 RecordType(app, typeDecl, file);
@@ -122,7 +122,7 @@ internal sealed class RoslynSyntaxIntrospector
         return null;
     }
 
-    private static SourceSpan SpanOf(SyntaxNode n, string file) => SpanOf(n, file, n.Span);
+    internal static SourceSpan SpanOf(SyntaxNode n, string file) => SpanOf(n, file, n.Span);
 
     private static SourceSpan SpanOf(SyntaxNode anchor, string file, TextSpan span)
     {

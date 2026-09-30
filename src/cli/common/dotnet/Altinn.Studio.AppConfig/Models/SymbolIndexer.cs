@@ -83,6 +83,8 @@ internal static class SymbolIndexer
                 new SourceSpan("App/options/" + optionsId + ".json", "", 1, 1),
                 sitePointer: null
             );
+        foreach (var provider in model.OptionsProviders.Values)
+            Declare(new Symbol(SymbolKind.OptionsId, provider.Id), provider.Position, sitePointer: null);
         foreach (var set in model.LayoutSets)
             Declare(
                 new Symbol(SymbolKind.LayoutSet, set.Id),

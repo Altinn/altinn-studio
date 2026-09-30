@@ -18,7 +18,7 @@ internal static class OptionProviderScanner
         "IInstanceAppOptionsProvider",
     };
 
-    public static void Collect(SyntaxNode root, AppModelBuilder app)
+    public static void Collect(SyntaxNode root, string file, AppModelBuilder app)
     {
         foreach (var type in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
         {
@@ -27,8 +27,11 @@ internal static class OptionProviderScanner
                 || !type.BaseList.Types.Any(b => _providerInterfaces.Contains(SimpleName(b.Type)))
             )
                 continue;
-            if (ExtractId(type) is { Length: > 0 } id)
-                app.OptionsProviders.Add(id);
+            if (IdLiteral(type) is { Token.ValueText: { Length: > 0 } id } literal)
+                app.OptionsProviders.TryAdd(
+                    id,
+                    new OptionsProvider(id, type.Identifier.ValueText, RoslynSyntaxIntrospector.SpanOf(literal, file))
+                );
         }
     }
 
@@ -41,12 +44,10 @@ internal static class OptionProviderScanner
             _ => t.ToString(),
         };
 
-    private static string? ExtractId(TypeDeclarationSyntax type)
+    private static LiteralExpressionSyntax? IdLiteral(TypeDeclarationSyntax type)
     {
         var idProp = type.Members.OfType<PropertyDeclarationSyntax>().FirstOrDefault(p => p.Identifier.Text == "Id");
         var expr = idProp?.Initializer?.Value ?? idProp?.ExpressionBody?.Expression;
-        return expr is LiteralExpressionSyntax lit && lit.IsKind(SyntaxKind.StringLiteralExpression)
-            ? lit.Token.ValueText
-            : null;
+        return expr is LiteralExpressionSyntax lit && lit.IsKind(SyntaxKind.StringLiteralExpression) ? lit : null;
     }
 }

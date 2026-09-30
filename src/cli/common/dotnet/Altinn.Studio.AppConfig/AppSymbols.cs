@@ -65,6 +65,9 @@ public sealed partial class AppSymbols
                     && col < s.EndColumn
                 )
                     return new Symbol(SymbolKind.CSharpClass, fqn);
+            foreach (var provider in model.OptionsProviders.Values)
+                if (Covers(provider.Position, file, line, col))
+                    return new Symbol(SymbolKind.OptionsId, provider.Id);
             return null;
         }
 
@@ -185,6 +188,11 @@ public sealed partial class AppSymbols
     private static bool Same(SourceSpan span, string file, string pointer) =>
         string.Equals(span.File, file, StringComparison.Ordinal)
         && string.Equals(span.Pointer, pointer, StringComparison.Ordinal);
+
+    private static bool Covers(SourceSpan span, string file, int line, int col) =>
+        string.Equals(span.File, file, StringComparison.Ordinal)
+        && (line > span.Line || (line == span.Line && col >= span.Column))
+        && (line < span.EndLine || (line == span.EndLine && col < span.EndColumn));
 
     private SourceSpan ResolveSpan(SourceSpan span) =>
         string.IsNullOrEmpty(span.Pointer) ? span : _config.ResolvePosition(span);
