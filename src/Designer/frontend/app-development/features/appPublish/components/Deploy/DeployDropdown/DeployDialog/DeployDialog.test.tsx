@@ -16,7 +16,7 @@ const defaultProps: DeployDialogProps = {
   selectedImageTag: '1.1.0',
   disabled: false,
   isPending: false,
-  isProduction: false,
+  defaultAppStatus: 'UnderDevelopment',
   onConfirm: jest.fn(),
 };
 
@@ -74,9 +74,9 @@ describe('DeployDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('should select "Under development" by default for test environments', async () => {
+  it('should preselect "Under development" when it is the default app status', async () => {
     const user = userEvent.setup();
-    renderDeployDialog({ isProduction: false });
+    renderDeployDialog({ defaultAppStatus: 'UnderDevelopment' });
 
     await openDialog(user);
 
@@ -84,9 +84,9 @@ describe('DeployDialog', () => {
     expect(getCompletedRadio()).not.toBeChecked();
   });
 
-  it('should select "Completed" by default for the production environment', async () => {
+  it('should preselect "Completed" when it is the default app status', async () => {
     const user = userEvent.setup();
-    renderDeployDialog({ isProduction: true });
+    renderDeployDialog({ defaultAppStatus: 'Completed' });
 
     await openDialog(user);
 
@@ -97,7 +97,7 @@ describe('DeployDialog', () => {
   it('should call onConfirm with the default app status when confirming without changes', async () => {
     const user = userEvent.setup();
     const onConfirm = jest.fn();
-    renderDeployDialog({ onConfirm, isProduction: true });
+    renderDeployDialog({ onConfirm, defaultAppStatus: 'Completed' });
 
     await openDialog(user);
     await user.click(getConfirmButton());
@@ -109,7 +109,7 @@ describe('DeployDialog', () => {
   it('should call onConfirm with the selected app status', async () => {
     const user = userEvent.setup();
     const onConfirm = jest.fn();
-    renderDeployDialog({ onConfirm, isProduction: false });
+    renderDeployDialog({ onConfirm, defaultAppStatus: 'UnderDevelopment' });
 
     await openDialog(user);
     await user.click(getCompletedRadio());
@@ -120,7 +120,7 @@ describe('DeployDialog', () => {
 
   it('should reset the app status to the default when the dialog is reopened', async () => {
     const user = userEvent.setup();
-    renderDeployDialog({ isProduction: false });
+    renderDeployDialog({ defaultAppStatus: 'UnderDevelopment' });
 
     await openDialog(user);
     await user.click(getCompletedRadio());
