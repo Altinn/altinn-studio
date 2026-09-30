@@ -32,7 +32,6 @@ const COMPONENT_CATALOG_OUTPUT = path.join(
 );
 const CONTRACT_SCHEMA_ROOT = path.join(REPOSITORY_ROOT, 'src/common/ts/layout-contract/schemas/json');
 const CONTRACT_DOCUMENTATION_ROOT = path.join(REPOSITORY_ROOT, 'src/common/ts/layout-contract/docs/components');
-const STATIC_CONTRACT_SCHEMAS = ['layout/expression.schema.v1.json', 'component/number-format.schema.v1.json'] as const;
 
 function toPosixPath(p: string): string {
   return p.split(path.sep).join('/');
@@ -317,12 +316,6 @@ async function getExpressionFunctionsByReturnType(): Promise<ReadonlyMap<string,
     promises.push(
       saveFile(path.join(CONTRACT_SCHEMA_ROOT, file.getFileName()), JSON.stringify(schema.result, null, 2)),
     );
-  }
-  for (const schemaPath of STATIC_CONTRACT_SCHEMAS) {
-    const sourcePath = path.join('schemas/json', schemaPath);
-    const targetPath = path.join(CONTRACT_SCHEMA_ROOT, schemaPath);
-    await fs.mkdir(path.dirname(targetPath), { recursive: true });
-    promises.push(saveFile(targetPath, await fs.readFile(sourcePath, 'utf-8')));
   }
 
   const commonTsPath = path.join(CONTRACT_GENERATED_ROOT, 'common.generated.ts');

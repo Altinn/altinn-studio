@@ -26,7 +26,6 @@ export default defineConfig([
     '**/coverage',
     '**/dist',
     '**/*.snap',
-    'schemas/**/*.json',
     '.yarn/*',
     'test/e2e/k6-browser/**/*',
   ]),
