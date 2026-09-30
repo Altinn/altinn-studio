@@ -64,6 +64,12 @@ var components = map[string]*Component{
 		SourcePath:    "src/cli/studioctl-lsp/vscode",
 		Builder:       nil, // Built by the release workflow.
 	},
+	"studioctl-rider": {
+		Name:          "studioctl-rider",
+		ChangelogPath: "src/cli/studioctl-lsp/rider/CHANGELOG.md",
+		SourcePath:    "src/cli/studioctl-lsp/rider",
+		Builder:       nil, // Built by the release workflow.
+	},
 }
 
 // RegisterComponentBuilder registers a builder for an existing component.

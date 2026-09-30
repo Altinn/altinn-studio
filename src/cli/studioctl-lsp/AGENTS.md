@@ -18,8 +18,9 @@ picture.
   findings and symbols to LSP diagnostics, hover, completion, rename, references and code lenses.
 - `SchemaSetLoader.cs` — loads the schema set for the app's frontend version in the background, through the
   schema lookup `studioctl-server` passes in.
-- `vscode/` — the VS Code extension (TypeScript, published as `altinnstudio.altinn-studio-lsp`). It launches
-  `studioctl app lsp`, so `studioctl` must be on `PATH`.
+- `vscode/` — the VS Code extension (TypeScript, published as `altinnstudio.altinn-studio-lsp`).
+- `rider/` — the JetBrains plugin (Kotlin, Gradle, LSP4IJ). Both clients launch `studioctl app lsp`, so
+  `studioctl` must be on `PATH`.
 
 ## Hosting
 
@@ -40,19 +41,22 @@ dotnet test studioctl.slnx        # server tests live in ../studioctl-lsp-tests
 make test                         # what CI runs
 ```
 
-VS Code extension: `npm ci && npm run compile` in `vscode/`.
+VS Code extension: `npm ci && npm run compile` in `vscode/`. JetBrains plugin: `./gradlew buildPlugin
+verifyPlugin` in `rider/` (JDK 21).
 
 ## Changelog & releases
 
-The VS Code client is its own release component (`studioctl-vscode` in
+Each client is its own release component (`studioctl-vscode` and `studioctl-rider` in
 `src/tools/releaser/internal/component.go`) with its own `CHANGELOG.md`. Merging a changelog-promotion PR
-labeled `release/studioctl-vscode` triggers `.github/workflows/release-studioctl-vscode.yaml`, which builds
-the artifact, attaches it to the GitHub release and publishes to the marketplace. Prereleases are published
-to GitHub only. Server-side changes are studioctl changes and belong in `src/cli/CHANGELOG.md`.
+labeled `release/studioctl-vscode` or `release/studioctl-rider` triggers
+`.github/workflows/release-studioctl-vscode.yaml` / `release-studioctl-rider.yaml`, which build the
+artifact, attach it to the GitHub release and publish to the marketplace. Prereleases are published to
+GitHub only for VS Code and to the EAP channel for JetBrains. Server-side changes are studioctl changes
+and belong in `src/cli/CHANGELOG.md`.
 
 ## Working here
 
 - Keep protocol concerns here and app-config knowledge in `Altinn.Studio.AppConfig`. A new rule or
   symbol kind belongs in the library, not in the server.
-- Changes under `vscode/` still trigger `cli-changelog.yaml`; add a `src/cli/CHANGELOG.md` entry or apply
-  the `skip-changelog` label.
+- Changes under `vscode/` or `rider/` still trigger `cli-changelog.yaml`; add a `src/cli/CHANGELOG.md`
+  entry or apply the `skip-changelog` label.

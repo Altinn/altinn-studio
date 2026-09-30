@@ -50,6 +50,8 @@ func (c *AppCommand) appLspUsage() string {
 		"Editors start it automatically; you normally don't run it yourself.",
 		"",
 		"Editor setup:",
+		"  Rider / JetBrains IDEs:",
+		"    Install 'Altinn Studio Language Server' from JetBrains Marketplace.",
 		"  VS Code:",
 		"    Install 'Altinn Studio Language Server' (altinnstudio.altinn-studio-lsp)",
 		"    from the Visual Studio Marketplace.",
