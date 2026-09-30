@@ -61,6 +61,8 @@ public sealed class LayoutComponent
     public IReadOnlyList<string> Children { get; init; } = ReadOnlyCollection<string>.Empty;
 
     public bool HasOptionSource { get; init; }
+    public bool AlwaysHidden { get; init; }
+    public bool NeverRequired { get; init; }
     public SourceSpan Position { get; init; }
 }
 

@@ -13,7 +13,8 @@ internal static class ComponentParser
         string page,
         string file,
         int idx,
-        JsonElement c
+        JsonElement c,
+        bool pageHidden
     )
     {
         var id = TryString(c, "id") ?? "";
@@ -33,6 +34,11 @@ internal static class ComponentParser
                 Bindings = ExtractBindings(c).AsReadOnly(),
                 Children = ExtractChildren(c, multiPage).AsReadOnly(),
                 HasOptionSource = OptionSourceProperties.For(type).Any(p => c.TryGetProperty(p, out _)),
+                AlwaysHidden =
+                    pageHidden
+                    || (c.TryGetProperty("hidden", out var hidden) && hidden.ValueKind == JsonValueKind.True),
+                NeverRequired =
+                    !c.TryGetProperty("required", out var required) || required.ValueKind == JsonValueKind.False,
                 Position = pos,
             };
             set.AllComponents.Add(comp);

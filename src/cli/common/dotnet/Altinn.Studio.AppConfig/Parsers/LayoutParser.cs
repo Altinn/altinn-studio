@@ -24,10 +24,12 @@ internal static class LayoutParser
         if (!dataEl.TryGetProperty("layout", out var layoutEl) || layoutEl.ValueKind != JsonValueKind.Array)
             return;
 
+        var pageHidden =
+            dataEl.TryGetProperty("hidden", out var pageHiddenEl) && pageHiddenEl.ValueKind == JsonValueKind.True;
         int i = 0;
         foreach (var c in layoutEl.EnumerateArray())
         {
-            ComponentParser.Parse(app, set, page, file, i, c);
+            ComponentParser.Parse(app, set, page, file, i, c, pageHidden);
             i++;
         }
     }
