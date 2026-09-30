@@ -60,6 +60,35 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
     }
 
     [Fact]
+    public void SubformReferencedSetKeepsItsFolderEvenWithTasks()
+    {
+        _app.Write(
+            "ui/layout-sets.json",
+            """
+            {
+              "sets": [
+                { "id": "main", "dataType": "Main", "tasks": ["Task_1"] },
+                { "id": "subform", "dataType": "Subform", "tasks": ["Task_1"] }
+              ]
+            }
+            """
+        );
+        _app.Write(
+            "ui/main/layouts/Page.json",
+            """{ "data": { "layout": [{ "id": "sub", "type": "Subform", "layoutSet": "subform" }] } }"""
+        );
+        _app.Write("ui/subform/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
+
+        var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.True(result.LayoutSetsDeleted);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "layouts", "Page.json")));
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "subform", "layouts", "Page.json")));
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "main")));
+    }
+
+    [Fact]
     public void CompatiblePartialCopyIsCompletedAndCanThenBeRunAgain()
     {
         _app.Write(
