@@ -11,7 +11,6 @@ import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
@@ -61,13 +60,9 @@ function TestApp() {
   return <div data-testid='errors'>{JSON.stringify(filteredErrors)}</div>;
 }
 
-function RenderAllComponents() {
+function RenderPageComponents({ pageName }: { pageName: string }) {
   const state = FormStore.raw.useStore().getState();
-  const pageOrder = useRawPageOrder();
-  const pdfLayoutName = usePdfLayoutName();
-  const all = Object.entries(state.bootstrap.layoutLookups.topLevelComponents)
-    .filter(([pageKey]) => pageOrder.includes(pageKey) || pageKey === pdfLayoutName)
-    .flatMap(([, componentIds]) => componentIds ?? []);
+  const all = state.bootstrap.layoutLookups.topLevelComponents[pageName] ?? [];
 
   return (
     <>
@@ -140,13 +135,27 @@ describe('All known UI folders should render successfully', () => {
     .map((app) => app.enableCompatibilityMode().getUiFolders())
     .flat()
     .filter((set) => set.isValid())
-    .map((set) => ({ appName: set.app.getName(), setName: set.getName(), set }));
+    .flatMap((set) => {
+      const settings = set.getSettings().pages;
+      const pages =
+        'order' in settings
+          ? settings.order
+          : settings.groups.filter((group) => 'order' in group).flatMap((group) => group.order);
+      const pageNames = RENDER_COMPONENTS
+        ? [...new Set([...pages, settings.pdfLayoutName].filter((pageName): pageName is string => !!pageName))]
+        : [''];
+      return pageNames.map((pageName) => ({ appName: set.app.getName(), setName: set.getName(), pageName, set }));
+    });
 
   // Randomize the order of the tests so we don't have to wait for the same first ones every time
   allSets.sort(() => Math.random() - 0.5);
 
-  async function testSet(uiFolder: ExternalAppUiFolder) {
-    const { pathname, initialPage, mainFolder, subformComponent } = uiFolder.initialize();
+  async function testSet(uiFolder: ExternalAppUiFolder, pageName: string) {
+    const initialized = uiFolder.initialize();
+    const { mainFolder, subformComponent } = initialized;
+    const isPdfPage = pageName === uiFolder.getSettings().pages.pdfLayoutName;
+    const initialPage = pageName && !isPdfPage ? pageName : initialized.initialPage;
+    const pathname = initialized.pathname.slice(0, initialized.pathname.lastIndexOf('/') + 1) + initialPage;
     window.history.replaceState({}, '', pathname);
     const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
@@ -154,7 +163,7 @@ describe('All known UI folders should render successfully', () => {
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    const children = RENDER_COMPONENTS ? <RenderAllComponents /> : <TestApp />;
+    const children = RENDER_COMPONENTS ? <RenderPageComponents pageName={pageName} /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
       initialPath: pathname,
@@ -218,7 +227,7 @@ describe('All known UI folders should render successfully', () => {
     expect(alwaysFail).toBe(false);
   }
 
-  it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
+  it.each(allSets)('$appName/$setName/$pageName', async ({ set, pageName }) => testSet(set, pageName));
 });
 
 function filterAndCleanMockCalls(mock: Mock): string[] {
