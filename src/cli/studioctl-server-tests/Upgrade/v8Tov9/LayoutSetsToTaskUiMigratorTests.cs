@@ -4,6 +4,9 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
 {
+    private const string PageWithSubform =
+        """{ "data": { "layout": [{ "id": "sub", "type": "Subform", "layoutSet": "subform" }] } }""";
+
     private readonly TempAppFolder _app = new();
 
     public void Dispose() => _app.Dispose();
@@ -59,25 +62,19 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
         Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1")));
     }
 
-    [Fact]
-    public void SubformReferencedSetKeepsItsFolderEvenWithTasks()
-    {
-        _app.Write(
-            "ui/layout-sets.json",
-            """
+    [Theory]
+    [InlineData(PageWithSubform)]
+    [InlineData(
+        """
             {
-              "sets": [
-                { "id": "main", "dataType": "Main", "tasks": ["Task_1"] },
-                { "id": "subform", "dataType": "Subform", "tasks": ["Task_1"] }
-              ]
+              // Entries are filled in on the subform's own pages.
+              "data": { "layout": [{ "id": "sub", "type": "Subform", "layoutSet": "subform", },], },
             }
             """
-        );
-        _app.Write(
-            "ui/main/layouts/Page.json",
-            """{ "data": { "layout": [{ "id": "sub", "type": "Subform", "layoutSet": "subform" }] } }"""
-        );
-        _app.Write("ui/subform/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
+    )]
+    public void SubformReferencedSetKeepsItsFolderEvenWithTasks(string mainPage)
+    {
+        WriteMainAndSubformSetsForTask1(mainPage);
 
         var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
 
@@ -86,6 +83,23 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Task_1", "layouts", "Page.json")));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "subform", "layouts", "Page.json")));
         Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "main")));
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("""{ "data": [] }""")]
+    [InlineData("""{ "data": { "layout": {} } }""")]
+    [InlineData("""{ "data": """)]
+    public void JsonThatIsNotALayoutDoesNotStopTheSubformScan(string notALayout)
+    {
+        WriteMainAndSubformSetsForTask1(PageWithSubform);
+        _app.Write("ui/main/layouts/Notes.json", notALayout);
+
+        var result = new LayoutSetsToTaskUiMigrator(_app.Root).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.True(result.LayoutSetsDeleted);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "subform", "layouts", "Page.json")));
     }
 
     [Fact]
@@ -118,5 +132,23 @@ public sealed class LayoutSetsToTaskUiMigratorTests : IDisposable
             _app.Read("ui/Task_1/Settings.json"),
             StringComparison.Ordinal
         );
+    }
+
+    /// <summary>A main set and the set its Subform component uses, both listing task Task_1.</summary>
+    private void WriteMainAndSubformSetsForTask1(string mainPage)
+    {
+        _app.Write(
+            "ui/layout-sets.json",
+            """
+            {
+              "sets": [
+                { "id": "main", "dataType": "Main", "tasks": ["Task_1"] },
+                { "id": "subform", "dataType": "Subform", "tasks": ["Task_1"] }
+              ]
+            }
+            """
+        );
+        _app.Write("ui/main/layouts/Page.json", mainPage);
+        _app.Write("ui/subform/layouts/Page.json", "{ \"data\": { \"layout\": [] } }");
     }
 }

@@ -6,6 +6,13 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 
 internal sealed class LayoutSetsToTaskUiMigrator
 {
+    /// <summary>Layout files may have comments and trailing commas, which the app accepts.</summary>
+    private static readonly JsonDocumentOptions _layoutOptions = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
     private readonly string _projectFolder;
 
     public LayoutSetsToTaskUiMigrator(string projectFolder)
@@ -205,7 +212,8 @@ internal sealed class LayoutSetsToTaskUiMigrator
 
     /// <summary>
     /// Scans every layout JSON under <paramref name="uiPath"/> for Subform components and returns
-    /// the set of <c>layoutSet</c> ids they reference. Tolerant of malformed files — they're skipped.
+    /// the set of <c>layoutSet</c> ids they reference. Malformed files, and JSON that is not a layout, are
+    /// skipped.
     /// </summary>
     private static HashSet<string> CollectSubformLayoutSetReferences(string uiPath)
     {
@@ -223,14 +231,18 @@ internal sealed class LayoutSetsToTaskUiMigrator
                 JsonNode? root;
                 try
                 {
-                    root = JsonNode.Parse(File.ReadAllText(file));
+                    root = JsonNode.Parse(File.ReadAllText(file), documentOptions: _layoutOptions);
                 }
                 catch (JsonException)
                 {
                     continue;
                 }
 
-                if (root?["data"]?["layout"] is not JsonArray layoutArray)
+                if (
+                    root is not JsonObject rootObject
+                    || rootObject["data"] is not JsonObject data
+                    || data["layout"] is not JsonArray layoutArray
+                )
                 {
                     continue;
                 }

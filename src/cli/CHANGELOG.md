@@ -20,8 +20,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
 - `studioctl app upgrade v9` no longer stops with a folder collision when a layout set used by a Subform component also lists a task in `layout-sets.json`. The subform keeps its own folder, since v9 does not bind subforms to tasks.
+- `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
 
 ## [0.1.0-preview.27] - 2026-09-23
 
