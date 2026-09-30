@@ -519,7 +519,8 @@ public sealed class InMemoryAppDirectoryTests
             {
                 ["App/config/applicationmetadata.json"] =
                     """{"id":"ttd/d","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"formBad","maxCount":2,"minCount":1,"appLogic":{"classRef":"App.X"}},{"id":"rangeBad","maxCount":2,"minCount":5},{"id":"ok","maxCount":1,"minCount":1,"appLogic":{"classRef":"App.Y"}}]}""",
-                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":[]}}""",
+                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]},"defaultDataType":"formBad"}""",
+                ["App/ui/Task_1/layouts/P1.json"] = """{"data":{"layout":[]}}""",
             }
         );
 
