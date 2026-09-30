@@ -27,6 +27,7 @@ internal sealed class RoslynSyntaxIntrospector
             {
                 RecordType(app, typeDecl, file);
             }
+            ProcessTaskTypeScanner.Collect(root, app);
         }
     }
 
