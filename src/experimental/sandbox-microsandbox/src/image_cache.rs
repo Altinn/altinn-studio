@@ -18,7 +18,11 @@ use std::{
 use sandbox::Error;
 use tokio::sync::{RwLock, RwLockReadGuard};
 
-use crate::{client::Client, error, state::StateStore};
+use crate::{
+    client::Client,
+    error,
+    state::{SandboxRecord, StateStore},
+};
 
 /// Directory below the Microsandbox cache for this crate's image and build-context archives.
 /// Microsandbox stages its own downloads in the parent directory.
@@ -31,7 +35,7 @@ pub(crate) struct ImageCache {
     state: StateStore,
     /// Removes unused images when set. Unset leaves the cache to its owner.
     retention: Option<Duration>,
-    /// Shared by image uses and held exclusively by a removal pass.
+    /// Shared by changes a removal pass must not interleave with, held exclusively by a pass.
     catalog: Rc<RwLock<()>>,
 }
 
@@ -45,10 +49,18 @@ impl ImageCache {
         }
     }
 
-    /// Holds off removal while an image is fetched and recorded, so a removal pass never
-    /// removes an image it judged unused just before this use refreshed it.
-    pub(crate) async fn record_use(&self) -> RwLockReadGuard<'_, ()> {
+    /// Holds off removal passes while the guard lives. A pass decides from a snapshot of the
+    /// catalog, the Sandbox records and their runtimes, so hold it while an image is fetched
+    /// and recorded, which marks it used, and while a runtime is removed, which ends its
+    /// record that it uses its image.
+    pub(crate) async fn hold_off_removal(&self) -> RwLockReadGuard<'_, ()> {
         self.catalog.read().await
+    }
+
+    /// Stands in for a removal pass in progress.
+    #[cfg(test)]
+    pub(crate) fn removal_in_progress(&self) -> tokio::sync::RwLockWriteGuard<'_, ()> {
+        self.catalog.try_write().expect("no removal should be held off")
     }
 
     /// Removes the images no Sandbox needs that have not been used for the retention period.
@@ -102,22 +114,21 @@ impl ImageCache {
 
         // Image versions that no catalog reference names, such as those a moved tag left
         // behind before images were recorded by digest, are reachable only through
-        // Microsandbox's prune. Prune also removes every reference no runtime has recorded
-        // that it uses, so it runs only when each remaining reference belongs to a Sandbox
-        // whose runtime this Provider has created and which still exists.
-        let mut pinned = HashSet::new();
-        for record in &records {
-            if record.runtime_created && self.client.runtime_handle(&record.runtime_name).await?.is_some() {
-                pinned.insert(record.image.manifest_digest.as_str());
+        // Microsandbox's prune.
+        let mut runtimes = HashSet::new();
+        for record in records.iter().filter(|record| record.runtime_created) {
+            if self.client.runtime_handle(&record.runtime_name).await?.is_some() {
+                runtimes.insert(record.runtime_name.as_str());
             }
         }
         let remaining = microsandbox::Image::list_local(self.client.local())
             .await
             .map_err(error::microsandbox)?;
-        if remaining
+        let remaining: Vec<Option<&str>> = remaining
             .iter()
-            .all(|image| image.manifest_digest().is_some_and(|digest| pinned.contains(digest)))
-        {
+            .map(microsandbox::ImageHandle::manifest_digest)
+            .collect();
+        if prune_keeps_every_reference(&records, &runtimes, &remaining) {
             let report = microsandbox::Image::prune_local(self.client.local())
                 .await
                 .map_err(error::microsandbox)?;
@@ -162,6 +173,26 @@ impl ImageCache {
     }
 }
 
+/// Reports whether Microsandbox's prune would remove only image versions that no catalog
+/// reference names. Prune also removes every reference whose image no runtime has recorded
+/// that it uses, so each remaining reference must belong to a Sandbox whose runtime this
+/// Provider created, and which still exists: Microsandbox reports a runtime created only after
+/// recording that it uses its image.
+fn prune_keeps_every_reference(
+    records: &[SandboxRecord],
+    existing_runtimes: &HashSet<&str>,
+    remaining_manifest_digests: &[Option<&str>],
+) -> bool {
+    let pinned: HashSet<&str> = records
+        .iter()
+        .filter(|record| record.runtime_created && existing_runtimes.contains(record.runtime_name.as_str()))
+        .map(|record| record.image.manifest_digest.as_str())
+        .collect();
+    remaining_manifest_digests
+        .iter()
+        .all(|digest| digest.is_some_and(|digest| pinned.contains(digest)))
+}
+
 /// Reports whether an image may be removed: no Sandbox needs its manifest and it has not
 /// been used for the retention period. An image without a recorded use is removable.
 fn is_removable(
@@ -193,7 +224,7 @@ mod tests {
 
     use sandbox::{ByteQuantity, CpuQuantity, Hostname, Platform, RootFilesystem, SandboxName, SandboxResources};
 
-    use super::{ImageCache, is_removable};
+    use super::{ImageCache, is_removable, prune_keeps_every_reference};
     use crate::{
         client::Client,
         state::{SandboxRecord, StateStore},
@@ -254,27 +285,7 @@ mod tests {
         }
 
         async fn sandbox_needing(&self, manifest_digest: &str) {
-            let record = SandboxRecord::new(sandbox::backend::CreateSandboxRequest {
-                id: "00000000-0000-4000-8000-000000000001".parse().expect("Sandbox ID"),
-                name: SandboxName::new("worker").expect("Sandbox name"),
-                hostname: Hostname::new("worker").expect("hostname"),
-                image: sandbox::image::ResolvedImage {
-                    source: sandbox::image::ImageSource::Reference {
-                        reference: "example.com/app:latest".to_string(),
-                    },
-                    platform: Platform::new("linux", "amd64"),
-                    manifest_digest: manifest_digest.to_string(),
-                },
-                resources: SandboxResources::new(
-                    "1".parse::<CpuQuantity>().expect("CPU"),
-                    "512Mi".parse::<ByteQuantity>().expect("memory"),
-                    RootFilesystem::layered("1Gi".parse::<ByteQuantity>().expect("root filesystem")),
-                ),
-                init_system: sandbox::init::InitSystem::Backend,
-                mounts: Vec::new(),
-                environment: BTreeMap::new(),
-                network: None,
-            });
+            let record = sandbox_record("00000000-0000-4000-8000-000000000001", manifest_digest);
             self.state
                 .save_sandbox(&record)
                 .await
@@ -291,6 +302,56 @@ mod tests {
             references.sort();
             references
         }
+    }
+
+    fn sandbox_record(id: &str, manifest_digest: &str) -> SandboxRecord {
+        SandboxRecord::new(sandbox::backend::CreateSandboxRequest {
+            id: id.parse().expect("Sandbox ID"),
+            name: SandboxName::new(format!("worker-{}", &id[id.len() - 4..])).expect("Sandbox name"),
+            hostname: Hostname::new("worker").expect("hostname"),
+            image: sandbox::image::ResolvedImage {
+                source: sandbox::image::ImageSource::Reference {
+                    reference: "example.com/app:latest".to_string(),
+                },
+                platform: Platform::new("linux", "amd64"),
+                manifest_digest: manifest_digest.to_string(),
+            },
+            resources: SandboxResources::new(
+                "1".parse::<CpuQuantity>().expect("CPU"),
+                "512Mi".parse::<ByteQuantity>().expect("memory"),
+                RootFilesystem::layered("1Gi".parse::<ByteQuantity>().expect("root filesystem")),
+            ),
+            init_system: sandbox::init::InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: None,
+        })
+    }
+
+    #[test]
+    fn prune_runs_only_when_every_reference_belongs_to_a_created_runtime_that_still_exists() {
+        let (created, booting, removed) = (digest('a'), digest('b'), digest('c'));
+        let mut records = vec![
+            sandbox_record("00000000-0000-4000-8000-000000000001", &created),
+            sandbox_record("00000000-0000-4000-8000-000000000002", &booting),
+            sandbox_record("00000000-0000-4000-8000-000000000003", &removed),
+        ];
+        records[0].runtime_created = true;
+        records[2].runtime_created = true;
+        // The booting Sandbox's runtime exists before its creation has returned; the runtime
+        // of the last one no longer exists.
+        let runtimes = HashSet::from([records[0].runtime_name.as_str(), records[1].runtime_name.as_str()]);
+
+        assert!(prune_keeps_every_reference(&records, &runtimes, &[]));
+        assert!(prune_keeps_every_reference(&records, &runtimes, &[Some(&created)]));
+        for remaining in [&booting, &removed, &digest('d')] {
+            assert!(!prune_keeps_every_reference(
+                &records,
+                &runtimes,
+                &[Some(&created), Some(remaining)]
+            ));
+        }
+        assert!(!prune_keeps_every_reference(&records, &runtimes, &[None]));
     }
 
     fn digest(fill: char) -> String {

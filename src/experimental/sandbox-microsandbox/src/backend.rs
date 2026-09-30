@@ -295,11 +295,15 @@ impl MicrosandboxProvider {
                 running
             }
             None => {
-                let running = Box::pin(self.create_runtime(&record, progress)).await?;
-                if !record.runtime_created {
-                    record.runtime_created = true;
+                // A runtime this Provider created is removed only with its record, but the
+                // flag must describe the runtime about to be created, not an earlier one.
+                if record.runtime_created {
+                    record.runtime_created = false;
                     self.state.update_sandbox(&record).await?;
                 }
+                let running = Box::pin(self.create_runtime(&record, progress)).await?;
+                record.runtime_created = true;
+                self.state.update_sandbox(&record).await?;
                 running
             }
         };
@@ -322,11 +326,14 @@ impl MicrosandboxProvider {
     async fn delete_sandbox(&self, id: &SandboxId) -> Result<(), Error> {
         let record = self.state.sandbox_by_id(id).await?;
         self.stop_sandbox(id).await?;
-        if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
-            handle.remove().await.map_err(error::microsandbox)?;
+        {
+            let _removal_held_off = self.images.hold_off_removal().await;
+            if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
+                handle.remove().await.map_err(error::microsandbox)?;
+            }
+            self.client.local().set_network_controlled(&record.runtime_name, false);
+            self.state.remove_sandbox(&record).await?;
         }
-        self.client.local().set_network_controlled(&record.runtime_name, false);
-        self.state.remove_sandbox(&record).await?;
         self.images.remove_unused().await;
         Ok(())
     }
@@ -830,7 +837,8 @@ impl RuntimeNetwork {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+// Test Providers live for the whole test; tightening their drop adds nothing.
+#[allow(clippy::expect_used, clippy::significant_drop_tightening)]
 mod tests {
     use std::{collections::BTreeMap, path::PathBuf};
 
@@ -894,6 +902,50 @@ mod tests {
         assert_eq!(
             RuntimeNetwork::for_attachment(controlled.network.as_ref()).ok(),
             Some(RuntimeNetwork::Controlled)
+        );
+    }
+
+    // A removal pass decides from a snapshot of the runtimes that record using their image;
+    // removing one mid-pass could let it prune an image another Sandbox still needs.
+    #[tokio::test(flavor = "local")]
+    async fn deleting_a_sandbox_waits_for_a_removal_pass_in_progress() {
+        let home = tempfile::tempdir().expect("temporary home should be created");
+        let provider = MicrosandboxProvider::builder(PathBuf::from(home.path()).join("microsandbox"))
+            .remove_unused_images_after(std::time::Duration::from_hours(24))
+            .open()
+            .await
+            .expect("Provider should open without starting a VM");
+        let record = record_with_network(
+            "00000000-0000-4000-8000-000000000012",
+            NetworkEndpointSelection::Control(NetworkControlProtocolId::new(
+                microsandbox_network::control::NETWORK_CONTROL_PROTOCOL,
+            )),
+        );
+        provider
+            .state
+            .save_sandbox(&record)
+            .await
+            .expect("record should be saved");
+
+        let pass = provider.images.removal_in_progress();
+        let deletion = provider.delete_sandbox(&record.id);
+        tokio::pin!(deletion);
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_millis(200), &mut deletion)
+                .await
+                .is_err(),
+            "deletion should wait for the pass"
+        );
+        assert!(provider.state.sandbox_by_id(&record.id).await.is_ok());
+
+        drop(pass);
+        deletion.await.expect("Sandbox should be deleted once the pass ends");
+        assert!(
+            provider
+                .state
+                .sandbox_by_id(&record.id)
+                .await
+                .is_err_and(|error| error.is_not_found())
         );
     }
 

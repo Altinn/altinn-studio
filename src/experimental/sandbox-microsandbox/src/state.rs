@@ -419,6 +419,22 @@ mod tests {
         assert_eq!(legacy, record);
     }
 
+    #[test]
+    fn records_written_before_runtime_creation_was_tracked_read_as_not_created() {
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000006");
+        let serialized = serde_json::to_value(&record).expect("record should serialize");
+        assert!(
+            serialized.get("runtimeCreated").is_none(),
+            "records without a created runtime keep the earlier format"
+        );
+        let legacy: SandboxRecord = serde_json::from_value(serialized).expect("legacy record should deserialize");
+        assert!(!legacy.runtime_created);
+
+        record.runtime_created = true;
+        let serialized = serde_json::to_value(&record).expect("record should serialize");
+        assert_eq!(serialized["runtimeCreated"], true);
+    }
+
     #[tokio::test(flavor = "local")]
     async fn saving_a_duplicate_name_does_not_replace_immutable_state() {
         let home = tempfile::tempdir().expect("temporary state home should be created");

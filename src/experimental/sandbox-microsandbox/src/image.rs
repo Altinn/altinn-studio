@@ -236,7 +236,7 @@ impl MicrosandboxImageBackend {
         step.complete().await;
 
         let import_reference = self.import_cache_reference(temporary_tag).await?;
-        let _use = self.images.record_use().await;
+        let _use = self.images.hold_off_removal().await;
         if let Some(resolved) = self
             .cached_import(&import_reference, requested, platform, progress)
             .await?
@@ -419,7 +419,7 @@ impl MicrosandboxImageBackend {
             .parse()
             .map_err(|failure| Error::Backend(format!("invalid OCI image reference '{reference}': {failure}")))?;
         let step = progress.start_step(PULL_IMAGE).await;
-        let _use = self.images.record_use().await;
+        let _use = self.images.hold_off_removal().await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
             pull_policy: reference_pull_policy(&parsed),
@@ -558,7 +558,7 @@ impl MicrosandboxImageBackend {
         let reference = prepared_root_reference(request, operation)?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
-        let _use = self.images.record_use().await;
+        let _use = self.images.hold_off_removal().await;
         let prepared = microsandbox_image::import_prepared_root(
             &cache,
             &reference,
