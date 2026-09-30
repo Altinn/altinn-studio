@@ -16,6 +16,7 @@ import type { ExpressionTexts } from './types/ExpressionTexts';
 import { StudioError } from '../StudioError';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
 import { DataLookupFuncName } from './enums/DataLookupFuncName';
+import classes from './StudioExpression.module.css';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
@@ -132,6 +133,7 @@ const ValidExpression = ({
               texts={texts}
             />
             <StudioFormActions
+              className={classes.formActions}
               primary={{
                 label: texts.save,
                 onClick: handleSave,
