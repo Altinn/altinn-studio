@@ -362,10 +362,11 @@ func TestAppStopJSONStopsManagedContainerApps(t *testing.T) {
 }
 
 type fakeStudioctlServerClient struct {
-	status       *studioctlserver.Status
-	statusErr    error
-	statusErrs   []error
-	unregistered []string
+	status           *studioctlserver.Status
+	statusErr        error
+	statusErrs       []error
+	unregistered     []string
+	validateResponse studioctlserver.ValidateResponse
 }
 
 func (f *fakeStudioctlServerClient) Status(context.Context) (*studioctlserver.Status, error) {
@@ -387,6 +388,17 @@ func (f *fakeStudioctlServerClient) UpgradeApp(
 	studioctlserver.AppUpgrade,
 ) (studioctlserver.AppUpgradeResult, error) {
 	return studioctlserver.AppUpgradeResult{}, nil
+}
+
+func (f *fakeStudioctlServerClient) Validate(
+	context.Context,
+	studioctlserver.ValidateRequest,
+) (studioctlserver.ValidateResponse, error) {
+	return f.validateResponse, nil
+}
+
+func (f *fakeStudioctlServerClient) ListValidationRules(context.Context) ([]studioctlserver.ValidateRule, error) {
+	return nil, nil
 }
 
 func testConfig(t *testing.T) *config.Config {

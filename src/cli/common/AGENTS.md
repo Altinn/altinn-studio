@@ -16,7 +16,8 @@ off with a reason in `dotnet/.editorconfig` rather than suppressed at the call s
 under `dotnet/tests/` and use xunit v3, like `studioctl-server-tests`.
 
 - `dotnet/Altinn.Studio.AppConfig` — parser, symbol model and validation rules for an Altinn app's
-  configuration files. Rules live under `Validation/Rules` and are registered in `Validation/RuleRegistry.cs`.
+  configuration files, shared by `studioctl app vet` and the studioctl-server validate endpoint. Rules live
+  under `Validation/Rules` and are registered in `Validation/RuleRegistry.cs`.
   Schemas come in as a `SchemaSet`; fetching them from app-dist is the hosts' job, so the library has no
   dependency on `Altinn.Studio.AppDist`.
 - `dotnet/Altinn.Studio.AppDist` — fetches and caches the per-version Altinn app resource artifact
