@@ -31,7 +31,7 @@ func TestReadStudioctlServerState_IgnoresPIDOfUnrelatedProcess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	pid, _ := startUnrelatedProcess(t)
+	pid, _ := startSleepProcess(t)
 	writeTestServerState(t, cfg, pid, cfg.StudioctlServerBinaryPath())
 
 	_, ok, err := readStudioctlServerState(cfg)
@@ -49,7 +49,7 @@ func TestReadStudioctlServerState_AcceptsPIDOfServerExecutable(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	pid, path := startUnrelatedProcess(t)
+	pid, path := startSleepProcess(t)
 	writeTestServerState(t, cfg, pid, path)
 
 	state, ok, err := readStudioctlServerState(cfg)
@@ -65,7 +65,7 @@ func TestEnsureStarted_DoesNotKillProcessThatReusedServerPID(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	pid, _ := startUnrelatedProcess(t)
+	pid, _ := startSleepProcess(t)
 	writeTestServerState(t, cfg, pid, cfg.StudioctlServerBinaryPath())
 
 	// The test config has no studioctl-server binary, so a start stops at ErrBinaryMissing.
@@ -81,7 +81,7 @@ func TestShutdown_DoesNotKillProcessThatReusedServerPID(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
-	pid, _ := startUnrelatedProcess(t)
+	pid, _ := startSleepProcess(t)
 	writeTestServerState(t, cfg, pid, cfg.StudioctlServerBinaryPath())
 
 	_, err := Shutdown(context.Background(), cfg)
@@ -92,8 +92,8 @@ func TestShutdown_DoesNotKillProcessThatReusedServerPID(t *testing.T) {
 	assertProcessRunning(t, pid)
 }
 
-// startUnrelatedProcess starts a process that is not studioctl-server and returns its PID and executable.
-func startUnrelatedProcess(t *testing.T) (int, string) {
+// startSleepProcess starts "sleep 60" and returns its PID and executable path.
+func startSleepProcess(t *testing.T) (int, string) {
 	t.Helper()
 
 	path, err := exec.LookPath("sleep")

@@ -71,6 +71,6 @@ func getProcessExecutablePath(pid int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("read process executable: %w", err)
 	}
-	// The kernel adds this suffix when the file was replaced after the process started.
+	// The kernel adds this suffix when the file was deleted or replaced after the process started.
 	return strings.TrimSuffix(path, " (deleted)"), nil
 }

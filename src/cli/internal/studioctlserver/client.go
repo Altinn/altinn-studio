@@ -980,10 +980,7 @@ func currentExecutablePath() string {
 	return path
 }
 
-// readStudioctlServerState reads the pid file. It returns false when the file does not exist or
-// when its PID is not a running studioctl-server. The pid file stays when the server stops without
-// the CLI, for example after a crash or a container restart, and the OS can then give that PID to
-// another process.
+// readStudioctlServerState returns false if the pid file is missing or its PID is not a running studioctl-server.
 func readStudioctlServerState(cfg *config.Config) (runtimeState, bool, error) {
 	data, err := os.ReadFile(cfg.StudioctlServerPIDPath())
 	if err != nil {

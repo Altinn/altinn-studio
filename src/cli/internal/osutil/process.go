@@ -68,12 +68,9 @@ func KillProcess(pid int) error {
 	return nil
 }
 
-// IsProcessRunningExecutable reports whether the process with this pid runs the executable at path.
-// When a process stops, the OS can give its PID to a new process. Thus a PID that you saved
-// earlier can now belong to a different process. Call this function before you use a saved PID
-// to wait for a process or to stop it.
-func IsProcessRunningExecutable(pid int, path string) (bool, error) {
-	if pid <= 0 || path == "" {
+// IsProcessRunningExecutable reports whether pid still belongs to the program at pathToExecutable, not to another process.
+func IsProcessRunningExecutable(pid int, pathToExecutable string) (bool, error) {
+	if pid <= 0 || pathToExecutable == "" {
 		return false, nil
 	}
 
@@ -81,11 +78,11 @@ func IsProcessRunningExecutable(pid int, path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if IsSamePath(actual, path) {
+	if IsSamePath(actual, pathToExecutable) {
 		return true, nil
 	}
-	// A path that does not resolve cannot be the executable of pid.
-	if resolved, resolveErr := filepath.EvalSymlinks(path); resolveErr == nil {
+	// If the path does not resolve, we cannot confirm a match, so treat it as not the executable.
+	if resolved, resolveErr := filepath.EvalSymlinks(pathToExecutable); resolveErr == nil {
 		return IsSamePath(actual, resolved), nil
 	}
 	return false, nil
