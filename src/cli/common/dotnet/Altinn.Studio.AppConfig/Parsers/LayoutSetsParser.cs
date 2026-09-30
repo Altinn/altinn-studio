@@ -8,7 +8,7 @@ namespace Altinn.Studio.AppConfig.Parsers;
 
 internal static class LayoutSetsParser
 {
-    public static void Parse(AppModelBuilder app, IAppDirectory dir, bool parseLayouts = true)
+    public static void Parse(AppModelBuilder app, IAppDirectory dir)
     {
         const string uiDir = "App/ui";
         if (!dir.DirectoryExists(uiDir))
@@ -21,7 +21,7 @@ internal static class LayoutSetsParser
                 continue;
             var set = new LayoutSetBuilder { Id = setName, Position = new SourceSpan(setDir + "/Settings.json", "") };
             LoadSettings(app, dir, set, setDir);
-            LoadLayouts(app, dir, set, setDir, parseLayouts);
+            CollectLayoutFiles(app, dir, setDir);
             app.LayoutSets.Add(set);
         }
 
@@ -233,27 +233,12 @@ internal static class LayoutSetsParser
         }
     }
 
-    private static void LoadLayouts(
-        AppModelBuilder app,
-        IAppDirectory dir,
-        LayoutSetBuilder set,
-        string setDir,
-        bool parseLayouts
-    )
+    private static void CollectLayoutFiles(AppModelBuilder app, IAppDirectory dir, string setDir)
     {
         var layoutsDir = setDir + "/layouts";
         if (!dir.DirectoryExists(layoutsDir))
             return;
-        var files = dir.EnumerateFiles(layoutsDir, "*.json", recursive: false).ToList();
-
-        foreach (var file in files)
-        {
+        foreach (var file in dir.EnumerateFiles(layoutsDir, "*.json", recursive: false))
             app.LayoutFiles.Add(file);
-            var page = Path.GetFileNameWithoutExtension(file);
-            if (parseLayouts)
-            {
-                LayoutParser.ParseFile(app, dir, set, page, file);
-            }
-        }
     }
 }

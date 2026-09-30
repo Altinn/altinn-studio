@@ -40,7 +40,7 @@ internal sealed class SnapshotBuilder
                 ?? throw new InvalidOperationException("aspect pipeline declares no layoutsets aspect");
 
             var live = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var file in layoutsets.LayoutFiles)
+            foreach (var file in FrontendPageOrder.OfLayoutFiles(layoutsets.LayoutFiles))
             {
                 if (!IsDeclaredLayout(layoutsets, file))
                     continue;
