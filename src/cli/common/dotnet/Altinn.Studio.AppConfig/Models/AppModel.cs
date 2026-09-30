@@ -68,18 +68,6 @@ public sealed class AppModel
         return LayoutFolderRole.Unused;
     }
 
-    public IEnumerable<string> DeclaredLanguages()
-    {
-        var seen = new HashSet<string>();
-        foreach (var lang in TitleLanguages)
-        {
-            if (string.IsNullOrEmpty(lang))
-                continue;
-            if (seen.Add(lang))
-                yield return lang;
-        }
-    }
-
     public IEnumerable<TextResources> LanguageTextResources() => TextResources.Where(IsServedLanguage);
 
     private static bool IsServedLanguage(TextResources texts) =>
