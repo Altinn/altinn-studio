@@ -13,13 +13,15 @@ use crate::{
 
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
-    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, Following, JSON_RPC_VERSION, LoginParams,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_FOLLOW, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH,
+    METHOD_SESSION_ARCHIVE, METHOD_SESSION_AWAIT_TURN, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE,
+    METHOD_SESSION_FOLLOW, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
     METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
-    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
-    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    ProgressParams, PromptReceipt, ReadMessage, Request, ResourcesWatchParams, Response, SessionAwaitTurnParams,
+    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -28,9 +30,11 @@ const PROGRESS_SETTLE: Duration = Duration::from_millis(50);
 /// Quiet period after a resource change before a watch replies, so a burst of
 /// changes, such as byte progress during an image pull, costs one reply.
 const WATCH_SETTLE: Duration = Duration::from_millis(150);
-/// Longest a watch waits without a change; the unchanged reply tells the
-/// watcher the daemon is still there.
-const WATCH_KEEPALIVE: Duration = Duration::from_secs(30);
+/// Longest one request waits: a watch without a change, whose unchanged reply
+/// tells the watcher the daemon is still there, or one poll of a wait that
+/// the client follows up. No request outlives it, so a client that has gone
+/// away frees its connection by itself.
+const LONG_POLL: Duration = Duration::from_secs(30);
 
 /// Agent operations exposed through the Agent Control API.
 pub trait AgentApi {
@@ -143,16 +147,39 @@ pub trait SessionApi {
     /// Lists tracked Sessions, optionally scoped to one Agent.
     fn list<'a>(&'a self, agent: Option<&'a str>) -> LocalFuture<'a, Result<Vec<sessions::Session>, Error>>;
 
-    /// Delivers a prompt to a running Session's harness, optionally waiting for
-    /// a completed turn and settled activity; see [`sessions::Service::prompt`].
+    /// Creates or gets one named Session without waiting; see [`sessions::Service::create`].
+    fn create<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        request: sessions::SessionRequest,
+    ) -> LocalFuture<'a, Result<(), Error>>;
+
+    /// Waits for an existing Session's attach target; see [`sessions::Service::follow`].
+    fn follow<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        wake: bool,
+    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
+
+    /// Delivers a prompt to a running Session's harness and returns its
+    /// completed-turn count from before delivery; see [`sessions::Service::prompt`].
     fn prompt<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>>;
+    ) -> LocalFuture<'a, Result<u64, Error>>;
+
+    /// Waits up to `bound` for a completed turn past `after`; see [`sessions::Service::await_turn`].
+    fn await_turn<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        after: u64,
+        bound: Duration,
+    ) -> LocalFuture<'a, Result<sessions::TurnWait, Error>>;
 
     /// Reads the harness transcript of a Session as ordered turns.
     fn turns<'a>(
@@ -188,15 +215,41 @@ impl SessionApi for sessions::Service {
         Box::pin(async move { Self::ensure(self, agent, name, request, wait).await })
     }
 
+    fn create<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        request: sessions::SessionRequest,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { Self::create(self, agent, name, request).await })
+    }
+
+    fn follow<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        wake: bool,
+    ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
+        Box::pin(async move { Self::follow(self, agent, name, wake).await })
+    }
+
     fn prompt<'a>(
         &'a self,
         agent: &'a str,
         name: &'a sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(async move { Self::prompt(self, agent, name, prompt, wait, timeout).await })
+    ) -> LocalFuture<'a, Result<u64, Error>> {
+        Box::pin(async move { Self::prompt(self, agent, name, prompt).await })
+    }
+
+    fn await_turn<'a>(
+        &'a self,
+        agent: &'a str,
+        name: &'a sessions::SessionName,
+        after: u64,
+        bound: Duration,
+    ) -> LocalFuture<'a, Result<sessions::TurnWait, Error>> {
+        Box::pin(async move { Self::await_turn(self, agent, name, after, bound).await })
     }
 
     fn turns<'a>(
@@ -246,6 +299,9 @@ pub trait ExecutionApi {
         name: &'a str,
         wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
+
+    /// Waits, without waking convergence, for the Agent's ready Sandbox assignment.
+    fn follow<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>>;
 }
 
 impl ExecutionApi for crate::sandbox::ExecutionService {
@@ -255,6 +311,10 @@ impl ExecutionApi for crate::sandbox::ExecutionService {
         wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
         Box::pin(async move { Self::ensure(self, name, wait).await })
+    }
+
+    fn follow<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::sandbox::ExecutionTarget, Error>> {
+        Box::pin(async move { Self::follow(self, name).await })
     }
 }
 
@@ -473,7 +533,7 @@ impl Server {
         if request.jsonrpc != JSON_RPC_VERSION || request.method.is_empty() {
             return error_response(request.id, CODE_INVALID_REQUEST, "invalid JSON-RPC 2.0 request");
         }
-        let _mutation = if is_mutating(&request.method) {
+        let mutation = if is_mutating(&request.method) {
             let Some(mutation) = self.lifecycle.admit_mutation() else {
                 return error_response(request.id, CODE_UPDATING, "Agent daemon is preparing for an upgrade");
             };
@@ -496,15 +556,18 @@ impl Server {
             METHOD_PROGRESS => self.handle_progress(request.id, request.params).await,
             METHOD_RESOURCES_WATCH => self.handle_resources_watch(request.id, request.params).await,
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
-            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
+            METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params, mutation).await,
+            METHOD_EXECUTION_FOLLOW => self.handle_execution_follow(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
-            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
+            METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params, mutation).await,
+            METHOD_SESSION_FOLLOW => self.handle_session_follow(request.id, request.params).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
             METHOD_SESSION_LIST => self.handle_session_list(request.id, request.params).await,
             METHOD_SESSION_PROMPT => self.handle_session_prompt(request.id, request.params).await,
+            METHOD_SESSION_AWAIT_TURN => self.handle_session_await_turn(request.id, request.params).await,
             METHOD_SESSION_TURNS => self.handle_session_turns(request.id, request.params).await,
             METHOD_SESSION_DELETE => self.handle_session_delete(request.id, request.params).await,
             METHOD_SESSION_ARCHIVE => self.handle_session_archive(request.id, request.params, true).await,
@@ -610,7 +673,7 @@ impl Server {
             );
         };
         tokio::select! {
-            _changed = self.changes.changed_since(params.after, PROGRESS_SETTLE, WATCH_KEEPALIVE) => {}
+            _changed = self.changes.changed_since(params.after, PROGRESS_SETTLE, LONG_POLL) => {}
             () = self.shutdown_requested() => {}
         }
         let revision = self.changes.revision();
@@ -634,7 +697,7 @@ impl Server {
             return error_response(id, CODE_INVALID_PARAMS, "after must be a resource revision");
         };
         tokio::select! {
-            _changed = self.changes.changed_since(params.after, WATCH_SETTLE, WATCH_KEEPALIVE) => {}
+            _changed = self.changes.changed_since(params.after, WATCH_SETTLE, LONG_POLL) => {}
             () = self.shutdown_requested() => {}
         }
         let revision = self.changes.revision();
@@ -656,17 +719,45 @@ impl Server {
         result_response(id, self.vnc.describe(&params.name).await)
     }
 
-    async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {
+    async fn handle_execution_ensure(&self, id: u64, value: Value, mutation: Option<MutationGuard<'_>>) -> Response {
         let Ok(params) = serde_json::from_value::<ExecutionEnsureParams>(value) else {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
         };
         if params.name.is_empty() {
             return error_response(id, CODE_INVALID_PARAMS, "name is required");
         }
+        if !params.follow {
+            return result_response(id, self.executions.ensure(&params.name, WaitPolicy::FirstPass).await);
+        }
+        // Admission refused new work during a drain; waiting records nothing,
+        // so it must not hold one.
+        drop(mutation);
         result_response(
             id,
-            self.executions.ensure(&params.name, wait_policy(params.follow)).await,
+            self.poll(self.executions.ensure(&params.name, WaitPolicy::UntilReady))
+                .await,
         )
+    }
+
+    async fn handle_execution_follow(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.poll(self.executions.follow(&params.name)).await)
+    }
+
+    /// Waits for one long-poll at most, or until the daemon drains, then
+    /// replies [`Following::Pending`] so the client asks again.
+    ///
+    /// Dropping `wait` must leave nothing half done: it may only wake
+    /// reconciliation and read.
+    async fn poll<T>(&self, wait: impl Future<Output = Result<T, Error>>) -> Result<Following<T>, Error> {
+        tokio::select! {
+            result = wait => result.map(Following::Done),
+            () = tokio::time::sleep(LONG_POLL) => Ok(Following::Pending),
+            () = self.shutdown_requested() => Ok(Following::Pending),
+        }
     }
 
     async fn handle_auth_login(&self, id: u64, value: Value) -> Response {
@@ -681,7 +772,7 @@ impl Server {
         )
     }
 
-    async fn handle_session_ensure(&self, id: u64, value: Value) -> Response {
+    async fn handle_session_ensure(&self, id: u64, value: Value, mutation: Option<MutationGuard<'_>>) -> Response {
         let params = match serde_json::from_value::<SessionEnsureParams>(value) {
             Ok(params) => params,
             // The selections carry their own validation, so name the decoding failure
@@ -694,15 +785,40 @@ impl Server {
                 );
             }
         };
-        let wait = wait_policy(params.follow);
         let request = sessions::SessionRequest {
             harness: params.harness,
             model_selection: params.model_selection,
             initial_prompt: params.initial_prompt,
         };
+        if !params.follow {
+            return result_response(
+                id,
+                self.sessions
+                    .ensure(&params.agent, &params.name, request, WaitPolicy::FirstPass)
+                    .await,
+            );
+        }
+        // The Session is recorded before the bounded wait, so a reply that
+        // ends the wait never cuts creating it short.
+        if let Err(error) = self.sessions.create(&params.agent, &params.name, request).await {
+            return result_response::<()>(id, Err(error));
+        }
+        // The recorded Session is the only change; waiting must not hold a drain.
+        drop(mutation);
         result_response(
             id,
-            self.sessions.ensure(&params.agent, &params.name, request, wait).await,
+            self.poll(self.sessions.follow(&params.agent, &params.name, true)).await,
+        )
+    }
+
+    async fn handle_session_follow(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionParams>(value) else {
+            return error_response(id, CODE_INVALID_PARAMS, "agent and session name are required");
+        };
+        result_response(
+            id,
+            self.poll(self.sessions.follow(&params.agent, &params.name, false))
+                .await,
         )
     }
 
@@ -713,10 +829,26 @@ impl Server {
         result_response(
             id,
             self.sessions
-                .prompt(&params.agent, &params.name, &params.prompt, params.wait, params.timeout)
+                .prompt(&params.agent, &params.name, &params.prompt)
                 .await
-                .map(|()| serde_json::json!({})),
+                .map(|turns| PromptReceipt { turns }),
         )
+    }
+
+    async fn handle_session_await_turn(&self, id: u64, value: Value) -> Response {
+        let Ok(params) = serde_json::from_value::<SessionAwaitTurnParams>(value) else {
+            return error_response(
+                id,
+                CODE_INVALID_PARAMS,
+                "agent, session name and turn count are required",
+            );
+        };
+        // The wait bounds itself, so the turn count it may have raised survives.
+        let waited = tokio::select! {
+            waited = self.sessions.await_turn(&params.agent, &params.name, params.after, LONG_POLL) => waited,
+            () = self.shutdown_requested() => Ok(sessions::TurnWait::Pending { after: params.after }),
+        };
+        result_response(id, waited)
     }
 
     async fn handle_session_turns(&self, id: u64, value: Value) -> Response {
@@ -761,14 +893,6 @@ impl Server {
             return error_response(id, CODE_INVALID_PARAMS, "invalid Session list parameters");
         };
         result_response(id, self.sessions.list(params.agent.as_deref()).await)
-    }
-}
-
-const fn wait_policy(follow: bool) -> WaitPolicy {
-    if follow {
-        WaitPolicy::UntilReady
-    } else {
-        WaitPolicy::FirstPass
     }
 }
 

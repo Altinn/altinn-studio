@@ -45,6 +45,18 @@ impl ExecutionService {
         self.target(record.id, name).await
     }
 
+    /// Waits, without waking convergence, until the Agent is Ready and returns
+    /// its exact ready Sandbox assignment.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing, deleting, or invalid.
+    pub async fn follow(&self, name: &str) -> Result<ExecutionTarget, Error> {
+        let record = self.load_active(name).await?;
+        self.convergence.follow(record.id).await?;
+        self.target(record.id, name).await
+    }
+
     async fn load_active(&self, name: &str) -> Result<control_plane::AgentRecord, Error> {
         let record = self.agents.get_by_name(name).await?;
         if record.agent.metadata.deletion_timestamp.is_some() {

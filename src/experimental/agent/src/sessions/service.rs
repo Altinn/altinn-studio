@@ -13,7 +13,7 @@ use super::{
 };
 
 /// Ceiling for completion waiting after prompt submission.
-const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
+pub const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
 
 /// Polls durable activity while a caller waits for completion.
 const ACTIVITY_POLL: Duration = Duration::from_millis(250);
@@ -31,6 +31,72 @@ pub struct UpgradeReadiness {
     pub blockers: Vec<String>,
     /// Quiescent Sessions without a harness-native conversation to resume.
     pub warnings: Vec<String>,
+}
+
+/// What one bounded wait for a prompt's turn observed.
+#[derive(Clone, Copy, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TurnWait {
+    /// The turn completed and the harness waits for input with settled activity.
+    Completed,
+    /// The wait ended first; continue it from `after`, the completed-turn
+    /// count the next wait must exceed. It can be higher than the count the
+    /// wait started from when a newer turn was already running.
+    Pending {
+        /// Completed turns to wait past.
+        after: u64,
+    },
+}
+
+/// Rejects a completion timeout above [`PROMPT_TIMEOUT_MAX`].
+///
+/// # Errors
+///
+/// Returns an invalid-request error for a longer timeout.
+pub fn validate_completion_timeout(timeout: Option<Duration>) -> Result<(), Error> {
+    if timeout.is_some_and(|timeout| timeout > PROMPT_TIMEOUT_MAX) {
+        return Err(Error::Invalid(format!(
+            "completion timeout must not exceed {}m",
+            PROMPT_TIMEOUT_MAX.as_secs() / 60
+        )));
+    }
+    Ok(())
+}
+
+/// Follows bounded turn waits, each started by `wait` from the completed-turn
+/// count it must exceed, until a turn completes; `timeout` bounds the whole
+/// wait and defaults to [`PROMPT_TIMEOUT_MAX`].
+///
+/// # Errors
+///
+/// Returns a wait's error, or a Session error once the timeout has passed.
+pub async fn complete_turn<W, Waiting>(
+    name: &SessionName,
+    after: u64,
+    timeout: Option<Duration>,
+    mut wait: W,
+) -> Result<(), Error>
+where
+    W: FnMut(u64) -> Waiting,
+    Waiting: Future<Output = Result<TurnWait, Error>>,
+{
+    let mut after = after;
+    let completion = async {
+        loop {
+            match wait(after).await? {
+                TurnWait::Completed => return Ok(()),
+                TurnWait::Pending { after: raised } => after = raised,
+            }
+        }
+    };
+    tokio::time::timeout(timeout.unwrap_or(PROMPT_TIMEOUT_MAX), completion)
+        .await
+        .map_err(|_| {
+            Error::Session(format!(
+                "timed out waiting for Session \"{name}\" to complete; the prompt was submitted; inspect turns before \
+                 retrying"
+            ))
+        })?
 }
 
 /// Durable Session registry whose effects are owned by the daemon controller.
@@ -123,6 +189,41 @@ impl Service {
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
         self.convergence.converge(owner.id, wait).await?;
+        self.attach(agent, &session).await
+    }
+
+    /// Creates or gets one named Session without waiting for its Agent; the
+    /// first half of [`Self::ensure`], continued with [`Self::follow`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when persistence fails, the Agent is missing, deleting
+    /// or invalid, or an explicit selection conflicts with an existing Session.
+    pub async fn create(&self, agent: &str, name: &SessionName, request: SessionRequest) -> Result<(), Error> {
+        self.prepare(agent, name, request).await.map(drop)
+    }
+
+    /// Waits until an existing Session's Agent is Ready, then returns the
+    /// Session's attach target once its driver is ready. With `wake`, first
+    /// wakes Agent convergence, as [`Self::ensure`] does.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is missing, its Agent is deleted or
+    /// invalid, or its harness is an optional installation that is absent.
+    pub async fn follow(&self, agent: &str, name: &SessionName, wake: bool) -> Result<AttachTarget, Error> {
+        let session = self.visible(agent, name).await?;
+        if wake {
+            self.convergence
+                .converge(session.agent_id, WaitPolicy::UntilReady)
+                .await?;
+        } else {
+            self.convergence.follow(session.agent_id).await?;
+        }
+        self.attach(agent, &session).await
+    }
+
+    async fn attach(&self, agent: &str, session: &Session) -> Result<AttachTarget, Error> {
         // On a brand-new Agent this is the first moment the answer exists.
         let converged = self.sandboxes.agent_by_name(agent).await?;
         Self::reject_omitted_optional_harness(&converged, session.harness)?;
@@ -130,39 +231,20 @@ impl Service {
         self.store.session_attach_target(session.id).await
     }
 
-    /// Delivers a prompt to a running Session's harness.
+    /// Delivers a prompt to a running Session's harness and returns its
+    /// completed-turn count from before delivery, to wait past with
+    /// [`Self::await_turn`].
     ///
-    /// With `wait`, snapshots the completed-turn counter before delivery and
-    /// waits for it to advance with identical waiting activity in two consecutive
-    /// polls, 250 ms apart. Work observed during settling requires another
-    /// completion. This is a timing heuristic, not identification of an answer
-    /// to this prompt.
+    /// Delivery waits for input readiness. The runtime may establish readiness
+    /// before the harness reports its first conversation.
     /// Read the conversation separately with [`Self::turns`].
-    ///
-    /// In both modes delivery waits for input readiness. The runtime may establish
-    /// readiness before the harness reports its first conversation. The completion
-    /// timeout starts after submission; queuing, readiness and delivery are excluded.
-    /// Activity is polled from the local database every 250 ms.
     ///
     /// # Errors
     ///
     /// Returns an error when the Session is not running, the harness has not
-    /// become ready for input within a short grace period, the input cannot be
-    /// delivered, the Session fails mid-turn, or the wait exceeds `timeout`.
-    pub async fn prompt(
-        &self,
-        agent: &str,
-        name: &SessionName,
-        prompt: &str,
-        wait: bool,
-        timeout: Option<Duration>,
-    ) -> Result<(), Error> {
-        if timeout.is_some_and(|timeout| timeout > PROMPT_TIMEOUT_MAX) {
-            return Err(Error::Invalid(format!(
-                "completion timeout must not exceed {}m",
-                PROMPT_TIMEOUT_MAX.as_secs() / 60
-            )));
-        }
+    /// become ready for input within a short grace period, or the input cannot
+    /// be delivered.
+    pub async fn prompt(&self, agent: &str, name: &SessionName, prompt: &str) -> Result<u64, Error> {
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
         let delivering = Delivering::acquire(&self.deliveries, id).await;
@@ -170,15 +252,31 @@ impl Service {
         let completed_before = session.status.reported.activity.turns;
         self.runtime.prompt(&session, &sandbox, prompt).await?;
         drop(delivering);
-        if !wait {
-            return Ok(());
-        }
-        tokio::time::timeout(
-            timeout.unwrap_or(PROMPT_TIMEOUT_MAX),
-            self.wait_for_completion(id, name, completed_before),
-        ).await.map_err(|_| Error::Session(format!(
-            "timed out waiting for Session \"{name}\" to complete; the prompt was submitted; inspect turns before retrying"
-        )))?
+        Ok(completed_before)
+    }
+
+    /// Waits up to `bound` for the Session to complete a turn past `after`.
+    ///
+    /// A turn counts as complete when the completed-turn counter exceeds
+    /// `after` with identical waiting activity in two consecutive polls, 250 ms
+    /// apart. Work observed during settling requires another completion. This
+    /// is a timing heuristic, not identification of an answer to a prompt.
+    /// Activity is polled from the local database.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is missing, or fails, stops or is
+    /// archived while waited on.
+    pub async fn await_turn(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        after: u64,
+        bound: Duration,
+    ) -> Result<TurnWait, Error> {
+        let id = self.visible(agent, name).await?.id;
+        self.wait_for_completion(id, name, after, tokio::time::Instant::now() + bound)
+            .await
     }
 
     async fn wait_for_completion(
@@ -186,7 +284,8 @@ impl Service {
         id: SessionId,
         name: &SessionName,
         mut completed_before: u64,
-    ) -> Result<(), Error> {
+        deadline: tokio::time::Instant,
+    ) -> Result<TurnWait, Error> {
         let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
@@ -215,7 +314,7 @@ impl Service {
             };
             if activity.turns > completed_before && waiting {
                 if settling.as_ref() == Some(activity) {
-                    return Ok(());
+                    return Ok(TurnWait::Completed);
                 }
                 settling = Some(activity.clone());
             } else {
@@ -223,6 +322,11 @@ impl Service {
                 // is observed. Its permission waits must not satisfy this wait.
                 completed_before = completed_before.max(activity.turns);
                 settling = None;
+            }
+            if tokio::time::Instant::now() >= deadline {
+                return Ok(TurnWait::Pending {
+                    after: completed_before,
+                });
             }
             tokio::time::sleep(ACTIVITY_POLL).await;
         }

@@ -7,12 +7,13 @@ use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
-    DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
-    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
+    DaemonInfo, DirectoryParams, ExecutionEnsureParams, Following, JSON_RPC_VERSION, LoginParams, METHOD_APPLY,
+    METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_EXECUTION_FOLLOW, METHOD_GET, METHOD_HEALTH,
+    METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE,
+    METHOD_SESSION_AWAIT_TURN, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_FOLLOW, METHOD_SESSION_GET,
+    METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN,
+    METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams, PromptReceipt, ReadMessage, Request,
+    ResourcesWatchParams, Response, SessionAwaitTurnParams, SessionEnsureParams, SessionListParams, SessionParams,
     SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
@@ -152,14 +153,24 @@ impl Client {
         name: &str,
         wait: WaitPolicy,
     ) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(
-            METHOD_EXECUTION_ENSURE,
-            ExecutionEnsureParams {
-                name: name.into(),
-                follow: wait == WaitPolicy::UntilReady,
-            },
-        )
-        .await
+        let params = ExecutionEnsureParams {
+            name: name.into(),
+            follow: wait == WaitPolicy::UntilReady,
+        };
+        if !params.follow {
+            return self.call(METHOD_EXECUTION_ENSURE, params).await;
+        }
+        let mut polled = self.call(METHOD_EXECUTION_ENSURE, params).await?;
+        loop {
+            match polled {
+                Following::Done(target) => return Ok(target),
+                Following::Pending => {
+                    polled = self
+                        .call(METHOD_EXECUTION_FOLLOW, NameParams { name: name.into() })
+                        .await?;
+                }
+            }
+        }
     }
 
     /// Waits for a change after `after`, then returns the Agent's stored status
@@ -272,18 +283,35 @@ impl Client {
         request: sessions::SessionRequest,
         wait: WaitPolicy,
     ) -> Result<sessions::AttachTarget, Error> {
-        self.call(
-            METHOD_SESSION_ENSURE,
-            SessionEnsureParams {
-                agent: agent.into(),
-                name,
-                harness: request.harness,
-                model_selection: request.model_selection,
-                initial_prompt: request.initial_prompt,
-                follow: wait == WaitPolicy::UntilReady,
-            },
-        )
-        .await
+        let params = SessionEnsureParams {
+            agent: agent.into(),
+            name: name.clone(),
+            harness: request.harness,
+            model_selection: request.model_selection,
+            initial_prompt: request.initial_prompt,
+            follow: wait == WaitPolicy::UntilReady,
+        };
+        if !params.follow {
+            return self.call(METHOD_SESSION_ENSURE, params).await;
+        }
+        let mut polled = self.call(METHOD_SESSION_ENSURE, params).await?;
+        loop {
+            match polled {
+                Following::Done(target) => return Ok(target),
+                Following::Pending => {
+                    polled = self
+                        .call(
+                            METHOD_SESSION_FOLLOW,
+                            SessionParams {
+                                agent: agent.into(),
+                                name: name.clone(),
+                                harness: None,
+                            },
+                        )
+                        .await?;
+                }
+            }
+        }
     }
 
     /// Delivers a prompt to a running Session's harness. With `wait`, waits for
@@ -295,7 +323,9 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns an error when the Session is not running or the input cannot be delivered.
+    /// Returns an error when the timeout exceeds 30 minutes, the Session is not
+    /// running, the input cannot be delivered, the Session fails mid-turn, or
+    /// the wait exceeds the timeout.
     pub async fn prompt_session(
         &self,
         agent: &str,
@@ -304,19 +334,31 @@ impl Client {
         wait: bool,
         timeout: Option<std::time::Duration>,
     ) -> Result<(), Error> {
-        let _result: serde_json::Value = self
+        sessions::validate_completion_timeout(timeout)?;
+        let receipt: PromptReceipt = self
             .call(
                 METHOD_SESSION_PROMPT,
                 SessionPromptParams {
                     agent: agent.into(),
-                    name,
+                    name: name.clone(),
                     prompt,
-                    wait,
-                    timeout,
                 },
             )
             .await?;
-        Ok(())
+        if !wait {
+            return Ok(());
+        }
+        sessions::complete_turn(&name, receipt.turns, timeout, |after| {
+            self.call(
+                METHOD_SESSION_AWAIT_TURN,
+                SessionAwaitTurnParams {
+                    agent: agent.into(),
+                    name: name.clone(),
+                    after,
+                },
+            )
+        })
+        .await
     }
 
     /// Reads the harness transcript of a Session as ordered turns.

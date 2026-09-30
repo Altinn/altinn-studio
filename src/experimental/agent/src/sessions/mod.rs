@@ -20,7 +20,9 @@ pub use controller::{AgentNotifier, Controller, ErrorHandler, Wakeup};
 pub use reconciler::Reconciler;
 pub use runtime::{Observation, SessionRuntime, Tmux};
 pub use sandboxes::AgentSandboxes;
-pub use service::{Service, UpgradeReadiness};
+pub use service::{
+    PROMPT_TIMEOUT_MAX, Service, TurnWait, UpgradeReadiness, complete_turn, validate_completion_timeout,
+};
 pub use transcript::{Message, Part, Role, Turn};
 
 /// Immutable identity of one Session incarnation.

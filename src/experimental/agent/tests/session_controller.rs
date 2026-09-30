@@ -25,6 +25,44 @@ use sandbox::{
     network::{NetworkEndpointSelection, PacketMedium},
 };
 use tempfile::TempDir;
+
+/// How long one completion wait lasts in these tests, short enough that
+/// waits continue across several polls as the Control API client's do.
+const TURN_POLL: Duration = Duration::from_secs(1);
+
+/// Delivers a prompt and, with `wait`, follows its completion the way the
+/// Control API client does.
+trait PromptAndWait {
+    async fn prompt_and_wait(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        prompt: &str,
+        wait: bool,
+        timeout: Option<Duration>,
+    ) -> Result<(), Error>;
+}
+
+impl PromptAndWait for agent::sessions::Service {
+    async fn prompt_and_wait(
+        &self,
+        agent: &str,
+        name: &SessionName,
+        prompt: &str,
+        wait: bool,
+        timeout: Option<Duration>,
+    ) -> Result<(), Error> {
+        agent::sessions::validate_completion_timeout(timeout)?;
+        let after = self.prompt(agent, name, prompt).await?;
+        if !wait {
+            return Ok(());
+        }
+        agent::sessions::complete_turn(name, after, timeout, |after| {
+            self.await_turn(agent, name, after, TURN_POLL)
+        })
+        .await
+    }
+}
 use tokio::sync::Notify;
 
 struct BlockingReconcile {
@@ -661,7 +699,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     let delivered = runtime.delivered.notified();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_and_wait(
                 "worker",
                 &sending_name,
                 "do the thing",
@@ -716,7 +754,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
 
     // Without wait the delivery returns immediately and reads nothing.
     service
-        .prompt("worker", &name, "and another", false, None)
+        .prompt_and_wait("worker", &name, "and another", false, None)
         .await
         .expect("send");
     assert_eq!(runtime.sent.borrow().len(), 2);
@@ -764,7 +802,7 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     let sending_name = name.clone();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_and_wait(
                 "worker",
                 &sending_name,
                 "do the thing",
@@ -828,7 +866,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     let sending_name = name.clone();
     let send = tokio::task::spawn_local(async move {
         sending_service
-            .prompt(
+            .prompt_and_wait(
                 "worker",
                 &sending_name,
                 "steer left",
@@ -994,7 +1032,7 @@ impl ServiceHarness {
         let service = self.service.clone();
         tokio::task::spawn_local(async move {
             service
-                .prompt(
+                .prompt_and_wait(
                     "worker",
                     &SessionName::new("s1").expect("name"),
                     text,
@@ -1335,7 +1373,7 @@ async fn the_first_prompt_can_start_an_unreported_conversation() {
         let service = harness.service.clone();
         let mut answer = tokio::task::spawn_local(async move {
             service
-                .prompt(
+                .prompt_and_wait(
                     "worker",
                     &SessionName::new("s1").expect("name"),
                     "first input",
@@ -1402,7 +1440,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         let service = service.clone();
         tokio::task::spawn_local(async move {
             service
-                .prompt("worker", &SessionName::new("s1").expect("name"), "go", false, None)
+                .prompt_and_wait("worker", &SessionName::new("s1").expect("name"), "go", false, None)
                 .await
         })
     };
@@ -2634,7 +2672,7 @@ async fn completion_timeout_starts_after_delivery() {
     let started = tokio::time::Instant::now();
     let error = harness
         .service
-        .prompt(
+        .prompt_and_wait(
             "worker",
             &harness.session.name,
             "go",
@@ -2656,7 +2694,7 @@ async fn an_unsupported_completion_timeout_is_rejected_before_delivery() {
 
     let error = harness
         .service
-        .prompt(
+        .prompt_and_wait(
             "worker",
             &harness.session.name,
             "go",
@@ -2681,7 +2719,7 @@ async fn queued_deliveries_do_not_expire_and_remain_serialized() {
         let name = harness.session.name.clone();
         tokio::task::spawn_local(async move {
             service
-                .prompt("worker", &name, text, false, Some(Duration::from_millis(50)))
+                .prompt_and_wait("worker", &name, text, false, Some(Duration::from_millis(50)))
                 .await
         })
     };
@@ -3208,7 +3246,7 @@ async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
     let name = harness.session.name.clone();
     let mut waiting = tokio::task::spawn_local(async move {
         service
-            .prompt("worker", &name, "go", true, Some(Duration::from_secs(5)))
+            .prompt_and_wait("worker", &name, "go", true, Some(Duration::from_secs(5)))
             .await
     });
     harness.await_delivery(&mut waiting).await;

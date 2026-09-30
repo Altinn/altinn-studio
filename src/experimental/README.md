@@ -80,6 +80,13 @@ durable outcome is the Agent's conditions, with their transition times, and its 
 with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
 drains.
 
+No Control API request waits longer than one 30-second long-poll, so an interrupted client never holds one of the
+daemon's connections for long. Waits that take longer continue across polls: waiting for an Agent to become Ready
+(`agents.v1.ensureExecution` and `sessions.v1.ensure` with `follow`, continued with `agents.v1.followExecution` and
+`sessions.v1.follow`) and waiting for a prompt's turn to complete (`sessions.v1.awaitTurn`, from the turn count
+`sessions.v1.prompt` returns). Changes, such as creating a Session or delivering a prompt, finish before a wait
+starts.
+
 `agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
 one Agent's provisioning, and derives each Agent's state from its conditions and failure class.
 

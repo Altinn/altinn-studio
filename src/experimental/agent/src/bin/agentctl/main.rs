@@ -1731,7 +1731,7 @@ mod tests {
     }
 
     struct DelayedHealthConnector {
-        remaining: std::rc::Rc<std::cell::Cell<Option<Duration>>>,
+        completions: std::rc::Rc<std::cell::Cell<usize>>,
     }
 
     impl agent::control_api::Connector for DelayedHealthConnector {
@@ -1739,27 +1739,28 @@ mod tests {
             Box::pin(async move {
                 use tokio::io::AsyncBufReadExt as _;
                 let (client, server) = tokio::io::duplex(4096);
-                let remaining = self.remaining.clone();
+                let completions = self.completions.clone();
                 tokio::task::spawn_local(async move {
                     let mut server = tokio::io::BufReader::new(server);
                     let mut line = String::new();
                     server.read_line(&mut line).await.expect("request");
                     let request: serde_json::Value = serde_json::from_str(&line).expect("RPC");
-                    if request["method"] == "control.v1.health" {
-                        tokio::time::sleep(Duration::from_millis(600)).await;
-                    } else {
-                        assert_eq!(request["method"], "sessions.v1.prompt");
-                        remaining.set(Some(
-                            serde_json::from_value(request["params"]["timeout"].clone()).expect("timeout"),
-                        ));
-                    }
-                    let result = if request["method"] == "control.v1.health" {
-                        serde_json::json!({
-                            "protocolVersion": agent::control_api::PROTOCOL_VERSION,
-                            "buildVersion": agent::build_version()
-                        })
-                    } else {
-                        serde_json::json!({})
+                    let result = match request["method"].as_str() {
+                        Some("control.v1.health") => {
+                            tokio::time::sleep(Duration::from_millis(600)).await;
+                            serde_json::json!({
+                                "protocolVersion": agent::control_api::PROTOCOL_VERSION,
+                                "buildVersion": agent::build_version()
+                            })
+                        }
+                        Some("sessions.v1.prompt") => serde_json::json!({"turns": 0}),
+                        Some("sessions.v1.awaitTurn") => {
+                            // Together with the health check this takes longer than the timeout.
+                            tokio::time::sleep(Duration::from_millis(900)).await;
+                            completions.set(completions.get() + 1);
+                            serde_json::json!("completed")
+                        }
+                        method => panic!("unexpected method {method:?}"),
                     };
                     let response = serde_json::json!({"jsonrpc":"2.0", "id":request["id"], "result":result});
                     server
@@ -1774,9 +1775,9 @@ mod tests {
 
     #[tokio::test(flavor = "local", start_paused = true)]
     async fn prompt_setup_does_not_consume_the_completion_timeout() {
-        let remaining = std::rc::Rc::new(std::cell::Cell::new(None));
+        let completions = std::rc::Rc::new(std::cell::Cell::new(0));
         let client = Client::new(std::rc::Rc::new(DelayedHealthConnector {
-            remaining: remaining.clone(),
+            completions: completions.clone(),
         }));
         let directory = tempfile::TempDir::new().expect("home");
         let home = ControlPlaneHome::resolve(Some(directory.path())).expect("home");
@@ -1799,8 +1800,8 @@ mod tests {
             },
         )
         .await
-        .expect("prompt");
-        assert_eq!(remaining.get(), Some(Duration::from_secs(1)));
+        .expect("the completion wait starts after delivery");
+        assert_eq!(completions.get(), 1);
     }
 
     #[test]

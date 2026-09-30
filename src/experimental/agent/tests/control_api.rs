@@ -2,7 +2,12 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
     Error,
@@ -67,9 +72,46 @@ impl VncAccessApi for FakeVncAccess {
         })
     }
 }
-struct FakeExecutions;
-/// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
-type SentMessage = (String, bool, Option<std::time::Duration>);
+/// Executions for `worker`; `stuck` never becomes ready, and `late` becomes
+/// ready once `ready` is set and `became_ready` notified.
+#[derive(Default)]
+struct FakeExecutions {
+    calls: Rc<RefCell<Vec<&'static str>>>,
+    ready: Rc<Cell<bool>>,
+    became_ready: Rc<Notify>,
+}
+
+impl FakeExecutions {
+    async fn wait_until_ready(&self, name: &str) -> Result<agent::sandbox::ExecutionTarget, Error> {
+        match name {
+            "stuck" => std::future::pending().await,
+            "late" => {
+                while !self.ready.get() {
+                    self.became_ready.notified().await;
+                }
+                worker_target()
+            }
+            "worker" => worker_target(),
+            _ => Err(Error::NotFound),
+        }
+    }
+}
+
+fn worker_target() -> Result<agent::sandbox::ExecutionTarget, Error> {
+    Ok(agent::sandbox::ExecutionTarget {
+        sandbox: agent::sandbox::Assignment::Materialized {
+            provider: agent::sandbox::ProviderId::new("memory")?,
+            id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
+                .parse()
+                .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
+            harnesses: Vec::new(),
+        },
+        operating_system: "linux".into(),
+    })
+}
+
+/// Completed turns the fake Session reports before each delivered prompt.
+const TURNS_BEFORE_PROMPT: u64 = 3;
 
 #[derive(Default)]
 struct UpgradeGates {
@@ -81,7 +123,11 @@ struct UpgradeGates {
 
 struct FakeSessions {
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
-    sent: Rc<RefCell<Vec<SentMessage>>>,
+    sent: Rc<RefCell<Vec<String>>>,
+    /// Completed-turn counts each `sessions.v1.awaitTurn` waited past.
+    awaited: Rc<RefCell<Vec<u64>>>,
+    /// Replies for the next turn waits; once empty, turns never complete.
+    turn_waits: Rc<RefCell<VecDeque<agent::sessions::TurnWait>>>,
     deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
     archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
     upgrade_blockers: Rc<RefCell<Vec<String>>>,
@@ -142,6 +188,25 @@ impl SessionApi for FakeSessions {
         Box::pin(async { Err(Error::NotFound) })
     }
 
+    fn create<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        request: agent::sessions::SessionRequest,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        self.ensured.borrow_mut().push(request);
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
+    fn follow<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        _wake: bool,
+    ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
+        Box::pin(async { Err(Error::NotFound) })
+    }
+
     fn get<'a>(
         &'a self,
         _agent: &'a str,
@@ -159,10 +224,8 @@ impl SessionApi for FakeSessions {
         agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         prompt: &'a str,
-        wait: bool,
-        timeout: Option<std::time::Duration>,
-    ) -> LocalFuture<'a, Result<(), Error>> {
-        self.sent.borrow_mut().push((prompt.to_owned(), wait, timeout));
+    ) -> LocalFuture<'a, Result<u64, Error>> {
+        self.sent.borrow_mut().push(prompt.to_owned());
         let gate = self.upgrade_gates.prompt.borrow().clone();
         let upgrade_gates = self.upgrade_gates.clone();
         let blockers = self.upgrade_blockers.clone();
@@ -175,7 +238,25 @@ impl SessionApi for FakeSessions {
                 gate.notified().await;
                 blockers.borrow_mut().push("session/worker/s1 (working)".into());
             }
-            Ok(())
+            Ok(TURNS_BEFORE_PROMPT)
+        })
+    }
+
+    fn await_turn<'a>(
+        &'a self,
+        _agent: &'a str,
+        _name: &'a agent::sessions::SessionName,
+        after: u64,
+        bound: Duration,
+    ) -> LocalFuture<'a, Result<agent::sessions::TurnWait, Error>> {
+        self.awaited.borrow_mut().push(after);
+        let next = self.turn_waits.borrow_mut().pop_front();
+        Box::pin(async move {
+            if let Some(next) = next {
+                return Ok(next);
+            }
+            tokio::time::sleep(bound).await;
+            Ok(agent::sessions::TurnWait::Pending { after })
         })
     }
 
@@ -259,21 +340,13 @@ impl ExecutionApi for FakeExecutions {
         name: &'a str,
         _wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
-        Box::pin(async move {
-            if name != "worker" {
-                return Err(Error::NotFound);
-            }
-            Ok(agent::sandbox::ExecutionTarget {
-                sandbox: agent::sandbox::Assignment::Materialized {
-                    provider: agent::sandbox::ProviderId::new("memory")?,
-                    id: "ca4e2f21-91d9-43f1-97c6-13f0f350fbe7"
-                        .parse()
-                        .map_err(|error| Error::Invalid(format!("invalid test Sandbox ID: {error}")))?,
-                    harnesses: Vec::new(),
-                },
-                operating_system: "linux".into(),
-            })
-        })
+        self.calls.borrow_mut().push("ensure");
+        Box::pin(self.wait_until_ready(name))
+    }
+
+    fn follow<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
+        self.calls.borrow_mut().push("follow");
+        Box::pin(self.wait_until_ready(name))
     }
 }
 
@@ -289,7 +362,10 @@ struct ApiFixture {
     server: Rc<Server>,
     client: Client,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
-    sent: Rc<RefCell<Vec<SentMessage>>>,
+    sent: Rc<RefCell<Vec<String>>>,
+    awaited: Rc<RefCell<Vec<u64>>>,
+    turn_waits: Rc<RefCell<VecDeque<agent::sessions::TurnWait>>>,
+    executions: Rc<FakeExecutions>,
     changes: Changes,
     deleted: Rc<RefCell<Vec<(String, agent::sessions::SessionName)>>>,
     archived: Rc<RefCell<Vec<(String, agent::sessions::SessionName, bool)>>>,
@@ -334,6 +410,9 @@ fn api() -> ApiFixture {
     ));
     let ensured = Rc::new(RefCell::new(Vec::new()));
     let sent = Rc::new(RefCell::new(Vec::new()));
+    let awaited = Rc::new(RefCell::new(Vec::new()));
+    let turn_waits = Rc::new(RefCell::new(VecDeque::new()));
+    let executions = Rc::new(FakeExecutions::default());
     let deleted = Rc::new(RefCell::new(Vec::new()));
     let archived = Rc::new(RefCell::new(Vec::new()));
     let observed_errors = Rc::new(RefCell::new(Vec::new()));
@@ -344,10 +423,12 @@ fn api() -> ApiFixture {
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions),
+        executions.clone(),
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
+            awaited: awaited.clone(),
+            turn_waits: turn_waits.clone(),
             deleted: deleted.clone(),
             archived: archived.clone(),
             upgrade_blockers: upgrade_blockers.clone(),
@@ -365,6 +446,9 @@ fn api() -> ApiFixture {
         client,
         ensured,
         sent,
+        awaited,
+        turn_waits,
+        executions,
         changes,
         deleted,
         archived,
@@ -374,47 +458,83 @@ fn api() -> ApiFixture {
     }
 }
 
-struct DelayedConnector {
-    inner: InProcessConnector,
-}
-
-impl Connector for DelayedConnector {
-    fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
-        Box::pin(async move {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-            self.inner.connect().await
-        })
-    }
-}
-
-#[tokio::test(flavor = "local")]
-async fn prompt_completion_timeout_is_unchanged_by_transit() {
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_completion_wait_ends_at_the_timeout_although_each_poll_is_bounded() {
     let fixture = api();
-    let client = Client::new(Rc::new(DelayedConnector {
-        inner: InProcessConnector {
-            server: fixture.server.clone(),
-        },
-    }));
-    client
+    let started = tokio::time::Instant::now();
+
+    let error = fixture
+        .client
         .prompt_session(
             "worker",
             agent::sessions::SessionName::new("s1").expect("name"),
             "go".into(),
             true,
-            Some(Duration::from_millis(20)),
+            Some(Duration::from_secs(75)),
         )
         .await
-        .expect("delivered");
+        .expect_err("the turn never completes");
+
+    assert!(error.to_string().contains("the prompt was submitted"), "{error}");
+    assert_eq!(started.elapsed(), Duration::from_secs(75));
+    assert_eq!(fixture.sent.borrow().as_slice(), ["go"]);
     assert_eq!(
-        fixture.sent.borrow().as_slice(),
-        [("go".into(), true, Some(Duration::from_millis(20)))]
+        fixture.awaited.borrow().as_slice(),
+        [TURNS_BEFORE_PROMPT; 3],
+        "each 30s poll ends and the next continues it"
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_completion_wait_continues_from_the_turn_count_the_last_poll_raised() {
+    let fixture = api();
+    fixture.turn_waits.borrow_mut().extend([
+        agent::sessions::TurnWait::Pending { after: 5 },
+        agent::sessions::TurnWait::Completed,
+    ]);
+
+    fixture
+        .client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "go".into(),
+            true,
+            None,
+        )
+        .await
+        .expect("the turn completes");
+
+    assert_eq!(fixture.awaited.borrow().as_slice(), [TURNS_BEFORE_PROMPT, 5]);
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_unsupported_completion_timeout_is_rejected_before_delivery() {
+    let fixture = api();
+    let error = fixture
+        .client
+        .prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "go".into(),
+            true,
+            Some(Duration::from_mins(31)),
+        )
+        .await
+        .expect_err("unsupported completion timeout");
+
+    assert!(error.to_string().contains("must not exceed 30m"), "{error}");
+    assert!(fixture.sent.borrow().is_empty());
 }
 
 #[tokio::test(flavor = "local")]
 async fn session_send_and_turns_round_trip_with_their_parameters() {
     let fixture = api();
     let name = agent::sessions::SessionName::new("s1").expect("name");
+    fixture
+        .turn_waits
+        .borrow_mut()
+        .push_back(agent::sessions::TurnWait::Completed);
 
     fixture
         .client
@@ -432,13 +552,12 @@ async fn session_send_and_turns_round_trip_with_their_parameters() {
         .prompt_session("worker", name.clone(), "fire and forget".into(), false, None)
         .await
         .expect("send without wait");
-    {
-        let sent = fixture.sent.borrow();
-        assert_eq!(sent.len(), 2);
-        assert_eq!((&sent[0].0, sent[0].1), (&"do it".to_owned(), true));
-        assert_eq!(sent[0].2, Some(Duration::from_secs(90)));
-        assert_eq!(sent[1], ("fire and forget".to_owned(), false, None));
-    }
+    assert_eq!(fixture.sent.borrow().as_slice(), ["do it", "fire and forget"]);
+    assert_eq!(
+        fixture.awaited.borrow().as_slice(),
+        [TURNS_BEFORE_PROMPT],
+        "only the waiting prompt waits for its turn"
+    );
 
     let last = fixture
         .client
@@ -545,14 +664,17 @@ async fn login_returns_only_non_secret_readiness() {
 async fn health_reports_a_compatible_daemon() {
     let fixture = api();
     let daemon = fixture.client.require_compatible_daemon().await.expect("health check");
-    assert_eq!(daemon.protocol_version.as_deref(), Some("v4"));
+    assert_eq!(
+        daemon.protocol_version.as_deref(),
+        Some(agent::control_api::PROTOCOL_VERSION)
+    );
     assert_eq!(daemon.build_version.as_deref(), Some(agent::build_version()));
 }
 
 #[test]
 fn daemon_identity_rejects_preview_1_and_mixed_builds() {
     let extended: agent::control_api::DaemonInfo = serde_json::from_value(serde_json::json!({
-        "protocolVersion": "v4",
+        "protocolVersion": agent::control_api::PROTOCOL_VERSION,
         "buildVersion": agent::build_version(),
         "futureCapability": true
     }))
@@ -565,7 +687,7 @@ fn daemon_identity_rejects_preview_1_and_mixed_builds() {
             build_version: None,
         },
         agent::control_api::DaemonInfo {
-            protocol_version: Some("v4".into()),
+            protocol_version: Some(agent::control_api::PROTOCOL_VERSION.into()),
             build_version: Some("another-build".into()),
         },
     ] {
@@ -658,6 +780,10 @@ async fn shutdown_rejects_reported_work_before_waiting_for_admitted_mutations() 
     let shutdown_client = Client::new(Rc::new(InProcessConnector {
         server: fixture.server.clone(),
     }));
+    fixture
+        .turn_waits
+        .borrow_mut()
+        .push_back(agent::sessions::TurnWait::Completed);
     let started = fixture.upgrade_gates.prompt_started.notified();
     let prompt = tokio::task::spawn_local(async move {
         prompt_client
@@ -1051,4 +1177,131 @@ async fn unix_socket_transport_is_private_and_usable() {
         .expect("server should stop")
         .expect("server task")
         .expect("server result");
+}
+
+fn serve_raw(server: &Rc<Server>) -> (tokio::io::DuplexStream, tokio::task::JoinHandle<Result<(), Error>>) {
+    let (client, connection) = tokio::io::duplex(4096);
+    let api = server.clone();
+    (
+        client,
+        tokio::task::spawn_local(async move { api.serve_connection(connection).await }),
+    )
+}
+
+async fn read_response(client: &mut tokio::io::DuplexStream) -> serde_json::Value {
+    let mut response = String::new();
+    BufReader::new(client)
+        .read_line(&mut response)
+        .await
+        .expect("read response");
+    serde_json::from_str(&response).expect("JSON-RPC response")
+}
+
+const STUCK_EXECUTION: &[u8] =
+    b"{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"agents.v1.ensureExecution\",\"params\":{\"name\":\"stuck\",\"follow\":true}}\n";
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_followed_ensure_replies_pending_after_one_long_poll() {
+    let fixture = api();
+    let (mut client, _served) = serve_raw(&fixture.server);
+    let started = tokio::time::Instant::now();
+    client.write_all(STUCK_EXECUTION).await.expect("write request");
+
+    let response = read_response(&mut client).await;
+
+    assert_eq!(response["result"], "pending", "{response}");
+    assert_eq!(started.elapsed(), Duration::from_secs(30));
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn the_client_follows_pending_waits_until_the_agent_is_ready() {
+    let fixture = api();
+    let client = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let waiting =
+        tokio::task::spawn_local(async move { client.ensure_execution("late", WaitPolicy::UntilReady).await });
+    tokio::time::sleep(Duration::from_secs(75)).await;
+    assert!(!waiting.is_finished());
+
+    fixture.executions.ready.set(true);
+    fixture.executions.became_ready.notify_waiters();
+
+    let target = waiting.await.expect("wait task").expect("ready target");
+    assert_eq!(target.operating_system, "linux");
+    assert_eq!(
+        fixture.executions.calls.borrow().as_slice(),
+        ["ensure", "follow", "follow"],
+        "the ensure and every follow-up ended after one long-poll"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_following_wait_neither_holds_nor_outlives_an_upgrade_drain() {
+    let fixture = api();
+    let follower = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let following =
+        tokio::task::spawn_local(async move { follower.ensure_execution("stuck", WaitPolicy::UntilReady).await });
+    tokio::task::yield_now().await;
+
+    tokio::time::timeout(Duration::from_secs(5), fixture.client.shutdown_for_upgrade())
+        .await
+        .expect("a following wait does not hold the drain")
+        .expect("upgrade shutdown");
+    let ended = tokio::time::timeout(Duration::from_secs(5), following)
+        .await
+        .expect("the follower's poll ends with the drain")
+        .expect("wait task");
+    assert!(
+        ended.is_err(),
+        "a draining daemon does not take the follow-up: {ended:?}"
+    );
+}
+
+#[cfg(unix)]
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn abandoned_waits_free_the_socket_connections_after_one_long_poll() {
+    let temporary = tempfile::Builder::new()
+        .prefix("agent-api-")
+        .tempdir()
+        .expect("temporary API directory");
+    let socket_path = temporary.path().join("p").join("agentd.sock");
+    let fixture = api();
+    let server = fixture.server;
+    let served_path = socket_path.clone();
+    let mut server_task = tokio::task::spawn_local(async move { server.serve_path(&served_path).await });
+    let wait_for_socket = async {
+        while !socket_path.exists() {
+            tokio::task::yield_now().await;
+        }
+    };
+    tokio::select! {
+        result = &mut server_task => panic!("server stopped before creating its socket: {result:?}"),
+        () = wait_for_socket => {}
+    }
+
+    // More than the 64 connections the listener serves at once, as interrupted
+    // clients of an Agent that never becomes ready leave behind.
+    let mut abandoned = Vec::new();
+    for _ in 0..80 {
+        let mut stream = tokio::net::UnixStream::connect(&socket_path).await.expect("connect");
+        stream.write_all(STUCK_EXECUTION).await.expect("write request");
+        abandoned.push(stream);
+    }
+    tokio::task::yield_now().await;
+    drop(abandoned);
+
+    let started = tokio::time::Instant::now();
+    let client = Client::for_path(socket_path.clone());
+    let agents = client.list_agents().await.expect("list");
+    assert!(agents.is_empty());
+    assert!(
+        started.elapsed() <= Duration::from_mins(1),
+        "the abandoned waits should end within their long-polls, took {:?}",
+        started.elapsed()
+    );
+    client.shutdown_for_upgrade().await.expect("graceful shutdown");
+    server_task.await.expect("server task").expect("server result");
 }

@@ -59,6 +59,17 @@ impl Convergence {
             }
             (WaitPolicy::UntilReady, Err(_)) => {}
         }
+        self.follow(id).await
+    }
+
+    /// Waits until the Agent is Ready or its desired state is invalid, without
+    /// waking convergence. Background reconciliation retries meanwhile.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::Invalid` when desired state must change, `Error::Conflict`
+    /// when the Agent is deleted while waited on, or a storage error.
+    pub async fn follow(&self, id: AgentId) -> Result<(), Error> {
         loop {
             let revision = self.changes.revision();
             let record = match self.store.get(id).await {

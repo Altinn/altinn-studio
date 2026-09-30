@@ -26,6 +26,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - `q` asks before quitting would close them
   - they close when their Agent is deleted or re-created
 
+### Fixed
+
+- `agentctl` keeps answering after interrupted `exec`, `attach`, `ssh` or `port-forward` commands against an Agent that is not Ready. ([#20866](https://github.com/Altinn/altinn-studio/pull/20866))
+
 ## [0.1.0-preview.8] - 2026-09-30
 
 ### Changed

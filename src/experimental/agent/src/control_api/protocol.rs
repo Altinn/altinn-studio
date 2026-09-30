@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt as _};
 
 /// Agent Control API version, independent of the JSON-RPC envelope.
-pub const PROTOCOL_VERSION: &str = "v4";
+pub const PROTOCOL_VERSION: &str = "v5";
 pub(crate) const JSON_RPC_VERSION: &str = "2.0";
 
 pub(crate) const METHOD_APPLY: &str = "agents.v1.apply";
@@ -14,14 +14,17 @@ pub(crate) const METHOD_PROGRESS: &str = "agents.v1.progress";
 pub(crate) const METHOD_RESOURCES_WATCH: &str = "resources.v1.watch";
 pub(crate) const METHOD_RESOLVE_DIRECTORY: &str = "agents.v1.resolveDirectory";
 pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
+pub(crate) const METHOD_EXECUTION_FOLLOW: &str = "agents.v1.followExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
 pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
 pub(crate) const METHOD_VNC_ACCESS: &str = "agents.v1.vncAccess";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";
 pub(crate) const METHOD_SESSION_ENSURE: &str = "sessions.v1.ensure";
+pub(crate) const METHOD_SESSION_FOLLOW: &str = "sessions.v1.follow";
 pub(crate) const METHOD_SESSION_GET: &str = "sessions.v1.get";
 pub(crate) const METHOD_SESSION_LIST: &str = "sessions.v1.list";
 pub(crate) const METHOD_SESSION_PROMPT: &str = "sessions.v1.prompt";
+pub(crate) const METHOD_SESSION_AWAIT_TURN: &str = "sessions.v1.awaitTurn";
 pub(crate) const METHOD_SESSION_TURNS: &str = "sessions.v1.turns";
 pub(crate) const METHOD_SESSION_DELETE: &str = "sessions.v1.delete";
 pub(crate) const METHOD_SESSION_ARCHIVE: &str = "sessions.v1.archive";
@@ -153,10 +156,36 @@ pub(crate) struct SessionPromptParams {
     pub agent: String,
     pub name: crate::sessions::SessionName,
     pub prompt: String,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pub wait: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub timeout: Option<std::time::Duration>,
+}
+
+/// Reply to a delivered prompt.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub(crate) struct PromptReceipt {
+    /// Completed turns before delivery, which a completion wait must exceed.
+    pub turns: u64,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SessionAwaitTurnParams {
+    pub agent: String,
+    pub name: crate::sessions::SessionName,
+    /// Completed turns to wait past, from a receipt or the previous reply.
+    pub after: u64,
+}
+
+/// Reply to one bounded wait: its result, or that the caller should ask again.
+///
+/// A wait never holds its request longer than a long-poll, so a client that
+/// has gone away frees its connection by itself.
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub(crate) enum Following<T> {
+    /// The wait finished.
+    Done(T),
+    /// The wait has not finished yet; follow it with the method's follow-up call.
+    Pending,
 }
 
 #[derive(Deserialize, Serialize)]
