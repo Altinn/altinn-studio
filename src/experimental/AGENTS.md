@@ -68,10 +68,9 @@ the Agent images under `agents/`. There is one changelog because there is one re
 version; the Rust workspace version is a build detail and is not tracked there.
 
 Every pull request that changes something a user of the Agent will notice, anywhere under `src/experimental` or
-`agents/`, adds an entry under `## [Unreleased]`. Describe the change from the user's side, including a change in
-`sandbox*` in terms of what an Agent user notices, and leave implementation detail out unless it changes how people
-use the platform. Apply the `skip-changelog` label instead when the change is a refactor, is test-only or CI-only,
-or is already described by an `[Unreleased]` entry with its issue linked;
+`agents/`, adds an entry under `## [Unreleased]`, written with the
+[`changelog` skill](../../.claude/skills/changelog/SKILL.md). Describe a change in `sandbox*` by what an Agent user
+notices. The skill also says when to apply the `skip-changelog` label instead;
 `.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
 
 Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
