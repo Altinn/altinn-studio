@@ -29,23 +29,14 @@ const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::fr
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 const DETACH_KEYS: &str = "ctrl-b,d";
 
-/// Shown in place of forwarding Ctrl-Z to a pane whose only process is the
-/// harness. Claude Code answers Ctrl-Z by leaving raw mode, telling the user to
-/// run `fg`, and sending itself SIGTSTP. The pane has no shell to run `fg`, and
-/// the harness's process group is orphaned, so the kernel discards the stop and
-/// the harness sits in cooked mode waiting for a SIGCONT that only an outside
-/// `kill -CONT` can send.
-const SUSPEND_REFUSED_MESSAGE: &str =
-    "Ctrl-Z ignored: this Session runs its harness with no shell to resume it. Detach with Ctrl-b d.";
-
 // Set history-limit before pane creation; reapply on attach for existing servers.
 // Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
 // Reserve index 99: appending would grow terminal-features on every attach.
-// Ctrl-Z is intercepted only where the pane was started with a command, which is
-// how every harness pane starts; windows opened with Ctrl-b c run a shell whose
-// job control makes suspension recoverable, so the key passes through there.
+// Ctrl-Z would stop the harness with no shell to resume it, so swallow it in a Session's
+// own harness pane (a pane started with a command). It is bound on the shared tmux server,
+// so the guard is scoped to agent-session-* names; every other pane, including a shell
+// opened with Ctrl-b c, keeps normal job control and has Ctrl-Z forwarded.
 fn terminal_options() -> Vec<String> {
-    let suspend_refused = format!("display-message -d 4000 '{SUSPEND_REFUSED_MESSAGE}'");
     [
         "set-option",
         "-g",
@@ -77,8 +68,8 @@ fn terminal_options() -> Vec<String> {
         "C-z",
         "if-shell",
         "-F",
-        "#{!=:#{pane_start_command},}",
-        suspend_refused.as_str(),
+        "#{&&:#{m:agent-session-*,#{session_name}},#{!=:#{pane_start_command},}}",
+        "",
         "send-keys C-z",
         ";",
     ]

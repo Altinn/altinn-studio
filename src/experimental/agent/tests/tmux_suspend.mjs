@@ -23,42 +23,43 @@ async function until(predicate) {
   }
   assert.fail("terminal condition timed out");
 }
-// `cat -v` stands in for the harness and makes a delivered Ctrl-Z visible as `^Z`. Job
-// control is off in that pane on purpose: the harness pane's process group is orphaned, so
-// the kernel discards terminal stop signals there anyway, and the harness that stops itself
-// is what leaves the Session unusable; what matters is whether the key reaches the pane.
+
+// `cat -v` stands in for a harness or a foreground job and shows a delivered Ctrl-Z as `^Z`;
+// `stty -isig` keeps the byte from raising a signal, so the capture reveals whether it arrived.
+const HARNESS = "stty -isig; exec cat -v";
 let client;
-const command = ["tmux", "-S", socket, ...attach].map(quote).join(" ");
-// Attachment is complete only once typed input reaches the pane: a key sent before the
-// client has put its own terminal into raw mode is eaten by that terminal instead.
-async function attached(target, probe) {
+// Attachment is complete only once typed input reaches the pane: a key sent before the client
+// has put its own terminal into raw mode is eaten by that terminal instead. The runtime's attach
+// arguments name one session; retarget them by name to drive a second session with the same server.
+async function attached(name, target, probe) {
+  const args = attach.map((arg) => arg.replaceAll(session, name));
+  const command = ["tmux", "-S", socket, ...args].map(quote).join(" ");
   client = spawn("script", ["-q", "-c", command, "/dev/null"], { env, stdio: ["pipe", "ignore", "ignore"] });
-  await until(() => format(`=${session}:`, "session_attached") === "1");
+  await until(() => format(`=${name}:`, "session_attached") === "1");
   client.stdin.write(`${probe}\n`);
   await until(() => tmux("capture-pane", "-p", "-t", target).includes(probe));
 }
-async function detach() {
+async function detach(name) {
   const exited = new Promise((resolve) => client.once("exit", resolve));
-  tmux("detach-client", "-s", session);
+  tmux("detach-client", "-s", name);
   await exited;
   client = undefined;
 }
 try {
-  const harness = "stty -isig; exec cat -v";
-  tmux(...options, "new-session", "-d", "-x", "80", "-y", "10", "-s", session, harness);
+  // 1. The Session's own harness pane: Ctrl-Z is swallowed and the harness keeps reading input.
+  tmux(...options, "new-session", "-d", "-x", "80", "-y", "10", "-s", session, HARNESS);
   const pane = `=${session}:`;
   assert.notEqual(format(pane, "pane_start_command"), "", "a harness pane starts with a command");
-  const output = () => tmux("capture-pane", "-p", "-t", pane);
-
-  await attached(pane, "probe-one");
+  const paneOut = () => tmux("capture-pane", "-p", "-t", pane);
+  await attached(session, pane, "probe-one");
   client.stdin.write("\x1a");
   client.stdin.write("first-line\n");
-  await until(() => output().includes("first-line"));
-  assert.ok(!output().includes("^Z"), `Ctrl-Z must not reach the harness pane:\n${output()}`);
-  await detach();
-  console.log("PASS: Ctrl-Z in the harness pane is refused and the harness keeps reading input");
+  await until(() => paneOut().includes("first-line"));
+  assert.ok(!paneOut().includes("^Z"), `Ctrl-Z must not reach the harness pane:\n${paneOut()}`);
+  await detach(session);
+  console.log("PASS: Ctrl-Z in the harness pane is swallowed and the harness keeps reading input");
 
-  // A window opened with Ctrl-b c runs a shell; job control makes suspension recoverable there.
+  // 2. A window opened with Ctrl-b c runs a shell; job control makes suspension recoverable there.
   tmux("new-window", "-d", "-t", pane);
   const shell = `=${session}:1`;
   assert.equal(format(shell, "pane_start_command"), "");
@@ -73,23 +74,26 @@ try {
     }
   });
   tmux("select-window", "-t", shell);
-  await attached(shell, "probe-two");
+  await attached(session, shell, "probe-two");
   client.stdin.write("\x1a");
   await until(() => stopped(job));
-  await detach();
+  await detach(session);
   tmux("select-window", "-t", `=${session}:0`);
   console.log("PASS: Ctrl-Z still suspends a foreground job in a shell window");
 
-  // Reattaching re-applies the binding, so unbind only after the client is attached to
-  // prove the pane-refusal check above is not vacuous: the same key then reaches the pane.
-  await attached(pane, "probe-three");
-  tmux("unbind-key", "-n", "C-z");
+  // 3. The binding is server-wide but scoped by session name, so a non-Agent session with a
+  //    command-started pane still receives Ctrl-Z (proves the swallow above is not global).
+  const other = "user-shell-x";
+  tmux("new-session", "-d", "-x", "80", "-y", "10", "-s", other, HARNESS);
+  const otherPane = `=${other}:`;
+  const otherOut = () => tmux("capture-pane", "-p", "-t", otherPane);
+  await attached(other, otherPane, "probe-three");
   client.stdin.write("\x1a");
-  client.stdin.write("second-line\n");
-  await until(() => output().includes("second-line"));
-  assert.ok(output().includes("^Z"), `Ctrl-Z must reach an unprotected pane:\n${output()}`);
-  await detach();
-  console.log("PASS: the binding is what keeps Ctrl-Z away from the harness");
+  client.stdin.write("third-line\n");
+  await until(() => otherOut().includes("third-line"));
+  assert.ok(otherOut().includes("^Z"), `Ctrl-Z must reach a non-Agent pane:\n${otherOut()}`);
+  await detach(other);
+  console.log("PASS: Ctrl-Z reaches a command pane in a non-Agent session (binding is scoped)");
 } finally {
   client?.kill();
   try { tmux("kill-server"); } finally { await rm(directory, { recursive: true, force: true }); }
