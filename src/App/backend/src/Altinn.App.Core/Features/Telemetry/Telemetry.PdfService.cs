@@ -5,9 +5,9 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartGenerateAndStorePdfActivity(Instance? instance, string? taskId)
+    internal Activity? StartGenerateAndAddPdfActivity(Instance? instance, string? taskId)
     {
-        var activity = ActivitySource.StartActivity("PdfService.GenerateAndStorePdf");
+        var activity = ActivitySource.StartActivity("PdfService.GenerateAndAddPdf");
         activity?.SetInstanceId(instance);
         activity?.SetTaskId(taskId);
         return activity;

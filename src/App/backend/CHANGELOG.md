@@ -29,6 +29,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - Breaking: `IPdfService` has five methods, all public, without default implementations, and reading the instance through an `IInstanceDataMutator` or `IInstanceDataAccessor`. `GenerateAndStorePdf` and `GenerateAndStoreSubformPdf` are renamed `GenerateAndAddPdf` and `GenerateAndAddSubformPdf`, since they add the PDF to the data mutator, which saves it with its other changes. `GeneratePdf` returns a PDF, and `GeneratePreviewPdf` and `GenerateSubformPreviewPdf` return a preview of any task. The `isPreview` parameter, `GeneratePdf` for an `Instance` and the overload without a file name are removed, and the file name of `GenerateAndAddPdf` is optional instead. `GenerateAndAddSubformPdf` no longer takes `metadata`: it sets `subformComponentId` and `subformDataElementId` from the subform context.
+- Breaking: the `PdfService.GenerateAndStorePdf` trace span is renamed `PdfService.GenerateAndAddPdf`, after the method it times. Update queries, dashboards and alerts that use the old name.
 
 ### Removed
 

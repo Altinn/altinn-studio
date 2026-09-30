@@ -73,7 +73,7 @@ internal sealed class PdfService : IPdfService
         string taskId =
             instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance does not have a current task");
-        using var activity = _telemetry?.StartGenerateAndStorePdfActivity(instance, taskId);
+        using var activity = _telemetry?.StartGenerateAndAddPdfActivity(instance, taskId);
 
         return await GenerateAndAddPdfInternal(
             instanceDataMutator,

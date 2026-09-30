@@ -1,7 +1,7 @@
 ﻿{
   Activities: [
     {
-      Name: PdfService.GenerateAndStorePdf,
+      Name: PdfService.GenerateAndAddPdf,
       IdFormat: W3C,
       Tags: [
         {
