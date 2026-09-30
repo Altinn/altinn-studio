@@ -108,8 +108,7 @@ public class DeploymentPipelinePollingJob : IJob
             {
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
-                    await UpdateMetadataInStorage(editingContext, environment);
-                    await DeprecateInResourceRegistry(editingContext, environment);
+                    await FinalizeUndeploy(editingContext, environment, deploymentEntity);
                 }
                 await _entityUpdatedHubContext
                     .Clients.Group(editingContext.Developer)
@@ -206,6 +205,41 @@ public class DeploymentPipelinePollingJob : IJob
         {
             _logger.LogError(e, "Error publishing DeploymentPipelineCompleted event");
             throw;
+        }
+    }
+
+    private async Task FinalizeUndeploy(
+        AltinnRepoEditingContext editingContext,
+        string environment,
+        DeploymentEntity decommission
+    )
+    {
+        // An undeploy completes minutes after it was requested. If the app was deployed again in the meantime,
+        // the newer deploy owns the metadata in Storage and Resource Registry, so leave it untouched.
+        DeploymentEntity latestDeploy = await _deploymentRepository.GetLatestDeploy(
+            editingContext.Org,
+            editingContext.Repo,
+            environment
+        );
+        if (latestDeploy is not null && latestDeploy.Created > decommission.Created)
+        {
+            _logger.LogInformation(
+                "Skipping undeploy finalization for {Org}/{App} in {Env}: deployed again after the undeploy was requested",
+                editingContext.Org,
+                editingContext.Repo,
+                environment
+            );
+            return;
+        }
+
+        try
+        {
+            await UpdateMetadataInStorage(editingContext, environment);
+        }
+        finally
+        {
+            // Runs even if the Storage update fails, since the job is not retried once the build is completed
+            await DeprecateInResourceRegistry(editingContext, environment);
         }
     }
 
