@@ -51,11 +51,26 @@ internal static class ObservabilityProxyExtensions
                 ObservabilityReverseProxyConfig.CreateClusters(proxyOptions)
             )
             .AddTransforms(ObservabilityRequestTransforms.Apply)
-            // The forwarding handler would otherwise add a traceparent after the transforms have
-            // run. Nothing behind the proxy records traces, and nothing here exports them.
-            .ConfigureHttpClient((_, handler) => handler.ActivityHeadersPropagator = null);
+            .ConfigureHttpClient((_, handler) => ConfigureForwarderHandler(handler));
 
         return builder;
+    }
+
+    /// <summary>
+    /// How long a connection to a backend is reused. The agents are reached through a ClusterIP
+    /// Service, which picks a pod per connection, not per request, so connections that lived
+    /// forever would keep sending to whichever replicas the first ones reached.
+    /// </summary>
+    public static readonly TimeSpan PooledConnectionLifetime = TimeSpan.FromMinutes(5);
+
+    public static void ConfigureForwarderHandler(SocketsHttpHandler handler)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+
+        // The forwarding handler would otherwise add a traceparent after the transforms have
+        // run. Nothing behind the proxy records traces, and nothing here exports them.
+        handler.ActivityHeadersPropagator = null;
+        handler.PooledConnectionLifetime = PooledConnectionLifetime;
     }
 
     public static WebApplication UseObservabilityProxy(this WebApplication app)
