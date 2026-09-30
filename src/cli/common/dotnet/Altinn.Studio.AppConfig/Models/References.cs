@@ -6,7 +6,8 @@ public sealed record ComponentIdReference(
     string Value,
     string OwningComponentId,
     SourceSpan Position,
-    string? InTaskId = null
+    string? InTaskId = null,
+    bool IsSummaryOverride = false
 );
 
 public sealed record LayoutSetReference(string Value, SourceSpan Position);

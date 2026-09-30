@@ -30,8 +30,14 @@ internal static class SymbolIndexer
                 site.TryAdd((navSpan.File, sitePointer), id);
         }
 
+        var setsById = model.LayoutSets.ToDictionary(s => s.Id, s => s, StringComparer.Ordinal);
         foreach (var r in model.Refs.ComponentIds)
-            Use(new Symbol(SymbolKind.Component, r.Value, AppPaths.ScopeOf(r.InTaskId, r.Position.File)), r.Position);
+        {
+            var scopes = model.ScopesOf(r);
+            var declaring = scopes.Where(s => ReferenceResolver.Declares(setsById, s, r.Value)).ToList();
+            foreach (var scope in declaring.Count > 0 ? declaring : [scopes[0]])
+                Use(new Symbol(SymbolKind.Component, r.Value, scope), r.Position);
+        }
         foreach (var r in model.Refs.PageFiles)
             Use(new Symbol(SymbolKind.Page, r.Value, AppPaths.ScopeOf(r.InTaskId, r.Position.File)), r.Position);
         foreach (var r in model.Refs.DataTypes)

@@ -1,3 +1,4 @@
+using Altinn.Studio.AppConfig.Documents;
 using Altinn.Studio.AppConfig.Documents.Text;
 
 namespace Altinn.Studio.AppConfig.Models;
@@ -78,6 +79,21 @@ public sealed class AppModel
             if (set.DefaultDataReq is { } dataType)
                 ids.Add(dataType.Value);
         return ids;
+    }
+
+    internal IReadOnlyList<string> ScopesOf(ComponentIdReference reference)
+    {
+        var scope = AppPaths.ScopeOf(reference.InTaskId, reference.Position.File);
+        var scopes = new List<string> { scope };
+        if (!reference.IsSummaryOverride)
+            return scopes;
+        foreach (var subform in Refs.SubformFolders)
+            if (
+                string.Equals(AppPaths.SetIdOf(subform.Position.File), scope, StringComparison.Ordinal)
+                && !scopes.Contains(subform.Value)
+            )
+                scopes.Add(subform.Value);
+        return scopes;
     }
 
     public IEnumerable<TextResources> LanguageTextResources() => TextResources.Where(IsServedLanguage);

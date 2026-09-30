@@ -10,7 +10,8 @@ internal sealed class RefLayoutComponentIdRule : IValidationRule
             "Component-id reference must resolve",
             "Fields that reference another component by id (Group.children, "
                 + "Summary.componentRef, ['component', id] in expressions) must point to a "
-                + "component that exists in the same layout-set.",
+                + "component that exists in the same layout-set. A Summary2 override may also "
+                + "name a component in a folder that a Subform component in that layout-set points at.",
             Severity.Error
         );
 
