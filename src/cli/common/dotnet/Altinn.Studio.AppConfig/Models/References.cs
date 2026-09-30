@@ -7,8 +7,17 @@ public sealed record ComponentIdReference(
     string OwningComponentId,
     SourceSpan Position,
     string? InTaskId = null,
-    bool IsSummaryOverride = false
+    ComponentIdRole Role = ComponentIdRole.Target
 );
+
+public enum ComponentIdRole
+{
+    Target,
+    SummaryOverride,
+    ExcludeFromPdf,
+    ExcludedChild,
+    TableColumn,
+}
 
 public sealed record LayoutSetReference(string Value, SourceSpan Position);
 

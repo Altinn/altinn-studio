@@ -67,7 +67,7 @@ public sealed class Summary2TargetTests
     {
         var report = AppConfigEngine.Open(SubformApp("Task_1", BrandOverride)).Validate();
 
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID");
+        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID");
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public sealed class Summary2TargetTests
 
         var report = AppConfigEngine.Open(SubformApp("Task_2", summary)).Validate();
 
-        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID");
+        Assert.DoesNotContain(report.Findings, f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID");
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class Summary2TargetTests
     {
         var report = AppConfigEngine.Open(SubformApp("Task_2", BrandOverride)).Validate();
 
-        var finding = Assert.Single(report.Findings, f => f.RuleId == "REF-LAYOUT-COMPONENT-ID");
+        var finding = Assert.Single(report.Findings, f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID");
         Assert.Equal("/data/layout/0/overrides/0/componentId", finding.Position.Pointer);
     }
 

@@ -43,10 +43,14 @@ public sealed class ReferenceSourceMessageTests
                     """{"pages":{"order":["P1"]},"defaultDataType":"model","components":{"excludeFromPdf":["gone"]}}"""
                 )
             ),
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("\"gone\"", StringComparison.Ordinal)
+            f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID" && f.Message.Contains("\"gone\"", StringComparison.Ordinal)
         );
 
-        Assert.Equal("component \"gone\" does not exist in layout-set \"Task_1\"", finding.Message);
+        Assert.Equal(
+            "component \"gone\" does not exist in layout-set \"Task_1\", so the components.excludeFromPdf entry has "
+                + "no effect",
+            finding.Message
+        );
         Assert.Equal("/components/excludeFromPdf/0", finding.Position.Pointer);
     }
 

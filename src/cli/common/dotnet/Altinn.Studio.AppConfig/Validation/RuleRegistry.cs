@@ -33,6 +33,7 @@ internal static class RuleRegistry
         new RefPageFileRule(),
         new RefTaskIdRule(),
         new RefTextResourceKeyRule(),
+        new RefUnmatchedComponentIdRule(),
         new BindingKindRule(),
         new DataTypeCountRule(),
         new LayoutSetFormDataTypeRule(),

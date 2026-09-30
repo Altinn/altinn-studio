@@ -846,7 +846,7 @@ public sealed class RuleFalsePositiveTests
         );
         Assert.Contains(
             Validate(dir),
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
+            f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
         );
     }
 
@@ -865,7 +865,7 @@ public sealed class RuleFalsePositiveTests
             ),
             ("App/models/model.schema.json", """{"properties":{"x":{"type":"string"}}}""")
         );
-        Assert.DoesNotContain(Validate(dir), f => f.RuleId == "REF-LAYOUT-COMPONENT-ID");
+        Assert.DoesNotContain(Validate(dir), f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID");
     }
 
     [Fact]

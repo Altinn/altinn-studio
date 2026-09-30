@@ -88,7 +88,7 @@ public sealed class AppModel
     {
         var scope = AppPaths.ScopeOf(reference.InTaskId, reference.Position.File);
         var scopes = new List<string> { scope };
-        if (!reference.IsSummaryOverride)
+        if (reference.Role != ComponentIdRole.SummaryOverride)
             return scopes;
         foreach (var subform in Refs.SubformFolders)
             if (

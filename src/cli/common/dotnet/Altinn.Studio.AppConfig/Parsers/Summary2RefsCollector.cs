@@ -56,7 +56,7 @@ internal static class Summary2RefsCollector
                             ownerId,
                             new SourceSpan(file, basePtr + $"/overrides/{i}/componentId"),
                             InTaskId: taskId,
-                            IsSummaryOverride: true
+                            Role: ComponentIdRole.SummaryOverride
                         )
                     );
                 }
