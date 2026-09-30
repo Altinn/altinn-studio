@@ -397,26 +397,50 @@ public sealed class AppSymbolsTests
     {
         const string layout =
             """{"data":{"layout":[{"id":"a","type":"Input","dataModelBindings":{"simpleBinding":"project.x"}}]}}""";
-        var dir = new MutableAppDirectory(
-            new()
-            {
-                ["App/config/applicationmetadata.json"] =
-                    """{"id":"ttd/s","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"other","appLogic":{"classRef":"O"},"taskId":"Other"}]}""",
-                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
-                ["App/ui/Task_1/layouts/P1.json"] = layout,
-                ["App/models/model.schema.json"] =
-                    """{"properties":{"project":{"type":"object","properties":{"x":{"type":"string"}}}}}""",
-                ["App/models/other.schema.json"] =
-                    """{"properties":{"unrelated":{"type":"object","properties":{"y":{"type":"string"}}}}}""",
-            }
-        );
-        var symbols = OpenSymbols(dir);
+        var symbols = OpenTwoModelApp(layout);
         var (l, c) = At(layout, "\"project.x\"", 1);
         var comp = symbols.Completions("App/ui/Task_1/layouts/P1.json", l, c);
 
         Assert.Contains(comp, s => s.Label == "project.x" && s.Kind == SuggestionKind.DataModelPath);
         Assert.DoesNotContain(comp, s => s.Label == "unrelated.y");
     }
+
+    [Theory]
+    [InlineData("""{"simpleBinding":""}""", "project.x", "unrelated.y", "model")]
+    [InlineData("""{"simpleBinding":{"field":"","dataType":"other"}}""", "unrelated.y", "project.x", "other")]
+    public void Completions_ForAnEmptyBinding_AreScopedToTheBindingsDataType(
+        string bindings,
+        string offered,
+        string hidden,
+        string dataType
+    )
+    {
+        var layout = """{"data":{"layout":[{"id":"a","type":"Input","dataModelBindings":""" + bindings + "}]}}";
+        var symbols = OpenTwoModelApp(layout);
+        var (l, c) = At(layout, "\"\"", 1);
+        var comp = symbols.Completions("App/ui/Task_1/layouts/P1.json", l, c);
+
+        Assert.Contains(comp, s => s.Label == offered);
+        Assert.DoesNotContain(comp, s => s.Label == hidden);
+        Assert.All(comp, s => Assert.Contains($"Model `{dataType}`", s.Documentation, StringComparison.Ordinal));
+    }
+
+    private static AppSymbols OpenTwoModelApp(string layout) =>
+        OpenSymbols(
+            new MutableAppDirectory(
+                new()
+                {
+                    ["App/config/applicationmetadata.json"] =
+                        """{"id":"ttd/s","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"other","appLogic":{"classRef":"O"},"taskId":"Other"}]}""",
+                    ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                    ["App/ui/Task_1/layouts/P1.json"] = layout,
+                    ["App/models/model.schema.json"] =
+                        """{"properties":{"project":{"type":"object","properties":{"x":{"type":"string"}}}}}""",
+                    ["App/models/other.schema.json"] =
+                        """{"properties":{"unrelated":{"type":"object","properties":{"y":{"type":"string"}}}}}""",
+                }
+            )
+        );
 
     private const string DocumentedLayout = """
         {"data":{"layout":[
