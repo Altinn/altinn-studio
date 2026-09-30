@@ -69,6 +69,18 @@ type startConfig struct {
 type runtimeState struct {
 	Start startConfig `json:"start"`
 	PID   int         `json:"pid"`
+	// StartTime identifies the process with PID, so a later process that gets the same PID does not match.
+	StartTime uint64 `json:"startTime"`
+}
+
+// newRuntimeState reads the start time of pid. If the OS cannot give it, StartTime is 0 and no process matches it,
+// so the next read treats the server as not running and the CLI never stops an unknown process.
+func newRuntimeState(pid int, start startConfig) runtimeState {
+	startTime, err := osutil.ProcessStartTime(pid)
+	if err != nil {
+		startTime = 0
+	}
+	return runtimeState{Start: start, PID: pid, StartTime: startTime}
 }
 
 // Status describes the current studioctl-server status.
@@ -561,10 +573,7 @@ func EnsureStartedWithStudioctlPath(
 	switch {
 	case err == nil:
 		if liveConfig(cfg, status) == desired {
-			return writeStudioctlServerState(cfg, runtimeState{
-				PID:   status.ProcessID,
-				Start: desired,
-			})
+			return writeStudioctlServerState(cfg, newRuntimeState(status.ProcessID, desired))
 		}
 		return restartManagedProcess(ctx, cfg, client, status.ProcessID, desired)
 	case !errors.Is(err, ErrNotRunning):
@@ -601,10 +610,7 @@ func reconcilePersistedProcess(
 	if state.Start == desired {
 		status, waitErr := waitForHealthy(ctx, cfg, client, time.Now())
 		if waitErr == nil {
-			return writeStudioctlServerState(cfg, runtimeState{
-				PID:   status.ProcessID,
-				Start: desired,
-			})
+			return writeStudioctlServerState(cfg, newRuntimeState(status.ProcessID, desired))
 		}
 	}
 
@@ -698,10 +704,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 		return fmt.Errorf("start studioctl-server: %w", err)
 	}
 	startedPID := cmd.Process.Pid
-	err = writeStudioctlServerState(cfg, runtimeState{
-		PID:   startedPID,
-		Start: startConfig,
-	})
+	err = writeStudioctlServerState(cfg, newRuntimeState(startedPID, startConfig))
 	if err != nil {
 		ignoreError(cmd.Process.Kill())
 		return fmt.Errorf("write studioctl-server pid file: %w", err)
@@ -715,10 +718,7 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	client := NewClient(cfg)
 	status, err := waitForHealthy(ctx, cfg, client, startedAt)
 	if err == nil {
-		return writeStudioctlServerState(cfg, runtimeState{
-			PID:   status.ProcessID,
-			Start: startConfig,
-		})
+		return writeStudioctlServerState(cfg, newRuntimeState(status.ProcessID, startConfig))
 	}
 
 	ignoreError(osutil.KillProcess(startedPID))
@@ -1020,8 +1020,8 @@ func isStudioctlServerProcess(state runtimeState) (bool, error) {
 	}
 
 	// A process that cannot be identified is not the server, so the CLI never kills it.
-	isServer, err := osutil.IsProcessRunningExecutable(state.PID, state.Start.BinaryPath)
-	return err == nil && isServer, nil
+	startTime, err := osutil.ProcessStartTime(state.PID)
+	return err == nil && state.StartTime != 0 && startTime == state.StartTime, nil
 }
 
 func writeStudioctlServerState(cfg *config.Config, state runtimeState) error {
@@ -1222,6 +1222,7 @@ func zeroRuntimeState() runtimeState {
 			BoundTopologyBaseConfigPath: "",
 			BoundTopologyConfigPath:     "",
 		},
-		PID: 0,
+		PID:       0,
+		StartTime: 0,
 	}
 }

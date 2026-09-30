@@ -12,6 +12,8 @@ import (
 	"syscall"
 )
 
+var errInvalidProcessStat = errors.New("invalid process stat")
+
 func interruptProcess(process *os.Process, _ int) error {
 	if err := process.Signal(os.Interrupt); err != nil {
 		return fmt.Errorf("interrupt process: %w", err)
@@ -66,11 +68,26 @@ func processZombie(pid int) (bool, error) {
 	return false, nil
 }
 
-func getProcessExecutablePath(pid int) (string, error) {
-	path, err := os.Readlink("/proc/" + strconv.Itoa(pid) + "/exe")
+// procStatStartTimeIndex is the index of the starttime field (field 22 in proc(5)) in the fields after
+// the command name. The command name can contain spaces and parentheses, so the fields start after the last ')'.
+const procStatStartTimeIndex = 19
+
+func processStartTime(pid int) (uint64, error) {
+	stat, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/stat")
 	if err != nil {
-		return "", fmt.Errorf("read process executable: %w", err)
+		return 0, fmt.Errorf("read process stat: %w", err)
 	}
-	// The kernel adds this suffix when the file was deleted or replaced after the process started.
-	return strings.TrimSuffix(path, " (deleted)"), nil
+	end := bytes.LastIndexByte(stat, ')')
+	if end < 0 {
+		return 0, errInvalidProcessStat
+	}
+	fields := strings.Fields(string(stat[end+1:]))
+	if len(fields) <= procStatStartTimeIndex {
+		return 0, errInvalidProcessStat
+	}
+	startTime, err := strconv.ParseUint(fields[procStatStartTimeIndex], 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", errInvalidProcessStat, err)
+	}
+	return startTime, nil
 }

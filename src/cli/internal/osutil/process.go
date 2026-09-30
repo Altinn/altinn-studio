@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 )
 
 const processPollInterval = 100 * time.Millisecond
+
+var errInvalidPID = errors.New("invalid pid")
 
 // StopProcess asks a process to stop, then kills it if it is still running after timeout.
 func StopProcess(ctx context.Context, pid int, timeout time.Duration) error {
@@ -68,22 +69,12 @@ func KillProcess(pid int) error {
 	return nil
 }
 
-// IsProcessRunningExecutable reports whether pid still belongs to the program at pathToExecutable, not to another process.
-func IsProcessRunningExecutable(pid int, pathToExecutable string) (bool, error) {
-	if pid <= 0 || pathToExecutable == "" {
-		return false, nil
+// ProcessStartTime returns a value that identifies when pid started. Compare it only for equality.
+// A process keeps its start time when its executable is moved or deleted, and a new process that gets
+// the same PID has a different start time.
+func ProcessStartTime(pid int) (uint64, error) {
+	if pid <= 0 {
+		return 0, fmt.Errorf("%w: %d", errInvalidPID, pid)
 	}
-
-	actual, err := getProcessExecutablePath(pid)
-	if err != nil {
-		return false, err
-	}
-	if IsSamePath(actual, pathToExecutable) {
-		return true, nil
-	}
-	// If the path does not resolve, we cannot confirm a match, so treat it as not the executable.
-	if resolved, resolveErr := filepath.EvalSymlinks(pathToExecutable); resolveErr == nil {
-		return IsSamePath(actual, resolved), nil
-	}
-	return false, nil
+	return processStartTime(pid)
 }

@@ -72,14 +72,14 @@ func windowsProcessID(pid int) (uint32, error) {
 	return uint32(pid), nil
 }
 
-func getProcessExecutablePath(pid int) (path string, err error) {
+func processStartTime(pid int) (startTime uint64, err error) {
 	processID, err := windowsProcessID(pid)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	handle, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, processID)
 	if err != nil {
-		return "", fmt.Errorf("open process: %w", err)
+		return 0, fmt.Errorf("open process: %w", err)
 	}
 	defer func() {
 		if closeErr := windows.CloseHandle(handle); closeErr != nil {
@@ -87,10 +87,9 @@ func getProcessExecutablePath(pid int) (path string, err error) {
 		}
 	}()
 
-	buf := make([]uint16, windows.MAX_LONG_PATH)
-	size := uint32(len(buf))
-	if err := windows.QueryFullProcessImageName(handle, 0, &buf[0], &size); err != nil {
-		return "", fmt.Errorf("query process image name: %w", err)
+	var creation, exit, kernel, user windows.Filetime
+	if err := windows.GetProcessTimes(handle, &creation, &exit, &kernel, &user); err != nil {
+		return 0, fmt.Errorf("get process times: %w", err)
 	}
-	return windows.UTF16ToString(buf[:size]), nil
+	return uint64(creation.HighDateTime)<<32 | uint64(creation.LowDateTime), nil
 }
