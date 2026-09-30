@@ -4,7 +4,6 @@ package osutil
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -50,17 +49,6 @@ func CurrentBinPath() string {
 		return os.Args[0]
 	}
 	return abs
-}
-
-// IsSamePath reports whether two paths are equal after filepath.Clean. It does not resolve symbolic links.
-// On Windows, the comparison ignores case, because Windows paths are not case-sensitive.
-func IsSamePath(left, right string) bool {
-	left = filepath.Clean(left)
-	right = filepath.Clean(right)
-	if runtime.GOOS == OSWindows {
-		return strings.EqualFold(left, right)
-	}
-	return left == right
 }
 
 func displayCommandName(name string) string {

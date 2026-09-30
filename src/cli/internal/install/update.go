@@ -587,14 +587,14 @@ func safeHomeRemovalPath(home string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%w: resolve user home directory: %w", errUnsafeHomeRemoval, err)
 	}
-	if osutil.IsSamePath(cleanHome, userHome) {
+	if samePath(cleanHome, userHome) {
 		return "", fmt.Errorf("%w: %s", errUnsafeHomeRemoval, cleanHome)
 	}
 	userConfigDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("%w: resolve user config directory: %w", errUnsafeHomeRemoval, err)
 	}
-	if osutil.IsSamePath(cleanHome, userConfigDir) {
+	if samePath(cleanHome, userConfigDir) {
 		return "", fmt.Errorf("%w: %s", errUnsafeHomeRemoval, cleanHome)
 	}
 	cwd, err := os.Getwd()
@@ -614,10 +614,19 @@ func isPathRoot(path string) bool {
 	return path == root
 }
 
+func samePath(left, right string) bool {
+	left = filepath.Clean(left)
+	right = filepath.Clean(right)
+	if runtime.GOOS == osutil.OSWindows {
+		return strings.EqualFold(left, right)
+	}
+	return left == right
+}
+
 func pathContains(parent, child string) bool {
 	parent = filepath.Clean(parent)
 	child = filepath.Clean(child)
-	if osutil.IsSamePath(parent, child) {
+	if samePath(parent, child) {
 		return true
 	}
 	rel, err := filepath.Rel(parent, child)
