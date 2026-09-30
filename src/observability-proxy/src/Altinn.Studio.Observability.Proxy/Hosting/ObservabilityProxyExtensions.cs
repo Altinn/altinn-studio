@@ -131,9 +131,7 @@ internal static class ObservabilityProxyExtensions
                     return next(context);
                 }
             );
-            proxyPipeline.UseSessionAffinity();
             proxyPipeline.UseLoadBalancing();
-            proxyPipeline.UsePassiveHealthChecks();
         });
 
         return app;

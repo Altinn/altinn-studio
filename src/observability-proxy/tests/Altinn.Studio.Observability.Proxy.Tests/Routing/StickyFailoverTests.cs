@@ -12,71 +12,71 @@ public sealed class StickyFailoverTests
     [Fact]
     public void Picks_TheFirstDestination_WhenBothAreHealthy()
     {
-        var policy = NewPolicy();
+        var failover = NewFailover();
 
-        Assert.Same(First, Pick(policy, "traces", Second, First));
+        Assert.Same(First, Pick(failover, "traces", Second, First));
     }
 
     [Fact]
     public void FailsOver_WhenTheCurrentDestinationIsUnhealthy()
     {
-        var policy = NewPolicy();
-        Pick(policy, "traces", First, Second);
+        var failover = NewFailover();
+        Pick(failover, "traces", First, Second);
 
-        Assert.Same(Second, Pick(policy, "traces", Second));
+        Assert.Same(Second, Pick(failover, "traces", Second));
     }
 
     [Fact]
     public void StaysOnTheSecondDestination_WhenTheFirstIsHealthyAgain()
     {
         // A copy that is back may still be catching up, or be missing data for good.
-        var policy = NewPolicy();
-        Pick(policy, "traces", First, Second);
-        Pick(policy, "traces", Second);
+        var failover = NewFailover();
+        Pick(failover, "traces", First, Second);
+        Pick(failover, "traces", Second);
 
-        Assert.Same(Second, Pick(policy, "traces", First, Second));
+        Assert.Same(Second, Pick(failover, "traces", First, Second));
     }
 
     [Fact]
     public void ReturnsToTheFirstDestination_WhenTheSecondFails()
     {
-        var policy = NewPolicy();
-        Pick(policy, "traces", First, Second);
-        Pick(policy, "traces", Second);
+        var failover = NewFailover();
+        Pick(failover, "traces", First, Second);
+        Pick(failover, "traces", Second);
 
-        Assert.Same(First, Pick(policy, "traces", First));
+        Assert.Same(First, Pick(failover, "traces", First));
     }
 
     [Fact]
     public void StartsOnTheSecondDestination_WhenTheFirstIsUnhealthyAtStartup()
     {
-        var policy = NewPolicy();
-        Pick(policy, "traces", Second);
+        var failover = NewFailover();
+        Pick(failover, "traces", Second);
 
-        Assert.Same(Second, Pick(policy, "traces", First, Second));
+        Assert.Same(Second, Pick(failover, "traces", First, Second));
     }
 
     [Fact]
     public void KeepsAChoicePerCluster()
     {
-        var policy = NewPolicy();
-        Pick(policy, "traces", First, Second);
-        Pick(policy, "traces", Second);
+        var failover = NewFailover();
+        Pick(failover, "traces", First, Second);
+        Pick(failover, "traces", Second);
 
-        Assert.Same(First, Pick(policy, "logs", First, Second));
+        Assert.Same(First, Pick(failover, "logs", First, Second));
     }
 
     [Fact]
     public void ReturnsNull_WhenNoDestinationIsHealthy()
     {
-        Assert.Null(Pick(NewPolicy(), "traces"));
+        Assert.Null(Pick(NewFailover(), "traces"));
     }
 
-    private static StickyFailover NewPolicy() => new(NullLogger<StickyFailover>.Instance);
+    private static StickyFailover NewFailover() => new(NullLogger<StickyFailover>.Instance);
 
     private static DestinationState? Pick(
-        StickyFailover policy,
+        StickyFailover failover,
         string clusterId,
         params DestinationState[] available
-    ) => policy.Choose(clusterId, available);
+    ) => failover.Choose(clusterId, available);
 }
