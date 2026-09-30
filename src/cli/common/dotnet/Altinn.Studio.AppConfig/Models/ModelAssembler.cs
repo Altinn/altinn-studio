@@ -20,7 +20,7 @@ internal static class ModelAssembler
             CSharpClasses = Fold(fragments, f => f.CSharpClasses),
             CSharpModel = Fold(fragments, f => f.CSharpModel),
             OptionsFiles = Fold(fragments, f => f.OptionsFiles),
-            OptionsProviders = Fold(fragments, f => f.OptionsProviders, StringComparer.Ordinal),
+            OptionsProviders = Fold(fragments, f => f.OptionsProviders, StringComparer.OrdinalIgnoreCase),
             CustomTaskTypes = FoldSet(fragments, f => f.CustomTaskTypes),
             LayoutFiles = FoldSet(fragments, f => f.LayoutFiles),
             Refs = AssembleRefs(fragments),

@@ -127,6 +127,37 @@ public sealed class OptionsRegistrationTests
         Assert.NotEmpty(UnresolvedOptionsIds("landIso2", Program(""), "namespace App.Logic; " + source));
 
     [Fact]
+    public void RegisteredId_InDifferentCase_IsResolvedLikeTheRuntimeDoes() =>
+        Assert.Empty(
+            UnresolvedOptionsIds(
+                "asf_land",
+                Program("services.AddSSBClassificationCodelistProvider(\"ASF_Land\", 100);")
+            )
+        );
+
+    [Fact]
+    public void OptionsFile_InDifferentCase_IsStillFlagged()
+    {
+        var findings = AppConfigEngine
+            .Open(
+                new InMemoryAppDirectory(
+                    new()
+                    {
+                        ["App/config/applicationmetadata.json"] = TestMeta.Json("ttd/o"),
+                        ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                        ["App/ui/Task_1/layouts/P1.json"] =
+                            """{"data":{"layout":[{"id":"dd","type":"Dropdown","optionsId":"JaNei"}]}}""",
+                        ["App/options/jaNei.json"] = "[]",
+                    }
+                )
+            )
+            .Validate()
+            .Findings;
+
+        Assert.Contains(findings, f => f.RuleId == "REF-OPTIONS-ID");
+    }
+
+    [Fact]
     public void Hover_NamesTheRegisteringCall()
     {
         const string layout = """{"data":{"layout":[{"id":"dd","type":"Dropdown","optionsId":"landIso2"}]}}""";
