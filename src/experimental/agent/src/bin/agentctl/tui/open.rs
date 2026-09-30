@@ -13,6 +13,25 @@ use agent::{Agent, Condition, ConditionStatus};
 
 use crate::launch::Editor;
 
+/// Where the Agent's desktop is shown.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum DesktopViewer {
+    /// The browser-based viewer the image serves.
+    Browser,
+    /// A VNC client of the person's own.
+    VncClient,
+}
+
+impl DesktopViewer {
+    /// The guest port the viewer is served on.
+    pub(crate) const fn guest_port(self) -> u16 {
+        match self {
+            Self::Browser => agent::vnc::WEB_GUEST_PORT,
+            Self::VncClient => agent::vnc::GUEST_PORT,
+        }
+    }
+}
+
 /// One way into an Agent.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum OpenTarget {
@@ -20,6 +39,8 @@ pub(crate) enum OpenTarget {
     Shell,
     /// An editor on this machine, connected over SSH.
     Editor(Editor),
+    /// The Agent's desktop, forwarded to this machine.
+    Desktop(DesktopViewer),
     /// An OpenSSH login, in this terminal.
     SshShell,
     /// The OpenSSH alias, for tools outside the TUI.
@@ -32,6 +53,8 @@ impl OpenTarget {
             Self::Shell => "Shell in the Sandbox".into(),
             Self::Editor(Editor::VsCode) => "VS Code, Remote-SSH".into(),
             Self::Editor(editor) => editor.label().into(),
+            Self::Desktop(DesktopViewer::Browser) => "Desktop in the browser".into(),
+            Self::Desktop(DesktopViewer::VncClient) => "Desktop in a VNC client".into(),
             Self::SshShell => "SSH shell".into(),
             Self::CopyAlias => "Copy SSH alias".into(),
         }
@@ -51,6 +74,8 @@ impl OpenTarget {
             Self::Shell => 'e',
             Self::Editor(Editor::VsCode) => 'c',
             Self::Editor(Editor::Zed) => 'z',
+            Self::Desktop(DesktopViewer::Browser) => 'w',
+            Self::Desktop(DesktopViewer::VncClient) => 'v',
             Self::SshShell => 's',
             Self::CopyAlias => 'y',
         }
@@ -253,6 +278,11 @@ pub(crate) fn items(agent: &Agent, environment: &Environment, setup: SshSetup) -
             ssh.clone().or_else(|| editor_unavailable(editor, environment)),
         )
     }));
+    let desktop = vnc_unavailable(agent);
+    items.extend(
+        [DesktopViewer::Browser, DesktopViewer::VncClient]
+            .map(|viewer| open(OpenTarget::Desktop(viewer), desktop.clone())),
+    );
     items.extend([OpenTarget::SshShell, OpenTarget::CopyAlias].map(|target| open(target, ssh.clone())));
     if ssh.is_none() && setup == SshSetup::Missing {
         items.push(OpenItem {
@@ -264,9 +294,20 @@ pub(crate) fn items(agent: &Agent, environment: &Environment, setup: SshSetup) -
 }
 
 /// The Agent's Connect section for the side panel: what the menu offers and
-/// what stands in the way, without the rows' keys.
-pub(crate) fn connect_lines(agent: &Agent, environment: &Environment, setup: SshSetup) -> Vec<String> {
+/// what stands in the way, without the rows' keys. `desktop` is the address
+/// that opens a desktop forward this TUI holds open, if any.
+pub(crate) fn connect_lines(
+    agent: &Agent,
+    environment: &Environment,
+    setup: SshSetup,
+    desktop: Option<&str>,
+) -> Vec<String> {
     let mut lines = vec!["  shell      in this terminal".to_owned()];
+    lines.push(match (vnc_unavailable(agent), desktop) {
+        (Some(reason), _) => format!("  desktop    {reason}"),
+        (None, Some(url)) => format!("  desktop    open at {url}"),
+        (None, None) => "  desktop    browser · VNC client".to_owned(),
+    });
     if let Some(reason) = ssh_unavailable(agent) {
         lines.push(format!("  ssh        {reason}"));
         return lines;
@@ -292,15 +333,25 @@ pub(crate) fn connect_lines(agent: &Agent, environment: &Environment, setup: Ssh
 
 /// Why nothing reached over SSH can be offered, if anything is in the way.
 fn ssh_unavailable(agent: &Agent) -> Option<String> {
-    if !agent.spec.ssh_access() {
-        return Some("SSH access is not declared in spec.access".into());
+    access_unavailable(agent, agent.spec.ssh_access(), Condition::SSH_READY, "SSH access")
+}
+
+/// Why the desktop cannot be offered, if anything is in the way.
+fn vnc_unavailable(agent: &Agent) -> Option<String> {
+    access_unavailable(agent, agent.spec.vnc_access(), Condition::VNC_READY, "VNC access")
+}
+
+/// An access capability is unavailable while undeclared or after its last pass failed.
+fn access_unavailable(agent: &Agent, declared: bool, condition: &str, what: &str) -> Option<String> {
+    if !declared {
+        return Some(format!("{what} is not declared in spec.access"));
     }
     agent
         .status
         .conditions
         .iter()
-        .find(|condition| condition.kind == Condition::SSH_READY && condition.status == ConditionStatus::False)
-        .map(|condition| format!("SSH access is not ready: {}", condition.detail().trim_end()))
+        .find(|found| found.kind == condition && found.status == ConditionStatus::False)
+        .map(|found| format!("{what} is not ready: {}", found.detail().trim_end()))
 }
 
 fn editor_unavailable(editor: Editor, environment: &Environment) -> Option<String> {
@@ -478,17 +529,26 @@ mod tests {
         let menu = OpenMenu::new(&agent(""), &local(&[]), SshSetup::Installed);
         assert_eq!(
             menu.unavailable_reasons(),
-            [(
-                vec![
-                    "VS Code, Remote-SSH".to_owned(),
-                    "Zed".to_owned(),
-                    "SSH shell".to_owned(),
-                    "Copy SSH alias".to_owned()
-                ],
-                "SSH access is not declared in spec.access".to_owned()
-            )]
+            [
+                (
+                    vec![
+                        "VS Code, Remote-SSH".to_owned(),
+                        "Zed".to_owned(),
+                        "SSH shell".to_owned(),
+                        "Copy SSH alias".to_owned()
+                    ],
+                    "SSH access is not declared in spec.access".to_owned()
+                ),
+                (
+                    vec![
+                        "Desktop in the browser".to_owned(),
+                        "Desktop in a VNC client".to_owned()
+                    ],
+                    "VNC access is not declared in spec.access".to_owned()
+                )
+            ]
         );
-        let menu = OpenMenu::new(&with_ssh(), &local(&[]), SshSetup::Installed);
+        let menu = OpenMenu::new(&with_desktop(), &local(&[]), SshSetup::Installed);
         assert_eq!(
             menu.unavailable_reasons(),
             [(
@@ -498,19 +558,74 @@ mod tests {
         );
     }
 
+    fn with_desktop() -> Agent {
+        agent("\x20 access:\n\x20   - type: ssh\n\x20   - type: vnc\n")
+    }
+
+    #[test]
+    fn the_desktop_is_offered_when_declared_and_ready() {
+        let environment = local(&[]);
+        let browser = OpenTarget::Desktop(DesktopViewer::Browser);
+        assert_eq!(
+            unavailable(&items(&with_ssh(), &environment, SshSetup::Installed), browser).as_deref(),
+            Some("VNC access is not declared in spec.access")
+        );
+        assert_eq!(
+            unavailable(&items(&with_desktop(), &environment, SshSetup::Installed), browser),
+            None
+        );
+
+        let mut failed = with_desktop();
+        failed.status.conditions.push(Condition {
+            kind: Condition::VNC_READY.into(),
+            status: ConditionStatus::False,
+            reason: "ReconcileFailed".into(),
+            message: "the image runs no desktop".into(),
+            last_transition_time: None,
+        });
+        let listed = items(&failed, &environment, SshSetup::Installed);
+        assert_eq!(
+            unavailable(&listed, OpenTarget::Desktop(DesktopViewer::VncClient)).as_deref(),
+            Some("VNC access is not ready: the image runs no desktop")
+        );
+        assert_eq!(unavailable(&listed, OpenTarget::SshShell), None, "SSH is unaffected");
+
+        let menu = OpenMenu::new(&with_desktop(), &environment, SshSetup::Installed);
+        assert_eq!(menu.by_key('w'), Some(MenuEntry::Open(browser)));
+        assert_eq!(
+            menu.by_key('v'),
+            Some(MenuEntry::Open(OpenTarget::Desktop(DesktopViewer::VncClient)))
+        );
+    }
+
+    #[test]
+    fn the_panel_shows_an_open_desktop_where_it_listens() {
+        let lines = connect_lines(&with_desktop(), &local(&[]), SshSetup::Installed, None);
+        assert_eq!(lines[1], "  desktop    browser · VNC client");
+        let lines = connect_lines(
+            &with_desktop(),
+            &local(&[]),
+            SshSetup::Installed,
+            Some("http://127.0.0.1:53817/"),
+        );
+        assert_eq!(lines[1], "  desktop    open at http://127.0.0.1:53817/");
+    }
+
     #[test]
     fn connect_lines_agree_with_the_menu() {
         assert_eq!(
-            connect_lines(&agent(""), &local(&Editor::ALL), SshSetup::Missing),
+            connect_lines(&agent(""), &local(&Editor::ALL), SshSetup::Missing, None),
             [
                 "  shell      in this terminal",
+                "  desktop    VNC access is not declared in spec.access",
                 "  ssh        SSH access is not declared in spec.access"
             ]
         );
         assert_eq!(
-            connect_lines(&with_ssh(), &local(&[Editor::Zed]), SshSetup::Missing),
+            connect_lines(&with_ssh(), &local(&[Editor::Zed]), SshSetup::Missing, None),
             [
                 "  shell      in this terminal",
+                "  desktop    VNC access is not declared in spec.access",
                 "  editors    VS Code · Zed",
                 "  ! SSH not set up; o offers it",
                 "  ssh alias  agentctl-worker",
@@ -521,7 +636,7 @@ mod tests {
             launchers: Vec::new(),
         };
         assert_eq!(
-            connect_lines(&with_ssh(), &remote, SshSetup::Installed)[1],
+            connect_lines(&with_ssh(), &remote, SshSetup::Installed, None)[2],
             "  editors    none: this terminal has no display to open windows on"
         );
     }

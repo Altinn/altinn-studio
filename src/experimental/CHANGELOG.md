@@ -16,7 +16,15 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - `agentctl tui` opens an Agent with `o`:
   - in a shell, VS Code, Zed or SSH, offering to add the `Include` to `~/.ssh/config` first ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+  - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
 - `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+
+### Changed
+
+- `agentctl tui` port forwards: ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - `q` asks before quitting would close them
+  - they close when their Agent is deleted or re-created
 
 ## [0.1.0-preview.8] - 2026-09-30
 

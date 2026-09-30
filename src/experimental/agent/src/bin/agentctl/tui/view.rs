@@ -8,7 +8,7 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CONFIRM_SSH_SETUP_HINTS, CONFIRM_SSH_SETUP_THEN_HINTS, CREATE_AGENT_HINTS, CreateField,
+    App, CONFIRM_HINTS, CONFIRM_SSH_SETUP_HINTS, CONFIRM_SSH_SETUP_THEN_HINTS, CREATE_AGENT_HINTS, CreateField,
     ForwardField, HELP, HELP_HINTS, HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS,
     PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View,
     harness_label,
@@ -179,10 +179,10 @@ pub(crate) fn render(frame: &mut Frame, app: &App, state: &mut ViewState) -> Hit
             hit_map.clear();
             render_footer(frame, footer, app, &mut hit_map);
         }
-        // A form carries its own hints, so the footer stays empty below it.
+        // A form carries its own hints, so it may use the footer's rows too.
         Some(modal) => {
             hit_map.clear();
-            render_modal(frame, body, modal, &mut hit_map);
+            render_modal(frame, body.union(footer), app, modal, &mut hit_map);
         }
         None => render_footer(frame, footer, app, &mut hit_map),
     }
@@ -511,6 +511,10 @@ fn render_forwards(frame: &mut Frame, area: Rect, app: &App, state: &mut ViewSta
         .map(|entry| {
             let mut spans = vec![
                 Span::styled("⇄ ", Style::new().fg(Color::Cyan)),
+                Span::styled(
+                    format!("{:<8}", entry.label().unwrap_or_default()),
+                    Style::new().fg(Color::Cyan),
+                ),
                 Span::raw(format!("{} → {}", entry.local, entry.guest_port)),
                 Span::styled(format!("  {}", entry.agent), Style::new().fg(Color::DarkGray)),
             ];
@@ -792,16 +796,16 @@ fn hint_width(hint: &Hint) -> u16 {
     u16::try_from(Line::from(format!("{} {}", hint.label, hint.description)).width()).unwrap_or(u16::MAX)
 }
 
-fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitMap) {
+fn render_modal(frame: &mut Frame, area: Rect, app: &App, modal: &Modal, hit_map: &mut HitMap) {
     match modal {
         Modal::ConfirmDelete { agent, sessions } => {
-            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+            Form::new(" delete ", Color::Red, &CONFIRM_HINTS)
                 .row(Line::from(format!("Delete agent {agent}?")))
                 .row(note_line(&format!("{sessions} session(s) will be deleted with it.")))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
         Modal::ConfirmDeleteSession { agent, session } => {
-            Form::new(" delete ", Color::Red, &CONFIRM_DELETE_HINTS)
+            Form::new(" delete ", Color::Red, &CONFIRM_HINTS)
                 .row(Line::from(format!("Delete session {agent}/{session}?")))
                 .row(note_line("Its harness is stopped and the Session is removed."))
                 .render(frame, area, FORM_WIDTH, hit_map);
@@ -811,6 +815,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
         Modal::PortForward(form) => render_port_forward(frame, area, form, hit_map),
         Modal::Help => render_help(frame, area, hit_map),
         Modal::Open(menu) => render_open(frame, area, menu, hit_map),
+        Modal::ConfirmQuit => render_confirm_quit(frame, area, app, hit_map),
         Modal::ConfirmSshSetup { include, then, .. } => {
             render_confirm_ssh_setup(frame, area, include, *then, hit_map);
         }
@@ -821,6 +826,7 @@ fn render_modal(frame: &mut Frame, area: Rect, modal: &Modal, hit_map: &mut HitM
 
 /// The ways into one Agent, one per row; unavailable ones are dimmed, and why is listed below them.
 fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut HitMap) {
+    const REASON_ROWS: usize = 3;
     let title = format!(" open {} ", menu.agent);
     let width = usize::from(FORM_WIDTH.saturating_sub(4));
     let mut form = Form::new(&title, Color::Cyan, &OPEN_HINTS);
@@ -846,10 +852,19 @@ fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut Hit
             Span::styled(key, Style::new().fg(Color::Cyan)),
         ]));
     }
-    // Below the rows, where there is room to read them: each reason once, wrapped.
+    // Below the rows, where there is room to read them: each reason once,
+    // wrapped, and cut short so the menu still fits an 80x24 terminal.
     for (labels, reason) in menu.unavailable_reasons() {
         form = form.row(Line::default());
-        for row in wrap(&format!("{}: {reason}", labels.join(", ")), width) {
+        let mut rows = wrap(&format!("{}: {reason}", labels.join(", ")), width);
+        if rows.len() > REASON_ROWS {
+            rows.truncate(REASON_ROWS);
+            if let Some(last) = rows.last_mut() {
+                let kept = last.chars().take(width.saturating_sub(1)).collect::<String>();
+                *last = format!("{}…", kept.trim_end());
+            }
+        }
+        for row in rows {
             form = form.row(note_line(&row));
         }
     }
@@ -874,6 +889,27 @@ fn render_open(frame: &mut Frame, area: Rect, menu: &OpenMenu, hit_map: &mut Hit
             );
         }
     }
+}
+
+/// Lists the forwards that close with the TUI before it quits.
+fn render_confirm_quit(frame: &mut Frame, area: Rect, app: &App, hit_map: &mut HitMap) {
+    const LISTED: usize = 6;
+    let width = usize::from(FORM_WIDTH.saturating_sub(4));
+    let mut form = Form::new(" quit ", Color::Cyan, &CONFIRM_HINTS)
+        .row(Line::from("Quit agentctl tui?"))
+        .row(note_line("These forwards close with it:"));
+    for entry in app.forwards.iter().take(LISTED) {
+        let mapping = format!("  {}  ", entry.mapping());
+        let agent = fixed_width(&entry.agent, width.saturating_sub(Line::from(mapping.as_str()).width()));
+        form = form.row(Line::from(vec![
+            Span::styled(mapping, Style::new().fg(Color::Cyan)),
+            Span::styled(agent.trim_end().to_owned(), Style::new().fg(Color::DarkGray)),
+        ]));
+    }
+    if let Some(more) = app.forwards.len().checked_sub(LISTED).filter(|more| *more > 0) {
+        form = form.row(note_line(&format!("  …and {more} more")));
+    }
+    form.render(frame, area, FORM_WIDTH, hit_map);
 }
 
 /// Shows the exact line SSH setup adds, and where, before anything is written.
@@ -1990,6 +2026,7 @@ mod tests {
                 local: format!("127.0.0.1:{}", 8000 + id),
                 guest_port: 80,
                 status: None,
+                finished: false,
             })
             .collect();
         app.forward_selected = 7;
@@ -2327,7 +2364,7 @@ mod tests {
     #[test]
     fn the_open_menu_lists_keys_reasons_and_the_setup_note() {
         let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
-        let mut terminal = Terminal::new(TestBackend::new(80, 20)).expect("test terminal");
+        let mut terminal = Terminal::new(TestBackend::new(80, 30)).expect("test terminal");
         let hit_map = draw(&mut terminal, &app);
         let text = buffer_text(&terminal);
 
@@ -2376,6 +2413,61 @@ mod tests {
     }
 
     #[test]
+    fn the_open_menu_and_quit_question_fit_an_80x24_terminal() {
+        let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
+        let mut agents = std::mem::take(&mut app.agents);
+        agents[0].spec.access = vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}];
+        agents[0].status.conditions.push(agent::Condition {
+            kind: agent::Condition::VNC_READY.into(),
+            status: agent::ConditionStatus::False,
+            reason: "ReconcileFailed".into(),
+            message: agent::vnc::image_contract_missing("/etc/agent-access.d/vnc.conf is missing"),
+            last_transition_time: None,
+        });
+        app.apply_snapshot(agents, Vec::new());
+        app.modal = None;
+        app.on_key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char('o'),
+            crossterm::event::KeyModifiers::NONE,
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("Desktop in the browser"), "{text}");
+        assert!(
+            text.contains("re-apply the Agent…"),
+            "a long reason is cut short:\n{text}"
+        );
+        assert!(text.contains("you are asked before it is added."), "{text}");
+        assert!(text.contains("esc cancel"), "{text}");
+
+        app.modal = Some(Modal::ConfirmQuit);
+        app.forwards = (0..20)
+            .map(|id| super::super::app::ForwardEntry {
+                id,
+                agent: format!("an-agent-with-a-name-longer-than-the-dialog-{id:02}"),
+                local: format!("127.0.0.1:{}", 50000 + id),
+                guest_port: 6080,
+                status: None,
+                finished: false,
+            })
+            .collect();
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("desktop 50000:6080  an-agent-with"), "{text}");
+        assert!(text.contains("…and 14 more"), "{text}");
+        assert!(text.contains("y confirm"), "{text}");
+        let listed = text
+            .lines()
+            .filter(|line| line.contains("an-agent-with"))
+            .collect::<Vec<_>>();
+        assert!(
+            listed.iter().all(|line| line.contains('…')),
+            "long names are shortened, not cut:\n{text}"
+        );
+    }
+
+    #[test]
     fn ssh_setup_shows_the_exact_line_and_file_before_writing() {
         let mut app = ssh_menu_app(super::super::open::SshSetup::Missing);
         app.on_key(crossterm::event::KeyEvent::new(
@@ -2394,5 +2486,23 @@ mod tests {
         assert!(text.contains("  Include ~/.agent/ssh/config"), "{text}");
         assert!(text.contains("Then: VS Code, Remote-SSH."), "{text}");
         assert!(text.contains("enter add · o open anyway · esc back"), "{text}");
+    }
+
+    #[test]
+    fn no_help_row_runs_into_the_overlay_border() {
+        let mut app = triage_app();
+        app.modal = Some(Modal::Help);
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        for line in text.lines().filter(|line| line.contains("│ ")) {
+            let inside: Vec<char> = line.chars().collect();
+            let border = inside
+                .iter()
+                .rposition(|character| *character == '│')
+                .expect("right border");
+            // The form pads one cell inside its border; the cell before that is the last one text uses.
+            assert_eq!(inside[border - 2], ' ', "cut off at the border:\n{line}");
+        }
     }
 }
