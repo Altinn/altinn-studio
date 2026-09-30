@@ -15,7 +15,7 @@
 #
 # The selectors use the labels the operator puts on the pods it creates
 # (app.kubernetes.io/name is the kind in lower case, app.kubernetes.io/instance
-# the object name), which the hand-written vtagent in traces.yaml copies.
+# the object name).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
