@@ -7,6 +7,8 @@ public static class ValidationEngine
 {
     public static IReadOnlyList<IValidationRule> AllRules => RuleRegistry.All();
 
+    public static IReadOnlyList<RuleMetadata> AllRuleMetadata => RuleRegistry.AllMetadata();
+
     public static ValidationReport Run(AppModel app)
     {
         ArgumentNullException.ThrowIfNull(app);
