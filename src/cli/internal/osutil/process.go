@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strings"
 	"time"
 )
 
@@ -70,32 +68,25 @@ func KillProcess(pid int) error {
 	return nil
 }
 
-// ProcessRunsExecutable reports whether pid runs the executable at path.
-// Use it before trusting a saved PID, because the OS can give that PID to another process.
-func ProcessRunsExecutable(pid int, path string) (bool, error) {
+// IsProcessRunningExecutable reports whether the process with this pid runs the executable at path.
+// When a process stops, the OS can give its PID to a new process. Thus a PID that you saved
+// earlier can now belong to a different process. Call this function before you use a saved PID
+// to wait for a process or to stop it.
+func IsProcessRunningExecutable(pid int, path string) (bool, error) {
 	if pid <= 0 || path == "" {
 		return false, nil
 	}
 
-	actual, err := processExecutable(pid)
+	actual, err := getProcessExecutablePath(pid)
 	if err != nil {
 		return false, err
 	}
-	if sameExecutablePath(actual, path) {
+	if IsSamePath(actual, path) {
 		return true, nil
 	}
 	// A path that does not resolve cannot be the executable of pid.
 	if resolved, resolveErr := filepath.EvalSymlinks(path); resolveErr == nil {
-		return sameExecutablePath(actual, resolved), nil
+		return IsSamePath(actual, resolved), nil
 	}
 	return false, nil
-}
-
-func sameExecutablePath(actual, expected string) bool {
-	actual = filepath.Clean(actual)
-	expected = filepath.Clean(expected)
-	if runtime.GOOS == "windows" {
-		return strings.EqualFold(actual, expected)
-	}
-	return actual == expected
 }

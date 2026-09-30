@@ -66,7 +66,7 @@ func processZombie(pid int) (bool, error) {
 	return false, nil
 }
 
-func processExecutable(pid int) (string, error) {
+func getProcessExecutablePath(pid int) (string, error) {
 	path, err := os.Readlink("/proc/" + strconv.Itoa(pid) + "/exe")
 	if err != nil {
 		return "", fmt.Errorf("read process executable: %w", err)

@@ -8,6 +8,6 @@ var errProcessExecutableUnsupported = errors.New(
 	"reading the executable of a process is not supported on this platform",
 )
 
-func processExecutable(int) (string, error) {
+func getProcessExecutablePath(int) (string, error) {
 	return "", errProcessExecutableUnsupported
 }

@@ -24,7 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- studioctl no longer stops an unrelated process, or itself, when studioctl-server stopped without studioctl, for example after a crash or a container restart. studioctl now checks that the process in its pid file is studioctl-server before it waits for it or stops it. If it is not, studioctl discards the old pid file and starts a new server.
+- studioctl no longer stops an unrelated process, or itself, when studioctl-server stopped without studioctl, for example after a crash or a container restart. studioctl now checks that the process in its pid file is studioctl-server before it waits for it or stops it. If it is not, studioctl ignores the old pid file, and `studioctl server up` starts a new server.
 
 ## [0.1.0-preview.27] - 2026-09-23
 

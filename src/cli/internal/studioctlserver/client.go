@@ -580,7 +580,7 @@ func ensureStartedFromPersistedState(
 	client *Client,
 	desired startConfig,
 ) error {
-	state, ok, err := readLiveStudioctlServerState(cfg)
+	state, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
 		return fmt.Errorf("read studioctl-server pid file: %w", err)
 	}
@@ -622,14 +622,8 @@ func restartFromPersistedState(
 		return fmt.Errorf("stop persisted studioctl-server pid %d: %w", pid, err)
 	}
 
-	_, ok, err := readStudioctlServerState(cfg)
-	if err != nil {
-		return fmt.Errorf("read studioctl-server pid file: %w", err)
-	}
-	if ok {
-		if err := removeStudioctlServerState(cfg); err != nil {
-			return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
-		}
+	if err := removeStudioctlServerState(cfg); err != nil {
+		return fmt.Errorf("remove stale studioctl-server pid file: %w", err)
 	}
 
 	return startProcess(ctx, cfg, desired)
@@ -865,7 +859,7 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 		return status.ProcessID, nil
 	}
 	if !errors.Is(err, ErrNotRunning) {
-		state, ok, stateErr := readLiveStudioctlServerState(cfg)
+		state, ok, stateErr := readStudioctlServerState(cfg)
 		if stateErr != nil {
 			return 0, fmt.Errorf("read persisted studioctl-server state after status failure: %w", stateErr)
 		}
@@ -875,7 +869,7 @@ func currentManagedPID(ctx context.Context, client *Client, cfg *config.Config) 
 		return 0, fmt.Errorf("get studioctl-server status before shutdown: %w", err)
 	}
 
-	state, ok, err := readLiveStudioctlServerState(cfg)
+	state, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
 		return 0, fmt.Errorf("read persisted studioctl-server state: %w", err)
 	}
@@ -986,6 +980,10 @@ func currentExecutablePath() string {
 	return path
 }
 
+// readStudioctlServerState reads the pid file. It returns false when the file does not exist or
+// when its PID is not a running studioctl-server. The pid file stays when the server stops without
+// the CLI, for example after a crash or a container restart, and the OS can then give that PID to
+// another process.
 func readStudioctlServerState(cfg *config.Config) (runtimeState, bool, error) {
 	data, err := os.ReadFile(cfg.StudioctlServerPIDPath())
 	if err != nil {
@@ -996,40 +994,22 @@ func readStudioctlServerState(cfg *config.Config) (runtimeState, bool, error) {
 	}
 
 	var state runtimeState
-	if err := json.Unmarshal(data, &state); err != nil {
+	if err = json.Unmarshal(data, &state); err != nil {
 		return zeroRuntimeState(), false, fmt.Errorf("decode pid file: %w", err)
 	}
 	if state.PID <= 0 {
 		return zeroRuntimeState(), false, errInvalidPIDFile
 	}
 
-	return state, true, nil
-}
-
-// readLiveStudioctlServerState reads the pid file and removes it when its PID is not a running
-// studioctl-server. The pid file stays when the server stops without the CLI, for example after
-// a crash or a container restart, and the OS can then give that PID to another process.
-func readLiveStudioctlServerState(cfg *config.Config) (runtimeState, bool, error) {
-	state, ok, err := readStudioctlServerState(cfg)
-	if err != nil || !ok {
-		return state, ok, err
-	}
-
-	live, err := studioctlServerProcess(state)
-	if err != nil {
+	isServer, err := isStudioctlServerProcess(state)
+	if err != nil || !isServer {
 		return zeroRuntimeState(), false, err
 	}
-	if !live {
-		if err := removeStudioctlServerState(cfg); err != nil {
-			return zeroRuntimeState(), false, fmt.Errorf("remove stale studioctl-server pid file: %w", err)
-		}
-		return zeroRuntimeState(), false, nil
-	}
 
 	return state, true, nil
 }
 
-func studioctlServerProcess(state runtimeState) (bool, error) {
+func isStudioctlServerProcess(state runtimeState) (bool, error) {
 	if state.PID == os.Getpid() {
 		return false, nil
 	}
@@ -1043,8 +1023,8 @@ func studioctlServerProcess(state runtimeState) (bool, error) {
 	}
 
 	// A process that cannot be identified is not the server, so the CLI never kills it.
-	ours, err := osutil.ProcessRunsExecutable(state.PID, state.Start.BinaryPath)
-	return err == nil && ours, nil
+	isServer, err := osutil.IsProcessRunningExecutable(state.PID, state.Start.BinaryPath)
+	return err == nil && isServer, nil
 }
 
 func writeStudioctlServerState(cfg *config.Config, state runtimeState) error {

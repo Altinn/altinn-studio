@@ -72,7 +72,7 @@ func windowsProcessID(pid int) (uint32, error) {
 	return uint32(pid), nil
 }
 
-func processExecutable(pid int) (path string, err error) {
+func getProcessExecutablePath(pid int) (path string, err error) {
 	processID, err := windowsProcessID(pid)
 	if err != nil {
 		return "", err

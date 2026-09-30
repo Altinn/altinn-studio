@@ -11,53 +11,53 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
-func TestReadLiveStudioctlServerState_RemovesPIDOfCurrentProcess(t *testing.T) {
+func TestReadStudioctlServerState_IgnoresPIDOfCurrentProcess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
 	writeTestServerState(t, cfg, os.Getpid(), currentTestExecutable(t))
 
-	_, ok, err := readLiveStudioctlServerState(cfg)
+	_, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		t.Fatalf("readLiveStudioctlServerState() error = %v", err)
+		t.Fatalf("readStudioctlServerState() error = %v", err)
 	}
 	if ok {
-		t.Fatal("readLiveStudioctlServerState() ok = true, want false")
+		t.Fatal("readStudioctlServerState() ok = true, want false")
 	}
-	assertNoPIDFile(t, cfg.StudioctlServerPIDPath())
+	assertPIDFileExists(t, cfg.StudioctlServerPIDPath())
 }
 
-func TestReadLiveStudioctlServerState_RemovesPIDOfUnrelatedProcess(t *testing.T) {
+func TestReadStudioctlServerState_IgnoresPIDOfUnrelatedProcess(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
 	pid, _ := startUnrelatedProcess(t)
 	writeTestServerState(t, cfg, pid, cfg.StudioctlServerBinaryPath())
 
-	_, ok, err := readLiveStudioctlServerState(cfg)
+	_, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		t.Fatalf("readLiveStudioctlServerState() error = %v", err)
+		t.Fatalf("readStudioctlServerState() error = %v", err)
 	}
 	if ok {
-		t.Fatal("readLiveStudioctlServerState() ok = true, want false")
+		t.Fatal("readStudioctlServerState() ok = true, want false")
 	}
-	assertNoPIDFile(t, cfg.StudioctlServerPIDPath())
+	assertPIDFileExists(t, cfg.StudioctlServerPIDPath())
 	assertProcessRunning(t, pid)
 }
 
-func TestReadLiveStudioctlServerState_KeepsPIDOfServerExecutable(t *testing.T) {
+func TestReadStudioctlServerState_AcceptsPIDOfServerExecutable(t *testing.T) {
 	t.Parallel()
 
 	cfg := testConfig(t)
 	pid, path := startUnrelatedProcess(t)
 	writeTestServerState(t, cfg, pid, path)
 
-	state, ok, err := readLiveStudioctlServerState(cfg)
+	state, ok, err := readStudioctlServerState(cfg)
 	if err != nil {
-		t.Fatalf("readLiveStudioctlServerState() error = %v", err)
+		t.Fatalf("readStudioctlServerState() error = %v", err)
 	}
 	if !ok || state.PID != pid {
-		t.Fatalf("readLiveStudioctlServerState() = (pid %d, ok %t), want (pid %d, ok true)", state.PID, ok, pid)
+		t.Fatalf("readStudioctlServerState() = (pid %d, ok %t), want (pid %d, ok true)", state.PID, ok, pid)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestEnsureStarted_DoesNotKillProcessThatReusedServerPID(t *testing.T) {
 	if !errors.Is(err, ErrBinaryMissing) {
 		t.Fatalf("EnsureStartedWithStudioctlPath() error = %v, want %v", err, ErrBinaryMissing)
 	}
-	assertNoPIDFile(t, cfg.StudioctlServerPIDPath())
+	assertPIDFileExists(t, cfg.StudioctlServerPIDPath())
 	assertProcessRunning(t, pid)
 }
 
@@ -88,7 +88,7 @@ func TestShutdown_DoesNotKillProcessThatReusedServerPID(t *testing.T) {
 	if !errors.Is(err, ErrNotRunning) {
 		t.Fatalf("Shutdown() error = %v, want %v", err, ErrNotRunning)
 	}
-	assertNoPIDFile(t, cfg.StudioctlServerPIDPath())
+	assertPIDFileExists(t, cfg.StudioctlServerPIDPath())
 	assertProcessRunning(t, pid)
 }
 
@@ -130,11 +130,11 @@ func writeTestServerState(t *testing.T, cfg *config.Config, pid int, binaryPath 
 	}
 }
 
-func assertNoPIDFile(t *testing.T, pidPath string) {
+func assertPIDFileExists(t *testing.T, pidPath string) {
 	t.Helper()
 
-	if _, err := os.Stat(pidPath); !os.IsNotExist(err) {
-		t.Fatalf("pid file still exists or stat failed: %v", err)
+	if _, err := os.Stat(pidPath); err != nil {
+		t.Fatalf("pid file was removed or stat failed: %v", err)
 	}
 }
 
