@@ -452,6 +452,45 @@ public class CreateTests
     }
 
     [Theory]
+    [InlineData("ttd", "queue-build-test", "tt02", "6.0.0", "60001")]
+    public async Task Create_WithoutAppStatus_UsesAppStatusFromPreviousDeploy(
+        string org,
+        string app,
+        string envName,
+        string tagName,
+        string buildId
+    )
+    {
+        // Arrange
+        await PrepareReleaseInDb(org, app, tagName);
+        _mockServerFixture.PrepareDeploymentMockResponses(org, app, buildId);
+        var previousDeploy = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            org,
+            app,
+            envName: envName,
+            appStatus: AppStatus.Completed
+        );
+        previousDeploy.Created = DateTime.UtcNow.AddMinutes(-5);
+        await DesignerDbFixture.PrepareEntityInDatabase(previousDeploy);
+
+        string uri = VersionPrefix(org, app);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = JsonContent.Create(new { envName, tagName }),
+        };
+
+        // Act
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var deployment = await DesignerDbFixture
+            .DbContext.Deployments.AsNoTracking()
+            .SingleAsync(d => d.Org == org && d.App == app && d.Buildid == buildId);
+        Assert.Equal(nameof(AppStatus.Completed), deployment.AppStatus);
+    }
+
+    [Theory]
     [InlineData("ttd", "app-status-deprecated", "at22", "Deprecated")]
     [InlineData("ttd", "app-status-withdrawn", "at22", "Withdrawn")]
     public async Task Create_Returns_400BadRequest_When_AppStatus_Is_Not_Allowed(
