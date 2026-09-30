@@ -4,31 +4,22 @@
 //! state stays running while every Execution into it waits forever. The
 //! Backend reports the guest's heartbeat without a round trip to the guest;
 //! this tracker records when each heartbeat last changed on the host clock and
-//! calls a guest unresponsive once it has not changed for
-//! [`UNRESPONSIVE_AFTER`]. Guest-written times are never compared: the guest
-//! clock falls behind the host's while the guest is stalled.
+//! calls a guest stalled once it has not changed for [`UNRESPONSIVE_AFTER`].
+//! Guest-written times are never compared: the guest clock falls behind the
+//! host's while the guest is stalled.
 
 use std::{cell::RefCell, collections::HashMap, time::Duration};
 
 use ::sandbox::{GuestHeartbeat, Sandbox, SandboxId, SandboxState};
-use tokio::{sync::Notify, time::Instant};
+use tokio::time::Instant;
 
 /// How long a running guest's heartbeat may stay unchanged before the guest
-/// counts as unresponsive. The guest agent beats about once a second, also
-/// while its vCPUs are saturated.
+/// counts as stalled. The guest agent beats about once a second, also while
+/// its vCPUs are saturated.
 pub const UNRESPONSIVE_AFTER: Duration = Duration::from_secs(15);
 
-/// What the host has observed about one Sandbox's guest.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Responsiveness {
-    /// The guest's heartbeat has advanced within [`UNRESPONSIVE_AFTER`].
-    Responsive,
-    /// The guest's heartbeat has not advanced for [`UNRESPONSIVE_AFTER`].
-    Unresponsive,
-    /// Nothing is known yet: the Sandbox is not running, the guest has not
-    /// reported a heartbeat, or it has not been observed for long enough.
-    Unknown,
-}
+/// How often guest-touching work inspects its Sandbox's heartbeat.
+pub const OBSERVATION_INTERVAL: Duration = Duration::from_secs(2);
 
 /// Describes a stalled guest for conditions and errors.
 #[must_use]
@@ -45,103 +36,52 @@ pub fn stalled() -> crate::Error {
     crate::Error::SandboxUnresponsive(stall_detail())
 }
 
-/// Host-observed heartbeats of running Sandboxes, keyed by Sandbox.
+/// When each running Sandbox's heartbeat last changed, keyed by Sandbox.
 #[derive(Default)]
 pub struct Tracker {
     sandboxes: RefCell<HashMap<SandboxId, Tracked>>,
-    changed: Notify,
 }
 
 struct Tracked {
     heartbeat: GuestHeartbeat,
-    /// When `heartbeat` was first observed, or when observation resumed.
+    /// When `heartbeat` was first observed.
     since: Instant,
-    responsiveness: Responsiveness,
 }
 
 impl Tracker {
-    /// Returns what is known about a Sandbox's guest.
+    /// Records one inspection of a Sandbox. A Sandbox that is not running, or
+    /// reports no heartbeat, has no evidence and is forgotten.
+    pub fn observe(&self, sandbox: &Sandbox, now: Instant) {
+        let mut sandboxes = self.sandboxes.borrow_mut();
+        let Some(heartbeat) = sandbox
+            .guest_heartbeat
+            .filter(|_| sandbox.state == SandboxState::Running)
+        else {
+            sandboxes.remove(&sandbox.id);
+            return;
+        };
+        if sandboxes
+            .get(&sandbox.id)
+            .is_none_or(|tracked| tracked.heartbeat != heartbeat)
+        {
+            sandboxes.insert(sandbox.id.clone(), Tracked { heartbeat, since: now });
+        }
+    }
+
+    /// Whether the Sandbox's heartbeat has not changed for [`UNRESPONSIVE_AFTER`].
+    /// Only a changed heartbeat clears a stall, so a pause in observation can
+    /// delay, but never hide, one.
     #[must_use]
-    pub fn responsiveness(&self, id: &SandboxId) -> Responsiveness {
+    pub fn stalled(&self, id: &SandboxId, now: Instant) -> bool {
         self.sandboxes
             .borrow()
             .get(id)
-            .map_or(Responsiveness::Unknown, |tracked| tracked.responsiveness)
+            .is_some_and(|tracked| now.saturating_duration_since(tracked.since) >= UNRESPONSIVE_AFTER)
     }
 
-    /// Records one inspection of a Sandbox and returns the responsiveness it
-    /// replaced when it changed.
-    ///
-    /// Only a changed heartbeat makes an unresponsive guest responsive again,
-    /// so a pause in observation can delay, but never hide, a stall.
-    pub fn observe(&self, sandbox: &Sandbox, now: Instant) -> Option<Responsiveness> {
-        let heartbeat = sandbox
-            .guest_heartbeat
-            .filter(|_| sandbox.state == SandboxState::Running);
-        let mut sandboxes = self.sandboxes.borrow_mut();
-        let previous = sandboxes
-            .get(&sandbox.id)
-            .map_or(Responsiveness::Unknown, |tracked| tracked.responsiveness);
-        let current = match (heartbeat, sandboxes.get_mut(&sandbox.id)) {
-            (None, _) => {
-                sandboxes.remove(&sandbox.id);
-                Responsiveness::Unknown
-            }
-            (Some(heartbeat), Some(tracked)) if tracked.heartbeat != heartbeat => {
-                tracked.heartbeat = heartbeat;
-                tracked.since = now;
-                tracked.responsiveness = Responsiveness::Responsive;
-                Responsiveness::Responsive
-            }
-            (Some(_), Some(tracked)) => {
-                if now.saturating_duration_since(tracked.since) >= UNRESPONSIVE_AFTER {
-                    tracked.responsiveness = Responsiveness::Unresponsive;
-                }
-                tracked.responsiveness
-            }
-            (Some(heartbeat), None) => {
-                sandboxes.insert(
-                    sandbox.id.clone(),
-                    Tracked {
-                        heartbeat,
-                        since: now,
-                        responsiveness: Responsiveness::Unknown,
-                    },
-                );
-                Responsiveness::Unknown
-            }
-        };
-        drop(sandboxes);
-        (current != previous).then(|| {
-            self.changed.notify_waiters();
-            previous
-        })
-    }
-
-    /// Restarts every heartbeat's age after observation was suspended, such as
-    /// while the host slept, so time the observer did not run is not counted
-    /// against a guest.
-    pub fn resume(&self, now: Instant) {
-        for tracked in self.sandboxes.borrow_mut().values_mut() {
-            tracked.since = now;
-        }
-    }
-
-    /// Forgets every Sandbox not in `observed`.
-    pub fn retain(&self, observed: &std::collections::HashSet<SandboxId>) {
-        self.sandboxes.borrow_mut().retain(|id, _| observed.contains(id));
-    }
-
-    /// Completes once the Sandbox's guest is observed to be unresponsive.
-    pub async fn unresponsive(&self, id: &SandboxId) {
-        loop {
-            // Registered before the check, so a change between the two wakes it.
-            let changed = self.changed.notified();
-            if self.responsiveness(id) == Responsiveness::Unresponsive {
-                return;
-            }
-            changed.await;
-        }
+    /// Forgets a released Sandbox.
+    pub fn forget(&self, id: &SandboxId) {
+        self.sandboxes.borrow_mut().remove(id);
     }
 }
 
@@ -156,7 +96,7 @@ mod tests {
     };
     use tokio::time::{Duration, Instant};
 
-    use super::{Responsiveness, Tracker, UNRESPONSIVE_AFTER};
+    use super::{Tracker, UNRESPONSIVE_AFTER};
 
     fn sandbox(state: SandboxState, heartbeat: Option<u64>) -> Sandbox {
         Sandbox {
@@ -189,33 +129,24 @@ mod tests {
     }
 
     #[test]
-    fn a_heartbeat_that_stops_advancing_makes_the_guest_unresponsive() {
+    fn a_heartbeat_that_stops_advancing_makes_the_guest_stalled() {
         let tracker = Tracker::default();
         let start = Instant::now();
         let id = running(1).id;
 
-        assert_eq!(tracker.observe(&running(1), start), None);
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unknown);
-        assert_eq!(
-            tracker.observe(&running(2), start + Duration::from_secs(1)),
-            Some(Responsiveness::Unknown)
-        );
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Responsive);
-
+        tracker.observe(&running(1), start);
+        tracker.observe(&running(2), start + Duration::from_secs(1));
         let stalled = start + Duration::from_secs(1) + UNRESPONSIVE_AFTER;
-        assert_eq!(tracker.observe(&running(2), stalled - Duration::from_millis(1)), None);
-        assert_eq!(tracker.observe(&running(2), stalled), Some(Responsiveness::Responsive));
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unresponsive);
+        tracker.observe(&running(2), stalled - Duration::from_millis(1));
+        assert!(!tracker.stalled(&id, stalled - Duration::from_millis(1)));
+        assert!(tracker.stalled(&id, stalled));
 
-        assert_eq!(
-            tracker.observe(&running(3), stalled + Duration::from_secs(1)),
-            Some(Responsiveness::Unresponsive)
-        );
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Responsive);
+        tracker.observe(&running(3), stalled + Duration::from_secs(1));
+        assert!(!tracker.stalled(&id, stalled + Duration::from_secs(1)));
     }
 
     #[test]
-    fn a_guest_first_observed_stalled_becomes_unresponsive() {
+    fn a_guest_first_observed_stalled_becomes_stalled() {
         let tracker = Tracker::default();
         let start = Instant::now();
         let id = running(48).id;
@@ -223,7 +154,7 @@ mod tests {
         tracker.observe(&running(48), start);
         tracker.observe(&running(48), start + UNRESPONSIVE_AFTER);
 
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unresponsive);
+        assert!(tracker.stalled(&id, start + UNRESPONSIVE_AFTER));
     }
 
     #[test]
@@ -232,16 +163,14 @@ mod tests {
         let start = Instant::now();
         let id = running(1).id;
         tracker.observe(&running(40), start);
-        tracker.observe(&running(40), start + UNRESPONSIVE_AFTER);
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unresponsive);
+        assert!(tracker.stalled(&id, start + UNRESPONSIVE_AFTER));
 
         // The runtime removes the heartbeat before every boot, and the new
         // boot counts from the start again.
         tracker.observe(&sandbox(SandboxState::Running, None), start + UNRESPONSIVE_AFTER);
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unknown);
+        assert!(!tracker.stalled(&id, start + UNRESPONSIVE_AFTER));
         tracker.observe(&running(1), start + UNRESPONSIVE_AFTER * 2);
-        tracker.observe(&running(2), start + UNRESPONSIVE_AFTER * 2 + Duration::from_secs(1));
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Responsive);
+        assert!(!tracker.stalled(&id, start + UNRESPONSIVE_AFTER * 2));
     }
 
     #[test]
@@ -250,53 +179,9 @@ mod tests {
         let start = Instant::now();
         let id = running(1).id;
         tracker.observe(&running(1), start);
-        tracker.observe(&running(1), start + UNRESPONSIVE_AFTER);
 
         tracker.observe(&sandbox(SandboxState::Stopped, Some(1)), start + UNRESPONSIVE_AFTER);
 
-        assert_eq!(tracker.responsiveness(&id), Responsiveness::Unknown);
-    }
-
-    #[test]
-    fn resuming_observation_restarts_ages_without_clearing_a_stall() {
-        let tracker = Tracker::default();
-        let start = Instant::now();
-        let responsive = running(1);
-        tracker.observe(&responsive, start);
-        tracker.observe(&running(2), start + Duration::from_secs(1));
-
-        // The host slept longer than the threshold.
-        let woke = start + Duration::from_mins(10);
-        tracker.resume(woke);
-        tracker.observe(&running(2), woke);
-        assert_eq!(tracker.responsiveness(&responsive.id), Responsiveness::Responsive);
-        tracker.observe(&running(2), woke + UNRESPONSIVE_AFTER);
-        assert_eq!(tracker.responsiveness(&responsive.id), Responsiveness::Unresponsive);
-
-        tracker.resume(woke + UNRESPONSIVE_AFTER * 2);
-        tracker.observe(&running(2), woke + UNRESPONSIVE_AFTER * 2);
-        assert_eq!(tracker.responsiveness(&responsive.id), Responsiveness::Unresponsive);
-    }
-
-    #[tokio::test(flavor = "local", start_paused = true)]
-    async fn a_waiter_completes_when_its_guest_becomes_unresponsive() {
-        let tracker = std::rc::Rc::new(Tracker::default());
-        let id = running(1).id;
-        let start = Instant::now();
-        tracker.observe(&running(1), start);
-        let waiting = tokio::task::spawn_local({
-            let tracker = tracker.clone();
-            let id = id.clone();
-            async move { tracker.unresponsive(&id).await }
-        });
-        tokio::task::yield_now().await;
-        assert!(!waiting.is_finished());
-
-        tracker.observe(&running(1), start + UNRESPONSIVE_AFTER);
-
-        tokio::time::timeout(Duration::from_secs(1), waiting)
-            .await
-            .expect("the waiter should complete")
-            .expect("the waiter should not panic");
+        assert!(!tracker.stalled(&id, start + UNRESPONSIVE_AFTER));
     }
 }

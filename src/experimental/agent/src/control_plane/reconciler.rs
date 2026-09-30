@@ -4,10 +4,7 @@ use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, St
 
 use super::{AgentRecord, SharedAgentStore};
 use crate::progress::{ProvisioningState, SandboxObserver};
-use crate::sandbox::{
-    Responsiveness,
-    responsiveness::{stall_detail, stalled},
-};
+use crate::sandbox::responsiveness::stall_detail;
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -138,14 +135,7 @@ impl Reconciler {
         )];
         self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
-        let responsiveness = self.sandboxes.responsiveness(&ensured.sandbox.snapshot().id);
-        if responsiveness == Responsiveness::Unresponsive {
-            // The guest stalled after its last guest-touching step finished.
-            return self
-                .record_unresponsive(&record, Some(assignment), &observer, stalled())
-                .await;
-        }
-        conditions.insert(1, responsive_condition(responsiveness));
+        conditions.insert(1, responsive_condition(ensured.sandbox.snapshot()));
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         // As on failure, readiness is stored before followers see the pass end.
@@ -168,12 +158,12 @@ impl Reconciler {
     ) -> Result<(), Error> {
         let id = &sandbox.snapshot().id;
         if let Some(ssh) = &self.ssh {
-            let pass = self.sandboxes.guard_guest(id, ssh.reconcile(record, sandbox));
+            let pass = self.sandboxes.guard_guest(record, id, ssh.reconcile(record, sandbox));
             self.reconcile_access(SSH, pass, record, assignment, conditions, observer)
                 .await?;
         }
         if let Some(vnc) = &self.vnc {
-            let pass = self.sandboxes.guard_guest(id, vnc.reconcile(record, sandbox));
+            let pass = self.sandboxes.guard_guest(record, id, vnc.reconcile(record, sandbox));
             self.reconcile_access(VNC, pass, record, assignment, conditions, observer)
                 .await?;
         }
@@ -290,7 +280,12 @@ impl Reconciler {
             .filter(|condition| condition.kind == Condition::SANDBOX_READY)
             .cloned()
             .collect();
-        conditions.push(responsive_condition(Responsiveness::Unresponsive));
+        conditions.push(condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::False,
+            "HeartbeatStale",
+            &stall_detail(),
+        ));
         conditions.push(condition(
             Condition::READY,
             ConditionStatus::False,
@@ -423,27 +418,23 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
     }
 }
 
-/// Reports what the host observed about the Sandbox's guest.
-fn responsive_condition(responsiveness: Responsiveness) -> Condition {
-    match responsiveness {
-        Responsiveness::Responsive => condition(
+/// Reports the guest's heartbeat after a pass whose guest work finished. A
+/// Sandbox that reports no heartbeat gives no evidence either way.
+fn responsive_condition(sandbox: &::sandbox::Sandbox) -> Condition {
+    if sandbox.guest_heartbeat.is_some() {
+        condition(
             Condition::SANDBOX_RESPONSIVE,
             ConditionStatus::True,
             "HeartbeatAdvancing",
             "",
-        ),
-        Responsiveness::Unresponsive => condition(
-            Condition::SANDBOX_RESPONSIVE,
-            ConditionStatus::False,
-            "HeartbeatStale",
-            &stall_detail(),
-        ),
-        Responsiveness::Unknown => condition(
+        )
+    } else {
+        condition(
             Condition::SANDBOX_RESPONSIVE,
             ConditionStatus::Unknown,
             "HeartbeatNotObserved",
             "",
-        ),
+        )
     }
 }
 

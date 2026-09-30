@@ -5,7 +5,6 @@ mod convergence;
 pub mod memory;
 mod reconciler;
 mod resource;
-mod responsiveness;
 mod service;
 
 use std::rc::Rc;
@@ -18,7 +17,6 @@ pub use controller::{Controller, ErrorHandler, Wakeup};
 pub use convergence::{Convergence, WaitPolicy};
 pub use reconciler::{Reconciler, SessionNotifier};
 pub use resource::{AgentId, AgentRecord, ENV_FILE};
-pub use responsiveness::{OBSERVATION_INTERVAL, ResponsivenessMonitor};
 pub use service::{ApplyRequest, ControlPlane, Notifier};
 
 /// Separates desired-state writes from reconciler status writes using generation checks.

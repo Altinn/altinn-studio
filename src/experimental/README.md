@@ -74,12 +74,12 @@ incarnation, and a reused Agent name never inherits resources from a deleted inc
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
 A running Sandbox's guest can stall while its VM process keeps running. The Sandbox SDK reports the guest's heartbeat
-without a round trip to the guest, and `agentd` records when each heartbeat last advanced on the host clock. After 15
-seconds without progress, the Agent reports `SandboxResponsive=False` and `Ready=False` with reason
-`SandboxUnresponsive`. Reconciliation work that reaches into the guest ends as soon as its guest is unresponsive, so a
-stalled guest cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready gives up
-about 5 seconds after the stall is recorded. The Agent becomes Ready again once the heartbeat advances. A stalled guest
-is not restarted automatically.
+without a round trip to the guest. While reconciliation works inside the guest, `agentd` inspects the heartbeat every 2
+seconds and records when it last advanced on the host clock. After 15 seconds without progress the work ends, and the
+Agent reports `SandboxResponsive=False` and `Ready=False` with reason `SandboxUnresponsive`. A stalled guest therefore
+cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready fails once the stall is
+recorded. The next pass after the heartbeat advances makes the Agent Ready again. A stalled guest is not restarted
+automatically.
 
 Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
 value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each

@@ -13,8 +13,7 @@ use std::{
 use agent::{
     AgentId, ConditionStatus, EnvironmentSpec, Error, FailureKind, MountSpec, SecretSpec, Status,
     control_plane::{
-        AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Reconciler, ResponsivenessMonitor,
-        WaitPolicy, memory,
+        AgentRecord, AgentStore, ControlPlane, Controller, Convergence, Notifier, Reconciler, WaitPolicy, memory,
     },
     progress::{OutputPosition, ProvisioningState, SandboxObserver},
     resources::Changes,
@@ -2070,14 +2069,12 @@ impl PlatformAdapter for StallingPlatform {
     }
 }
 
-/// An Agent `worker` whose guest heartbeat the test controls, observed by a
-/// responsiveness monitor over the reconciler's Sandbox service.
+/// An Agent `worker` whose guest heartbeat and setup the test controls.
 struct Stalling {
     store: Rc<memory::InMemoryAgentStore>,
     backend: Rc<sandbox_memory::Provider>,
     platform: Rc<StallingPlatform>,
     reconciler: Rc<Reconciler>,
-    monitor: ResponsivenessMonitor,
     id: AgentId,
 }
 
@@ -2088,19 +2085,7 @@ async fn stalling(changes: Changes) -> Stalling {
     let platform = Rc::new(StallingPlatform::default());
     let sandboxes =
         Rc::new(Service::new([provider], [platform.clone() as Rc<dyn PlatformAdapter>]).expect("Sandbox service"));
-    let reconciler = Rc::new(Reconciler::new(
-        store.clone(),
-        sandboxes.clone(),
-        ProvisioningState::default(),
-    ));
-    // Nothing runs this controller: the tests drive every pass themselves.
-    let (_controller, wakeup) = Controller::new(
-        store.clone(),
-        reconciler.clone(),
-        NO_BACKGROUND_PASSES,
-        Rc::new(|_, _| {}),
-    );
-    let monitor = ResponsivenessMonitor::new(store.clone(), sandboxes, wakeup);
+    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes, ProvisioningState::default()));
     ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()))
         .apply(apply_request("worker"))
         .await
@@ -2111,7 +2096,6 @@ async fn stalling(changes: Changes) -> Stalling {
         backend,
         platform,
         reconciler,
-        monitor,
         id,
     }
 }
@@ -2121,7 +2105,7 @@ impl Stalling {
         self.store.get(self.id).await.expect("stored Agent")
     }
 
-    /// Reports `sequence` as the guest's heartbeat and lets the monitor observe it.
+    /// Reports `sequence` as the guest's heartbeat.
     async fn beat(&self, sequence: u64) {
         let record = self.record().await;
         let sandbox = record
@@ -2134,7 +2118,6 @@ impl Stalling {
         self.backend
             .set_guest_heartbeat(sandbox, Some(GuestHeartbeat::new(sequence)))
             .expect("heartbeat should be set");
-        self.monitor.observe(tokio::time::Instant::now()).await;
     }
 }
 
@@ -2167,9 +2150,8 @@ async fn a_stalled_guest_ends_setup_and_its_agent_reports_it_unresponsive() {
         async move { reconciler.reconcile(id).await }
     });
     fixture.platform.started.notified().await;
-    tokio::time::advance(UNRESPONSIVE_AFTER).await;
-    fixture.beat(2).await;
 
+    // The heartbeat stays at 2, so the pass's own inspections find the stall.
     let result = pass.await.expect("the pass should not panic");
     assert!(
         matches!(result, Err(Error::SandboxUnresponsive(_))),
@@ -2217,8 +2199,7 @@ async fn an_agent_with_a_stalled_guest_can_still_be_deleted() {
     let fixture = stalling(Changes::new()).await;
     fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
     fixture.beat(1).await;
-    tokio::time::advance(UNRESPONSIVE_AFTER).await;
-    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
     let result = fixture.reconciler.reconcile(fixture.id).await;
     assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
 
@@ -2235,7 +2216,7 @@ async fn an_agent_with_a_stalled_guest_can_still_be_deleted() {
 }
 
 #[tokio::test(flavor = "local", start_paused = true)]
-async fn waiting_until_ready_ends_soon_after_the_guest_is_unresponsive() {
+async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
     let changes = Changes::new();
     let fixture = stalling(changes.clone()).await;
     let (controller, wakeup) = Controller::new(
@@ -2251,8 +2232,7 @@ async fn waiting_until_ready_ends_soon_after_the_guest_is_unresponsive() {
         .await
         .expect("the healthy Agent should become Ready");
     fixture.beat(1).await;
-    tokio::time::advance(UNRESPONSIVE_AFTER).await;
-    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
 
     let started = tokio::time::Instant::now();
     let result = convergence.converge(fixture.id, WaitPolicy::UntilReady).await;
@@ -2260,8 +2240,8 @@ async fn waiting_until_ready_ends_soon_after_the_guest_is_unresponsive() {
     assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
     let waited = started.elapsed();
     assert!(
-        waited >= Duration::from_secs(5) && waited < Duration::from_secs(6),
-        "the wait should end about 5s after the stall is recorded, took {waited:?}"
+        waited >= UNRESPONSIVE_AFTER && waited < UNRESPONSIVE_AFTER + Duration::from_secs(3),
+        "the wait ends with the pass that finds the stall, took {waited:?}"
     );
     task.abort();
 }
