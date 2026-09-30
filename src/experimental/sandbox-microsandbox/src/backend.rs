@@ -23,6 +23,7 @@ use crate::{
     error,
     execution::ExecutionControls,
     image::MicrosandboxImageBackend,
+    image_cache::ImageCache,
     network_endpoint, platform,
     state::{SandboxRecord, StateStore},
 };
@@ -44,6 +45,7 @@ const STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
 /// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
     pub(crate) client: Client,
+    images: ImageCache,
     image_backend: MicrosandboxImageBackend,
     pub(crate) state: StateStore,
     pub(crate) executions: ExecutionControls,
@@ -53,6 +55,7 @@ pub struct MicrosandboxProvider {
 pub struct MicrosandboxProviderBuilder {
     home: PathBuf,
     cache_directory: Option<PathBuf>,
+    unused_image_retention: Option<std::time::Duration>,
     registry_authentication: Option<sandbox::image::RegistryAuthentication>,
     runtime_bundle: Option<RuntimeBundle>,
 }
@@ -70,6 +73,7 @@ impl MicrosandboxProvider {
         MicrosandboxProviderBuilder {
             home: home.into(),
             cache_directory: None,
+            unused_image_retention: None,
             registry_authentication: None,
             runtime_bundle: None,
         }
@@ -88,6 +92,7 @@ impl MicrosandboxProvider {
     async fn open_configured(
         home: PathBuf,
         cache_directory: Option<PathBuf>,
+        unused_image_retention: Option<std::time::Duration>,
         registry_authentication: Option<sandbox::image::RegistryAuthentication>,
         runtime_bundle: Option<RuntimeBundle>,
     ) -> Result<Self, Error> {
@@ -96,6 +101,12 @@ impl MicrosandboxProvider {
         }
         if cache_directory.as_ref().is_some_and(|path| path.as_os_str().is_empty()) {
             return Err(Error::invalid("provider.cacheDirectory", "must not be empty"));
+        }
+        if cache_directory.is_some() && unused_image_retention.is_some() {
+            return Err(Error::invalid(
+                "provider.unusedImageRetention",
+                "cannot be combined with a cache directory, which other Providers may share",
+            ));
         }
         if let Some(bundle) = &runtime_bundle {
             if !bundle.path.is_file() {
@@ -113,9 +124,12 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let image_backend = MicrosandboxImageBackend::new(client.clone(), registry_authentication);
+        let images = ImageCache::new(client.clone(), state.clone(), unused_image_retention);
+        let image_backend = MicrosandboxImageBackend::new(client.clone(), images.clone(), registry_authentication);
+        images.remove_unused().await;
         Ok(Self {
             client,
+            images,
             image_backend,
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
@@ -305,7 +319,9 @@ impl MicrosandboxProvider {
             handle.remove().await.map_err(error::microsandbox)?;
         }
         self.client.local().set_network_controlled(&record.runtime_name, false);
-        self.state.remove_sandbox(&record).await
+        self.state.remove_sandbox(&record).await?;
+        self.images.remove_unused().await;
+        Ok(())
     }
 
     /// Tells Microsandbox whether this runtime must start under host network
@@ -321,11 +337,7 @@ impl MicrosandboxProvider {
     }
 
     async fn runtime_handle(&self, name: &str) -> Result<Option<microsandbox::sandbox::SandboxHandle>, Error> {
-        match self.client.scope(microsandbox::Sandbox::get(name)).await {
-            Ok(handle) => Ok(Some(handle)),
-            Err(microsandbox::MicrosandboxError::SandboxNotFound(_)) => Ok(None),
-            Err(error) => Err(error::microsandbox(error)),
-        }
+        self.client.runtime_handle(name).await
     }
 
     pub(crate) async fn connect_running(&self, record: &SandboxRecord) -> Result<microsandbox::Sandbox, Error> {
@@ -463,6 +475,23 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
+    /// Removes cached images that no Sandbox needs once they have not been used for
+    /// `retention`.
+    ///
+    /// An image is needed while a Sandbox uses it, whether or not the Sandbox is running.
+    /// Resolving or importing an image uses it. Removal runs when the Provider opens, after
+    /// each image is resolved or imported and after each Sandbox is deleted, so the cache
+    /// holds only the images Sandboxes need and those used within `retention`. The period
+    /// must also cover the time between resolving an image and creating its Sandbox.
+    ///
+    /// Enable this only for the Provider that owns its home. It cannot be combined with
+    /// [`Self::cache_directory`], since another Provider may use a shared cache.
+    #[must_use]
+    pub const fn remove_unused_images_after(mut self, retention: std::time::Duration) -> Self {
+        self.unused_image_retention = Some(retention);
+        self
+    }
+
     /// Supplies transient credentials used to resolve OCI registry references.
     #[must_use]
     pub fn registry_authentication(mut self, authentication: sandbox::image::RegistryAuthentication) -> Self {
@@ -493,6 +522,7 @@ impl MicrosandboxProviderBuilder {
         MicrosandboxProvider::open_configured(
             self.home,
             self.cache_directory,
+            self.unused_image_retention,
             self.registry_authentication,
             self.runtime_bundle,
         )

@@ -26,6 +26,10 @@ pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
 
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
+/// How long `agentd` keeps an image no Agent uses after its last use, so an Agent deleted and
+/// applied again with the same image does not download it again.
+const UNUSED_IMAGE_RETENTION: std::time::Duration = std::time::Duration::from_hours(24);
+
 /// Sandbox-resolvable name of the Microsandbox Network Backend's host alias.
 ///
 /// The Backend's DNS answers this name with the per-Sandbox gateway address
@@ -56,8 +60,13 @@ impl Adapter {
         platform_port: u16,
     ) -> Result<Self, Error> {
         let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(secret_store));
-        let service = SandboxService::new(Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?))
-            .with_network_backend(network.clone());
+        let service = SandboxService::new(Rc::new(
+            MicrosandboxProvider::builder(home.join("microsandbox"))
+                .remove_unused_images_after(UNUSED_IMAGE_RETENTION)
+                .open()
+                .await?,
+        ))
+        .with_network_backend(network.clone());
         policy.set_platform_endpoint(HOST_ALIAS, platform_port);
         Ok(Self {
             id: ProviderId::new(PROVIDER_ID)?,

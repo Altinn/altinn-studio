@@ -1,17 +1,19 @@
 // A Provider handle lives for the whole test; tightening its drop adds nothing.
 #![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
-use std::{io::Cursor, path::PathBuf, rc::Rc};
+use std::{collections::BTreeMap, io::Cursor, path::PathBuf, rc::Rc, time::Duration};
 
 use bytes::Bytes;
 use futures_util::StreamExt as _;
 use sandbox::{
     ByteQuantity, CpuQuantity, EnsureSandboxRequest, Hostname, OperationEvent, Platform, ProgressEvent,
-    RetentionPolicy, RootFilesystem, Sandbox, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
-    backend::SandboxBackend as _,
+    RetentionPolicy, RootFilesystem, RootFilesystemMode, Sandbox, SandboxName, SandboxResources, SandboxService,
+    SandboxSpec, SandboxState,
+    backend::{CreateSandboxRequest, SandboxBackend as _},
     execution::{self, ExecutionSpec, StartExecutionRequest},
-    image::ImageSource,
+    image::{ImageSource, ResolveRequest},
     mount::Mount,
+    provider::SandboxProvider as _,
     terminal::{StartTerminalExecutionRequest, TerminalEvent, TerminalSize},
     volume::{EnsureVolumeRequest, VolumeName},
 };
@@ -154,6 +156,143 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
     assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
 
     backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
+#[tokio::test(flavor = "local")]
+#[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+async fn unused_images_are_removed_while_every_sandbox_keeps_its_image() {
+    let temporary = RetainedOnFailureTempDir::new();
+    let home = temporary.path().join("control-plane");
+    let retention = Duration::from_secs(2);
+    let backend = Rc::new(
+        MicrosandboxProvider::builder(&home)
+            .remove_unused_images_after(retention)
+            .open()
+            .await
+            .expect("Backend should open"),
+    );
+    let service = SandboxService::new(backend.clone());
+    let reference_request = |name: &str, reference: &str, resources: SandboxResources| {
+        EnsureSandboxRequest::new(
+            SandboxName::new(name).expect("test Sandbox name should be valid"),
+            SandboxSpec {
+                image: ImageSource::Reference {
+                    reference: reference.to_string(),
+                },
+                platform: native_linux_platform(),
+                resources,
+                init_system: sandbox::init::InitSystem::Backend,
+                retention_policy: RetentionPolicy::Retain,
+            },
+        )
+    };
+
+    let stopped = service
+        .ensure(&reference_request(
+            "stopped-layered",
+            "docker.io/library/alpine:3.21",
+            resources("1", "512Mi", "1Gi"),
+        ))
+        .await
+        .expect("layered Sandbox should start")
+        .snapshot()
+        .clone();
+    backend.stop(&stopped.id).await.expect("Sandbox should stop");
+
+    let never_started = create_never_started(&backend, "docker.io/library/alpine:3.20").await;
+
+    let deleted = service
+        .ensure(&reference_request(
+            "deleted-direct",
+            "docker.io/library/alpine:3.22",
+            direct_resources("1", "512Mi", "1Gi"),
+        ))
+        .await
+        .expect("direct Sandbox should start")
+        .snapshot()
+        .clone();
+    tokio::time::sleep(retention).await;
+    service.delete(&deleted.name).await.expect("Sandbox should be deleted");
+
+    let cache = home.join("runtime/cache");
+    let flat_ref = |manifest_digest: &str| {
+        cache
+            .join("flat/refs")
+            .join(format!("{}.json", manifest_digest.replace(':', "_")))
+    };
+    assert!(
+        !flat_ref(&deleted.image.manifest_digest).exists(),
+        "the deleted direct Sandbox's root filesystem image should be removed"
+    );
+    assert_eq!(
+        cached_files(&cache.join("flat/blobs")).len(),
+        1,
+        "only the never-started direct Sandbox's root filesystem image should remain"
+    );
+    assert!(flat_ref(&never_started.image.manifest_digest).exists());
+
+    backend
+        .start(&stopped.id)
+        .await
+        .expect("the stopped Sandbox should keep its image and restart");
+    backend
+        .start(&never_started.id)
+        .await
+        .expect("the Sandbox without a runtime should keep its image and start");
+    // Creating the runtime of the never-started Sandbox used its image again.
+    tokio::time::sleep(retention).await;
+    for sandbox in [&stopped, &never_started] {
+        service.delete(&sandbox.name).await.expect("Sandbox should be deleted");
+    }
+
+    for directory in ["flat/blobs", "flat/refs", "layers", "fsmeta", "vmdk"] {
+        assert_eq!(
+            cached_files(&cache.join(directory)),
+            Vec::<PathBuf>::new(),
+            "no image should remain in {directory} once no Sandbox needs one"
+        );
+    }
+}
+
+/// Creates a direct Sandbox without starting it, so it has no runtime to hold its image, as
+/// when a Sandbox's first start fails.
+async fn create_never_started(backend: &MicrosandboxProvider, reference: &str) -> Sandbox {
+    let image = backend
+        .image_backend()
+        .resolve(&ResolveRequest {
+            source: ImageSource::Reference {
+                reference: reference.to_string(),
+            },
+            platform: native_linux_platform(),
+            root_filesystem_mode: RootFilesystemMode::Direct,
+        })
+        .await
+        .expect("image should resolve");
+    backend
+        .create(CreateSandboxRequest {
+            id: "00000000-0000-4000-8000-0000000020d4".parse().expect("test Sandbox ID"),
+            image,
+            name: SandboxName::new("never-started").expect("test Sandbox name should be valid"),
+            hostname: Hostname::new("never-started").expect("test hostname should be valid"),
+            resources: direct_resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: None,
+        })
+        .await
+        .expect("Sandbox should be created")
+}
+
+/// Lists the cached artifacts in a directory, ignoring lock files.
+fn cached_files(directory: &std::path::Path) -> Vec<PathBuf> {
+    let Ok(entries) = std::fs::read_dir(directory) else {
+        return Vec::new();
+    };
+    entries
+        .map(|entry| entry.expect("cache entry should be readable").path())
+        .filter(|path| path.extension().is_none_or(|extension| extension != "lock"))
+        .collect()
 }
 
 /// A replacement must never expose a partial file: a reader polling the path throughout the

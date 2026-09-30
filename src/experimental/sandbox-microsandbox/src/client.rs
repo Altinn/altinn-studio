@@ -219,6 +219,18 @@ impl Client {
         })
     }
 
+    /// Returns the Microsandbox runtime of this name, or `None` when it has not been created.
+    pub(crate) async fn runtime_handle(
+        &self,
+        name: &str,
+    ) -> Result<Option<microsandbox::sandbox::SandboxHandle>, Error> {
+        match self.scope(microsandbox::Sandbox::get(name)).await {
+            Ok(handle) => Ok(Some(handle)),
+            Err(microsandbox::MicrosandboxError::SandboxNotFound(_)) => Ok(None),
+            Err(error) => Err(error::microsandbox(error)),
+        }
+    }
+
     pub(crate) async fn scope<F, T>(&self, future: F) -> T
     where
         F: Future<Output = T>,

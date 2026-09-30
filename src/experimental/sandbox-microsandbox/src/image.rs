@@ -17,7 +17,7 @@ use tokio::io::AsyncWriteExt as _;
 use tokio_util::codec::{BytesCodec, FramedRead};
 use uuid::Uuid;
 
-use crate::{client::Client, encoding::lower_hex, error, platform};
+use crate::{client::Client, encoding::lower_hex, error, image_cache::ImageCache, platform};
 
 const CHECK_DOCKER: &str = "Check Docker Engine";
 const PREPARE_CONTEXT: &str = "Prepare Docker build context";
@@ -41,14 +41,20 @@ const IMPORT_CACHE_REPOSITORY: &str = "sandbox-microsandbox-import";
 /// used by its paired Backend.
 pub(crate) struct MicrosandboxImageBackend {
     client: Client,
+    images: ImageCache,
     docker: Result<Docker, String>,
     registry_authentication: Option<sandbox::image::RegistryAuthentication>,
 }
 
 impl MicrosandboxImageBackend {
-    pub(crate) fn new(client: Client, registry_authentication: Option<sandbox::image::RegistryAuthentication>) -> Self {
+    pub(crate) fn new(
+        client: Client,
+        images: ImageCache,
+        registry_authentication: Option<sandbox::image::RegistryAuthentication>,
+    ) -> Self {
         Self {
             client,
+            images,
             docker: Docker::connect_with_defaults().map_err(|failure| failure.to_string()),
             registry_authentication,
         }
@@ -63,7 +69,7 @@ impl MicrosandboxImageBackend {
     /// The system temporary directory is often a small tmpfs (a Sandbox guest gives `/tmp`
     /// 512 MiB), while an exported image archive is as large as the image itself.
     async fn scratch_dir(&self) -> Result<PathBuf, Error> {
-        let scratch = self.client.local().cache_dir().join("tmp");
+        let scratch = self.images.scratch_directory();
         tokio::fs::create_dir_all(&scratch)
             .await
             .map_err(|source| error::io("create image scratch directory", source))?;
@@ -230,6 +236,7 @@ impl MicrosandboxImageBackend {
         step.complete().await;
 
         let import_reference = self.import_cache_reference(temporary_tag).await?;
+        let _use = self.images.record_use().await;
         if let Some(resolved) = self
             .cached_import(&import_reference, requested, platform, progress)
             .await?
@@ -304,15 +311,25 @@ impl MicrosandboxImageBackend {
         progress: &SandboxProgress,
     ) -> Result<Option<(String, sandbox::Platform)>, Error> {
         let step = progress.start_step(LOOKUP_IMPORTED_IMAGE).await;
+        let parsed = reference
+            .parse::<microsandbox_image::Reference>()
+            .map_err(error::backend)?;
+        let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
+        let metadata = cache.read_image_metadata(&parsed).map_err(error::backend)?;
         let handle = match microsandbox::Image::get_local(self.client.local(), reference).await {
             Ok(handle) => Some(handle),
             Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => None,
             Err(failure) => return Err(error::microsandbox(failure)),
         };
         step.complete().await;
-        handle
-            .map(|handle| resolve_image_handle(&handle, requested, platform))
-            .transpose()
+        let (Some(handle), Some(metadata)) = (handle, metadata) else {
+            return Ok(None);
+        };
+        // Recording the import again marks it used, so it is not removed as unused.
+        microsandbox::Image::persist(self.client.local(), reference, metadata)
+            .await
+            .map_err(error::microsandbox)?;
+        resolve_image_handle(&handle, requested, platform).map(Some)
     }
 
     async fn import_image(
@@ -402,6 +419,7 @@ impl MicrosandboxImageBackend {
             .parse()
             .map_err(|failure| Error::Backend(format!("invalid OCI image reference '{reference}': {failure}")))?;
         let step = progress.start_step(PULL_IMAGE).await;
+        let _use = self.images.record_use().await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
             pull_policy: reference_pull_policy(&parsed),
@@ -463,10 +481,8 @@ impl MicrosandboxImageBackend {
                 .ok_or_else(|| Error::Backend("Microsandbox did not retain pulled image metadata".to_string()))?
         };
 
-        microsandbox::Image::persist(self.client.local(), reference, metadata)
-            .await
-            .map_err(error::microsandbox)?;
-        let handle = microsandbox::Image::get_local(self.client.local(), reference)
+        let catalog_reference = self.record_image(&cache, &parsed, metadata).await?;
+        let handle = microsandbox::Image::get_local(self.client.local(), &catalog_reference)
             .await
             .map_err(error::microsandbox)?;
         let (manifest_digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
@@ -478,6 +494,32 @@ impl MicrosandboxImageBackend {
         })
     }
 
+    /// Records an image version in the catalog under a reference pinned to its manifest
+    /// digest, never under a tag. A tag moves to newer versions, while this reference names
+    /// only this one, so removing the reference removes the version. Recording it again marks
+    /// it used.
+    async fn record_image(
+        &self,
+        cache: &microsandbox_image::GlobalCache,
+        reference: &microsandbox_image::Reference,
+        metadata: microsandbox_image::CachedImageMetadata,
+    ) -> Result<String, Error> {
+        let pinned = microsandbox_image::Reference::with_digest(
+            reference.registry().to_string(),
+            reference.repository().to_string(),
+            metadata.manifest_digest.clone(),
+        );
+        cache
+            .write_image_metadata_async(&pinned, &metadata)
+            .await
+            .map_err(error::backend)?;
+        let catalog_reference = pinned.to_string();
+        microsandbox::Image::persist(self.client.local(), &catalog_reference, metadata)
+            .await
+            .map_err(error::microsandbox)?;
+        Ok(catalog_reference)
+    }
+
     async fn export_prepared_root(
         &self,
         request: &image::ResolveRequest,
@@ -486,7 +528,7 @@ impl MicrosandboxImageBackend {
     ) -> Result<image::PreparedImage, Error> {
         let operation = image::ImageOperation::PreparedImageExport;
         require_direct_prepared_root(request, operation)?;
-        let (_, reference) = prepared_root_reference(request, operation)?;
+        let reference = prepared_root_reference(request, operation)?;
         let resolved = self
             .resolve_reference(request, &reference.to_string(), progress)
             .await?;
@@ -513,9 +555,10 @@ impl MicrosandboxImageBackend {
         let operation = image::ImageOperation::PreparedImageImport;
         require_direct_prepared_root(request, operation)?;
         let actual = platform::require_supported(&request.platform)?;
-        let (catalog_name, reference) = prepared_root_reference(request, operation)?;
+        let reference = prepared_root_reference(request, operation)?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
+        let _use = self.images.record_use().await;
         let prepared = microsandbox_image::import_prepared_root(
             &cache,
             &reference,
@@ -525,10 +568,8 @@ impl MicrosandboxImageBackend {
         .await
         .map_err(error::backend)?;
         // Record the imported root like a pulled image, so it is listed locally
-        // and image removal and pruning reclaim its flat artifacts.
-        microsandbox::Image::persist(self.client.local(), catalog_name, prepared.image.clone())
-            .await
-            .map_err(error::microsandbox)?;
+        // and removing it reclaims its flat artifacts.
+        self.record_image(&cache, &reference, prepared.image.clone()).await?;
         step.complete().await;
         Ok(prepared_root(
             image::ResolvedImage {
@@ -565,12 +606,11 @@ fn reference_pull_policy(reference: &microsandbox_image::Reference) -> microsand
     }
 }
 
-/// The prepared root's reference as given, used as its catalog name like a
-/// pulled image's, and parsed.
+/// The prepared root's digest-pinned reference.
 fn prepared_root_reference(
     request: &image::ResolveRequest,
     operation: image::ImageOperation,
-) -> Result<(&str, microsandbox_image::Reference), Error> {
+) -> Result<microsandbox_image::Reference, Error> {
     let image::ImageSource::Reference { reference } = &request.source else {
         return Err(Error::UnsupportedImageSourceKind {
             operation,
@@ -586,7 +626,7 @@ fn prepared_root_reference(
             "prepared roots require an immutable digest-pinned OCI reference",
         ));
     }
-    Ok((reference, parsed))
+    Ok(parsed)
 }
 
 fn prepared_root(
@@ -881,7 +921,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         PendingOperation::run(move |progress| {
             Box::pin(async move {
-                match &request.source {
+                let resolved = match &request.source {
                     image::ImageSource::Build {
                         context,
                         dockerfile,
@@ -893,7 +933,9 @@ impl image::ImageBackend for MicrosandboxImageBackend {
                     image::ImageSource::Reference { reference } => {
                         self.resolve_reference(request, reference, &progress).await
                     }
-                }
+                }?;
+                self.images.remove_unused().await;
+                Ok(resolved)
             })
         })
     }
@@ -914,7 +956,11 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         source: &'a Path,
     ) -> PendingOperation<'a, image::PreparedImage> {
         PendingOperation::run(move |progress| {
-            Box::pin(async move { self.import_prepared_root(request, source, &progress).await })
+            Box::pin(async move {
+                let prepared = self.import_prepared_root(request, source, &progress).await?;
+                self.images.remove_unused().await;
+                Ok(prepared)
+            })
         })
     }
 }
@@ -992,6 +1038,14 @@ fn archive_path(path: &Path) -> Result<String, Error> {
 mod tests {
     use std::{fs, path::Path};
 
+    async fn image_backend(client: crate::client::Client, state: &Path) -> super::MicrosandboxImageBackend {
+        let state = crate::state::StateStore::open(state.to_path_buf())
+            .await
+            .expect("state store should open");
+        let images = crate::image_cache::ImageCache::new(client.clone(), state, None);
+        super::MicrosandboxImageBackend::new(client, images, None)
+    }
+
     #[test]
     fn mutable_references_refresh_registry_metadata_while_digest_pins_reuse_the_cache() {
         let tagged = "ghcr.io/altinn/agent:latest"
@@ -1037,12 +1091,13 @@ mod tests {
             platform: sandbox::Platform::new("linux", architecture),
             root_filesystem_mode: sandbox::RootFilesystemMode::Direct,
         };
-        let exporter = super::MicrosandboxImageBackend::new(
+        let exporter = image_backend(
             crate::client::Client::open(temporary.path().join("exporter"), None, None)
                 .await
                 .expect("exporting Client should open"),
-            None,
-        );
+            &temporary.path().join("exporter-state"),
+        )
+        .await;
         let bundle = temporary.path().join("prepared");
         exporter
             .export_prepared_image(&request, &bundle)
@@ -1052,7 +1107,7 @@ mod tests {
         let client = crate::client::Client::open(temporary.path().join("importer"), None, None)
             .await
             .expect("importing Client should open");
-        let importer = super::MicrosandboxImageBackend::new(client.clone(), None);
+        let importer = image_backend(client.clone(), &temporary.path().join("importer-state")).await;
         importer
             .import_prepared_image(&request, &bundle)
             .await
@@ -1072,6 +1127,39 @@ mod tests {
                 .iter()
                 .map(microsandbox::ImageHandle::reference)
                 .collect::<Vec<_>>()
+        );
+    }
+
+    #[tokio::test(flavor = "local")]
+    #[ignore = "requires Internet access"]
+    async fn tagged_references_are_recorded_under_their_manifest_digest() {
+        use sandbox::image::ImageBackend as _;
+
+        let temporary = tempfile::tempdir().expect("temporary directory should be created");
+        let client = crate::client::Client::open(temporary.path().join("runtime"), None, None)
+            .await
+            .expect("Client should open");
+        let backend = image_backend(client.clone(), &temporary.path().join("state")).await;
+        let request = sandbox::image::ResolveRequest {
+            source: sandbox::image::ImageSource::Reference {
+                reference: "docker.io/library/alpine:3.22".to_string(),
+            },
+            platform: sandbox::Platform::native("linux"),
+            root_filesystem_mode: sandbox::RootFilesystemMode::Layered,
+        };
+
+        let resolved = backend.resolve(&request).await.expect("tag should resolve");
+
+        let references: Vec<String> = microsandbox::Image::list_local(client.local())
+            .await
+            .expect("local images should list")
+            .iter()
+            .map(|image| image.reference().to_string())
+            .collect();
+        assert_eq!(
+            references,
+            [format!("docker.io/library/alpine@{}", resolved.manifest_digest)],
+            "a tag moves to newer versions, so only the resolved version's digest names it"
         );
     }
 

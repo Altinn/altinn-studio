@@ -129,6 +129,15 @@ impl StateStore {
         Ok(record)
     }
 
+    /// Returns every Sandbox record, whether or not its runtime exists.
+    pub(crate) async fn sandbox_records(&self) -> Result<Vec<SandboxRecord>, sandbox::Error> {
+        let records: Vec<SandboxRecord> = read_records(&self.sandboxes, sandbox::ResourceKind::Sandbox).await?;
+        for record in &records {
+            validate_schema(record.schema_version, SANDBOX_SCHEMA_VERSION)?;
+        }
+        Ok(records)
+    }
+
     pub(crate) async fn remove_sandbox(&self, record: &SandboxRecord) -> Result<(), sandbox::Error> {
         remove_file(self.sandbox_path(&record.name), "remove Microsandbox Sandbox state").await
     }
@@ -279,6 +288,10 @@ where
         .map_err(|source| error::io("read Microsandbox state entry", source))?
     {
         let path = entry.path();
+        // Writes stage records in temporary files beside the committed ones.
+        if path.extension().is_none_or(|extension| extension != "json") {
+            continue;
+        }
         records.push(
             read_record(
                 path.clone(),
