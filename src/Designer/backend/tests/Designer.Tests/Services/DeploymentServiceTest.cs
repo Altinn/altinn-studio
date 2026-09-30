@@ -1038,14 +1038,29 @@ public class DeploymentServiceTest
         };
     }
 
+    public static TheoryData<string, bool, AppStatus?, AppStatus?, AppStatus> AppStatusCases =>
+        new()
+        {
+            // env, has previous deploy, previous deploy status, requested status, expected status
+            { "at23", false, null, null, AppStatus.UnderDevelopment },
+            { "tt02", false, null, null, AppStatus.UnderDevelopment },
+            { "production", false, null, null, AppStatus.Completed },
+            { "tt02", false, null, AppStatus.Completed, AppStatus.Completed },
+            { "production", false, null, AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
+            { "tt02", true, AppStatus.Completed, null, AppStatus.Completed },
+            { "production", true, AppStatus.UnderDevelopment, null, AppStatus.UnderDevelopment },
+            { "tt02", true, null, null, AppStatus.UnderDevelopment },
+            { "production", true, null, null, AppStatus.Completed },
+            { "tt02", true, AppStatus.Completed, AppStatus.UnderDevelopment, AppStatus.UnderDevelopment },
+            { "production", true, AppStatus.UnderDevelopment, AppStatus.Completed, AppStatus.Completed },
+        };
+
     [Theory]
-    [InlineData("at23", null, AppStatus.UnderDevelopment)]
-    [InlineData("tt02", null, AppStatus.UnderDevelopment)]
-    [InlineData("production", null, AppStatus.Completed)]
-    [InlineData("tt02", AppStatus.Completed, AppStatus.Completed)]
-    [InlineData("production", AppStatus.UnderDevelopment, AppStatus.UnderDevelopment)]
+    [MemberData(nameof(AppStatusCases))]
     public async Task CreateAsync_SetsAppStatusInStorageResourceRegistryAndDeployment(
         string env,
+        bool hasPreviousDeploy,
+        AppStatus? previousAppStatus,
         AppStatus? requestedAppStatus,
         AppStatus expectedAppStatus
     )
@@ -1080,6 +1095,19 @@ public class DeploymentServiceTest
         _deploymentRepository
             .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
             .ReturnsAsync((DeploymentEntity entity) => entity);
+        _deploymentRepository
+            .Setup(r => r.GetLatestDeploy(org, app, env))
+            .ReturnsAsync(
+                hasPreviousDeploy
+                    ? new DeploymentEntity
+                    {
+                        Org = org,
+                        App = app,
+                        EnvName = env,
+                        AppStatus = previousAppStatus,
+                    }
+                    : null
+            );
 
         DeploymentService deploymentService = new(
             GetAzureDevOpsSettings(),

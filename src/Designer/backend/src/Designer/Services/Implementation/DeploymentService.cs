@@ -110,7 +110,9 @@ public class DeploymentService : IDeploymentService
         deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
         deploymentEntity.TagName = deployment.TagName;
         deploymentEntity.EnvName = deployment.EnvName;
-        AppStatus appStatus = deployment.AppStatus ?? GetDefaultAppStatus(deployment.EnvName);
+        AppStatus appStatus =
+            deployment.AppStatus
+            ?? await GetDefaultAppStatusAsync(authenticatedContext.Org, authenticatedContext.Repo, deployment.EnvName);
         deploymentEntity.AppStatus = appStatus;
 
         ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
@@ -205,8 +207,16 @@ public class DeploymentService : IDeploymentService
         return deploymentEntity;
     }
 
-    private static AppStatus GetDefaultAppStatus(string envName) =>
-        IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
+    private async Task<AppStatus> GetDefaultAppStatusAsync(string org, string app, string envName)
+    {
+        DeploymentEntity latestDeploy = await _deploymentRepository.GetLatestDeploy(org, app, envName);
+        if (latestDeploy?.AppStatus is AppStatus.UnderDevelopment or AppStatus.Completed)
+        {
+            return latestDeploy.AppStatus.Value;
+        }
+
+        return IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
+    }
 
     // Designer names the production environment "production", while AltinnEnvironment expects "prod"
     private static bool IsProductionEnvironment(string envName) =>
