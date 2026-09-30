@@ -31,8 +31,6 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - Changing a running Agent's resources after `agentd` restarted no longer restarts the Agent with network access that
   bypasses network authorization and secret mediation.
-- An Agent whose recorded network settings this version of `agentd` cannot enforce fails to start instead of starting
-  without network control.
 
 ## [0.1.0-preview.7] - 2026-09-28
 

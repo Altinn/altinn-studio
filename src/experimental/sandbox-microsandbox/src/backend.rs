@@ -242,7 +242,7 @@ impl MicrosandboxProvider {
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
         let record = self.state.sandbox_by_id(id).await?;
-        let network = self.prepare_runtime_network(&record)?;
+        self.prepare_runtime_network(&record)?;
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
         step.complete().await;
@@ -254,7 +254,7 @@ impl MicrosandboxProvider {
                 step.complete().await;
                 running
             }
-            None => Box::pin(self.create_runtime(&record, network, progress)).await?,
+            None => Box::pin(self.create_runtime(&record, progress)).await?,
         };
         Ok(())
     }
@@ -313,9 +313,12 @@ impl MicrosandboxProvider {
     async fn create_runtime(
         &self,
         record: &SandboxRecord,
-        network: RuntimeNetwork,
         progress: &SandboxProgress,
     ) -> Result<microsandbox::Sandbox, Error> {
+        // Applying the attachment here, not trusting a caller's decision, keeps
+        // a runtime from being created with the controlled network policy but
+        // without host network control.
+        let network = self.prepare_runtime_network(record)?;
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
         let image = self.cached_image_reference(&record.image.manifest_digest).await?;
@@ -845,6 +848,7 @@ mod tests {
                 "starting a Sandbox recorded with {expected:?} should be refused, got {result:?}"
             );
         }
+        drop(provider);
     }
 
     #[tokio::test(flavor = "local")]
