@@ -690,4 +690,64 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             StringComparison.OrdinalIgnoreCase
         );
     }
+
+    [Fact]
+    public async Task ProcessWithoutPdfServiceTask_Warns()
+    {
+        // v8 treated an absent enablePdfCreation as true, so an app that relied on that ends up here
+        // with no flag to migrate and no PDF task.
+        _app.Write("config/applicationmetadata.json", Metadata(AttachmentDataType("file", enablePdfCreation: false)));
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("no 'pdf' or 'subformPdf' service task", StringComparison.Ordinal)
+        );
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public async Task InsertedPdfServiceTask_DoesNotWarnAboutMissingPdf()
+    {
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var warnings = await Migrate();
+
+        Assert.DoesNotContain(warnings, w => w.Contains("service task, so the process", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("pdf")]
+    [InlineData("subformPdf")]
+    public async Task ExistingPdfServiceTask_DoesNotWarnAboutMissingPdf(string taskType)
+    {
+        _app.Write("config/applicationmetadata.json", Metadata(AttachmentDataType("file", enablePdfCreation: false)));
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                ServiceTask("Pdf_1", taskType),
+                Flow("Flow_pdf", "Task_1", "Pdf_1"),
+                Flow("Flow_end", "Pdf_1", "EndEvent_1"),
+                EndEvent("EndEvent_1")
+            )
+        );
+
+        var result = await MigrateResult();
+
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
 }
