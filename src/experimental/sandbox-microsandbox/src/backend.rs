@@ -151,19 +151,33 @@ impl MicrosandboxProvider {
     }
 
     /// Migrates a catalog recorded before Sandboxes held their images, while the Provider opens
-    /// and before anything else runs. Every Sandbox with a runtime holds its image, fetched again
-    /// by digest when the catalog lost track of it, and Microsandbox's prune then removes every
-    /// image no runtime uses. A Sandbox without a runtime fetches its image again when it starts.
-    /// If a Sandbox with a runtime cannot hold its image, nothing is removed and the next open
-    /// tries again.
+    /// and before anything else runs. Every Sandbox holds its image; one with a runtime whose
+    /// image the old catalog lost fetches it again by digest. Image versions nothing holds are
+    /// then removed, but only once every Sandbox's image is protected from that removal, which
+    /// a Sandbox that never started, or whose first start was interrupted, is not. Until then
+    /// each open tries again.
     async fn migrate_images(&self) -> Result<(), Error> {
         if !self.images.migration_pending().await {
             return Ok(());
         }
+        let mut every_image_pinned = true;
         for record in self.state.sandbox_records().await? {
-            if self.runtime_handle(&record.runtime_name).await?.is_some() {
-                self.hold_image(&record).await?;
-            }
+            let held = if self.runtime_handle(&record.runtime_name).await?.is_some() {
+                match self.hold_image(&record).await {
+                    Ok(_) => true,
+                    Err(error) => {
+                        tracing::warn!(sandbox = %record.id, %error, "failed to hold a Sandbox's image");
+                        false
+                    }
+                }
+            } else {
+                self.images.hold(&record).await?.is_some()
+            };
+            every_image_pinned &= held && self.images.is_pinned(&record).await?;
+        }
+        if !every_image_pinned {
+            tracing::info!("keeping image versions from before this release until every Sandbox's image is protected");
+            return Ok(());
         }
         self.images.finish_migration().await
     }

@@ -48,6 +48,9 @@ const SANDBOX_REPOSITORY: &str = "sandbox-microsandbox-sandbox";
 /// Repository of cache entries, pinned to the image version's manifest digest.
 const CACHE_REPOSITORY: &str = "sandbox-microsandbox-cache";
 
+/// Repository of the temporary entry that tells whether a runtime records using an image.
+const PROBE_REPOSITORY: &str = "sandbox-microsandbox-probe";
+
 /// Marks a home whose catalog, from before Sandbox entries, has been migrated.
 const MIGRATED_MARKER: &str = "image-catalog-v2";
 
@@ -174,14 +177,14 @@ impl ImageCache {
     }
 
     async fn remove_unused_at(&self, now: SystemTime, retention: Duration) -> Result<(), Error> {
-        // Without the records, no Sandbox entry can be known to be left behind.
-        let sandboxes: Option<HashSet<String>> = match self.state.sandbox_records().await {
-            Ok(records) => Some(records.iter().map(|record| entry_tag(&record.id)).collect()),
-            Err(error) => {
-                tracing::warn!(%error, "failed to read Sandbox records; keeping every Sandbox's image entry");
-                None
-            }
-        };
+        // A Sandbox's image is kept while its record exists, whether or not the Sandbox holds it
+        // yet, as in a home from before Sandboxes held their images.
+        let records = self.state.sandbox_records().await?;
+        let sandboxes: HashSet<String> = records.iter().map(|record| entry_tag(&record.id)).collect();
+        let used: HashSet<&str> = records
+            .iter()
+            .map(|record| record.image.manifest_digest.as_str())
+            .collect();
         let cutoff = unix_millis(now).saturating_sub(i64::try_from(retention.as_millis()).unwrap_or(i64::MAX));
         for image in microsandbox::Image::list_local(self.client.local())
             .await
@@ -192,8 +195,8 @@ impl ImageCache {
                 .or_else(|| image.created_at())
                 .map(|time| time.timestamp_millis());
             let unused = sandbox_entry_tag(image.reference()).map_or_else(
-                || is_expired(last_used, cutoff),
-                |tag| sandboxes.as_ref().is_some_and(|sandboxes| !sandboxes.contains(tag)),
+                || is_expired(last_used, cutoff) && image.manifest_digest().is_none_or(|digest| !used.contains(digest)),
+                |tag| !sandboxes.contains(tag),
             );
             if !unused {
                 continue;
@@ -221,11 +224,33 @@ impl ImageCache {
             .unwrap_or(false)
     }
 
-    /// Completes the migration of a catalog from before Sandboxes held their images, once every
-    /// Sandbox holds its image. Image versions no entry names, which a moved tag left behind,
-    /// are reachable only through Microsandbox's prune, which also removes every entry of an
-    /// image no runtime uses. It therefore runs once, while the Provider opens and before any
-    /// Sandbox is created.
+    /// Reports whether a runtime records that it uses a held Sandbox image, which is what
+    /// protects an image from Microsandbox's prune. Microsandbox refuses to remove an entry of an
+    /// image a runtime records using, so a temporary entry that can be removed shows that none
+    /// does. The Sandbox's own entry keeps the image meanwhile.
+    pub(crate) async fn is_pinned(&self, record: &SandboxRecord) -> Result<bool, Error> {
+        let Some(metadata) = self.metadata(&sandbox_entry(&record.id))? else {
+            return Ok(false);
+        };
+        let probe = format!("{PROBE_REPOSITORY}:{}", entry_tag(&record.id));
+        self.write_entry(&probe, metadata).await?;
+        match microsandbox::Image::remove_local(self.client.local(), &probe, false).await {
+            Ok(()) => Ok(false),
+            Err(microsandbox::MicrosandboxError::ImageInUse(_)) => {
+                microsandbox::Image::remove_local(self.client.local(), &probe, true)
+                    .await
+                    .map_err(error::microsandbox)?;
+                Ok(true)
+            }
+            Err(failure) => Err(error::microsandbox(failure)),
+        }
+    }
+
+    /// Completes the migration of a catalog from before Sandboxes held their images. Image
+    /// versions no entry names, which a moved tag left behind, are reachable only through
+    /// Microsandbox's prune, which also removes every entry of an image no runtime records
+    /// using, so it runs only once every Sandbox's image [is pinned](Self::is_pinned), while the
+    /// Provider opens and before anything else runs.
     pub(crate) async fn finish_migration(&self) -> Result<(), Error> {
         let report = microsandbox::Image::prune_local(self.client.local())
             .await
@@ -500,12 +525,12 @@ mod tests {
             .expect("the image should be cached");
         assert_eq!(images.hold(&record).await.expect("hold again"), Some(entry.clone()));
 
-        // The Sandbox outlives the image's cache entry.
+        // Nothing is removed while the Sandbox uses the image, however long ago it was pulled.
         images
             .remove_unused_at(SystemTime::now() + 2 * DAY, DAY)
             .await
             .expect("pass");
-        assert_eq!(home.references().await, [entry]);
+        assert_eq!(home.references().await, [cache_entry(&image), entry]);
 
         home.state.remove_sandbox(&record).await.expect("record removed");
         images.release(&record).await;
@@ -575,22 +600,103 @@ mod tests {
         assert!(home.state.marker(MIGRATED_MARKER).exists());
     }
 
-    #[tokio::test(flavor = "local")]
-    async fn a_sandbox_without_a_runtime_does_not_hold_up_the_migration() {
-        let home = Home::open().await;
-        let previous_files = record_moved_tag(&home).await;
-        let mut record = sandbox_record("00000000-0000-4000-8000-000000000002", &digest('d'));
-        record.image.source = sandbox::image::ImageSource::Reference {
-            reference: "registry.invalid/app:latest".to_string(),
+    /// Records a Sandbox built from a Dockerfile before this release, whose image only its
+    /// import entry names, and which never started.
+    async fn record_unstarted_built_sandbox(home: &Home) -> (SandboxRecord, PathBuf) {
+        let image = digest('e');
+        home.record_legacy("sandbox-microsandbox-import:docker-1234", &image)
+            .await;
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000009", &image);
+        record.image.source = sandbox::image::ImageSource::Build {
+            context: PathBuf::from("context"),
+            dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         };
         home.state.save_sandbox(&record).await.expect("record saved");
+        (record, home.materialize(&image))
+    }
 
-        provider(home.path()).await;
-        assert!(!previous_files.exists());
+    #[tokio::test(flavor = "local")]
+    async fn migration_waits_for_a_sandbox_that_never_started_and_completes_once_it_is_deleted() {
+        use sandbox::backend::SandboxBackend as _;
+
+        let home = Home::open().await;
+        let previous_files = record_moved_tag(&home).await;
+        let (record, image_files) = record_unstarted_built_sandbox(&home).await;
+
+        let provider = provider(home.path()).await;
+        provider
+            .images()
+            .remove_unused_at(SystemTime::now() + 10 * DAY, DAY)
+            .await
+            .expect("pass");
         assert!(
-            home.state.marker(MIGRATED_MARKER).exists(),
-            "the Sandbox fetches its image when it starts"
+            image_files.exists(),
+            "the Sandbox keeps its image through the migration and later passes"
         );
+        assert!(
+            previous_files.exists(),
+            "nothing is pruned while a Sandbox's image is unprotected"
+        );
+        assert!(!home.state.marker(MIGRATED_MARKER).exists());
+
+        provider.delete(&record.id).await.expect("Sandbox deleted");
+        drop(provider);
+        crate::MicrosandboxProvider::builder(home.path())
+            .remove_unused_images_after(DAY)
+            .open()
+            .await
+            .expect("Provider should open");
+        assert!(!previous_files.exists());
+        assert!(home.state.marker(MIGRATED_MARKER).exists());
+    }
+
+    #[tokio::test(flavor = "local")]
+    #[ignore = "seeds the Microsandbox database with python3"]
+    async fn migration_keeps_the_image_of_a_sandbox_whose_first_start_was_interrupted() {
+        let home = Home::open().await;
+        let previous_files = record_moved_tag(&home).await;
+        let (record, image_files) = record_unstarted_built_sandbox(&home).await;
+        // A runtime whose creation stopped before Microsandbox recorded that it uses its image.
+        let builder = Client::sandbox_builder(
+            &record.runtime_name,
+            "sandbox-microsandbox-import:docker-1234",
+            record.resources,
+        )
+        .expect("runtime builder");
+        let config = Box::pin(home.client.scope(builder.build()))
+            .await
+            .expect("runtime config");
+        let seeded = std::process::Command::new("python3")
+            .arg("-c")
+            .arg(
+                "import pathlib, sqlite3, sys; db = next(pathlib.Path(sys.argv[1]).rglob('msb.db')); \
+                 connection = sqlite3.connect(db); connection.execute('INSERT INTO sandbox (name, config, status, ephemeral) \
+                 VALUES (?, ?, ?, ?)', (sys.argv[2], sys.argv[3], 'Stopped', 0)); connection.commit()",
+            )
+            .arg(home.path())
+            .arg(&record.runtime_name)
+            .arg(serde_json::to_string(&config).expect("runtime config serializes"))
+            .output()
+            .expect("python3 should run");
+        assert!(seeded.status.success(), "{}", String::from_utf8_lossy(&seeded.stderr));
+        assert!(
+            home.client
+                .scope(microsandbox::Sandbox::get(&record.runtime_name))
+                .await
+                .is_ok(),
+            "the runtime should exist"
+        );
+
+        let provider = provider(home.path()).await;
+        provider
+            .images()
+            .remove_unused_at(SystemTime::now() + 10 * DAY, DAY)
+            .await
+            .expect("pass");
+        assert!(image_files.exists());
+        assert!(previous_files.exists());
+        assert!(!home.state.marker(MIGRATED_MARKER).exists());
     }
 
     #[tokio::test(flavor = "local")]
@@ -620,7 +726,7 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn an_unreadable_sandbox_record_keeps_entries_but_not_expired_images() {
+    async fn an_unreadable_sandbox_record_removes_nothing() {
         let home = Home::open().await;
         let images = home.images();
         let (held, unused) = (digest('a'), digest('b'));
@@ -635,11 +741,9 @@ mod tests {
         home.resolve(&images, &unused).await;
         std::fs::write(home.path().join("state/sandboxes/unreadable.json"), b"{").expect("unreadable record");
 
-        images
-            .remove_unused_at(SystemTime::now() + 2 * DAY, DAY)
-            .await
-            .expect("pass");
-        assert_eq!(home.references().await, [entry]);
+        assert!(images.remove_unused_at(SystemTime::now() + 2 * DAY, DAY).await.is_err());
+        let references = home.references().await;
+        assert!(references.contains(&entry) && references.contains(&cache_entry(&unused)));
     }
 
     #[tokio::test(flavor = "local")]
@@ -828,5 +932,43 @@ mod tests {
                 "no image should remain in {directory} once no Sandbox needs one"
             );
         }
+    }
+
+    #[tokio::test(flavor = "local")]
+    #[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+    async fn migration_prunes_once_every_sandbox_image_is_pinned() {
+        use sandbox::backend::SandboxBackend as _;
+
+        let home = Home::open().await;
+        let first = provider(home.path()).await;
+        let service = sandbox::SandboxService::new(first.clone());
+        let sandbox = service
+            .ensure(&ensure_request(
+                "running",
+                "docker.io/library/alpine:3.21",
+                sandbox::RootFilesystemMode::Layered,
+            ))
+            .await
+            .expect("Sandbox should start")
+            .snapshot()
+            .clone();
+        drop(service);
+        drop(first);
+        // Turn the home back into one from before this release, with a version a moved tag left.
+        let previous_files = record_moved_tag(&home).await;
+        std::fs::remove_file(home.state.marker(MIGRATED_MARKER)).expect("marker removed");
+
+        let reopened = provider(home.path()).await;
+        assert!(
+            !previous_files.exists(),
+            "every Sandbox's image is pinned, so the migration prunes"
+        );
+        assert!(home.state.marker(MIGRATED_MARKER).exists());
+        reopened.stop(&sandbox.id).await.expect("Sandbox should stop");
+        reopened
+            .start(&sandbox.id)
+            .await
+            .expect("the Sandbox should keep its image and restart");
+        reopened.delete(&sandbox.id).await.expect("Sandbox should be deleted");
     }
 }
