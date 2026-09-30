@@ -14,11 +14,11 @@ internal static partial class Endpoints
     private static IResult ListValidationRules()
     {
         var rules = ValidationEngine
-            .AllRules.Select(r => new ValidateRuleResponse(
-                r.Metadata.Id,
-                r.Metadata.Title,
-                r.Metadata.DefaultSeverity.ToToken(),
-                r.Metadata.Description
+            .AllRuleMetadata.Select(m => new ValidateRuleResponse(
+                m.Id,
+                m.Title,
+                m.DefaultSeverity.ToToken(),
+                m.Description
             ))
             .ToArray();
         return Results.Ok(rules);
