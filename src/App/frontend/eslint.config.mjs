@@ -21,14 +21,7 @@ import globals from 'globals';
 import { langKey } from './src/language/eslint.js';
 
 export default defineConfig([
-  globalIgnores([
-    '**/node_modules',
-    '**/coverage',
-    '**/dist',
-    '**/*.snap',
-    '.yarn/*',
-    'test/e2e/k6-browser/**/*',
-  ]),
+  globalIgnores(['**/node_modules', '**/coverage', '**/dist', '**/*.snap', '.yarn/*', 'test/e2e/k6-browser/**/*']),
   js.configs.recommended,
   ...fixupConfigRules(pluginImport.flatConfigs.recommended),
   ...fixupConfigRules(pluginImport.flatConfigs.typescript),
