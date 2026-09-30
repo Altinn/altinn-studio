@@ -1,6 +1,8 @@
+using System.Globalization;
 using System.Text.Json;
 using Altinn.Studio.AppConfig.Documents.Text;
 using Altinn.Studio.AppConfig.Parsers;
+using Json.Pointer;
 using Json.Schema;
 
 namespace Altinn.Studio.AppConfig.Validation.Schemas;
@@ -17,6 +19,8 @@ internal static class SchemaValidator
                 + "files must match the JSON schemas published for the app's Altinn.App version, which "
                 + "are fetched from app-dist and cached. A property the schema does not permit, a "
                 + "missing required property or a value of the wrong type is reported where it occurs. "
+                + "Properties and text resource bindings that a Custom component adds beyond the schema "
+                + "are not reported, because the app frontend passes them on to its web component. "
                 + "Schema validation is skipped, with a notice, when the app's exact Altinn.App version "
                 + "can't be determined, or when app-dist is unreachable and the schemas for that version "
                 + "are not cached.",
@@ -71,7 +75,8 @@ internal static class SchemaValidator
             }
             if (results.IsValid)
                 return findings;
-            CollectInvalid(findings, schemaName, filePath, results);
+            var layout = schemaPath == LayoutSchema ? doc.RootElement : (JsonElement?)null;
+            CollectInvalid(findings, schemaName, filePath, layout, results);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -88,19 +93,22 @@ internal static class SchemaValidator
         List<Finding> findings,
         string schemaName,
         string filePath,
+        JsonElement? layout,
         EvaluationResults node
     )
     {
         if (node.IsValid)
             return;
-        if (node.HasErrors && node.Errors is not null)
+        var keyword = AfterLastSlash(node.EvaluationPath.ToString());
+        var notAllowed = keyword is "additionalProperties" or "unevaluatedProperties";
+        var passedToWebComponent =
+            notAllowed && layout is { } root && IsCustomComponentProperty(root, node.InstanceLocation);
+        if (node.HasErrors && node.Errors is not null && !passedToWebComponent)
         {
             var pointer = node.InstanceLocation.ToString();
             // The *-Properties keywords concern a property's existence, so point the span at the
             // key name (JsonSchema.Net otherwise locates it at the value).
-            var keyword = AfterLastSlash(node.EvaluationPath.ToString());
-            var onKey = keyword is "additionalProperties" or "unevaluatedProperties" or "propertyNames";
-            var notAllowed = keyword is "additionalProperties" or "unevaluatedProperties";
+            var onKey = notAllowed || keyword is "propertyNames";
             foreach (var (key, msg) in node.Errors)
             {
                 // additionalProperties:false yields the opaque "All values fail against
@@ -116,7 +124,24 @@ internal static class SchemaValidator
             }
         }
         foreach (var child in node.Details)
-            CollectInvalid(findings, schemaName, filePath, child);
+            CollectInvalid(findings, schemaName, filePath, layout, child);
+    }
+
+    private static bool IsCustomComponentProperty(JsonElement layout, JsonPointer at)
+    {
+        var onComponent = at.Count == 4;
+        var onTextResourceBinding = at.Count == 5 && at[3] == "textResourceBindings";
+        if (!(onComponent || onTextResourceBinding) || at[0] != "data" || at[1] != "layout")
+            return false;
+        return int.TryParse(at[2], NumberStyles.None, CultureInfo.InvariantCulture, out var index)
+            && layout.ValueKind == JsonValueKind.Object
+            && layout.TryGetProperty("data", out var data)
+            && data.ValueKind == JsonValueKind.Object
+            && data.TryGetProperty("layout", out var components)
+            && components.ValueKind == JsonValueKind.Array
+            && index < components.GetArrayLength()
+            && components[index] is { ValueKind: JsonValueKind.Object } component
+            && JsonRead.TryString(component, "type") == "Custom";
     }
 
     private static Finding Report(string message, SourceSpan at) =>
