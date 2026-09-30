@@ -53,6 +53,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var pdfTask = ElementById(process, "PdfTask_Task_1");
         Assert.NotNull(pdfTask);
         Assert.Equal("serviceTask", pdfTask.Name.LocalName);
+        Assert.Equal("Lag PDF", pdfTask.Attribute("name")?.Value);
         Assert.Equal("pdf", pdfTask.Descendants().Single(e => e.Name.LocalName == "taskType").Value);
         Assert.Equal("Task_1", pdfTask.Descendants().Single(e => e.Name.LocalName == "taskId").Value);
 
