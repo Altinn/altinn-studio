@@ -21,7 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- The PDF service task that `studioctl app upgrade v9` adds to the process is named "Lag PDF", the same name Studio gives new PDF tasks.
+- The PDF and eFormidling service tasks that `studioctl app upgrade v9` adds to the process are named "Lag PDF" and "Send med eFormidling", the names Studio gives new tasks of those types.
 
 ### Fixed
 
