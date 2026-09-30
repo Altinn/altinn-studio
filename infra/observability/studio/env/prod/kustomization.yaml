@@ -2,3 +2,16 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../overlay
+
+patches:
+  # The proxy runs only where the backend it fronts exists. Everywhere else it
+  # inherits the overlay's zero replicas.
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: observability-proxy
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

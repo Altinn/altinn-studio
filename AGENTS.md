@@ -89,6 +89,8 @@ Small build/ops images and configs, documented here rather than individually:
 - `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
 - `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
+- `observability-proxy` — .NET/YARP edge proxy terminating auth and rate limiting for the Studio
+  observability backend, routing OTLP ingest and Grafana read traffic to the Victoria stack.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
 `scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
