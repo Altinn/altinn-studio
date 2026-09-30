@@ -34,7 +34,9 @@ describe('PolicyActions', () => {
   it('offers every available action as an option', () => {
     renderPolicyActions();
 
-    const options = within(getOptionList()).getAllByRole('option', { hidden: true });
+    const options = within(getOptionList())
+      .getAllByRole('option', { hidden: true })
+      .filter((option) => !option.hidden);
     expect(options.map((option) => option.textContent)).toEqual([
       mockActionOption1,
       mockActionOption2,

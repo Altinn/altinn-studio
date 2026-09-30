@@ -11,7 +11,6 @@ class _Config:
     AZURE_ANTHROPIC_ENDPOINT = "https://other-resource.services.ai.azure.com/anthropic/"
     AZURE_API_KEY = "openai-resource-key"
     AZURE_ANTHROPIC_API_KEY = "anthropic-resource-key"
-    ANTHROPIC_API_KEY = None
 
 
 @pytest.fixture
@@ -71,7 +70,6 @@ class TestTheKeyMatchesTheEndpoint:
 
     def test_a_missing_key_says_which_variable_to_set(self, config):
         config.AZURE_ANTHROPIC_API_KEY = None
-        config.ANTHROPIC_API_KEY = None
 
         with pytest.raises(ValueError, match="AZURE_ANTHROPIC_API_KEY"):
             _client_for(config)
@@ -103,7 +101,6 @@ class TestBothAnthropicClientsUseTheSameKey:
         from agents.services.llm import llm_client
 
         config.AZURE_ANTHROPIC_API_KEY = None
-        config.ANTHROPIC_API_KEY = None
         monkeypatch.setattr(llm_client, "config", config)
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
 

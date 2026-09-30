@@ -1,7 +1,10 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
@@ -1317,6 +1320,18 @@ public class WorkflowEngineCallbackControllerTests
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
             };
+            // What the callback scheme would authenticate for a token minted for this actor.
+            Controller.HttpContext.User = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    [
+                        new Claim(
+                            JwtClaimTypes.WorkflowCallback.ActorHash,
+                            WorkflowCallbackTokenGenerator.ActorHash(payload.Actor)
+                        ),
+                    ],
+                    WorkflowEngineCallbackDefaults.AuthenticationScheme
+                )
+            );
 
             return await Controller.ExecuteCommand(
                 MockedServiceCollection.Org,

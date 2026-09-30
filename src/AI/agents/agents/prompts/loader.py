@@ -6,29 +6,12 @@ from typing import Any
 
 import yaml
 
-from shared.utils.langfuse_utils import fetch_langfuse_prompt, get_raw_langfuse_prompt, is_langfuse_enabled
+from shared.utils.langfuse_utils import get_raw_langfuse_prompt
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent
-
-
-def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> str | None:
-    """
-    Try to fetch a prompt from Langfuse, optionally substituting variables into {{placeholders}}.
-    Returns None if Langfuse is disabled or unavailable.
-    """
-    try:
-        if not is_langfuse_enabled():
-            return None
-        content = fetch_langfuse_prompt(prompt_name, variables)
-        log.info(f"Loaded prompt '{prompt_name}' from Langfuse")
-        return content
-    except Exception as e:
-        log.info(f"Langfuse prompt '{prompt_name}' not available, using local file")
-        log.debug(e)
-        return None
 
 
 def _prompt_file(prompt_name: str) -> Path:
@@ -38,7 +21,7 @@ def _prompt_file(prompt_name: str) -> Path:
         return found[0]
     if not found:
         raise FileNotFoundError(f"Prompt file not found: {PROMPTS_DIR / f'{prompt_name}.md'}")
-    listed = ", ".join(str(path.relative_to(PROMPTS_DIR)) for path in found)
+    listed = ", ".join(path.relative_to(PROMPTS_DIR).as_posix() for path in found)
     raise FileNotFoundError(f"Prompt name {prompt_name!r} is ambiguous: {listed}")
 
 
@@ -75,15 +58,6 @@ def load_prompt(prompt_name: str) -> dict[str, Any]:
         "version": metadata.get("version", "1.0"),
         "name": metadata.get("name", prompt_name),
     }
-
-
-def get_prompt_content(prompt_name: str) -> str:
-    """Get prompt content as a string."""
-    langfuse_content = _try_langfuse_prompt(prompt_name)
-    if langfuse_content is not None:
-        return langfuse_content
-
-    return load_prompt(prompt_name)["content"]
 
 
 def _system_message(compiled: Any) -> str | None:

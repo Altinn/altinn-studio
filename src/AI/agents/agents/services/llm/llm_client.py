@@ -5,19 +5,8 @@ import json
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import (
-    AzureChatOpenAI,
-    ChatOpenAI,
-)
-from langchain_openai import (
-    AzureOpenAI as LangchainAzureOpenAI,
-)
-from langchain_openai import (
-    OpenAI as LangchainOpenAI,
-)
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langfuse import get_client
-from openai import AzureOpenAI as AzureResponsesClient
-from openai import OpenAI as OpenAIResponsesClient
 
 from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
@@ -94,15 +83,12 @@ class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
     def __init__(self, role: str = "default", max_tokens: int | None = None):
-        """Initialize LLM client with role-specific configuration  Args: role: Agent role (planner, actor, reviewer, verifier, default) max_tokens: Maximum tokens for response."""
+        """Initialize LLM client with role-specific configuration  Args: role: Agent role (planner, default) max_tokens: Maximum tokens for response."""
         self.role = role
 
         # Select model and temperature based on role
         model: str | None = None
         temperature: float | None = None
-        self.use_completions = False
-        self.use_responses = False
-        self.responses_client = None
 
         if role == "planner":
             model = config.LLM_MODEL_PLANNER
@@ -113,43 +99,6 @@ class LLMClient:
                     log.warning(
                         "Invalid planner temperature %s; falling back to provider default",
                         config.LLM_TEMPERATURE_PLANNER,
-                    )
-        elif role == "tool_planner":
-            model = config.LLM_MODEL_TOOL_PLANNER
-            if config.LLM_TEMPERATURE_TOOL_PLANNER is not None:
-                try:
-                    temperature = float(config.LLM_TEMPERATURE_TOOL_PLANNER)
-                except ValueError:
-                    log.warning(
-                        "Invalid tool planner temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_TOOL_PLANNER,
-                    )
-            self.use_completions = bool(config.LLM_TOOL_PLANNER_USE_COMPLETIONS)
-            self.use_responses = bool(config.LLM_TOOL_PLANNER_USE_RESPONSES)
-            if self.use_completions and self.use_responses:
-                log.warning("Both completions and responses modes requested for tool planner; defaulting to responses")
-                self.use_completions = False
-        elif role == "reviewer":
-            # Used by the post-workflow LLM-as-judge evaluators
-            # (intent / implementation / hallucination judges).
-            model = config.LLM_MODEL_REVIEWER
-            if config.LLM_TEMPERATURE_REVIEWER is not None:
-                try:
-                    temperature = float(config.LLM_TEMPERATURE_REVIEWER)
-                except ValueError:
-                    log.warning(
-                        "Invalid reviewer temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_REVIEWER,
-                    )
-        elif role == "assistant":
-            model = config.LLM_MODEL_ASSISTANT
-            if config.LLM_TEMPERATURE_ASSISTANT is not None:
-                try:
-                    temperature = float(config.LLM_TEMPERATURE_ASSISTANT)
-                except ValueError:
-                    log.warning(
-                        "Invalid assistant temperature %s; falling back to provider default",
-                        config.LLM_TEMPERATURE_ASSISTANT,
                     )
         else:
             # Default fallback — used by parse_intent_with_llm /
@@ -184,9 +133,6 @@ class LLMClient:
         # Check if this is a Claude model - use Anthropic SDK instead of OpenAI
         if _is_claude_model(model):
             self._init_anthropic_client(role, model, temperature)
-            # Disable OpenAI-specific modes for Claude
-            self.use_completions = False
-            self.use_responses = False
         # Prefer Azure OpenAI if available
         elif config.AZURE_API_KEY:
             log.info(
@@ -212,21 +158,7 @@ class LLMClient:
                 if temperature is not None and temperature != 1.0:
                     llm_params["temperature"] = temperature
 
-            if self.use_responses:
-                try:
-                    self.responses_client = AzureResponsesClient(
-                        azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
-                        api_key=config.AZURE_API_KEY,
-                        api_version=config.AZURE_API_VERSION,
-                    )
-                except Exception as exc:
-                    log.error(f"Failed to initialize Azure Responses client: {exc}")
-                    raise
-                self.llm = None
-            elif self.use_completions:
-                self.llm = LangchainAzureOpenAI(**llm_params)
-            else:
-                self.llm = AzureChatOpenAI(**llm_params)
+            self.llm = AzureChatOpenAI(**llm_params)
         elif config.OPENAI_API_KEY and config.OPENAI_API_KEY != "your_openai_api_key_here":
             log.info(
                 f"Using OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
@@ -244,107 +176,40 @@ class LLMClient:
                 chat_kwargs["max_tokens"] = self.max_tokens
                 if temperature is not None:
                     chat_kwargs["temperature"] = temperature
-            if self.use_responses:
-                try:
-                    self.responses_client = OpenAIResponsesClient(api_key=config.OPENAI_API_KEY)
-                except Exception as exc:
-                    log.error(f"Failed to initialize OpenAI Responses client: {exc}")
-                    raise
-                self.llm = None
-            elif self.use_completions:
-                self.llm = LangchainOpenAI(**chat_kwargs)
-            else:
-                self.llm = ChatOpenAI(**chat_kwargs)
+            self.llm = ChatOpenAI(**chat_kwargs)
         else:
             log.warning("No LLM API key configured - LLM features will be limited")
             self.llm = None
 
-        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not (
-            self.use_completions or self.use_responses or self.use_anthropic
-        )
+        self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not self.use_anthropic
 
     def _init_anthropic_client(self, role: str, model: str, temperature: float | None) -> None:
-        """Initialize Anthropic/Claude client for Azure AI Foundry or direct Anthropic API"""
+        """Initialize the Anthropic/Claude client for Azure AI Foundry"""
         try:
             from anthropic import Anthropic
         except ImportError as e:
             raise ImportError("anthropic package not installed. Install with: pip install anthropic") from e
 
-        # Check if we should use Azure AI Foundry or direct Anthropic
-        if config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY:
-            # Azure AI Foundry - use Anthropic client with custom base_url
-            log.info(
-                f"Using Anthropic via Azure AI Foundry for LLM operations "
-                f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
-                f"temperature={temperature if temperature is not None else 'default'})"
-            )
-            self.anthropic_client = Anthropic(
-                api_key=config.AZURE_ANTHROPIC_API_KEY,
-                base_url=config.AZURE_ANTHROPIC_ENDPOINT,
-                timeout=600.0,  # 10 minutes for large patch synthesis tasks
-            )
-        elif config.ANTHROPIC_API_KEY:
-            # Direct Anthropic API
-            log.info(
-                f"Using direct Anthropic API for LLM operations "
-                f"(role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
-            )
-            self.anthropic_client = Anthropic(
-                api_key=config.ANTHROPIC_API_KEY,
-                timeout=600.0,  # 10 minutes for large patch synthesis tasks
-            )
-        else:
+        if not (config.AZURE_ANTHROPIC_ENDPOINT and config.AZURE_ANTHROPIC_API_KEY):
             raise ValueError(
                 "No API key configured for Anthropic/Claude. "
                 "Set AZURE_ANTHROPIC_ENDPOINT with AZURE_ANTHROPIC_API_KEY, which "
-                "falls back to AZURE_API_KEY when both endpoints are on one resource, "
-                "or ANTHROPIC_API_KEY for the direct Anthropic API."
+                "falls back to AZURE_API_KEY when both endpoints are on one resource."
             )
+
+        log.info(
+            f"Using Anthropic via Azure AI Foundry for LLM operations "
+            f"(role={role}, model={model}, endpoint={config.AZURE_ANTHROPIC_ENDPOINT}, "
+            f"temperature={temperature if temperature is not None else 'default'})"
+        )
+        self.anthropic_client = Anthropic(
+            api_key=config.AZURE_ANTHROPIC_API_KEY,
+            base_url=config.AZURE_ANTHROPIC_ENDPOINT,
+            timeout=600.0,  # 10 minutes for large patch synthesis tasks
+        )
 
         self.use_anthropic = True
         self.llm = None  # Not using LangChain for Anthropic
-
-    def _format_completion_prompt(self, system_prompt: str, user_prompt: str) -> str:
-        if system_prompt.strip():
-            return f"{system_prompt.strip()}\n\n{user_prompt.strip()}"
-        return user_prompt.strip()
-
-    def _build_responses_input(self, system_prompt: str, user_prompt: str) -> list[dict[str, str]]:
-        messages: list[dict[str, str]] = []
-        if system_prompt and system_prompt.strip():
-            messages.append({"role": "system", "content": system_prompt.strip()})
-        messages.append({"role": "user", "content": user_prompt.strip()})
-        return messages
-
-    def _extract_responses_text(self, response: Any) -> str:
-        if response is None:
-            return ""
-        text = getattr(response, "output_text", None)
-        if isinstance(text, str) and text.strip():
-            return text.strip()
-
-        output = getattr(response, "output", None)
-        if output:
-            for item in output:
-                content = getattr(item, "content", None)
-                if not content:
-                    continue
-                for block in content:
-                    block_text = getattr(block, "text", None)
-                    if isinstance(block_text, str) and block_text.strip():
-                        return block_text.strip()
-
-        if hasattr(response, "to_dict"):
-            try:
-                data = response.to_dict()
-                if isinstance(data, dict):
-                    maybe_text = data.get("output_text") or data.get("text")
-                    if isinstance(maybe_text, str):
-                        return maybe_text.strip()
-            except Exception:
-                pass
-
-        return str(response)
 
     def _extract_anthropic_text(self, response: Any) -> str:
         """Extract text content from Anthropic API response"""
@@ -390,7 +255,7 @@ class LLMClient:
         langfuse_prompt=None,
     ) -> str:
         """Make async LLM call with timeout"""
-        if self.llm is None and not self.use_responses and not self.use_anthropic:
+        if self.llm is None and not self.use_anthropic:
             raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
 
         langfuse = get_client()
@@ -439,40 +304,8 @@ class LLMClient:
                             "output_tokens": getattr(usage, "output_tokens", 0),
                             "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
                         }
-                elif self.use_responses:
-                    if attachments:
-                        log.warning(
-                            "Attachments provided but responses model does not support them; ignoring attachments"
-                        )
-                    input_messages = self._build_responses_input(system_prompt, user_prompt)
-
-                    def _call_responses():
-                        return self.responses_client.responses.create(
-                            model=self.model,
-                            input=input_messages,
-                        )
-
-                    response = await asyncio.wait_for(loop.run_in_executor(None, _call_responses), timeout=timeout)
-                    response_text = self._extract_responses_text(response)
-                    usage = getattr(response, "usage", None)
-                    if usage:
-                        usage_details = {
-                            "input_tokens": getattr(usage, "input_tokens", 0),
-                            "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "total_tokens", 0),
-                        }
                 elif self.llm is None:
                     raise ValueError("LLM client not initialized")
-                elif self.use_completions:
-                    if attachments:
-                        log.warning(
-                            "Attachments provided but completion model does not support them; ignoring attachments"
-                        )
-                    prompt = self._format_completion_prompt(system_prompt, user_prompt)
-                    response = await asyncio.wait_for(
-                        loop.run_in_executor(None, self.llm.invoke, prompt), timeout=timeout
-                    )
-                    response_text = response.strip() if isinstance(response, str) else str(response)
                 else:
                     messages = [
                         SystemMessage(content=system_prompt),
@@ -548,10 +381,9 @@ class LLMClient:
         system_message: str,
         user_message: str,
         attachments: list[AgentAttachment] | None = None,
-        conversation_history: list | None = None,
         langfuse_prompt=None,
     ) -> str:
-        """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models conversation_history: Optional list of prior messages (dicts with 'role' and 'content')  Returns: Response text"""
+        """Synchronous call to LLM  Args: system_message: System prompt user_message: User message (current question) attachments: Optional attachments for vision models  Returns: Response text"""
         with trace_generation(
             f"llm_call_{self.role}",
             model=self.model,
@@ -620,43 +452,13 @@ class LLMClient:
                         raise
 
                     response_text = self._extract_anthropic_text(response)
-                elif self.use_responses:
-                    if attachments:
-                        log.warning(
-                            "Attachments provided but responses model does not support them; ignoring attachments"
-                        )
-                    input_messages = self._build_responses_input(system_message, user_message)
-                    response = self.responses_client.responses.create(
-                        model=self.model,
-                        input=input_messages,
-                    )
-                    response_text = self._extract_responses_text(response)
-                elif self.llm is None and not self.use_anthropic:
+                elif self.llm is None:
                     raise ValueError("LLM client not initialized")
-                elif self.use_completions:
-                    if attachments:
-                        log.warning(
-                            "Attachments provided but completion model does not support them; ignoring attachments"
-                        )
-                    prompt = self._format_completion_prompt(system_message, user_message)
-                    response = self.llm.invoke(prompt)
-                    response_text = response if isinstance(response, str) else str(response)
                 else:
-                    # Build messages array with conversation history
-                    messages = [SystemMessage(content=system_message)]
-
-                    # Add conversation history if provided
-                    if conversation_history:
-                        from langchain_core.messages import AIMessage
-
-                        for msg in conversation_history:
-                            if msg.role == "user":
-                                messages.append(HumanMessage(content=msg.content))
-                            elif msg.role == "assistant":
-                                messages.append(AIMessage(content=msg.content))
-
-                    # Add current user message
-                    messages.append(self._build_human_message(user_message, attachments))
+                    messages = [
+                        SystemMessage(content=system_message),
+                        self._build_human_message(user_message, attachments),
+                    ]
 
                     response = self.llm.invoke(messages)
                     response_text = response.content
@@ -681,14 +483,6 @@ class LLMClient:
                             "input_tokens": getattr(usage, "input_tokens", 0),
                             "output_tokens": getattr(usage, "output_tokens", 0),
                             "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
-                        }
-                elif self.use_responses:
-                    usage = getattr(response, "usage", None)
-                    if usage:
-                        usage_details = {
-                            "input_tokens": getattr(usage, "input_tokens", 0),
-                            "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "total_tokens", 0),
                         }
                 elif hasattr(response, "response_metadata"):
                     if "token_usage" in response.response_metadata:
@@ -727,25 +521,11 @@ _client_keys: dict[str, tuple[str, ...]] = {}
 
 
 def _build_cache_key(role: str) -> tuple[str, ...]:
-    if role == "tool_planner":
-        return (
-            role,
-            str(config.LLM_MODEL_TOOL_PLANNER),
-            str(config.LLM_TEMPERATURE_TOOL_PLANNER),
-            str(config.LLM_TOOL_PLANNER_USE_COMPLETIONS),
-            str(config.LLM_TOOL_PLANNER_USE_RESPONSES),
-        )
     if role == "planner":
         return (
             role,
             str(config.LLM_MODEL_PLANNER),
             str(config.LLM_TEMPERATURE_PLANNER),
-        )
-    if role == "reviewer":
-        return (
-            role,
-            str(config.LLM_MODEL_REVIEWER),
-            str(config.LLM_TEMPERATURE_REVIEWER),
         )
     return (
         role,

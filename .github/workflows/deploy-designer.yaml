@@ -11,6 +11,7 @@ on:
       - 'src/Designer/frontend/**'
       - 'src/Designer/Dockerfile'
       - 'src/common/dotnet/**'
+      - 'src/cli/common/dotnet/**'
       - 'src/common/ts/**'
       - 'src/App/template/**'
       - 'package.json'

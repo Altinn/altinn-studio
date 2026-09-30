@@ -28,5 +28,6 @@ json-repair>=0.58.7
 PyYAML>=6.0
 
 # Altinn domain library (agents/altinn)
-jsonschema>=4.0
-defusedxml>=0.7
+jsonschema>=4.18
+# ECMA-262 regex syntax (\p{L}) in JSON Schema patterns
+regex>=2026.5.9

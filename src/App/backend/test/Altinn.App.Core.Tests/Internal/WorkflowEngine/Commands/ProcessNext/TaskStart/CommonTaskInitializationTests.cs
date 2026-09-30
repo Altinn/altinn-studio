@@ -110,7 +110,7 @@ public class CommonTaskInitializationTests
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         prefillMock ??= new Mock<IPrefill>();
         appModelMock ??= new Mock<IAppModel>();

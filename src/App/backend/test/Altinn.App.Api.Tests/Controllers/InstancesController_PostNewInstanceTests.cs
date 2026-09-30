@@ -718,7 +718,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
-            services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.DisallowUserInstantiation = true)
+            );
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
@@ -848,7 +850,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         string app = "contributer-restriction";
         int instanceOwnerPartyId = 501337;
         OverrideServicesForThisTest = services =>
-            services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.DisallowUserInstantiation = true)
+            );
         HttpClient client = GetRootedClient(org, app);
         string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
@@ -892,7 +896,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         OverrideServicesForThisTest = services =>
         {
             services.AddSingleton(pdfMock.Object);
-            services.AddSingleton(new AppMetadataMutationHook(app => app.DisallowUserInstantiation = true));
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.DisallowUserInstantiation = true)
+            );
         };
         HttpClient client = GetRootedClient(org, app);
 

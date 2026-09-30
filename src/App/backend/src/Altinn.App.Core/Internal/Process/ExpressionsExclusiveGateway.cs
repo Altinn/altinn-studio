@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Class implementing <see cref="IProcessExclusiveGateway" /> for evaluating expressions on flows connected to a gateway
 /// </summary>
-public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
+internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {

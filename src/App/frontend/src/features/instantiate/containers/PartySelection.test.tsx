@@ -10,6 +10,9 @@ import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/Pa
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { PartyApi } from 'src/core/api-client/party.api';
 
+// AltinnParty separates some of the party info with &nbsp;, which ends up in the accessible names
+const NBSP = '\u00a0';
+
 const deletedParty = getPartyMock({
   ssn: '050575*****',
   partyId: 12347,
@@ -122,7 +125,7 @@ describe('PartySelection', () => {
     await render();
 
     expect(screen.getAllByTestId('AltinnParty-PartyWrapper')).toHaveLength(4);
-    await user.click(screen.getByRole('button', { name: '1 underenhet' }));
+    await user.click(screen.getByRole('button', { name: `1${NBSP}underenhet` }));
     expect(screen.getByRole('button', { name: /^Subunit Org/ })).toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: /vis underenheter/i }));
     expect(screen.queryByRole('button', { name: /^Subunit Org/ })).not.toBeInTheDocument();
@@ -169,7 +172,7 @@ describe('PartySelection', () => {
       {
         parties: [getPartyWithSubunitMock().org],
         expectedPartyId: 2,
-        partyName: 'Subunit Org org.nr. 223456789',
+        partyName: `Subunit Org org.nr.${NBSP}223456789`,
         expandSubunit: true,
       },
     ];
@@ -184,7 +187,7 @@ describe('PartySelection', () => {
         expect(screen.getByTestId('valid-party')).toHaveTextContent('false');
 
         if (expandSubunit) {
-          await user.click(screen.getByRole('button', { name: '1 underenhet' }));
+          await user.click(screen.getByRole('button', { name: `1${NBSP}underenhet` }));
         }
 
         await user.click(screen.getByRole('button', { name: partyName }));

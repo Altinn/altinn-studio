@@ -12,6 +12,29 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Changed
+
+- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
+  inside an Agent as they do on the host.
+- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer
+  resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own
+  `/etc/hosts` still resolve.
+
+### Fixed
+
+- Agents keep resolving names after the host changes networks, for example when a laptop moves between Wi-Fi networks,
+  without restarting the Agent.
+- An Agent started while the host has no network connection resolves names once the host is back online.
+- `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
+- Pressing Ctrl-Z in an attached Session no longer freezes it.
+
+### Security
+
+- Changing a running Agent's resources after `agentd` restarted no longer restarts the Agent with network access that
+  bypasses network authorization and secret mediation.
+
+## [0.1.0-preview.7] - 2026-09-28
+
 ### Added
 
 - `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
@@ -32,6 +55,12 @@ Agent images they work with. The Rust workspace version is a build detail and is
   becomes free. The harness's own conversation files stay in the Sandbox.
 - `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
   progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
+- A new `desktop` Altinn Agent has a graphical screen it can see and use, driven by a `desktop` helper and a
+  `computer-use` skill: screenshot, zoom, point, scroll and type, including Norwegian text, and read what is showing
+  as an accessibility tree, including the browser's own controls and dialogs. A terminal opens with `Ctrl+Alt+T`
+  or the panel's launcher and has the Session's environment.
+- Agents can declare `access: [{type: vnc}]`. Watch or take over the desktop with `agentctl vnc --web`, in a browser
+  with nothing installed, or `agentctl vnc` for a VNC client of your own.
 
 ### Changed
 

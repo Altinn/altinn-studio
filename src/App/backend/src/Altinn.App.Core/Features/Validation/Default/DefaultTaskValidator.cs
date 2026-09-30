@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Implement the default validation of DataElements based on the metadata in appMetadata
 /// </summary>
-public class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
+internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
 {
     private readonly IAppMetadata _appMetadata;
 
@@ -26,7 +26,7 @@ public class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
     public async Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language)
     {
         var messages = new List<ValidationIssue>();
-        var application = await _appMetadata.GetApplicationMetadata();
+        var application = _appMetadata.ApplicationMetadata;
 
         foreach (var dataType in application.DataTypes.Where(et => et.TaskId == taskId))
         {

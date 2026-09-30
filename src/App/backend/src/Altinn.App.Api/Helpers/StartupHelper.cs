@@ -37,12 +37,19 @@ public static class StartupHelper
     }
 
     /// <summary>
-    /// Read application Id from config/applicationmetadata.json
+    /// Read application Id from config/applicationmetadata.json in the working directory
     /// </summary>
     /// <returns>ApplicationId</returns>
-    public static string GetApplicationId()
+    public static string GetApplicationId() => GetApplicationId(Directory.GetCurrentDirectory());
+
+    /// <summary>
+    /// Read application Id from config/applicationmetadata.json in the app folder
+    /// </summary>
+    /// <param name="contentRootPath">The app folder, normally the content root of the host</param>
+    /// <returns>ApplicationId</returns>
+    public static string GetApplicationId(string contentRootPath)
     {
-        string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
+        string appMetaDataString = File.ReadAllText(Path.Join(contentRootPath, "config", "applicationmetadata.json"));
         JObject appMetadataJObject = JObject.Parse(appMetaDataString);
         return appMetadataJObject.SelectToken("id")?.Value<string>()
             ?? throw new Exception("config/applicationmetadata.json does not contain an \"id\" property");

@@ -7,4 +7,6 @@ mod socket;
 
 pub use client::{Client, Connection, Connector};
 pub use protocol::{DaemonInfo, PROTOCOL_VERSION, ResponseError};
-pub use server::{AgentApi, AuthenticationApi, ErrorHandler, ExecutionApi, Server, SessionApi, SshAccessApi};
+pub use server::{
+    AgentApi, AuthenticationApi, ErrorHandler, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
+};

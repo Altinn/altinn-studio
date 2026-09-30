@@ -292,7 +292,7 @@ public class EventsClientTest
             .Returns("dummy access token");
 
         ApplicationMetadata app = new ApplicationMetadata("ttd/best-app") { Id = "ttd/best-app", Org = "ttd" };
-        _appMetadataMock.Setup(ar => ar.GetApplicationMetadata()).ReturnsAsync(app);
+        _appMetadataMock.Setup(ar => ar.ApplicationMetadata).Returns(app);
 
         handlerMock
             .Protected()

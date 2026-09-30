@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using WorkflowEngine.Commands.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 

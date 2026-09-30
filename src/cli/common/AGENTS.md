@@ -30,6 +30,9 @@ dotnet test studioctl.slnx
 
 - Async methods have no `Async` suffix, matching the app backend convention.
 - Keep the libraries dependency-light and free of studioctl-server or LSP references; they are consumed
-  by both.
+  by both, and `Altinn.Studio.AppDist` is also referenced by the Designer backend. The Designer Docker
+  builds copy this directory together with the studioctl `Directory.Build.props`,
+  `Directory.Packages.props` and `.editorconfig` chain it inherits, and the Designer backend CI
+  workflows trigger on `src/cli/common/dotnet/**`.
 - Changes here that alter studioctl behavior need a `src/cli/CHANGELOG.md` entry, like any other
   studioctl change (`cli-changelog.yaml` covers `src/cli/**`).

@@ -78,10 +78,7 @@ public sealed class PatchServiceTests : IDisposable
         _metadataInstanceClientMock = _instanceClientMock.As<IInstanceClientWithStorageMetadata>();
 
         var applicationMetadata = new ApplicationMetadata("ttd/test") { DataTypes = [_dataType] };
-        _appMetadataMock
-            .Setup(a => a.GetApplicationMetadata())
-            .ReturnsAsync(applicationMetadata)
-            .Verifiable(Times.AtLeastOnce);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(applicationMetadata).Verifiable(Times.AtLeastOnce);
         _appModelMock
             .Setup(a => a.GetModelType("Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel"))
             .Returns(typeof(MyModel))

@@ -59,6 +59,7 @@ export const EditStringValue = ({
         enumValues ? (
           multiple ? (
             <StudioSuggestion
+              clearButtonLabel={t('general.clear_selection')}
               multiple
               label={fieldProps.label}
               emptyText={t('general.no_options')}

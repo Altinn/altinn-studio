@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Default implementation of <see cref="IProcessNavigator"/>
 /// </summary>
-public class ProcessNavigator : IProcessNavigator
+internal sealed class ProcessNavigator : IProcessNavigator
 {
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
