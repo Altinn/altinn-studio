@@ -27,8 +27,8 @@ pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
 /// How long `agentd` keeps an image no Agent uses after its last use, so an Agent deleted and
-/// applied again with the same image does not download it again.
-const UNUSED_IMAGE_RETENTION: std::time::Duration = std::time::Duration::from_hours(24);
+/// applied again, even after a weekend, does not download its image again.
+const UNUSED_IMAGE_RETENTION: std::time::Duration = std::time::Duration::from_hours(72);
 
 /// How often an idle `agentd` removes unused images.
 const UNUSED_IMAGE_SWEEP: std::time::Duration = std::time::Duration::from_hours(1);
