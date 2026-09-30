@@ -46,6 +46,31 @@ internal sealed class TestWebApplication : IAsyncDisposable
         return await StartAsync(app, new ConcurrentQueue<string>());
     }
 
+    /// <summary>
+    /// A storage instance whose health can be switched: <c>/health</c> answers 200 or 503 as
+    /// <paramref name="isHealthy"/> says, and every other request is answered with its name.
+    /// </summary>
+    public static async Task<TestWebApplication> StartNamedDownstreamAsync(string name, Func<bool> isHealthy)
+    {
+        var app = CreateBuilder().Build();
+        app.Map(
+            "/{**path}",
+            (HttpContext context) =>
+            {
+                if (context.Request.Path == "/health")
+                {
+                    context.Response.StatusCode = isHealthy()
+                        ? StatusCodes.Status200OK
+                        : StatusCodes.Status503ServiceUnavailable;
+                    return Task.CompletedTask;
+                }
+
+                return context.Response.WriteAsync(name, context.RequestAborted);
+            }
+        );
+        return await StartAsync(app, new ConcurrentQueue<string>());
+    }
+
     public static async Task<TestWebApplication> StartDownstreamAsync()
     {
         var builder = CreateBuilder();

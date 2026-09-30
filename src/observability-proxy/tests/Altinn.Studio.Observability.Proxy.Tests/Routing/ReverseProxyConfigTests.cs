@@ -70,7 +70,8 @@ public sealed class ReverseProxyConfigTests
             candidate => candidate.ClusterId == "traces"
         );
 
-        Assert.Equal("StickyFailover", cluster.LoadBalancingPolicy);
+        Assert.Equal("FirstAlphabetical", cluster.LoadBalancingPolicy);
+        Assert.True(ObservabilityReverseProxyConfig.IsStoragePair(cluster));
         Assert.NotNull(cluster.Destinations);
         Assert.Equal(["instance-0", "instance-1"], cluster.Destinations.Keys.Order());
         Assert.Equal("http://traces-a:10428/", cluster.Destinations["instance-0"].Address);

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Yarp.ReverseProxy.LoadBalancing;
 using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Routing;
@@ -15,25 +14,20 @@ namespace Altinn.Studio.Observability.Proxy.Routing;
 /// to the first copy is therefore a deliberate step: restarting the proxy starts every cluster on
 /// its first healthy destination again.
 ///
+/// It runs as a step of the proxy pipeline before load balancing rather than as a load balancing
+/// policy, because YARP consults a policy only when more than one destination is available, and a
+/// failover is exactly when only one is.
+///
 /// The choice lives in each proxy replica's memory. Replicas see the same health checks, so they
 /// normally agree, but a failure only one of them observed moves only that replica.
 /// </summary>
-internal sealed class StickyFailoverLoadBalancingPolicy(ILogger<StickyFailoverLoadBalancingPolicy> logger)
-    : ILoadBalancingPolicy
+internal sealed class StickyFailover(ILogger<StickyFailover> logger)
 {
-    public const string PolicyName = "StickyFailover";
-
     private readonly ConcurrentDictionary<string, string> _current = new(StringComparer.Ordinal);
 
-    public string Name => PolicyName;
-
-    public DestinationState? PickDestination(
-        HttpContext context,
-        ClusterState cluster,
-        IReadOnlyList<DestinationState> availableDestinations
-    )
+    /// <summary>The destination of <paramref name="clusterId"/> to read from, or <c>null</c> when none is healthy.</summary>
+    public DestinationState? Choose(string clusterId, IReadOnlyList<DestinationState> availableDestinations)
     {
-        ArgumentNullException.ThrowIfNull(cluster);
         ArgumentNullException.ThrowIfNull(availableDestinations);
 
         if (availableDestinations.Count == 0)
@@ -41,7 +35,7 @@ internal sealed class StickyFailoverLoadBalancingPolicy(ILogger<StickyFailoverLo
             return null;
         }
 
-        var currentId = _current.GetValueOrDefault(cluster.ClusterId);
+        var currentId = _current.GetValueOrDefault(clusterId);
         if (currentId is not null)
         {
             foreach (var destination in availableDestinations)
@@ -64,13 +58,13 @@ internal sealed class StickyFailoverLoadBalancingPolicy(ILogger<StickyFailoverLo
 
         if (currentId is null)
         {
-            _current.TryAdd(cluster.ClusterId, next.DestinationId);
+            _current.TryAdd(clusterId, next.DestinationId);
         }
-        else if (_current.TryUpdate(cluster.ClusterId, next.DestinationId, currentId))
+        else if (_current.TryUpdate(clusterId, next.DestinationId, currentId))
         {
             logger.LogWarning(
                 "Reads for {Cluster} moved from {From} to {To}, and stay there until the proxy restarts",
-                cluster.ClusterId,
+                clusterId,
                 currentId,
                 next.DestinationId
             );

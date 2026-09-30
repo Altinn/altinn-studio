@@ -9,6 +9,7 @@ internal static class ObservabilityReverseProxyConfig
 {
     private const string WriteClusterPrefix = "otlp-";
     private const string SignalMetadataKey = "Signal";
+    private const string StoragePairMetadataKey = "StoragePair";
 
     public static IReadOnlyList<RouteConfig> CreateRoutes(ObservabilityProxyOptions options)
     {
@@ -35,7 +36,13 @@ internal static class ObservabilityReverseProxyConfig
         foreach (var signal in ObservabilitySignal.All)
         {
             clusters.Add(CreateWriteCluster(signal, options.Downstreams.Agents.For(signal)));
-            clusters.Add(CreateReadCluster(signal, options.Downstreams.Storage.For(signal)));
+            clusters.Add(
+                CreateReadCluster(
+                    signal,
+                    options.Downstreams.Storage.For(signal),
+                    options.Downstreams.Storage.HealthCheckIntervalSeconds
+                )
+            );
         }
 
         return clusters;
@@ -45,6 +52,12 @@ internal static class ObservabilityReverseProxyConfig
     public static string? RouteGroupOf(RouteConfig? route)
     {
         return route?.Metadata?.GetValueOrDefault(ObservabilityPaths.RouteGroupMetadataKey);
+    }
+
+    /// <summary>Whether <paramref name="cluster"/> is a storage pair, whose reads <see cref="StickyFailover"/> directs.</summary>
+    public static bool IsStoragePair(ClusterConfig? cluster)
+    {
+        return cluster?.Metadata?.ContainsKey(StoragePairMetadataKey) == true;
     }
 
     /// <summary>The signal <paramref name="route"/> writes, or <c>null</c> when it is not a write route.</summary>
@@ -140,12 +153,16 @@ internal static class ObservabilityReverseProxyConfig
     /// <summary>
     /// The storage pair, as failover rather than load balancing. Neither instance can merge results
     /// with the other, so spreading reads across them would return a partial answer half the time.
-    /// <see cref="StickyFailoverLoadBalancingPolicy"/> sends every read to the first healthy
-    /// destination, and the destination keys are ordered so that is the first configured address.
-    /// After a failover, reads stay on the second instance until the proxy restarts; see the policy
-    /// for why they do not return on their own.
+    /// <see cref="StickyFailover"/> sends every read to the first healthy destination, and the
+    /// destination keys are ordered so that is the first configured address. After a failover,
+    /// reads stay on the second instance until the proxy restarts; see there for why they do not
+    /// return on their own.
     /// </summary>
-    private static ClusterConfig CreateReadCluster(ObservabilitySignal signal, IReadOnlyList<string> addresses)
+    private static ClusterConfig CreateReadCluster(
+        ObservabilitySignal signal,
+        IReadOnlyList<string> addresses,
+        int healthCheckIntervalSeconds
+    )
     {
         var destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < addresses.Count; index++)
@@ -161,14 +178,15 @@ internal static class ObservabilityReverseProxyConfig
         return new ClusterConfig
         {
             ClusterId = signal.RouteGroup,
-            LoadBalancingPolicy = StickyFailoverLoadBalancingPolicy.PolicyName,
+            // Only the destination StickyFailover chose reaches load balancing.
+            LoadBalancingPolicy = LoadBalancingPolicies.FirstAlphabetical,
             Destinations = destinations,
             HealthCheck = new HealthCheckConfig
             {
                 Active = new ActiveHealthCheckConfig
                 {
                     Enabled = true,
-                    Interval = TimeSpan.FromSeconds(10),
+                    Interval = TimeSpan.FromSeconds(healthCheckIntervalSeconds),
                     Timeout = TimeSpan.FromSeconds(5),
                     Policy = HealthCheckConstants.ActivePolicy.ConsecutiveFailures,
                     Path = "/health",
@@ -177,6 +195,7 @@ internal static class ObservabilityReverseProxyConfig
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 [ConsecutiveFailuresHealthPolicyOptions.ThresholdMetadataName] = "2",
+                [StoragePairMetadataKey] = "true",
             },
         };
     }

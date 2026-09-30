@@ -7,7 +7,7 @@ using Altinn.Studio.Observability.Proxy.Routing;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Yarp.ReverseProxy.LoadBalancing;
+using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Hosting;
 
@@ -42,7 +42,7 @@ internal static class ObservabilityProxyExtensions
 
         builder.Services.AddRateLimiter(options => ConfigureRateLimiter(options, proxyOptions.RateLimiting));
 
-        builder.Services.AddSingleton<ILoadBalancingPolicy, StickyFailoverLoadBalancingPolicy>();
+        builder.Services.AddSingleton<StickyFailover>();
 
         builder
             .Services.AddReverseProxy()
@@ -107,6 +107,25 @@ internal static class ObservabilityProxyExtensions
                     {
                         context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
                         return Task.CompletedTask;
+                    }
+
+                    return next(context);
+                }
+            );
+            // Before load balancing, which does not consult a policy when only one destination is
+            // healthy and so would miss the failover that has to make reads stay put.
+            proxyPipeline.Use(
+                (context, next) =>
+                {
+                    var proxyFeature = context.GetReverseProxyFeature();
+                    if (ObservabilityReverseProxyConfig.IsStoragePair(proxyFeature.Cluster.Config))
+                    {
+                        var destination = context
+                            .RequestServices.GetRequiredService<StickyFailover>()
+                            .Choose(proxyFeature.Cluster.Config.ClusterId, proxyFeature.AvailableDestinations);
+                        proxyFeature.AvailableDestinations = destination is null
+                            ? Array.Empty<DestinationState>()
+                            : destination;
                     }
 
                     return next(context);

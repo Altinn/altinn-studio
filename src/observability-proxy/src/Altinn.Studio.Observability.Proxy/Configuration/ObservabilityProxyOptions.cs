@@ -59,6 +59,9 @@ internal sealed class StorageDownstreamOptions
 
     public Collection<string> Logs { get; } = [];
 
+    /// <summary>How often each storage instance's health is probed. Two failed probes in a row take it out of reads.</summary>
+    public int HealthCheckIntervalSeconds { get; set; } = 10;
+
     public IReadOnlyList<string> For(ObservabilitySignal signal)
     {
         ArgumentNullException.ThrowIfNull(signal);

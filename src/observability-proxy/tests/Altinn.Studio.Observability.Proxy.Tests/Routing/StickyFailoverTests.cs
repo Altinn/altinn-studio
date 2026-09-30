@@ -1,11 +1,10 @@
 using Altinn.Studio.Observability.Proxy.Routing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
 
-public sealed class StickyFailoverLoadBalancingPolicyTests
+public sealed class StickyFailoverTests
 {
     private static readonly DestinationState First = new("instance-0");
     private static readonly DestinationState Second = new("instance-1");
@@ -73,12 +72,11 @@ public sealed class StickyFailoverLoadBalancingPolicyTests
         Assert.Null(Pick(NewPolicy(), "traces"));
     }
 
-    private static StickyFailoverLoadBalancingPolicy NewPolicy() =>
-        new(NullLogger<StickyFailoverLoadBalancingPolicy>.Instance);
+    private static StickyFailover NewPolicy() => new(NullLogger<StickyFailover>.Instance);
 
     private static DestinationState? Pick(
-        StickyFailoverLoadBalancingPolicy policy,
+        StickyFailover policy,
         string clusterId,
         params DestinationState[] available
-    ) => policy.PickDestination(new DefaultHttpContext(), new ClusterState(clusterId), available);
+    ) => policy.Choose(clusterId, available);
 }
