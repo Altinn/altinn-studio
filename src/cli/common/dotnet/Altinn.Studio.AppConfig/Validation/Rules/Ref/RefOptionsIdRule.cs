@@ -9,9 +9,12 @@ internal sealed class RefOptionsIdRule : IValidationRule
             "REF-OPTIONS-ID",
             "optionsId must reference an option source",
             "Dropdown/Checkboxes/RadioButtons optionsId must reference either a static "
-                + "App/options/<id>.json file or a code-registered IAppOptionsProvider. "
-                + "C# providers are detected when their Id is a string literal; an Id "
-                + "computed at runtime can't be seen, so severity stays a warning.",
+                + "App/options/<id>.json file or an option list registered in code: an "
+                + "IAppOptionsProvider class, AddAltinnCodelists() and the other Altinn.Codelists "
+                + "helpers, AddSSBClassificationCodelistProvider(id, …), AddJoinedAppOptions(id, …), "
+                + "AddAltinn2CodeList(id, …) or AddAltinn3CodeList(optionId, …). An id in code is "
+                + "read when it is a string literal, a string constant or nameof(…); an id computed "
+                + "at runtime can't be seen, so severity stays a warning.",
             Severity.Warning
         );
 
@@ -19,7 +22,7 @@ internal sealed class RefOptionsIdRule : IValidationRule
     {
         foreach (var u in app.SymbolTable.UnresolvedOf(SymbolKind.OptionsId))
             yield return Metadata.Report(
-                $"optionsId \"{u.Value}\" has no App/options/{u.Value}.json or IAppOptionsProvider",
+                $"optionsId \"{u.Value}\" has no App/options/{u.Value}.json and no option list registered in code",
                 u.Position
             );
     }

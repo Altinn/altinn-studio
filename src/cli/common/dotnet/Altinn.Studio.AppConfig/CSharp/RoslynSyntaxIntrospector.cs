@@ -15,6 +15,7 @@ internal sealed class RoslynSyntaxIntrospector
         const string appDir = "App";
         if (!dir.DirectoryExists(appDir))
             return;
+        var sources = new List<(string File, SyntaxNode Root)>();
         foreach (var file in dir.EnumerateFiles(appDir, "*.cs", recursive: true))
         {
             var data = dir.ReadAllBytes(file);
@@ -22,13 +23,14 @@ internal sealed class RoslynSyntaxIntrospector
                 continue;
             var tree = CSharpSyntaxTree.ParseText(System.Text.Encoding.UTF8.GetString(data));
             var root = tree.GetRoot();
-            OptionProviderScanner.Collect(root, file, app);
+            sources.Add((file, root));
             foreach (var typeDecl in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 RecordType(app, typeDecl, file);
             }
             ProcessTaskTypeScanner.Collect(root, app);
         }
+        OptionProviderScanner.Collect(sources, app);
     }
 
     private static void RecordType(AppModelBuilder app, BaseTypeDeclarationSyntax decl, string file)
