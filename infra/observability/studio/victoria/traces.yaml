@@ -1,4 +1,4 @@
-# Trace storage, same disk-bound retention shape as logs.
+# Trace storage, with the same retention as logs: one year, with a disk usage backstop.
 apiVersion: operator.victoriametrics.com/v1
 kind: VTSingle
 metadata:
@@ -15,7 +15,7 @@ spec:
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.12.0
-  retentionPeriod: 100y
+  retentionPeriod: 1y
   secrets:
     - observability-backend-auth-key
   extraArgs:
@@ -66,7 +66,7 @@ spec:
   image:
     repository: victoriametrics/victoria-traces
     tag: v0.12.0
-  retentionPeriod: 100y
+  retentionPeriod: 1y
   secrets:
     - observability-backend-auth-key
   extraArgs:

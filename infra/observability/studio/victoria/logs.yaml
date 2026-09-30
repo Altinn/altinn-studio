@@ -1,6 +1,6 @@
-# Log storage. Disk-bound rather than time-bound: retentionPeriod is set far
-# enough out to disable time-based expiry, and the disk usage threshold drops
-# the oldest per-day partitions once the filesystem passes it.
+# Log storage, kept for one year. The disk usage threshold is the backstop: it
+# drops the oldest per-day partitions once the filesystem passes it, so a full
+# disk shortens the window rather than stopping ingestion.
 apiVersion: operator.victoriametrics.com/v1
 kind: VLSingle
 metadata:
@@ -17,7 +17,7 @@ spec:
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
-  retentionPeriod: 100y
+  retentionPeriod: 1y
   secrets:
     - observability-backend-auth-key
   extraArgs:
@@ -72,7 +72,7 @@ spec:
   image:
     repository: victoriametrics/victoria-logs
     tag: v1.52.0
-  retentionPeriod: 100y
+  retentionPeriod: 1y
   secrets:
     - observability-backend-auth-key
   extraArgs:
