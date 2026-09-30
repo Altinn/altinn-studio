@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Xml;
-using System.Xml.Linq;
-using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
@@ -133,44 +131,6 @@ internal sealed class PdfServiceTaskMigrator
             messages.Todo("PDF service task migration needs manual follow-up. Review the warnings above.");
         }
 
-        if (!ProcessHasPdfServiceTask())
-        {
-            messages.Warn(
-                $"config/process/process.bpmn has no 'pdf' or 'subformPdf' service task, so the process "
-                    + $"generates no PDFs. See {V9MigrationDocs.Pdf}"
-            );
-        }
-
         return new MigrationResult(messages);
-    }
-
-    /// <summary>
-    /// Whether the process has a PDF-generating service task. Nearly every app generates a PDF, so a
-    /// process without one usually means PDF generation was lost, e.g. from a v8 app that relied on an
-    /// absent <c>enablePdfCreation</c> meaning <c>true</c>. Returns true when the process is missing or
-    /// unreadable, since there is then nothing to check.
-    /// </summary>
-    private bool ProcessHasPdfServiceTask()
-    {
-        var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
-        if (processFile is null)
-            return true;
-
-        XDocument doc;
-        try
-        {
-            doc = XDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(processFile)).Text);
-        }
-        catch (Exception ex) when (ex is DecoderFallbackException or XmlException)
-        {
-            return true;
-        }
-
-        return doc.Descendants()
-            .Any(e =>
-                e.Name.LocalName == "taskType"
-                && (e.Value.Trim() is "pdf" or "subformPdf")
-                && e.Ancestors().Any(a => a.Name.LocalName == "serviceTask")
-            );
     }
 }
