@@ -20,7 +20,9 @@ internal abstract record PdfTaskUi
     /// </summary>
     public sealed record TaskFolderCopy(UiFolderFiles Files, IReadOnlyList<string> Blockers) : PdfTaskUi;
 
-    /// <summary>The PDF layout cannot be read. <paramref name="Reason"/> says why and what to do.</summary>
+    /// <summary>
+    /// The PDF layout or the task's settings cannot be read. <paramref name="Reason"/> says why and what to do.
+    /// </summary>
     public sealed record Unresolved(string Reason) : PdfTaskUi;
 }
 
@@ -77,18 +79,20 @@ internal static class PdfTaskUiPlanner
         TextFile settingsText;
         JsonNode? layout;
         JsonNode? settings;
+        var reading = layoutFile;
         try
         {
             layoutText = TextFile.Read(layoutFile);
             layout = JsonNode.Parse(layoutText.Text, documentOptions: _documentOptions);
+            reading = settingsFile;
             settingsText = TextFile.Read(settingsFile);
             settings = JsonNode.Parse(settingsText.Text, documentOptions: _documentOptions);
         }
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException)
         {
             return new PdfTaskUi.Unresolved(
-                $"{displayPath(layoutFile)} cannot be read ({ex.Message}), so task '{taskId}' has no PDF layout to "
-                    + "migrate. Skipped PDF service task insertion - fix the file and re-run the upgrade."
+                $"{displayPath(reading)} cannot be read ({ex.Message}), so the PDF layout of task '{taskId}' "
+                    + "cannot be migrated. Skipped PDF service task insertion - fix the file and re-run the upgrade."
             );
         }
 

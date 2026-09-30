@@ -1163,6 +1163,38 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Theory]
+    [InlineData("layouts/pdfReceipt.json")]
+    [InlineData("Settings.json")]
+    public async Task TaskFileThatIsNotUtf8_IsNamedAndFlagKept(string file)
+    {
+        // The PDF service task's layout set is written from both files, so they must decode as UTF-8, and the
+        // warning names the one that does not.
+        WriteMetadataForTask1();
+        WriteDataThenFeedbackProcess();
+        WriteTaskUi(DataTaskFolder, LayoutSettings());
+        var path = $"{DataTaskFolder}/{file}";
+        var text = _app.Read(path);
+        var split = text.IndexOf("\"https://", StringComparison.Ordinal) + 1;
+        _app.WriteBytes(
+            path,
+            [
+                .. System.Text.Encoding.UTF8.GetBytes(text[..split]),
+                0xFF,
+                .. System.Text.Encoding.UTF8.GetBytes(text[split..]),
+            ]
+        );
+        var processBefore = _app.Read("config/process/process.bpmn");
+
+        var result = await MigrateResult();
+
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
+        Assert.False(FolderExists(PdfTaskFolder));
+        Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
+        Assert.Contains(result.Warnings, w => w.Contains($"App/{path} cannot be read", StringComparison.Ordinal));
+        Assert.Contains(result.Todos, t => t.Contains("Left enablePdfCreation", StringComparison.Ordinal));
+    }
+
+    [Theory]
     [InlineData(
         """{ "id": "contact", "type": "Paragraph", "textResourceBindings": { "title": ["concat", "Kontakt: ", ["component", "02NameContactperson"]] } }""",
         "component 'contact' refers to component '02NameContactperson'"
