@@ -24,10 +24,10 @@ internal static class ReferenceResolver
 
         foreach (var r in model.Refs.ComponentIds)
         {
-            var scope = AppPaths.ScopeOf(r.InTaskId, r.Position.File);
-            var hasSet = setsById.TryGetValue(scope, out var set);
-            if (set?.Components.ContainsKey(r.Value) == true)
+            var scopes = model.ScopesOf(r);
+            if (scopes.Any(s => Declares(setsById, s, r.Value)))
                 continue;
+            var scope = scopes[0];
             unresolved.Add(
                 new UnresolvedReference(
                     SymbolKind.Component,
@@ -35,7 +35,7 @@ internal static class ReferenceResolver
                     scope,
                     r.Position,
                     OwningComponentId: r.OwningComponentId,
-                    ScopeExists: r.InTaskId is null || hasSet
+                    ScopeExists: r.InTaskId is null || setsById.ContainsKey(scope)
                 )
             );
         }
@@ -115,6 +115,9 @@ internal static class ReferenceResolver
 
         return unresolved;
     }
+
+    public static bool Declares(IReadOnlyDictionary<string, LayoutSet> setsById, string scope, string componentId) =>
+        setsById.TryGetValue(scope, out var set) && set.Components.ContainsKey(componentId);
 
     private static UnresolvedReference DanglingPath(DataModelReference r, DataModelFacts facts) =>
         new(
