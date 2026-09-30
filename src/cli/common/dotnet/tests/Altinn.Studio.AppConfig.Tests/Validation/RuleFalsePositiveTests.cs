@@ -33,31 +33,57 @@ public sealed class RuleFalsePositiveTests
         Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
     }
 
+    private static InMemoryAppDirectory SubformApp(string subDataType, string subsetReference) =>
+        App(
+            $$"""{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M"},"taskId":"Task_1"},{{subDataType}}]}""",
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]},"defaultDataType":"model"}"""),
+            ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[""" + subsetReference + "]}}"),
+            ("App/ui/sub-set/Settings.json", """{"pages":{"order":["S1"]},"defaultDataType":"sub"}"""),
+            ("App/ui/sub-set/layouts/S1.json", """{"data":{"layout":[]}}""")
+        );
+
+    private const string SubformComponent = """{"id":"sf","type":"Subform","layoutSet":"sub-set"}""";
+
     [Theory]
     [InlineData(0)]
     [InlineData(3)]
-    public void DataTypeCount_SubformType_WithNonOneMaxCount_IsNotFlagged(int maxCount)
+    public void DataTypeCount_SubformFolderDataType_WithNonOneMaxCount_IsNotFlagged(int maxCount)
     {
-        var dir = App(
-            $$"""{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"sub","appLogic":{"classRef":"App.Models.S","allowInSubform":true},"maxCount":{{maxCount}}}]}"""
+        var dir = SubformApp(
+            $$"""{"id":"sub","appLogic":{"classRef":"App.Models.S"},"maxCount":{{maxCount}}}""",
+            SubformComponent
         );
         Assert.DoesNotContain(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
     }
 
     [Fact]
-    public void DataTypeCount_FormType_ExplicitlyNotInSubform_WithNonOneMaxCount_IsStillFlagged()
+    public void DataTypeCount_FormTypeOutsideSubformFolders_WithNonOneMaxCount_IsStillFlagged()
     {
-        var dir = App(
-            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M","allowInSubform":false},"maxCount":2}]}"""
+        var dir = SubformApp(
+            """{"id":"sub","appLogic":{"classRef":"App.Models.S"},"maxCount":0},{"id":"other","appLogic":{"classRef":"App.Models.O"},"maxCount":2}""",
+            SubformComponent
         );
-        Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+        var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+        Assert.Contains("\"other\"", finding.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void DataTypeCount_SubformType_MinCountAboveMaxCount_IsStillFlagged()
+    public void DataTypeCount_FolderReachedOnlyThroughASummary2Target_IsNotASubformFolder()
     {
-        var dir = App(
-            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"sub","appLogic":{"classRef":"App.Models.S","allowInSubform":true},"maxCount":2,"minCount":3}]}"""
+        var dir = SubformApp(
+            """{"id":"sub","appLogic":{"classRef":"App.Models.S"},"maxCount":3}""",
+            """{"id":"sum","type":"Summary2","target":{"type":"layoutSet","id":"sub-set"}}"""
+        );
+        var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+        Assert.Contains("\"sub\"", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DataTypeCount_SubformFolderDataType_MinCountAboveMaxCount_IsStillFlagged()
+    {
+        var dir = SubformApp(
+            """{"id":"sub","appLogic":{"classRef":"App.Models.S"},"maxCount":2,"minCount":3}""",
+            SubformComponent
         );
         var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
         Assert.Contains("minCount", finding.Message, StringComparison.Ordinal);
@@ -1031,7 +1057,7 @@ public sealed class RuleFalsePositiveTests
     private static IReadOnlyList<Finding> ValidateSubform(string subformProperties) =>
         Validate(
             App(
-                """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"sub","appLogic":{"classRef":"S","allowInSubform":true}}]}""",
+                """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"},{"id":"sub","appLogic":{"classRef":"S"}}]}""",
                 ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
                 (
                     "App/ui/Task_1/layouts/P1.json",

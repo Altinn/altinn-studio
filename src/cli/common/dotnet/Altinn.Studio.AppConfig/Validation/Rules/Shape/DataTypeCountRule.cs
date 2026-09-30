@@ -10,21 +10,23 @@ internal sealed class DataTypeCountRule : IValidationRule
             "dataType maxCount/minCount must be consistent",
             "A form data type (one with appLogic.classRef) must have maxCount 1 — the runtime "
                 + "only treats single-instance data as form data, so a different maxCount makes "
-                + "the model unusable. Subform data types (appLogic.allowInSubform) are exempt, "
-                + "since each subform entry is its own data element. And minCount must not exceed "
-                + "a positive maxCount, which would be an unsatisfiable range (maxCount 0 means unbounded).",
+                + "the model unusable. Subform data types (the defaultDataType of a folder that a "
+                + "Subform component's layoutSet points at) are exempt, since each subform entry is "
+                + "its own data element. And minCount must not exceed a positive maxCount, which "
+                + "would be an unsatisfiable range (maxCount 0 means unbounded).",
             Severity.Error
         );
 
     public IEnumerable<Finding> Check(AppModel app)
     {
+        var subformDataTypes = app.SubformDataTypes();
         foreach (var dt in app.DataTypes)
         {
             // An absent maxCount defaults to 1 (the application-metadata schema default),
             // which is valid for form data — so only an EXPLICIT non-1 maxCount is wrong.
-            if (dt.IsForm && !dt.AllowInSubform && dt.MaxCount is int max && max != 1)
+            if (dt.IsForm && !subformDataTypes.Contains(dt.Id) && dt.MaxCount is int max && max != 1)
                 yield return Metadata.Report(
-                    $"data type \"{dt.Id}\" has appLogic (form data) but maxCount={max}; form data types must have maxCount 1",
+                    $"data type \"{dt.Id}\" has appLogic (form data) but maxCount={max}; form data types must have maxCount 1 unless they are the defaultDataType of a Subform folder",
                     dt.Position
                 );
 

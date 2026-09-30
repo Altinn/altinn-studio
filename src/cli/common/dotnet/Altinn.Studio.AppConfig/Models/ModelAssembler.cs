@@ -94,6 +94,7 @@ internal static class ModelAssembler
         {
             ComponentIds = Merge(fragments, f => f.Refs.ComponentIds),
             LayoutSets = Merge(fragments, f => f.Refs.LayoutSets),
+            SubformFolders = Merge(fragments, f => f.Refs.SubformFolders),
             DataTypes = Merge(fragments, f => f.Refs.DataTypes),
             TaskIds = Merge(fragments, f => f.Refs.TaskIds),
             PageFiles = Merge(fragments, f => f.Refs.PageFiles),
