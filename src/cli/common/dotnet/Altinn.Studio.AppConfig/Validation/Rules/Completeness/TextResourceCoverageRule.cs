@@ -7,49 +7,32 @@ internal sealed class TextResourceCoverageRule : IValidationRule
     public RuleMetadata Metadata { get; } =
         new(
             "TEXT-RESOURCE-COVERAGE",
-            "Text-resource keys should exist in every declared language",
-            "Every key declared in any resource.<lang>.json should also be declared in "
-                + "the resource files of the other languages listed in applicationmetadata.title. "
-                + "A key missing from one language renders the fallback (typically nb) instead — "
-                + "the app runs but the translation is incomplete.",
+            "Text-resource keys should exist in every app language",
+            "Every key declared in one config/texts/resource.<lang>.json should also be declared "
+                + "in the resource files of the other languages the app offers. The app loads only "
+                + "the texts of the user's language, so a key missing from it renders as the bare "
+                + "key (or the frontend's built-in text for the keys it ships) — the app runs but "
+                + "the translation is incomplete.",
             Severity.Info
         );
 
     public IEnumerable<Finding> Check(AppModel app)
     {
-        var declared = app.DeclaredLanguages().ToHashSet(StringComparer.Ordinal);
-        if (declared.Count < 2)
-            yield break;
-
-        var keysByLang = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var tr in app.TextResources)
+        var languages = app.LanguageTextResources().OrderBy(t => t.Language, StringComparer.Ordinal).ToList();
+        foreach (var texts in languages)
         {
-            if (!declared.Contains(tr.Language))
-                continue;
-            keysByLang[tr.Language] = new HashSet<string>(tr.Ids.Keys, StringComparer.Ordinal);
-        }
-
-        foreach (var lang in declared.OrderBy(s => s, StringComparer.Ordinal))
-        {
-            if (!keysByLang.TryGetValue(lang, out var presentKeys))
-                continue;
-            foreach (var (otherLang, otherKeys) in keysByLang.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+            foreach (var other in languages)
             {
-                if (string.Equals(otherLang, lang, StringComparison.Ordinal))
+                if (string.Equals(other.Language, texts.Language, StringComparison.Ordinal))
                     continue;
-                var trWithLang = app.TextResources.FirstOrDefault(t => t.Language == lang);
-                if (trWithLang is null)
-                    continue;
-                foreach (var key in presentKeys.OrderBy(s => s, StringComparer.Ordinal))
+                foreach (var (key, pos) in texts.Ids.OrderBy(kv => kv.Key, StringComparer.Ordinal))
                 {
-                    if (otherKeys.Contains(key))
-                        continue;
-                    if (!trWithLang.Ids.TryGetValue(key, out var pos))
+                    if (other.Ids.ContainsKey(key))
                         continue;
                     // Point at the key's declaration in the language that HAS it, so the editor
                     // jumps to the file the user copies from.
                     yield return Metadata.Report(
-                        $"text-resource key \"{key}\" is declared in resource.{lang}.json but missing from resource.{otherLang}.json",
+                        $"text-resource key \"{key}\" is declared in resource.{texts.Language}.json but missing from resource.{other.Language}.json",
                         pos
                     );
                 }

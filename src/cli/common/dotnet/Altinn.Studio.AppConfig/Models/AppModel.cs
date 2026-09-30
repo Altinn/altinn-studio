@@ -80,6 +80,16 @@ public sealed class AppModel
         }
     }
 
+    public IEnumerable<TextResources> LanguageTextResources() => TextResources.Where(IsServedLanguage);
+
+    private static bool IsServedLanguage(TextResources texts) =>
+        texts.Language is [>= 'a' and <= 'z', >= 'a' and <= 'z']
+        && string.Equals(
+            Path.GetFileName(texts.Position.File),
+            $"resource.{texts.Language}.json",
+            StringComparison.Ordinal
+        );
+
     public IEnumerable<(LayoutSet Set, LayoutComponent Component)> AllComponentsWithSet()
     {
         foreach (var set in LayoutSets)
