@@ -24,6 +24,7 @@ export * from './StudioChip';
 export * from './StudioCodeFragment';
 export * from './StudioCodeListEditor';
 export * from './StudioCodeListEditorWithTextResources';
+export * from './StudioCodeViewer';
 export * from './StudioConfigCard';
 export * from './StudioContentMenu';
 export * from './StudioDecimalInput';

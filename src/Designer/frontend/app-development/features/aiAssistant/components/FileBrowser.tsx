@@ -2,7 +2,14 @@ import type { ReactElement } from 'react';
 import { Fragment, useEffect, useState, useRef, useCallback } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
-import { StudioButton, StudioCenter, StudioParagraph, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioCenter,
+  StudioCodeViewer,
+  StudioParagraph,
+  StudioSpinner,
+  getCodeLanguageFromFileName,
+} from '@studio/components';
 import { FolderIcon, FileTextIcon, HouseIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './FileBrowser.module.css';
 
@@ -192,17 +199,19 @@ export const FileBrowser = (): ReactElement => {
             <StudioParagraph>Velg en fil for å vise innhold.</StudioParagraph>
           </div>
         )}
-        {!error && selectedFile && (
-          <div className={classes.viewerHeader}>
-            <span className={classes.viewerTitle}>{selectedFile.path}</span>
-            {isLoadingFile && (
-              <span className={classes.loadingIndicator}>
-                <StudioSpinner spinnerTitle='Laster innhold...' aria-hidden='true' data-size='sm' />
-              </span>
-            )}
-          </div>
+        {!error && selectedFile && isLoadingFile && (
+          <StudioCenter className={classes.placeholder}>
+            <StudioSpinner spinnerTitle='Laster innhold...' aria-hidden='true' />
+          </StudioCenter>
         )}
-        {!error && selectedFile && <pre className={classes.code}>{fileContent ?? ''}</pre>}
+        {!error && selectedFile && !isLoadingFile && (
+          <StudioCodeViewer
+            className={classes.codeViewer}
+            title={selectedFile.path}
+            code={fileContent ?? ''}
+            language={getCodeLanguageFromFileName(selectedFile.path)}
+          />
+        )}
       </div>
     </div>
   );
