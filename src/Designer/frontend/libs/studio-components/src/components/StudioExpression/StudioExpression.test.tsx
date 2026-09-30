@@ -208,23 +208,35 @@ describe('StudioExpression', () => {
     expect(screen.getByRole('textbox')).toHaveValue(expressionToString(tooComplexExpression));
   });
 
-  it('Calls the onChange function with the new expression when the user changes the expression in the manual editor', async () => {
+  it('Does not call the onChange function while the user types in the manual editor', async () => {
     const user = userEvent.setup();
     renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     await user.clear(input);
     await user.type(input, 'true');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('Calls the onChange function with the new expression when the user clicks the save button in the manual editor', async () => {
+    const user = userEvent.setup();
+    renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'true');
+    await user.click(getSaveButton());
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it('Keeps the text as typed in the manual editor and formats it when the textarea loses focus', async () => {
+  it('Formats the text in the manual editor when the saved expression is received', async () => {
     const user = userEvent.setup();
     const { rerender } = renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
     const typedString = '["equals", 1, 1]';
     await user.clear(input);
     await user.paste(typedString);
+    await user.click(getSaveButton());
+    expect(input).toHaveValue(typedString);
     rerender(
       <StudioExpression
         expression={onChange.mock.lastCall[0]}
@@ -233,9 +245,66 @@ describe('StudioExpression', () => {
         texts={texts}
       />,
     );
-    expect(input).toHaveValue(typedString);
-    await user.tab();
-    expect(input).toHaveValue(expressionToString([GeneralRelationOperator.Equals, 1, 1]));
+    expect(screen.getByRole('textbox')).toHaveValue(
+      expressionToString([GeneralRelationOperator.Equals, 1, 1]),
+    );
+  });
+
+  it('Disables the save and discard buttons in the manual editor when there are no changes', () => {
+    renderExpression(tooComplexExpression);
+    expect(getSaveButton()).toBeDisabled();
+    expect(getDiscardButton()).toBeDisabled();
+  });
+
+  it('Disables the save button and enables the discard button when the user types an invalid expression in the manual editor', async () => {
+    const user = userEvent.setup();
+    renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'tru');
+    expect(getSaveButton()).toBeDisabled();
+    expect(getDiscardButton()).toBeEnabled();
+  });
+
+  it('Resets the text in the manual editor without calling the onChange function when the user clicks the discard button', async () => {
+    const user = userEvent.setup();
+    renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'tru');
+    await user.click(getDiscardButton());
+    expect(screen.getByRole('textbox')).toHaveValue(expressionToString(tooComplexExpression));
+    expect(screen.queryByText(texts.cannotSaveSinceInvalid)).not.toBeInTheDocument();
+    expect(getSaveButton()).toBeDisabled();
+    expect(getDiscardButton()).toBeDisabled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('Asks for confirmation when the user has unsaved valid changes in the manual editor and tries to switch tab', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    renderExpression(tooComplexExpression);
+    const input = screen.getByRole('textbox');
+    await user.clear(input);
+    await user.type(input, 'true');
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
+    expect(confirmSpy).toHaveBeenCalledWith(texts.changeToSimplifiedWarning);
+    expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('Switches tab without asking for confirmation when there are no unsaved changes in the manual editor', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = jest.spyOn(window, 'confirm');
+    renderExpression(tooComplexExpression);
+    await user.click(screen.getByRole('tab', { name: texts.simplified }));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole('tab', { name: texts.simplified })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 
   it.each([
@@ -258,7 +327,7 @@ describe('StudioExpression', () => {
           texts={texts}
         />,
       );
-      expect(input).toHaveValue(expressionToString(null));
+      expect(screen.getByRole('textbox')).toHaveValue(expressionToString(null));
       expect(screen.queryByText(texts.cannotSaveSinceInvalid)).not.toBeInTheDocument();
       expect(screen.getByRole('tab', { name: texts.manual })).toHaveAttribute(
         'aria-selected',
@@ -360,6 +429,10 @@ const renderExpression = (expression: Expression): RenderResult => {
     />,
   );
 };
+
+const getSaveButton = (): HTMLElement => screen.getByRole('button', { name: texts.save });
+
+const getDiscardButton = (): HTMLElement => screen.getByRole('button', { name: texts.discard });
 
 function getTypeSelectorOfFirstOperand(): HTMLElement {
   const firstOperandGroup = screen.getByRole('group', { name: texts.firstOperand });

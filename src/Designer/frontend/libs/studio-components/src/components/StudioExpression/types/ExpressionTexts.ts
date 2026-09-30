@@ -17,6 +17,7 @@ export type ExpressionTexts = {
   dataModelPath: string;
   delete: string;
   disabledLogicalOperator: string;
+  discard: string;
   edit: string;
   errorListFooter: string;
   errorListHeader: string;

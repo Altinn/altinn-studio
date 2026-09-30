@@ -23,17 +23,6 @@ export const StudioManualExpression = ({
   const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
   const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
-  const [prevExpressionString, setPrevExpressionString] = useState<string>(givenExpressionString);
-
-  if (givenExpressionString !== prevExpressionString) {
-    setPrevExpressionString(givenExpressionString);
-    const isOwnChange =
-      isValid && givenExpressionString === expressionToString(stringToExpression(expressionString));
-    if (!isOwnChange) {
-      setExpressionString(givenExpressionString);
-      setIsValid(isInitiallyValid);
-    }
-  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
@@ -48,12 +37,6 @@ export const StudioManualExpression = ({
     }
   };
 
-  const handleBlur = (): void => {
-    if (isValid) {
-      setExpressionString(expressionToString(stringToExpression(expressionString)));
-    }
-  };
-
   const errorMessage = isValid ? undefined : texts.cannotSaveSinceInvalid;
 
   return (
@@ -61,7 +44,6 @@ export const StudioManualExpression = ({
       aria-label={texts.expression}
       className={classes.manualEditor}
       error={errorMessage}
-      onBlur={handleBlur}
       onChange={handleChange}
       rows={12}
       value={expressionString}

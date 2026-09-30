@@ -4,6 +4,8 @@ import { isExpressionValid } from './validators/isExpressionValid';
 import { StudioTabs } from '../StudioTabs';
 import { SimplifiedEditor } from './SimplifiedEditor';
 import { StudioManualExpression } from '../StudioManualExpression';
+import { expressionToString } from '../StudioManualExpression/converters';
+import { StudioFormActions } from '../StudioFormActions';
 import { isExpressionSimple } from './validators/isExpressionSimple';
 import {
   StudioExpressionContextProvider,
@@ -76,16 +78,34 @@ const ValidExpression = ({
   const initialTab = isSimplified ? TabId.Simplified : TabId.Manual;
   const [selectedTab, setSelectedTab] = useState<TabId>(initialTab);
   const [isValid, setIsValid] = useState<boolean>(true);
+  const [draftExpression, setDraftExpression] = useState<BooleanExpression | undefined>(undefined);
+  const [manualEditorKey, setManualEditorKey] = useState<number>(0);
+
+  const hasUnsavedChanges =
+    !isValid ||
+    (draftExpression !== undefined &&
+      expressionToString(draftExpression) !== expressionToString(expression));
+
+  const resetDraft = (): void => {
+    setDraftExpression(undefined);
+    setIsValid(true);
+  };
 
   const handleChangeTab = (tab: TabId): void => {
-    if (!isValid) {
-      if (confirm(texts.changeToSimplifiedWarning)) {
-        setIsValid(true);
-        setSelectedTab(tab);
-      }
-    } else {
+    if (!hasUnsavedChanges || confirm(texts.changeToSimplifiedWarning)) {
+      resetDraft();
       setSelectedTab(tab);
     }
+  };
+
+  const handleSave = (): void => {
+    onChange(draftExpression);
+    setDraftExpression(undefined);
+  };
+
+  const handleDiscard = (): void => {
+    resetDraft();
+    setManualEditorKey((key) => key + 1);
   };
 
   return (
@@ -103,12 +123,28 @@ const ValidExpression = ({
       </StudioTabs.Panel>
       <StudioTabs.Panel value={TabId.Manual}>
         {selectedTab === TabId.Manual && (
-          <StudioManualExpression
-            expression={expression}
-            onValidExpressionChange={onChange}
-            onValidityChange={setIsValid}
-            texts={texts}
-          />
+          <>
+            <StudioManualExpression
+              key={`${manualEditorKey}-${expressionToString(expression)}`}
+              expression={expression}
+              onValidExpressionChange={setDraftExpression}
+              onValidityChange={setIsValid}
+              texts={texts}
+            />
+            <StudioFormActions
+              primary={{
+                label: texts.save,
+                onClick: handleSave,
+                disabled: !isValid || !hasUnsavedChanges,
+              }}
+              secondary={{
+                label: texts.discard,
+                onClick: handleDiscard,
+                disabled: !hasUnsavedChanges,
+              }}
+              isLoading={false}
+            />
+          </>
         )}
       </StudioTabs.Panel>
     </StudioTabs>
