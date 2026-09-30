@@ -4,7 +4,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
-using Altinn.App.Core.Internal.InstanceLocking;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Mocks;
@@ -91,6 +90,7 @@ public class SignClientTests
         callCount.Should().Be(1);
         platformRequest.Should().NotBeNull();
         platformRequest!.Method.Should().Be(HttpMethod.Post);
+        platformRequest.Headers.Contains("Altinn-Storage-Lock-Token").Should().BeFalse();
         platformRequest!
             .RequestUri!.ToString()
             .Should()
@@ -141,7 +141,6 @@ public class SignClientTests
         var services = new ServiceCollection();
         services.AddSingleton(platformSettingsOptions);
         services.AddSingleton(authenticationTokenResolver.Object);
-        services.AddSingleton<IInstanceLocker>(Mock.Of<IInstanceLocker>());
         var serviceProvider = services.BuildServiceProvider();
 
         return new SignClient(new HttpClient(delegatingHandlerStub), serviceProvider);

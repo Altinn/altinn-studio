@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
@@ -19,17 +17,15 @@ class FeedbackReq(BaseModel):
     """User feedback (thumbs up/down) on an assistant message, recorded as a Langfuse score."""
 
     thumbs_up: bool
-    comment: Optional[str] = None
+    comment: str | None = None
 
     @field_validator("comment")
     @classmethod
-    def _validate_comment(cls, v: Optional[str]) -> Optional[str]:
+    def _validate_comment(cls, v: str | None) -> str | None:
         if v is None:
             return v
         if len(v) > FEEDBACK_COMMENT_MAX_LENGTH:
-            raise ValueError(
-                f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters"
-            )
+            raise ValueError(f"comment must not exceed {FEEDBACK_COMMENT_MAX_LENGTH} characters")
         return v
 
 
@@ -66,9 +62,7 @@ def _feedback_score_id(trace_id: str) -> str:
 def _assert_caller_owns_trace(request: Request, trace_id: str) -> None:
     caller = request.headers.get(DEVELOPER_HEADER)
     if not caller:
-        raise HTTPException(
-            status_code=400, detail=f"Missing {DEVELOPER_HEADER} header"
-        )
+        raise HTTPException(status_code=400, detail=f"Missing {DEVELOPER_HEADER} header")
     if get_trace_developer(trace_id) != caller:
         raise HTTPException(status_code=403)
 
@@ -82,7 +76,7 @@ async def clean_up_traces() -> dict[str, int]:
     """
     try:
         deleted_count = await delete_expired_traces()
-    except Exception:
+    except Exception as e:
         log.exception("Scheduled trace cleanup (delete-expired) failed")
-        raise HTTPException(status_code=500, detail="Trace cleanup failed")
+        raise HTTPException(status_code=500, detail="Trace cleanup failed") from e
     return {"deleted": deleted_count}

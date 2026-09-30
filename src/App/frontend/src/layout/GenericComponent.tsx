@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import classNames from 'classnames';
+import type { IGridStyling } from '@app/layout-contract/generated/common.generated';
 
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -21,7 +22,6 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { EvalExprOptions } from 'src/features/expressions';
-import type { IGridStyling } from 'src/layout/common.generated';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
@@ -88,12 +88,18 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const nodeId = useIndexedId(baseComponentId);
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
+  const handleFocusContainerMount = useHandleFocusComponent(nodeId, containerDivRef);
+  const focusContainerRef = React.useCallback(
+    (div: HTMLDivElement | null) => {
+      containerDivRef.current = div;
+      handleFocusContainerMount();
+    },
+    [handleFocusContainerMount],
+  );
   const hiddenState = useIsHidden(baseComponentId, { includeReason: true });
   const howToHide = useDevToolsStore((state) => (state.isOpen ? state.hiddenComponents : 'hide'));
   const layoutComponent = getComponentDef(component.type);
   const addError = FormStore.layoutDiagnostics.useAddError();
-
-  useHandleFocusComponent(nodeId, containerDivRef);
 
   useEffect(() => {
     if (containerDivRef.current && hiddenState.reason === 'forcedByDeVTools' && howToHide === 'disabled') {
@@ -161,7 +167,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         <AppLanguageTranslatorProvider>
           <RenderComponent
             {...componentProps}
-            ref={containerDivRef}
+            ref={focusContainerRef}
           />
         </AppLanguageTranslatorProvider>
       </FormComponentContextProvider>
@@ -174,7 +180,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         data-componentbaseid={baseComponentId}
         data-componentid={nodeId}
         data-componenttype={component.type}
-        ref={containerDivRef}
+        ref={focusContainerRef}
         item
         container
         size={grid}

@@ -25,14 +25,6 @@ public class ValidationIssue
     public required ValidationIssueSeverity Severity { get; set; }
 
     /// <summary>
-    /// The unique id of the specific element with the identified issue.
-    /// </summary>
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
-    [Obsolete("Not in use", error: true)]
-    public string? InstanceId { get; set; }
-
-    /// <summary>
     /// The unique id of the data element of a given instance with the identified issue.
     /// </summary>
     [JsonProperty(PropertyName = "dataElementId")]

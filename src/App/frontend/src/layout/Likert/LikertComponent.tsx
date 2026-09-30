@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Description, getDescriptionId, getLabelId, HelpTextContainer, useIsMobileOrTablet } from '@app/form-component';
+import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -9,7 +10,6 @@ import type { PropsFromGenericComponent } from '..';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
-import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Likert/LikertComponent.module.css';

@@ -6,6 +6,7 @@ import { ComponentsPage } from './pages/Components';
 import { SettingsPage } from './pages/Settings';
 import { LanguagesPage } from './pages/Languages';
 import { ProcessPage } from './pages/Process';
+import { InterfacesPage } from './pages/Interfaces';
 import { SearchPage } from './pages/Search';
 import { SettingsConfigPage } from './pages/SettingsConfig';
 import { QueryToolsPage } from './pages/QueryTools';
@@ -16,6 +17,7 @@ const tabs = [
   { value: '/settings', label: 'Innstillinger' },
   { value: '/languages', label: 'Språk' },
   { value: '/process', label: 'Prosess' },
+  { value: '/interfaces', label: 'Grensesnitt' },
   { value: '/search', label: 'Søk' },
   { value: '/query', label: 'Query Tools' },
   { value: '/config', label: 'Konfigurasjon' },
@@ -59,6 +61,7 @@ export default function App() {
           <Route path='/settings' element={<SettingsPage />} />
           <Route path='/languages' element={<LanguagesPage />} />
           <Route path='/process' element={<ProcessPage />} />
+          <Route path='/interfaces' element={<InterfacesPage />} />
           <Route path='/search' element={<SearchPage />} />
           <Route path='/query' element={<QueryToolsPage />} />
           <Route path='/config' element={<SettingsConfigPage />} />

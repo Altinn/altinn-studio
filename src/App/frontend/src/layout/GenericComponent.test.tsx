@@ -119,4 +119,10 @@ describe('findElementToFocus', () => {
 
     expect(findElementToFocus(div, 'missing')?.id).toBe('first');
   });
+
+  it('recognizes native links as focusable elements', () => {
+    const div = createContainer('<a id="link" href="/target">Go</a>');
+
+    expect(findElementToFocus(div, null)?.id).toBe('link');
+  });
 });

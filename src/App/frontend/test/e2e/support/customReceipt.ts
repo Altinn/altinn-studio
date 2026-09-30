@@ -1,4 +1,5 @@
-import type { CompAttachmentListExternal } from 'src/layout/AttachmentList/config.generated';
+import type { CompAttachmentListExternal } from '@app/layout-contract/generated/components/AttachmentList/config.generated';
+
 import type { ILayout } from 'src/layout/layout';
 
 function generateAttachmentLists({

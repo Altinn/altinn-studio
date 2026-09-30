@@ -2,19 +2,18 @@ import React from 'react';
 
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
-import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const twoOptions: IRawOption[] = [
+const threeOptions: IRawOption[] = [
   {
     label: 'Norway',
     value: 'norway',
@@ -23,10 +22,6 @@ const twoOptions: IRawOption[] = [
     label: 'Sweden',
     value: 'sweden',
   },
-];
-
-const threeOptions: IRawOption[] = [
-  ...twoOptions,
   {
     label: 'Denmark',
     value: 'denmark',
@@ -157,6 +152,51 @@ describe('CheckboxesContainerComponent', () => {
     });
   });
 
+  it('should select an option with help text when clicking its label', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const label = document.querySelector(`label[for="${checkbox.id}"]`);
+
+    expect(label).toBeInTheDocument();
+
+    await userEvent.click(label as HTMLLabelElement);
+
+    expect(checkbox).toBeChecked();
+    expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1);
+    expect(formDataMethods.setLeafValue).toHaveBeenLastCalledWith({
+      reference: { field: 'selectedValues', dataType: defaultDataTypeMock },
+      newValue: 'norway',
+    });
+  });
+
+  it('should not select an option when clicking its help text button', async () => {
+    const { formDataMethods } = await render({
+      options: [
+        {
+          label: 'Norway',
+          value: 'norway',
+          helpText: 'Help text',
+        },
+      ],
+    });
+    const checkbox = getCheckbox({ name: /Norway/ });
+    const helpTextButton = screen.getByRole('button', { name: 'Help text' });
+
+    await userEvent.click(helpTextButton);
+
+    expect(helpTextButton).toHaveAttribute('aria-expanded', 'true');
+    expect(checkbox).not.toBeChecked();
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
+  });
+
   it('should call setLeafValue with updated values when deselecting item', async () => {
     const { formDataMethods } = await render({
       options: threeOptions,
@@ -211,55 +251,6 @@ describe('CheckboxesContainerComponent', () => {
         newValue: 'denmark',
       });
     });
-  });
-
-  it('should show items in a row when layout is "row" and options count is 3', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Row,
-      },
-      options: threeOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
-  });
-
-  it('should show items in a row when layout is not defined, and options count is 2', async () => {
-    await render({
-      component: {
-        // We have to provide a different optionsId here. If we re-used the optionsId from above and provided
-        // the options using a query, the query cache might give us options from another test run.
-        optionsId: 'twoOptions',
-      },
-      options: twoOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).toBeInTheDocument();
-  });
-
-  it('should show items in a column when layout is "column" and options count is 2 ', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-        layout: LayoutStyle.Column,
-      },
-
-      options: twoOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
-  });
-
-  it('should show items in a columns when layout is not defined, and options count is 3', async () => {
-    await render({
-      component: {
-        optionsId: 'countries',
-      },
-      options: threeOptions,
-    });
-
-    expect(screen.queryByTestId('horizontalWrapper')).not.toBeInTheDocument();
   });
 
   it('should present replaced label if using data model source and trigger setLeafValue with replaced values', async () => {

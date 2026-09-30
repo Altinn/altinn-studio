@@ -74,7 +74,6 @@ ProcessController.NextElement()
     └── ProcessEngine.Next()               ← in-memory loop (max 100 iterations)
             │
             ├── Authorize
-            ├── AcquireInstanceLock        ← 5-minute TTL via Platform Storage
             ├── HandleServiceTask()        ← or HandleUserAction()
             ├── Validate()
             ├── HandleMoveToNext()
@@ -96,11 +95,11 @@ The entire chain runs synchronously inside one HTTP request/response cycle.
 | -------------------------------------------- | ------------------------------------------------------------- |
 | Service task crashes (PDF, signing, payment) | In-memory changes lost. Instance stays at previous state.     |
 | Storage API call times out                   | State unknown. May or may not have persisted. No idempotency. |
-| Pod killed mid-processing                    | Instance lock held for 5 minutes. Data state unclear.         |
+| Workflow fails or pod is killed mid-process  | Instance remains durably `processing` and fenced; stuck or terminal work requires `POST process/resume` or ops recovery. |
 | Timeout during auto-loop iteration N         | Iterations 1..N-1 persisted. Iteration N partially executed.  |
 | Network failure to Platform Storage          | Client gets 5xx. No retry. Manual intervention required.      |
 
-The common thread: **no automatic recovery**. If it fails, someone has to investigate and fix it.
+Durable processing status keeps incomplete work fenced and visible. Stuck or terminal work has no expiry or automatic unlock and requires explicit `POST process/resume` or operations recovery.
 
 ---
 
@@ -138,7 +137,7 @@ The app enqueues and returns immediately. The engine handles execution, retries,
 | ------------------------- | ------------------------------- | ------------------------------------------------------- |
 | Service task crashes      | Lost. Manual recovery.          | Requeued with backoff. Retried automatically.           |
 | Storage/network timeout   | Unknown state. No retry.        | Step marked retryable. Engine retries.                  |
-| Pod killed mid-processing | Lock held 5 min. State unclear. | Heartbeat expires. Another worker reclaims.             |
+| Pod killed mid-processing | Instance remains `processing`; explicit resume or ops recovery is required. | Heartbeat expires. Another worker reclaims. |
 | Retries exhausted         | N/A (no retries exist)          | Workflow marked Failed with error detail. Queryable.    |
 | Downstream 5xx            | Request fails. User sees error. | Retried with exponential backoff up to deadline.        |
 | Downstream 4xx            | Request fails. User sees error. | Marked as critical error. No retry. Clear in dashboard. |
@@ -180,7 +179,7 @@ Host Application (e.g. WorkflowEngine.App)
       └── Telemetry   // OpenTelemetry via OTLP
 ```
 
-`WorkflowEngine.App` is the Altinn-specific host. It adds `AppCommand` &mdash; an HTTP callback into Altinn apps carrying full instance context (org, app, actor, lockToken, instanceGuid).
+`WorkflowEngine.App` is the Altinn-specific host. It adds `AppCommand` &mdash; an HTTP callback into Altinn apps carrying full instance context (org, app, actor, instanceGuid, callback token).
 
 Database is the single source of truth. No in-memory queue. Enqueue and status-update paths use channel-based write buffers for throughput.
 

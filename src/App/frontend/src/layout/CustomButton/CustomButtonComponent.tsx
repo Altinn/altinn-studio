@@ -6,6 +6,8 @@ import { CustomButton } from '@app/form-component';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
+import type { PageValidation } from '@app/layout-contract/generated/common.generated';
+import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -23,8 +25,6 @@ import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { PageValidation } from 'src/layout/common.generated';
-import type * as CBTypes from 'src/layout/CustomButton/config.generated';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
 import type { IInstance } from 'src/types/shared';
 

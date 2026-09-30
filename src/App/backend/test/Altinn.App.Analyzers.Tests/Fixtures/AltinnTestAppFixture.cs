@@ -34,6 +34,8 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 
     public IDisposable WithDiscardedEFormidlingBuilder() => WithAddedDocument(Content.DiscardedEFormidlingBuilder);
 
+    public IDisposable WithMailboxHandleConsumption() => WithAddedDocument(Content.MailboxHandleConsumption);
+
     /// <summary>
     /// Adds a source file to the project for the duration of the modification. Restoring the
     /// fixture's captured snapshots alone is not enough on dispose: the workspace's *current*
@@ -41,20 +43,28 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
     /// (derived from the restored, older snapshot) would fail — so the dispose action also
     /// removes the document from the live workspace and re-syncs the fixture's project to it.
     /// </summary>
+    /// <remarks>
+    /// The removal goes by <see cref="DocumentId"/> rather than by path on purpose:
+    /// <c>AddDocument(name, text)</c> takes a document <em>name</em> and leaves
+    /// <see cref="Document.FilePath"/> null, so looking the document up by its path found nothing and
+    /// the file stayed in the project for the rest of the run. That leak is invisible while each test
+    /// runs an analyzer that ignores the other tests' files, and shows up the moment one class's
+    /// "clean by default" test happens to be ordered after its own "emits diagnostics" test.
+    /// </remarks>
     private IDisposable WithAddedDocument(DocumentSelector content)
     {
         if (!IsInitialized)
             throw new InvalidOperationException("Fixture not initialized");
 
+        DocumentId? addedDocumentId = null;
         var modification = new ProjectModification(
             this,
             action: () =>
             {
                 var project = Workspace.CurrentSolution.GetProject(Project!.Id);
-                var addedDoc = project?.Documents.SingleOrDefault(d => d.FilePath == content.FilePath);
-                if (addedDoc is not null)
+                if (addedDocumentId is not null && project?.GetDocument(addedDocumentId) is not null)
                 {
-                    Assert.True(Workspace.TryApplyChanges(project!.RemoveDocument(addedDoc.Id).Solution));
+                    Assert.True(Workspace.TryApplyChanges(project.RemoveDocument(addedDocumentId).Solution));
                 }
                 Project = Workspace.CurrentSolution.GetProject(Project.Id)!;
             }
@@ -64,6 +74,7 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
             content.FilePath,
             SourceText.From(File.ReadAllText(content.FilePath, Encoding.UTF8), Encoding.UTF8)
         );
+        addedDocumentId = doc.Id;
         Project = doc.Project;
         Assert.True(Workspace.TryApplyChanges(Project.Solution));
 

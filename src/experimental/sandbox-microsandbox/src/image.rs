@@ -2,7 +2,6 @@ use std::{
     collections::HashSet,
     fs::File,
     path::{Path, PathBuf},
-    time::Instant,
 };
 
 use bollard::{
@@ -11,10 +10,8 @@ use bollard::{
 };
 use futures_util::StreamExt as _;
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
-use sandbox::progress::{ProgressStep, SandboxProgress};
-use sandbox::{
-    Error, LocalFuture, OutputStream, PendingOperation, ProgressUnit, RootFilesystemMode, SandboxPhase, image,
-};
+use sandbox::progress::{MeasuredStep, ProgressStep, SandboxProgress};
+use sandbox::{Error, LocalFuture, OutputStream, PendingOperation, ProgressUnit, RootFilesystemMode, image};
 use sha2::{Digest as _, Sha256};
 use tokio::io::AsyncWriteExt as _;
 use tokio_util::codec::{BytesCodec, FramedRead};
@@ -29,6 +26,9 @@ const PULL_IMAGE: &str = "Pull OCI image";
 const LOOKUP_IMPORTED_IMAGE: &str = "Look up imported Microsandbox image";
 const EXPORT_IMAGE: &str = "Export Docker image";
 const IMPORT_IMAGE: &str = "Import Microsandbox image";
+const DOWNLOAD_LAYERS: &str = "Download image layers";
+const MATERIALIZE_LAYERS: &str = "Materialize image layers";
+const ASSEMBLE_ROOT_DISK: &str = "Assemble root disk";
 const RETAIN_BUILD_CACHE: &str = "Retain Docker build cache";
 const REMOVE_TEMPORARY_IMAGE: &str = "Remove temporary Docker image";
 const EXPORT_PREPARED_ROOT: &str = "Export prepared root";
@@ -58,16 +58,31 @@ impl MicrosandboxImageBackend {
         self.docker.as_ref().map_err(|failure| Error::Backend(failure.clone()))
     }
 
+    /// Scratch directory for image and build-context archives, inside the Microsandbox cache.
+    ///
+    /// The system temporary directory is often a small tmpfs (a Sandbox guest gives `/tmp`
+    /// 512 MiB), while an exported image archive is as large as the image itself.
+    async fn scratch_dir(&self) -> Result<PathBuf, Error> {
+        let scratch = self.client.local().cache_dir().join("tmp");
+        tokio::fs::create_dir_all(&scratch)
+            .await
+            .map_err(|source| error::io("create image scratch directory", source))?;
+        Ok(scratch)
+    }
+
     async fn build_image(
         &self,
         request: &image::ResolveRequest,
         context: &Path,
         dockerfile: &Path,
+        target: Option<&str>,
         progress: &SandboxProgress,
     ) -> Result<image::ResolvedImage, Error> {
         let platform = platform::require_supported(&request.platform)?;
         self.check_docker(progress).await?;
-        let prepared = Self::prepare_context(context, dockerfile, &request.platform, progress).await?;
+        let prepared = self
+            .prepare_context(context, dockerfile, target, &request.platform, progress)
+            .await?;
         let build_id = Uuid::new_v4().simple().to_string();
         let temporary_tag = format!("sandbox-microsandbox-build:{build_id}");
         self.build_docker_image(&prepared, &temporary_tag, &build_id, &platform, progress)
@@ -93,20 +108,20 @@ impl MicrosandboxImageBackend {
     }
 
     async fn check_docker(&self, progress: &SandboxProgress) -> Result<(), Error> {
-        let started = Instant::now();
         let step = progress.start_step(CHECK_DOCKER).await;
         self.docker()?.ping().await.map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
     async fn prepare_context(
+        &self,
         source_context: &Path,
         source_dockerfile: &Path,
+        target: Option<&str>,
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<PreparedBuild, Error> {
-        let started = Instant::now();
         let step = progress.start_step(PREPARE_CONTEXT).await;
         let context = tokio::fs::canonicalize(source_context)
             .await
@@ -120,12 +135,13 @@ impl MicrosandboxImageBackend {
             .to_path_buf();
         let dockerfile_parameter = archive_path(&relative_dockerfile)?;
 
-        let cache_tag = cache_tag(&context, &dockerfile_parameter, platform);
-        let archive = create_context_archive(context, relative_dockerfile).await?;
-        step.complete(started.elapsed()).await;
+        let cache_tag = cache_tag(&context, &dockerfile_parameter, target, platform);
+        let archive = create_context_archive(self.scratch_dir().await?, context, relative_dockerfile).await?;
+        step.complete().await;
         Ok(PreparedBuild {
             archive,
             dockerfile: dockerfile_parameter,
+            target: target.map(str::to_owned),
             cache_tag,
         })
     }
@@ -150,12 +166,19 @@ impl MicrosandboxImageBackend {
             .version(BuilderVersion::BuilderBuildKit)
             .session(build_id)
             .rm(true)
-            .forcerm(true)
-            .build();
+            .forcerm(true);
+        let options = if let Some(target) = &prepared.target {
+            options.target(target)
+        } else {
+            options
+        };
+        let options = options.build();
 
-        let started = Instant::now();
-        let step = progress.start_step(BUILD_IMAGE).await;
+        let step = progress
+            .start_measured_step(BUILD_IMAGE, ProgressUnit::Bytes, None)
+            .await;
         let mut completed_vertices = HashSet::new();
+        let mut transfers = Transfers::default();
         let mut responses = self
             .docker()?
             .build_image(options, None, Some(bollard::body_try_stream(context_stream)));
@@ -172,7 +195,7 @@ impl MicrosandboxImageBackend {
                 step.output(OutputStream::Stdout, stream).await;
             }
             if let Some(status) = response.status {
-                let output = response.id.map_or_else(
+                let output = response.id.as_ref().map_or_else(
                     || format!("{status}\n"),
                     |identifier| format!("{identifier}: {status}\n"),
                 );
@@ -182,13 +205,15 @@ impl MicrosandboxImageBackend {
                 && let Some(completed) = detail.current.and_then(|value| u64::try_from(value).ok())
             {
                 let total = detail.total.and_then(|value| u64::try_from(value).ok());
-                step.progress(completed, total, ProgressUnit::Bytes).await;
+                let key = response.id.clone().unwrap_or_default();
+                let (completed, total) = transfers.record(key, completed, total);
+                step.report(completed, total).await;
             }
             if let Some(aux) = response.aux {
                 report_buildkit_status(&step, &mut completed_vertices, aux).await?;
             }
         }
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
@@ -200,10 +225,9 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<(String, sandbox::Platform), Error> {
-        let started = Instant::now();
         let step = progress.start_step(RETAIN_BUILD_CACHE).await;
         self.retain_build_cache(temporary_tag, cache_tag).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
 
         let import_reference = self.import_cache_reference(temporary_tag).await?;
         if let Some(resolved) = self
@@ -223,15 +247,15 @@ impl MicrosandboxImageBackend {
         temporary_tag: &str,
         progress: &SandboxProgress,
     ) -> Result<tempfile::TempPath, Error> {
-        let started = Instant::now();
-        let step = progress.start_step(EXPORT_IMAGE).await;
+        let step = progress
+            .start_measured_step(EXPORT_IMAGE, ProgressUnit::Bytes, None)
+            .await;
         let archive = self.export_image(temporary_tag, &step).await?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(archive)
     }
 
     async fn remove_temporary_image(&self, temporary_tag: &str, progress: &SandboxProgress) -> Result<(), Error> {
-        let started = Instant::now();
         let step = progress.start_step(REMOVE_TEMPORARY_IMAGE).await;
         self.docker()?
             .remove_image(
@@ -241,7 +265,7 @@ impl MicrosandboxImageBackend {
             )
             .await
             .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(())
     }
 
@@ -279,14 +303,13 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<Option<(String, sandbox::Platform)>, Error> {
-        let started = Instant::now();
         let step = progress.start_step(LOOKUP_IMPORTED_IMAGE).await;
         let handle = match microsandbox::Image::get_local(self.client.local(), reference).await {
             Ok(handle) => Some(handle),
             Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => None,
             Err(failure) => return Err(error::microsandbox(failure)),
         };
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         handle
             .map(|handle| resolve_image_handle(&handle, requested, platform))
             .transpose()
@@ -300,7 +323,6 @@ impl MicrosandboxImageBackend {
         platform: &sandbox::Platform,
         progress: &SandboxProgress,
     ) -> Result<(String, sandbox::Platform), Error> {
-        let started = Instant::now();
         let step = progress.start_step(IMPORT_IMAGE).await;
         let (mut import_events, import_progress) = microsandbox_image::progress_channel();
         let cache_dir = self.client.local().cache_dir();
@@ -313,12 +335,17 @@ impl MicrosandboxImageBackend {
             },
         );
         let report = async {
+            let mut pull = PullReport::default();
             while let Some(event) = import_events.recv().await {
-                report_image_progress(&step, event).await;
+                pull.report(progress, event).await;
             }
+            pull
         };
-        let (loaded, ()) = tokio::join!(load, report);
+        let (loaded, pull) = tokio::join!(load, report);
         let loaded = loaded.map_err(error::backend)?;
+        // The channel also closes when the import fails; its steps then stay
+        // open and end as failed with the operation.
+        pull.finish().await;
         let image = loaded
             .into_iter()
             .find(|image| image.reference == import_reference)
@@ -330,12 +357,12 @@ impl MicrosandboxImageBackend {
             .await
             .map_err(error::microsandbox)?;
         let resolved = resolve_image_handle(&handle, requested, platform)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(resolved)
     }
 
-    async fn export_image(&self, reference: &str, step: &ProgressStep) -> Result<tempfile::TempPath, Error> {
-        let archive = tempfile::NamedTempFile::new()
+    async fn export_image(&self, reference: &str, step: &MeasuredStep) -> Result<tempfile::TempPath, Error> {
+        let archive = tempfile::NamedTempFile::new_in(self.scratch_dir().await?)
             .map_err(|source| error::io("create Docker image archive", source))?
             .into_temp_path();
         let mut file = tokio::fs::File::create(&archive)
@@ -353,11 +380,11 @@ impl MicrosandboxImageBackend {
                 .map_err(|source| error::io("write Docker image archive", source))?;
             written = written.saturating_add(chunk_length);
             if written.saturating_sub(reported) >= EXPORT_PROGRESS_INTERVAL {
-                step.progress(written, None, ProgressUnit::Bytes).await;
+                step.report(written, None).await;
                 reported = written;
             }
         }
-        step.progress(written, Some(written), ProgressUnit::Bytes).await;
+        step.report(written, Some(written)).await;
         file.sync_all()
             .await
             .map_err(|source| error::io("sync Docker image archive", source))?;
@@ -374,7 +401,6 @@ impl MicrosandboxImageBackend {
         let parsed: microsandbox_image::Reference = reference
             .parse()
             .map_err(|failure| Error::Backend(format!("invalid OCI image reference '{reference}': {failure}")))?;
-        let started = Instant::now();
         let step = progress.start_step(PULL_IMAGE).await;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
         let options = microsandbox_image::PullOptions {
@@ -420,12 +446,17 @@ impl MicrosandboxImageBackend {
             let (mut events, sender) = microsandbox_image::progress_channel();
             let pull = registry.pull_with_sender(&parsed, &options, sender);
             let report = async {
+                let mut pull = PullReport::default();
                 while let Some(event) = events.recv().await {
-                    report_image_progress(&step, event).await;
+                    pull.report(progress, event).await;
                 }
+                pull
             };
-            let (result, ()) = tokio::join!(pull, report);
+            let (result, report) = tokio::join!(pull, report);
             result.map_err(error::backend)?.map_err(error::backend)?;
+            // The channel also closes when the pull fails; its steps then stay
+            // open and end as failed with the operation.
+            report.finish().await;
             cache
                 .read_image_metadata(&parsed)
                 .map_err(error::backend)?
@@ -439,7 +470,7 @@ impl MicrosandboxImageBackend {
             .await
             .map_err(error::microsandbox)?;
         let (manifest_digest, actual) = resolve_image_handle(&handle, &request.platform, &fallback)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(image::ResolvedImage {
             source: request.source.clone(),
             platform: actual,
@@ -455,12 +486,11 @@ impl MicrosandboxImageBackend {
     ) -> Result<image::PreparedImage, Error> {
         let operation = image::ImageOperation::PreparedImageExport;
         require_direct_prepared_root(request, operation)?;
-        let reference = prepared_root_reference(request, operation)?;
+        let (_, reference) = prepared_root_reference(request, operation)?;
         let resolved = self
             .resolve_reference(request, &reference.to_string(), progress)
             .await?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
-        let started = Instant::now();
         let step = progress.start_step(EXPORT_PREPARED_ROOT).await;
         let prepared = microsandbox_image::export_prepared_root(
             &cache,
@@ -470,7 +500,7 @@ impl MicrosandboxImageBackend {
         )
         .await
         .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        step.complete().await;
         Ok(prepared_root(resolved, &prepared))
     }
 
@@ -483,9 +513,8 @@ impl MicrosandboxImageBackend {
         let operation = image::ImageOperation::PreparedImageImport;
         require_direct_prepared_root(request, operation)?;
         let actual = platform::require_supported(&request.platform)?;
-        let reference = prepared_root_reference(request, operation)?;
+        let (catalog_name, reference) = prepared_root_reference(request, operation)?;
         let cache = microsandbox_image::GlobalCache::new(&self.client.local().cache_dir()).map_err(error::backend)?;
-        let started = Instant::now();
         let step = progress.start_step(IMPORT_PREPARED_ROOT).await;
         let prepared = microsandbox_image::import_prepared_root(
             &cache,
@@ -495,7 +524,12 @@ impl MicrosandboxImageBackend {
         )
         .await
         .map_err(error::backend)?;
-        step.complete(started.elapsed()).await;
+        // Record the imported root like a pulled image, so it is listed locally
+        // and image removal and pruning reclaim its flat artifacts.
+        microsandbox::Image::persist(self.client.local(), catalog_name, prepared.image.clone())
+            .await
+            .map_err(error::microsandbox)?;
+        step.complete().await;
         Ok(prepared_root(
             image::ResolvedImage {
                 source: request.source.clone(),
@@ -531,26 +565,28 @@ fn reference_pull_policy(reference: &microsandbox_image::Reference) -> microsand
     }
 }
 
+/// The prepared root's reference as given, used as its catalog name like a
+/// pulled image's, and parsed.
 fn prepared_root_reference(
     request: &image::ResolveRequest,
     operation: image::ImageOperation,
-) -> Result<microsandbox_image::Reference, Error> {
+) -> Result<(&str, microsandbox_image::Reference), Error> {
     let image::ImageSource::Reference { reference } = &request.source else {
         return Err(Error::UnsupportedImageSourceKind {
             operation,
             source_kind: request.source.kind(),
         });
     };
-    let reference = reference
+    let parsed = reference
         .parse::<microsandbox_image::Reference>()
         .map_err(error::backend)?;
-    if reference.digest().is_none() {
+    if parsed.digest().is_none() {
         return Err(Error::invalid(
             "image.reference",
             "prepared roots require an immutable digest-pinned OCI reference",
         ));
     }
-    Ok(reference)
+    Ok((reference, parsed))
 }
 
 fn prepared_root(
@@ -568,15 +604,17 @@ fn prepared_root(
 struct PreparedBuild {
     archive: tempfile::TempPath,
     dockerfile: String,
+    target: Option<String>,
     cache_tag: String,
 }
 
-fn cache_tag(context: &Path, dockerfile: &str, platform: &sandbox::Platform) -> String {
+fn cache_tag(context: &Path, dockerfile: &str, target: Option<&str>, platform: &sandbox::Platform) -> String {
     let mut digest = Sha256::new();
     let platform = platform.to_string();
     for component in [
         context.as_os_str().as_encoded_bytes(),
         dockerfile.as_bytes(),
+        target.unwrap_or_default().as_bytes(),
         platform.as_bytes(),
     ] {
         digest.update(component);
@@ -608,7 +646,7 @@ fn resolve_image_handle(
 }
 
 async fn report_buildkit_status(
-    step: &ProgressStep,
+    step: &MeasuredStep,
     completed_vertices: &mut HashSet<String>,
     aux: bollard::models::BuildInfoAux,
 ) -> Result<(), Error> {
@@ -645,41 +683,173 @@ async fn report_buildkit_status(
     Ok(())
 }
 
-async fn report_image_progress(step: &ProgressStep, event: microsandbox_image::PullProgress) {
-    match event {
-        microsandbox_image::PullProgress::Resolved { layer_count, .. } => {
-            step.progress(0, u64::try_from(layer_count).ok(), ProgressUnit::Items)
-                .await;
+/// Sums concurrent transfers, such as layer downloads, into one quantity.
+///
+/// The total is known once every transfer seen so far has announced its size.
+#[derive(Default)]
+struct Transfers {
+    transfers: std::collections::BTreeMap<String, (u64, Option<u64>)>,
+}
+
+impl Transfers {
+    fn record(&mut self, key: String, completed: u64, total: Option<u64>) -> (u64, Option<u64>) {
+        self.transfers.insert(key, (completed, total));
+        self.totals(None)
+    }
+
+    fn totals(&self, announced: Option<u64>) -> (u64, Option<u64>) {
+        let completed = self.transfers.values().map(|(completed, _)| completed).sum();
+        let total = announced.or_else(|| {
+            self.transfers
+                .values()
+                .map(|(_, total)| *total)
+                .sum::<Option<u64>>()
+                .filter(|_| !self.transfers.is_empty())
+        });
+        (completed, total)
+    }
+}
+
+/// Translates registry pull events into the steps of one image pull or import.
+///
+/// Layers download and materialize concurrently, so each activity is its own
+/// measured step with one aggregated byte count, started when its first event
+/// arrives. Assembling the root disk has no byte progress and is named through
+/// its output so a long write is visibly in progress rather than silent.
+#[derive(Default)]
+struct PullReport {
+    layers: Option<u64>,
+    /// Total download size announced by the registry, when known up front.
+    total_download_bytes: Option<u64>,
+    downloads: Transfers,
+    materializations: Transfers,
+    download: Option<MeasuredStep>,
+    materialize: Option<MeasuredStep>,
+    assemble: Option<ProgressStep>,
+}
+
+impl PullReport {
+    async fn report(&mut self, progress: &SandboxProgress, event: microsandbox_image::PullProgress) {
+        use microsandbox_image::PullProgress;
+        match event {
+            PullProgress::Resolved {
+                layer_count,
+                total_download_bytes,
+                ..
+            } => {
+                self.layers = u64::try_from(layer_count).ok();
+                self.total_download_bytes = total_download_bytes;
+            }
+            PullProgress::LayerDownloadProgress {
+                layer_index,
+                downloaded_bytes,
+                total_bytes,
+                ..
+            } => {
+                self.downloads
+                    .record(layer_index.to_string(), downloaded_bytes, total_bytes);
+                self.report_download(progress).await;
+            }
+            PullProgress::LayerDownloadComplete {
+                layer_index,
+                downloaded_bytes,
+                ..
+            } => {
+                self.downloads
+                    .record(layer_index.to_string(), downloaded_bytes, Some(downloaded_bytes));
+                self.report_download(progress).await;
+            }
+            PullProgress::LayerMaterializeStarted { layer_index, .. } => {
+                let line = self.layer_line("Materializing layer", layer_index);
+                if let Some(step) = self.materialize_step(progress).await {
+                    step.output(OutputStream::Stdout, line).await;
+                }
+            }
+            PullProgress::LayerMaterializeProgress {
+                layer_index,
+                bytes_read,
+                total_bytes,
+            } => {
+                let (completed, total) =
+                    self.materializations
+                        .record(layer_index.to_string(), bytes_read, Some(total_bytes));
+                if let Some(step) = self.materialize_step(progress).await {
+                    step.report(completed, total).await;
+                }
+            }
+            PullProgress::StitchMergingTrees { layer_count } => {
+                self.assemble(progress, format!("Merging {layer_count} layer trees\n"))
+                    .await;
+            }
+            PullProgress::StitchWritingFsmeta => {
+                self.assemble(progress, "Writing filesystem metadata\n".into()).await;
+            }
+            PullProgress::StitchWritingVmdk => {
+                self.assemble(progress, "Writing root disk image\n".into()).await;
+            }
+            PullProgress::Resolving { .. }
+            | PullProgress::LayerDownloadVerifying { .. }
+            | PullProgress::LayerMaterializeWriting { .. }
+            | PullProgress::LayerMaterializeComplete { .. }
+            | PullProgress::Complete { .. }
+            | PullProgress::StitchComplete => {}
         }
-        microsandbox_image::PullProgress::LayerMaterializeProgress {
-            bytes_read,
-            total_bytes,
-            ..
-        } => {
-            step.progress(bytes_read, Some(total_bytes), ProgressUnit::Bytes).await;
+    }
+
+    /// Completes the steps still running once the pull or import succeeded.
+    async fn finish(self) {
+        for step in [self.download, self.materialize].into_iter().flatten() {
+            step.complete().await;
         }
-        microsandbox_image::PullProgress::LayerMaterializeComplete { layer_index, .. } => {
-            step.progress(
-                u64::try_from(layer_index.saturating_add(1)).unwrap_or(u64::MAX),
-                None,
-                ProgressUnit::Items,
-            )
-            .await;
+        if let Some(step) = self.assemble {
+            step.complete().await;
         }
-        microsandbox_image::PullProgress::Complete { layer_count, .. } => {
-            let completed = u64::try_from(layer_count).unwrap_or(u64::MAX);
-            step.progress(completed, Some(completed), ProgressUnit::Items).await;
+    }
+
+    async fn report_download(&mut self, progress: &SandboxProgress) {
+        let (completed, total) = self.downloads.totals(self.total_download_bytes);
+        if self.download.is_none() {
+            self.download = Some(
+                progress
+                    .start_measured_step(DOWNLOAD_LAYERS, ProgressUnit::Bytes, total)
+                    .await,
+            );
         }
-        microsandbox_image::PullProgress::Resolving { .. }
-        | microsandbox_image::PullProgress::LayerDownloadProgress { .. }
-        | microsandbox_image::PullProgress::LayerDownloadComplete { .. }
-        | microsandbox_image::PullProgress::LayerDownloadVerifying { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeStarted { .. }
-        | microsandbox_image::PullProgress::LayerMaterializeWriting { .. }
-        | microsandbox_image::PullProgress::StitchMergingTrees { .. }
-        | microsandbox_image::PullProgress::StitchWritingFsmeta
-        | microsandbox_image::PullProgress::StitchWritingVmdk
-        | microsandbox_image::PullProgress::StitchComplete => {}
+        if let Some(step) = &self.download {
+            step.report(completed, total).await;
+        }
+    }
+
+    async fn materialize_step(&mut self, progress: &SandboxProgress) -> Option<&MeasuredStep> {
+        if self.materialize.is_none() {
+            self.materialize = Some(
+                progress
+                    .start_measured_step(MATERIALIZE_LAYERS, ProgressUnit::Bytes, None)
+                    .await,
+            );
+        }
+        self.materialize.as_ref()
+    }
+
+    /// Reports root-disk assembly, which starts once every layer is in place.
+    async fn assemble(&mut self, progress: &SandboxProgress, line: String) {
+        if self.assemble.is_none() {
+            for step in [self.download.take(), self.materialize.take()].into_iter().flatten() {
+                step.complete().await;
+            }
+            self.assemble = Some(progress.start_step(ASSEMBLE_ROOT_DISK).await);
+        }
+        if let Some(step) = &self.assemble {
+            step.output(OutputStream::Stdout, line).await;
+        }
+    }
+
+    fn layer_line(&self, activity: &str, layer_index: usize) -> String {
+        let ordinal = layer_index.saturating_add(1);
+        self.layers.map_or_else(
+            || format!("{activity} {ordinal}\n"),
+            |total| format!("{activity} {ordinal}/{total}\n"),
+        )
     }
 }
 
@@ -709,11 +879,16 @@ impl image::ImageBackend for MicrosandboxImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move {
                 match &request.source {
-                    image::ImageSource::Build { context, dockerfile } => {
-                        self.build_image(request, context, dockerfile, &progress).await
+                    image::ImageSource::Build {
+                        context,
+                        dockerfile,
+                        target,
+                    } => {
+                        self.build_image(request, context, dockerfile, target.as_deref(), &progress)
+                            .await
                     }
                     image::ImageSource::Reference { reference } => {
                         self.resolve_reference(request, reference, &progress).await
@@ -728,7 +903,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         request: &'a image::ResolveRequest,
         destination: &'a Path,
     ) -> PendingOperation<'a, image::PreparedImage> {
-        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.export_prepared_root(request, destination, &progress).await })
         })
     }
@@ -738,15 +913,19 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         request: &'a image::ResolveRequest,
         source: &'a Path,
     ) -> PendingOperation<'a, image::PreparedImage> {
-        PendingOperation::run(SandboxPhase::ImagePrepare, move |progress| {
+        PendingOperation::run(move |progress| {
             Box::pin(async move { self.import_prepared_root(request, source, &progress).await })
         })
     }
 }
 
-async fn create_context_archive(context: PathBuf, dockerfile: PathBuf) -> Result<tempfile::TempPath, Error> {
+async fn create_context_archive(
+    scratch: PathBuf,
+    context: PathBuf,
+    dockerfile: PathBuf,
+) -> Result<tempfile::TempPath, Error> {
     tokio::task::spawn_blocking(move || {
-        let archive = tempfile::NamedTempFile::new()?;
+        let archive = tempfile::NamedTempFile::new_in(scratch)?;
         let path = archive.into_temp_path();
         let file = File::create(&path)?;
         let ignore = dockerignore(&context)?;
@@ -808,7 +987,8 @@ fn archive_path(path: &Path) -> Result<String, Error> {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+// Test Clients live for the whole test; tightening their drop adds nothing.
+#[allow(clippy::expect_used, clippy::significant_drop_tightening)]
 mod tests {
     use std::{fs, path::Path};
 
@@ -832,6 +1012,70 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
+    #[ignore = "requires Internet access"]
+    async fn imported_prepared_roots_are_recorded_in_the_image_catalog() {
+        use sandbox::image::ImageBackend as _;
+
+        // Prepared roots pin the native platform manifest of Alpine 3.22.
+        let (architecture, manifest_digest) = match std::env::consts::ARCH {
+            "x86_64" => (
+                "amd64",
+                "sha256:7c8cb692ae09657cbc4a3f3cbd0e8d5a2690ba38386aaaf252dbb060bf5eb2e6",
+            ),
+            "aarch64" => (
+                "arm64",
+                "sha256:2c9d26f410d032d5b1525aa8a873e238b05b90c4ae8618743d4311f0cc827e37",
+            ),
+            _ => return,
+        };
+        let temporary = tempfile::tempdir().expect("temporary directory should be created");
+        let reference = format!("docker.io/library/alpine@{manifest_digest}");
+        let request = sandbox::image::ResolveRequest {
+            source: sandbox::image::ImageSource::Reference {
+                reference: reference.clone(),
+            },
+            platform: sandbox::Platform::new("linux", architecture),
+            root_filesystem_mode: sandbox::RootFilesystemMode::Direct,
+        };
+        let exporter = super::MicrosandboxImageBackend::new(
+            crate::client::Client::open(temporary.path().join("exporter"), None, None)
+                .await
+                .expect("exporting Client should open"),
+            None,
+        );
+        let bundle = temporary.path().join("prepared");
+        exporter
+            .export_prepared_image(&request, &bundle)
+            .await
+            .expect("prepared root should export");
+
+        let client = crate::client::Client::open(temporary.path().join("importer"), None, None)
+            .await
+            .expect("importing Client should open");
+        let importer = super::MicrosandboxImageBackend::new(client.clone(), None);
+        importer
+            .import_prepared_image(&request, &bundle)
+            .await
+            .expect("prepared root should import");
+        importer
+            .import_prepared_image(&request, &bundle)
+            .await
+            .expect("importing the same root again should succeed");
+
+        let images = microsandbox::Image::list_local(client.local())
+            .await
+            .expect("local images should list");
+        assert!(
+            images.iter().any(|image| image.reference() == reference),
+            "the imported root should be recorded under its reference; found {:?}",
+            images
+                .iter()
+                .map(microsandbox::ImageHandle::reference)
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[tokio::test(flavor = "local")]
     async fn context_archive_applies_dockerignore_and_keeps_build_inputs() {
         let context = tempfile::tempdir().expect("temporary context should be created");
         fs::create_dir(context.path().join("nested")).expect("nested directory should be created");
@@ -846,10 +1090,13 @@ mod tests {
         fs::write(context.path().join("nested/included.txt"), "included").expect("re-included file should be written");
         fs::write(context.path().join("nested/ignored.txt"), "ignored").expect("nested ignored file should be written");
 
-        let archive =
-            super::create_context_archive(context.path().to_path_buf(), Path::new("Dockerfile").to_path_buf())
-                .await
-                .expect("context archive should be created");
+        let archive = super::create_context_archive(
+            std::env::temp_dir(),
+            context.path().to_path_buf(),
+            Path::new("Dockerfile").to_path_buf(),
+        )
+        .await
+        .expect("context archive should be created");
         let file = fs::File::open(archive).expect("context archive should open");
         let entries = tar::Archive::new(file)
             .entries()
@@ -883,17 +1130,18 @@ mod tests {
     fn docker_cache_tags_are_stable_per_source_and_platform() {
         let context = Path::new("/workspace/project");
         let platform = sandbox::Platform::new("linux", "amd64");
-        let tag = super::cache_tag(context, "Dockerfile", &platform);
+        let tag = super::cache_tag(context, "Dockerfile", None, &platform);
 
-        assert_eq!(tag, super::cache_tag(context, "Dockerfile", &platform));
+        assert_eq!(tag, super::cache_tag(context, "Dockerfile", None, &platform));
         assert_ne!(
             tag,
-            super::cache_tag(Path::new("/workspace/other"), "Dockerfile", &platform)
+            super::cache_tag(Path::new("/workspace/other"), "Dockerfile", None, &platform)
         );
-        assert_ne!(tag, super::cache_tag(context, "nested/Dockerfile", &platform));
+        assert_ne!(tag, super::cache_tag(context, "nested/Dockerfile", None, &platform));
+        assert_ne!(tag, super::cache_tag(context, "Dockerfile", Some("minimal"), &platform));
         assert_ne!(
             tag,
-            super::cache_tag(context, "Dockerfile", &sandbox::Platform::new("linux", "arm64"))
+            super::cache_tag(context, "Dockerfile", None, &sandbox::Platform::new("linux", "arm64"))
         );
     }
 }

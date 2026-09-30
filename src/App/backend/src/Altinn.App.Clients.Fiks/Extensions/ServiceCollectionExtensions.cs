@@ -1,18 +1,12 @@
 using Altinn.App.Clients.Fiks.Configuration;
-using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.AltinnCdn;
-using KS.Fiks.IO.Send.Client.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Retry;
 
 namespace Altinn.App.Clients.Fiks.Extensions;
 
@@ -33,7 +27,6 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IFiksIOClientFactory, FiksIOClientFactory>();
         services.AddSingleton<IFiksIOClient, FiksIOClient>();
-        services.AddDefaultFiksIOResiliencePipeline();
 
         return new FiksIOSetupBuilder(services);
     }
@@ -50,15 +43,14 @@ public static class ServiceCollectionExtensions
 
         services.AddFiksIOClient();
         services.AddAltinnCdnClient();
-        services.AddSingleton<IServiceTask, FiksArkivServiceTask>();
-        services.AddSingleton<FiksArkivHost>();
-        services.AddSingleton<IFiksArkivHost>(sp => sp.GetRequiredService<FiksArkivHost>());
+        // Transient, like every other service task: `Define` runs per resolution.
+        services.AddTransient<IPipelineServiceTask, FiksArkivServiceTask>();
+        services.AddSingleton<IFiksArkivMessageSender, FiksArkivMessageSender>();
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
-        services.AddSingleton<IFiksArkivResponseHandler, FiksArkivDefaultResponseHandler>();
         services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();
         services.AddSingleton<IFiksArkivConfigResolver, FiksArkivConfigResolver>();
         services.AddHostedService<FiksArkivConfigValidationService>();
-        services.AddHostedService(sp => sp.GetRequiredService<FiksArkivHost>());
+        services.AddHostedService<FiksArkivSubscriber>();
 
         return new FiksArkivSetupBuilder(services);
     }
@@ -122,76 +114,5 @@ public static class ServiceCollectionExtensions
             })
             .BindConfiguration(configSectionPath);
         return services;
-    }
-
-    /// <summary>
-    /// The default resilience pipeline for Fiks IO.
-    /// </summary>
-    private static IServiceCollection AddDefaultFiksIOResiliencePipeline(this IServiceCollection services)
-    {
-        services.AddResiliencePipeline<string, FiksIOMessageResponse>(
-            FiksIOConstants.DefaultResiliencePipelineId,
-            (builder, context) =>
-            {
-                var logger = context.ServiceProvider.GetRequiredService<ILogger<FiksIOClient>>();
-
-                builder
-                    .AddRetry(
-                        new RetryStrategyOptions<FiksIOMessageResponse>
-                        {
-                            MaxRetryAttempts = 5,
-                            Delay = TimeSpan.FromSeconds(1),
-                            MaxDelay = TimeSpan.FromSeconds(10),
-                            BackoffType = DelayBackoffType.Exponential,
-                            ShouldHandle = new PredicateBuilder<FiksIOMessageResponse>().Handle<Exception>(ex =>
-                            {
-                                var shouldHandle = ErrorShouldBeHandled(ex);
-                                if (shouldHandle is false)
-                                    logger.LogInformation(
-                                        ex,
-                                        "Error is unrecoverable and will not be retried: {Exception}",
-                                        ex.Message
-                                    );
-
-                                return shouldHandle;
-                            }),
-                            OnRetry = args =>
-                            {
-                                args.Context.Properties.TryGetValue(
-                                    new ResiliencePropertyKey<FiksIOMessageRequest>(
-                                        FiksIOConstants.MessageRequestPropertyKey
-                                    ),
-                                    out var messageRequest
-                                );
-                                logger.LogWarning(
-                                    args.Outcome.Exception,
-                                    "Failed to send FiksIO message {MessageType}:{ClientMessageId}. Retrying in {RetryDelay}",
-                                    messageRequest?.MessageType,
-                                    messageRequest?.SendersReference,
-                                    args.RetryDelay
-                                );
-                                return ValueTask.CompletedTask;
-                            },
-                        }
-                    )
-                    .AddTimeout(TimeSpan.FromSeconds(2));
-            }
-        );
-
-        return services;
-
-        static bool ErrorShouldBeHandled(Exception ex)
-        {
-            if (ex is FiksIOSendUnauthorizedException or MaskinportenException)
-                return false;
-
-            if (
-                ex is FiksIOSendUnexpectedResponseException unexpectedResponse
-                && unexpectedResponse.Message.Contains("status code notfound", StringComparison.OrdinalIgnoreCase)
-            )
-                return false;
-
-            return true;
-        }
     }
 }

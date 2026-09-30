@@ -79,7 +79,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         _profileClientMock
-            .Setup(p => p.GetUserProfile(ssn, null))
+            .Setup(p => p.GetUserProfile(ssn, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new UserProfile
                 {
@@ -90,7 +90,7 @@ public class NotificationServiceTests
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 
         Assert.Equal(LanguageConst.En, result);
-        _profileClientMock.Verify(p => p.GetUserProfile(ssn, null), Times.Once);
+        _profileClientMock.Verify(p => p.GetUserProfile(ssn, null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         _profileClientMock
-            .Setup(p => p.GetUserProfile(ssn, null))
+            .Setup(p => p.GetUserProfile(ssn, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new UserProfile { ProfileSettingPreference = new ProfileSettingPreference { Language = null } }
             );
@@ -117,7 +117,7 @@ public class NotificationServiceTests
         var instanceOwner = new InstanceOwner { PersonNumber = ssn };
 
         UserProfile? profile = null;
-        _profileClientMock.Setup(p => p.GetUserProfile(ssn, null)).ReturnsAsync(profile);
+        _profileClientMock.Setup(p => p.GetUserProfile(ssn, null, It.IsAny<CancellationToken>())).ReturnsAsync(profile);
 
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 
@@ -143,7 +143,10 @@ public class NotificationServiceTests
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: requestedLanguage);
 
         Assert.Equal(expectedLanguage, result);
-        _profileClientMock.Verify(p => p.GetUserProfile(It.IsAny<string>(), null), Times.Never);
+        _profileClientMock.Verify(
+            p => p.GetUserProfile(It.IsAny<string>(), null, It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     #endregion
@@ -155,13 +158,15 @@ public class NotificationServiceTests
     {
         var instanceOwner = new InstanceOwner { ExternalIdentifier = "ext-user-42" };
         Guid? guid = null;
-        _partyClientMock.Setup(p => p.GetPartyUuidByUrn("ext-user-42")).ReturnsAsync(guid);
+        _partyClientMock
+            .Setup(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(guid);
 
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: LanguageConst.Nb);
 
         Assert.Equal(LanguageConst.En, result);
-        _partyClientMock.Verify(p => p.GetPartyUuidByUrn("ext-user-42"), Times.Once);
-        _profileClientMock.Verify(p => p.GetUserProfile(It.IsAny<Guid>()), Times.Never);
+        _partyClientMock.Verify(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()), Times.Once);
+        _profileClientMock.Verify(p => p.GetUserProfile(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -170,9 +175,11 @@ public class NotificationServiceTests
         Guid partyGuid = Guid.NewGuid();
         InstanceOwner instanceOwner = new() { ExternalIdentifier = "ext-user-42" };
 
-        _partyClientMock.Setup(p => p.GetPartyUuidByUrn("ext-user-42")).ReturnsAsync(partyGuid);
+        _partyClientMock
+            .Setup(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(partyGuid);
         _profileClientMock
-            .Setup(p => p.GetUserProfile(partyGuid))
+            .Setup(p => p.GetUserProfile(partyGuid, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new UserProfile
                 {
@@ -183,8 +190,8 @@ public class NotificationServiceTests
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 
         Assert.Equal(LanguageConst.Nb, result);
-        _partyClientMock.Verify(p => p.GetPartyUuidByUrn("ext-user-42"), Times.Once);
-        _profileClientMock.Verify(p => p.GetUserProfile(partyGuid), Times.Once);
+        _partyClientMock.Verify(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()), Times.Once);
+        _profileClientMock.Verify(p => p.GetUserProfile(partyGuid, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -193,9 +200,11 @@ public class NotificationServiceTests
         var partyGuid = Guid.NewGuid();
         var instanceOwner = new InstanceOwner { ExternalIdentifier = "ext-user-42" };
 
-        _partyClientMock.Setup(p => p.GetPartyUuidByUrn("ext-user-42")).ReturnsAsync(partyGuid);
+        _partyClientMock
+            .Setup(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(partyGuid);
         _profileClientMock
-            .Setup(p => p.GetUserProfile(partyGuid))
+            .Setup(p => p.GetUserProfile(partyGuid, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new UserProfile { ProfileSettingPreference = new ProfileSettingPreference { Language = null } }
             );
@@ -211,10 +220,12 @@ public class NotificationServiceTests
         var partyGuid = Guid.NewGuid();
         var instanceOwner = new InstanceOwner { ExternalIdentifier = "ext-user-42" };
 
-        _partyClientMock.Setup(p => p.GetPartyUuidByUrn("ext-user-42")).ReturnsAsync(partyGuid);
+        _partyClientMock
+            .Setup(p => p.GetPartyUuidByUrn("ext-user-42", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(partyGuid);
 
         UserProfile? profile = null;
-        _profileClientMock.Setup(p => p.GetUserProfile(partyGuid)).ReturnsAsync(profile);
+        _profileClientMock.Setup(p => p.GetUserProfile(partyGuid, It.IsAny<CancellationToken>())).ReturnsAsync(profile);
 
         var result = await CreateSut().DetermineLanguage(instanceOwner, requestedOrgLanguage: null);
 

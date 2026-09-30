@@ -1,3 +1,4 @@
+#nullable enable
 namespace Altinn.App.models
 {
     /// <summary>
@@ -5,9 +6,9 @@ namespace Altinn.App.models
     /// </summary>
     public class AltinnCodeList<T>
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public int Version { get; set; }
         public int Language { get; set; }
-        public T[] Codes { get; set; }    
+        public T[]? Codes { get; set; }
     }
 }

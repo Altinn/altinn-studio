@@ -1,6 +1,5 @@
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
 
@@ -43,9 +42,11 @@ public interface IFiksArkivConfigResolver
     );
 
     /// <summary>
-    /// Gets the correlation ID for the shipment.
+    /// Gets the instance reference for the shipment — the instance URL by default, and what lets
+    /// someone reading the archived record find the instance it came from. It travels to the archive
+    /// inside the arkivmelding via <see cref="GetRecipientParty"/>.
     /// </summary>
-    string GetCorrelationId(Instance instance);
+    string GetInstanceReference(Instance instance);
 
     /// <summary>
     /// Gets the recipient party (korrespondansepart).
@@ -58,10 +59,15 @@ public interface IFiksArkivConfigResolver
     Task<Korrespondansepart?> GetInstanceOwnerParty(Instance instance, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the classification of the instance owner (klassifikasjon).
+    /// Gets the case file classifications (klassifikasjoner) for the shipment, in the order configured in
+    /// <see cref="FiksArkivMetadataSettings.CaseFileClassifications"/>. An entry whose source is
+    /// <see cref="FiksArkivClassificationSource.InstanceOwner"/> resolves to the owner recorded on
+    /// <paramref name="instance"/>: an organization by its organization number, a person by their national identity
+    /// number, titled with the party's registered name when the register knows it. Every other entry is emitted as
+    /// configured. Returns an empty list when nothing is configured.
     /// </summary>
-    Task<Klassifikasjon> GetInstanceOwnerClassification(
-        Authenticated auth,
+    Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(
+        Instance instance,
         CancellationToken cancellationToken = default
     );
 }

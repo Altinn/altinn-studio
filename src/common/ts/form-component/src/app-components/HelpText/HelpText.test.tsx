@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import { HelpText } from './HelpText';
 import type { HelpTextProps } from './HelpText';
@@ -66,6 +67,13 @@ describe('HelpText', () => {
 
     await user.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    // jsdom has no layout engine and therefore does not implement hit testing.
+    // Designsystemet uses this API to ensure Escape only closes the topmost popover.
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: vi.fn(() => screen.getByTestId('helptext')),
+    });
     await user.keyboard('[Escape]');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });

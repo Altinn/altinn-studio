@@ -75,7 +75,9 @@ internal interface IEngineRepository
 
     /// <summary>
     /// Gets the number of workflows the fetch gate could claim right now — active workflows minus
-    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c>. Unlike
+    /// those parked behind a future <c>StartAt</c> or <c>BackoffUntil</c> (or, when throttling is
+    /// enabled, a future <c>ThrottledUntil</c> — the count mirrors the fetch gate variant the
+    /// process selected at startup). Unlike
     /// <see cref="CountActiveWorkflows"/> this reaching zero means the engine is quiescent: a parked
     /// workflow holds no lease and no transaction, and will not wake on its own before its timer.
     /// </summary>
@@ -231,7 +233,8 @@ internal interface IEngineRepository
     /// <summary>
     /// Resumes a terminal workflow (Failed, Canceled, DependencyFailed, Abandoned) or a Requeued workflow
     /// by resetting it and its non-completed steps back to Enqueued. Clears CancellationRequestedAt,
-    /// BackoffUntil, HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
+    /// BackoffUntil, ThrottledUntil (an operator's explicit resume wins over the namespace circuit
+    /// breaker), HeartbeatAt, and ReclaimCount. When <paramref name="cascade"/> is true, also resumes
     /// any transitively dependent workflows that are in DependencyFailed state.
     /// Returns the list of all resumed workflow IDs (primary + cascaded), or empty if
     /// the target workflow was not in a resumable state.
@@ -251,7 +254,7 @@ internal interface IEngineRepository
     /// states; any other status (including non-terminal after a concurrent resume) is a no-op
     /// returning <c>false</c>.
     /// Atomically with the transition, releases the idempotency key that created the workflow:
-    /// re-enqueueing with the same fingerprint creates a fresh workflow instead of deduplicating
+    /// re-enqueuing with the same fingerprint creates a fresh workflow instead of deduplicating
     /// onto the write-off. For batch enqueues the key covers the whole batch, so abandoning any
     /// member releases the fingerprint for all of them.
     /// </summary>
@@ -263,12 +266,30 @@ internal interface IEngineRepository
     );
 
     /// <summary>
-    /// Clears BackoffUntil on a parked workflow so it becomes claimable by the fetch gate at once —
-    /// resuming retries for <c>Requeued</c>, or re-checking the awaited outcome for <c>Waiting</c>.
-    /// Returns true only if the workflow was found, is in one of those two states, and had a non-null
-    /// BackoffUntil; false is a no-op, not an error.
+    /// Clears BackoffUntil and ThrottledUntil on a parked workflow so it becomes claimable by the
+    /// fetch gate at once — resuming retries for <c>Requeued</c>, or re-checking the awaited
+    /// outcome for <c>Waiting</c>. Clearing the throttle stamp means an operator's explicit nudge
+    /// always wins over the namespace circuit breaker. Returns true only if the workflow was
+    /// found, is in one of those two states, and had a non-null BackoffUntil or ThrottledUntil;
+    /// false is a no-op, not an error.
     /// </summary>
     Task<bool> ClearBackoff(Guid workflowId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fails a parked workflow (<c>Requeued</c> or <c>Waiting</c>) by operator decision. The workflow moves
+    /// to <c>Failed</c> with its backoff cleared, and the parked step moves to <c>Failed</c> with
+    /// <paramref name="reason"/> appended to its error history as a non-retryable entry, so the failure
+    /// reads exactly like one the engine produced by giving up itself. Compare-and-set: returns the failed
+    /// workflow when this call performed the transition, and <c>null</c> when it was not found or not parked
+    /// (including a fetch that claimed it first) — a no-op, not an error.
+    /// </summary>
+    Task<WorkflowFailureInfo?> FailWorkflow(
+        Guid workflowId,
+        string ns,
+        DateTimeOffset failedAt,
+        string reason,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all workflow collections in a namespace.
@@ -284,6 +305,267 @@ internal interface IEngineRepository
     Task<WorkflowCollectionDetailResponse?> GetCollection(
         string key,
         string ns,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts <c>Requeued</c> and active (incomplete) workflows per namespace in one
+    /// <c>GROUP BY</c> served by the <c>ix_workflows_namespace_status_incomplete</c> partial
+    /// index, whose leading columns are exactly what the query reads. The input to the throttle
+    /// sweep's trip detection.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceWorkflowCounts>> GetNamespaceWorkflowCounts(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Counts <c>Requeued</c> and active workflows in one namespace, excluding rows currently
+    /// parked behind a future <c>throttled_until</c>. The throttle sweep's re-trip evaluation
+    /// during recovery must use this variant: parked workflows are still <c>Requeued</c>, so raw
+    /// counts would read as an instant re-trip and recovery could never proceed.
+    /// </summary>
+    Task<NamespaceWorkflowCounts> GetUnparkedNamespaceWorkflowCounts(
+        string ns,
+        DateTimeOffset now,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets all namespace throttle state rows. Read by the sweep's snapshot refresh and by the
+    /// throttle observability endpoints.
+    /// </summary>
+    Task<IReadOnlyList<NamespaceThrottle>> GetNamespaceThrottles(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Inserts or fully replaces a namespace throttle state row. Only
+    /// <c>NamespaceThrottleService</c> — the table's sole writer (sweep cycles and operator
+    /// overrides alike), serialized by an advisory lock — may call this.
+    /// </summary>
+    Task UpsertNamespaceThrottle(NamespaceThrottle throttle, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes a namespace throttle state row (end of the closed-state grace period).
+    /// </summary>
+    Task DeleteNamespaceThrottle(string ns, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the <paramref name="count"/> <c>Requeued</c> workflows in the namespace with the
+    /// earliest <c>backoff_until</c> (NULLS FIRST — mirroring fetch order) as canaries, excluding
+    /// <paramref name="excludeWorkflowIds"/> (the outgoing canaries, on rotation). Atomically
+    /// clears the selected rows' <c>throttled_until</c>: canaries probe on the normal retry
+    /// schedule and are never parked, and a rotation may promote a previously parked row.
+    /// Returns each canary with its requeue count recorded at selection.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanary>> SelectThrottleCanaries(
+        string ns,
+        int count,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Observes the given canary workflows for progress judgment: current workflow status plus the
+    /// requeue count of the current (first non-terminal) step. Workflows that no longer exist are
+    /// absent from the result.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleCanaryObservation>> GetThrottleCanaryObservations(
+        IReadOnlyList<Guid> workflowIds,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Mints a mailbox, stamping its deadline as <paramref name="now"/> + <paramref name="timeout"/>.
+    /// Idempotent on <c>(namespace, idempotencyKey)</c>, with a replay answered even at the collection cap; a
+    /// genuinely new mailbox is refused at <paramref name="maxOpenPerCollection"/> open ones.
+    /// </summary>
+    Task<MailboxMintResult> MintMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string? collectionKey,
+        TimeSpan timeout,
+        DateTimeOffset now,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Mints a whole buffered batch of mailboxes, answering every request at its own position with the verdict
+    /// <see cref="MintMailbox"/> would have given it. Takes no lock and no transaction: the unique index on
+    /// <c>(namespace, idempotencyKey)</c> is what serializes minters. A key named twice in one batch mints once,
+    /// the repeat answered <see cref="MailboxMintResult.Existing"/> with the row the first occurrence created.
+    /// The collection cap counts the batch's own fresh mints against itself, so a flush cannot overshoot
+    /// <paramref name="maxOpenPerCollection"/>; replays are answered even at the cap and consume none of it.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying their idempotency key. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold one of the few flush permits for the whole command budget
+    /// while queued callers waited behind it.
+    /// </summary>
+    Task<MailboxMintResult[]> BatchMintMailboxes(
+        IReadOnlyList<BufferedMailboxMintRequest> requests,
+        int maxOpenPerCollection,
+        CancellationToken cancellationToken
+    );
+
+    Task<MailboxResponse?> GetMailbox(Guid mailboxId, string ns, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The dashboard's read: mailboxes per collection key, newest first, at most
+    /// <paramref name="limitPerCollection"/> <em>per key</em> so a busy collection cannot starve the rest. The
+    /// page names the keys whose window was full. A null <paramref name="ns"/> reads every namespace.
+    /// </summary>
+    Task<MailboxCollectionPage> GetMailboxesForCollections(
+        string? ns,
+        IReadOnlyList<string> collectionKeys,
+        int limitPerCollection,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Counts open mailboxes with deadlines at or before <paramref name="cutoff"/>, saturating at
+    /// <paramref name="limit"/> — the gauge's input. The caller sets the cutoff back by the sweep's cadence,
+    /// so a healthy engine counts zero.
+    /// </summary>
+    Task<long> CountOverdueOpenMailboxes(
+        DateTimeOffset cutoff,
+        int limit,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Reads what the rendezvous produced for a receive workflow. No lock, no write: delivery existence at the
+    /// position is frozen before the receiver can first run, so every attempt re-derives the same answer.
+    /// </summary>
+    Task<MailboxReceiptResult> ReadMailboxReceipt(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Closes a mailbox for deliveries. Idempotent: an already-closed mailbox is returned as it stands.
+    /// </summary>
+    Task<MailboxCloseResult> CloseMailbox(
+        Guid mailboxId,
+        string ns,
+        MailboxDisposedReason reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Closes a whole buffered batch of mailboxes in one transaction, answering every request at its own
+    /// position with the verdict <see cref="CloseMailbox"/> would have given it. Each distinct
+    /// <c>(mailboxId, ns)</c> pair is locked once, in mailbox-id order, as the transaction's first act, so a
+    /// close flush cannot deadlock against a concurrent enqueue or delivery flush. A mailbox named twice in one
+    /// batch is closed once, the repeat answered <see cref="MailboxCloseResult.AlreadyClosed"/> with the row the
+    /// first occurrence wrote.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying the close. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold the single close permit for the whole command budget while
+    /// queued callers waited behind it.
+    /// </summary>
+    Task<MailboxCloseResult[]> BatchCloseMailboxes(
+        IReadOnlyList<BufferedMailboxCloseRequest> requests,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Loads one page of throttle park candidates: <c>Requeued</c> workflows in the namespace —
+    /// excluding the current canaries — that are unparked or whose <c>throttled_until</c> elapses
+    /// before <paramref name="restampCutoff"/>, together with the fields the per-stamp retry
+    /// deadline clamp needs. Keyset-paginated by workflow id (<paramref name="afterWorkflowId"/>,
+    /// pass <see cref="Guid.Empty"/> for the first page) so one park pass visits each row once
+    /// even when a stamp is clamped below the cutoff.
+    /// </summary>
+    Task<IReadOnlyList<ThrottleParkCandidate>> GetThrottleParkCandidates(
+        string ns,
+        IReadOnlyList<Guid> excludeWorkflowIds,
+        DateTimeOffset restampCutoff,
+        Guid afterWorkflowId,
+        int limit,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Bulk-stamps <c>throttled_until</c> on the given workflows via the unnest write pattern.
+    /// Guarded per row like the lease-CAS writes: only rows still in <c>Requeued</c> at write time
+    /// are stamped, so a workflow fetched by a worker between candidate load and stamp is skipped.
+    /// Touches only <c>throttled_until</c> — parking is a scheduling gate, not a state transition,
+    /// so <c>updated_at</c> is left alone. Returns the number of rows stamped.
+    /// </summary>
+    Task<int> StampThrottledUntil(
+        IReadOnlyList<(Guid WorkflowId, DateTimeOffset ThrottledUntil)> stamps,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Appends one message at the next gapless position. Idempotent on <c>(mailboxId, idempotencyKey)</c>,
+    /// and the lookup runs <em>before</em> the refusals: a kept message answers
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> even once the mailbox is closed or full. Refusals write
+    /// nothing and repeat identically.
+    /// </summary>
+    Task<MailboxDeliveryResult> DeliverToMailbox(
+        Guid mailboxId,
+        string ns,
+        string idempotencyKey,
+        string payload,
+        DateTimeOffset now,
+        int maxLogLength,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Delivers a whole buffered batch of messages in one transaction, answering every request at its own
+    /// position with the verdict <see cref="DeliverToMailbox"/> would have given it. Each distinct
+    /// <c>(mailboxId, ns)</c> pair is locked once, in mailbox-id order, as the transaction's first act, so a
+    /// delivery flush cannot deadlock against a concurrent enqueue or close flush. The idempotency lookup still
+    /// runs <em>before</em> the refusals, for the whole batch at once, so a kept message replays
+    /// <see cref="MailboxDeliveryResult.Duplicate"/> even on a mailbox this batch finds closed or full; a key
+    /// named twice for one mailbox is appended once, the repeat answered at the first occurrence's position.
+    /// Positions stay gapless and consecutive in batch-arrival order, and refusals write nothing, so a refused
+    /// key stays free.
+    /// Takes no database slot — flush concurrency bounds the connections — and no retry: a failure faults every
+    /// request in the batch, and callers converge by replaying their idempotency key. The other buffer flush,
+    /// <see cref="BatchUpdateWorkflowsAndSteps"/>, retries because its only fallback is lease expiry and a
+    /// re-executed workflow; here a retry would hold one of the two delivery permits for the whole command
+    /// budget while queued callers waited behind it.
+    /// </summary>
+    Task<MailboxDeliveryResult[]> BatchDeliverToMailboxes(
+        IReadOnlyList<BufferedMailboxDeliveryRequest> requests,
+        int maxLogLength,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Releases the next recovery cohort in a namespace: the <paramref name="cohortSize"/>
+    /// oldest-created workflows still parked (<c>Requeued</c> with <c>throttled_until</c> in the
+    /// future) get <c>throttled_until = now + random() * smear</c> — a jittered smear rather than
+    /// a NULL-clear, so a released horde spreads across the poll window instead of hitting one
+    /// fetch cycle. Returns the number of workflows released — a lower bound, not a census: the
+    /// cohort is claimed <c>FOR UPDATE SKIP LOCKED</c>, so a parked row locked by a concurrent
+    /// writer is skipped and left parked. A short cohort therefore proves nothing about the
+    /// parked population; only an empty one means there was nothing left to release.
+    /// </summary>
+    Task<int> ReleaseThrottledCohort(
+        string ns,
+        int cohortSize,
+        DateTimeOffset now,
+        TimeSpan smear,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Clears every non-null <c>throttled_until</c> in the namespace. Runs during a cleared
+    /// breaker's grace period to release stragglers parked by replicas holding a stale
+    /// tripped-breaker snapshot. Returns the number of rows cleared.
+    /// </summary>
+    Task<int> ClearNamespaceThrottledUntil(string ns, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Closes up to <paramref name="batchSize"/> overdue mailboxes, one <c>FOR UPDATE SKIP LOCKED</c>-claimed
+    /// transaction each, running exactly the routine <see cref="CloseMailbox"/> runs. A close that throws is
+    /// contained to its own mailbox rather than abandoning the deadline-ordered batch.
+    /// </summary>
+    Task<MailboxSweepResult> SweepOverdueMailboxes(
+        DateTimeOffset now,
+        int batchSize,
         CancellationToken cancellationToken = default
     );
 }

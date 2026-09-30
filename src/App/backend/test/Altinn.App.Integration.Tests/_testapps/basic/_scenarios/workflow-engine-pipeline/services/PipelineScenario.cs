@@ -22,9 +22,8 @@ public sealed class ThreePartPipelineTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("ReserveResources", ReserveResources)
+            .Stage(ReserveResources)
             .Stage(
-                "DispatchOrder",
                 DispatchOrder,
                 // Tight constant backoff so run 1's retryable failure re-runs quickly; capped so a
                 // regression fails the test fast instead of eating the whole retry budget.

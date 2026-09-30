@@ -121,9 +121,12 @@ func (b *appBuilder) runDotnetPack(
 	cmd.Args = append(
 		cmd.Args,
 		outputDir,
-		"-p:AppPackageVersion="+ver.Num,
-		fmt.Sprintf("-p:AppAssemblyVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
-		"-p:AppInformationalVersion="+informationalVersion,
+		// These override the git-derived version in src/App/PackageVersioning.props. Keep the
+		// names in step with that file: an unrecognized name is not an error, it silently falls
+		// back to the derived version and the release ships as <version>.dev.N.
+		"-p:ReleasePackageVersion="+ver.Num,
+		fmt.Sprintf("-p:ReleaseAssemblyVersion=%d.%d.%d.0", ver.Major, ver.Minor, ver.Patch),
+		"-p:ReleaseInformationalVersion="+informationalVersion,
 		"-p:UseExperimentalPackageId=false",
 	)
 	cmd.Stdout = os.Stdout

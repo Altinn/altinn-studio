@@ -15,7 +15,8 @@ internal interface IPaymentService
     Task<(PaymentInformation paymentInformation, bool alreadyPaid)> StartPayment(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -25,7 +26,8 @@ internal interface IPaymentService
     Task<PaymentInformation> CheckAndStorePaymentStatus(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -36,7 +38,8 @@ internal interface IPaymentService
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
         string taskId,
-        string? language
+        string? language,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
@@ -48,11 +51,16 @@ internal interface IPaymentService
     Task<string> HandlePaymentCompletedWebhook(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        StorageAuthenticationMethod storageAuthenticationMethod
+        StorageAuthenticationMethod storageAuthenticationMethod,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>
     /// Get our internal payment status. Will only check the local status and will not get updated status from the payment provider.
     /// </summary>
-    Task<PaymentStatus> GetPaymentStatus(Instance instance, ValidAltinnPaymentConfiguration paymentConfiguration);
+    Task<PaymentStatus> GetPaymentStatus(
+        Instance instance,
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        CancellationToken cancellationToken = default
+    );
 }

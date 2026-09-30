@@ -22,6 +22,8 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
+const APP_DOCUMENT_TITLE = 'my-app – Altinn Studio';
+
 describe('PageLayout', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -31,6 +33,18 @@ describe('PageLayout', () => {
     render();
 
     expect(screen.getByLabelText(textMock('repo_status.loading'))).toBeInTheDocument();
+  });
+
+  it('sets the document title to the app name while data is loading', () => {
+    render();
+
+    expect(document.title).toBe(APP_DOCUMENT_TITLE);
+  });
+
+  it('sets the document title to the app name when the page content has loaded', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+
+    expect(document.title).toBe(APP_DOCUMENT_TITLE);
   });
 
   it('renders "StudioNotFoundPage" when repoStatus has error', async () => {

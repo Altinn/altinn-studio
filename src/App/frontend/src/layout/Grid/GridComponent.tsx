@@ -4,6 +4,13 @@ import type { PropsWithChildren } from 'react';
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type {
+  GridCell,
+  GridRow,
+  IGridColumnProperties,
+  ITableColumnFormatting,
+  ITableColumnProperties,
+} from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -31,13 +38,6 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type {
-  GridCell,
-  GridRow,
-  IGridColumnProperties,
-  ITableColumnFormatting,
-  ITableColumnProperties,
-} from 'src/layout/common.generated';
 
 interface ColSpanHiddenOverlapWarningParams {
   colSpan: number;

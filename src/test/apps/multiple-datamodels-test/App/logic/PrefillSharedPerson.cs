@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Models.sharedperson;
@@ -13,7 +12,11 @@ public class PrefillSharedPerson : IOnTaskEndingHandler
     public async Task<HookResult> Execute(OnTaskEndingContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
-        DataElement dataElement = instance.Data.Find(d => d.DataType == nameof(sharedperson));
+        DataElement dataElement =
+            instance.Data.Find(d => d.DataType == nameof(sharedperson))
+            ?? throw new InvalidOperationException(
+                $"Expected a '{nameof(sharedperson)}' data element on the instance."
+            );
 
         var person = (sharedperson)
             await context.InstanceDataMutator.GetFormData(new DataElementIdentifier(dataElement));

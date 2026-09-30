@@ -4,7 +4,6 @@ using System.IO;
 using Altinn.WorkflowEngine.ContractTesting;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.App.Tests.Contract;
 
@@ -50,6 +49,13 @@ public class EngineWireContractTests
             typeof(ResumeWorkflowResponse),
             typeof(AbandonWorkflowResponse),
             typeof(NudgeWorkflowResponse),
+            typeof(NamespaceThrottleResponse),
+            // Mailbox mint/read/close — one response shape for all three
+            typeof(MailboxCreateRequest),
+            typeof(MailboxResponse),
+            // Mailbox delivery ingestion
+            typeof(MailboxDeliveryRequest),
+            typeof(MailboxDeliveryResponse),
             // AppCommand callback contract (owned by the engine host)
             typeof(Actor),
             typeof(AppCommandData),

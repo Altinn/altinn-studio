@@ -707,7 +707,7 @@ public class AccessManagementClientTests
 
         var appDataMock = new Mock<IAppMetadata>();
         var applicationMetadata = new ApplicationMetadata($"testorg/{appId}") { Org = "testorg" };
-        appDataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        appDataMock.Setup(a => a.ApplicationMetadata).Returns(applicationMetadata);
         services.AddSingleton(appDataMock.Object);
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();

@@ -1,26 +1,31 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Base type for the result of executing a service task.
+/// Base type for the result of executing a service task: how the task concludes. A subtype of
+/// <see cref="ServiceTaskExchangeResult"/>, so every one of these answers is also a valid answer from a reply
+/// handler — the reverse does not hold.
 /// </summary>
-public abstract record ServiceTaskResult
+public abstract record ServiceTaskResult : ServiceTaskExchangeResult
 {
     /// <summary>
-    /// Creates a service task result representing successful execution.
-    /// The process will automatically advance to the next element.
+    /// Declares no constructor an app can call, for the reason given on
+    /// <see cref="ServiceTaskExchangeResult"/> — read that constructor's remarks before changing this one's
+    /// accessibility.
     /// </summary>
-    /// <param name="action">
-    /// Optional action to use when advancing (e.g. "reject").
-    /// When null, the default BPMN transition is used.
-    /// </param>
-    public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
+    private protected ServiceTaskResult() { }
 
     /// <summary>
-    /// Creates a service task result representing successful execution
-    /// without automatic process advancement. The instance will remain
-    /// at the service task until manually advanced.
+    /// Creates a successful result that completes the service task and advances the process.
     /// </summary>
-    public static ServiceTaskSuccessResult SuccessWithoutAutoAdvance() => new() { AutoAdvanceProcess = false };
+    /// <param name="action">
+    /// Optional process action used to select the next transition (e.g. "reject").
+    /// When null, the default BPMN transition is used.
+    /// </param>
+    /// <remarks>
+    /// From a reply handler this also <strong>ends the exchange</strong>: the mailbox closes before anything
+    /// downstream starts.
+    /// </remarks>
+    public static ServiceTaskSuccessResult Success(string? action = null) => new() { Action = action };
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
@@ -28,8 +33,8 @@ public abstract record ServiceTaskResult
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
     /// <remarks>
-    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
-    /// failure are discarded, and the retry starts from exactly the state this attempt received.
+    /// A failed attempt saves nothing. From a reply handler it retries <em>this message</em>, leaving the
+    /// exchange open.
     /// </remarks>
     public static ServiceTaskFailedResult FailedRetryable(string errorMessage)
     {
@@ -44,9 +49,8 @@ public abstract record ServiceTaskResult
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
     /// <remarks>
-    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
-    /// failure are discarded, and a retry or operational resume starts from exactly the state
-    /// this attempt received.
+    /// A failed attempt saves nothing. From a reply handler this <strong>ends the exchange as failed</strong>:
+    /// the mailbox is closed first, and whatever waited is not started.
     /// </remarks>
     public static ServiceTaskFailedResult FailedPermanent(string errorMessage)
     {
@@ -65,27 +69,13 @@ public abstract record ServiceTaskResult
     /// <see cref="ProcessStepOptions.WaitBudget"/> caps the total.
     /// </param>
     /// <param name="reason">
-    /// Optional description of what is being waited for. Persisted on the step and surfaced on status
-    /// reads — the ops dashboard, and the <c>workflow.waitingReason</c> annotation on the app's process
-    /// reads, where a frontend may display it — so phrase it for a reader, not a log parser.
+    /// Optional description of what is being waited for, persisted on the step and surfaced on status reads —
+    /// phrase it for a reader, not a log parser.
     /// </param>
     /// <remarks>
-    /// <para>
-    /// A deferral is not a failure (no error recorded, retry counter reset) and is
-    /// <strong>stateless</strong>: nothing is saved, and instance data changes made by a deferring
-    /// attempt are rejected as a contract violation. Work that produces something durable belongs
-    /// before the wait, in its own pipeline stage (<see cref="IPipelineServiceTask"/>) — for
-    /// send-then-poll, give the send its own stage and let <c>Finally</c> poll: a completed stage
-    /// never re-runs.
-    /// </para>
-    /// <para>
-    /// Waiting is bounded by <see cref="ProcessStepOptions.WaitBudget"/> (or the engine default);
-    /// expiry fails the step under its own classification. Read <see cref="ServiceTaskContext.Wait"/>
-    /// to pace the wait or give up early. Never branch on anything under
-    /// <see cref="ServiceTaskContext.Attempt"/> or <see cref="ServiceTaskContext.Wait"/> to guard a
-    /// side effect — an attempt that sends and crashes re-runs with all of those unchanged; use
-    /// <see cref="ServiceTaskContext.StepId"/> as the outbound idempotency key instead.
-    /// </para>
+    /// A deferral is not a failure and is <strong>stateless</strong>: nothing is saved, and instance data
+    /// changes made by a deferring attempt are rejected as a contract violation. See
+    /// <c>docs/service-task-pipelines.md</c> in the app-lib repository for the waiting contract.
     /// </remarks>
     public static ServiceTaskDeferredResult Defer(TimeSpan delay, string? reason = null)
     {
@@ -117,14 +107,8 @@ public sealed record ServiceTaskDeferredResult : ServiceTaskResult
 public sealed record ServiceTaskSuccessResult : ServiceTaskResult
 {
     /// <summary>
-    /// If true, the process will automatically advance to the next element after the service task completes.
-    /// Defaults to true.
-    /// </summary>
-    public bool AutoAdvanceProcess { get; init; } = true;
-
-    /// <summary>
-    /// Optional action to use when auto-advancing (e.g. "reject" to abandon the current task).
-    /// Only used when <see cref="AutoAdvanceProcess"/> is true. When null, the default BPMN transition is used.
+    /// Optional process action used to select the next transition (e.g. "reject").
+    /// When null, the default BPMN transition is used.
     /// </summary>
     public string? Action { get; init; }
 }

@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -17,6 +18,7 @@ public class PdfServiceTaskTests
     private readonly Mock<IPdfService> _pdfServiceMock = new();
     private readonly Mock<ILogger<PdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
+    private readonly Mock<IAppResources> _appResourcesMock = new();
     private readonly PdfServiceTask _serviceTask;
 
     private const string FileName = "customFilenameTextResourceKey";
@@ -33,13 +35,23 @@ public class PdfServiceTaskTests
                 }
             );
 
-        _serviceTask = new PdfServiceTask(_pdfServiceMock.Object, _processReaderMock.Object, _loggerMock.Object);
+        _serviceTask = new PdfServiceTask(
+            _pdfServiceMock.Object,
+            _processReaderMock.Object,
+            _appResourcesMock.Object,
+            _loggerMock.Object
+        );
     }
 
     [Fact]
     public async Task Execute_Should_Call_GenerateAndStorePdf()
     {
         // Arrange
+        // No autoPdfTaskIds, so the PDF comes from the task's own UI folder.
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder("taskId"))
+            .Returns(new LayoutSettings { Pages = new Pages { PdfLayoutName = "PdfLayout" } });
+
         var instance = new Instance
         {
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
@@ -113,7 +125,12 @@ public class PdfServiceTaskTests
             StepId = Guid.NewGuid(),
         };
 
-        var serviceTask = new PdfServiceTask(_pdfServiceMock.Object, _processReaderMock.Object, _loggerMock.Object);
+        var serviceTask = new PdfServiceTask(
+            _pdfServiceMock.Object,
+            _processReaderMock.Object,
+            _appResourcesMock.Object,
+            _loggerMock.Object
+        );
 
         // Act
         await serviceTask.Execute(parameters);
@@ -130,5 +147,100 @@ public class PdfServiceTaskTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_There_Is_Nothing_To_Render()
+    {
+        // Neither autoPdfTaskIds nor a UI folder for the PDF task - the setup from Altinn/altinn-studio#19425.
+        var result = await _serviceTask.Execute(CreateContext("taskId"));
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("'taskId' has nothing to render", failed.ErrorMessage);
+        _pdfServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_AutoPdfTaskIds_Only_Has_Blank_Entries()
+    {
+        SetupAutoPdfTaskIds("pdfTask", [" "]);
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        _pdfServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_Fails_Permanently_When_AutoPdfTaskIds_Is_Combined_With_A_UI_Folder_Without_PdfLayoutName()
+    {
+        SetupAutoPdfTaskIds("pdfTask", ["Task_1"]);
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder("pdfTask"))
+            .Returns(new LayoutSettings { Pages = new Pages() });
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
+
+        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("without a pdfLayoutName", failed.ErrorMessage);
+        _pdfServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_Generates_From_Own_UI_Folder_With_PdfLayoutName_Even_With_AutoPdfTaskIds()
+    {
+        SetupAutoPdfTaskIds("pdfTask", ["Task_1"]);
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder("pdfTask"))
+            .Returns(new LayoutSettings { Pages = new Pages { PdfLayoutName = "PdfLayout" } });
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
+
+        Assert.IsType<ServiceTaskSuccessResult>(result);
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateAndStorePdf(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<string>?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    private void SetupAutoPdfTaskIds(string pdfTaskId, List<string> autoPdfTaskIds) =>
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension(pdfTaskId))
+            .Returns(
+                new AltinnTaskExtension
+                {
+                    TaskType = "pdf",
+                    PdfConfiguration = new AltinnPdfConfiguration { AutoPdfTaskIds = autoPdfTaskIds },
+                }
+            );
+
+    private static ServiceTaskContext CreateContext(string currentTaskId)
+    {
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock
+            .Setup(x => x.Instance)
+            .Returns(
+                new Instance
+                {
+                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = currentTaskId } },
+                }
+            );
+
+        return new ServiceTaskContext
+        {
+            InstanceDataMutator = instanceMutatorMock.Object,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
     }
 }

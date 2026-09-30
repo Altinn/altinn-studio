@@ -41,6 +41,6 @@ internal sealed class WellBehavedPipelineTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage("Send", _ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 }

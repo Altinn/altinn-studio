@@ -23,6 +23,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
+    private const string SomeCommand = "some-command";
 
     public WorkflowEngineCallbackControllerAuthTests(
         WebApplicationFactory<Program> factory,
@@ -33,17 +34,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     private static StringContent EmptyPayload() => new("{}", Encoding.UTF8, "application/json");
 
     private string GenerateToken(Guid instanceGuid) =>
-        Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid);
+        Services.GenerateCallbackToken(instanceGuid, commandKeys: [SomeCommand, MutateProcessState.Key]);
 
     /// <summary>
     /// Produces a properly HMAC-signed state envelope around the given inner state, as the app would at enqueue
     /// time. The callback controller verifies this signature before trusting any of the blob.
     /// </summary>
     private string SignState(WorkflowCallbackState state) =>
-        Services.GetRequiredService<WorkflowStateSigner>().Sign(JsonSerializer.Serialize(state));
+        Services
+            .GetRequiredService<WorkflowStateSigner>()
+            .Sign(JsonSerializer.Serialize(state), SigningDomain.CallbackState);
 
     private static string CallbackUrl(Guid instanceGuid) =>
-        $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/some-command";
+        $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{SomeCommand}";
 
     /// <summary>
     /// Asserts that state restoration is what rejected the callback. The controller has several non-retryable
@@ -100,6 +103,60 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
     }
 
     [Fact]
+    public async Task Callback_ForCommandTheTokenDoesNotCover_ReturnsUnauthorized()
+    {
+        var instanceGuid = Guid.NewGuid();
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [MutateProcessState.Key])
+        );
+        using var content = EmptyPayload();
+
+        // Same instance, same signing code: only the command in the route is outside what the token was minted for.
+        using var response = await client.PostAsync(CallbackUrl(instanceGuid), content);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Callback_WithActorOtherThanTheTokens_IsRejectedBeforeAnyCommandRuns(bool actorMatches)
+    {
+        var instanceGuid = Guid.NewGuid();
+        var mintedFor = new Actor { UserId = 1337, Language = "nb" };
+        var claimed = actorMatches ? mintedFor with { Language = "en" } : mintedFor with { UserId = 1338 };
+
+        using var client = GetRootedClient(Org, App);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            Services.GenerateCallbackToken(instanceGuid, mintedFor, MutateProcessState.Key)
+        );
+        var payload = new AppCallbackPayload
+        {
+            CommandKey = MutateProcessState.Key,
+            Actor = claimed,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
+            State = "not-a-signed-envelope",
+        };
+        using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            content
+        );
+
+        // Either way the request is a non-retryable 422; the title says which check stopped it. A matching actor
+        // (language aside) gets past the actor check and is stopped by the unsigned state instead.
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        ProblemDetails? problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal(actorMatches ? "Invalid State" : "Actor Mismatch", problem?.Title);
+    }
+
+    [Fact]
     public async Task Callback_WithStateForDifferentInstance_IsRejected()
     {
         // The token authenticates for the route instance, but the state blob targets a DIFFERENT instance.
@@ -127,11 +184,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Properly signed so the instance-mismatch check (not the signature check) is what rejects it.
-            State = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = SignState(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -168,11 +233,19 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             // Raw inner state, NOT wrapped in a signed envelope.
-            State = JsonSerializer.Serialize(new WorkflowCallbackState { Instance = stateInstance, FormData = [] }),
+            State = JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = stateInstance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -206,7 +279,15 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
             Data = [],
         };
-        string signed = SignState(new WorkflowCallbackState { Instance = stateInstance, FormData = [] });
+        string signed = SignState(
+            new WorkflowCallbackState
+            {
+                Instance = stateInstance,
+                InstanceVersion = 1,
+                ProcessStateVersion = 1,
+                FormData = [],
+            }
+        );
         var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(signed)!;
         string tampered = JsonSerializer.Serialize(
             envelope with
@@ -220,9 +301,9 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         {
             CommandKey = MutateProcessState.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
-            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+            ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             State = tampered,
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");

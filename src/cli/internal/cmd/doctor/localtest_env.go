@@ -17,6 +17,7 @@ func (s *Service) buildLocaltestEnv(ctx context.Context) *envlocaltest.Diagnosti
 		DialTCP:          nil,
 		IPv6Enabled:      nil,
 		Topology:         topology,
+		Images:           s.cfg.Images,
 		UserAgentVersion: s.cfg.Version,
 	})
 }

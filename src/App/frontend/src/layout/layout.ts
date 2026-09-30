@@ -1,8 +1,8 @@
+import type { CompCategory } from '@app/layout-contract';
+import type { IDataModelReference, ILayoutFile } from '@app/layout-contract/generated/common.generated';
 import type { $Keys, PickByValue } from 'utility-types';
 
 import type { CompBehaviors } from 'src/codegen/Config';
-import type { CompCategory } from 'src/layout/common';
-import type { IDataModelReference, ILayoutFile } from 'src/layout/common.generated';
 import type { ComponentTypeConfigs, getComponentConfigs } from 'src/layout/components.generated';
 import type { CompClassMapCategories } from 'src/layout/index';
 

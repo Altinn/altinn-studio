@@ -35,7 +35,7 @@ export const SchemaSelect = ({
       disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}
       value={selectedOption?.value.repositoryRelativeUrl}
-      label=''
+      label={t('schema_editor.data_model')}
     >
       {optionGroups.map((group) => (
         <StudioSelect.OptGroup label={group.label} key={group.label}>

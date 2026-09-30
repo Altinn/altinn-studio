@@ -1,5 +1,4 @@
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.Common.EFormidlingClient.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

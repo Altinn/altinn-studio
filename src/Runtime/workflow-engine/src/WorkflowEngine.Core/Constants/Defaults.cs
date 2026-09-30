@@ -1,5 +1,4 @@
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Constants;
 
@@ -20,6 +19,10 @@ internal static class Defaults
         DefaultStepWaitBudget = TimeSpan.FromDays(1),
         MaxStepWaitBudget = TimeSpan.FromDays(14),
         MinStepDeferDelay = TimeSpan.FromSeconds(1),
+        MaxMailboxTimeout = TimeSpan.FromDays(21),
+        MaxOpenMailboxesPerCollection = 100,
+        MaxMailboxPayloadSize = 256 * 1024,
+        MaxMailboxLogLength = 100,
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
             maxDelay: TimeSpan.FromMinutes(5),
@@ -35,6 +38,7 @@ internal static class Defaults
         MaxReclaimCount = 5,
         CancellationWatcherInterval = TimeSpan.FromSeconds(2),
         MaintenanceInterval = TimeSpan.FromMinutes(1),
+        MailboxSweepInterval = TimeSpan.FromMinutes(5),
         Concurrency = new ConcurrencySettings()
         {
             MaxWorkers = 400,
@@ -49,11 +53,42 @@ internal static class Defaults
             MaxQueueSize = 10_000,
         },
         UpdateBuffer = new UpdateBufferSettings { MaxBatchSize = 1000, MaxQueueSize = 5_000 },
+        MailboxBuffers = new MailboxBufferSettings
+        {
+            Mint = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 5_000,
+                FlushConcurrency = 1,
+            },
+            Close = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 5_000,
+                FlushConcurrency = 1,
+            },
+            Delivery = new BatchBufferSettings
+            {
+                MaxBatchSize = 100,
+                MaxQueueSize = 10_000,
+                FlushConcurrency = 2,
+            },
+        },
         Retention = new RetentionSettings
         {
-            RetentionPeriod = TimeSpan.FromDays(60),
+            RetentionPeriod = TimeSpan.FromDays(90),
             BatchSize = 1000,
             Interval = TimeSpan.FromHours(2),
+        },
+        Throttling = new ThrottlingSettings
+        {
+            Enabled = false,
+            MinRequeuedWorkflows = 50,
+            MinRequeuedRatio = 0.5,
+            SweepInterval = TimeSpan.FromSeconds(30),
+            CanaryCount = 3,
+            InitialWindow = TimeSpan.FromMinutes(10),
+            MaxWindow = TimeSpan.FromHours(1),
         },
     };
 }

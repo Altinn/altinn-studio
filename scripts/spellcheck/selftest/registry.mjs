@@ -171,8 +171,51 @@ export const CLASSIFIER_SCENARIOS = {
     'f.yaml': `n: uCI86gU5og9MxiTN7qKUvZmAgXBaEfGhIjKlMnOpQrStUv`, // blob
     'g.gitignore': `*.[Pp]ublish.xml`, // bracket expression
     'h.md': `the [Pp]ublish.xml pattern and a colour`, // bracket class must not shield the rest of the line
+    'src/App/frontend/src/layout/Link/config.ts': `.setTitle('Stile colour', 'Stil'); colour();`,
+    'src/App/frontend/src/codegen/Common.ts': `.setDescription('A colour', 'Alternativ');`,
+    'src/App/frontend/src/layout/Image/config.ts': `nb: 'vist', en: 'colour', vist: true,`,
+    'src/App/frontend/src/layout/Other/config.ts': `.setTitle('English', 'Stil' + colour);`,
+    'other.ts': `.setTitle('English', 'Stil');`,
   },
   cases: [
+    [
+      'src/App/frontend/src/layout/Link/config.ts',
+      'Stil',
+      'finding',
+      'English first argument remains checked',
+    ],
+    [
+      'src/App/frontend/src/codegen/Common.ts',
+      'Alternativ',
+      'norwegian',
+      'Norwegian description argument',
+    ],
+    ['src/App/frontend/src/codegen/Common.ts', 'colour', 'finding', 'English description argument'],
+    [
+      'src/App/frontend/src/layout/Image/config.ts',
+      'vist',
+      'norwegian',
+      'explicit Norwegian property value',
+    ],
+    [
+      'src/App/frontend/src/layout/Image/config.ts',
+      'colour',
+      'finding',
+      'English property beside Norwegian',
+    ],
+    [
+      'src/App/frontend/src/layout/Other/config.ts',
+      'Stil',
+      'norwegian',
+      'Norwegian title argument',
+    ],
+    [
+      'src/App/frontend/src/layout/Other/config.ts',
+      'colour',
+      'finding',
+      'code following Norwegian title',
+    ],
+    ['other.ts', 'Stil', 'finding', 'unrelated API with the same method name'],
     ['g.gitignore', 'ublish', 'pattern', 'a word tail right after a bracket expression'],
     ['h.md', 'colour', 'finding', 'a word elsewhere on a line that has a bracket expression'],
     ['a.ts', 'adresse', 'norwegian', 'a typo inside a Norwegian string'],

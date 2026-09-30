@@ -97,12 +97,12 @@ describe('AddressLayout', () => {
 
   it('shows required indicators when required is true', () => {
     render({ simplified: false, required: true });
-    expect(screen.getByRole('textbox', { name: 'Gateadresse *' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Postnr *' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Gateadresse Obligatorisk' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr Obligatorisk' })).toBeInTheDocument();
     expect(
-      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse *' }),
+      screen.getByRole('textbox', { name: 'C/O eller annen tilleggsadresse Obligatorisk' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /Bolignummer \*/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Bolignummer Obligatorisk/i })).toBeInTheDocument();
   });
 
   it('shows optional indicators when showOptionalMarking is true and not required', () => {

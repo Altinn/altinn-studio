@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -19,7 +20,6 @@ public class EnqueueSideEffectsWorkflowTests
         new()
         {
             Labels = new Dictionary<string, string>(StringComparer.Ordinal) { ["processNextTargetId"] = "Task_2:1" },
-            Context = JsonSerializer.SerializeToElement(new { lockToken = "lock-token" }),
             // One single-step sibling per side effect - the factory pre-assembles the whole batch.
             Workflows =
             [
@@ -43,6 +43,7 @@ public class EnqueueSideEffectsWorkflowTests
     private static ProcessEngineCommandContext CreateContext() =>
         new()
         {
+            StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = _instanceId,
             InstanceDataMutator = null!,
@@ -51,10 +52,10 @@ public class EnqueueSideEffectsWorkflowTests
             {
                 CommandKey = EnqueueSideEffectsWorkflow.Key,
                 Actor = new Actor { UserId = 1337 },
-                LockToken = "lock-token",
-                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
                 WorkflowId = _mainWorkflowId,
+                StepId = Guid.NewGuid(),
                 State = SignedTestState,
+                ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
         };
 
@@ -97,7 +98,8 @@ public class EnqueueSideEffectsWorkflowTests
                     Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "ttd/test-app" }],
                 }
             );
-        var command = new EnqueueSideEffectsWorkflow(client.Object);
+        var tokens = new RecordingCallbackTokenGenerator();
+        var command = new EnqueueSideEffectsWorkflow(client.Object, tokens);
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest());
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
@@ -110,6 +112,10 @@ public class EnqueueSideEffectsWorkflowTests
         Assert.Equal(_instanceId.InstanceGuid.ToString(), capturedCollectionKey);
 
         Assert.NotNull(capturedRequest);
+        var context = JsonSerializer.Deserialize<AppWorkflowContext>(capturedRequest.Context!.Value)!;
+        Assert.Equal(CreateContext().Payload.Actor, context.Actor);
+        Assert.Equal(_instanceId.InstanceGuid, context.InstanceGuid);
+        tokens.AssertMintedFor(capturedRequest);
         Assert.Equal(2, capturedRequest.Workflows.Count);
         Assert.All(
             capturedRequest.Workflows,
@@ -144,7 +150,13 @@ public class EnqueueSideEffectsWorkflowTests
                 )
             )
             .ThrowsAsync(new HttpRequestException("engine unavailable"));
-        var command = new EnqueueSideEffectsWorkflow(client.Object);
+        var command = new EnqueueSideEffectsWorkflow(
+            client.Object,
+            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
+                g.GenerateToken(_instanceId.InstanceGuid, It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                == "callback-token"
+            )
+        );
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest());
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
@@ -157,7 +169,13 @@ public class EnqueueSideEffectsWorkflowTests
     public async Task Execute_PayloadWithNoWorkflows_FailsPermanently()
     {
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        var command = new EnqueueSideEffectsWorkflow(client.Object);
+        var command = new EnqueueSideEffectsWorkflow(
+            client.Object,
+            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
+                g.GenerateToken(_instanceId.InstanceGuid, It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                == "callback-token"
+            )
+        );
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest() with { Workflows = [] });
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
@@ -170,7 +188,7 @@ public class EnqueueSideEffectsWorkflowTests
     public void Payload_RoundTripsThroughCommandPayloadSerialization()
     {
         // The payload travels app -> engine -> app callback as an opaque string; guard that the
-        // embedded enqueue request (incl. context element and directives) survives the round trip.
+        // embedded enqueue request (without runtime authentication) survives the round trip.
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest());
 
         string? serialized = CommandPayloadSerializer.Serialize(payload);
@@ -184,6 +202,6 @@ public class EnqueueSideEffectsWorkflowTests
         Assert.False(workflow.IsHead);
         Assert.False(workflow.DependsOnHeads);
         Assert.Equal("Task_2:1", roundTripped.EnqueueRequest.Labels?["processNextTargetId"]);
-        Assert.NotNull(roundTripped.EnqueueRequest.Context);
+        Assert.Null(roundTripped.EnqueueRequest.Context);
     }
 }

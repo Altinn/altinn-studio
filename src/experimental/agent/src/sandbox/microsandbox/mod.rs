@@ -21,6 +21,9 @@ use preparation::Preparation;
 
 use super::{Provider, ProviderEnsureOutcome, ProviderId};
 
+/// `RUST_LOG` directives that keep this Provider's runtime helper processes quiet at the default level.
+pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
+
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
 /// Sandbox-resolvable name of the Microsandbox Network Backend's host alias.
@@ -52,9 +55,9 @@ impl Adapter {
         policy: Rc<AgentPolicyEngine>,
         platform_port: u16,
     ) -> Result<Self, Error> {
-        let provider = Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?);
         let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(secret_store));
-        let service = SandboxService::new(provider).with_network_backend(network.clone());
+        let service = SandboxService::new(Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?))
+            .with_network_backend(network.clone());
         policy.set_platform_endpoint(HOST_ALIAS, platform_port);
         Ok(Self {
             id: ProviderId::new(PROVIDER_ID)?,
@@ -109,7 +112,12 @@ impl Provider for Adapter {
         })
     }
 
-    fn ensure<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
+    fn ensure<'a>(
+        &'a self,
+        record: &'a AgentRecord,
+        mut environment: std::collections::BTreeMap<String, String>,
+        progress: ::sandbox::ProgressReporter,
+    ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>> {
         Box::pin(async move {
             let running_before = record
                 .agent
@@ -119,24 +127,34 @@ impl Provider for Adapter {
                 .and_then(super::Assignment::id)
                 .is_some_and(|id| self.preparation.network_is_running(id));
             let prepared = self.preparation.prepare(record).await?;
+            let harnesses = prepared.harnesses;
+            for (name, value) in prepared.environment {
+                if environment.insert(name.clone(), value).is_some() {
+                    return Err(Error::Invalid(format!(
+                        "Sandbox environment variable {name:?} collides with a mediated secret"
+                    )));
+                }
+            }
             let sandbox_name = record.sandbox_name()?;
             let runtime_restarted = match self.service.inspect(&sandbox_name).await {
-                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != prepared.environment,
+                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != environment,
                 Err(error) if error.is_not_found() => false,
                 Err(error) => return Err(error.into()),
             };
             let request = EnsureSandboxRequest::new(sandbox_name, self.sandbox_spec(record))
+                .with_hostname(record.sandbox_hostname()?)
                 .with_mounts(Self::sandbox_mounts(record))
-                .with_environment(prepared.environment);
-            let mut sandbox = self.service.ensure(&request).await?;
+                .with_environment(environment);
+            let mut sandbox = self.service.ensure(&request).forward(&progress).await?;
             if prepared.bindings_changed && running_before {
                 self.preparation.restart_network(&sandbox).await?;
                 // Re-ensure starts the stopped Network with the replacement handshake bindings.
-                sandbox = self.service.ensure(&request).await?;
+                sandbox = self.service.ensure(&request).forward(&progress).await?;
             }
             Ok(ProviderEnsureOutcome {
                 sandbox,
                 runtime_restarted,
+                harnesses,
             })
         })
     }

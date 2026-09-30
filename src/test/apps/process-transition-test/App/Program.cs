@@ -2,11 +2,6 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Logic;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 
 void RegisterCustomAppServices(
@@ -21,15 +16,10 @@ void RegisterCustomAppServices(
     // Post-commit lever: the "scenario" service task (Task_Service / Task_ServiceLayout) the
     // Gateway_PostCommit gateway routes through when path == "postCommit". A pipeline task —
     // the PrepareScenario stage runs before the concluding RunScenario — so every postCommit e2e
-    // scenario also drives the multi-stage contract (dispatch by stage name, per-stage
+    // scenario also drives the multi-stage contract (dispatch by stage index, per-stage
     // durability/options). The engine runs the pipeline as critical post-commit steps, so
     // delays/failures are frontend-observable (committed = the service task).
     services.AddTransient<IPipelineServiceTask, ScenarioServiceTask>();
-
-    // Background driver for the parkThenRelease lever: releases a parked service task after a few
-    // seconds via an ordinary authorized process/next, imitating an external callback.
-    services.AddSingleton<ParkedTaskReleaser>();
-    services.AddHttpClient();
 }
 
 // ###########################################################################

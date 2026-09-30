@@ -89,7 +89,7 @@ describe('Signing', () => {
       cy.findByRole('button', { name: /neste/i }).click();
 
       // Stiftelsesdokumenter
-      cy.findByRole('button', { name: /til signering/i }).click();
+      cy.findByRole('button', { name: /til signering/i }).clickAndWaitForProcessNext();
 
       // Signing step
       cy.findByRole('heading', { name: /personer som skal signere/i });

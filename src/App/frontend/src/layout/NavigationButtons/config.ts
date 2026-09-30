@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Action,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Navigasjonsknapper', en: 'NavigationButtons' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: true,
@@ -19,22 +25,28 @@ export const Config = new CG.component({
   .addTextResource(
     new CG.trb({
       name: 'back',
-      title: 'Back',
-      description: 'Text on the back/previous page button',
+      title: { en: 'Back', nb: 'Tilbake' },
+      description: {
+        en: 'Text on the back/previous page button',
+        nb: 'Teksten på knappen for å gå tilbake til forrige side.',
+      },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'next',
-      title: 'Next',
-      description: 'Text on the next page button',
+      title: { en: 'Next', nb: 'Neste' },
+      description: { en: 'Text on the next page button', nb: 'Teksten på knappen for å gå til neste side.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'backToPage',
-      title: 'Back to Page',
-      description: 'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
+      title: { en: 'Back to Page', nb: 'Tilbake til side' },
+      description: {
+        en: 'Text on the "Back to Page" button when linkToPage/linkToComponent expression is used.',
+        nb: 'Teksten på knappen «Tilbake til side» når uttrykket linkToPage eller linkToComponent brukes.',
+      },
     }),
   )
   .addProperty(
@@ -42,8 +54,11 @@ export const Config = new CG.component({
       'showBackButton',
       new CG.bool()
         .optional({ default: true })
-        .setTitle('Show back button')
-        .setDescription("Shows two buttons (back/next) instead of just 'next'."),
+        .setTitle('Show back button', 'Vis tilbakeknappen')
+        .setDescription(
+          "Shows two buttons (back/next) instead of just 'next'.",
+          'Viser både tilbake- og neste-knapp i stedet for bare neste-knappen.',
+        ),
     ),
   )
   .addProperty(new CG.prop('validateOnNext', CG.common('PageValidation').optional()))

@@ -1,26 +1,30 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { defineConfig } = require('cypress');
-const { vitePreprocessor } = require('cypress-vite');
-const path = require('node:path');
-const fs = require('node:fs/promises');
-const { existsSync } = require('node:fs');
-const env = require('dotenv').config();
-const configureCypressShard = require('./scripts/cypress-shard');
+import { defineConfig } from 'cypress';
+import installLogsPrinter from 'cypress-terminal-report/src/installLogsPrinter.js';
+import { vitePreprocessor } from 'cypress-vite';
+import dotenv from 'dotenv';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { configureCypressShard } from './scripts/cypress-shard.js';
+
+const env = dotenv.config();
 
 const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
 const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
 
 // noinspection JSUnusedGlobalSymbols
-module.exports = defineConfig({
+export default defineConfig({
   allowCypressEnv: false,
   e2e: {
     setupNodeEvents(on, config) {
       const snapshotsPath = path.resolve('snapshots.json');
-      require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
+      installLogsPrinter(on, { printLogsToConsole: 'always' });
       on(
         'file:preprocessor',
         vitePreprocessor({
-          configFile: path.resolve(__dirname, 'vite.config.cypress.mts'),
+          configFile: path.resolve(import.meta.dirname, 'vite.config.cypress.ts'),
           configLoader: 'native',
         }),
       );
@@ -105,8 +109,8 @@ module.exports = defineConfig({
           };
 
           return configureCypressShard(configured, {
-            specRoot: path.resolve(__dirname, 'test/e2e/integration'),
-            timingsFile: path.resolve(__dirname, 'test/e2e/cypress-timings.json'),
+            specRoot: path.resolve(import.meta.dirname, 'test/e2e/integration'),
+            timingsFile: path.resolve(import.meta.dirname, 'test/e2e/cypress-timings.json'),
             total: process.env.E2E_SHARD_TOTAL,
             number: process.env.E2E_SHARD_NUMBER,
           });
@@ -126,7 +130,7 @@ Valid environments are:
   // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
   // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
   expose: {
-    axeCorePath: require.resolve('axe-core/axe.min.js'),
+    axeCorePath: fileURLToPath(import.meta.resolve('axe-core/axe.min.js')),
     // Percy uses this public local endpoint to communicate with its CLI. Exposing it prevents
     // @percy/cypress from falling back to the disabled Cypress.env() API when Percy is not running.
     PERCY_SERVER_ADDRESS: process.env.PERCY_SERVER_ADDRESS || 'http://localhost:5338',

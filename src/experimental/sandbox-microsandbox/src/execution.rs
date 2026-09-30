@@ -88,17 +88,17 @@ impl MicrosandboxProvider {
     ) -> Result<terminal::TerminalAttachOutcome, Error> {
         let sandbox = self.state.sandbox_by_id(sandbox_id).await?;
         let runtime = self.connect_running(&sandbox).await?;
-        let spec = request.into_spec();
+        let (spec, detach_keys) = request.into_parts();
         let exit_code = match spec.program() {
             execution::Program::ImageEntrypoint => {
                 runtime
-                    .attach_default_with(|options| apply_attach_options(options, &spec))
+                    .attach_default_with(|options| apply_attach_options(options, &spec, detach_keys.as_deref()))
                     .await
             }
             execution::Program::Command { executable, args } => {
                 runtime
                     .attach_with(executable.as_str(), |options| {
-                        apply_attach_options(options.args(args.iter().cloned()), &spec)
+                        apply_attach_options(options.args(args.iter().cloned()), &spec, detach_keys.as_deref())
                     })
                     .await
             }
@@ -134,9 +134,16 @@ impl MicrosandboxProvider {
     }
 }
 
-fn apply_attach_options(mut options: AttachOptionsBuilder, spec: &execution::ExecutionSpec) -> AttachOptionsBuilder {
+fn apply_attach_options(
+    mut options: AttachOptionsBuilder,
+    spec: &execution::ExecutionSpec,
+    detach_keys: Option<&str>,
+) -> AttachOptionsBuilder {
     if let Some(working_directory) = spec.working_directory() {
         options = options.cwd(working_directory.as_str());
+    }
+    if let Some(detach_keys) = detach_keys {
+        options = options.detach_keys(detach_keys);
     }
     options.envs(
         spec.environment()

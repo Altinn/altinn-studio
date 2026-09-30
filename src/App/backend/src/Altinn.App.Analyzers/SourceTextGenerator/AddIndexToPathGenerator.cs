@@ -153,7 +153,7 @@ internal static class AddIndexToPathGenerator
                 );
             }
 
-            builder.Append("                return;\r\n");
+            builder.Append("                return;\n");
         }
 
         builder.Append(

@@ -2,6 +2,12 @@ import React from 'react';
 
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type {
+  ILayoutFile,
+  ILayoutSettings,
+  NavigationPageGroupMultiple,
+  NavigationPageGroupSingle,
+} from '@app/layout-contract/generated/common.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
@@ -11,12 +17,6 @@ import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/App
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type {
-  ILayoutFile,
-  ILayoutSettings,
-  NavigationPageGroupMultiple,
-  NavigationPageGroupSingle,
-} from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });
 

@@ -5,8 +5,8 @@ use std::{future::poll_fn, io::Cursor, path::PathBuf, pin::Pin, rc::Rc};
 use bytes::Bytes;
 use futures_core::Stream as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Error, OperationEvent, PendingOperation, Platform,
-    RetentionPolicy, RootFilesystem, RootFilesystemMode, SandboxEvent, SandboxFeature, SandboxName, SandboxPath,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Error, Hostname, OperationEvent, PendingOperation, Platform,
+    ProgressEvent, RetentionPolicy, RootFilesystem, RootFilesystemMode, SandboxFeature, SandboxName, SandboxPath,
     SandboxPhase, SandboxResources, SandboxService, SandboxSpec,
     execution::{ExecutionEvent, ExecutionSpec, ExitStatus, StartExecutionRequest},
     image::{self, ImageSource},
@@ -22,6 +22,7 @@ fn spec() -> SandboxSpec {
         image: ImageSource::Build {
             context: PathBuf::from("."),
             dockerfile: PathBuf::from("Dockerfile"),
+            target: None,
         },
         platform: Platform::native("linux"),
         resources: resources("2", "1Gi", "4Gi"),
@@ -48,6 +49,34 @@ fn resources(cpu: &str, memory: &str, root_filesystem: &str) -> SandboxResources
                 .expect("test root filesystem should be valid"),
         ),
     )
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_defaults_the_hostname_to_the_sandbox_name() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend);
+    let request = request();
+    assert_eq!(request.hostname().as_str(), "worker");
+
+    let sandbox = service.ensure(&request).await.expect("ensure");
+    assert_eq!(sandbox.snapshot().hostname, Hostname::from(sandbox_name()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn ensure_creates_the_sandbox_with_an_explicit_hostname() {
+    let backend = Rc::new(memory::Provider::new());
+    let service = SandboxService::new(backend);
+    let hostname = Hostname::new("agent-test").expect("test hostname should be valid");
+    let request = request().with_hostname(hostname.clone());
+    assert_eq!(request.hostname(), hostname);
+
+    let sandbox = service.ensure(&request).await.expect("ensure");
+    assert_eq!(sandbox.name(), &sandbox_name());
+    assert_eq!(sandbox.snapshot().hostname, hostname);
+    assert_eq!(
+        service.inspect(request.name()).await.expect("inspect").hostname,
+        hostname
+    );
 }
 
 #[tokio::test(flavor = "local")]
@@ -155,9 +184,7 @@ impl image::ImageBackend for PreparedImageBackend {
 
     fn resolve<'a>(&'a self, _request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
         let image = self.prepared.image.clone();
-        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
-            Box::pin(async move { Ok(image) })
-        })
+        PendingOperation::run(move |_progress| Box::pin(async move { Ok(image) }))
     }
 
     fn export_prepared_image<'a>(
@@ -178,9 +205,7 @@ impl image::ImageBackend for PreparedImageBackend {
 }
 
 fn completed_prepared_image(prepared: image::PreparedImage) -> PendingOperation<'static, image::PreparedImage> {
-    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
-        Box::pin(async move { Ok(prepared) })
-    })
+    PendingOperation::run(move |_progress| Box::pin(async move { Ok(prepared) }))
 }
 
 struct PreparedImageProvider {
@@ -258,18 +283,25 @@ async fn ensure_stream_yields_progress_then_exactly_one_ready_sandbox() {
 
     assert!(matches!(
         events.first(),
-        Some(OperationEvent::Progress(SandboxEvent::PhaseStarted {
-            phase: SandboxPhase::Validate
-        }))
+        Some(OperationEvent::Progress(ProgressEvent::PhaseStarted { phase }))
+            if *phase == SandboxPhase::Validate.phase()
     ));
     assert!(events.iter().any(|event| {
         matches!(
             event,
-            OperationEvent::Progress(SandboxEvent::PhaseStarted {
-                phase: SandboxPhase::ImageResolve
-            })
+            OperationEvent::Progress(ProgressEvent::PhaseStarted { phase })
+                if *phase == SandboxPhase::ImageResolve.phase()
         )
     }));
+    let started = events
+        .iter()
+        .filter(|event| matches!(event, OperationEvent::Progress(ProgressEvent::PhaseStarted { .. })))
+        .count();
+    let ended = events
+        .iter()
+        .filter(|event| matches!(event, OperationEvent::Progress(ProgressEvent::PhaseEnded { .. })))
+        .count();
+    assert_eq!(started, ended, "every started phase ends");
     assert!(matches!(events.last(), Some(OperationEvent::Ready(_))));
     assert!(
         poll_fn(|context| Pin::new(&mut pending).poll_next(context))
@@ -730,7 +762,7 @@ impl image::ImageBackend for IncompatibleImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
@@ -759,9 +791,7 @@ impl image::ImageBackend for IncompatibleImageBackend {
 }
 
 fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
-    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
-        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
-    })
+    PendingOperation::run(move |_progress| Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) }))
 }
 
 struct IncompatibleProvider {

@@ -18,6 +18,11 @@ namespace LocalTest.Services.Authentication.Implementation;
 
 public class AuthenticationService : IAuthentication
 {
+    // Test tokens are minted on this container's clock, but apps may validate them on the host
+    // clock (process-mode app runs) with ClockSkew = TimeSpan.Zero. Backdate NotBefore so freshly
+    // minted tokens stay valid across Docker VM/host clock drift.
+    private static readonly TimeSpan _notBeforeDriftTolerance = TimeSpan.FromSeconds(30);
+
     private readonly AltinnOrgsClient _orgsClient;
     private readonly AuthSettings _authSettings;
     private readonly GeneralSettings _generalSettings;
@@ -51,6 +56,7 @@ public class AuthenticationService : IAuthentication
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(principal.Identity),
+            NotBefore = DateTime.UtcNow.Subtract(_notBeforeDriftTolerance),
             Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
             SigningCredentials = GetSigningCredentials(),
         };
@@ -72,7 +78,7 @@ public class AuthenticationService : IAuthentication
 
         payload.TryAdd("exp", now.Add(tokenExpiry).ToUnixTimeSeconds());
         payload.TryAdd("iat", now.ToUnixTimeSeconds());
-        payload.TryAdd("nbf", now.ToUnixTimeSeconds());
+        payload.TryAdd("nbf", now.Subtract(_notBeforeDriftTolerance).ToUnixTimeSeconds());
         payload.TryAdd("jti", Guid.NewGuid().ToString());
 
         var securityToken = new JwtSecurityToken(header, payload);

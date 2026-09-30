@@ -1,4 +1,4 @@
-use std::{path::PathBuf, rc::Rc};
+use std::{path::PathBuf, rc::Rc, time::Duration};
 
 use futures_util::{FutureExt as _, StreamExt as _, stream::FuturesUnordered};
 use sandbox::LocalFuture;
@@ -8,7 +8,17 @@ use crate::Error;
 use super::{Connector, Server, client::Connection};
 
 const MAX_CONCURRENT_CONNECTIONS: usize = 64;
+const CONNECTION_DRAIN_TIMEOUT: Duration = Duration::from_mins(1);
 type ConnectionFuture = futures_util::future::LocalBoxFuture<'static, ()>;
+
+async fn drain_connections(connections: &mut FuturesUnordered<ConnectionFuture>, timeout: Duration) {
+    if tokio::time::timeout(timeout, async { while connections.next().await.is_some() {} })
+        .await
+        .is_err()
+    {
+        tracing::warn!("cancelled Control API calls that did not finish during the shutdown drain");
+    }
+}
 
 /// Connector for the fixed per-user Agent Control API socket path.
 pub(super) struct PathConnector {
@@ -64,6 +74,9 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
     loop {
+        if server.is_draining() {
+            break;
+        }
         tokio::select! {
             accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
                 let (stream, _) = accepted?;
@@ -75,8 +88,11 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
+            () = server.shutdown_requested() => break,
         }
     }
+    drain_connections(&mut connections, CONNECTION_DRAIN_TIMEOUT).await;
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
@@ -117,6 +133,9 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
     let mut connections = FuturesUnordered::<ConnectionFuture>::new();
 
     loop {
+        if server.is_draining() {
+            break;
+        }
         tokio::select! {
             accepted = listener.accept(), if connections.len() < MAX_CONCURRENT_CONNECTIONS => {
                 let (stream, _) = accepted?;
@@ -128,8 +147,11 @@ pub(crate) async fn serve(server: Rc<Server>, path: &std::path::Path) -> Result<
                 }.boxed_local());
             }
             Some(()) = connections.next(), if !connections.is_empty() => {}
+            () = server.shutdown_requested() => break,
         }
     }
+    drain_connections(&mut connections, CONNECTION_DRAIN_TIMEOUT).await;
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
@@ -186,5 +208,25 @@ struct SocketCleanup(PathBuf);
 impl Drop for SocketCleanup {
     fn drop(&mut self) {
         let _ignored = std::fs::remove_file(&self.0);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn shutdown_drain_is_bounded_by_its_deadline() {
+        let mut connections = FuturesUnordered::new();
+        connections.push(std::future::pending::<()>().boxed_local());
+
+        tokio::time::timeout(
+            Duration::from_millis(100),
+            drain_connections(&mut connections, Duration::ZERO),
+        )
+        .await
+        .expect("bounded drain");
+        assert_eq!(connections.len(), 1);
+        drop(connections);
     }
 }

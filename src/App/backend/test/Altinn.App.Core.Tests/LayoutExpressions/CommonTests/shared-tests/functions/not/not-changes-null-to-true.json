@@ -1,5 +1,0 @@
-{
-  "name": "Not changes not null to true",
-  "expression": ["not", null],
-  "expects": true
-}

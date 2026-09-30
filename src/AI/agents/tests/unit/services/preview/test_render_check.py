@@ -4,19 +4,19 @@ is the only signal, so it decides whether a page counts as rendered."""
 
 from __future__ import annotations
 
-import pytest
-
 from importlib import import_module
 
-render_check_module = import_module("agents.services.preview.render_check")
+import pytest
 
 from agents.services.preview.render_check import (
     PageRenderResult,
     PreviewCheckUnavailable,
     _check_pages,
-    read_page_order,
     _is_thrown_error,
+    read_page_order,
 )
+
+render_check_module = import_module("agents.services.preview.render_check")
 
 THROWN = [
     "TypeError: Cannot read properties of undefined (reading 'render') "
@@ -62,8 +62,7 @@ class TestPartialPageValidation:
         monkeypatch.setattr(
             render_check_module,
             "_check_single_page",
-            lambda page, url, layout: checked.append(layout)
-            or PageRenderResult(layout, True, ""),
+            lambda page, url, layout: checked.append(layout) or PageRenderResult(layout, True, ""),
         )
 
         results = _check_pages(
@@ -86,9 +85,7 @@ class TestPageOrderShapes:
         settings.write_text(content, encoding="utf-8")
         return tmp_path
 
-    @pytest.mark.parametrize(
-        "content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}']
-    )
+    @pytest.mark.parametrize("content", ["[]", '"just a string"', "5", '{"pages": [1, 2]}', '{"pages": []}'])
     def test_a_shape_that_is_not_an_order_is_skipped(self, tmp_path, content):
         assert read_page_order(self._write(tmp_path, content)) == []
 
@@ -96,3 +93,50 @@ class TestPageOrderShapes:
         root = self._write(tmp_path, '{"pages": {"order": ["Side1", "Side2"]}}')
 
         assert read_page_order(root) == ["Side1", "Side2"]
+
+
+class TestABareTimeoutIsRetriedThenLeftUnmeasured:
+    """The preview answering with nothing at all says nothing about the app, so it
+    gets a second chance and is then recorded as unmeasured rather than failed."""
+
+    URL = "https://studio.localhost/preview/ttd/app#/instance/1/2/Task_1/Side1"
+
+    def _pages(self, monkeypatch, outcomes):
+        attempts = iter(outcomes)
+        seen: list[str] = []
+        monkeypatch.setattr(
+            render_check_module,
+            "_check_single_page",
+            lambda page, url, layout: seen.append(layout) or next(attempts),
+        )
+        results = _check_pages(page=None, first_page_url=self.URL, page_order=["Side1"])
+        return results[0], seen
+
+    def test_a_timeout_that_passes_on_the_retry_is_a_pass(self, monkeypatch):
+        timeout = PageRenderResult("Side1", False, "no render marker: Timeout 30000ms")
+        result, seen = self._pages(monkeypatch, [timeout, PageRenderResult("Side1", True, "")])
+
+        assert len(seen) == 2
+        assert result.rendered and result.measured
+
+    def test_a_timeout_twice_is_unmeasured_rather_than_failed(self, monkeypatch):
+        timeout = PageRenderResult("Side1", False, "no render marker: Timeout 30000ms")
+        result, seen = self._pages(monkeypatch, [timeout, timeout])
+
+        assert len(seen) == 2
+        assert result.measured is False
+        assert result.failed is False
+
+    def test_an_error_page_is_not_retried(self, monkeypatch):
+        broken = PageRenderResult("Side1", False, "error page: binding is wrong")
+        result, seen = self._pages(monkeypatch, [broken])
+
+        assert len(seen) == 1
+        assert result.failed is True
+
+    def test_an_uncaught_error_is_not_retried(self, monkeypatch):
+        thrown = PageRenderResult("Side1", False, "uncaught error: TypeError")
+        result, seen = self._pages(monkeypatch, [thrown])
+
+        assert len(seen) == 1
+        assert result.failed is True

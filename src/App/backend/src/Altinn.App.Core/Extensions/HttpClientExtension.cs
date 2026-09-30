@@ -15,16 +15,45 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
-    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static async Task<HttpResponseMessage> PostAsync(
+    public static Task<HttpResponseMessage> PostAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
-        string? lockToken = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        httpClient.PostAsync(
+            authorizationToken,
+            requestUri,
+            content,
+            idempotencyKey: null,
+            platformAccessToken: platformAccessToken,
+            cancellationToken: cancellationToken
+        );
+
+    /// <summary>
+    /// Extension that adds an authorization header to the request and, when
+    /// <paramref name="idempotencyKey"/> is set, the <c>Idempotency-Key</c> header that lets the
+    /// receiving platform service recognize a repeated request as the same one.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient</param>
+    /// <param name="authorizationToken">the authorization token (jwt)</param>
+    /// <param name="requestUri">The request Uri</param>
+    /// <param name="content">The http content</param>
+    /// <param name="idempotencyKey">The key identifying this request across its retries, or null to send none</param>
+    /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A HttpResponseMessage</returns>
+    internal static async Task<HttpResponseMessage> PostAsync(
+        this HttpClient httpClient,
+        string authorizationToken,
+        string requestUri,
+        HttpContent? content,
+        Guid? idempotencyKey,
+        string? platformAccessToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -43,9 +72,9 @@ public static class HttpClientExtension
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
         }
 
-        if (!string.IsNullOrEmpty(lockToken))
+        if (idempotencyKey.HasValue)
         {
-            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
+            request.Headers.Add(Constants.General.IdempotencyKeyHeaderName, idempotencyKey.Value.ToString());
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
@@ -59,7 +88,6 @@ public static class HttpClientExtension
     /// <param name="requestUri">The request Uri</param>
     /// <param name="content">The http content</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
-    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static Task<HttpResponseMessage> PutAsync(
@@ -68,7 +96,6 @@ public static class HttpClientExtension
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
-        string? lockToken = null,
         CancellationToken cancellationToken = default
     ) =>
         httpClient.PutAsync(
@@ -77,7 +104,6 @@ public static class HttpClientExtension
             content,
             skipTaskDataCleanup: false,
             platformAccessToken: platformAccessToken,
-            lockToken: lockToken,
             cancellationToken: cancellationToken
         );
 
@@ -92,7 +118,6 @@ public static class HttpClientExtension
     /// <param name="content">The http content</param>
     /// <param name="skipTaskDataCleanup">When true, adds the <c>deleteGeneratedElements=false</c> query parameter that opts out of Storage's task-generated data cleanup</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
-    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     internal static async Task<HttpResponseMessage> PutAsync(
@@ -102,7 +127,6 @@ public static class HttpClientExtension
         HttpContent? content,
         bool skipTaskDataCleanup,
         string? platformAccessToken = null,
-        string? lockToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -123,11 +147,6 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
-        }
-
-        if (!string.IsNullOrEmpty(lockToken))
-        {
-            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
@@ -244,7 +263,6 @@ public static class HttpClientExtension
     /// <param name="authorizationToken">the authorization token (jwt)</param>
     /// <param name="requestUri">The request Uri</param>
     /// <param name="platformAccessToken">The platformAccess tokens</param>
-    /// <param name="lockToken">The instance lock token</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
     public static async Task<HttpResponseMessage> DeleteAsync(
@@ -252,7 +270,6 @@ public static class HttpClientExtension
         string authorizationToken,
         string requestUri,
         string? platformAccessToken = null,
-        string? lockToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -266,11 +283,6 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
-        }
-
-        if (!string.IsNullOrEmpty(lockToken))
-        {
-            request.Headers.Add(Constants.General.LockTokenHeaderName, lockToken);
         }
 
         return await httpClient.SendAsync(request, cancellationToken);

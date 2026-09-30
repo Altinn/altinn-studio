@@ -27,5 +27,13 @@ func (r *Runner) RegisteredMigrations() []Migration {
 			ID: "006-remove-studio-credentials",
 			Up: studioCredentials,
 		},
+		{
+			ID: "007-reset-workflow-engine-data",
+			Up: r.resetWorkflowEngineData,
+		},
+		{
+			ID: "008-remove-image-config-file",
+			Up: imageConfigFile,
+		},
 	}
 }

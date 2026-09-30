@@ -1,4 +1,17 @@
+# Built inside the image by the frontend stage
 backend/static
+
+# Local development state that must never reach the image. node_modules in
+# particular: the build installs its own Linux dependencies, and copying a
+# host-installed tree over them breaks esbuild with a host/binary version
+# mismatch (and adds ~200 MB to the build context).
+**/node_modules
+backend/.venv
+backend/.pytest_cache
+**/__pycache__
+frontend/tsconfig.tsbuildinfo
+**/.DS_Store
+
 data/
 .git
 .env

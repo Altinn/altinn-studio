@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Action,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Navigasjonsfelt', en: 'NavigationBar' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -21,8 +27,11 @@ export const Config = new CG.component({
       'compact',
       new CG.bool()
         .optional()
-        .setTitle('Compact')
-        .setDescription('Change appearance of navbar as compact in desktop view'),
+        .setTitle('Compact', 'Kompakt')
+        .setDescription(
+          'Change appearance of navbar as compact in desktop view',
+          'Viser navigasjonslinjen i kompakt format på store skjermer.',
+        ),
     ),
   )
   .addProperty(new CG.prop('validateOnForward', CG.common('PageValidation').optional()))

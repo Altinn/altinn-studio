@@ -1,13 +1,19 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Note what is
-/// deliberately missing compared to <see cref="ServiceTaskResult"/>: a stage cannot conclude the
-/// task or advance the process — that is reserved for the pipeline's <c>Finally</c>, which always
-/// runs last.
+/// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Deliberately missing compared
+/// to <see cref="ServiceTaskResult"/>: a plain stage cannot conclude the task or advance the process — that
+/// is reserved for the pipeline's conclusion and for a mailbox-opening stage's
+/// <see cref="ServiceTaskOpeningStageResult.Conclude"/>. A subtype of
+/// <see cref="ServiceTaskStageExchangeResult"/>, so every one of these answers is also a valid answer from a
+/// reply handler that leaves the task unconcluded — the reverse does not hold.
 /// </summary>
-public abstract record ServiceTaskStageResult
+public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
 {
+    /// <summary>
+    /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
+    /// constructor gives — read that constructor's remarks before changing this one's accessibility.
+    /// </summary>
     private protected ServiceTaskStageResult() { }
 
     /// <summary>
@@ -21,19 +27,14 @@ public abstract record ServiceTaskStageResult
     /// <summary>
     /// The stage ran without error, but the outcome it awaits has not arrived yet: run this stage
     /// again after <paramref name="delay"/>. Semantics are identical to
-    /// <see cref="ServiceTaskResult.Defer"/> — no error is recorded, the retry counter resets, and
-    /// the wait is bounded by the stage's <see cref="ProcessStepOptions.WaitBudget"/>.
+    /// <see cref="ServiceTaskResult.Defer"/> — stateless, no error recorded, retry counter reset, bounded by
+    /// the stage's <see cref="ProcessStepOptions.WaitBudget"/>.
     /// </summary>
     /// <param name="delay">How long to wait before this stage runs again — this re-check only.</param>
     /// <param name="reason">
     /// Optional description of what is being waited for, surfaced on status reads — phrase it for a
     /// reader, not a log parser.
     /// </param>
-    /// <remarks>
-    /// A deferral is stateless: nothing is saved, and instance data changes made by the deferring
-    /// attempt are rejected. A stage that checks-and-waits is not a stage that records — work that
-    /// produces something durable belongs in its own stage, completed with <see cref="Completed"/>.
-    /// </remarks>
     public static ServiceTaskStageResult Defer(TimeSpan delay, string? reason = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
@@ -43,12 +44,9 @@ public abstract record ServiceTaskStageResult
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry this stage with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
+    /// A failed attempt saves nothing: the retry starts from exactly the state this attempt received.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    /// <remarks>
-    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
-    /// failure are discarded, and the retry starts from exactly the state this attempt received.
-    /// </remarks>
     public static ServiceTaskStageResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
@@ -58,14 +56,10 @@ public abstract record ServiceTaskStageResult
     /// <summary>
     /// Creates a permanent (non-retryable) failure. The workflow engine will stop retrying and mark
     /// the stage as failed immediately. Use this for errors that won't resolve by retrying
-    /// (validation failure, missing config, bad data, etc.).
+    /// (validation failure, missing config, bad data, etc.). A failed attempt saves nothing: an operational
+    /// resume re-runs this stage from exactly the state this attempt received.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    /// <remarks>
-    /// Like a deferral, a failed attempt saves nothing: instance data changes made before the
-    /// failure are discarded, and an operational resume re-runs this stage from exactly the state
-    /// this attempt received.
-    /// </remarks>
     public static ServiceTaskStageResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);

@@ -56,6 +56,18 @@ namespace Altinn.Platform.Storage.Services
         }
 
         /// <inheritdoc/>
+        public InstanceEvent BuildInstanceEvent(
+            InstanceEventType eventType,
+            Instance instance,
+            DataElement dataElement
+        )
+        {
+            InstanceEvent instanceEvent = BuildInstanceEvent(eventType, instance);
+            instanceEvent.DataId = dataElement.Id;
+            return instanceEvent;
+        }
+
+        /// <inheritdoc/>
         public async Task DispatchEvent(InstanceEventType eventType, Instance instance)
         {
             var instanceEvent = BuildInstanceEvent(eventType, instance);
@@ -66,25 +78,7 @@ namespace Altinn.Platform.Storage.Services
         /// <inheritdoc/>
         public async Task DispatchEvent(InstanceEventType eventType, Instance instance, DataElement dataElement)
         {
-            var user = _contextAccessor.HttpContext.User;
-
-            InstanceEvent instanceEvent = new()
-            {
-                EventType = eventType.ToString(),
-                InstanceId = instance.Id,
-                DataId = dataElement.Id,
-                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
-                User = new PlatformUser
-                {
-                    UserId = user.GetUserId(),
-                    AuthenticationLevel = user.GetAuthenticationLevel(),
-                    OrgId = user.GetOrg(),
-                    SystemUserId = user.GetSystemUserId(),
-                    SystemUserOwnerOrgNo = user.GetSystemUserOwner(),
-                },
-                ProcessInfo = instance.Process,
-                Created = DateTime.UtcNow,
-            };
+            InstanceEvent instanceEvent = BuildInstanceEvent(eventType, instance, dataElement);
 
             await _repository.InsertInstanceEvent(instanceEvent, instance);
         }

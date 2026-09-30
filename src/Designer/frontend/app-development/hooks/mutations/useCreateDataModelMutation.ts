@@ -25,6 +25,7 @@ export const useCreateDataModelMutation = () => {
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppValidation, org, app] }),
       ]);
     },
   });

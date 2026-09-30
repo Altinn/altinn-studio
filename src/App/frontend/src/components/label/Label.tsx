@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { Flex, getLabelId } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { IGridStyling, TRBLabel } from '@app/layout-contract/generated/common.generated';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/label/Label.module.css';
@@ -13,7 +14,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemFor } from 'src/utils/layout/useNodeItem';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
 import type { CompInternal } from 'src/layout/layout';
 
 type LabelType = 'span' | 'plainLabel';

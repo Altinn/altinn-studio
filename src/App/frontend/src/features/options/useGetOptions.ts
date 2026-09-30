@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
+import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
+
 import { evalExpr } from 'src/features/expressions';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
@@ -17,7 +19,6 @@ import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediateExact, CompWithBehavior } from 'src/layout/layout';
 
 export type OptionsValueType = 'single' | 'multi';

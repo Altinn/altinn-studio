@@ -14,25 +14,6 @@
     "FinalDefault": "None"
   },
   "@xsdRootElement": "form",
-  "object": [
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    {
-      "type": "string"
-    }
-  ],
   "type": "object",
   "oneOf": [
     {
@@ -75,12 +56,12 @@
           "@xsdMinOccurs": 0,
           "$ref": "#/$defs/SimilarTrademarks"
         },
-        "HF_HaveReadAndUnderstood": {
+        "HideFirstPaymentDetails": {
           "@xsdType": "boolean",
           "@xsdMinOccurs": 0,
           "type": "boolean"
         },
-        "HideFirstPaymentDetails": {
+        "HF_HaveReadAndUnderstood": {
           "@xsdType": "boolean",
           "@xsdMinOccurs": 0,
           "type": "boolean"

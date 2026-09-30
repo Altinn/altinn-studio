@@ -154,7 +154,7 @@ public class AltinnPartyClientTest
             var loggerMock = new Mock<ILogger<AltinnPartyClient>>();
 
             var appMetadataMock = new Mock<IAppMetadata>();
-            appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+            appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("org/app"));
 
             // Valid JWT format required by JwtToken.Parse
             const string validJwtToken =
@@ -177,9 +177,11 @@ public class AltinnPartyClientTest
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .Callback<HttpRequestMessage, CancellationToken>((req, ct) => requestCallback?.Invoke(req))
+                .Callback<HttpRequestMessage, CancellationToken>(
+                    (req, cancellationToken) => requestCallback?.Invoke(req)
+                )
                 .ReturnsAsync(
-                    (HttpRequestMessage request, CancellationToken ct) =>
+                    (HttpRequestMessage request, CancellationToken cancellationToken) =>
                     {
                         return request.Method.Method switch
                         {

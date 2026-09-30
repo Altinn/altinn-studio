@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/common/dotnet/**'
+      - 'src/cli/common/dotnet/**'
       - 'src/Designer/backend/**'
       - 'src/Designer/testdata/**'
       - 'src/Designer/development/fake-ansattporten/**'
@@ -12,7 +13,6 @@ on:
       - 'src/gitea/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

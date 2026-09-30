@@ -67,12 +67,18 @@ public static class WorkflowExtensions
         /// identifies deliberately invisible workflows (e.g. non-blocking side chains) whose terminal
         /// failures surface nowhere else - alert on <c>is_head="false"</c> to catch them.
         /// </summary>
-        public string IsHeadTagValue() =>
-            workflow.IsHead switch
-            {
-                true => "true",
-                false => "false",
-                null => "unset",
-            };
+        public string IsHeadTagValue() => IsHeadTagValue(workflow.IsHead);
     }
+
+    /// <summary>
+    /// The <c>is_head</c> metric tag value for a head-visibility directive, for callers holding the
+    /// directive but not the workflow.
+    /// </summary>
+    public static string IsHeadTagValue(bool? isHead) =>
+        isHead switch
+        {
+            true => "true",
+            false => "false",
+            null => "unset",
+        };
 }

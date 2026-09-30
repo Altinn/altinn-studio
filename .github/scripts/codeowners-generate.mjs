@@ -48,9 +48,7 @@ const GROUPS = [
       '.github/workflows/designer-frontend-playwright-staging.yml',
       '.github/workflows/designer-frontend-run-playwright-on-pr.yaml',
       '.github/workflows/designer-frontend-unit-tests.yml',
-      '.github/workflows/storybook-to-github-pages.yaml',
       '.github/workflows/studio-components-deploy.yaml',
-      '.github/workflows/studio-components-legacy-deploy.yaml',
     ],
   },
   {
@@ -115,6 +113,7 @@ const GROUPS = [
       '.github/workflows/deploy-studio-observability.yaml',
       '.github/workflows/deploy-studio-otel-operator.yaml',
       '.github/workflows/deploy-studio-syncroot.yaml',
+      '.github/workflows/deploy-studio-victoriametrics-operator.yaml',
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',

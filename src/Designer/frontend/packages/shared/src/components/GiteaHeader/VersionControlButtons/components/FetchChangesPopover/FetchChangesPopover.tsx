@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMediaQuery } from '@studio/components-legacy';
+import { useMediaQuery } from '@studio/hooks';
 import { StudioBadge, StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';

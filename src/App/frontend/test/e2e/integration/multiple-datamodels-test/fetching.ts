@@ -1,6 +1,6 @@
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import type { IRawDataModelBinding } from '@app/layout-contract/generated/common.generated';
 
-import type { IRawDataModelBinding } from 'src/layout/common.generated';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
@@ -56,7 +56,7 @@ describe('fetching new data from models', () => {
       });
     }).as('fetchData');
 
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
 
     cy.findByRole('heading', { name: /fra forrige steg/i }).should('be.visible');
     cy.findByText(/Du må rette disse feilene før du kan gå videre/i).should('not.exist');

@@ -1,9 +1,10 @@
 import React from 'react';
 import { TileLayer, WMSTileLayer } from 'react-leaflet';
 
+import type { MapTileLayer, MapWMSLayer } from '@app/layout-contract/generated/components/Map/config.generated';
+
 import { DefaultMapLayers } from 'src/layout/Map/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import type { MapTileLayer, MapWMSLayer } from 'src/layout/Map/config.generated';
 
 function OurTileLayer({ layer }: { layer: MapTileLayer }) {
   return (
@@ -13,6 +14,7 @@ function OurTileLayer({ layer }: { layer: MapTileLayer }) {
       subdomains={layer.subdomains ?? []}
       minZoom={layer.minZoom ?? 0}
       maxZoom={layer.maxZoom ?? 18}
+      referrerPolicy='strict-origin-when-cross-origin'
     />
   );
 }

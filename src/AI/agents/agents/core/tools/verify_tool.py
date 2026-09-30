@@ -14,24 +14,28 @@ hasn't been verified since its last edit (the set is reset whenever a
 file is edited or written — see `_write_base.WriteToolMixin`).
 
 Validation runs in-process — no network round-trip except the (cached)
-schema fetch from altinncdn.no.
+v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
 """
 
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import subprocess
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from agents.altinn.layout import LAYOUT_SCHEMA_URL, get_layout_schema
+from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 from agents.altinn.layout.schema_validator import validate_layout_json
 from agents.altinn.resources.validator import resource_validator_tool
 from agents.core.tool import LoopContext, ToolResult
 from shared.utils.langfuse_utils import trace_span
 
 from ._write_base import WriteToolMixin
+
+# App files can start with a UTF-8 BOM.
+_JSON_FILE_ENCODING = "utf-8-sig"
 
 
 class VerifyChangesArgs(BaseModel):
@@ -79,7 +83,7 @@ class VerifyChangesTool(WriteToolMixin):
         for file_path in changed:
             try:
                 ok, file_notes = _verify_one(ctx, file_path)
-            except Exception as exc:  # noqa: BLE001 — never let one file's crash skip the rest
+            except Exception as exc:
                 ok = False
                 file_notes = [f"{file_path}: verifier crashed — {exc}"]
 
@@ -89,10 +93,10 @@ class VerifyChangesTool(WriteToolMixin):
             else:
                 passed = False
 
-        nav_ok, nav_notes = _check_page_navigation(ctx, changed)
-        notes.extend(nav_notes)
-        if not nav_ok:
-            passed = False
+        for cross_file_check in _CROSS_FILE_CHECKS:
+            check_ok, check_notes = cross_file_check(ctx, changed)
+            notes.extend(check_notes)
+            passed = passed and check_ok
 
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
@@ -128,7 +132,7 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
         return False, [f"{file_path}: file does not exist on disk"]
 
     if _is_layout_file(file_path):
-        return _validate_layout(file_path, full_path)
+        return _validate_layout(file_path, full_path, ctx.app_version_profile.layout_schema_location)
     if _is_text_resource(file_path):
         return _validate_resource(ctx, file_path, full_path)
     if _is_layout_settings(file_path):
@@ -149,9 +153,7 @@ def _is_layout_file(file_path: str) -> bool:
     name = Path(file_path).name
     # Settings.json and layout-sets.json live near layouts but use
     # different schemas — the layout validator would reject them.
-    if name == "Settings.json" or name == "layout-sets.json":
-        return False
-    return True
+    return not (name == "Settings.json" or name == "layout-sets.json")
 
 
 def _is_layout_settings(file_path: str) -> bool:
@@ -213,10 +215,87 @@ def _check_page_navigation(ctx: LoopContext, changed: list[str]) -> tuple[bool, 
     return ok, notes
 
 
+# ---------------------------------------------------------------------------
+# Cross-file check: text resource keys
+# ---------------------------------------------------------------------------
+
+
+def _check_text_keys(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """Every `textResourceBindings` key must exist in every language the app serves.
+
+    A key missing from one language renders as the key itself in that language.
+    """
+    repo = Path(ctx.repo_path)
+    by_language = _text_keys_by_language(repo)
+    if not by_language:
+        return True, []  # no readable text resources — nothing to resolve against
+
+    # A changed resource file can strip a key any layout still references.
+    touched_texts = any(_is_text_resource(f) for f in changed)
+    layouts = _all_layout_files(repo) if touched_texts else [repo / f for f in changed if _is_layout_file(f)]
+
+    notes: list[str] = []
+    for layout in layouts:
+        referenced = _referenced_text_keys(layout)
+        for language, known in sorted(by_language.items()):
+            missing = sorted(key for key in referenced if key not in known)
+            if not missing:
+                continue
+            listed = ", ".join(f"`{key}`" for key in missing[:8])
+            if len(missing) > 8:
+                listed += f", and {len(missing) - 8} more"
+            notes.append(
+                f"{layout.relative_to(repo)}: text key(s) {listed} have no entry in "
+                f"`App/config/texts/resource.{language}.json`, so the page shows the "
+                "key instead of the text in that language."
+            )
+    return not notes, notes
+
+
+def _text_keys_by_language(repo: Path) -> dict[str, set[str]]:
+    """The ids each `resource.<language>.json` defines."""
+    texts_dir = repo / "App" / "config" / "texts"
+    by_language: dict[str, set[str]] = {}
+    for path in sorted(texts_dir.glob("resource.*.json")):
+        try:
+            parsed = json.loads(path.read_text(encoding=_JSON_FILE_ENCODING))
+        except (OSError, json.JSONDecodeError):
+            continue
+        keys = {
+            entry["id"]
+            for entry in parsed.get("resources") or []
+            if isinstance(entry, dict) and isinstance(entry.get("id"), str)
+        }
+        by_language[_infer_resource_language(str(path))] = keys
+    return by_language
+
+
+def _all_layout_files(repo: Path) -> list[Path]:
+    return sorted(p for p in repo.glob("App/ui/**/*.json") if _is_layout_file(str(p)))
+
+
+def _referenced_text_keys(layout_path: Path) -> set[str]:
+    try:
+        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
+    except (OSError, json.JSONDecodeError):
+        return set()  # the schema validator owns unreadable layouts
+    layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
+    if not isinstance(layout, list):
+        return set()
+    keys: set[str] = set()
+    for component in layout:
+        if not isinstance(component, dict):
+            continue
+        for value in (component.get("textResourceBindings") or {}).values():
+            if isinstance(value, str) and value.strip():
+                keys.add(value)
+    return keys
+
+
 def _read_page_order(settings_path: Path) -> list[str] | None:
     """Return `pages.order` from a layout-set Settings.json, or None."""
     try:
-        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        settings = json.loads(settings_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
         return None
     order = (settings.get("pages") or {}).get("order")
@@ -228,15 +307,46 @@ def _read_page_order(settings_path: Path) -> list[str] | None:
 def _has_navigation_component(layout_path: Path) -> bool:
     """Does the layout contain a NavigationButtons/NavigationBar component?"""
     try:
-        parsed = json.loads(layout_path.read_text(encoding="utf-8"))
+        parsed = json.loads(layout_path.read_text(encoding=_JSON_FILE_ENCODING))
     except (OSError, json.JSONDecodeError):
         return True  # unreadable/invalid JSON is the schema validator's problem
     layout = ((parsed.get("data") or {}).get("layout")) if isinstance(parsed, dict) else None
     if not isinstance(layout, list):
         return True
-    return any(
-        isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout
+    return any(isinstance(c, dict) and c.get("type") in _NAVIGATION_COMPONENT_TYPES for c in layout)
+
+
+# ---------------------------------------------------------------------------
+# Cross-file check: files the app version does not have
+# ---------------------------------------------------------------------------
+
+
+def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """A file the app version does not have may only change if it is already in the repo.
+
+    An unfinished v9 upgrade keeps `layout-sets.json` and the rule files, and
+    those must still be editable and deletable.
+    """
+    forbidden_patterns = ctx.app_version_profile.forbidden_new_file_patterns
+    notes = [
+        f"{file_path}: {replacement}"
+        for file_path in changed
+        for pattern, replacement in forbidden_patterns.items()
+        if PurePosixPath(file_path).match(pattern) and not _exists_in_head(ctx.repo_path, file_path)
+    ]
+    return not notes, notes
+
+
+def _exists_in_head(repo_path: str, file_path: str) -> bool:
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"HEAD:{file_path}"],
+        cwd=repo_path,
+        capture_output=True,
     )
+    return result.returncode == 0
+
+
+_CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden_new_files)
 
 
 # ---------------------------------------------------------------------------
@@ -244,10 +354,10 @@ def _has_navigation_component(layout_path: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
-    """Validate a layout JSON in-process against the official schema."""
+def _validate_layout(file_path: str, full_path: Path, schema_location: str) -> tuple[bool, list[str]]:
+    """Validate a layout JSON in-process against the app version's layout schema."""
     try:
-        json_content = full_path.read_text(encoding="utf-8")
+        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -264,12 +374,13 @@ def _validate_layout(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     ) as span:
         span.update(input={"file_content": json_content})
         try:
-            schema = get_layout_schema(LAYOUT_SCHEMA_URL)
-        except Exception as exc:  # noqa: BLE001 — CDN fetch can fail
+            schema = get_layout_schema(schema_location)
+            referenced_schemas = get_referenced_schemas(schema_location)
+        except Exception as exc:
             span.update(output={"error": str(exc)})
             return False, [f"{file_path}: could not load layout schema — {exc}"]
 
-        result = validate_layout_json(_as_full_layout(layout), schema)
+        result = validate_layout_json(_as_full_layout(layout), schema, referenced_schemas)
         span.update(output={"result": {"status": result.get("status")}})
 
     status = result.get("status")
@@ -304,16 +415,14 @@ def _as_full_layout(parsed: Any) -> dict[str, Any]:
     return {"data": {"layout": []}}
 
 
-def _validate_resource(
-    ctx: LoopContext, file_path: str, full_path: Path
-) -> tuple[bool, list[str]]:
+def _validate_resource(ctx: LoopContext, file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Validate a text resource in-process (schema + business rules).
 
     Language is inferred from the filename (`resource.nb.json` → `nb`);
     defaults to `nb` when the pattern doesn't match.
     """
     try:
-        resource_json = full_path.read_text(encoding="utf-8")
+        resource_json = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -366,7 +475,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
     `input.file_content` shape.
     """
     try:
-        json_content = full_path.read_text(encoding="utf-8")
+        json_content = full_path.read_text(encoding=_JSON_FILE_ENCODING)
     except OSError as exc:
         return False, [f"{file_path}: cannot read — {exc}"]
 
@@ -388,7 +497,7 @@ def _validate_layout_settings(file_path: str, full_path: Path) -> tuple[bool, li
 def _basic_json_check(file_path: str, full_path: Path) -> tuple[bool, list[str]]:
     """Last-resort check — does the file parse as JSON?"""
     try:
-        with full_path.open("r", encoding="utf-8") as handle:
+        with full_path.open("r", encoding=_JSON_FILE_ENCODING) as handle:
             json.load(handle)
     except json.JSONDecodeError as exc:
         return False, [f"{file_path}: invalid JSON — {exc}"]

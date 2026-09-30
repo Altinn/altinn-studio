@@ -1,4 +1,5 @@
 import dot from 'dot-object';
+import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
 
 import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -9,7 +10,6 @@ import type {
   UploadedAttachment,
 } from 'src/features/attachments';
 import type { FormStoreState } from 'src/features/form/FormContext';
-import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { CompIntermediate } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 

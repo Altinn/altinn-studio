@@ -64,7 +64,7 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
         using var client = GetRootedClient(Org, App);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [ForbiddenCommand.Key])
         );
 
         var instance = new Instance
@@ -83,12 +83,23 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
         {
             CommandKey = ForbiddenCommand.Key,
             Actor = new Actor { Language = "nb" },
-            LockToken = "lock-token",
             ExecutionReferenceTime = DateTimeOffset.UnixEpoch,
             WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
             State = Services
                 .GetRequiredService<WorkflowStateSigner>()
-                .Sign(JsonSerializer.Serialize(new WorkflowCallbackState { Instance = instance, FormData = [] })),
+                .Sign(
+                    JsonSerializer.Serialize(
+                        new WorkflowCallbackState
+                        {
+                            Instance = instance,
+                            InstanceVersion = 9,
+                            ProcessStateVersion = 4,
+                            FormData = [],
+                        }
+                    ),
+                    SigningDomain.CallbackState
+                ),
         };
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 

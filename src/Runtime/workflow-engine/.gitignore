@@ -8,3 +8,7 @@ bin\\Release/
 
 # Local appsettings override
 appsettings.Local.json
+
+# k6 measurement artifacts (RESULTS_DIR in .k6/*-compare.sh). Untracked and unignored, a session's
+# summaries sit in the working copy until something sweeps them into a revision.
+.k6/results/

@@ -51,7 +51,7 @@
                   Plan Rows: {Scrubbed},
                   Plan Width: {Scrubbed},
                   Disabled: false,
-                  Filter: ((status = ANY ('{0,1,2,8}'::integer[])) AND ((start_at > now()) OR (ANY (id = (hashed SubPlan 2).col1)))),
+                  Filter: ((status = ANY ('{0,1,2,8,9}'::integer[])) AND ((start_at > now()) OR (ANY (id = (hashed SubPlan 2).col1)))),
                   Plans: [
                     {
                       Node Type: Hash Join,
@@ -118,20 +118,19 @@
                               Plan Rows: {Scrubbed},
                               Plan Width: {Scrubbed},
                               Disabled: false,
-                              Recheck Cond: (status = ANY ('{0,1,2,8}'::integer[])),
+                              Recheck Cond: (status = ANY ('{0,1,2,8,9}'::integer[])),
                               Plans: [
                                 {
                                   Node Type: Bitmap Index Scan,
                                   Parent Relationship: Outer,
                                   Parallel Aware: {Scrubbed},
                                   Async Capable: {Scrubbed},
-                                  Index Name: ix_workflows_status,
+                                  Index Name: ix_workflows_namespace_status_incomplete,
                                   Startup Cost: {Scrubbed},
                                   Total Cost: {Scrubbed},
                                   Plan Rows: {Scrubbed},
                                   Plan Width: {Scrubbed},
-                                  Disabled: false,
-                                  Index Cond: (status = ANY ('{0,1,2,8}'::integer[]))
+                                  Disabled: false
                                 }
                               ]
                             }

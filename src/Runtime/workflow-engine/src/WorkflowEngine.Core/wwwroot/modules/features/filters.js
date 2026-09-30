@@ -1,7 +1,7 @@
 /* Filtering, label dropdowns, status chips, tabs */
 
 import { dom, state } from '../core/state.js';
-import { esc, fmtNamespace, abbrevGuids } from '../core/helpers.js';
+import { esc, escAttr, escJsArg, fmtNamespace, abbrevGuids } from '../core/helpers.js';
 import { rebuildDropdown, updateDropdownToggle } from '../shared/dropdown.js';
 
 /** Late-bound references */
@@ -57,7 +57,7 @@ const rebuildLabelFilterBar = () => {
         for (const v of values) {
             const full = key === 'namespace' ? fmtNamespace(v) : v;
             const display = key === 'namespace' ? full : abbrevGuids(v);
-            html += `<span class="label-chip" onclick="toggleLabelFilter('${esc(key)}','${esc(v)}')" title="${esc(key)}=${esc(full)}">`;
+            html += `<span class="label-chip" onclick="toggleLabelFilter('${escJsArg(key)}','${escJsArg(v)}')" title="${escAttr(key)}=${escAttr(full)}">`;
             html += `<span class="label-chip-key">${esc(key)}</span>`;
             html += `<span class="label-chip-value">${esc(display)}</span>`;
             html += `<span class="label-chip-x">&times;</span>`;

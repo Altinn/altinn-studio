@@ -2,6 +2,8 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import cn from 'classnames';
+import type { IPageBreak } from '@app/layout-contract/generated/common.generated';
+import type { CompSummary2External } from '@app/layout-contract/generated/components/Summary2/config.generated';
 
 import { EmptyChildrenBoundary, useHasOnlyEmptyChildren } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
@@ -13,8 +15,6 @@ import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IPageBreak } from 'src/layout/common.generated';
-import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
 
 interface SummaryBodyProps {
   target?: CompSummary2External['target'];

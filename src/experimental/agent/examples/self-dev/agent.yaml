@@ -1,7 +1,7 @@
 apiVersion: agents.platform/v1alpha1
 kind: Agent
 metadata:
-  name: studiodev
+  name: agent-dev
 spec:
   sandbox:
     image:
@@ -17,26 +17,39 @@ spec:
         capacity: "64Gi"
         mode: direct
     initSystem: image
+    mounts:
+      - type: tmpfs
+        target: /tmp
+        capacity: "2Gi"
   home:
     source: home
   instructions:
-    source: instructions.md
+    - source: instructions.md
+  skills:
+    - source: skills/pr-evidence
   harnesses:
     - type: claudeCode
-      version: "2.1.239"
       auth: mediated
       default: true
+      # The mediated token cannot list Fable in the /model picker, so new Sessions select it at launch.
+      defaults:
+        model: fable
     - type: codex
-      version: "0.149.1"
       auth: mediated
+  environment:
+    - name: GIT_USER_NAME
+    - name: GIT_USER_EMAIL
   secrets:
     - environment: GITHUB_TOKEN
+      # gh only attaches files with a token it classifies by prefix; the inert placeholder
+      # therefore carries the fine-grained PAT prefix and is far shorter than a real token.
+      placeholder: github_pat_AGENT_MEDIATED_GITHUB_TOKEN
       allowedHosts:
         - github.com
         - api.github.com
-    - environment: STUDIO_DEV_API_KEY
-      allowedHosts:
-        - dev.altinn.studio
+        - uploads.github.com
+  access:
+    - type: ssh
   network:
     mode: mediated
     allow: all

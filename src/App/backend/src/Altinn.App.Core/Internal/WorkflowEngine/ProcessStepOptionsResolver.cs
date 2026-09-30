@@ -40,27 +40,27 @@ internal sealed class ProcessStepOptionsResolver
     /// Resolves the effective, validated options for the step, or <c>null</c> when no tier sets anything
     /// (so the caller leaves the wire fields unset and the engine applies its own global defaults).
     /// </summary>
-    /// <param name="operationId">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
+    /// <param name="commandKey">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
     /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    /// <param name="serviceTaskStageName">
-    /// For a service-task pipeline stage: the stage's name. Null for the pipeline's conclusion.
-    /// Either way tier 3 is that one step's own options over the task's, field-wise — a stage's from
-    /// the builder's <c>Stage</c>, the conclusion's from its <c>Finally</c>.
+    /// <param name="serviceTaskItemIndex">
+    /// For a service-task pipeline step: the index of the item the step runs — a stage, a reply handler or the
+    /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
+    /// step, including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
     public ProcessStepOptions? Resolve(
-        string operationId,
+        string commandKey,
         string? taskId,
         string? serviceTaskType,
-        string? serviceTaskStageName = null
+        int? serviceTaskItemIndex = null
     )
     {
-        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(operationId);
+        ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
         ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
-            operationId,
+            commandKey,
             taskId,
             serviceTaskType,
-            serviceTaskStageName
+            serviceTaskItemIndex
         );
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
@@ -94,13 +94,13 @@ internal sealed class ProcessStepOptionsResolver
     /// handler selection each command performs at execute time so build-time and run-time agree.
     /// </summary>
     private ProcessStepOptions? ResolveImplementationStepOptions(
-        string operationId,
+        string commandKey,
         string? taskId,
         string? serviceTaskType,
-        string? serviceTaskStageName
+        int? serviceTaskItemIndex
     )
     {
-        if (operationId == ExecuteServiceTask.Key && serviceTaskType is not null)
+        if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
             IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
             if (serviceTask is null)
@@ -108,13 +108,12 @@ internal sealed class ProcessStepOptionsResolver
                 return null;
             }
 
-            // Options declared for one step — a stage by name, or the conclusion — win field-wise
-            // over the task's own, mirroring how the merged result then wins over the command
-            // default in Resolve. A null stage name is the conclusion by construction.
+            // Options declared for one step win field-wise over the task's own, mirroring how the merged
+            // result then wins over the command default in Resolve.
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
-            ProcessStepOptions? stepOptions = serviceTaskStageName is not null
-                ? pipeline.FindStage(serviceTaskStageName)?.StepOptions
-                : pipeline.FinalStepOptions;
+            ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
+                ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions
+                : null;
             ProcessStepOptions? taskOptions = serviceTask.StepOptions;
             if (stepOptions is null && taskOptions is null)
             {
@@ -131,7 +130,7 @@ internal sealed class ProcessStepOptionsResolver
             };
         }
 
-        if (operationId == OnTaskStartingHook.Key && taskId is not null)
+        if (commandKey == OnTaskStartingHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskStartingHandler>()
@@ -139,7 +138,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnTaskEndingHook.Key && taskId is not null)
+        if (commandKey == OnTaskEndingHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskEndingHandler>()
@@ -147,7 +146,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnTaskAbandonHook.Key && taskId is not null)
+        if (commandKey == OnTaskAbandonHook.Key && taskId is not null)
         {
             return _appImplementationFactory
                 .GetAll<IOnTaskAbandonHandler>()
@@ -155,7 +154,7 @@ internal sealed class ProcessStepOptionsResolver
                 ?.StepOptions;
         }
 
-        if (operationId == OnProcessEndingHook.Key)
+        if (commandKey == OnProcessEndingHook.Key)
         {
             return _appImplementationFactory.GetAll<IOnProcessEndingHandler>().FirstOrDefault()?.StepOptions;
         }

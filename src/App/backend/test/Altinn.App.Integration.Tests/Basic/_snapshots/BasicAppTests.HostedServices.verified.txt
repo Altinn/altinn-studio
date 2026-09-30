@@ -1,12 +1,5 @@
 ﻿[
   {
-    isImplementationFactory: true,
-    isImplementationType: false,
-    isImplementationInstance: false,
-    lifetime: 0,
-    materializedType: Altinn.App.Core.Features.Cache.AppConfigurationCache
-  },
-  {
     isImplementationFactory: false,
     isImplementationType: true,
     isImplementationInstance: false,
@@ -32,6 +25,13 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.ProvisionedSecrets.ProvisionedSecretsStartupCheck
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Internal.LocaltestValidation
   },
   {
@@ -39,7 +39,7 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
-    materializedType: Altinn.App.Core.EFormidling.EFormidlingConfigValidationService
+    materializedType: Altinn.App.Core.Internal.Process.ProcessTaskConfigurationValidationService
   },
   {
     isImplementationFactory: false,
@@ -60,7 +60,21 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
+    materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenSettingsStartupCheck
+  },
+  {
+    isImplementationFactory: false,
+    isImplementationType: true,
+    isImplementationInstance: false,
+    lifetime: 0,
     materializedType: Altinn.App.Core.Features.Maskinporten.MaskinportenWellKnownRefreshService
+  },
+  {
+    isImplementationFactory: true,
+    isImplementationType: false,
+    isImplementationInstance: false,
+    lifetime: 0,
+    materializedType: Altinn.App.Core.Internal.App.AppFilesPoller
   },
   {
     isImplementationFactory: false,

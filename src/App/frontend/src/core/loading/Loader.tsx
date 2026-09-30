@@ -1,14 +1,17 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 
 import { AltinnContentLoader } from '@app/form-component';
 
 import { PresentationComponent, useHasPresentation } from 'src/components/presentation/Presentation';
+import classes from 'src/core/loading/Loader.module.css';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
 
 interface LoaderProps {
   reason: string; // The reason is used by developers to identify the reason for the loader
   details?: string;
+  overlay?: ReactNode;
 }
 
 export const Loader = (props: LoaderProps) => {
@@ -35,12 +38,15 @@ export const Loader = (props: LoaderProps) => {
   );
 };
 
-const InnerLoader = ({ reason, details }: LoaderProps) => (
-  <AltinnContentLoader
-    variant='form'
-    width='100%'
-    height='400'
-    reason={reason}
-    details={details}
-  />
+const InnerLoader = ({ reason, details, overlay }: LoaderProps) => (
+  <div className={classes.container}>
+    <AltinnContentLoader
+      variant='form'
+      width='100%'
+      height='400'
+      reason={reason}
+      details={details}
+    />
+    {overlay}
+  </div>
 );

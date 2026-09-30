@@ -29,7 +29,6 @@ from agents.core import (
     ToolUseBlock,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fake tools
 # ---------------------------------------------------------------------------
@@ -149,7 +148,7 @@ class FakeAdapter(LLMAdapter):
         self.responses: list[AssistantMessage] = list(responses or [])
         self.calls: list[dict[str, Any]] = []
 
-    def queue(self, response: AssistantMessage) -> "FakeAdapter":
+    def queue(self, response: AssistantMessage) -> FakeAdapter:
         self.responses.append(response)
         return self
 

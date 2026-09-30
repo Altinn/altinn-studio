@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
+import type { IDataModelBindingsList, IDataModelBindingsSimple } from '@app/layout-contract/generated/common.generated';
 
 import { AttachmentMutations } from 'src/features/attachments/hooks/attachmentMutations';
 import { attachmentMutationKeys } from 'src/features/attachments/tools';
@@ -16,7 +17,6 @@ import type { AttachmentActionUpload, AttachmentUploadResult } from 'src/feature
 import type { AttachmentUploadVariables } from 'src/features/attachments/hooks/attachmentMutations';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
-import type { IDataModelBindingsList, IDataModelBindingsSimple } from 'src/layout/common.generated';
 import type { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import type { IData } from 'src/types/shared';
 

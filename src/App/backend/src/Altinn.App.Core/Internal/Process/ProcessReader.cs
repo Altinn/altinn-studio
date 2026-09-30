@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Implementation of <see cref="IProcessReader"/> that reads from a <see cref="Definitions"/>
 /// </summary>
-public class ProcessReader : IProcessReader
+internal sealed class ProcessReader : IProcessReader
 {
     private readonly Definitions _definitions;
     private readonly Telemetry? _telemetry;

@@ -7,7 +7,6 @@ process.env.NODE_ENV = 'test';
 
 const repoNodeModules = path.resolve(import.meta.dirname, '../../..', 'node_modules');
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
@@ -47,7 +46,7 @@ export default defineConfig({
     outputFile: process.env.CI ? { junit: 'junit.xml' } : undefined,
     execArgv: ['--no-experimental-webstorage'],
     pool: 'vmThreads',
-    setupFiles: ['./src/setupTests.ts'],
+    setupFiles: ['./src/setupTests.ts', '@app/form-component/test/popoverPolyfill'],
     testTimeout: Number.parseInt(process.env.VITEST_TIMEOUT ?? '20000', 10),
     vmMemoryLimit: '2GB',
     coverage: {

@@ -73,6 +73,8 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
+    // The Designsystemet theme is a stylesheet behind an extensionless subpath, so the rule above misses it.
+    '^@digdir/designsystemet-css/theme$': 'identity-obj-proxy',
     // Fixes ReferenceError: MessageChannel is not defined in tests
     'react-dom/server': 'react-dom/server.edge',
     // Force react-i18next to resolve to root node_modules to ensure global mock applies for app-development
@@ -82,6 +84,7 @@ const config = {
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
+    '^@altinn/process-editor-v8/(.*)': path.join(__dirname, 'packages/process-editor-v8/src/$1'),
     '^@altinn/schema-editor/(.*)': path.join(__dirname, 'packages/schema-editor/src/$1'),
     '^@altinn/schema-model/(.*)': path.join(__dirname, 'packages/schema-model/src/$1'),
     '^app-shared/(.*)': path.join(__dirname, 'packages/shared/src/$1'),
@@ -92,7 +95,6 @@ const config = {
     '^@studio/guard/(.*)': path.join(__dirname, 'libs/studio-guard/$1'),
     '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
     '^@studio/components/(.*)': path.join(__dirname, 'libs/studio-components/$1'),
-    '^@studio/components-legacy/(.*)': path.join(__dirname, 'libs/studio-components-legacy/$1'),
     '^@studio/feature-flags/(.*)': path.join(__dirname, 'libs/studio-feature-flags/$1'),
     '^@studio/hooks/(.*)': path.join(__dirname, 'libs/studio-hooks/$1'),
     '^@studio/pure-functions/(.*)': path.join(__dirname, 'libs/studio-pure-functions/$1'),

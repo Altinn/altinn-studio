@@ -4,12 +4,16 @@
 FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS frontend-builder
 WORKDIR /src
 COPY frontend/package.json frontend/yarn.lock* ./
-RUN yarn install --frozen-lockfile --network-timeout 600000
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn install --frozen-lockfile --network-timeout 600000
 COPY frontend/ .
 RUN yarn build
 
 # ---------- Stage 2: runtime ----------
-FROM python:3.12-slim@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36 AS runtime
+FROM python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea AS runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \

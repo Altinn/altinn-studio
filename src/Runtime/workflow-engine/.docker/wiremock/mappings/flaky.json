@@ -1,0 +1,31 @@
+{
+  "mappings": [
+    {
+      "priority": 5,
+      "name": "Flaky downstream 1/3 — fails",
+      "scenarioName": "flaky-webhook",
+      "requiredScenarioState": "Started",
+      "newScenarioState": "flaky-second-failure",
+      "request": { "urlPath": "/flaky", "method": "ANY" },
+      "response": { "status": 500, "jsonBody": { "error": "Simulated flaky failure (1 of 2)" } }
+    },
+    {
+      "priority": 5,
+      "name": "Flaky downstream 2/3 — fails",
+      "scenarioName": "flaky-webhook",
+      "requiredScenarioState": "flaky-second-failure",
+      "newScenarioState": "flaky-recovered",
+      "request": { "urlPath": "/flaky", "method": "ANY" },
+      "response": { "status": 500, "jsonBody": { "error": "Simulated flaky failure (2 of 2)" } }
+    },
+    {
+      "priority": 5,
+      "name": "Flaky downstream 3/3 — recovers",
+      "scenarioName": "flaky-webhook",
+      "requiredScenarioState": "flaky-recovered",
+      "newScenarioState": "Started",
+      "request": { "urlPath": "/flaky", "method": "ANY" },
+      "response": { "status": 200, "jsonBody": { "ok": true } }
+    }
+  ]
+}

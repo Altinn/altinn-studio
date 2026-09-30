@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -43,7 +44,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Unlock(taskId, instance);
@@ -83,7 +84,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Lock(taskId, instance);
@@ -123,7 +124,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Unlock(taskId, instance);
@@ -163,7 +164,7 @@ public class ProcessTaskDataLockerTests
             ],
         };
 
-        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         // Act
         await _processTaskDataLocker.Lock(taskId, instance);

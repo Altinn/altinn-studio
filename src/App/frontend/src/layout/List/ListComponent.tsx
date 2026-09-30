@@ -18,6 +18,7 @@ import {
   useRadioGroup,
 } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
 import { RadioButton } from 'src/components/form/RadioButton';
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
@@ -33,7 +34,6 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 
 type Row = Record<string, string | number | boolean>;
 type SelectionMode = 'readonly' | 'single' | 'multiple';

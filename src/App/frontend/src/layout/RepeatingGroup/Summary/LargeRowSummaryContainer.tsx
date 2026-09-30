@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
@@ -13,7 +14,6 @@ import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { HeadingLevel } from 'src/layout/common.generated';
 
 export interface IDisplayRepAsLargeGroup {
   baseComponentId: string;

@@ -18,12 +18,12 @@ public interface IPersonClient
     /// <param name="nationalIdentityNumber">The national identity number of the person.</param>
     /// <param name="lastName">The last name of the person.</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
-    /// <param name="ct">The cancellation token to cancel operation.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel operation.</param>
     /// <returns>The identified person if found.</returns>
     Task<Person?> GetPerson(
         string nationalIdentityNumber,
         string lastName,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     );
 }

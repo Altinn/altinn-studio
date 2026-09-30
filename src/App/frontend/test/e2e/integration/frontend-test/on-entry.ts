@@ -8,25 +8,36 @@ const appFrontend = new AppFrontend();
 
 describe('On Entry', () => {
   const instanceIdExamples = [`512345/${uuidv4()}`, `512345/${uuidv4()}`, `512345/${uuidv4()}`];
-  beforeEach(() => {
-    cy.intercept('**/active', [
-      {
-        id: instanceIdExamples[0],
-        lastChanged: '2021-04-06T14:11:02.6893987Z',
-        lastChangedBy: 'Ola Nordmann',
-      },
-      {
-        id: instanceIdExamples[1],
-        lastChanged: '2022-04-06T14:11:02.6893987Z',
-        lastChangedBy: 'Foo Bar',
-      },
-      {
-        id: instanceIdExamples[2],
-        lastChanged: '2020-04-06T14:11:02.6893987Z',
-        lastChangedBy: 'Bar Baz',
-      },
-    ]);
-  });
+  const activeInstances = [
+    {
+      id: instanceIdExamples[0],
+      lastChanged: '2021-04-06T14:11:02.6893987Z',
+      lastChangedBy: 'Ola Nordmann',
+    },
+    {
+      id: instanceIdExamples[1],
+      lastChanged: '2022-04-06T14:11:02.6893987Z',
+      lastChangedBy: 'Foo Bar',
+    },
+    {
+      id: instanceIdExamples[2],
+      lastChanged: '2020-04-06T14:11:02.6893987Z',
+      lastChangedBy: 'Bar Baz',
+    },
+  ];
+  const singleActiveInstance = [
+    {
+      id: '501337/fc0701bf-8492-475c-adff-93845c6060ab',
+      presentationTexts: null,
+      dueBefore: null,
+      lastChanged: '2026-09-01T09:30:21.9588629Z',
+      lastChangedBy: 'Sophie Salt',
+    },
+  ];
+
+  function mockActiveInstances(instances = activeInstances) {
+    cy.intercept('**/active', instances).as('activeInstances');
+  }
 
   function setupInstanceSelection(defaultSelectedOption: number) {
     interceptAltinnAppGlobalData((globalData) => {
@@ -42,6 +53,7 @@ describe('On Entry', () => {
   }
 
   it('is possible to select an existing instance', () => {
+    mockActiveInstances();
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -78,6 +90,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to paginate the instances and select default rows per page', () => {
+    mockActiveInstances();
     setupInstanceSelection(1);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
@@ -113,6 +126,7 @@ describe('On Entry', () => {
   });
 
   it('will utilize index 0 when defaultSelectedOption is assigned an invalid index number', () => {
+    mockActiveInstances();
     setupInstanceSelection(5);
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
@@ -120,6 +134,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to create a new instance', () => {
+    mockActiveInstances();
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
@@ -132,13 +147,33 @@ describe('On Entry', () => {
     cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
   });
 
+  it('shows instance selection when exactly one active instance exists', () => {
+    mockActiveInstances(singleActiveInstance);
+    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
+
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.wait('@activeInstances');
+
+    cy.get(appFrontend.selectInstance.container).should('be.visible');
+    cy.get(appFrontend.selectInstance.tableBody).find('tr').should('have.length', 1);
+    cy.get(appFrontend.selectInstance.tableBody).should('contain.text', 'Sophie Salt');
+    cy.get(appFrontend.selectInstance.newInstance).should('be.visible').and('be.enabled');
+    cy.get(appFrontend.selectInstance.newInstance).click();
+    cy.wait('@createdInstance').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      cy.url().should('contain', response?.body.id);
+    });
+  });
+
   it('Should show the correct title', () => {
+    mockActiveInstances();
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.title().should('eq', 'Fortsett der du slapp - frontend-test - Testdepartementet');
   });
 
   it('language selector and other page settings still work during instance selection', () => {
+    mockActiveInstances();
     interceptAltinnAppGlobalData((globalData) => {
       const settings = globalData.ui.settings ?? {
         hideCloseButton: false,

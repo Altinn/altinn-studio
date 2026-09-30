@@ -4,8 +4,10 @@ Before=multi-user.target
 
 [Service]
 Type=oneshot
+Environment=HOME=/home/agent
 ExecStart=/bin/sh -c 'grep -qxF "127.0.0.1 studio.localhost" /etc/hosts || echo "127.0.0.1 studio.localhost" >>/etc/hosts'
 ExecStart=/bin/sh -c 'grep -qxF "127.0.0.1 host.docker.internal" /etc/hosts || echo "127.0.0.1 host.docker.internal" >>/etc/hosts'
+ExecStart=/home/agent/.local/bin/studioctl env hosts add
 
 [Install]
 WantedBy=multi-user.target

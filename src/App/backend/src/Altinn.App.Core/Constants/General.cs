@@ -41,7 +41,7 @@ public static class General
     internal const string PlatformAccessTokenHeaderName = "PlatformAccessToken";
 
     /// <summary>
-    /// Header name for instance lock token
+    /// Header name for the client-supplied idempotency key.
     /// </summary>
-    internal const string LockTokenHeaderName = "Altinn-Storage-Lock-Token";
+    internal const string IdempotencyKeyHeaderName = "Idempotency-Key";
 }

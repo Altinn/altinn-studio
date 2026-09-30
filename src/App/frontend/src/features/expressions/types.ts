@@ -1,4 +1,9 @@
+import type { ExprVal, ExprValToActualOrExpr as ContractExprValToActualOrExpr } from '@app/layout-contract';
 import type { PickByValue } from 'utility-types';
+
+// Keep the established App frontend export while the source of truth lives in the shared contract.
+// eslint-disable-next-line no-restricted-syntax
+export { ExprVal } from '@app/layout-contract';
 
 import type { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 
@@ -8,16 +13,6 @@ export type ExprFunctions = typeof ExprFunctionDefinitions;
  * This union type includes all possible functions usable in expressions
  */
 export type ExprFunctionName = keyof ExprFunctions;
-
-export enum ExprVal {
-  Boolean = '__boolean__',
-  String = '__string__',
-  Number = '__number__',
-  Date = '__date__', // Actually just a string, but must be parsable as a date (this lets us work with Date internally)
-  List = '__list__',
-  Object = '__object__',
-  Any = '__any__',
-}
 
 export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Date
   ? ExprDate
@@ -38,8 +33,7 @@ export type ExprValToActual<T extends ExprVal = ExprVal> = T extends ExprVal.Dat
 /**
  * This type replaces ExprVal with the actual value type, or expression that returns that type.
  */
-export type ExprValToActualOrExpr<T extends ExprVal> =
-  ExprValToActual<T> | NonRecursiveExpression<FunctionsReturning<T>>;
+export type ExprValToActualOrExpr<T extends ExprVal> = ContractExprValToActualOrExpr<T>;
 
 type ArgsFor<F extends ExprFunctionName> = F extends ExprFunctionName ? ExprFunctions[F]['args'] : never;
 

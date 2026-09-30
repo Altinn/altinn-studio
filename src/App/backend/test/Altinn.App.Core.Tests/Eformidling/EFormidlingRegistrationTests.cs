@@ -1,8 +1,8 @@
+using Altinn.App.Core.EFormidling.Configuration;
 using Altinn.App.Core.EFormidling.Extensions;
 using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.Features;
-using Altinn.Common.EFormidlingClient.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -21,10 +21,10 @@ public class EFormidlingRegistrationTests
 
     private sealed class TestReceivers : IEFormidlingReceivers
     {
-        public Task<List<Common.EFormidlingClient.Models.SBD.Receiver>> GetEFormidlingReceivers(
+        public Task<List<EFormidling.Models.SBD.Receiver>> GetEFormidlingReceivers(
             IInstanceDataAccessor dataAccessor,
             string? receiverFromConfig
-        ) => Task.FromResult(new List<Common.EFormidlingClient.Models.SBD.Receiver>());
+        ) => Task.FromResult(new List<EFormidling.Models.SBD.Receiver>());
     }
 
     private static ServiceCollection ServicesWithConfig(params (string Key, string Value)[] values)

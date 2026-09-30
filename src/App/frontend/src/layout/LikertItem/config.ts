@@ -1,10 +1,18 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
 import { asOptionsComponent } from 'src/features/options/config';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = asOptionsComponent(
   new CG.component({
     category: CompCategory.Form,
+    availability: 'internal',
+    metadata: {
+      name: {
+        nb: 'LikertItem',
+        en: 'LikertItem',
+      },
+    },
     capabilities: {
       renderInTable: false,
       renderInButtonGroup: false,
@@ -24,22 +32,28 @@ export const Config = asOptionsComponent(
   .addTextResource(
     new CG.trb({
       name: 'title',
-      title: 'Title',
-      description: 'Title of the Likert component/row',
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: { en: 'Title of the Likert component/row', nb: 'Ledeteksten til Likert-komponenten eller raden.' },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'description',
-      title: 'Description',
-      description: 'Description of the Likert component/row',
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'Description of the Likert component/row',
+        nb: 'Beskrivelse av Likert-komponenten eller raden.',
+      },
     }),
   )
   .addTextResource(
     new CG.trb({
       name: 'help',
-      title: 'Help',
-      description: 'Help text of the Likert component/row',
+      title: { en: 'Help', nb: 'Hjelp' },
+      description: {
+        en: 'Help text of the Likert component/row',
+        nb: 'Hjelpetekst for Likert-komponenten eller raden.',
+      },
     }),
   )
   .addProperty(
@@ -47,8 +61,11 @@ export const Config = asOptionsComponent(
       'showLabelsInTable',
       new CG.bool()
         .optional({ default: false })
-        .setTitle('Show label when single option in table')
-        .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
+        .setTitle('Show label when single option in table', 'Vis ledetekst ved ett alternativ i tabellen')
+        .setDescription(
+          'Boolean value indicating if the label should be visible when only one option exists in table',
+          'Angir om ledeteksten skal vises når tabellen bare har ett alternativ.',
+        ),
     ),
   )
   .extends(CG.common('ILikertColumnProperties'))

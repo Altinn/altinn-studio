@@ -122,7 +122,7 @@
         "id": "priorityReason",
         "type": "RadioButtons",
         "dataModelBindings": {
-          "simpleBinding": "PreInvestigation.PriorityReason"
+          "simpleBinding": "PreInvestigation.Priority.PriorityReason"
         },
         "optionsId": "priorityReason",
         "layout": "column",
@@ -200,7 +200,7 @@
             "notEquals",
             [
               "dataModel",
-              "PreInvestigation.PriorityReason"
+              "PreInvestigation.Priority.PriorityReason"
             ],
             "earlierApplicant"
           ]
@@ -212,7 +212,7 @@
           "title": "priorityDate"
         },
         "dataModelBindings": {
-          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.Date"
+          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.PriorityDate"
         },
         "grid": {
           "md": 3,

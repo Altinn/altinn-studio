@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events;
 /// <summary>
 /// A client for handling actions on events in Altinn Platform.
 /// </summary>
-public class EventsClient : IEventsClient
+internal sealed class EventsClient : IEventsClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly GeneralSettings _generalSettings;
@@ -56,7 +56,9 @@ public class EventsClient : IEventsClient
     public async Task<string> AddEvent(
         string eventType,
         Instance instance,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartAddEventActivity(instance);
@@ -85,11 +87,12 @@ public class EventsClient : IEventsClient
             SpecVersion = "1.0",
             Source = new Uri($"{baseUrl}instances/{instance.Id}"),
         };
-        Application app = await _appMetadata.GetApplicationMetadata();
+        Application app = _appMetadata.ApplicationMetadata;
         string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken
         );
 
         string serializedCloudEvent = JsonSerializer.Serialize(cloudEvent);
@@ -98,15 +101,17 @@ public class EventsClient : IEventsClient
             token,
             "app",
             new StringContent(serializedCloudEvent, Encoding.UTF8, "application/json"),
-            accessToken
+            idempotencyKey,
+            accessToken,
+            cancellationToken
         );
 
         if (response.IsSuccessStatusCode)
         {
-            string eventId = await response.Content.ReadAsStringAsync();
+            string eventId = await response.Content.ReadAsStringAsync(cancellationToken);
             return eventId;
         }
 
-        throw await PlatformHttpException.Create(response);
+        throw await PlatformHttpException.Create(response, cancellationToken);
     }
 }
