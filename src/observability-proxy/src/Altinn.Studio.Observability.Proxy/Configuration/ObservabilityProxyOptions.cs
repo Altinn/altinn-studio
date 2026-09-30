@@ -18,8 +18,10 @@ internal sealed class ObservabilityProxyOptions
 internal sealed class DownstreamOptions
 {
     /// <summary>
-    /// OTLP writes go to the agent for the signal. Each agent runs two replicas behind one Service,
-    /// so one address per signal is enough and Kubernetes spreads the load.
+    /// OTLP writes go to the agent for the signal. Each agent runs two replicas behind a Service
+    /// with a cluster IP, so one address per signal is enough and Kubernetes places each new
+    /// connection on one of them. The operator's default Service for an agent is headless, which
+    /// would send every connection to the first replica DNS returns.
     /// </summary>
     public AgentDownstreamOptions Agents { get; set; } = new();
 
