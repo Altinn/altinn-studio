@@ -24,13 +24,54 @@ public sealed class RuleFalsePositiveTests
         Assert.DoesNotContain(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
     }
 
+    private const string CodeCreatedFormType =
+        """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M"},"maxCount":2}]}""";
+
     [Fact]
-    public void DataTypeCount_FormType_WithExplicitNonOneMaxCount_IsStillFlagged()
+    public void DataTypeCount_FolderDefaultFormType_WithExplicitNonOneMaxCount_IsStillFlagged()
     {
         var dir = App(
-            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M"},"maxCount":2}]}"""
+            CodeCreatedFormType,
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]},"defaultDataType":"model"}"""),
+            ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[]}}""")
         );
         Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+    }
+
+    [Theory]
+    [InlineData(
+        """{"id":"in","type":"Input","dataModelBindings":{"simpleBinding":{"field":"x","dataType":"model"}}}"""
+    )]
+    [InlineData("""{"id":"in","type":"Input","hidden":["equals",["dataModel","x","model"],"y"]}""")]
+    public void DataTypeCount_FormTypeALayoutReadsByDataType_WithNonOneMaxCount_IsStillFlagged(string component)
+    {
+        var dir = App(
+            CodeCreatedFormType,
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
+            ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[""" + component + "]}}")
+        );
+        Assert.Contains(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+    }
+
+    [Fact]
+    public void DataTypeCount_FormTypeNoLayoutReads_WithNonOneMaxCount_IsNotFlagged()
+    {
+        var dir = App(
+            CodeCreatedFormType,
+            ("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}"""),
+            ("App/ui/Task_1/layouts/P1.json", """{"data":{"layout":[{"id":"in","type":"Input"}]}}""")
+        );
+        Assert.DoesNotContain(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+    }
+
+    [Fact]
+    public void DataTypeCount_FormTypeNoLayoutReads_MinCountAboveMaxCount_IsStillFlagged()
+    {
+        var dir = App(
+            """{"id":"ttd/x","org":"ttd","title":{"nb":"X"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"App.Models.M"},"maxCount":2,"minCount":3}]}"""
+        );
+        var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
+        Assert.Contains("minCount", finding.Message, StringComparison.Ordinal);
     }
 
     private static InMemoryAppDirectory SubformApp(string subDataType, string subsetReference) =>
@@ -62,6 +103,8 @@ public sealed class RuleFalsePositiveTests
         var dir = SubformApp(
             """{"id":"sub","appLogic":{"classRef":"App.Models.S"},"maxCount":0},{"id":"other","appLogic":{"classRef":"App.Models.O"},"maxCount":2}""",
             SubformComponent
+                + ""","""
+                + """{"id":"in","type":"Input","dataModelBindings":{"simpleBinding":{"field":"x","dataType":"other"}}}"""
         );
         var finding = Assert.Single(Validate(dir), f => f.RuleId == "DATATYPE-COUNT");
         Assert.Contains("\"other\"", finding.Message, StringComparison.Ordinal);
