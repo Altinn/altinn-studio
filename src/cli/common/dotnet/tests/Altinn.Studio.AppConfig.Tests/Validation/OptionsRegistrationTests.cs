@@ -91,6 +91,41 @@ public sealed class OptionsRegistrationTests
     public void CommentedOutRegistration_IsIgnored() =>
         Assert.NotEmpty(UnresolvedOptionsIds("kommuner", Program("// services.AddAltinnCodelists();")));
 
+    [Theory]
+    [InlineData(
+        "public class LandProvider : IAppOptionsProvider { public LandProvider() { Id = \"landIso2\"; } public string Id { get; } }"
+    )]
+    [InlineData(
+        "public class LandProvider : IAppOptionsProvider { public LandProvider() { this.Id = \"landIso2\"; } public string Id { get; } }"
+    )]
+    [InlineData("public class landIso2 : IAppOptionsProvider { public string Id => nameof(landIso2); }")]
+    [InlineData(
+        "public class LandProvider : IAppOptionsProvider { private const string Key = \"landIso2\"; public string Id => Key; }"
+    )]
+    [InlineData(
+        "public static class Constants { public static class Ids { public const string Land = \"landIso2\"; } } public class LandProvider : IAppOptionsProvider { public string Id => Constants.Ids.Land; }"
+    )]
+    [InlineData(
+        "public class LandProvider : IAppOptionsProvider { public string Id { get { return \"landIso2\"; } } }"
+    )]
+    [InlineData(
+        "public abstract class CodeListProvider : IAppOptionsProvider { public abstract string Id { get; set; } } public class LandProvider : CodeListProvider { public override string Id { get; set; } = \"landIso2\"; }"
+    )]
+    [InlineData(
+        "public abstract class CodeListProvider(string source) : IAppOptionsProvider { public virtual string Id { get; } = \"landIso2\"; } public class LandProvider() : CodeListProvider(\"ssb\");"
+    )]
+    public void ProviderClass_IdTheCodeFixes_IsResolved(string source) =>
+        Assert.Empty(UnresolvedOptionsIds("landIso2", Program(""), "namespace App.Logic; " + source));
+
+    [Theory]
+    [InlineData(
+        "public class LandProvider : IAppOptionsProvider { public LandProvider(string id) { Id = id; } public string Id { get; } }"
+    )]
+    [InlineData("public abstract class LandProvider : IAppOptionsProvider { public string Id => \"landIso2\"; }")]
+    [InlineData("public class LandProvider : CodeListProvider { public string Id => \"landIso2\"; }")]
+    public void ProviderClass_IdOrRegistrationTheCodeDoesNotFix_IsStillFlagged(string source) =>
+        Assert.NotEmpty(UnresolvedOptionsIds("landIso2", Program(""), "namespace App.Logic; " + source));
+
     [Fact]
     public void Hover_NamesTheRegisteringCall()
     {
