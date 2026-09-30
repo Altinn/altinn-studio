@@ -108,6 +108,54 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_reference_image_resolves(reference_backend_home).await;
 }
 
+/// A direct root filesystem pulled from a registry is prepared without Microsandbox's layered
+/// image artifacts, so a restart must boot from the Sandbox's own root disk without them.
+#[tokio::test(flavor = "local")]
+#[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
+    let temporary = RetainedOnFailureTempDir::new();
+    let backend = Rc::new(
+        MicrosandboxProvider::open(temporary.path().join("control-plane"))
+            .await
+            .expect("Backend should open"),
+    );
+    let service = SandboxService::new(backend.clone());
+    let request = EnsureSandboxRequest::new(
+        SandboxName::new("direct-reference-worker").expect("test Sandbox name should be valid"),
+        SandboxSpec {
+            image: ImageSource::Reference {
+                reference: "docker.io/library/alpine:3.22".to_string(),
+            },
+            platform: native_linux_platform(),
+            resources: direct_resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            retention_policy: RetentionPolicy::Retain,
+        },
+    );
+    let (sandbox, _) = collect_progress(service.ensure(&request))
+        .await
+        .expect("OCI reference should resolve and start");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new("/root/retained.txt"),
+            Box::pin(Cursor::new(b"retained".to_vec())),
+        )
+        .await
+        .expect("file should stream into the Sandbox");
+
+    backend.stop(&sandbox.id).await.expect("Sandbox should stop");
+    backend
+        .start(&sandbox.id)
+        .await
+        .expect("stopped direct Sandbox should restart");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+
+    backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
 /// A replacement must never expose a partial file: a reader polling the path throughout the
 /// write sees the old or the new contents only, the replaced file keeps its mode, and no
 /// staging file is left behind.

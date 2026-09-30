@@ -28,6 +28,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - An Agent started while the host has no network connection resolves names once the host is back online.
 - `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
 - Pressing Ctrl-Z in an attached Session no longer freezes it.
+- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of
+  failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
 
 ### Security
 
