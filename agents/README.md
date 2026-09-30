@@ -173,6 +173,18 @@ published images are, with OpenSSH installed and a usable `agent` account. `agen
 policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
 SSH access; delete it and re-apply to pick up the current image.
 
+### Visual Studio Code
+
+Use the Visual Studio Code extension Remote - SSH (`ms-vscode-remote.remote-ssh`). This extension reads the OpenSSH
+configuration that `agentctl ssh-config install` writes.
+
+1. Run `agentctl ssh-config install` one time.
+2. In Visual Studio Code, install the extension Remote - SSH.
+3. Push `F1` and select **Remote-SSH: Connect to Host...**.
+4. Select the alias of the Agent, for example `agentctl-altinn-full`. If Visual Studio Code asks for the platform,
+   select **Linux**.
+5. Select **File > Open Folder** and open `/home/agent/code`.
+
 ## Desktop access
 
 The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also
