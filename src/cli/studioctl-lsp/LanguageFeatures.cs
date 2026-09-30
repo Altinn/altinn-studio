@@ -16,6 +16,21 @@ internal sealed class LanguageFeatures(
     DiagnosticsPublisher diagnostics
 )
 {
+    private MarkupFormat _documentationFormat = MarkupFormat.PlainText;
+    private bool _labelDetailsSupport;
+
+    public void UseClientCapabilities(ClientCapabilities? capabilities)
+    {
+        var completionItem = capabilities?.TextDocument?.Completion?.CompletionItem;
+        _documentationFormat = PreferredFormat(completionItem?.DocumentationFormat);
+        _labelDetailsSupport = completionItem?.LabelDetailsSupport ?? false;
+    }
+
+    private static MarkupFormat PreferredFormat(string[]? formats) =>
+        formats?.FirstOrDefault(f => f is "markdown" or "plaintext") == "markdown"
+            ? MarkupFormat.Markdown
+            : MarkupFormat.PlainText;
+
     // Shared prologue of every engine-reading request: flush pending validation (answer against
     // the latest buffer, not the debounce-pending state), ensure the engine, and resolve the
     // request's document. False when the engine isn't ready or the URI is outside the app.
@@ -49,7 +64,7 @@ internal sealed class LanguageFeatures(
         if (TryResolveRequest(p.TextDocument, out var rel, out var symbols))
         {
             var (line1, byteCol) = convert.CursorOf(p.Position, rel);
-            foreach (var s in symbols.Completions(rel, line1, byteCol))
+            foreach (var s in symbols.Completions(rel, line1, byteCol, _documentationFormat))
             {
                 items.Add(
                     new CompletionItem(
@@ -65,13 +80,20 @@ internal sealed class LanguageFeatures(
                             SuggestionKind.Task => 20,
                             SuggestionKind.OptionsId => 17,
                             _ => 21,
-                        }
+                        },
+                        _labelDetailsSupport && s.Preview is { } preview
+                            ? new CompletionItemLabelDetails(preview)
+                            : null,
+                        s.Documentation is { } documentation ? Documentation(documentation) : null
                     )
                 );
             }
         }
         return new CompletionList(IsIncomplete: false, items);
     }
+
+    private object Documentation(string text) =>
+        _documentationFormat == MarkupFormat.Markdown ? new MarkupContent("markdown", text) : text;
 
     public WorkspaceEdit? OnRename(RenameParams p)
     {

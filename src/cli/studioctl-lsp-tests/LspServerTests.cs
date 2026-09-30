@@ -196,6 +196,137 @@ public sealed class LspServerTests
         Assert.Contains("field-a", compLabels);
     }
 
+    private const string DocumentedLayout = """
+        {"data":{"layout":[
+          {"id":"name","type":"Input","dataModelBindings":{"simpleBinding":"person.name"},"textResourceBindings":{"title":"name.title"}}
+        ]}}
+        """;
+
+    private static readonly object _fullCompletionSupport = new
+    {
+        textDocument = new
+        {
+            completion = new
+            {
+                completionItem = new
+                {
+                    documentationFormat = new[] { "markdown", "plaintext" },
+                    labelDetailsSupport = true,
+                },
+            },
+        },
+    };
+
+    private static readonly object _markdownOnlyCompletionSupport = new
+    {
+        textDocument = new { completion = new { completionItem = new { documentationFormat = new[] { "markdown" } } } },
+    };
+
+    private static TempApp DocumentedApp()
+    {
+        var app = new TempApp();
+        app.WriteFile(
+            "App/config/applicationmetadata.json",
+            """{"id":"ttd/docs","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"}]}"""
+        );
+        app.WriteFile("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}""");
+        app.WriteFile("App/ui/Task_1/layouts/P1.json", DocumentedLayout);
+        app.WriteFile(
+            "App/config/texts/resource.nb.json",
+            """{"language":"nb","resources":[{"id":"name.title","value":"Fullt navn"}]}"""
+        );
+        app.WriteFile(
+            "App/config/texts/resource.en.json",
+            """{"language":"en","resources":[{"id":"name.title","value":"Full name"}]}"""
+        );
+        app.WriteFile(
+            "App/models/model.schema.json",
+            """{"properties":{"person":{"type":"object","properties":{"name":{"type":"string"}}}}}"""
+        );
+        return app;
+    }
+
+    private static JsonElement CompletionItem(List<JsonElement> messages, int id, string label) =>
+        messages
+            .Single(m => m.TryGetProperty("id", out var i) && i.GetInt32() == id)
+            .GetProperty("result")
+            .GetProperty("items")
+            .EnumerateArray()
+            .Single(i => i.GetProperty("label").GetString() == label);
+
+    [Fact]
+    public void Completion_ClientWithMarkdownAndLabelDetails_GetsDocumentationAndValuePreview()
+    {
+        using var app = DocumentedApp();
+        var pageUri = app.Uri("App/ui/Task_1/layouts/P1.json");
+        var (tl, tc) = At0(DocumentedLayout, "\"name.title\"", 1);
+        var (dl, dc) = At0(DocumentedLayout, "\"person.name\"", 1);
+
+        var messages = RunSessionWithCapabilities(
+            app.Root,
+            _fullCompletionSupport,
+            ("App/ui/Task_1/layouts/P1.json", DocumentedLayout),
+            NavRequest(2, "textDocument/completion", pageUri, tl, tc),
+            NavRequest(3, "textDocument/completion", pageUri, dl, dc)
+        );
+
+        var textKey = CompletionItem(messages, 2, "name.title");
+        Assert.Equal("text resource", textKey.GetProperty("detail").GetString());
+        Assert.Equal("Fullt navn", textKey.GetProperty("labelDetails").GetProperty("description").GetString());
+        Assert.Equal("markdown", textKey.GetProperty("documentation").GetProperty("kind").GetString());
+        Assert.Equal(
+            "**Text key** `name.title`\n\nen: `Full name`  \nnb: `Fullt navn`",
+            textKey.GetProperty("documentation").GetProperty("value").GetString()
+        );
+
+        var dataModel = CompletionItem(messages, 3, "person.name");
+        Assert.Equal("string", dataModel.GetProperty("detail").GetString());
+        Assert.False(dataModel.TryGetProperty("labelDetails", out _));
+        Assert.Equal(
+            "**Data model** `person.name` — string\n\nModel `model` (App/models/model.schema.json)",
+            dataModel.GetProperty("documentation").GetProperty("value").GetString()
+        );
+    }
+
+    [Fact]
+    public void Completion_ClientWithoutLabelDetailsSupport_GetsNoValuePreview()
+    {
+        using var app = DocumentedApp();
+        var pageUri = app.Uri("App/ui/Task_1/layouts/P1.json");
+        var (l, c) = At0(DocumentedLayout, "\"name.title\"", 1);
+
+        var messages = RunSessionWithCapabilities(
+            app.Root,
+            _markdownOnlyCompletionSupport,
+            ("App/ui/Task_1/layouts/P1.json", DocumentedLayout),
+            NavRequest(2, "textDocument/completion", pageUri, l, c)
+        );
+
+        var textKey = CompletionItem(messages, 2, "name.title");
+        Assert.False(textKey.TryGetProperty("labelDetails", out _));
+        Assert.Equal("markdown", textKey.GetProperty("documentation").GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public void Completion_ClientWithoutMarkdownSupport_GetsPlainTextDocumentation()
+    {
+        using var app = DocumentedApp();
+        var pageUri = app.Uri("App/ui/Task_1/layouts/P1.json");
+        var (l, c) = At0(DocumentedLayout, "\"name.title\"", 1);
+
+        var messages = RunSession(
+            app.Root,
+            ("App/ui/Task_1/layouts/P1.json", DocumentedLayout),
+            NavRequest(2, "textDocument/completion", pageUri, l, c)
+        );
+
+        var textKey = CompletionItem(messages, 2, "name.title");
+        Assert.False(textKey.TryGetProperty("labelDetails", out _));
+        var documentation = textKey.GetProperty("documentation");
+        Assert.Equal(JsonValueKind.String, documentation.ValueKind);
+        Assert.Equal("Text key name.title\n\nen: Full name\nnb: Fullt navn", documentation.GetString());
+    }
+
     [Fact]
     public void Rename_RenamesComponentEverywhere()
     {
@@ -1030,14 +1161,22 @@ public sealed class LspServerTests
         Assert.Equal(1, new LspServer(input, new MemoryStream(), NoSchemas).Run());
     }
 
-    // initialize(root) → initialized → optional didOpen(openDoc) → extraFrames, then runs the
-    // server over the whole stream and returns every parsed output frame.
     private static List<JsonElement> RunSession(
         string root,
         (string Rel, string Text)? openDoc,
         params object[] extraFrames
+    ) => RunSessionWithCapabilities(root, capabilities: null, openDoc, extraFrames);
+
+    // initialize(root, capabilities) → initialized → optional didOpen(openDoc) → extraFrames, then
+    // runs the server over the whole stream and returns every parsed output frame.
+    private static List<JsonElement> RunSessionWithCapabilities(
+        string root,
+        object? capabilities,
+        (string Rel, string Text)? openDoc,
+        params object[] extraFrames
     )
     {
+        var rootUri = new Uri(root).AbsoluteUri;
         var input = new MemoryStream();
         WriteFrame(
             input,
@@ -1046,7 +1185,7 @@ public sealed class LspServerTests
                 jsonrpc = "2.0",
                 id = 1,
                 method = "initialize",
-                @params = new { rootUri = new Uri(root).AbsoluteUri },
+                @params = capabilities is null ? new { rootUri } : (object)new { rootUri, capabilities },
             }
         );
         WriteFrame(

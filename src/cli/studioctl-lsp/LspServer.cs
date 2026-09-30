@@ -221,6 +221,7 @@ public sealed class LspServer
     private InitializeResult OnInitialize(InitializeParams? p)
     {
         _workspace.SetRoot(ResolveRoot(p));
+        _features.UseClientCapabilities(p?.Capabilities);
         _diagnostics.Schedule();
         return new InitializeResult(
             new ServerCapabilities(

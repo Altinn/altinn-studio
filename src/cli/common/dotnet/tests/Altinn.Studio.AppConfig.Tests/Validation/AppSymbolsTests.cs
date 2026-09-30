@@ -418,6 +418,101 @@ public sealed class AppSymbolsTests
         Assert.DoesNotContain(comp, s => s.Label == "unrelated.y");
     }
 
+    private const string DocumentedLayout = """
+        {"data":{"layout":[
+          {"id":"name","type":"Input","dataModelBindings":{"simpleBinding":"soker.navn"},"textResourceBindings":{"title":"navn.tittel"}}
+        ]}}
+        """;
+
+    private static AppSymbols OpenDocumentedApp() =>
+        OpenSymbols(
+            new MutableAppDirectory(
+                new()
+                {
+                    ["App/config/applicationmetadata.json"] =
+                        """{"id":"ttd/docs","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"}]}""",
+                    ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                    ["App/ui/Task_1/layouts/P1.json"] = DocumentedLayout,
+                    ["App/config/texts/resource.nb.json"] = """
+                    {"language":"nb","resources":[
+                      {"id":"navn.tittel","value":"Fullt navn"},
+                      {"id":"lang","value":"En svært lang\n\n  ledetekst som går over flere linjer og aldri tar slutt"},
+                      {"id":"tom","value":"  "}
+                    ]}
+                    """,
+                    ["App/config/texts/resource.en.json"] = """
+                    {"language":"en","resources":[
+                      {"id":"navn.tittel","value":"Full name"},
+                      {"id":"bare.engelsk","value":"Only in English"},
+                      {"id":"tom","value":""}
+                    ]}
+                    """,
+                    ["App/config/texts/resource.sv.json"] =
+                        """{"language":"sv","resources":[{"id":"andre.sprak","value":"Svenska"}]}""",
+                    ["App/config/texts/resource.de.json"] =
+                        """{"language":"de","resources":[{"id":"andre.sprak","value":"Deutsch"}]}""",
+                    ["App/models/model.schema.json"] =
+                        """{"properties":{"soker":{"type":"object","properties":{"navn":{"type":"string"}}}}}""",
+                }
+            )
+        );
+
+    private static Suggestion TextKeyCompletion(AppSymbols symbols, string key, MarkupFormat format)
+    {
+        var (l, c) = At(DocumentedLayout, "\"navn.tittel\"", 1);
+        return symbols.Completions("App/ui/Task_1/layouts/P1.json", l, c, format).Single(s => s.Label == key);
+    }
+
+    [Fact]
+    public void Completions_TextKey_DocumentsEveryLanguage_AndPreviewsTheNorwegianValue()
+    {
+        var suggestion = TextKeyCompletion(OpenDocumentedApp(), "navn.tittel", MarkupFormat.Markdown);
+
+        Assert.Equal("**Text key** `navn.tittel`\n\nen: `Full name`  \nnb: `Fullt navn`", suggestion.Documentation);
+        Assert.Equal("Fullt navn", suggestion.Preview);
+    }
+
+    [Fact]
+    public void Completions_TextKey_InPlainText_DocumentsWithoutMarkdown()
+    {
+        var suggestion = TextKeyCompletion(OpenDocumentedApp(), "navn.tittel", MarkupFormat.PlainText);
+
+        Assert.Equal("Text key navn.tittel\n\nen: Full name\nnb: Fullt navn", suggestion.Documentation);
+    }
+
+    [Theory]
+    [InlineData("bare.engelsk", "Only in English")]
+    [InlineData("andre.sprak", "Deutsch")]
+    [InlineData("lang", "En svært lang ledetekst som går over fl…")]
+    [InlineData("tom", null)]
+    public void Completions_TextKeyPreview_FallsBackFromNorwegianToEnglishToOrdinalOrder_OnOneShortLine(
+        string key,
+        string? preview
+    )
+    {
+        var suggestion = TextKeyCompletion(OpenDocumentedApp(), key, MarkupFormat.Markdown);
+
+        Assert.Equal(preview, suggestion.Preview);
+    }
+
+    [Fact]
+    public void Completions_DataModelPath_DocumentsTypeAndModel()
+    {
+        var symbols = OpenDocumentedApp();
+        var (l, c) = At(DocumentedLayout, "\"soker.navn\"", 1);
+
+        var suggestion = symbols
+            .Completions("App/ui/Task_1/layouts/P1.json", l, c)
+            .Single(s => s.Label == "soker.navn");
+
+        Assert.Equal("string", suggestion.Detail);
+        Assert.Equal(
+            "**Data model** `soker.navn` — string\n\nModel `model` (App/models/model.schema.json)",
+            suggestion.Documentation
+        );
+        Assert.Null(suggestion.Preview);
+    }
+
     [Fact]
     public void ProposeRename_CoversComponent_RefusesDataPath()
     {
@@ -1235,12 +1330,18 @@ public sealed class AppSymbolsTests
 
         var (l1, c1) = At(ExprCompletionLayout, "\"\"", 1);
         var def = symbols.Completions(p1, l1, c1);
-        Assert.Contains(def, s => s.Label == "x");
+        Assert.Contains(
+            def,
+            s => s.Label == "x" && s.Documentation is { } d && d.Contains("Model `model`", StringComparison.Ordinal)
+        );
         Assert.DoesNotContain(def, s => s.Label == "y");
 
         var (l2, c2) = At(ExprCompletionLayout, "\"\"", 2);
         var retargeted = symbols.Completions(p1, l2, c2);
-        Assert.Contains(retargeted, s => s.Label == "y");
+        Assert.Contains(
+            retargeted,
+            s => s.Label == "y" && s.Documentation is { } d && d.Contains("Model `other`", StringComparison.Ordinal)
+        );
         Assert.DoesNotContain(retargeted, s => s.Label == "x");
     }
 
@@ -1255,8 +1356,16 @@ public sealed class AppSymbolsTests
 
         var (tl, tc) = At(ExprCompletionLayout, "\"\"", 4);
         var texts = symbols.Completions(p1, tl, tc);
-        Assert.Contains(texts, s => s.Label == "key.a" && s.Detail == "text resource");
-        Assert.Contains(texts, s => s.Label == "general.back" && s.Detail == "built-in text");
+        Assert.Contains(texts, s => s.Label == "key.a" && s.Detail == "text resource" && s.Preview == "A");
+        Assert.Contains(
+            texts,
+            s =>
+                s.Label == "general.back"
+                && s.Detail == "built-in text"
+                && s.Preview is null
+                && s.Documentation is { } d
+                && d.Contains("Built-in frontend text", StringComparison.Ordinal)
+        );
 
         var (ol, oc) = At(ExprCompletionLayout, "\"\"", 5);
         Assert.Contains(symbols.Completions(p1, ol, oc), s => s.Label == "countries");

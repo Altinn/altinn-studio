@@ -8,7 +8,14 @@ namespace Altinn.Studio.AppConfig;
 
 public sealed partial class AppSymbols
 {
-    public IReadOnlyList<Suggestion> Completions(string file, int line, int col)
+    private const int PreviewMaxLength = 40;
+
+    public IReadOnlyList<Suggestion> Completions(
+        string file,
+        int line,
+        int col,
+        MarkupFormat format = MarkupFormat.Markdown
+    )
     {
         if (_config.ResolveNodeAt(file, line, col) is not { } node)
             return Array.Empty<Suggestion>();
@@ -18,10 +25,7 @@ public sealed partial class AppSymbols
         {
             if (node.Pointer.EndsWith("/dataType", StringComparison.Ordinal))
                 return DataTypeSuggestions(model);
-            return EffectiveSchemaAt(model, file, node.Pointer)
-                .OrderBy(kv => kv.Key, StringComparer.Ordinal)
-                .Select(kv => new Suggestion(kv.Key, kv.Value, SuggestionKind.DataModelPath))
-                .ToList();
+            return DataModelSuggestions(model, EffectiveSchemaAt(model, file, node.Pointer), format);
         }
         if (node.Pointer.Contains("/textResourceBindings/", StringComparison.Ordinal))
         {
@@ -31,10 +35,10 @@ public sealed partial class AppSymbols
                 foreach (var k in tr.Ids.Keys)
                     keys.Add(k);
             }
-            return keys.Select(k => new Suggestion(k, "text resource", SuggestionKind.TextKey)).ToList();
+            return keys.Select(k => TextKeySuggestion(model, k, "text resource", format)).ToList();
         }
 
-        if (ExpressionArgSuggestions(model, file, node.Pointer) is { } expr)
+        if (ExpressionArgSuggestions(model, file, node.Pointer, format) is { } expr)
             return expr;
 
         foreach (var r in model.Refs.ComponentIds)
@@ -81,7 +85,12 @@ public sealed partial class AppSymbols
         return Array.Empty<Suggestion>();
     }
 
-    private IReadOnlyList<Suggestion>? ExpressionArgSuggestions(AppModel model, string file, string ptr)
+    private IReadOnlyList<Suggestion>? ExpressionArgSuggestions(
+        AppModel model,
+        string file,
+        string ptr,
+        MarkupFormat format
+    )
     {
         var slash = ptr.LastIndexOf('/');
         if (slash < 0 || !int.TryParse(ptr[(slash + 1)..], out var argIndex) || argIndex < 1)
@@ -115,14 +124,7 @@ public sealed partial class AppSymbols
                     arr.GetArrayLength() > 2 && arr[2].ValueKind == JsonValueKind.String
                         ? arr[2].GetString()
                         : BindingResolver.DefaultDataTypeFor(model, AppPaths.SetIdOf(file));
-                var props =
-                    dataType is { Length: > 0 } dt && BindingResolver.SchemaFor(model, dt) is { } pinned
-                        ? pinned
-                        : model.SchemaProperties;
-                return props
-                    .OrderBy(kv => kv.Key, StringComparer.Ordinal)
-                    .Select(kv => new Suggestion(kv.Key, kv.Value, SuggestionKind.DataModelPath))
-                    .ToList();
+                return DataModelSuggestions(model, SchemaScopeFor(model, dataType), format);
             }
             case ExpressionWalker.RefKind.DataType:
                 return DataTypeSuggestions(model);
@@ -158,12 +160,12 @@ public sealed partial class AppSymbols
                     foreach (var k in tr.Ids.Keys)
                         keys.Add(k);
                 }
-                var list = keys.Select(k => new Suggestion(k, "text resource", SuggestionKind.TextKey)).ToList();
+                var list = keys.Select(k => TextKeySuggestion(model, k, "text resource", format)).ToList();
                 list.AddRange(
                     BuiltinTextKeys
                         .Keys.Where(k => !keys.Contains(k))
                         .OrderBy(k => k, StringComparer.Ordinal)
-                        .Select(k => new Suggestion(k, "built-in text", SuggestionKind.TextKey))
+                        .Select(k => TextKeySuggestion(model, k, "built-in text", format))
                 );
                 return list;
             }
@@ -179,6 +181,51 @@ public sealed partial class AppSymbols
         }
         return null;
     }
+
+    private static List<Suggestion> DataModelSuggestions(AppModel model, SchemaScope schema, MarkupFormat format) =>
+        schema
+            .Properties.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .Select(kv => new Suggestion(
+                kv.Key,
+                kv.Value,
+                SuggestionKind.DataModelPath,
+                Card(
+                    format,
+                    DataModelHover(model, new Symbol(SymbolKind.DataModelPath, kv.Key, schema.DataType), format)
+                )
+            ))
+            .ToList();
+
+    private static Suggestion TextKeySuggestion(AppModel model, string key, string detail, MarkupFormat format) =>
+        new(
+            key,
+            detail,
+            SuggestionKind.TextKey,
+            Card(format, TextKeyHover(model, new Symbol(SymbolKind.TextKey, key), format)),
+            TextPreview(model, key)
+        );
+
+    private static string? TextPreview(AppModel model, string key)
+    {
+        var byPreference = model
+            .TextResources.OrderBy(t => PreviewRank(t.Language))
+            .ThenBy(t => t.Language, StringComparer.Ordinal);
+        foreach (var tr in byPreference)
+            if (
+                tr.Values.TryGetValue(key, out var value)
+                && SingleLine(value, PreviewMaxLength) is { Length: > 0 } preview
+            )
+                return preview;
+        return null;
+    }
+
+    private static int PreviewRank(string language) =>
+        language switch
+        {
+            "nb" => 0,
+            "en" => 1,
+            _ => 2,
+        };
 
     private static List<Suggestion> DataTypeSuggestions(AppModel model) =>
         model
@@ -216,17 +263,22 @@ public sealed partial class AppSymbols
     }
 
     private static IReadOnlyDictionary<string, string> EffectiveSchema(AppModel model, DataModelReference r) =>
-        BindingResolver.Resolve(model, r) is { } dataType && BindingResolver.SchemaFor(model, dataType) is { } props
-            ? props
-            : model.SchemaProperties;
+        SchemaScopeFor(model, BindingResolver.Resolve(model, r)).Properties;
 
-    private static IReadOnlyDictionary<string, string> EffectiveSchemaAt(AppModel model, string file, string pointer)
+    private static SchemaScope EffectiveSchemaAt(AppModel model, string file, string pointer)
     {
         foreach (var r in model.Refs.DataModel)
             if (Same(r.Position, file, pointer))
-                return EffectiveSchema(model, r);
-        return model.SchemaProperties;
+                return SchemaScopeFor(model, BindingResolver.Resolve(model, r));
+        return SchemaScopeFor(model, null);
     }
+
+    private static SchemaScope SchemaScopeFor(AppModel model, string? dataType) =>
+        dataType is { Length: > 0 } && BindingResolver.SchemaFor(model, dataType) is { } props
+            ? new SchemaScope(dataType, props)
+            : new SchemaScope("", model.SchemaProperties);
+
+    private readonly record struct SchemaScope(string DataType, IReadOnlyDictionary<string, string> Properties);
 }
 
 public enum SuggestionKind
@@ -240,4 +292,16 @@ public enum SuggestionKind
     OptionsId,
 }
 
-public sealed record Suggestion(string Label, string Detail, SuggestionKind Kind);
+public enum MarkupFormat
+{
+    Markdown,
+    PlainText,
+}
+
+public sealed record Suggestion(
+    string Label,
+    string Detail,
+    SuggestionKind Kind,
+    string? Documentation = null,
+    string? Preview = null
+);
