@@ -1,5 +1,6 @@
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
 import { t } from 'i18next';
+import { getDefaultTaskName } from 'app-shared/utils/getDefaultTaskName';
 
 const supportedEntries = {
   'create.start-event': 'process_editor.palette_create_start_event',
@@ -42,7 +43,6 @@ export class SupportedPaletteProvider {
       {
         id: 'user-controlled-signing',
         taskType: 'signing',
-        name: 'Altinn user-controlled signing task',
         configure: () => signingConfig(true),
       },
       {
@@ -66,7 +66,6 @@ export class SupportedPaletteProvider {
       {
         id: 'pdf',
         taskType: 'pdf',
-        name: 'Lag PDF',
         configure: () => ({ pdfConfig: factory.create('altinn:PdfConfig') }),
       },
       {
@@ -80,7 +79,7 @@ export class SupportedPaletteProvider {
         configure: () => ({ subformPdfConfig: factory.create('altinn:SubformPdfConfig') }),
       },
       { id: 'fiks-arkiv', taskType: 'fiksArkiv' },
-      { id: 'custom-service', taskType: '', name: 'Altinn service task' },
+      { id: 'custom-service', taskType: '' },
     ];
 
     return (entries) => {
@@ -100,10 +99,10 @@ export class SupportedPaletteProvider {
     };
   }
 
-  createTaskEntry({ id, taskType, name = `Altinn ${taskType} task`, configure }, type) {
+  createTaskEntry({ id, taskType, configure }, type) {
     const createTask = (event) => {
       const businessObject = this.bpmnFactory.create(type, {
-        name,
+        name: getDefaultTaskName(id),
         extensionElements: this.bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
             this.bpmnFactory.create('altinn:TaskExtension', {

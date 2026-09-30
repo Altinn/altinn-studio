@@ -5,6 +5,7 @@ import {
   MINIMUM_APP_FRONTEND_VERSION_FOR_PDF_SERVICE_TASK,
 } from '../utils/processEditorUtils';
 import { t } from 'i18next';
+import { getDefaultTaskName } from 'app-shared/utils/getDefaultTaskName';
 
 const supportedEntries = ['create.exclusive-gateway', 'create.start-event', 'create.end-event'];
 
@@ -24,7 +25,7 @@ class SupportedPaletteProvider {
 
     function createCustomTask(taskType) {
       return function (event) {
-        const task = buildAltinnTask(taskType);
+        const task = buildAltinnTask(getDefaultTaskName(taskType));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -46,7 +47,7 @@ class SupportedPaletteProvider {
       const taskType = 'signing';
 
       return function (event) {
-        const task = buildAltinnTask(taskType);
+        const task = buildAltinnTask(getDefaultTaskName(taskType));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -87,7 +88,7 @@ class SupportedPaletteProvider {
       const taskType = 'signing';
 
       return function (event) {
-        const task = buildAltinnTask(`user-controlled ${taskType}`);
+        const task = buildAltinnTask(getDefaultTaskName('user-controlled-signing'));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -128,7 +129,7 @@ class SupportedPaletteProvider {
       const taskType = 'confirmation';
 
       return function (event) {
-        const task = buildAltinnTask(taskType);
+        const task = buildAltinnTask(getDefaultTaskName(taskType));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -157,7 +158,7 @@ class SupportedPaletteProvider {
       const taskType = 'payment';
 
       return function (event) {
-        const task = buildAltinnTask(taskType);
+        const task = buildAltinnTask(getDefaultTaskName(taskType));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -226,7 +227,7 @@ class SupportedPaletteProvider {
           return;
         }
 
-        const task = buildAltinnServiceTask(taskType, 'Lag PDF');
+        const task = buildAltinnServiceTask(getDefaultTaskName(taskType));
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -245,9 +246,9 @@ class SupportedPaletteProvider {
       };
     }
 
-    const buildAltinnTask = (taskType) => {
+    const buildAltinnTask = (name) => {
       const businessObject = bpmnFactory.create('bpmn:Task', {
-        name: `Altinn ${taskType} task`,
+        name,
       });
 
       const task = elementFactory.createShape({
@@ -258,7 +259,7 @@ class SupportedPaletteProvider {
       return task;
     };
 
-    const buildAltinnServiceTask = (taskType, name = `Altinn ${taskType} task`) => {
+    const buildAltinnServiceTask = (name) => {
       const businessObject = bpmnFactory.create('bpmn:ServiceTask', {
         name,
       });
