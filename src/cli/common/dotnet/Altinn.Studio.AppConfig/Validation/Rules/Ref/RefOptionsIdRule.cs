@@ -8,8 +8,9 @@ internal sealed class RefOptionsIdRule : IValidationRule
         new(
             "REF-OPTIONS-ID",
             "optionsId must reference an option source",
-            "Dropdown/Checkboxes/RadioButtons optionsId must reference either a static "
-                + "App/options/<id>.json file or an option list registered in code: an "
+            "Dropdown/Checkboxes/RadioButtons optionsId must reference a static "
+                + "App/options/<id>.json file, a shared library code list "
+                + "(lib**<org>**<codeListId>**<version>), or an option list registered in code: an "
                 + "IAppOptionsProvider class, AddAltinnCodelists() and the other Altinn.Codelists "
                 + "helpers, AddSSBClassificationCodelistProvider(id, …), AddJoinedAppOptions(id, …), "
                 + "AddAltinn2CodeList(id, …) or AddAltinn3CodeList(optionId, …). An id in code is "

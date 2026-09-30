@@ -157,6 +157,18 @@ public sealed class OptionsRegistrationTests
         Assert.Contains(findings, f => f.RuleId == "REF-OPTIONS-ID");
     }
 
+    [Theory]
+    [InlineData("lib**ttd**countries**latest")]
+    [InlineData("lib**digdir**kommuner_2024**1.2")]
+    public void LibraryCodeListReference_IsResolvedWithoutFileOrRegistration(string optionsId) =>
+        Assert.Empty(UnresolvedOptionsIds(optionsId, Program("")));
+
+    [Theory]
+    [InlineData("lib**ttd**countries")]
+    [InlineData("lib**ttd**coun tries**latest")]
+    public void MalformedLibraryCodeListReference_IsStillFlagged(string optionsId) =>
+        Assert.NotEmpty(UnresolvedOptionsIds(optionsId, Program("")));
+
     [Fact]
     public void Hover_NamesTheRegisteringCall()
     {
