@@ -18,7 +18,7 @@ export type DeployDropdownProps = {
   selectedImageTag: string;
   startDeploy: (appStatus: DeployAppStatus) => void;
   isPending: boolean;
-  isProduction: boolean;
+  defaultAppStatus: DeployAppStatus;
 };
 
 export const DeployDropdown = ({
@@ -28,7 +28,7 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
   isPending,
-  isProduction,
+  defaultAppStatus,
 }: DeployDropdownProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
@@ -86,7 +86,7 @@ export const DeployDropdown = ({
           selectedImageTag={selectedImageTag}
           disabled={disabled}
           isPending={isPending}
-          isProduction={isProduction}
+          defaultAppStatus={defaultAppStatus}
           onConfirm={startDeploy}
         />
       </div>
