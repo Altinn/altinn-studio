@@ -8,11 +8,12 @@
 //! - A Sandbox entry per Sandbox record, added when the record is created and removed when the
 //!   Sandbox is deleted, so an image stays while a Sandbox uses it, with or without a runtime.
 //! - A cache entry per image version, named by its digest or build, which resolving or
-//!   importing the image refreshes. A removal pass removes it once the image has not been used
-//!   for the retention period.
+//!   importing the image refreshes, and which deleting a Sandbox that used it refreshes too. A
+//!   removal pass removes it once it has not been refreshed for the retention period.
 //!
 //! Microsandbox applies each removal atomically, so removing an entry never needs to know what
-//! else holds its image.
+//! else holds its image. Only removal passes remove the last entry of a version, and so delete
+//! files; they run exclusively of image fetches, which may reuse those files.
 
 use std::{
     collections::HashSet,
@@ -44,6 +45,9 @@ const SCRATCH_DIRECTORY: &str = "tmp/sandbox-microsandbox";
 /// created from the cache only.
 const SANDBOX_REPOSITORY: &str = "sandbox-microsandbox-sandbox";
 
+/// Repository of cache entries that deleting a Sandbox writes for its image, by digest.
+const RELEASED_REPOSITORY: &str = "sandbox-microsandbox-released";
+
 /// Marks a home whose catalog, from before Sandbox entries, has been migrated.
 const MIGRATED_MARKER: &str = "image-catalog-v2";
 
@@ -60,22 +64,13 @@ pub(crate) struct ImageCache {
 }
 
 impl ImageCache {
-    /// Opens the cache. With a retention period it migrates a catalog from before Sandbox
-    /// entries once, then runs a removal pass.
-    pub(crate) async fn open(client: Client, state: StateStore, retention: Option<Duration>) -> Self {
-        let images = Self {
+    pub(crate) fn new(client: Client, state: StateStore, retention: Option<Duration>) -> Self {
+        Self {
             client,
             state,
             retention,
             catalog: Rc::new(RwLock::new(())),
-        };
-        if images.retention.is_some() {
-            if let Err(error) = images.migrate().await {
-                tracing::warn!(%error, "failed to migrate the Microsandbox image catalog");
-            }
-            images.remove_unused().await;
         }
-        images
     }
 
     /// Fetches an image and records it in the catalog under the name the fetch returns, which
@@ -91,31 +86,46 @@ impl ImageCache {
     }
 
     /// Adds the entry that keeps a Sandbox's image while the Sandbox exists, and returns its
-    /// name. The image must be in the cache already; adding the entry again changes nothing.
-    pub(crate) async fn hold(&self, record: &SandboxRecord) -> Result<String, Error> {
+    /// name, or `None` when the image is not in the cache. Adding it again changes nothing.
+    pub(crate) async fn hold(&self, record: &SandboxRecord) -> Result<Option<String>, Error> {
         let name = sandbox_entry(&record.id);
         let manifest_digest = record.image.manifest_digest.as_str();
         let _recording = self.catalog.read().await;
         match microsandbox::Image::get_local(self.client.local(), &name).await {
-            Ok(entry) if entry.manifest_digest() == Some(manifest_digest) => return Ok(name),
+            Ok(entry) if entry.manifest_digest() == Some(manifest_digest) => return Ok(Some(name)),
             Ok(_) | Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => {}
             Err(failure) => return Err(error::microsandbox(failure)),
         }
-        let metadata = self.cached_metadata(manifest_digest).await?.ok_or_else(|| {
-            Error::Backend(format!(
-                "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
-            ))
-        })?;
+        let Some(metadata) = self.cached_metadata(manifest_digest).await? else {
+            return Ok(None);
+        };
         self.write_entry(&name, metadata).await?;
-        Ok(name)
+        Ok(Some(name))
     }
 
-    /// Removes a deleted Sandbox's entry. Its image goes with it unless another entry names
-    /// it. A failure leaves the entry to the next removal pass.
-    pub(crate) async fn release(&self, id: &SandboxId) {
-        let name = sandbox_entry(id);
+    /// Releases a deleted Sandbox's image. A fresh cache entry takes over from the Sandbox's
+    /// entry, so the image stays for the retention period after the deletion and a removal
+    /// pass removes it after that. An entry this leaves behind goes with the next pass.
+    pub(crate) async fn release(&self, record: &SandboxRecord) {
+        let manifest_digest = record.image.manifest_digest.as_str();
+        let taken_over = {
+            let _recording = self.catalog.read().await;
+            match self.cached_metadata(manifest_digest).await {
+                Ok(Some(metadata)) => self.write_entry(&released_entry(manifest_digest), metadata).await,
+                Ok(None) => Ok(()),
+                Err(error) => Err(error),
+            }
+        };
+        if let Err(error) = taken_over {
+            tracing::warn!(sandbox = %record.id, %error, "failed to keep a deleted Sandbox's image");
+            return;
+        }
+        let name = sandbox_entry(&record.id);
         match microsandbox::Image::remove_local(self.client.local(), &name, false).await {
-            Ok(()) | Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => {}
+            // Another Sandbox's runtime still uses the image.
+            Ok(())
+            | Err(microsandbox::MicrosandboxError::ImageNotFound(_) | microsandbox::MicrosandboxError::ImageInUse(_)) =>
+                {}
             Err(failure) => tracing::warn!(entry = name, error = %failure, "failed to release a Sandbox's image"),
         }
     }
@@ -176,32 +186,19 @@ impl ImageCache {
         Ok(())
     }
 
-    /// Migrates a catalog recorded before Sandbox entries: every Sandbox gets its entry, and
-    /// image versions no entry names, which a moved tag left behind, are swept with
-    /// Microsandbox's prune.
-    ///
-    /// Prune also removes every entry of an image no runtime uses, so it runs only once every
-    /// Sandbox has a runtime; until then each open tries again. It runs while the Provider
-    /// opens, before any other operation. The migration completes once every Sandbox has its
-    /// entry, which a Sandbox whose image no entry names cannot get until it is deleted.
-    async fn migrate(&self) -> Result<(), Error> {
-        let marker = self.state.marker(MIGRATED_MARKER);
-        if tokio::fs::try_exists(&marker).await.unwrap_or(false) {
-            return Ok(());
-        }
-        let records = self.state.sandbox_records().await?;
-        let mut every_sandbox_held = true;
-        for record in &records {
-            if let Err(error) = self.hold(record).await {
-                tracing::info!(sandbox = %record.id, %error, "Sandbox image has no catalog entry to migrate");
-                every_sandbox_held = false;
-            }
-        }
-        for record in &records {
-            if self.client.runtime_handle(&record.runtime_name).await?.is_none() {
-                return Ok(());
-            }
-        }
+    /// Reports whether this home's catalog is from before Sandboxes held their images.
+    pub(crate) async fn migration_pending(&self) -> bool {
+        !tokio::fs::try_exists(self.state.marker(MIGRATED_MARKER))
+            .await
+            .unwrap_or(false)
+    }
+
+    /// Completes the migration of a catalog from before Sandboxes held their images, once every
+    /// Sandbox holds its image. Image versions no entry names, which a moved tag left behind,
+    /// are reachable only through Microsandbox's prune, which also removes every entry of an
+    /// image no runtime uses. It therefore runs once, while the Provider opens and before any
+    /// Sandbox is created.
+    pub(crate) async fn finish_migration(&self) -> Result<(), Error> {
         let report = microsandbox::Image::prune_local(self.client.local())
             .await
             .map_err(error::microsandbox)?;
@@ -210,12 +207,20 @@ impl ImageCache {
             layers = report.layers_removed,
             "migrated the Microsandbox image catalog"
         );
-        if every_sandbox_held {
-            tokio::fs::write(&marker, b"")
-                .await
-                .map_err(|source| error::io("record the Microsandbox image catalog migration", source))?;
+        // Earlier releases staged archives in the parent of the scratch directory.
+        if let Some(legacy_scratch) = self.scratch_directory().parent()
+            && let Ok(mut entries) = tokio::fs::read_dir(legacy_scratch).await
+        {
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                let archive = entry.file_name().to_string_lossy().starts_with(".tmp");
+                if archive && entry.file_type().await.is_ok_and(|kind| kind.is_file()) {
+                    let _ = tokio::fs::remove_file(entry.path()).await;
+                }
+            }
         }
-        Ok(())
+        tokio::fs::write(self.state.marker(MIGRATED_MARKER), b"")
+            .await
+            .map_err(|source| error::io("record the Microsandbox image catalog migration", source))
     }
 
     /// Returns the cached metadata of an image version from any catalog entry that names it.
@@ -296,6 +301,11 @@ fn sandbox_entry(id: &SandboxId) -> String {
     format!("{SANDBOX_REPOSITORY}:{}", entry_tag(id))
 }
 
+/// Returns the catalog name of the cache entry that takes over a deleted Sandbox's image.
+fn released_entry(manifest_digest: &str) -> String {
+    format!("{RELEASED_REPOSITORY}@{manifest_digest}")
+}
+
 /// Returns the Sandbox ID tag of a Sandbox entry, or `None` for any other catalog entry.
 fn sandbox_entry_tag(reference: &str) -> Option<&str> {
     let (repository, tag) = reference.rsplit_once(':')?;
@@ -328,7 +338,7 @@ mod tests {
 
     use sandbox::{ByteQuantity, CpuQuantity, Hostname, Platform, RootFilesystem, SandboxName, SandboxResources};
 
-    use super::{ImageCache, MIGRATED_MARKER, is_expired, sandbox_entry, sandbox_entry_tag};
+    use super::{ImageCache, MIGRATED_MARKER, is_expired, released_entry, sandbox_entry, sandbox_entry_tag};
     use crate::{
         client::Client,
         state::{SandboxRecord, StateStore},
@@ -337,7 +347,7 @@ mod tests {
     const DAY: Duration = Duration::from_hours(24);
 
     struct Home {
-        _directory: tempfile::TempDir,
+        directory: tempfile::TempDir,
         client: Client,
         state: StateStore,
     }
@@ -352,14 +362,18 @@ mod tests {
                 .await
                 .expect("state store should open");
             Self {
-                _directory: directory,
+                directory,
                 client,
                 state,
             }
         }
 
-        async fn images(&self) -> ImageCache {
-            ImageCache::open(self.client.clone(), self.state.clone(), Some(DAY)).await
+        fn images(&self) -> ImageCache {
+            ImageCache::new(self.client.clone(), self.state.clone(), Some(DAY))
+        }
+
+        fn path(&self) -> &std::path::Path {
+            self.directory.path()
         }
 
         /// Records a cache entry the way resolving an image does.
@@ -475,26 +489,42 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn a_sandbox_keeps_its_image_until_it_is_released() {
+    async fn a_deleted_sandboxs_image_stays_for_the_retention_period_after_the_deletion() {
         let home = Home::open().await;
-        let images = home.images().await;
+        let images = home.images();
         let image = digest('a');
-        let cache_entry = format!("example.com/app@{image}");
-        home.resolve(&images, &cache_entry, &image).await;
+        home.resolve(&images, &format!("example.com/app@{image}"), &image).await;
         let files = home.materialize(&image);
         let record = home.sandbox_needing(&image).await;
-        let entry = images.hold(&record).await.expect("the image should be held");
-        assert_eq!(images.hold(&record).await.expect("holding again"), entry);
+        let entry = images
+            .hold(&record)
+            .await
+            .expect("hold")
+            .expect("the image should be cached");
+        assert_eq!(images.hold(&record).await.expect("hold again"), Some(entry.clone()));
 
+        // The Sandbox outlives the image's cache entry.
         images
             .remove_unused_at(SystemTime::now() + 2 * DAY, DAY)
             .await
             .expect("pass");
-        assert_eq!(home.references().await, [entry], "only the cache entry expires");
-        assert!(files.exists());
+        assert_eq!(home.references().await, [entry]);
 
         home.state.remove_sandbox(&record).await.expect("record removed");
-        images.release(&record.id).await;
+        images.release(&record).await;
+        assert_eq!(home.references().await, [released_entry(&image)]);
+        images
+            .remove_unused_at(SystemTime::now() + Duration::from_hours(23), DAY)
+            .await
+            .expect("pass");
+        assert!(
+            files.exists(),
+            "the image stays for the retention period after the deletion"
+        );
+        images
+            .remove_unused_at(SystemTime::now() + Duration::from_hours(25), DAY)
+            .await
+            .expect("pass");
         assert!(home.references().await.is_empty());
         assert!(!files.exists(), "the image goes with its last entry");
     }
@@ -502,7 +532,7 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn a_cache_entry_is_kept_for_the_retention_period() {
         let home = Home::open().await;
-        let images = home.images().await;
+        let images = home.images();
         let image = digest('a');
         home.resolve(&images, &format!("example.com/app@{image}"), &image).await;
 
@@ -521,11 +551,15 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn an_entry_whose_sandbox_record_is_gone_is_removed() {
         let home = Home::open().await;
-        let images = home.images().await;
+        let images = home.images();
         let image = digest('a');
         home.resolve(&images, &format!("example.com/app@{image}"), &image).await;
         let record = home.sandbox_needing(&image).await;
-        let entry = images.hold(&record).await.expect("the image should be held");
+        let entry = images
+            .hold(&record)
+            .await
+            .expect("hold")
+            .expect("the image should be cached");
         home.state.remove_sandbox(&record).await.expect("record removed");
 
         images.remove_unused_at(SystemTime::now(), DAY).await.expect("pass");
@@ -533,50 +567,93 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn holding_an_image_that_is_not_cached_fails() {
+    async fn an_image_that_is_not_cached_cannot_be_held() {
         let home = Home::open().await;
-        let images = home.images().await;
+        let images = home.images();
         let record = home.sandbox_needing(&digest('a')).await;
-        let error = images.hold(&record).await.expect_err("nothing to hold");
-        assert!(error.to_string().contains("is not present in this Microsandbox cache"));
+        assert_eq!(images.hold(&record).await.expect("hold"), None);
+    }
+
+    /// Records a tag the way releases before Sandbox entries did, moved from a previous version
+    /// to a current one, which leaves the previous version without an entry.
+    async fn record_moved_tag(home: &Home) -> PathBuf {
+        let (previous, current) = (digest('a'), digest('b'));
+        home.record_legacy("example.com/app:latest", &previous).await;
+        home.record_legacy("example.com/app:latest", &current).await;
+        home.materialize(&previous)
     }
 
     #[tokio::test(flavor = "local")]
-    async fn migration_sweeps_image_versions_no_entry_names() {
+    async fn finishing_the_migration_removes_what_nothing_holds_once() {
         let home = Home::open().await;
-        let (previous, current) = (digest('a'), digest('b'));
-        // A tag recorded before Sandbox entries left its previous version without an entry
-        // when it moved.
-        home.record_legacy("example.com/app:latest", &previous).await;
-        home.record_legacy("example.com/app:latest", &current).await;
-        let previous_files = home.materialize(&previous);
+        let previous_files = record_moved_tag(&home).await;
+        let legacy_scratch = home.client.local().cache_dir().join("tmp");
+        std::fs::create_dir_all(&legacy_scratch).expect("legacy scratch directory");
+        std::fs::write(legacy_scratch.join(".tmpArchive"), b"archive").expect("legacy archive");
+        let images = home.images();
+        assert!(images.migration_pending().await);
 
-        home.images().await;
+        images.finish_migration().await.expect("migration");
+        assert!(!previous_files.exists());
+        assert!(!legacy_scratch.join(".tmpArchive").exists());
+        assert!(!images.migration_pending().await);
+        assert!(home.state.marker(MIGRATED_MARKER).exists());
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn opening_a_provider_migrates_a_home_from_before_sandboxes_held_their_images() {
+        let home = Home::open().await;
+        let previous_files = record_moved_tag(&home).await;
+
+        provider(home.path()).await;
         assert!(!previous_files.exists());
         assert!(home.state.marker(MIGRATED_MARKER).exists());
     }
 
     #[tokio::test(flavor = "local")]
-    async fn migration_waits_while_a_sandbox_has_no_runtime() {
+    async fn migration_waits_while_a_sandbox_cannot_hold_its_image() {
         let home = Home::open().await;
-        let (previous, current) = (digest('a'), digest('b'));
-        home.record_legacy("example.com/app:latest", &previous).await;
-        home.record_legacy("example.com/app:latest", &current).await;
-        let previous_files = home.materialize(&previous);
-        let record = home.sandbox_needing(&current).await;
+        let previous_files = record_moved_tag(&home).await;
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000002", &digest('d'));
+        record.image.source = sandbox::image::ImageSource::Reference {
+            reference: "registry.invalid/app:latest".to_string(),
+        };
+        home.state.save_sandbox(&record).await.expect("record saved");
 
-        home.images().await;
-        assert!(
-            home.references().await.contains(&sandbox_entry(&record.id)),
-            "the Sandbox gets its entry"
-        );
+        provider(home.path()).await;
         assert!(
             previous_files.exists(),
-            "prune would remove the entries of a Sandbox without a runtime"
+            "nothing is removed before every Sandbox holds its image"
         );
         assert!(
             !home.state.marker(MIGRATED_MARKER).exists(),
             "the next open tries again"
+        );
+    }
+
+    #[tokio::test(flavor = "local")]
+    #[ignore = "requires Internet access"]
+    async fn a_sandbox_fetches_an_image_the_cache_lost_by_digest() {
+        let manifest_digest = match std::env::consts::ARCH {
+            "x86_64" => "sha256:7c8cb692ae09657cbc4a3f3cbd0e8d5a2690ba38386aaaf252dbb060bf5eb2e6",
+            "aarch64" => "sha256:2c9d26f410d032d5b1525aa8a873e238b05b90c4ae8618743d4311f0cc827e37",
+            _ => return,
+        };
+        let home = Home::open().await;
+        let provider = provider(home.path()).await;
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000003", manifest_digest);
+        record.image.source = sandbox::image::ImageSource::Reference {
+            reference: "docker.io/library/alpine:3.22".to_string(),
+        };
+        record.image.platform = native_platform();
+        home.state.save_sandbox(&record).await.expect("record saved");
+
+        let entry = provider.hold_image(&record).await.expect("the image should be fetched");
+        assert_eq!(entry, sandbox_entry(&record.id));
+        assert!(
+            home.references()
+                .await
+                .contains(&format!("docker.io/library/alpine@{manifest_digest}"))
         );
     }
 
@@ -586,8 +663,7 @@ mod tests {
         let image = digest('a');
         home.record_legacy(&format!("example.com/app@{image}"), &image).await;
 
-        ImageCache::open(home.client.clone(), home.state.clone(), None)
-            .await
+        ImageCache::new(home.client.clone(), home.state.clone(), None)
             .remove_unused()
             .await;
         assert_eq!(home.references().await.len(), 1);

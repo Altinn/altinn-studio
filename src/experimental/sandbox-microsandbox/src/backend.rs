@@ -132,15 +132,67 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let images = ImageCache::open(client.clone(), state.clone(), unused_image_retention).await;
+        let images = ImageCache::new(client.clone(), state.clone(), unused_image_retention);
         let image_backend = MicrosandboxImageBackend::new(client.clone(), images.clone(), registry_authentication);
-        Ok(Self {
+        let provider = Self {
             client,
             images,
             image_backend,
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
-        })
+        };
+        if unused_image_retention.is_some() {
+            if let Err(error) = provider.migrate_images().await {
+                tracing::warn!(%error, "failed to migrate the Microsandbox image catalog; retrying when the Provider next opens");
+            }
+            provider.images.remove_unused().await;
+        }
+        Ok(provider)
+    }
+
+    /// Migrates a catalog recorded before Sandboxes held their images, while the Provider opens
+    /// and before anything else runs: every Sandbox holds its image, fetching it again by digest
+    /// when the catalog lost track of it, and then image versions nothing holds are removed. If
+    /// a Sandbox cannot hold its image, nothing is removed and the next open tries again.
+    async fn migrate_images(&self) -> Result<(), Error> {
+        if !self.images.migration_pending().await {
+            return Ok(());
+        }
+        for record in self.state.sandbox_records().await? {
+            self.hold_image(&record).await?;
+        }
+        self.images.finish_migration().await
+    }
+
+    /// Makes a Sandbox hold its image and returns the name to create its runtime from. An image
+    /// no longer in the cache is fetched again from its registry by digest.
+    pub(crate) async fn hold_image(&self, record: &SandboxRecord) -> Result<String, Error> {
+        use sandbox::image::ImageBackend as _;
+
+        if let Some(entry) = self.images.hold(record).await? {
+            return Ok(entry);
+        }
+        let manifest_digest = &record.image.manifest_digest;
+        if let sandbox::image::ImageSource::Reference { reference } = &record.image.source {
+            let reference = reference
+                .parse::<microsandbox_image::Reference>()
+                .map_err(error::backend)?;
+            self.image_backend
+                .resolve(&sandbox::image::ResolveRequest {
+                    source: sandbox::image::ImageSource::Reference {
+                        reference: crate::image::pinned_reference(&reference, manifest_digest),
+                    },
+                    platform: record.image.platform.clone(),
+                    root_filesystem_mode: record.resources.root_filesystem().mode(),
+                })
+                .await?;
+            if let Some(entry) = self.images.hold(record).await? {
+                return Ok(entry);
+            }
+        }
+        Err(Error::Backend(format!(
+            "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
+        )))
     }
 
     #[cfg(test)]
@@ -161,7 +213,7 @@ impl MicrosandboxProvider {
         self.state.save_sandbox(&record).await?;
         // The record comes first, so an image entry without a record is always a deleted
         // Sandbox's, which removal passes clean up.
-        if let Err(error) = self.images.hold(&record).await {
+        if let Err(error) = self.hold_image(&record).await {
             if let Err(cleanup) = self.state.remove_sandbox(&record).await {
                 tracing::warn!(sandbox = %record.id, error = %cleanup, "failed to remove the record of a Sandbox without its image");
             }
@@ -338,7 +390,7 @@ impl MicrosandboxProvider {
         }
         self.client.local().set_network_controlled(&record.runtime_name, false);
         self.state.remove_sandbox(&record).await?;
-        self.images.release(&record.id).await;
+        self.images.release(&record).await;
         self.images.remove_unused().await;
         Ok(())
     }
@@ -378,8 +430,9 @@ impl MicrosandboxProvider {
         let network = self.prepare_runtime_network(record)?;
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
-        // Adding the entry again also covers a record saved before its entry was added.
-        let image = self.images.hold(record).await?;
+        // Holding the image again also covers a record saved before it held its image, and an
+        // image the cache no longer has.
+        let image = self.hold_image(record).await?;
         step.complete().await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
             let step = progress.start_step(MATERIALIZE_DIRECT_ROOT_IMAGE).await;
@@ -483,15 +536,15 @@ impl MicrosandboxProviderBuilder {
     /// Removes cached images that no Sandbox needs once they have not been used for
     /// `retention`.
     ///
-    /// A Sandbox keeps its image until it is deleted, whether or not it is running. Resolving
-    /// or importing an image uses it, and an image no Sandbox keeps is removed once it has not
-    /// been used for `retention`, which must be at least an hour. Removal runs when the
-    /// Provider opens, after each image is resolved or imported and after each Sandbox is
-    /// deleted, so an unused image can outlive `retention` until the next of these. Only
-    /// resolving and importing add images.
+    /// A Sandbox keeps its image until it is deleted, whether or not it is running. An image no
+    /// Sandbox keeps is removed once `retention` has passed since it was last resolved or
+    /// imported, or since the last Sandbox using it was deleted. `retention` must be at least
+    /// an hour. Removal runs when the Provider opens, after each image is resolved or imported
+    /// and after each Sandbox is deleted, so an unused image can outlive `retention` until the
+    /// next of these. Only resolving and importing add images.
     ///
-    /// When the Provider opens, image versions left behind before images were recorded this
-    /// way are removed once every Sandbox has a runtime.
+    /// The first time the Provider opens a home from before this, image versions no Sandbox
+    /// uses are removed.
     ///
     /// Enable this only for the Provider that owns its home. It cannot be combined with
     /// [`Self::cache_directory`], since another Provider may use a shared cache.

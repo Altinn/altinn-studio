@@ -586,7 +586,7 @@ fn require_direct_prepared_root(
 /// Returns the catalog name of a pulled image version: its reference pinned to the manifest
 /// digest, never a tag. A tag moves to newer versions, while this name names only this one, so
 /// removing it removes the version.
-fn pinned_reference(reference: &microsandbox_image::Reference, manifest_digest: &str) -> String {
+pub(crate) fn pinned_reference(reference: &microsandbox_image::Reference, manifest_digest: &str) -> String {
     microsandbox_image::Reference::with_digest(
         reference.registry().to_string(),
         reference.repository().to_string(),
@@ -1041,7 +1041,7 @@ mod tests {
         let state = crate::state::StateStore::open(state.to_path_buf())
             .await
             .expect("state store should open");
-        let images = crate::image_cache::ImageCache::open(client.clone(), state, None).await;
+        let images = crate::image_cache::ImageCache::new(client.clone(), state, None);
         super::MicrosandboxImageBackend::new(client, images, None)
     }
 

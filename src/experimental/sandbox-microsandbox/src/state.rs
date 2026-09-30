@@ -299,15 +299,19 @@ where
         if path.extension().is_none_or(|extension| extension != "json") {
             continue;
         }
-        records.push(
-            read_record(
-                path.clone(),
-                "read Microsandbox state entry",
-                resource,
-                path.display().to_string(),
-            )
-            .await?,
-        );
+        match read_record(
+            path.clone(),
+            "read Microsandbox state entry",
+            resource,
+            path.display().to_string(),
+        )
+        .await
+        {
+            Ok(record) => records.push(record),
+            // Removed since the directory was read.
+            Err(error) if error.is_not_found() => {}
+            Err(error) => return Err(error),
+        }
     }
     Ok(records)
 }
