@@ -8,8 +8,10 @@ internal sealed class UniqueComponentIdRule : IValidationRule
         new(
             "UNIQUE-COMPONENT-ID",
             "Component ids must be unique within a layout-set",
-            "Two or more components in the same layout-set share an id. The frontend "
-                + "resolves only the first; later ones silently disappear.",
+            "Two or more components in the same layout-set share an id. The frontend reads the "
+                + "layout-set's pages sorted by file name (whole-number names first, in numeric order), "
+                + "not in pages.order, keeps the first component with each id and silently removes the "
+                + "later ones.",
             Severity.Error
         );
 

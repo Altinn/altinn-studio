@@ -16,7 +16,7 @@ internal sealed class AspectPipeline
         new("datamodel", SchemaParser.Parse),
         new("options", OptionsParser.Parse),
         new("footer", FooterParser.Parse),
-        new("layoutsets", (m, d) => LayoutSetsParser.Parse(m, d, parseLayouts: false)),
+        new("layoutsets", LayoutSetsParser.Parse),
         new("csharp", (m, d) => new RoslynSyntaxIntrospector().Introspect(m, d)),
     };
 
