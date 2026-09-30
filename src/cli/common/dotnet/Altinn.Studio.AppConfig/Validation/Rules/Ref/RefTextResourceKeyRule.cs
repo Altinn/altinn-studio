@@ -13,7 +13,10 @@ internal sealed class RefTextResourceKeyRule : IValidationRule
                 + "resource.<lang>.json. Altinn renders an unknown key as literal text, so a mistyped "
                 + "key shows its raw id to the user. Silent when the value matches a declared or "
                 + "built-in key, or contains whitespace or markup angle-brackets (clearly intentional "
-                + "inline text). Reported as info when the value reads as literal text — it contains "
+                + "inline text), and for texts the frontend never renders: those of a component or "
+                + "page with hidden: true, requiredValidation and shortName on a component that is "
+                + "never required, and tableTitle on a component that is not a RepeatingGroup "
+                + "child. Reported as info when the value reads as literal text — it contains "
                 + "@, :, / or +, has no letters, ends in a period, or is a single capitalized word or "
                 + "a .no host name — and no declared key is spelled like it. Otherwise reported as a "
                 + "warning, even when no resource files exist yet: the key still needs declaring.",
@@ -27,9 +30,10 @@ internal sealed class RefTextResourceKeyRule : IValidationRule
     public IEnumerable<Finding> Check(AppModel app)
     {
         var declared = app.TextResources.SelectMany(t => t.Ids.Keys).ToHashSet(StringComparer.Ordinal);
+        var neverRendered = new NeverRenderedTexts(app);
         foreach (var u in app.SymbolTable.UnresolvedOf(SymbolKind.TextKey))
         {
-            if (!Plausible(u.Value))
+            if (!Plausible(u.Value) || neverRendered.Contains(u.Position))
                 continue;
             if (ReadsAsLiteralText(u.Value) && NameDistance.Closest(u.Value, declared) is null)
                 yield return Metadata.Report(
