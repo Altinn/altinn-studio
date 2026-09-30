@@ -1282,10 +1282,10 @@ async fn abandoned_waits_free_the_socket_connections_after_one_long_poll() {
         () = wait_for_socket => {}
     }
 
-    // More than the 64 connections the listener serves at once, as interrupted
+    // More than the 128 connections the listener serves at once, as interrupted
     // clients of an Agent that never becomes ready leave behind.
     let mut abandoned = Vec::new();
-    for _ in 0..80 {
+    for _ in 0..150 {
         let mut stream = tokio::net::UnixStream::connect(&socket_path).await.expect("connect");
         stream.write_all(STUCK_EXECUTION).await.expect("write request");
         abandoned.push(stream);
