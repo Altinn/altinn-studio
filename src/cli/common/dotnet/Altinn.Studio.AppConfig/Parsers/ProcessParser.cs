@@ -31,12 +31,41 @@ internal static class ProcessParser
             return;
 
         var lineStarts = Spans.LineStarts(data);
-        CollectKind(app, process, "task", data, lineStarts);
-        CollectKind(app, process, "serviceTask", data, lineStarts);
-        CollectKind(app, process, "userTask", data, lineStarts);
-        CollectKind(app, process, "callActivity", data, lineStarts);
-        CollectKind(app, process, "subProcess", data, lineStarts);
+        var reachable = ReachableFromStart(process);
+        foreach (var kind in _taskElements)
+            CollectKind(app, process, kind, reachable, data, lineStarts);
         CollectSequenceFlowExpressions(app, process, data, lineStarts);
+    }
+
+    private static readonly string[] _taskElements = ["task", "serviceTask", "userTask", "callActivity", "subProcess"];
+
+    private static HashSet<string>? ReachableFromStart(XElement process)
+    {
+        var starts = process
+            .Elements()
+            .Where(e => e.Name.LocalName == "startEvent")
+            .Select(e => e.Attribute("id")?.Value)
+            .OfType<string>()
+            .ToList();
+        if (starts.Count == 0)
+            return null;
+        var targetsBySource = process
+            .Elements()
+            .Where(e => e.Name.LocalName == "sequenceFlow")
+            .ToLookup(
+                e => e.Attribute("sourceRef")?.Value ?? "",
+                e => e.Attribute("targetRef")?.Value ?? "",
+                StringComparer.Ordinal
+            );
+        var reached = new HashSet<string>(starts, StringComparer.Ordinal);
+        var pending = new Queue<string>(starts);
+        while (pending.TryDequeue(out var source))
+        {
+            foreach (var target in targetsBySource[source])
+                if (target.Length > 0 && reached.Add(target))
+                    pending.Enqueue(target);
+        }
+        return reached;
     }
 
     private static readonly HashSet<string> _processExpressionFunctions = new(StringComparer.Ordinal)
@@ -171,7 +200,14 @@ internal static class ProcessParser
         "serviceTask",
     };
 
-    private static void CollectKind(AppModelBuilder app, XElement process, string kind, byte[] data, int[] lineStarts)
+    private static void CollectKind(
+        AppModelBuilder app,
+        XElement process,
+        string kind,
+        HashSet<string>? reachable,
+        byte[] data,
+        int[] lineStarts
+    )
     {
         var tasks = process.Elements().Where(e => e.Name.LocalName == kind).ToArray();
         for (int i = 0; i < tasks.Length; i++)
@@ -183,7 +219,7 @@ internal static class ProcessParser
             var (line, col) = XmlPositions.LineCol(t, data, lineStarts);
             var pos = new SourceSpan(FileRel, ptr, line, col);
 
-            app.Tasks.Add(new ProcessTask(id, taskType, pos));
+            app.Tasks.Add(new ProcessTask(id, taskType, pos, Reachable: reachable is null || reachable.Contains(id)));
 
             CollectConfigRefs(app, t, id, ptr, data, lineStarts);
 

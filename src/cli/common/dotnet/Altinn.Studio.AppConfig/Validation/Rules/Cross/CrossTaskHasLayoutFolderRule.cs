@@ -11,7 +11,8 @@ internal sealed class CrossTaskHasLayoutFolderRule : IValidationRule
             "The frontend renders a data task from the folder under App/ui/ named after the task "
                 + "id, so a data task without one renders nothing. An app with no folder for any "
                 + "task, no CustomReceipt and no unused folder has no UI for its process (an API-only "
-                + "or stateless-only app) and is not checked. Unused folders are named as rename "
+                + "or stateless-only app) and is not checked, and neither is a task that no path of "
+                + "sequence flows from a start event reaches. Unused folders are named as rename "
                 + "candidates here instead of being reported by UNUSED-LAYOUT-FOLDER.",
             Severity.Error
         );
@@ -36,7 +37,9 @@ internal sealed class CrossTaskHasLayoutFolderRule : IValidationRule
         );
         if (!processHasUi)
             return [];
-        return app.Tasks.Where(t => t.TaskType == ProcessTaskTypes.Data && app.LayoutSetForTask(t.Id) is null).ToList();
+        return app
+            .Tasks.Where(t => t.TaskType == ProcessTaskTypes.Data && t.Reachable && app.LayoutSetForTask(t.Id) is null)
+            .ToList();
     }
 
     private static string Message(string taskId, List<string> unusedFolders)
