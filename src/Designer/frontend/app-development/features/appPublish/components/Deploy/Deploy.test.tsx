@@ -18,6 +18,7 @@ const defaultProps: DeployProps = {
   envName: 'tt02',
   isProduction: false,
   orgName: 'test',
+  defaultAppStatus: 'UnderDevelopment',
 };
 
 const created = '01.01.2024 18:53';
@@ -174,7 +175,7 @@ describe('DeploymentActions', () => {
     const user = userEvent.setup();
     const createDeployment = jest.fn().mockResolvedValue({});
     render(
-      { envName: 'production', isProduction: true },
+      { envName: 'production', isProduction: true, defaultAppStatus: 'Completed' },
       {
         createDeployment,
         getDeployPermissions: jest.fn().mockResolvedValue(['production']),

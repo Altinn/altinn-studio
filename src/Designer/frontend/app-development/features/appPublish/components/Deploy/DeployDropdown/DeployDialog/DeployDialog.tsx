@@ -12,7 +12,7 @@ import {
 } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { usePostHog } from '@posthog/react';
-import type { DeployAppStatus } from 'app-shared/types/AppStatus';
+import { deployAppStatuses, type DeployAppStatus } from 'app-shared/types/AppStatus';
 
 export const DEPLOY_EVENT_NAME = 'user_confirmed_app_deploy';
 
@@ -26,7 +26,7 @@ export type DeployDialogProps = {
   selectedImageTag: string;
   disabled: boolean;
   isPending: boolean;
-  isProduction: boolean;
+  defaultAppStatus: DeployAppStatus;
   onConfirm: (appStatus: DeployAppStatus) => void;
 };
 
@@ -35,14 +35,13 @@ export const DeployDialog = ({
   selectedImageTag,
   disabled,
   isPending,
-  isProduction,
+  defaultAppStatus,
   onConfirm,
 }: DeployDialogProps): ReactElement => {
   const { t } = useTranslation();
   const posthog = usePostHog();
   const radioGroupName = useId();
 
-  const defaultAppStatus = getDefaultAppStatus(isProduction);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [appStatus, setAppStatus] = useState<DeployAppStatus>(defaultAppStatus);
 
@@ -106,11 +105,6 @@ export const DeployDialog = ({
     </>
   );
 };
-
-const deployAppStatuses: DeployAppStatus[] = ['UnderDevelopment', 'Completed'];
-
-const getDefaultAppStatus = (isProduction: boolean): DeployAppStatus =>
-  isProduction ? 'Completed' : 'UnderDevelopment';
 
 const DeploySpinner = (): ReactElement => {
   const { t } = useTranslation();

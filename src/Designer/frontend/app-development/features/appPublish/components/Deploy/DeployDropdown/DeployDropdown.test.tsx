@@ -18,7 +18,7 @@ const defaultProps: DeployDropdownProps = {
   selectedImageTag: 'test1',
   startDeploy: jest.fn(),
   isPending: false,
-  isProduction: false,
+  defaultAppStatus: 'UnderDevelopment',
 };
 
 const created = '01.01.2024 18:53';
