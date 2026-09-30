@@ -97,7 +97,7 @@ export const SlackChannelsList = ({ org, channels }: SlackChannelsListProps): Re
               </StudioTable.Cell>
               <EnvironmentsCell environments={channel.environments} />
               <StudioTable.Cell>
-                {channel.reportFrequency && channel.reportFrequency !== noReportFrequency
+                {channel.reportFrequency !== noReportFrequency
                   ? t(`settings.orgs.contact_points.report_frequency_${channel.reportFrequency}`)
                   : emptyCellPlaceholder}
               </StudioTable.Cell>
