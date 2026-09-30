@@ -136,6 +136,7 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
         .await
         .expect("OCI reference should resolve and start");
     assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
     backend
         .write_file(
             &sandbox.id,
@@ -146,14 +147,43 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
         .expect("file should stream into the Sandbox");
 
     backend.stop(&sandbox.id).await.expect("Sandbox should stop");
+    let stopped = backend
+        .inspect(&sandbox.id)
+        .await
+        .expect("stopped Sandbox should be inspected");
+    assert_eq!(stopped.guest_heartbeat, None, "a stopped guest reports no heartbeat");
     backend
         .start(&sandbox.id)
         .await
         .expect("stopped direct Sandbox should restart");
     assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
     assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
 
     backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
+/// A running guest's heartbeat advances on its own, without traffic to the guest.
+async fn assert_guest_heartbeat_advances(backend: &MicrosandboxProvider, id: &sandbox::SandboxId) {
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
+    let mut first = None;
+    loop {
+        let heartbeat = backend
+            .inspect(id)
+            .await
+            .expect("running Sandbox should be inspected")
+            .guest_heartbeat;
+        match (first, heartbeat) {
+            (None, Some(heartbeat)) => first = Some(heartbeat),
+            (Some(first), Some(heartbeat)) if heartbeat != first => return,
+            _ => {}
+        }
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "guest heartbeat should advance within 10s, first observed {first:?}"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+    }
 }
 
 /// A replacement must never expose a partial file: a reader polling the path throughout the
