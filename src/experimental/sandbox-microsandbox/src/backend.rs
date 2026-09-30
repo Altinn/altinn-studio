@@ -149,6 +149,7 @@ impl MicrosandboxProvider {
 
         let record = SandboxRecord::new(request);
         self.state.save_sandbox(&record).await?;
+        self.images.release_pending(&record.image.manifest_digest);
         Ok(record.to_sandbox(SandboxState::Stopped))
     }
 
@@ -496,8 +497,9 @@ impl MicrosandboxProviderBuilder {
     /// Resolving or importing an image uses it. Removal runs when the Provider opens, after
     /// each image is resolved or imported and after each Sandbox is deleted, so an unused
     /// image can outlive `retention` until the next of these. Only resolving and importing
-    /// add images. The period must also cover the time between resolving an image and
-    /// creating its Sandbox.
+    /// add images. An image resolved or imported for a Sandbox is kept until the Sandbox is
+    /// created, for up to an hour, so a zero `retention` removes images as soon as no Sandbox
+    /// needs them.
     ///
     /// Image versions that no catalog reference names, which Providers left behind before
     /// images were recorded by digest, are removed only once every remaining image belongs to

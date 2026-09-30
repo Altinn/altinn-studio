@@ -934,6 +934,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
                         self.resolve_reference(request, reference, &progress).await
                     }
                 }?;
+                self.images.mark_pending(&resolved.manifest_digest);
                 self.images.remove_unused().await;
                 Ok(resolved)
             })
@@ -958,6 +959,7 @@ impl image::ImageBackend for MicrosandboxImageBackend {
         PendingOperation::run(move |progress| {
             Box::pin(async move {
                 let prepared = self.import_prepared_root(request, source, &progress).await?;
+                self.images.mark_pending(&prepared.image.manifest_digest);
                 self.images.remove_unused().await;
                 Ok(prepared)
             })

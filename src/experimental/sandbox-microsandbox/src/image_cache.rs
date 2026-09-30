@@ -4,15 +4,17 @@
 //! that version, so removing the reference with Microsandbox's `Image::remove_local` removes
 //! the version: its manifest, the layers no other version shares and its root filesystem
 //! artifacts. An image is needed while a Sandbox record uses its manifest digest, whether or
-//! not the Sandbox has a runtime. Any other image is removed once it has not been used for
+//! not the Sandbox has a runtime, and while it is pending: resolved or imported for a Sandbox
+//! whose record is not saved yet. Any other image is removed once it has not been used for
 //! the retention period. Using an image means resolving or importing it, which refreshes its
 //! catalog reference.
 
 use std::{
-    collections::HashSet,
+    cell::RefCell,
+    collections::{HashMap, HashSet},
     path::PathBuf,
     rc::Rc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use sandbox::Error;
@@ -23,6 +25,10 @@ use crate::{
     error,
     state::{SandboxRecord, StateStore},
 };
+
+/// How long a resolved or imported image stays pending when no Sandbox record takes it over,
+/// such as when creating the Sandbox fails after the image was resolved.
+const PENDING_LIMIT: Duration = Duration::from_hours(1);
 
 /// Directory below the Microsandbox cache for this crate's image and build-context archives.
 /// Microsandbox stages its own downloads in the parent directory.
@@ -37,6 +43,9 @@ pub(crate) struct ImageCache {
     retention: Option<Duration>,
     /// Shared by changes a removal pass must not interleave with, held exclusively by a pass.
     catalog: Rc<RwLock<()>>,
+    /// Pending manifest digests: how many resolves or imports no Sandbox record has taken
+    /// over yet, and when the latest happened.
+    pending: Rc<RefCell<HashMap<String, (usize, Instant)>>>,
 }
 
 impl ImageCache {
@@ -46,7 +55,39 @@ impl ImageCache {
             state,
             retention,
             catalog: Rc::new(RwLock::new(())),
+            pending: Rc::new(RefCell::new(HashMap::new())),
         }
+    }
+
+    /// Keeps an image resolved or imported for a Sandbox until the Sandbox's record is saved,
+    /// whatever the retention period. Call it before any await after recording the image, so
+    /// no removal pass runs in between.
+    pub(crate) fn mark_pending(&self, manifest_digest: &str) {
+        self.mark_pending_at(manifest_digest, Instant::now());
+    }
+
+    fn mark_pending_at(&self, manifest_digest: &str, at: Instant) {
+        let mut pending = self.pending.borrow_mut();
+        let entry = pending.entry(manifest_digest.to_string()).or_insert((0, at));
+        *entry = (entry.0 + 1, at);
+    }
+
+    /// Releases one pending use of an image once a saved Sandbox record needs it.
+    pub(crate) fn release_pending(&self, manifest_digest: &str) {
+        let mut pending = self.pending.borrow_mut();
+        if let Some((count, _)) = pending.get_mut(manifest_digest) {
+            *count -= 1;
+            if *count == 0 {
+                pending.remove(manifest_digest);
+            }
+        }
+    }
+
+    /// Returns the pending digests, forgetting those pending longer than [`PENDING_LIMIT`].
+    fn pending_digests(&self, now: Instant) -> HashSet<String> {
+        let mut pending = self.pending.borrow_mut();
+        pending.retain(|_, (_, at)| now.saturating_duration_since(*at) < PENDING_LIMIT);
+        pending.keys().cloned().collect()
     }
 
     /// Holds off removal passes while the guard lives. A pass decides from a snapshot of the
@@ -82,9 +123,11 @@ impl ImageCache {
 
     async fn remove_unused_images(&self, retention: Duration) -> Result<(), Error> {
         let records = self.state.sandbox_records().await?;
+        let pending = self.pending_digests(Instant::now());
         let needed: HashSet<&str> = records
             .iter()
             .map(|record| record.image.manifest_digest.as_str())
+            .chain(pending.iter().map(String::as_str))
             .collect();
         let now = unix_millis(SystemTime::now());
         for image in microsandbox::Image::list_local(self.client.local())
@@ -398,6 +441,47 @@ mod tests {
         home.images(Duration::ZERO).remove_unused().await;
         assert!(home.references().await.is_empty());
         assert!(!previous_files.exists(), "the unreferenced version should be pruned");
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn a_pending_image_is_kept_until_a_sandbox_record_takes_it_over() {
+        let home = Home::open().await;
+        let pending = digest('a');
+        home.record(&format!("example.com/app@{pending}"), &pending).await;
+        let images = home.images(Duration::ZERO);
+
+        // Resolved for two Sandboxes whose records are not saved yet.
+        images.mark_pending(&pending);
+        images.mark_pending(&pending);
+        images.remove_unused().await;
+        assert_eq!(home.references().await.len(), 1);
+
+        images.release_pending(&pending);
+        images.remove_unused().await;
+        assert_eq!(
+            home.references().await.len(),
+            1,
+            "the second Sandbox still waits for its record"
+        );
+
+        images.release_pending(&pending);
+        images.remove_unused().await;
+        assert!(home.references().await.is_empty());
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn an_image_no_sandbox_record_takes_over_stops_being_pending() {
+        let home = Home::open().await;
+        let abandoned = digest('a');
+        home.record(&format!("example.com/app@{abandoned}"), &abandoned).await;
+        let images = home.images(Duration::ZERO);
+
+        let marked = std::time::Instant::now()
+            .checked_sub(super::PENDING_LIMIT)
+            .expect("the monotonic clock should reach back one pending limit");
+        images.mark_pending_at(&abandoned, marked);
+        images.remove_unused().await;
+        assert!(home.references().await.is_empty());
     }
 
     #[tokio::test(flavor = "local")]

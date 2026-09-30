@@ -163,10 +163,11 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
 async fn unused_images_are_removed_while_every_sandbox_keeps_its_image() {
     let temporary = RetainedOnFailureTempDir::new();
     let home = temporary.path().join("control-plane");
-    let retention = Duration::from_secs(2);
+    // Without a retention period an image goes as soon as no Sandbox, created or about to be,
+    // needs it.
     let backend = Rc::new(
         MicrosandboxProvider::builder(&home)
-            .remove_unused_images_after(retention)
+            .remove_unused_images_after(Duration::ZERO)
             .open()
             .await
             .expect("Backend should open"),
@@ -211,7 +212,6 @@ async fn unused_images_are_removed_while_every_sandbox_keeps_its_image() {
         .expect("direct Sandbox should start")
         .snapshot()
         .clone();
-    tokio::time::sleep(retention).await;
     service.delete(&deleted.name).await.expect("Sandbox should be deleted");
 
     let cache = home.join("runtime/cache");
@@ -239,8 +239,6 @@ async fn unused_images_are_removed_while_every_sandbox_keeps_its_image() {
         .start(&never_started.id)
         .await
         .expect("the Sandbox without a runtime should keep its image and start");
-    // Creating the runtime of the never-started Sandbox used its image again.
-    tokio::time::sleep(retention).await;
     for sandbox in [&stopped, &never_started] {
         service.delete(&sandbox.name).await.expect("Sandbox should be deleted");
     }
@@ -261,7 +259,7 @@ async fn removal_while_a_sandbox_boots_keeps_the_booting_sandboxs_image() {
     let home = temporary.path().join("control-plane");
     let backend = Rc::new(
         MicrosandboxProvider::builder(&home)
-            .remove_unused_images_after(Duration::from_hours(24))
+            .remove_unused_images_after(Duration::ZERO)
             .open()
             .await
             .expect("Backend should open"),
