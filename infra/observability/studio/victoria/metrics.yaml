@@ -39,6 +39,15 @@ spec:
     - observability-backend-auth-key
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
+    # -1 counts new series per hour and per day without limiting them, so the
+    # cardinality is measured before any limit is set.
+    storage.maxHourlySeries: "-1"
+    storage.maxDailySeries: "-1"
+    # Delivery is at-least-once, so a retried export writes the same samples
+    # again. 1ms removes those exact duplicates and nothing else, provided the
+    # sources send cumulative metrics: with delta temporality it would drop
+    # real samples.
+    dedup.minScrapeInterval: 1ms
     # Every admin endpoint is open unless its auth key is set, so without these
     # anything that can reach this port in the cluster could delete series or
     # take snapshots. All of them use the same key, read from the mounted Secret
@@ -109,6 +118,9 @@ spec:
     - observability-backend-auth-key
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
+    storage.maxHourlySeries: "-1"
+    storage.maxDailySeries: "-1"
+    dedup.minScrapeInterval: 1ms
     deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
