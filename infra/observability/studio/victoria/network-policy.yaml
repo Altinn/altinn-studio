@@ -1,8 +1,8 @@
 # Traffic is limited to the paths in the architecture: observability-proxy
 # writes OTLP to the agents, each agent writes to its own storage pair, and
 # observability-proxy reads from the storage pairs. Nothing else in the cluster
-# can reach these pods, and the agents can reach nothing but their storage and
-# cluster DNS.
+# can reach these pods, the agents can reach nothing but their storage and
+# cluster DNS, and the storage pairs can reach nothing at all.
 #
 # Kubelet probes need no rule: traffic from the node to its own pods is always
 # allowed by NetworkPolicy, and Azure Network Policy Manager filters only
@@ -143,7 +143,8 @@ spec:
           port: 53
 ---
 # Both instances of each pair: writes from the pair's agent, reads from the
-# proxy, on the one HTTP port that serves both.
+# proxy, on the one HTTP port that serves both. The storage makes no outbound
+# connections, so Egress is listed with no rules, which denies all of it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -154,6 +155,7 @@ spec:
       app.kubernetes.io/name: vmsingle
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
@@ -177,6 +179,7 @@ spec:
       app.kubernetes.io/name: vtsingle
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
@@ -200,6 +203,7 @@ spec:
       app.kubernetes.io/name: vlsingle
   policyTypes:
     - Ingress
+    - Egress
   ingress:
     - from:
         - podSelector:
