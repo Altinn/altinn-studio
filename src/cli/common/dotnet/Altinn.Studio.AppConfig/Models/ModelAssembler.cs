@@ -24,6 +24,7 @@ internal static class ModelAssembler
             OptionsProvidersWithUnknownId = Merge(fragments, f => f.OptionsProvidersWithUnknownId),
             CustomTaskTypes = FoldSet(fragments, f => f.CustomTaskTypes),
             LayoutFiles = FoldSet(fragments, f => f.LayoutFiles),
+            StringLiterals = FoldSet(fragments, f => f.StringLiterals),
             Refs = AssembleRefs(fragments),
             ParserNotes = Merge(fragments, f => f.ParserNotes),
             ParseErrors = Merge(fragments, f => f.ParseErrors),

@@ -14,6 +14,7 @@ internal sealed class AspectPipeline
         new("policy", PolicyParser.Parse),
         new("texts", TextResourcesParser.Parse),
         new("datamodel", SchemaParser.Parse),
+        new("validationconfig", ValidationConfigParser.Parse),
         new("options", OptionsParser.Parse),
         new("footer", FooterParser.Parse),
         new("layoutsets", LayoutSetsParser.Parse),

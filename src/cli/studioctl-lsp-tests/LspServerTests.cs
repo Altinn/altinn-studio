@@ -72,6 +72,7 @@ public sealed class LspServerTests
             """{"language":"nb","resources":[{"id":"a","value":"A"},{"id":"b","value":"B"}]}"""
         );
         app.WriteFile("App/config/texts/resource.en.json", english);
+        app.WriteFile("App/options/answers.json", """[{"value":"a","label":"a"},{"value":"b","label":"b"}]""");
 
         var messages = RunSession(app.Root, ("App/config/texts/resource.en.json", english));
 

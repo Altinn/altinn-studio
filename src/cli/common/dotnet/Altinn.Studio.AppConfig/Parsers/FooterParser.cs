@@ -15,6 +15,7 @@ internal static class FooterParser
         if (data is null || !SourceParse.TryJson(app, path, data, out var doc))
             return;
         using var _ = doc;
+        StringLiteralCollector.Collect(app.StringLiterals, doc.RootElement);
         if (!doc.RootElement.TryGetProperty("footer", out var footerEl) || footerEl.ValueKind != JsonValueKind.Array)
             return;
 

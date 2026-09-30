@@ -38,6 +38,8 @@ public sealed class AppModel
 
     public required IReadOnlySet<string> LayoutFiles { get; init; }
 
+    public required IReadOnlySet<string> StringLiterals { get; init; }
+
     public required SemanticReferences Refs { get; init; }
 
     public required IReadOnlyList<string> TitleLanguages { get; init; }

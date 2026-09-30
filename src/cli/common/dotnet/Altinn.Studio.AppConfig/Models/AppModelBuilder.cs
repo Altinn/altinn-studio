@@ -25,6 +25,8 @@ internal sealed class AppModelBuilder
 
     public HashSet<string> LayoutFiles { get; } = new(StringComparer.Ordinal);
 
+    public HashSet<string> StringLiterals { get; } = new(StringComparer.Ordinal);
+
     public SemanticReferencesBuilder Refs { get; } = new();
 
     public List<string> TitleLanguages { get; } = new();
