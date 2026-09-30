@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -10,6 +11,13 @@ import (
 
 // vetSeverityWidth fixes the width of the severity column to the widest label, "warning".
 const vetSeverityWidth = 7
+
+const (
+	vetIndent          = 1
+	vetColumnGap       = 2
+	vetMessageIndent   = vetIndent + vetSeverityWidth + vetColumnGap
+	vetMinMessageWidth = 30
+)
 
 // PrintVetResult prints what a vet run reported: schema-validation notices, the findings ordered by
 // severity, and the closing verdict.
@@ -20,7 +28,7 @@ func PrintVetResult(out *ui.Output, resp studioctlserver.ValidateResponse) {
 	for _, warning := range resp.SchemaValidation.Warnings {
 		out.Warning("Schema validation: " + warning)
 	}
-	renderVetFindings(out, resp.Findings)
+	renderVetFindings(out, resp.Findings, vetTerminalWidth(out))
 	printVetVerdict(out, resp.Summary)
 }
 
@@ -41,11 +49,14 @@ func PrintVetRules(out *ui.Output, rules []studioctlserver.ValidateRule) {
 	out.RenderTable(table)
 }
 
-// renderVetFindings prints one finding per line, most severe first. For example:
+// renderVetFindings prints the findings, most severe first: a line with the severity, rule and location, then
+// the message indented under the rule and wrapped to the terminal width. For example:
 //
-//	error    REF-PAGE-FILE   page "Missing" is not a layout file  App/ui/Task_1/Settings.json:1:29
-//	warning  SELECTION-OPTIONS  Dropdown "d" has no options source  App/ui/Task_1/layouts/P1.json:4:7
-func renderVetFindings(out *ui.Output, findings []studioctlserver.ValidateFinding) {
+//	error    REF-PAGE-FILE      App/ui/Task_1/Settings.json:1:29
+//	         page "Missing" is not a layout file
+//	warning  SELECTION-OPTIONS  App/ui/Task_1/layouts/P1.json:4:7
+//	         Dropdown "d" has no options source
+func renderVetFindings(out *ui.Output, findings []studioctlserver.ValidateFinding, terminalWidth int) {
 	if len(findings) == 0 {
 		return
 	}
@@ -55,21 +66,42 @@ func renderVetFindings(out *ui.Output, findings []studioctlserver.ValidateFindin
 		return vetSeverityRank(ordered[i].Severity) < vetSeverityRank(ordered[j].Severity)
 	})
 
-	table := ui.NewTable(
+	headings := ui.NewTable(
 		ui.NewColumn("").WithWidth(vetSeverityWidth),
 		ui.NewColumn(""),
 		ui.NewColumn(""),
-		ui.NewColumn(""),
-	).Indent(1)
+	).Indent(vetIndent).Gap(vetColumnGap)
 	for _, finding := range ordered {
-		table.Row(
+		headings.Row(
 			ui.Cell{Text: string(finding.Severity), Style: vetSeverityStyle(finding.Severity)},
 			ui.Cell{Text: finding.RuleID, Style: ui.CellStyleBold},
-			ui.Text(finding.Message),
 			ui.Dim(vetLocation(finding)),
 		)
 	}
-	out.RenderTable(table)
+
+	messageIndent := strings.Repeat(" ", vetMessageIndent)
+	messageWidth := vetMessageWidth(terminalWidth)
+	for i, heading := range headings.Lines() {
+		out.Println(heading)
+		for _, line := range ui.WrapText(ordered[i].Message, messageWidth) {
+			out.Println(messageIndent + line)
+		}
+	}
+}
+
+func vetTerminalWidth(out *ui.Output) int {
+	width, _, ok := out.TerminalSize()
+	if !ok {
+		return 0
+	}
+	return width
+}
+
+func vetMessageWidth(terminalWidth int) int {
+	if terminalWidth <= 0 {
+		return 0
+	}
+	return max(terminalWidth-vetMessageIndent, vetMinMessageWidth)
 }
 
 func vetLocation(finding studioctlserver.ValidateFinding) string {
