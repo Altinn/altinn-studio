@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
@@ -281,12 +282,13 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string app,
         string shortCommitId,
         string envName,
+        AppStatus appStatus,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
-        await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId);
+        await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId, appStatus);
     }
 
     public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app)
@@ -342,7 +344,8 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string app,
         string applicationMetadataJson,
         string envName,
-        string shortCommitId
+        string shortCommitId,
+        AppStatus appStatus
     )
     {
         applicationMetadataJson = ApplicationMetadataJsonHelper.SetId(applicationMetadataJson, id: $"{org}/{app}");
@@ -350,6 +353,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
             applicationMetadataJson,
             versionId: shortCommitId
         );
+        applicationMetadataJson = ApplicationMetadataJsonHelper.SetStatus(applicationMetadataJson, appStatus);
 
         await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationMetadataJson, envName);
     }
