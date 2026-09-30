@@ -34,8 +34,8 @@ const MaxEntryWords = 60
 const entryExcerptWords = 8
 
 var (
-	// pullRequestLinkPattern matches a pull request reference such as [#1234](https://...).
-	pullRequestLinkPattern = regexp.MustCompile(`\[#\d+\]\([^)\s]*\)`)
+	// referenceLinkPattern matches an issue or pull request reference such as [#1234](https://...).
+	referenceLinkPattern = regexp.MustCompile(`\[#\d+\]\([^)\s]*\)`)
 	// linkTargetPattern matches the target of a Markdown link, the (https://...) after its text.
 	linkTargetPattern = regexp.MustCompile(`\]\([^)\s]*\)`)
 )
@@ -276,10 +276,10 @@ func loadChangelogAt(ctx context.Context, git *GitCLI, revision, changelogPath s
 	return loadBaseChangelog(ctx, git, revision, changelogPath)
 }
 
-// entryWords returns the words of an entry as a reader counts them: pull request
-// links, link targets, list markers and punctuation on their own are left out.
+// entryWords returns the words of an entry as a reader counts them: issue and pull
+// request links, link targets, list markers and punctuation on their own are left out.
 func entryWords(text string) []string {
-	text = pullRequestLinkPattern.ReplaceAllString(text, "")
+	text = referenceLinkPattern.ReplaceAllString(text, "")
 	text = linkTargetPattern.ReplaceAllString(text, "]")
 	var words []string
 	for field := range strings.FieldsSeq(text) {

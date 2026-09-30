@@ -26,13 +26,19 @@ changelog needs to know what changed for them and whether they must act.
 - **Breaking changes, deprecations and removals** say what to do instead, and breaking changes start with `Breaking:`.
   Step-by-step migration belongs in the documentation (`altinn-studio-docs`); link to it. Say so when a tool, such as
   `studioctl app upgrade`, makes the change for the reader.
-- **End with the references in parentheses**: the documentation link first, when there is one, then every pull request
-  the entry covers: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/pull/1234))`.
-  Pull request links do not count toward the word limit.
+- **End with the references in parentheses**: the documentation link first, when there is one, then every issue the
+  entry resolves: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
+  Links do not count toward the word limit.
+- **Link the issue, not its pull requests.** An issue says what readers asked for or ran into and leads to the pull
+  requests that resolved it, so link it once, however many pull requests it took. When the issue is part of a larger
+  one about the same change, such as a feature, link the larger one, but not an issue that gathers unrelated work,
+  such as an epic or a list of findings. Do not link an issue the change is only related to. Write an issue in another
+  repository as `[Altinn/app-frontend-react#123](https://github.com/Altinn/app-frontend-react/issues/123)`.
+- **Without an issue, link the pull request.** Do not open an issue afterwards to have one to link.
 - **Sub-bullets group changes by what readers know them by**, such as a command, an endpoint or a component: the top
   line names it, and each sub-bullet is one change to it. Use one level, at most five short sub-bullets, and put each
-  reference on the line it belongs to. The word limit counts the whole entry, sub-bullets included. Changes in
-  different categories are separate entries.
+  reference on the line it belongs to, or on the top line when it covers every sub-bullet. The word limit counts the
+  whole entry, sub-bullets included. Changes in different categories are separate entries.
 - **Do not wrap lines.** Only sub-bullets start a new line within an entry.
 
 Before you finish, read the entry as someone who has only the changelog: can they tell what changed for them and
@@ -47,8 +53,11 @@ notice after upgrading, not from what you did:
 2. If your harness can start a subagent, give a fresh one only this skill, the pull request title and description, and
    the diff of what the reader sees or uses, and have it draft the entry. Otherwise, write the entry before rereading
    the implementation.
-3. Merge it with any related `[Unreleased]` entry, keeping that entry's pull request links. Add this pull request's
-   link once it is open.
+3. Merge it with any related `[Unreleased]` entry, keeping that entry's references. Link the issue for this pull
+   request, as the rules above describe, and reference it in the pull request description (`Closes #1234`, or
+   `Part of #1234`) so readers can get from the issue to the change. Without an issue, add this pull request's link
+   once it is open. If the entry already describes the change and links its issue, leave it as it is and use the
+   `skip-changelog` label.
 4. Commit, then check every changelog you changed with
    `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
 
@@ -57,7 +66,9 @@ notice after upgrading, not from what you did:
 Read the entries being released together. If they follow the rules above, promote them as they are. Otherwise, fix
 them in the promotion pull request:
 
-- Merge entries about the same feature, keeping all their pull request links.
+- Merge entries about the same feature, keeping all their references. Drop a pull request link when the merged entry
+  links the issue for that pull request.
+- Replace a pull request link with the issue the rules above point to, when there is one.
 - Drop entries for something added and fixed within the same release: readers never saw the problem.
 - Cut entries to the rules above, and move migration detail to the documentation.
 
@@ -77,7 +88,7 @@ Too long, with implementation detail (221 words):
 Better:
 
 ```markdown
-- `studioctl app maskinporten set|show|remove` stores a Maskinporten client for local runs, so you can test real integrations such as Fiks Arkiv locally. The app receives it the same way a deployed app does. ([#20451](https://github.com/Altinn/altinn-studio/pull/20451))
+- `studioctl app maskinporten set|show|remove` stores a Maskinporten client for local runs, so you can test real integrations such as Fiks Arkiv locally. The app receives it the same way a deployed app does. ([#20048](https://github.com/Altinn/altinn-studio/issues/20048))
 ```
 
 Explains the mechanism instead of the effect:
@@ -135,5 +146,5 @@ A fix described by its cause:
 Better, by its symptom:
 
 ```markdown
-- `studioctl app run` no longer times out with "no matching app metadata endpoint was discovered" on macOS 27. ([#20613](https://github.com/Altinn/altinn-studio/pull/20613))
+- `studioctl app run` no longer times out with "no matching app metadata endpoint was discovered" on macOS 27. ([#20453](https://github.com/Altinn/altinn-studio/issues/20453))
 ```
