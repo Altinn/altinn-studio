@@ -19,7 +19,7 @@ internal static class ValidationConfigParser
             JsonDocument doc;
             try
             {
-                doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
+                doc = JsonRead.ParseAppFile(data);
             }
             catch (JsonException)
             {
