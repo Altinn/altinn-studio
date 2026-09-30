@@ -2,7 +2,7 @@ using Altinn.Studio.AppConfig.Documents.Text;
 
 namespace Altinn.Studio.AppConfig.Models;
 
-internal sealed record DataModelFacts(string? EffectiveDataType, bool SchemaPresent);
+internal sealed record DataModelFacts(string? EffectiveDataType, bool SchemaPresent, string? DeclaredCase = null);
 
 internal sealed record UnresolvedReference(
     SymbolKind Kind,

@@ -1,3 +1,5 @@
+using Altinn.Studio.AppConfig.Models;
+
 namespace Altinn.Studio.AppConfig;
 
 public sealed partial class AppSymbols
@@ -11,7 +13,7 @@ public sealed partial class AppSymbols
 
         foreach (var r in model.Refs.DataModel)
             if (Same(r.Position, file, ptr))
-                return Closest(r.Value, EffectiveSchema(model, r).Keys);
+                return DataModelPathCorrection(r.Value, EffectiveSchema(model, r));
         foreach (var r in model.Refs.TextResources)
             if (Same(r.Position, file, ptr))
                 return Closest(r.Value, model.TextResources.SelectMany(t => t.Ids.Keys));
@@ -32,6 +34,9 @@ public sealed partial class AppSymbols
                 return Closest(r.Value, model.Tasks.Select(t => t.Id));
         return null;
     }
+
+    private static string? DataModelPathCorrection(string path, IReadOnlyDictionary<string, string> schema) =>
+        ModelPath.Exists(schema, path) ? null : ModelPath.DeclaredCaseOf(schema, path) ?? Closest(path, schema.Keys);
 
     private static string? Closest(string value, IEnumerable<string> candidates)
     {

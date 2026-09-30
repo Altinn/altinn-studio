@@ -14,7 +14,9 @@ internal sealed class RefDataModelPathRule : IValidationRule
                 + "effective dataType. The dataType is either explicit (object form) "
                 + "or inherited from the layout-set/task. Array-index segments (e.g. "
                 + "Group[0].Field) are normalized away, matching how the runtime "
-                + "resolves a repeating-group element against the array's items schema.",
+                + "resolves a repeating-group element against the array's items schema. "
+                + "Paths are case-sensitive; when the schema declares the path with "
+                + "different casing, the finding suggests that spelling.",
             Severity.Error
         );
 
@@ -28,26 +30,29 @@ internal sealed class RefDataModelPathRule : IValidationRule
             {
                 // No specific dataType pinned (ambiguous task, expression outside any layout set):
                 // the path was checked against the union and matched nothing.
-                yield return UnionMissing(u);
+                yield return UnionMissing(u, facts.DeclaredCase);
                 continue;
             }
             if (!facts.SchemaPresent)
                 // No schema for the effective dataType → unverifiable. Skip rather than emit a false
                 // "invalid"; REF-DATATYPE-ID / REF-CSHARP-TYPE own the existence signals.
                 continue;
-            yield return PathMissingInSchema(u, facts.EffectiveDataType);
+            yield return PathMissingInSchema(u, facts.EffectiveDataType, facts.DeclaredCase);
         }
     }
 
-    private Finding UnionMissing(UnresolvedReference u) =>
+    private Finding UnionMissing(UnresolvedReference u, string? declaredCase) =>
         Metadata.Report(
-            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") does not match any property in the model schema",
+            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") does not match any property in the model schema{DidYouMean(declaredCase)}",
             u.Position
         );
 
-    private Finding PathMissingInSchema(UnresolvedReference u, string dataType) =>
+    private Finding PathMissingInSchema(UnresolvedReference u, string dataType, string? declaredCase) =>
         Metadata.Report(
-            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") is not declared in dataType \"{dataType}\"'s schema ({AppPaths.SchemaFile(dataType)})",
+            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") is not declared in dataType \"{dataType}\"'s schema ({AppPaths.SchemaFile(dataType)}){DidYouMean(declaredCase)}",
             u.Position
         );
+
+    private static string DidYouMean(string? declaredCase) =>
+        declaredCase is null ? "" : $"; did you mean \"{declaredCase}\"?";
 }
