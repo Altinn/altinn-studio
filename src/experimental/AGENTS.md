@@ -67,12 +67,6 @@ the Agent images under `agents/`. There is one changelog because there is one re
 `agentd` binaries published by the `experimental-agent/v*` tag. The version in the changelog is that release
 version; the Rust workspace version is a build detail and is not tracked there.
 
-Every pull request that changes something a user of the Agent will notice, anywhere under `src/experimental` or
-`agents/`, adds an entry under `## [Unreleased]`, written with the
-[`changelog` skill](../../.claude/skills/changelog/SKILL.md). Describe a change in `sandbox*` by what an Agent user
-notices. The skill also says when to apply the `skip-changelog` label instead;
-`.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
-
 Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
 [changelog.sh](changelog.sh) itself. `make check` runs the validation, and `make test` runs the tests.
 
