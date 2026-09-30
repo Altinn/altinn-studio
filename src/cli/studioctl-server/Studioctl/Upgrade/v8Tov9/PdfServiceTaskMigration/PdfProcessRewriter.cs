@@ -203,7 +203,7 @@ internal sealed class PdfProcessRewriter
         var pdfTask = new XElement(
             bpmnNs + "serviceTask",
             new XAttribute("id", pdfTaskId),
-            new XAttribute("name", "Generate PDF"),
+            new XAttribute("name", "Lag PDF"),
             new XElement(
                 bpmnNs + "extensionElements",
                 new XElement(
