@@ -68,6 +68,7 @@ fn parse_port(text: &str) -> Result<u16, String> {
 /// One running forward with its local listener task.
 pub struct PortForward {
     spec: ForwardSpec,
+    assignment: Assignment,
     local: std::net::SocketAddr,
     task: tokio::task::JoinHandle<()>,
     status: Rc<RefCell<Option<String>>>,
@@ -87,13 +88,14 @@ impl PortForward {
         let status = Rc::new(RefCell::new(None));
         let task = tokio::task::spawn_local(accept_loop(
             home,
-            assignment,
+            assignment.clone(),
             spec.guest_port,
             listener,
             Rc::clone(&status),
         ));
         Ok(Self {
             spec,
+            assignment,
             local,
             task,
             status,
@@ -104,6 +106,12 @@ impl PortForward {
     #[must_use]
     pub const fn spec(&self) -> &ForwardSpec {
         &self.spec
+    }
+
+    /// Returns the Sandbox assignment the forward dials.
+    #[must_use]
+    pub const fn assignment(&self) -> &Assignment {
+        &self.assignment
     }
 
     /// Returns the bound local address, with any ephemeral port resolved.
