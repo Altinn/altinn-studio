@@ -62,7 +62,7 @@ export class MultipleSelect extends MultipleSelectDef {
       ? displayRows
       : getCommaSeparatedOptionsToText(formData?.simpleBinding, options, langAsString);
 
-    return Object.values(data).join(', ');
+    return Object.values(data ?? []).join(', ');
   }
 
   evalExpressions(props: ExprResolver<'MultipleSelect'>) {
