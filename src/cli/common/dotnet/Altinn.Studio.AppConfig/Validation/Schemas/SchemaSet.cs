@@ -7,9 +7,14 @@ namespace Altinn.Studio.AppConfig.Validation.Schemas;
 public sealed class SchemaSet
 {
     public static SchemaSet Empty { get; } =
-        new(new Dictionary<string, JsonSchema>(StringComparer.Ordinal), Array.Empty<string>());
+        new(
+            new Dictionary<string, JsonSchema>(StringComparer.Ordinal),
+            new Dictionary<string, JsonSchema>(StringComparer.Ordinal),
+            Array.Empty<string>()
+        );
 
     private readonly IReadOnlyDictionary<string, JsonSchema> _byPath;
+    private readonly IReadOnlyDictionary<string, JsonSchema> _byDefinition;
 
     public IReadOnlyList<string> LoadWarnings { get; }
 
@@ -17,9 +22,14 @@ public sealed class SchemaSet
 
     internal EvaluationOptions Options { get; }
 
-    private SchemaSet(IReadOnlyDictionary<string, JsonSchema> byPath, IReadOnlyList<string> loadWarnings)
+    private SchemaSet(
+        IReadOnlyDictionary<string, JsonSchema> byPath,
+        IReadOnlyDictionary<string, JsonSchema> byDefinition,
+        IReadOnlyList<string> loadWarnings
+    )
     {
         _byPath = byPath;
+        _byDefinition = byDefinition;
         LoadWarnings = loadWarnings;
         Options = new EvaluationOptions { OutputFormat = OutputFormat.Hierarchical };
         foreach (var (path, schema) in byPath)
@@ -34,7 +44,8 @@ public sealed class SchemaSet
             Path = path,
         }.Uri;
 
-    internal JsonSchema? Get(string schemaPath) => _byPath.TryGetValue(schemaPath, out var s) ? s : null;
+    internal JsonSchema? Get(string schemaPath) =>
+        _byPath.TryGetValue(schemaPath, out var s) || _byDefinition.TryGetValue(schemaPath, out s) ? s : null;
 
     public static SchemaSet FromFiles(IEnumerable<KeyValuePair<string, string>> files)
     {
@@ -63,7 +74,31 @@ public sealed class SchemaSet
             if (!map.ContainsKey(known))
                 warnings.Add($"schema {known} is missing from the artifact");
         }
-        return new SchemaSet(map, warnings);
+        return new SchemaSet(map, DefinitionSchemas(map, warnings), warnings);
+    }
+
+    private static Dictionary<string, JsonSchema> DefinitionSchemas(
+        Dictionary<string, JsonSchema> byPath,
+        List<string> warnings
+    )
+    {
+        var byDefinition = new Dictionary<string, JsonSchema>(StringComparer.Ordinal);
+        foreach (var definition in SchemaValidator.KnownDefinitions)
+        {
+            if (!byPath.TryGetValue(definition.SchemaPath, out var schema))
+                continue;
+            if (schema.GetDefinitions()?.ContainsKey(definition.Name) != true)
+            {
+                warnings.Add(
+                    $"schema {definition.SchemaPath} has no {definition.Name} definition, "
+                        + $"so {definition.ValidatedFile} is not validated"
+                );
+                continue;
+            }
+            var reference = new Uri(RegistryUri(definition.SchemaPath), "#/definitions/" + definition.Name);
+            byDefinition[definition.Key] = new JsonSchemaBuilder().Ref(reference).Build();
+        }
+        return byDefinition;
     }
 
     private const string ExpressionFileName = "expression.schema.v1.json";

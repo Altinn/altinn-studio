@@ -10,7 +10,7 @@ public sealed class SchemaSetLoadWarningsTests
         ["layout/expression.schema.v1.json"] = "{}",
         ["layout/footer.schema.v1.json"] = "{}",
         ["layout/layout.schema.v1.json"] = "{}",
-        ["layout/layoutSettings.schema.v1.json"] = "{}",
+        ["layout/layoutSettings.schema.v1.json"] = """{"definitions":{"GlobalPageSettingsFromSchema":{}}}""",
         ["text-resources/text-resources.schema.v1.json"] = "{}",
     };
 
@@ -62,6 +62,19 @@ public sealed class SchemaSetLoadWarningsTests
         var warning = Assert.Single(schemas.LoadWarnings);
         Assert.Contains("text-resources/text-resources.schema.v1.json", warning, StringComparison.Ordinal);
         Assert.Contains("missing", warning, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LayoutSettingsSchemaWithoutGlobalPageSettings_IsReported()
+    {
+        var files = new Dictionary<string, string>(_completeSet, StringComparer.Ordinal)
+        {
+            ["layout/layoutSettings.schema.v1.json"] = "{}",
+        };
+
+        var warning = Assert.Single(SchemaSet.FromFiles(files).LoadWarnings);
+        Assert.Contains("GlobalPageSettingsFromSchema", warning, StringComparison.Ordinal);
+        Assert.Contains("App/ui/Settings.json", warning, StringComparison.Ordinal);
     }
 
     [Fact]
