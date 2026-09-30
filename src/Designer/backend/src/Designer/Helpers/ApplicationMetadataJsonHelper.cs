@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Helpers;
 
@@ -47,6 +48,16 @@ public static class ApplicationMetadataJsonHelper
         string key = UsesPascalCaseProps(jsonObj) ? "VersionId" : "versionId";
 
         jsonObj[key] = versionId;
+
+        return jsonObj.ToJsonString(serializationOptions);
+    }
+
+    public static string SetStatus(string json, AppStatus status, JsonSerializerOptions? serializationOptions = null)
+    {
+        var jsonObj = ParseAndEnsureJsonObject(json);
+        string key = UsesPascalCaseProps(jsonObj) ? "Status" : "status";
+
+        jsonObj[key] = status.ToString();
 
         return jsonObj.ToJsonString(serializationOptions);
     }

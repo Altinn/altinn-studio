@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -52,6 +53,7 @@ public static class DeploymentMapper
             CreatedBy = deploymentEntity.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
                 (int)deploymentEntity.DeploymentType,
+            AppStatus = deploymentEntity.AppStatus?.ToString(),
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
         };
 
@@ -106,6 +108,7 @@ public static class DeploymentMapper
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,
+            AppStatus = dbObject.AppStatus is null ? null : Enum.Parse<AppStatus>(dbObject.AppStatus),
             Events =
                 dbObject
                     .Events?.OrderBy(e => e.Created)
