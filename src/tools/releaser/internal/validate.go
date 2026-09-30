@@ -35,7 +35,7 @@ const entryExcerptWords = 8
 
 // linkPattern matches a Markdown link with its text, such as [#1234](https://...)
 // or [the migration guide](https://...).
-var linkPattern = regexp.MustCompile(`\[[^\]]*\]\([^)\s]*\)`)
+var linkPattern = regexp.MustCompile(`\[[^\[\]\n]*\]\([^)\s]*\)`)
 
 // ValidationRequest describes inputs for changelog validation.
 type ValidationRequest struct {

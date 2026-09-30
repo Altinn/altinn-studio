@@ -47,6 +47,7 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("ignores a long entry that reached base after head diverged", testStructureLongBaseOnlyEntryPasses)
 	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
 	t.Run("does not count links", testStructureLinksNotCounted)
+	t.Run("counts the words around links", testStructureWordsAroundLinksCounted)
 }
 
 func changelogWithEntry(entry string) string {
@@ -145,6 +146,19 @@ func testStructureLinksNotCounted(t *testing.T) {
 	if err := runStructureValidation(t, repo, base, head); err != nil {
 		t.Fatalf("RunStructureValidation() error = %v, want links left out of the word count", err)
 	}
+}
+
+func testStructureWordsAroundLinksCounted(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	issue := "[#1234](https://github.com/Altinn/altinn-studio/issues/1234)"
+	// The unclosed bracket in the inline code must not start a link that runs to the issue.
+	entry := "`list[int` " + words(internal.MaxEntryWords-2) + " " + issue + " word\n" +
+		"  - word (" + issue + ")"
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", changelogWithEntry(entry), "long linked entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
 }
 
 func testStructureLongEntryWithoutRangePasses(t *testing.T) {

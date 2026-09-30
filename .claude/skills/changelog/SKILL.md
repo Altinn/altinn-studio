@@ -28,7 +28,8 @@ changelog needs to know what changed for them and whether they must act.
   Step-by-step migration belongs in the documentation (`altinn-studio-docs`); link to it. Say so when a tool, such as
   `studioctl app upgrade`, makes the change for the reader.
 - **End with the references in parentheses**: the documentation link first, when there is one, then every issue whose
-  problem or request the entry describes: `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
+  problem or request the entry describes, or the pull request when there is no issue:
+  `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
   Links do not count toward the word limit.
 - **Link the issue, not its pull requests.** An issue says what readers asked for or ran into and leads to the pull
   requests for it, so link it once, however many pull requests it took. When the issue is part of a larger one about the
@@ -50,15 +51,15 @@ whether they need to do anything? Delete every clause that does not help with th
 You know the implementation too well to see it from the reader's side. Write the entry from what the reader will
 notice after upgrading, not from what you did:
 
-1. Decide whether the change is visible to the changelog's readers at all. If not, use the `skip-changelog` label.
+1. Decide whether the change is visible to the changelog's readers at all, and whether an `[Unreleased]` entry already
+   describes it with its issue linked. In either case, use the `skip-changelog` label.
 2. If your harness can start a subagent, give a fresh one only this skill, the pull request title and description, and
    the diff of what the reader sees or uses, and have it draft the entry. Otherwise, write the entry before rereading
    the implementation.
 3. Merge it with any related `[Unreleased]` entry, keeping that entry's references. Link the issue for this pull
    request, as the rules above describe, and reference it in the pull request description (`Closes #1234`, or
    `Part of #1234`) so readers can get from the issue to the change. Without an issue, add this pull request's link
-   once it is open. If an `[Unreleased]` entry already describes the change and links its issue, leave it as it is and
-   use the `skip-changelog` label.
+   once it is open.
 4. Commit, then check every changelog you changed with
    `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
 

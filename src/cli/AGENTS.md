@@ -65,8 +65,8 @@ Invariants:
   `.github/workflows/cli-changelog.yaml` fails PRs that change studioctl code without a new
   `[Unreleased]` entry. For changes with no user-visible effect (refactors, test-only or
   CI-only work), or a change an `[Unreleased]` entry already describes with its issue linked,
-  apply the `skip-changelog` label instead. The structure of any changed
-  changelog is validated separately (`.github/workflows/changelog.yml`).
+  apply the `skip-changelog` label instead. The structure of any changed changelog is
+  validated separately (`.github/workflows/changelog.yml`).
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
   section and label the PR `release/studioctl`; merging it triggers
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
