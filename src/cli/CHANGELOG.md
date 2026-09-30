@@ -21,10 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
-
-### Fixed
-
-- studioctl no longer stops an unrelated process, or itself, when studioctl-server stopped without studioctl, for example after a crash or a container restart. studioctl now checks that the process in its pid file is studioctl-server before it waits for it or stops it. If it is not, studioctl ignores the old pid file, and `studioctl server up` starts a new server.
+- `studioctl server up`, `studioctl server down` and other commands no longer stop an unrelated process, or studioctl itself, after studioctl-server stopped unexpectedly, for example after a crash or a container restart. `studioctl server up` then starts a new server. ([#20726](https://github.com/Altinn/altinn-studio/pull/20726))
 
 ## [0.1.0-preview.27] - 2026-09-23
 
