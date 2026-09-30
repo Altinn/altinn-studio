@@ -1,0 +1,16 @@
+.container {
+  display: grid;
+  gap: var(--ds-size-2);
+  padding-inline: var(--ds-size-5);
+  padding-bottom: var(--ds-size-3);
+}
+
+.dataTypeSelectAndButton {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ds-size-4);
+}
+
+.dataTypeSelect {
+  flex: 1;
+}

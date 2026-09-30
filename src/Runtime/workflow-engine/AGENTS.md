@@ -8,9 +8,9 @@ Reusable class library for async workflow processing. Provides the core engine, 
 | --------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `WorkflowEngine.Core`       | Core engine class library: processing loop, HTTP endpoints, executor, extensions                        |
 | `WorkflowEngine.Commands`   | Command plugin system (Webhook). Runtime-specific commands (e.g. AppCommand) live in their host project |
-| `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums                                        |
+| `WorkflowEngine.Models`     | Domain models, wire contract and retry strategies. A leaf: no project or package references             |
 | `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, Postgres via `EnginePgRepository`                             |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry strategies                                       |
+| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry delay and decision logic                         |
 | `WorkflowEngine.Telemetry`  | `Metrics` class (OpenTelemetry counters, histograms, activity source)                                   |
 | `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers                            |
 

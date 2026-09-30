@@ -81,5 +81,57 @@ public class AppDevelopmentExceptionFilterAttribute : ExceptionFilterAttribute
                 StatusCode = (int)HttpStatusCode.BadRequest,
             };
         }
+        if (context.Exception is SubformComponentNotFoundException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformComponentNotFound,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is SubformComponentMissingLayoutSetException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformComponentMissingLayoutSet,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is SubformMissingDefaultDataTypeException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformMissingDefaultDataType,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is LayoutSetIsNotSubformPdfTaskException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.LayoutSetIsNotSubformPdfTask,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
     }
 }

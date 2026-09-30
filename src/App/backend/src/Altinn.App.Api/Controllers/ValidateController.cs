@@ -176,7 +176,7 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unable to validate data element.");
         }
 
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         DataType? dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 

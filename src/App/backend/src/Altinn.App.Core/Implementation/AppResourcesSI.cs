@@ -1,15 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using static System.Text.Json.JsonSerializer;
 
@@ -18,6 +13,10 @@ namespace Altinn.App.Core.Implementation;
 /// <summary>
 /// App implementation of the execution service needed for executing an Altinn Core Application (Functional term).
 /// </summary>
+/// <remarks>
+/// Every method reads the current <see cref="AppFiles"/> snapshot, which is loaded into memory before the app starts
+/// and replaced when the files change on disk in Development.
+/// </remarks>
 internal sealed class AppResourcesSI : IAppResources
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -27,102 +26,89 @@ internal sealed class AppResourcesSI : IAppResources
         PropertyNameCaseInsensitive = true,
     };
 
-    private readonly AppSettings _settings;
+    private static readonly JsonDocumentOptions _jsonDocumentOptions = new()
+    {
+        AllowTrailingCommas = true,
+        CommentHandling = JsonCommentHandling.Skip,
+    };
+
+    private const string TextResourcePrefix = "resource.";
+    private const string JsonExtension = ".json";
+
+    private readonly AppFilesAccessor _appFiles;
     private readonly IAppMetadata _appMetadata;
-    private readonly Telemetry? _telemetry;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
     /// </summary>
-    /// <param name="settings">The app repository settings.</param>
-    /// <param name="appMetadata">App metadata service</param>
-    /// <param name="hostingEnvironment">The hosting environment</param>
-    /// <param name="telemetry">Telemetry for traces and metrics.</param>
-    public AppResourcesSI(
-        IOptions<AppSettings> settings,
-        IAppMetadata appMetadata,
-        IWebHostEnvironment hostingEnvironment,
-        Telemetry? telemetry = null
-    )
+    /// <param name="appFiles">The app resource files.</param>
+    /// <param name="appMetadata">The application metadata.</param>
+    public AppResourcesSI(AppFilesAccessor appFiles, IAppMetadata appMetadata)
     {
-        _settings = settings.Value;
+        _appFiles = appFiles;
         _appMetadata = appMetadata;
-        _telemetry = telemetry;
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The texts folder only ever holds <c>resource.{language}.json</c> files, so any other name yields null.
+    /// </remarks>
     public byte[] GetText(string org, string app, string textResource)
     {
-        using var activity = _telemetry?.StartGetTextActivity();
-        return ReadFileContentsFromLegalPath(
-            Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder),
-            textResource
-        );
+        if (
+            textResource.Length > TextResourcePrefix.Length + JsonExtension.Length
+            && textResource.StartsWith(TextResourcePrefix, StringComparison.Ordinal)
+            && textResource.EndsWith(JsonExtension, StringComparison.Ordinal)
+        )
+        {
+            string language = textResource[TextResourcePrefix.Length..^JsonExtension.Length];
+            if (_appFiles.Current.GetTextResource(language) is { } bytes)
+            {
+                // Copied, as the caller owns the returned array and the snapshot must not change
+                return bytes.ToArray();
+            }
+        }
+
+#nullable disable
+        return null;
+#nullable restore
     }
 
     /// <inheritdoc />
-    public async Task<TextResource?> GetTexts(string org, string app, string language)
+    public Task<TextResource?> GetTexts(string org, string app, string language)
     {
-        using var activity = _telemetry?.StartGetTextsActivity();
-        string pathTextsFolder = Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder);
-        string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
-
-        if (!PathHelper.ValidateLegalFilePath(pathTextsFolder, fullFileName))
+        if (_appFiles.Current.GetTextResource(language) is not { } bytes)
         {
-            throw new ArgumentException("Invalid path", nameof(language));
+            return Task.FromResult<TextResource?>(null);
         }
 
-        if (!File.Exists(fullFileName))
-        {
-            return null;
-        }
-
-        await using FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read);
         TextResource textResource =
-            await DeserializeAsync<TextResource>(fileStream, _jsonSerializerOptions)
+            Deserialize<TextResource>(bytes.Span, _jsonSerializerOptions)
             ?? throw new System.Text.Json.JsonException("Failed to deserialize text resource");
         textResource.Id = $"{org}-{app}-{language}";
         textResource.Org = org;
         textResource.Language = language;
 
-        return textResource;
+        return Task.FromResult<TextResource?>(textResource);
     }
 
     /// <inheritdoc/>
     public string GetModelJsonSchema(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{dataTypeId}.{_settings.JsonSchemaFileName}");
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        string filedata = File.ReadAllText(filename, Encoding.UTF8);
-
-        return filedata;
+        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.JsonSchema)
+            ?? throw new FileNotFoundException($"Could not find the json schema for data type '{dataTypeId}'");
     }
 
     /// <inheritdoc />
     public string? GetPrefillJson(string dataTypeId = "ServiceModel")
     {
-        using var activity = _telemetry?.StartGetPrefillJsonActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, dataTypeId + ".prefill.json");
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
+        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.Prefill);
     }
 
     /// <inheritdoc />
     public string GetClassRefForLogicDataType(string dataType)
     {
-        using var activity = _telemetry?.StartGetClassRefActivity();
-        ApplicationMetadata applicationMetadata = _appMetadata.GetApplicationMetadata().Result;
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         string classRef = string.Empty;
 
         DataType? element = applicationMetadata.DataTypes.SingleOrDefault(d =>
@@ -206,24 +192,18 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string GetLayoutsInFolder(string folderId)
     {
-        using var activity = _telemetry?.StartGetLayoutsForSetActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, folderId, "layouts");
-
-        if (!PathHelper.ValidateLegalFilePath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath))
+        if (_appFiles.Current.Ui.GetFolder(folderId) is { } folder)
         {
-            throw new ArgumentException("Invalid path", nameof(folderId));
-        }
-
-        if (Directory.Exists(layoutsPath))
-        {
-            foreach (string file in Directory.GetFiles(layoutsPath))
+            foreach (var page in folder.GetLayoutPages())
             {
-                string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = Path.GetFileNameWithoutExtension(file);
-                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-                layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
+                if (folder.GetLayout(page) is { } bytes)
+                {
+                    string data = Encoding.UTF8.GetString(bytes.Span);
+                    // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
+                    layouts.Add(page, JsonConvert.DeserializeObject<object>(data)!);
+                }
             }
         }
 
@@ -233,8 +213,9 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public LayoutModel? GetLayoutModelForFolder(string folder)
     {
-        using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var ui = GetUiConfiguration();
+        // One snapshot for every layout file, so that a reload in Development cannot mix two versions of the app
+        AppFiles files = _appFiles.Current;
+        var ui = GetUiConfiguration(files);
         if (ui is null)
         {
             return null;
@@ -244,32 +225,26 @@ internal sealed class AppResourcesSI : IAppResources
             return null;
         }
 
-        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
-        var layouts = ui.Folders.Select(f => LoadLayout(f.Key, f.Value, dataTypes)).ToList();
+        // Through IAppMetadata rather than from the snapshot, so a data type an app's own implementation adds is
+        // found here the same way it is everywhere else
+        var dataTypes = _appMetadata.ApplicationMetadata.DataTypes;
+        var layouts = ui.Folders.Select(f => LoadLayout(files, f.Key, f.Value, dataTypes)).ToList();
         return new LayoutModel(layouts, folder);
     }
 
     /// <inheritdoc />
-    public UiConfiguration? GetUiConfiguration()
+    public UiConfiguration? GetUiConfiguration() => GetUiConfiguration(_appFiles.Current);
+
+    private static UiConfiguration? GetUiConfiguration(AppFiles files)
     {
-        using var activity = _telemetry?.StartGetUiConfigurationActivity();
         var folders = new Dictionary<string, LayoutSettings>(StringComparer.Ordinal);
-        var uiRoot = Path.Join(_settings.AppBasePath, _settings.UiFolder);
 
-        if (!Directory.Exists(uiRoot))
+        foreach (var folderId in files.Ui.GetFolderIds())
         {
-            return null;
-        }
-
-        foreach (var folderId in Directory.GetDirectories(uiRoot).Select(Path.GetFileName).WhereNotNull())
-        {
-            var settings = GetUiFolderSettings(folderId);
-            if (settings is null)
+            if (DeserializeOrNull<LayoutSettings>(files.Ui.GetFolder(folderId)?.Settings) is { } settings)
             {
-                continue;
+                folders[folderId] = settings;
             }
-
-            folders[folderId] = settings;
         }
 
         if (folders.Count == 0)
@@ -277,11 +252,16 @@ internal sealed class AppResourcesSI : IAppResources
             return null;
         }
 
-        var globalSettings = GetGlobalUiSettings();
+        var globalSettings = GetGlobalUiSettings(files);
         return new UiConfiguration { Folders = folders, Settings = globalSettings };
     }
 
-    private UiFolderComponent LoadLayout(string folderId, LayoutSettings settings, List<DataType> dataTypes)
+    private static UiFolderComponent LoadLayout(
+        AppFiles files,
+        string folderId,
+        LayoutSettings settings,
+        List<DataType> dataTypes
+    )
     {
         var simplePageOrder = settings?.Pages?.Order;
         var groupPageOrder = settings?.Pages?.Groups?.SelectMany(g => g.Order).ToList();
@@ -299,17 +279,18 @@ internal sealed class AppResourcesSI : IAppResources
             );
         }
 
+        var folder = files.Ui.GetFolder(folderId);
         var pages = new List<PageComponent>();
-        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, folderId, "layouts");
         foreach (var page in order)
         {
-            var pagePath = Path.Join(folder, page + ".json");
-            PathHelper.EnsureLegalPath(folder, pagePath);
-            var pageBytes = File.ReadAllBytes(pagePath);
-            using var document = JsonDocument.Parse(
-                pageBytes.AsMemory().RemoveBom(),
-                new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
-            );
+            if (folder?.GetLayout(page) is not { } pageBytes)
+            {
+                throw new FileNotFoundException(
+                    $"Layout page '{page}' is listed in the settings for layout folder '{folderId}' but does not exist"
+                );
+            }
+
+            using var document = JsonDocument.Parse(pageBytes, _jsonDocumentOptions);
             pages.Add(PageComponent.Parse(document.RootElement, page, folderId));
         }
 
@@ -326,78 +307,21 @@ internal sealed class AppResourcesSI : IAppResources
     /// <inheritdoc />
     public string? GetLayoutSettingsStringForFolder(string folder)
     {
-        using var activity = _telemetry?.StartGetLayoutSettingsStringForSetActivity();
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.UiFolder,
-            folder,
-            _settings.FormLayoutSettingsFileName
-        );
-
-        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
-
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
+        return ToStringOrNull(GetSettingsBytes(folder));
     }
 
     /// <inheritdoc />
     public LayoutSettings? GetLayoutSettingsForFolder(string? folder)
     {
-        using var activity = _telemetry?.StartGetLayoutSettingsForSetActivity();
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.UiFolder,
-            folder,
-            _settings.FormLayoutSettingsFileName
-        );
-
-        if (!PathHelper.ValidateLegalFilePath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename))
-        {
-            throw new ArgumentException("Invalid path", nameof(folder));
-        }
-
-        if (File.Exists(filename))
-        {
-            var fileData = File.ReadAllText(filename, Encoding.UTF8);
-            return Deserialize<LayoutSettings>(fileData, _jsonSerializerOptions);
-        }
-
-        return null;
-    }
-
-    private LayoutSettings? GetUiFolderSettings(string folderId)
-    {
-        string filename = Path.Join(
-            _settings.AppBasePath,
-            _settings.UiFolder,
-            folderId,
-            _settings.FormLayoutSettingsFileName
-        );
-        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
-
-        if (!File.Exists(filename))
-        {
-            return null;
-        }
-
-        var fileData = File.ReadAllText(filename, Encoding.UTF8);
-        return Deserialize<LayoutSettings>(fileData, _jsonSerializerOptions);
+        return DeserializeOrNull<LayoutSettings>(GetSettingsBytes(folder));
     }
 
     /// <inheritdoc />
-    public GlobalPageSettings? GetGlobalUiSettings()
+    public GlobalPageSettings? GetGlobalUiSettings() => GetGlobalUiSettings(_appFiles.Current);
+
+    private static GlobalPageSettings? GetGlobalUiSettings(AppFiles files)
     {
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        string? settingsString = null;
-        if (File.Exists(filename))
-        {
-            settingsString = File.ReadAllText(filename, Encoding.UTF8);
-        }
+        string? settingsString = ToStringOrNull(files.Ui.Settings);
         if (string.IsNullOrWhiteSpace(settingsString))
         {
             return null;
@@ -406,88 +330,47 @@ internal sealed class AppResourcesSI : IAppResources
         return Deserialize<GlobalPageSettings>(settingsString, _jsonSerializerOptions);
     }
 
-    private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
-    {
-        var fullFileName = Path.Join(legalPath, filePath);
-        if (!PathHelper.ValidateLegalFilePath(legalPath, fullFileName))
-        {
-            throw new ArgumentException("Invalid argument", nameof(filePath));
-        }
-
-        if (File.Exists(fullFileName))
-        {
-            var fileContents = File.ReadAllBytes(fullFileName);
-            // The files read here are json, and callers parse them, so strip the UTF-8 BOM (if any)
-            var withoutBom = fileContents.RemoveBom();
-            return withoutBom.Length == fileContents.Length ? fileContents : withoutBom.ToArray();
-        }
-
-#nullable disable
-        return null;
-#nullable restore
-    }
-
     /// <inheritdoc />
-    public async Task<string?> GetFooter()
+    public Task<string?> GetFooter()
     {
-        using var activity = _telemetry?.StartGetFooterActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FooterFileName);
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = await File.ReadAllTextAsync(filename, Encoding.UTF8);
-        }
-
-        return filedata;
+        return Task.FromResult(ToStringOrNull(_appFiles.Current.Ui.Footer));
     }
 
     /// <inheritdoc />
     public string? GetValidationConfiguration(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetValidationConfigurationActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{dataTypeId}.{_settings.ValidationConfigurationFileName}");
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
+        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.ValidationConfiguration);
     }
 
     /// <inheritdoc />
     public string? GetXsdSchema(string dataTypeId)
     {
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{dataTypeId}.xsd");
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
+        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.XsdSchema);
     }
 
     /// <inheritdoc />
     public string? GetCalculationConfiguration(string dataTypeId)
     {
-        using var activity = _telemetry?.StartGetCalculationConfigurationActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
-        string filename = Path.Join(legalPath, $"{dataTypeId}.{_settings.CalculationConfigurationFileName}");
-        PathHelper.EnsureLegalPath(legalPath, filename);
+        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration);
+    }
 
-        string? fileData = null;
-        if (File.Exists(filename))
+    /// <summary>
+    /// The layout settings for a folder, or the global ui settings when no folder is given.
+    /// </summary>
+    private ReadOnlyMemory<byte>? GetSettingsBytes(string? folder)
+    {
+        var ui = _appFiles.Current.Ui;
+        if (string.IsNullOrEmpty(folder))
         {
-            fileData = File.ReadAllText(filename, Encoding.UTF8);
+            return ui.Settings;
         }
 
-        return fileData;
+        return ui.GetFolder(folder)?.Settings;
     }
+
+    private static T? DeserializeOrNull<T>(ReadOnlyMemory<byte>? bytes) =>
+        bytes is { } value ? Deserialize<T>(value.Span, _jsonSerializerOptions) : default;
+
+    private static string? ToStringOrNull(ReadOnlyMemory<byte>? bytes) =>
+        bytes is { } value ? Encoding.UTF8.GetString(value.Span) : null;
 }

@@ -19,7 +19,7 @@ const createPdfTask = (options: PdfConfigOptions = { taskType: 'pdf' }): Element
     type: 'bpmn:ServiceTask',
     businessObject: {
       extensionElements: {
-        values: [options],
+        values: [{ $type: 'altinn:TaskExtension', ...options }],
       },
     },
   }) as Element;
@@ -109,7 +109,7 @@ describe('UpdateTaskIdCommandHandler', () => {
         type: 'bpmn:Task',
         businessObject: {
           extensionElements: {
-            values: [{ taskType: 'data' }],
+            values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
           },
         },
       };
@@ -247,7 +247,7 @@ describe('UpdateTaskIdCommandHandler', () => {
         type: 'bpmn:ServiceTask',
         businessObject: {
           extensionElements: {
-            values: [{ taskType: 'data' }],
+            values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
           },
         },
       };

@@ -3,6 +3,9 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37
 WORKDIR /src
 
 COPY common/dotnet/Altinn.Studio.Common ./common/dotnet/Altinn.Studio.Common
+COPY cli/.editorconfig cli/Directory.Build.props cli/Directory.Packages.props ./cli/
+COPY cli/common/dotnet/.editorconfig cli/common/dotnet/Directory.Build.props ./cli/common/dotnet/
+COPY cli/common/dotnet/Altinn.Studio.AppDist ./cli/common/dotnet/Altinn.Studio.AppDist
 COPY Designer/backend ./Designer/backend
 
 RUN dotnet tool install --version 10.0.10 --global dotnet-ef

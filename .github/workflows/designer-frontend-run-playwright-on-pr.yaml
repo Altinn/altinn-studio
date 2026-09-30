@@ -7,6 +7,7 @@ on:
       - 'src/Designer/frontend/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/backend/**'
+      - 'src/cli/common/dotnet/**'
       - '.github/workflows/designer-frontend-run-playwright-on-pr.yaml'
       - 'src/Designer/compose.yaml'
       - 'src/Designer/Dockerfile'

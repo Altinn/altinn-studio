@@ -4,7 +4,7 @@ import type { JSONSchema7 } from 'json-schema';
 import { CG } from 'src/codegen/CG';
 import { ExprVal } from 'src/features/expressions/types';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
-import type { MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
+import type { Extract, MaybeOptionalCodeGenerator, MaybeSymbolizedCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 
 const common = {
@@ -1242,6 +1242,7 @@ const common = {
 };
 
 export type ValidCommonKeys = keyof typeof common;
+export type CommonValue<K extends ValidCommonKeys> = Extract<ReturnType<(typeof common)[K]>>;
 
 interface TRB {
   title: LocalizedText;

@@ -154,7 +154,7 @@ public class AltinnPartyClientTest
             var loggerMock = new Mock<ILogger<AltinnPartyClient>>();
 
             var appMetadataMock = new Mock<IAppMetadata>();
-            appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
+            appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("org/app"));
 
             // Valid JWT format required by JwtToken.Parse
             const string validJwtToken =

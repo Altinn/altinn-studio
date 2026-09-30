@@ -80,6 +80,7 @@ impl GuestTcpStream {
         let request = TcpConnect {
             host: host.to_owned(),
             port,
+            bulk: None,
         };
         let (id, mut receiver) = client
             .stream(MessageType::TcpConnect, &request)

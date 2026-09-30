@@ -254,6 +254,25 @@ public sealed class AppDistTests : IDisposable
     }
 
     [Fact]
+    public async Task FetchGatesAreReleasedWhateverTheFetchOutcome()
+    {
+        var (provider, source, _) = Setup();
+        source.AddFiles("4", AppDistLayer.Schemas, ("schemas/json/a.json", "{}"));
+
+        Assert.NotNull(await provider.GetLayer("4", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        Assert.Null(await provider.GetLayer("5", AppDistLayer.Schemas, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<AppDistArtifactException>(() =>
+            provider.GetLayer("4", AppDistLayer.Content, TestContext.Current.CancellationToken)
+        );
+        source.Offline = true;
+        await Assert.ThrowsAsync<AppDistSourceUnavailableException>(() =>
+            provider.GetLayer("6", AppDistLayer.Schemas, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Equal(0, provider.FetchGateCount);
+    }
+
+    [Fact]
     public async Task WaiterCancellationDoesNotAffectFetcher()
     {
         var (provider, source, _) = Setup();

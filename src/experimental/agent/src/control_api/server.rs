@@ -17,9 +17,9 @@ use super::protocol::{
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
+    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
+    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -270,6 +270,18 @@ impl SshAccessApi for crate::ssh::Access {
     }
 }
 
+/// VNC access descriptors exposed through the local control API.
+pub trait VncAccessApi {
+    /// Describes the VNC access of a named Agent.
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::vnc::AccessInfo, Error>>;
+}
+
+impl VncAccessApi for crate::vnc::Access {
+    fn describe<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<crate::vnc::AccessInfo, Error>> {
+        Box::pin(async move { Self::describe(self, name).await })
+    }
+}
+
 /// Observes an isolated connection error without terminating the daemon.
 pub type ErrorHandler = Rc<dyn Fn(&Error)>;
 
@@ -351,6 +363,7 @@ pub struct Server {
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
+    vnc: Rc<dyn VncAccessApi>,
     changes: Changes,
     on_error: ErrorHandler,
     lifecycle: Lifecycle,
@@ -359,12 +372,17 @@ pub struct Server {
 impl Server {
     /// Creates an Agent Control API server.
     #[must_use]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "each API the server dispatches to is wired explicitly at the daemon boundary"
+    )]
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
+        vnc: Rc<dyn VncAccessApi>,
         changes: Changes,
         on_error: ErrorHandler,
     ) -> Self {
@@ -374,6 +392,7 @@ impl Server {
             executions,
             sessions,
             ssh,
+            vnc,
             changes,
             on_error,
             lifecycle: Lifecycle::default(),
@@ -480,6 +499,7 @@ impl Server {
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
+            METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
             METHOD_SESSION_ENSURE => self.handle_session_ensure(request.id, request.params).await,
             METHOD_SESSION_GET => self.handle_session_get(request.id, request.params).await,
@@ -626,6 +646,14 @@ impl Server {
             })
         };
         result_response(id, resources.await)
+    }
+
+    async fn handle_vnc_access(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.vnc.describe(&params.name).await)
     }
 
     async fn handle_execution_ensure(&self, id: u64, value: Value) -> Response {

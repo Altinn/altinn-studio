@@ -207,7 +207,7 @@ public class AuthenticationTokenResolverTest
         )
         {
             var mocks = new FixtureMocks();
-            mocks.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
+            mocks.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(_appMetadata);
             mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(currentAuth ?? _userAuth);
             mocks
                 .MaskinportenClientMock.Setup(x =>

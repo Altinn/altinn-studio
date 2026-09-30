@@ -4,36 +4,20 @@ namespace Altinn.App.Core.Configuration
 {
     public class AppSettings
     {
-        public const string CALCULATION_CONFIG_FILENAME = "calculation.json";
-        public const string JSON_SCHEMA_FILENAME = "schema.json";
-        public const string VALIDATION_CONFIG_FILENAME = "validation.json";
         public AppSettings() { }
-        public string AppBasePath { get; set; }
         public string? AppFrontendAssetBaseUrl { get; set; }
         public string AppOidcProvider { get; set; }
         public string AppVersion { get; set; }
-        public string ApplicationMetadataFileName { get; set; }
-        public string ApplicationXACMLPolicyFileName { get; init; }
-        public string AuthorizationFolder { get; set; }
         [System.Obsolete("This is not used, and will be removed in the next major version")]
         public string BaseResourceFolderContainer { get; set; }
         public int CacheResourceLifeTimeInSeconds { get; set; }
-        public string CalculationConfigurationFileName { get; set; }
-        public string ConfigurationFolder { get; set; }
         public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
         public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
-        public string FooterFileName { get; set; }
         public string FormLayoutJSONFileName { get; set; }
-        public string FormLayoutSettingsFileName { get; set; }
-        public string JsonSchemaFileName { get; set; }
-        public string ModelsFolder { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
-        public string OptionsFolder { get; set; }
-        public string ProcessFileName { get; set; }
-        public string ProcessFolder { get; set; }
         public bool RegisterEventsWithEventsComponent { get; set; }
         public bool RemoveHiddenData { get; set; }
         public bool RequiredValidation { get; set; }
@@ -41,11 +25,8 @@ namespace Altinn.App.Core.Configuration
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
         public string ServiceStylesConfigFileName { get; set; }
-        public string TextFolder { get; set; }
-        public string UiFolder { get; set; }
         public bool UseOpenTelemetry { get; set; }
         public bool UseOpenTelemetryCollector { get; set; }
-        public string ValidationConfigurationFileName { get; set; }
         public bool XsdValidation { get; set; }
     }
     public class CacheSettings
@@ -114,6 +95,13 @@ namespace Altinn.App.Core.Constants
         public const string EFormidlingAccessTokenHeaderName = "AltinnIntegrationPointToken";
         public const string RuntimeCookieName = "AltinnStudioRuntime";
         public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
+    }
+    public enum HostingEnvironment
+    {
+        Unknown = 0,
+        Development = 1,
+        Production = 2,
+        Staging = 3,
     }
 }
 namespace Altinn.App.Core.EFormidling.Configuration
@@ -2268,6 +2256,13 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
+    {
+        public ProcessTaskValidationContext() { }
+        public required Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; init; }
+        public required Altinn.App.Core.Constants.HostingEnvironment Environment { get; init; }
+        public required string TaskId { get; init; }
+    }
     public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
     {
         public ServiceTaskAttempt() { }
@@ -2894,8 +2889,14 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppMetadata
     {
+        Altinn.App.Core.Models.ApplicationMetadata ApplicationMetadata { get; }
+        string ProcessDefinition { get; }
+        string XacmlPolicy { get; }
+        [System.Obsolete("The file is in memory. Use the ProcessDefinition property.")]
         System.Threading.Tasks.Task<string> GetApplicationBPMNProcess();
+        [System.Obsolete("The file is in memory. Use the ApplicationMetadata property.")]
         System.Threading.Tasks.Task<Altinn.App.Core.Models.ApplicationMetadata> GetApplicationMetadata();
+        [System.Obsolete("The file is in memory. Use the XacmlPolicy property.")]
         System.Threading.Tasks.Task<string> GetApplicationXACMLPolicy();
     }
     public interface IAppResources
@@ -3251,11 +3252,6 @@ namespace Altinn.App.Core.Internal.Instances
 }
 namespace Altinn.App.Core.Internal.Language
 {
-    public class ApplicationLanguage : Altinn.App.Core.Internal.Language.IApplicationLanguage
-    {
-        public ApplicationLanguage(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> settings, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
-        public System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage>> GetApplicationLanguages() { }
-    }
     public interface IApplicationLanguage
     {
         System.Threading.Tasks.Task<System.Collections.Generic.List<Altinn.App.Core.Models.ApplicationLanguage>> GetApplicationLanguages();
@@ -3739,6 +3735,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker
     {

@@ -54,7 +54,7 @@ class SkillTool(Tool):
                 is_error=True,
             )
         try:
-            body = skill.load_body()
+            body = skill.load_body(ctx.app_version_profile.version_label)
         except OSError as exc:
             return ToolResult(
                 content=f"Failed to load skill {args.skill!r}: {exc}",

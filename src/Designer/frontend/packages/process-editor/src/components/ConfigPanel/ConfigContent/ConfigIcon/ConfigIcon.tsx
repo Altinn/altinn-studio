@@ -2,14 +2,19 @@ import React from 'react';
 import classes from './ConfigIcon.module.css';
 import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
 import {
+  ArchiveIcon,
   ArrowRightIcon,
+  BranchingIcon,
+  CogIcon,
   ConfirmationTaskIcon,
   DataTaskIcon,
+  EFormidlingIcon,
   FeedbackTaskIcon,
   EndEventIcon,
   PaymentTaskIcon,
   PdfTaskIcon,
   SignTaskIcon,
+  SubformPdfIcon,
 } from '@studio/icons';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 
@@ -33,9 +38,19 @@ export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElem
       return <PaymentTaskIcon className={classes.icon} />;
     case 'pdf':
       return <PdfTaskIcon className={classes.icon} />;
+    case 'eFormidling':
+      return <EFormidlingIcon className={classes.icon} />;
+    case 'subformPdf':
+      return <SubformPdfIcon className={classes.icon} />;
+    case 'fiksArkiv':
+      return <ArchiveIcon className={classes.icon} />;
     case BpmnTypeEnum.EndEvent.toString():
       return <EndEventIcon className={classes.icon} />;
     case BpmnTypeEnum.SequenceFlow.toString():
       return <ArrowRightIcon className={classes.icon} />;
+    case BpmnTypeEnum.ExclusiveGateway.toString():
+      return <BranchingIcon className={classes.icon} />;
   }
+
+  return typeof taskType === 'string' ? <CogIcon className={classes.icon} /> : null;
 };

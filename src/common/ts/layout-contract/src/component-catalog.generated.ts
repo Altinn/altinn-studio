@@ -4883,7 +4883,7 @@ const generatedContract = {
           type: 'number',
           title: SaveWhileTyping['title'],
           description: SaveWhileTyping['description'],
-          default: true,
+          default: 400,
           required: false,
         },
         simplified: {
@@ -6962,7 +6962,7 @@ const generatedContract = {
           type: 'number',
           title: SaveWhileTyping['title'],
           description: SaveWhileTyping['description'],
-          default: true,
+          default: 400,
           required: false,
         },
         formatting: {
@@ -10538,7 +10538,7 @@ const generatedContract = {
           type: 'number',
           title: SaveWhileTyping['title'],
           description: SaveWhileTyping['description'],
-          default: true,
+          default: 400,
           required: false,
         },
         autocomplete: {

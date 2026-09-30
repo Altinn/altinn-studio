@@ -6,7 +6,7 @@ metadata:
     altinn.studio/otel-collector: otel-router
 spec:
   mode: deployment
-  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.148.0
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.161.0
   serviceAccount: otel-collector
   upgradeStrategy: automatic
   replicas: 1
@@ -24,7 +24,23 @@ spec:
       labelSelector:
         matchLabels:
           altinn.studio/otel-collector: otel-router
+  # On deletion the pod first leaves the Service and the gateway's headless DNS and keeps
+  # working, retries included, while its queues drain; then the Collector shuts down and
+  # flushes, with one attempt per remaining batch. Telemetry can wait, so both are generous.
+  # Native sleep: the image has no shell.
+  lifecycle:
+    preStop:
+      sleep:
+        seconds: 60 # beyond the gateway's 40s tail sampling wait and 5s batch timeout
+  terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
+  livenessProbe:
+    terminationGracePeriodSeconds: 10 # a failed liveness probe restarts without the 60s drain
   config:
+    extensions:
+      # The operator derives the readiness and liveness probes from this extension, so a pod counts
+      # as ready only once the Collector is running, and a rollout keeps the old pod until then.
+      health_check:
+        endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost
     receivers:
       otlp:
         protocols:
@@ -34,7 +50,7 @@ spec:
             endpoint: 0.0.0.0:4318
     processors:
       # Processor definitions sourced from https://github.com/dis-way/gitops-manifests/blob/1b96cf749be6e5cedfbfc09eb6caf3bd72bfb4c0/oci/otel-collector/base/collector.yaml to keep parity with existing collector behavior.
-      resourcedetection/aks:
+      resource_detection/aks:
         detectors: [aks]
         timeout: 2s
         override: false
@@ -226,3 +242,5 @@ spec:
               - delete_key(log.attributes, "telemetry.sdk.version")
               - delete_key(resource.attributes, "telemetry.sdk.version")
       batch: {}
+    service:
+      extensions: [health_check]

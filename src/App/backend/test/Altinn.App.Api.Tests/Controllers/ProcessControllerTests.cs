@@ -44,7 +44,6 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-[Collection("Process version admission file-backed tests")]
 public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
     // Define constants
@@ -638,7 +637,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             services.AddSingleton(pdfMock.Object);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     var defaultDataType = appMetadata.DataTypes.Single(dt => dt.Id == "default");
                     defaultDataType.AppLogic.ShadowFields = new() { Prefix = "SF_", SaveToDataType = saveToDataType };
@@ -823,7 +822,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         const string org = "ttd";
         const string app = "process-version-admission";
         const int instanceOwnerPartyId = 501337;
-        var instanceGuid = new Guid("d2af1cfd-db99-45f9-9625-9dfa1223485f");
+        var instanceGuid = new Guid("a55a3a77-2326-4056-b7e0-d9b093bbea6c");
         var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
         TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceGuid);
