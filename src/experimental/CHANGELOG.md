@@ -12,6 +12,12 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- `agentctl tui` opens an Agent with `o`:
+  - in a shell, VS Code, Zed or SSH, offering to add the `Include` to `~/.ssh/config` first ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+
 ## [0.1.0-preview.8] - 2026-09-30
 
 ### Changed

@@ -27,6 +27,7 @@ pub(crate) fn ssh_access_lines(access: &agent::ssh::AccessInfo) -> Vec<String> {
         format!("Known hosts: {}", access.known_hosts_file.display()),
         format!("Config:      {}", access.config_file.display()),
         format!("Proxy:       {}", access.proxy_command),
+        format!("Directory:   {}", access.working_directory),
         format!("Connect:     ssh -F {} {}", access.config_file.display(), access.alias),
     ]
 }

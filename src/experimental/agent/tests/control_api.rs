@@ -44,6 +44,7 @@ impl SshAccessApi for FakeSshAccess {
                 known_hosts_file: "/home/me/.agent/ssh/known_hosts".into(),
                 config_file: "/home/me/.agent/ssh/config".into(),
                 proxy_command: "/usr/local/bin/agentctl ssh-proxy agent/worker".into(),
+                working_directory: "/home/agent/code".into(),
             })
         })
     }
