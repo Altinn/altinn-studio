@@ -17,15 +17,15 @@ spec:
     tag: v0.11.1
   retentionPeriod: 100y
   secrets:
-    - observability-backend-auth-keys
+    - observability-backend-auth-key
   extraArgs:
     retention.maxDiskUsagePercent: "80"
-    # Admin auth keys; see logs.yaml.
-    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
-    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
-    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
-    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
-    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
+    # Admin auth key; see logs.yaml.
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
   storage:
     accessModes:
       - ReadWriteOnce
@@ -68,14 +68,14 @@ spec:
     tag: v0.11.1
   retentionPeriod: 100y
   secrets:
-    - observability-backend-auth-keys
+    - observability-backend-auth-key
   extraArgs:
     retention.maxDiskUsagePercent: "80"
-    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-merge
-    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/force-flush
-    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/partition-manage
-    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/log-new-streams
-    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-keys/pprof
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
   storage:
     accessModes:
       - ReadWriteOnce
