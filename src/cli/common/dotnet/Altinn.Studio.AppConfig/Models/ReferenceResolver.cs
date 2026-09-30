@@ -103,7 +103,16 @@ internal static class ReferenceResolver
             if (rb.EffectiveDataType is null)
             {
                 if (!ModelPath.Exists(model.SchemaProperties, r.Value) && !ResolvesInCSharpModel(model, null, r.Value))
-                    unresolved.Add(DanglingPath(r, new DataModelFacts(EffectiveDataType: null, SchemaPresent: false)));
+                    unresolved.Add(
+                        DanglingPath(
+                            r,
+                            new DataModelFacts(
+                                EffectiveDataType: null,
+                                SchemaPresent: false,
+                                ModelPath.DeclaredCaseOf(model.SchemaProperties, r.Value)
+                            )
+                        )
+                    );
                 continue;
             }
             if (rb.Props is null)
@@ -114,7 +123,16 @@ internal static class ReferenceResolver
             else if (
                 !ModelPath.Exists(rb.Props, r.Value) && !ResolvesInCSharpModel(model, rb.EffectiveDataType, r.Value)
             )
-                unresolved.Add(DanglingPath(r, new DataModelFacts(rb.EffectiveDataType, SchemaPresent: true)));
+                unresolved.Add(
+                    DanglingPath(
+                        r,
+                        new DataModelFacts(
+                            rb.EffectiveDataType,
+                            SchemaPresent: true,
+                            ModelPath.DeclaredCaseOf(rb.Props, r.Value)
+                        )
+                    )
+                );
         }
 
         return unresolved;

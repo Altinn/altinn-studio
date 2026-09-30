@@ -778,6 +778,35 @@ public sealed class AppSymbolsTests
     }
 
     [Fact]
+    public void SuggestCorrection_KeepsArrayIndices_WhenOnlyTheCaseDiffers()
+    {
+        const string layout = """
+            {"data":{"layout":[
+              {"id":"a","type":"Input","dataModelBindings":{"simpleBinding":"Items[0].Name"}},
+              {"id":"b","type":"Input","dataModelBindings":{"simpleBinding":"items[1].name"}}
+            ]}}
+            """;
+        var dir = new MutableAppDirectory(
+            new()
+            {
+                ["App/config/applicationmetadata.json"] = TestMeta.Json("ttd/s", "model"),
+                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                ["App/ui/Task_1/layouts/P1.json"] = layout,
+                ["App/models/model.schema.json"] =
+                    """{"properties":{"items":{"type":"array","items":{"type":"object","properties":{"name":{"type":"string"}}}}}}""",
+            }
+        );
+        var symbols = OpenSymbols(dir);
+        const string p1 = "App/ui/Task_1/layouts/P1.json";
+
+        var (cl, cc) = At(layout, "\"Items[0].Name\"", 1);
+        Assert.Equal("items[0].name", symbols.SuggestCorrection(p1, cl, cc));
+
+        var (vl, vc) = At(layout, "\"items[1].name\"", 1);
+        Assert.Null(symbols.SuggestCorrection(p1, vl, vc));
+    }
+
+    [Fact]
     public void ProposeRename_Task_AlsoRenamesItsUiFolder()
     {
         const string layout =
