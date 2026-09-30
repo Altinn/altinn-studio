@@ -66,6 +66,7 @@ export class SupportedPaletteProvider {
       {
         id: 'pdf',
         taskType: 'pdf',
+        name: 'Lag PDF',
         configure: () => ({ pdfConfig: factory.create('altinn:PdfConfig') }),
       },
       {
