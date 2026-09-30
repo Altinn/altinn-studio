@@ -31,6 +31,10 @@ The exceptions below record the observed incompatible result. Remove the marker 
 | `evaluation/functions/instanceContext/instanceOwnerNamePerson.json`       | Instance owner name is `"Firstname Lastname"`.                                | Throws `Unknown Instance context property instanceOwnerName`.                                                      |
 | `validation/value-function.json`                                          | One `hello world` issue for `form.name`.                                      | Throws `Function "value" not implemented in backend ["value"]`.                                                    |
 
+`evaluation/functions/gatewayAction/frontend-unavailable.json` verifies that the frontend stub throws for standalone
+and nested gateway-action expressions. It has `disabledBackend: true` because backend process evaluation supports
+this function. The backend's exclusive `gatewayAction` tests cover returning the current action or null.
+
 ## Function folders not yet implemented in the backend
 
 The backend runner excludes these complete folders. Its coverage check fails if this list and the folders get out of sync.
