@@ -206,4 +206,108 @@ public class TranslationServiceTests
         );
         Assert.Equal("Feltet er påkrevd", resultNb);
     }
+
+    [Theory]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.Nn, "Det manglar påkravde signaturar.")]
+    [InlineData("backend.validation_errors.missing_signatures", LanguageConst.En, "Required signatures are missing.")]
+    [InlineData("backend.validation_errors.missing_signatures", null, "Det mangler påkrevde signaturer.")]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.Nb,
+        "Signerte data er endret etter at signaturen ble utført."
+    )]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.Nn,
+        "Signerte data er endra etter at signaturen vart utført."
+    )]
+    [InlineData(
+        "backend.validation_errors.invalid_signature_hash",
+        LanguageConst.En,
+        "The signed data has been modified after the signature was made."
+    )]
+    [InlineData(
+        "backend.validation_errors.file_infected",
+        LanguageConst.En,
+        "The file is infected with malware and cannot be used."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback(string key, string? language, string expected)
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, language);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "backend.validation_errors.file_too_large",
+        "maxSize",
+        "25",
+        "Filen er for stor. Største tillatte filstørrelse er 25 MB."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback_WithParameter(
+        string key,
+        string parameter,
+        string value,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(key, LanguageConst.Nb, new() { [parameter] = value });
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(
+        "backend.validation_errors.too_many_data_elements",
+        "maxCount",
+        "3",
+        "Det er lagt til flere enn 3 elementer av typen vedlegg."
+    )]
+    [InlineData(
+        "backend.validation_errors.too_few_data_elements",
+        "minCount",
+        "2",
+        "Det må legges til minst 2 elementer av typen vedlegg."
+    )]
+    public async Task TranslateTextKey_BackendValidationFallback_WithCountAndDataType(
+        string key,
+        string countParameter,
+        string count,
+        string expected
+    )
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            key,
+            LanguageConst.Nb,
+            new() { [countParameter] = count, ["dataType"] = "vedlegg" }
+        );
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task TranslateTextKey_ContentTypeNotAllowed_NamesAllowedTypes()
+    {
+        await using var provider = _services.BuildServiceProvider();
+        var translationService = provider.GetRequiredService<ITranslationService>();
+
+        var result = await translationService.TranslateTextKey(
+            "backend.validation_errors.content_type_not_allowed",
+            LanguageConst.En,
+            new() { ["allowedContentTypes"] = "application/pdf, image/png" }
+        );
+
+        Assert.EndsWith("Allowed file types are: application/pdf, image/png.", result);
+    }
 }

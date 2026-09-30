@@ -4,7 +4,6 @@ using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
-using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
@@ -86,7 +85,6 @@ internal sealed class SignatureHashValidator(
                     dataElementSignature,
                     instance,
                     applicationMetadata,
-                    language,
                     cancellationToken
                 );
 
@@ -106,7 +104,6 @@ internal sealed class SignatureHashValidator(
         SignDocument.DataElementSignature dataElementSignature,
         Instance instance,
         ApplicationMetadata applicationMetadata,
-        string? language,
         CancellationToken cancellationToken
     )
     {
@@ -138,12 +135,7 @@ internal sealed class SignatureHashValidator(
             {
                 Code = ValidationIssueCodes.DataElementCodes.InvalidSignatureHash,
                 Severity = ValidationIssueSeverity.Error,
-                Description = language switch
-                {
-                    LanguageConst.Nb or null => "Signerte data er endret etter at signaturen ble utført.",
-                    LanguageConst.Nn => "Signerte data er endra etter at signaturen vart utført.",
-                    _ => "The signed data has been modified after the signature was made.",
-                },
+                CustomTextKey = "backend.validation_errors.invalid_signature_hash",
             };
         }
 

@@ -84,12 +84,12 @@ public class SigningTaskValidatorTest
     }
 
     [Theory]
-    [InlineData(LanguageConst.Nb, "Det mangler påkrevde signaturer.")]
-    [InlineData(LanguageConst.Nn, "Det manglar påkravde signaturar.")]
-    [InlineData(LanguageConst.En, "Required signatures are missing.")]
-    [InlineData(null, "Det mangler påkrevde signaturer.")]
-    [InlineData("fr", "Required signatures are missing.")]
-    public async Task Validate_ShouldReturnValidationIssue_WhenNotAllHaveSigned(string? language, string description)
+    [InlineData(LanguageConst.Nb)]
+    [InlineData(LanguageConst.Nn)]
+    [InlineData(LanguageConst.En)]
+    [InlineData(null)]
+    [InlineData("fr")]
+    public async Task Validate_ShouldReturnValidationIssue_WhenNotAllHaveSigned(string? language)
     {
         // Arrange
         var dataAccessorMock = new Mock<IInstanceDataAccessor>();
@@ -136,7 +136,8 @@ public class SigningTaskValidatorTest
         // Assert
         Assert.Single(result);
         Assert.Equal(ValidationIssueCodes.DataElementCodes.MissingSignatures, result[0].Code);
-        Assert.Equal(description, result[0].Description);
+        Assert.Equal("backend.validation_errors.missing_signatures", result[0].CustomTextKey);
+        Assert.Null(result[0].Description);
     }
 
     [Fact]
