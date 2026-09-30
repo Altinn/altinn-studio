@@ -140,14 +140,10 @@ internal static class ObservabilityReverseProxyConfig
     /// <summary>
     /// The storage pair, as failover rather than load balancing. Neither instance can merge results
     /// with the other, so spreading reads across them would return a partial answer half the time.
-    /// <c>FirstAlphabetical</c> sends every read to the first healthy destination, and the
-    /// destination keys are ordered so that is the first configured address.
-    ///
-    /// Reads return to the first instance as soon as its health check passes again, not once its
-    /// agent has replayed the writes it buffered while the instance was down. Until the backlog is
-    /// drained, the most recent data can briefly be missing from query results after a failover.
-    /// That is accepted: the data is not lost, both instances converge, and holding reads on the
-    /// second instance would need state this proxy does not keep.
+    /// <see cref="StickyFailoverLoadBalancingPolicy"/> sends every read to the first healthy
+    /// destination, and the destination keys are ordered so that is the first configured address.
+    /// After a failover, reads stay on the second instance until the proxy restarts; see the policy
+    /// for why they do not return on their own.
     /// </summary>
     private static ClusterConfig CreateReadCluster(ObservabilitySignal signal, IReadOnlyList<string> addresses)
     {
@@ -165,7 +161,7 @@ internal static class ObservabilityReverseProxyConfig
         return new ClusterConfig
         {
             ClusterId = signal.RouteGroup,
-            LoadBalancingPolicy = LoadBalancingPolicies.FirstAlphabetical,
+            LoadBalancingPolicy = StickyFailoverLoadBalancingPolicy.PolicyName,
             Destinations = destinations,
             HealthCheck = new HealthCheckConfig
             {

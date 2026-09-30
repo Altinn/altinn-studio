@@ -7,6 +7,7 @@ using Altinn.Studio.Observability.Proxy.Routing;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Yarp.ReverseProxy.LoadBalancing;
 
 namespace Altinn.Studio.Observability.Proxy.Hosting;
 
@@ -40,6 +41,8 @@ internal static class ObservabilityProxyExtensions
         builder.Services.AddHealthChecks().AddCheck<ObservabilityReadinessHealthCheck>("observability-proxy-config");
 
         builder.Services.AddRateLimiter(options => ConfigureRateLimiter(options, proxyOptions.RateLimiting));
+
+        builder.Services.AddSingleton<ILoadBalancingPolicy, StickyFailoverLoadBalancingPolicy>();
 
         builder
             .Services.AddReverseProxy()
