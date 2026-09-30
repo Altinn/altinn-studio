@@ -11,9 +11,17 @@ mod execution;
 pub mod forward;
 pub mod microsandbox;
 pub mod platform;
+pub mod responsiveness;
 
 pub use execution::{ExecutionService, ExecutionTarget, start_execution};
 pub use microsandbox::{GuestConnection, GuestDialer};
+pub use responsiveness::{Responsiveness, UNRESPONSIVE_AFTER};
+
+/// Longest one guest-touching part of a reconciliation pass may run while its
+/// guest still reports progress. A backstop for a guest whose heartbeat
+/// continues while its Executions do not; a stalled guest ends the work within
+/// [`UNRESPONSIVE_AFTER`] instead.
+const GUEST_WORK_TIMEOUT: std::time::Duration = std::time::Duration::from_mins(10);
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -178,6 +186,7 @@ pub trait PlatformAdapter {
 pub struct Service {
     providers: Vec<Rc<dyn Provider>>,
     platforms: Vec<Rc<dyn PlatformAdapter>>,
+    responsiveness: responsiveness::Tracker,
 }
 
 impl Service {
@@ -210,6 +219,7 @@ impl Service {
         Ok(Self {
             providers: configured,
             platforms,
+            responsiveness: responsiveness::Tracker::default(),
         })
     }
 
@@ -254,10 +264,16 @@ impl Service {
                     "no Agent setup adapter supports resolved Sandbox platform {resolved_platform:?}"
                 ))
             })?;
+        // The snapshot is fresh from this pass, which may have booted the
+        // guest again, so a heartbeat recorded before it no longer applies.
+        self.responsiveness
+            .observe(sandbox.snapshot(), tokio::time::Instant::now());
         let phase = progress.start_phase(crate::progress::SETUP).await;
-        adapter
-            .setup(record, &sandbox, &outcome.harnesses, &progress.steps())
-            .await?;
+        self.guard_guest(
+            &sandbox.snapshot().id,
+            adapter.setup(record, &sandbox, &outcome.harnesses, &progress.steps()),
+        )
+        .await?;
         phase.complete().await;
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
@@ -277,6 +293,68 @@ impl Service {
             return Err(Error::Invalid("Agent has no materialized Sandbox assignment".into()));
         };
         self.provider(provider)?.open(record, id).await
+    }
+
+    /// Returns what is known about a Sandbox's guest.
+    #[must_use]
+    pub fn responsiveness(&self, id: &SandboxId) -> Responsiveness {
+        self.responsiveness.responsiveness(id)
+    }
+
+    /// Inspects the Agent's materialized Sandbox, without a round trip to its
+    /// guest, and records the guest's heartbeat.
+    ///
+    /// Returns the Sandbox and, when this observation changed it, the
+    /// responsiveness it replaced.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless the assignment is materialized and the Sandbox can be inspected.
+    pub async fn observe(
+        &self,
+        record: &AgentRecord,
+        now: tokio::time::Instant,
+    ) -> Result<(SandboxId, Option<Responsiveness>), Error> {
+        let sandbox = self.open(record).await?;
+        let replaced = self.responsiveness.observe(sandbox.snapshot(), now);
+        Ok((sandbox.snapshot().id.clone(), replaced))
+    }
+
+    /// Restarts every observed heartbeat's age after observation was suspended.
+    pub fn resume_observation(&self, now: tokio::time::Instant) {
+        self.responsiveness.resume(now);
+    }
+
+    /// Forgets the heartbeats of every Sandbox not in `observed`.
+    pub fn retain_observed(&self, observed: &std::collections::HashSet<SandboxId>) {
+        self.responsiveness.retain(observed);
+    }
+
+    /// Runs work that reaches into a Sandbox's guest, ending it as soon as the
+    /// guest is observed to be unresponsive, or after [`GUEST_WORK_TIMEOUT`].
+    ///
+    /// A guest already known to be unresponsive is not reached at all.
+    /// Dropping the work closes its guest connections.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::SandboxUnresponsive`] when the guest stalls, a
+    /// Sandbox setup error on the timeout, and otherwise the work's error.
+    pub async fn guard_guest<T>(
+        &self,
+        sandbox: &SandboxId,
+        work: impl Future<Output = Result<T, Error>>,
+    ) -> Result<T, Error> {
+        tokio::select! {
+            biased;
+            () = self.responsiveness.unresponsive(sandbox) => Err(responsiveness::stalled()),
+            result = tokio::time::timeout(GUEST_WORK_TIMEOUT, work) => result.unwrap_or_else(|_elapsed| {
+                Err(Error::SandboxSetup(format!(
+                    "work in the Sandbox did not finish within {} minutes",
+                    GUEST_WORK_TIMEOUT.as_secs() / 60
+                )))
+            }),
+        }
     }
 
     /// Releases the selected Provider idempotently. An unassigned Agent has no effect to release.

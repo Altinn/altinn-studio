@@ -870,6 +870,9 @@ impl Condition {
     pub const READY: &'static str = "Ready";
     /// Condition type for the Sandbox lifecycle underneath `Ready`.
     pub const SANDBOX_READY: &'static str = "SandboxReady";
+    /// Condition type for whether the running Sandbox's guest still makes
+    /// progress, observed by the host without a round trip to the guest.
+    pub const SANDBOX_RESPONSIVE: &'static str = "SandboxResponsive";
     /// Condition type for declared SSH access underneath `Ready`.
     pub const SSH_READY: &'static str = "SshReady";
     /// VNC access is reconciled and the bridge to the desktop is listening.

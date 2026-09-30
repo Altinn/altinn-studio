@@ -7,12 +7,17 @@
 
 use std::time::Duration;
 
-use crate::{AgentId, Error, FailureKind, ReconcileFailure, resources::Changes};
+use tokio::time::Instant;
+
+use crate::{AgentId, Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status, resources::Changes};
 
 use super::{SharedAgentStore, Wakeup};
 
 /// Longest a waiter goes without rereading the stored Agent.
 const RECHECK_INTERVAL: Duration = Duration::from_secs(30);
+/// How long a waiter keeps waiting once the Agent's guest is recorded as
+/// unresponsive, in case it recovers, before it reports the stall.
+const UNRESPONSIVE_WAIT: Duration = Duration::from_secs(5);
 /// How long a waiter lets changes gather before rereading the stored Agent.
 /// Every progress event of any Agent advances the revision, so a waiter
 /// rereads once per burst instead of once per event.
@@ -24,7 +29,8 @@ pub enum WaitPolicy {
     /// Returns after one reconciliation pass with that pass's outcome.
     FirstPass,
     /// Keeps waiting through transient failures, which the background controller
-    /// retries, until the Agent is Ready or its desired state is invalid.
+    /// retries, until the Agent is Ready or its desired state is invalid. A
+    /// guest recorded as unresponsive ends the wait shortly after instead.
     UntilReady,
 }
 
@@ -48,8 +54,9 @@ impl Convergence {
     /// # Errors
     ///
     /// Returns `Error::Invalid` when desired state must change, the first pass's
-    /// failure under [`WaitPolicy::FirstPass`], `Error::Conflict` when the Agent
-    /// is deleted while waited on, or a storage error.
+    /// failure under [`WaitPolicy::FirstPass`], `Error::SandboxUnresponsive`
+    /// when the Agent's guest stays unresponsive under [`WaitPolicy::UntilReady`],
+    /// `Error::Conflict` when the Agent is deleted while waited on, or a storage error.
     pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
         match (wait, self.wakeup.reconcile(id).await) {
             (_, Ok(())) => return Ok(()),
@@ -59,6 +66,7 @@ impl Convergence {
             }
             (WaitPolicy::UntilReady, Err(_)) => {}
         }
+        let mut unresponsive_since = None;
         loop {
             let revision = self.changes.revision();
             let record = match self.store.get(id).await {
@@ -79,9 +87,28 @@ impl Convergence {
                     .into());
                 }
             }
-            self.changes
-                .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)
-                .await;
+            let recheck = if let Some(stalled) = unresponsive(status) {
+                let waited = unresponsive_since.get_or_insert_with(Instant::now).elapsed();
+                match UNRESPONSIVE_WAIT
+                    .checked_sub(waited)
+                    .filter(|remaining| !remaining.is_zero())
+                {
+                    Some(remaining) => remaining,
+                    None => return Err(Error::SandboxUnresponsive(stalled.detail())),
+                }
+            } else {
+                unresponsive_since = None;
+                RECHECK_INTERVAL
+            };
+            self.changes.changed_since(Some(revision), SETTLE, recheck).await;
         }
     }
+}
+
+/// Returns the recorded condition when the Agent's guest is unresponsive.
+fn unresponsive(status: &Status) -> Option<&Condition> {
+    status
+        .conditions
+        .iter()
+        .find(|condition| condition.kind == Condition::SANDBOX_RESPONSIVE && condition.status == ConditionStatus::False)
 }

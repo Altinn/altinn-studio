@@ -30,6 +30,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 - Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- An Agent whose Sandbox stops responding, for example after the host wakes from sleep, shows `Ready False` with `SandboxUnresponsive` in `agentctl get agents`. `agentctl exec`, `attach`, `ssh` and Session creation then fail instead of hanging, and `agentctl delete` completes. ([#20868](https://github.com/Altinn/altinn-studio/pull/20868))
 
 ## [0.1.0-preview.8] - 2026-09-30
 

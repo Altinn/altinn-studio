@@ -124,6 +124,14 @@ async fn open_sandboxes(
     ))
 }
 
+/// Describes how a subsystem task that should run until shutdown ended.
+fn stopped(subsystem: &str, result: Result<(), tokio::task::JoinError>) -> Error {
+    match result {
+        Ok(()) => Error::Daemon(format!("{subsystem} stopped")),
+        Err(error) => Error::Daemon(format!("{subsystem} task failed: {error}")),
+    }
+}
+
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
@@ -174,6 +182,8 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         Duration::from_secs(30),
         reconciliation_errors("Agent"),
     );
+    let responsiveness =
+        agent::control_plane::ResponsivenessMonitor::new(store.clone(), sandboxes.clone(), wakeup.clone());
     let control_plane =
         Rc::new(ControlPlane::new(store.clone(), Rc::new(wakeup.clone())).with_provisioning(provisioning));
     let convergence = agent::control_plane::Convergence::new(wakeup, store.clone(), changes.clone());
@@ -198,20 +208,16 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     ));
     let mut controller_task = tokio::task::spawn_local(controller.run());
     let mut session_controller_task = tokio::task::spawn_local(session_controller.run());
+    let mut responsiveness_task = tokio::task::spawn_local(responsiveness.run());
     let mut platform_api_task = tokio::task::spawn_local(platform_api_server.serve(platform_api_listener));
     let socket_path = home.socket_path();
 
     let result = tokio::select! {
         result = server.serve_path(&socket_path) => result,
         result = tokio::signal::ctrl_c() => result.map_err(Error::from),
-        result = &mut controller_task => match result {
-            Ok(()) => Err(Error::Daemon("reconciliation controller stopped".into())),
-            Err(error) => Err(Error::Daemon(format!("reconciliation controller task failed: {error}"))),
-        },
-        result = &mut session_controller_task => match result {
-            Ok(()) => Err(Error::Daemon("Session reconciliation controller stopped".into())),
-            Err(error) => Err(Error::Daemon(format!("Session reconciliation controller task failed: {error}"))),
-        },
+        result = &mut controller_task => Err(stopped("reconciliation controller", result)),
+        result = &mut session_controller_task => Err(stopped("Session reconciliation controller", result)),
+        result = &mut responsiveness_task => Err(stopped("Sandbox responsiveness monitor", result)),
         result = &mut platform_api_task => match result {
             Ok(Ok(())) => Err(Error::Daemon("Platform API stopped".into())),
             Ok(Err(error)) => Err(Error::Daemon(format!("Platform API failed: {error}"))),
@@ -220,9 +226,11 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     };
     controller_task.abort();
     session_controller_task.abort();
+    responsiveness_task.abort();
     platform_api_task.abort();
     let _ = controller_task.await;
     let _ = session_controller_task.await;
+    let _ = responsiveness_task.await;
     let _ = platform_api_task.await;
     result
 }

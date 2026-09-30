@@ -71,6 +71,11 @@ pub enum Error {
     /// the background controller retries and waiters keep following.
     #[error("Agent Sandbox setup failed: {0}")]
     SandboxSetup(String),
+    /// The Sandbox's guest stopped making progress while its VM kept running.
+    /// Treated as transient: the guest may recover, and the background
+    /// controller keeps observing it.
+    #[error("Agent Sandbox is not responding: {0}")]
+    SandboxUnresponsive(String),
     /// A generic Sandbox operation failed.
     #[error("Sandbox operation failed: {0}")]
     Sandbox(#[from] ::sandbox::Error),
