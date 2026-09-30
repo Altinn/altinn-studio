@@ -4,7 +4,6 @@ import { isStringValidAsExpression } from '../StudioExpression/validators/isStri
 import { expressionToString, stringToExpression } from './converters';
 import { StudioTextarea } from '../StudioTextarea';
 import classes from './StudioManualExpression.module.css';
-import { usePropState } from '@studio/hooks';
 import type { ExpressionTexts } from '../StudioExpression';
 
 export type StudioManualExpressionProps = {
@@ -20,10 +19,21 @@ export const StudioManualExpression = ({
   onValidityChange,
   texts,
 }: StudioManualExpressionProps): React.ReactElement => {
-  const initialExpressionString = expressionToString(givenExpression);
-  const isInitiallyValid = isStringValidAsExpression(initialExpressionString);
-  const [expressionString, setExpressionString] = usePropState<string>(initialExpressionString);
+  const givenExpressionString = expressionToString(givenExpression);
+  const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
+  const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
+  const [lastGivenExpressionString, setLastGivenExpressionString] =
+    useState<string>(givenExpressionString);
+
+  // Apply external expression changes, including undo. Preserve invalid input and keep formatting when the
+  // expression value is unchanged.
+  if (givenExpressionString !== lastGivenExpressionString) {
+    setLastGivenExpressionString(givenExpressionString);
+    if (isValid && formatExpressionString(expressionString) !== givenExpressionString) {
+      setExpressionString(givenExpressionString);
+    }
+  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
@@ -38,6 +48,12 @@ export const StudioManualExpression = ({
     }
   };
 
+  const handleBlur = (): void => {
+    if (isValid) {
+      setExpressionString(formatExpressionString(expressionString));
+    }
+  };
+
   const errorMessage = isValid ? undefined : texts.cannotSaveSinceInvalid;
 
   return (
@@ -45,9 +61,13 @@ export const StudioManualExpression = ({
       aria-label={texts.expression}
       className={classes.manualEditor}
       error={errorMessage}
+      onBlur={handleBlur}
       onChange={handleChange}
       rows={12}
       value={expressionString}
     />
   );
 };
+
+const formatExpressionString = (value: string): string =>
+  expressionToString(stringToExpression(value));

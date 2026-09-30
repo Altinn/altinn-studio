@@ -136,9 +136,10 @@ spec:
         # linkerd provides automatic mTLS and some nice features
         # such as topology aware routing
         linkerd.io/inject: enabled
-        # Linkerd uses regular sidecars; mirror the proxy's 5s readiness drain + 45s connection drain.
-        config.alpha.linkerd.io/proxy-wait-before-exit-seconds: "5"
-        config.linkerd.io/shutdown-grace-period: "45s"
+        # Graceful shutdown relies on Kubernetes stopping the proxy only after pdf3-proxy has
+        # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
@@ -163,10 +164,10 @@ spec:
       automountServiceAccountToken: false
       # The proxy calls PDF workers which may take some time.
       # The client (the apps) timeout after roughly 30 seconds
-      # so setting this to 60s should give plenty of time to close down/drain active requests
-      # before finally terminating.
+      # so 60s for the process should give plenty of time to close down/drain active requests
+      # before finally terminating, plus 5s for the Linkerd proxy's drain after it has exited.
       # Changing this should also lead to changes in the `runtime.Host` configuration of the process
-      terminationGracePeriodSeconds: 60
+      terminationGracePeriodSeconds: 65
       securityContext:
         # Run as 'nobody'
         runAsUser: 65534

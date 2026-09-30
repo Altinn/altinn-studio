@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import './popoverPolyfill';
 
 import { vi } from 'vitest';
 

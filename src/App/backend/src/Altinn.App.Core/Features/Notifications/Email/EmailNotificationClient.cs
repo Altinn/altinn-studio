@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
@@ -44,8 +45,6 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
     {
         using var activity = _telemetry?.StartNotificationOrderActivity(_orderType);
 
-        HttpResponseMessage? httpResponseMessage = null;
-        string? httpContent = null;
         try
         {
             var application = _appMetadata.ApplicationMetadata;
@@ -61,40 +60,50 @@ internal sealed class EmailNotificationClient : IEmailNotificationClient
                 _accessTokenGenerator.GenerateAccessToken(application.Org, application.AppIdentifier.App)
             );
 
-            httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
-            httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-            EmailOrderResponse? orderResponse;
-            if (httpResponseMessage.IsSuccessStatusCode)
+            using var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage, cancellationToken);
+            string? httpContent = null;
+            try
             {
-                orderResponse = JsonSerializer.Deserialize<EmailOrderResponse>(httpContent);
-                if (orderResponse is null)
-                    throw new JsonException("Couldn't deserialize email notification order response.");
+                httpContent = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+                if (!httpResponseMessage.IsSuccessStatusCode)
+                    throw new HttpRequestException("Got error status code for email notification order");
+
+                var orderResponse =
+                    JsonSerializer.Deserialize<EmailOrderResponse>(httpContent)
+                    ?? throw new JsonException("Couldn't deserialize email notification order response.");
 
                 _telemetry?.RecordNotificationOrder(_orderType, Telemetry.Notifications.OrderResult.Success);
+                return orderResponse;
             }
-            else
+            catch (Exception e)
             {
-                throw new HttpRequestException("Got error status code for email notification order");
+                throw OrderFailed(e, httpResponseMessage.StatusCode, httpResponseMessage.ReasonPhrase, httpContent);
             }
-            return orderResponse;
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not EmailNotificationException)
         {
-            var ex = new EmailNotificationException(
-                $"Something went wrong when processing the email order",
-                httpResponseMessage,
-                httpContent,
-                e
-            );
-            _logger.LogError(ex, "Error when processing email notification order");
-
-            _telemetry?.RecordNotificationOrder(_orderType, Telemetry.Notifications.OrderResult.Error);
-
-            throw ex;
+            throw OrderFailed(e, statusCode: null, reasonPhrase: null, content: null);
         }
-        finally
-        {
-            httpResponseMessage?.Dispose();
-        }
+    }
+
+    private EmailNotificationException OrderFailed(
+        Exception innerException,
+        HttpStatusCode? statusCode,
+        string? reasonPhrase,
+        string? content
+    )
+    {
+        var ex = new EmailNotificationException(
+            $"Something went wrong when processing the email order",
+            statusCode,
+            reasonPhrase,
+            content,
+            innerException
+        );
+        _logger.LogError(ex, "Error when processing email notification order");
+
+        _telemetry?.RecordNotificationOrder(_orderType, Telemetry.Notifications.OrderResult.Error);
+
+        return ex;
     }
 }

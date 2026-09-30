@@ -77,7 +77,11 @@ internal sealed class EnqueueSideEffectsWorkflow(
                             App = context.AppId.App,
                             InstanceOwnerPartyId = context.InstanceId.InstanceOwnerPartyId,
                             InstanceGuid = context.InstanceId.InstanceGuid,
-                            CallbackToken = callbackTokenGenerator.GenerateToken(context.InstanceId.InstanceGuid),
+                            CallbackToken = callbackTokenGenerator.GenerateToken(
+                                context.InstanceId.InstanceGuid,
+                                context.Payload.Actor,
+                                sideEffectWorkflows
+                            ),
                         }
                     ),
                     Workflows = sideEffectWorkflows,

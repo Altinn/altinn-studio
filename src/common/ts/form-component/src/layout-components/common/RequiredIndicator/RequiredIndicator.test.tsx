@@ -4,10 +4,11 @@ import { screen } from '@testing-library/react';
 import { RequiredIndicator } from './RequiredIndicator';
 
 describe('RequiredIndicator', () => {
-  it('renders the required marker with an accessible name when required', () => {
+  it('renders the required marker with text for screen readers when required', () => {
     renderWithTranslations(<RequiredIndicator required />);
 
-    expect(screen.getByLabelText('Required')).toHaveTextContent('*');
+    expect(screen.getByText('*')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Required')).toHaveClass('sr-only');
   });
 
   it('renders nothing when not required', () => {

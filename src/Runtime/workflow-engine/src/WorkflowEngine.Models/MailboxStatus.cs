@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using WorkflowEngine.Resilience.JsonConverters;
+using WorkflowEngine.Models.JsonConverters;
 
 namespace WorkflowEngine.Models;
 
