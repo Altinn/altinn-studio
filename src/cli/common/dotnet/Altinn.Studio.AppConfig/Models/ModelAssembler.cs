@@ -28,6 +28,7 @@ internal static class ModelAssembler
             Refs = AssembleRefs(fragments),
             ParserNotes = Merge(fragments, f => f.ParserNotes),
             ParseErrors = Merge(fragments, f => f.ParseErrors),
+            DuplicateKeys = Merge(fragments, f => f.DuplicateKeys),
             Deprecations = Merge(fragments, f => f.Deprecations),
             UnsupportedAppVersion = fragments.Select(f => f.UnsupportedAppVersion).FirstOrDefault(v => v is not null),
             AltinnAppVersion = fragments.Select(f => f.AltinnAppVersion).FirstOrDefault(v => v is not null),

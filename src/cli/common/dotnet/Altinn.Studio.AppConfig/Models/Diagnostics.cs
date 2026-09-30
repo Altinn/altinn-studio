@@ -8,4 +8,6 @@ public sealed record DeprecatedConfig(string Kind, string Detail, SourceSpan Pos
 
 public sealed record ParseError(string File, string Message, SourceSpan Position);
 
+public sealed record DuplicateJsonKey(string Name, SourceSpan Position, SourceSpan LastPosition);
+
 public sealed record UnsupportedAppVersion(string Reason, SourceSpan Position);

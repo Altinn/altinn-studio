@@ -14,16 +14,21 @@ internal readonly record struct PointerSpan(
     int KeyEndCol = 0
 );
 
+internal readonly record struct DuplicateKey(string Name, SourceSpan Occurrence, SourceSpan LastOccurrence);
+
 internal static class JsonPositions
 {
+    private static readonly JsonReaderOptions _readerOptions = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
     public static IReadOnlyDictionary<string, PointerSpan> Build(byte[] json)
     {
         var map = new Dictionary<string, PointerSpan>(StringComparer.Ordinal);
         var newlines = NewlineOffsets(json);
-        var reader = new Utf8JsonReader(
-            json,
-            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-        );
+        var reader = new Utf8JsonReader(json, _readerOptions);
         var frames = new Stack<Frame>();
         var pending = "";
         (int Line, int Col, int EndLine, int EndCol) pendingKey = default;
@@ -103,6 +108,61 @@ internal static class JsonPositions
             // Malformed tail — keep the partial index.
         }
         return map;
+    }
+
+    public static IReadOnlyList<DuplicateKey> DuplicateKeys(string file, byte[] json)
+    {
+        var duplicates = new List<DuplicateKey>();
+        var newlines = NewlineOffsets(json);
+        var reader = new Utf8JsonReader(json, _readerOptions);
+        var frames = new Stack<Frame>();
+        var keysByObject = new Stack<Dictionary<string, List<SourceSpan>>?>();
+        var pending = "";
+        while (reader.Read())
+        {
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.PropertyName:
+                {
+                    var name = reader.GetString() ?? "";
+                    pending = frames.Peek().Base + "/" + JsonPointerEscaping.Escape(name);
+                    var (line, col) = LineCol(newlines, reader.TokenStartIndex);
+                    var (endLine, endCol) = LineCol(newlines, reader.TokenStartIndex + reader.ValueSpan.Length + 2);
+                    var key = new SourceSpan(file, pending, line, col, endLine, endCol, Key: true);
+                    if (keysByObject.Peek() is not { } keys)
+                        break;
+                    if (keys.TryGetValue(name, out var occurrences))
+                        occurrences.Add(key);
+                    else
+                        keys[name] = [key];
+                    break;
+                }
+                case JsonTokenType.StartObject:
+                case JsonTokenType.StartArray:
+                {
+                    var isArray = reader.TokenType == JsonTokenType.StartArray;
+                    frames.Push(new Frame(Next(frames, pending), isArray));
+                    keysByObject.Push(isArray ? null : new(StringComparer.Ordinal));
+                    break;
+                }
+                case JsonTokenType.EndObject:
+                case JsonTokenType.EndArray:
+                    frames.Pop();
+                    if (keysByObject.Pop() is { } closed)
+                        foreach (var (name, occurrences) in closed)
+                            for (var i = 0; i < occurrences.Count - 1; i++)
+                                duplicates.Add(new DuplicateKey(name, occurrences[i], occurrences[^1]));
+                    break;
+                case JsonTokenType.String:
+                case JsonTokenType.Number:
+                case JsonTokenType.True:
+                case JsonTokenType.False:
+                case JsonTokenType.Null:
+                    Next(frames, pending);
+                    break;
+            }
+        }
+        return duplicates;
     }
 
     /// <summary>The most specific pointer whose value — or key — span contains (line, col), 1-based,

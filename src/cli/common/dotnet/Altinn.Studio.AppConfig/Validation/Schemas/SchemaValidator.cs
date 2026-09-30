@@ -21,7 +21,9 @@ internal static class SchemaValidator
                 + "settings that apply to every layout folder, so it is checked against the layout "
                 + "settings schema's GlobalPageSettingsFromSchema definition rather than the whole "
                 + "schema. A property the schema does not permit, a missing required property or a "
-                + "value of the wrong type is reported where it occurs. "
+                + "value of the wrong type is reported where it occurs. A key repeated within an object "
+                + "is checked with its last value, the one the app reads; UNIQUE-JSON-KEY reports the "
+                + "repetition. "
                 + "Properties and text resource bindings that a Custom component adds beyond the schema "
                 + "are not reported, because the app frontend passes them on to its web component. "
                 + "Schema validation is skipped, with a notice, when the app's exact Altinn.App version "
@@ -70,7 +72,7 @@ internal static class SchemaValidator
         JsonDocument doc;
         try
         {
-            doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
+            doc = JsonRead.ParseAppFile(data);
         }
         catch (JsonException)
         {

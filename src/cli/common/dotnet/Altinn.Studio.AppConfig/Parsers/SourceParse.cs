@@ -13,7 +13,12 @@ internal static class SourceParse
     {
         try
         {
-            doc = JsonDocument.Parse(data, JsonRead.AppFileOptions);
+            doc = JsonRead.ParseAppFile(data, out var hasDuplicateKeys);
+            if (hasDuplicateKeys)
+                foreach (var duplicate in JsonPositions.DuplicateKeys(file, data))
+                    app.DuplicateKeys.Add(
+                        new DuplicateJsonKey(duplicate.Name, duplicate.Occurrence, duplicate.LastOccurrence)
+                    );
             return true;
         }
         catch (JsonException ex)

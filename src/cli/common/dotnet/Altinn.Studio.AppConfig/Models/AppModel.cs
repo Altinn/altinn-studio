@@ -47,6 +47,8 @@ public sealed class AppModel
 
     public required IReadOnlyList<ParseError> ParseErrors { get; init; }
 
+    public required IReadOnlyList<DuplicateJsonKey> DuplicateKeys { get; init; }
+
     public required IReadOnlyList<DeprecatedConfig> Deprecations { get; init; }
 
     public required UnsupportedAppVersion? UnsupportedAppVersion { get; init; }

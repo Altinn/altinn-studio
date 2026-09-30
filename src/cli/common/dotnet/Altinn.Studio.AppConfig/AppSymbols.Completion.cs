@@ -298,7 +298,7 @@ public sealed partial class AppSymbols
             return null;
         try
         {
-            return JsonDocument.Parse(bytes, JsonRead.AppFileOptions);
+            return JsonRead.ParseAppFile(bytes);
         }
         catch (JsonException)
         {

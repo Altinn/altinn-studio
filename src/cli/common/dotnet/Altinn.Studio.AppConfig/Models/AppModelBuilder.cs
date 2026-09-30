@@ -32,6 +32,7 @@ internal sealed class AppModelBuilder
     public List<string> TitleLanguages { get; } = new();
     public List<ParserNote> ParserNotes { get; } = new();
     public List<ParseError> ParseErrors { get; } = new();
+    public List<DuplicateJsonKey> DuplicateKeys { get; } = new();
     public List<DeprecatedConfig> Deprecations { get; } = new();
     public UnsupportedAppVersion? UnsupportedAppVersion { get; set; }
     public string? AltinnAppVersion { get; set; }
