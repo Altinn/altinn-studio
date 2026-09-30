@@ -35,7 +35,8 @@ internal static class ReferenceResolver
                     scope,
                     r.Position,
                     OwningComponentId: r.OwningComponentId,
-                    ScopeExists: r.InTaskId is null || setsById.ContainsKey(scope)
+                    ScopeExists: r.InTaskId is null || setsById.ContainsKey(scope),
+                    ComponentRole: r.Role
                 )
             );
         }

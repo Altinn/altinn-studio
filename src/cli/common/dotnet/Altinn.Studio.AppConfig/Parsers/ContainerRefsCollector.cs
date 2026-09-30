@@ -69,19 +69,26 @@ internal static class ContainerRefsCollector
                             app,
                             ownerId,
                             col.Name,
-                            new SourceSpan(file, $"{basePtr}/tableColumns/{col.Name}", Key: true)
+                            new SourceSpan(file, $"{basePtr}/tableColumns/{col.Name}", Key: true),
+                            ComponentIdRole.TableColumn
                         );
                 break;
             case "Summary":
-                CollectStringArrayRefs(app, ownerId, file, basePtr, c, "excludedChildren");
+                CollectExcludedChildren(app, ownerId, file, basePtr, c);
                 break;
         }
     }
 
-    private static void AddComponentRef(AppModelBuilder app, string ownerId, string? value, SourceSpan pos)
+    private static void AddComponentRef(
+        AppModelBuilder app,
+        string ownerId,
+        string? value,
+        SourceSpan pos,
+        ComponentIdRole role = ComponentIdRole.Target
+    )
     {
         if (!string.IsNullOrEmpty(value))
-            app.Refs.ComponentIds.Add(new ComponentIdReference(value, ownerId, pos));
+            app.Refs.ComponentIds.Add(new ComponentIdReference(value, ownerId, pos, Role: role));
     }
 
     private static void CollectItemArrayChildren(
@@ -211,22 +218,27 @@ internal static class ContainerRefsCollector
         }
     }
 
-    private static void CollectStringArrayRefs(
+    private static void CollectExcludedChildren(
         AppModelBuilder app,
         string ownerId,
         string file,
         string basePtr,
-        JsonElement c,
-        string prop
+        JsonElement c
     )
     {
-        if (!c.TryGetProperty(prop, out var arr) || arr.ValueKind != JsonValueKind.Array)
+        if (!c.TryGetProperty("excludedChildren", out var arr) || arr.ValueKind != JsonValueKind.Array)
             return;
         int i = 0;
         foreach (var e in arr.EnumerateArray())
         {
             if (e.ValueKind == JsonValueKind.String)
-                AddComponentRef(app, ownerId, e.GetString(), new SourceSpan(file, $"{basePtr}/{prop}/{i}"));
+                AddComponentRef(
+                    app,
+                    ownerId,
+                    e.GetString(),
+                    new SourceSpan(file, $"{basePtr}/excludedChildren/{i}"),
+                    ComponentIdRole.ExcludedChild
+                );
             i++;
         }
     }

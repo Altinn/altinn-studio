@@ -78,7 +78,12 @@ internal static class LayoutSetsParser
             {
                 if (c.ValueKind == JsonValueKind.String && c.GetString() is { Length: > 0 } cid)
                     app.Refs.ComponentIds.Add(
-                        new ComponentIdReference(cid, "", new SourceSpan(path, $"/components/excludeFromPdf/{ci}"))
+                        new ComponentIdReference(
+                            cid,
+                            "",
+                            new SourceSpan(path, $"/components/excludeFromPdf/{ci}"),
+                            Role: ComponentIdRole.ExcludeFromPdf
+                        )
                     );
                 ci++;
             }

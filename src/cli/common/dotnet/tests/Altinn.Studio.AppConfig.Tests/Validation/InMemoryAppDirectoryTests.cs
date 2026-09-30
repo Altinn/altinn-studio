@@ -756,7 +756,7 @@ public sealed class InMemoryAppDirectoryTests
 
         Assert.Contains(
             report.Findings,
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
+            f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID" && f.Message.Contains("ghostComp", StringComparison.Ordinal)
         );
     }
 
@@ -1023,13 +1023,19 @@ public sealed class InMemoryAppDirectoryTests
         var report = ValidationEngine.Run(AppConfigEngine.Open(dir).Build());
 
         var flagged = report.Findings.Where(f => f.RuleId == "REF-LAYOUT-COMPONENT-ID").Select(f => f.Message).ToList();
-        foreach (
-            var ghost in new[] { "ghostTab", "ghostMedia", "ghostCell", "ghostLabel", "ghostCol", "ghostExcluded" }
-        )
+        foreach (var ghost in new[] { "ghostTab", "ghostMedia", "ghostCell", "ghostLabel" })
             Assert.Contains(flagged, m => m.Contains(ghost, StringComparison.Ordinal));
+        var unmatched = report
+            .Findings.Where(f => f.RuleId == "REF-UNMATCHED-COMPONENT-ID")
+            .Select(f => f.Message)
+            .ToList();
+        foreach (var ghost in new[] { "ghostCol", "ghostExcluded" })
+            Assert.Contains(unmatched, m => m.Contains(ghost, StringComparison.Ordinal));
         Assert.DoesNotContain(
             report.Findings,
-            f => f.RuleId == "REF-LAYOUT-COMPONENT-ID" && f.Message.Contains("\"real\"", StringComparison.Ordinal)
+            f =>
+                f.RuleId is "REF-LAYOUT-COMPONENT-ID" or "REF-UNMATCHED-COMPONENT-ID"
+                && f.Message.Contains("\"real\"", StringComparison.Ordinal)
         );
     }
 

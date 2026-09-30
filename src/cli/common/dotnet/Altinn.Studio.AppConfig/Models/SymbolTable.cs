@@ -12,7 +12,8 @@ internal sealed record UnresolvedReference(
     string OwningComponentId = "",
     string BindingName = "",
     bool ScopeExists = true,
-    DataModelFacts? DataModel = null
+    DataModelFacts? DataModel = null,
+    ComponentIdRole ComponentRole = ComponentIdRole.Target
 );
 
 internal sealed record ResolvedBinding(
