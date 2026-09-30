@@ -4,6 +4,7 @@ import { StudioCodeViewer } from './StudioCodeViewer';
 const meta = {
   title: 'Components/StudioCodeViewer',
   component: StudioCodeViewer,
+  args: { texts: { collapse: 'Skjul innholdet', expand: 'Vis innholdet' } },
 } satisfies Meta<typeof StudioCodeViewer>;
 
 export default meta;
