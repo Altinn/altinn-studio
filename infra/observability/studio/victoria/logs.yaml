@@ -58,7 +58,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vlsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: operator.victoriametrics.com/v1
 kind: VLSingle
@@ -108,7 +108,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vlsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: operator.victoriametrics.com/v1
 kind: VLAgent
@@ -159,4 +159,4 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vlagent
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone

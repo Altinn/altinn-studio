@@ -80,13 +80,18 @@ spec:
       operator: Equal
       value: observability
       effect: NoSchedule
+  # One copy per zone, here and for every pair and agent in this directory.
+  # Each zone's pool has one node, so hostname would do the same today, but a
+  # node upgrade surges a second node into the zone for a while, and a copy
+  # scheduled then could land beside its partner and, its disk being zonal,
+  # stay there.
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vmsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMSingle
@@ -141,7 +146,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vmsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 # Accepts OTLP metrics and replicates them to both instances, buffering to disk
 # when one is unreachable. Ingest-only mode makes it purely an ingest and fan-out
@@ -201,7 +206,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vmagent
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: v1
 kind: ServiceAccount

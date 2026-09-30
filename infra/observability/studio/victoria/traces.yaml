@@ -52,7 +52,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vtsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: operator.victoriametrics.com/v1
 kind: VTSingle
@@ -102,7 +102,7 @@ spec:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vtsingle
-          topologyKey: kubernetes.io/hostname
+          topologyKey: topology.kubernetes.io/zone
 ---
 # The trace agent has no CRD in operator v0.74.1 - VTAgent arrives in v0.75.0,
 # which is still a release candidate. Until then vtagent runs as the Service,
@@ -278,7 +278,7 @@ spec:
             - labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: vtagent
-              topologyKey: kubernetes.io/hostname
+              topologyKey: topology.kubernetes.io/zone
   volumeClaimTemplates:
     - metadata:
         name: tmp-data
