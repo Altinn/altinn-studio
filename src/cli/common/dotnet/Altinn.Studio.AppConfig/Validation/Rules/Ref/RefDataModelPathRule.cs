@@ -43,13 +43,13 @@ internal sealed class RefDataModelPathRule : IValidationRule
 
     private Finding UnionMissing(UnresolvedReference u, string? declaredCase) =>
         Metadata.Report(
-            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") does not match any property in the model schema{DidYouMean(declaredCase)}",
+            $"data-model binding \"{u.Value}\" ({ReferenceSource.BindingOn(u.BindingName, u.OwningComponentId)}) does not match any property in the model schema{DidYouMean(declaredCase)}",
             u.Position
         );
 
     private Finding PathMissingInSchema(UnresolvedReference u, string dataType, string? declaredCase) =>
         Metadata.Report(
-            $"data-model binding \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") is not declared in dataType \"{dataType}\"'s schema ({AppPaths.SchemaFile(dataType)}){DidYouMean(declaredCase)}",
+            $"data-model binding \"{u.Value}\" ({ReferenceSource.BindingOn(u.BindingName, u.OwningComponentId)}) is not declared in dataType \"{dataType}\"'s schema ({AppPaths.SchemaFile(dataType)}){DidYouMean(declaredCase)}",
             u.Position
         );
 

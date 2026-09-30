@@ -28,7 +28,7 @@ internal sealed class RefTextResourceKeyRule : IValidationRule
             if (!Plausible(u.Value))
                 continue;
             yield return Metadata.Report(
-                $"text-resource key \"{u.Value}\" ({u.BindingName} on component \"{u.OwningComponentId}\") is not declared in any resource.<lang>.json",
+                $"text-resource key \"{u.Value}\" ({ReferenceSource.BindingOn(u.BindingName, u.OwningComponentId)}) is not declared in any resource.<lang>.json",
                 u.Position
             );
         }
