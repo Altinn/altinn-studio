@@ -105,8 +105,9 @@ spec:
           topologyKey: topology.kubernetes.io/zone
 ---
 # The trace agent has no CRD in operator v0.74.1 - VTAgent arrives in v0.75.0,
-# which is still a release candidate. Until then vtagent runs as the Service,
-# StatefulSet and PodDisruptionBudget the v0.75.0-rc1 operator generates for
+# newer than the operator pinned here. Until the operator is upgraded, vtagent
+# runs as the Service, StatefulSet and PodDisruptionBudget the v0.75.0 operator
+# generates for
 #
 #   apiVersion: operator.victoriametrics.com/v1
 #   kind: VTAgent

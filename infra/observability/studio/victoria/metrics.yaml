@@ -40,14 +40,13 @@ spec:
     - observability-backend-auth-key
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
-    # Every admin endpoint is open unless its auth key is set, and the proxy
-    # forwards any path under /metrics/* here, so without these a query token
-    # could delete series or take snapshots. All of them use the same key, read
-    # from the mounted Secret with file:// rather than put on the command line,
-    # where it would show in the pod spec; the binary re-reads the file every
-    # few seconds, so a rotated key takes effect without a restart, and a
-    # missing file leaves the endpoint locked with a random key rather than
-    # open. The read-only
+    # Every admin endpoint is open unless its auth key is set, so without these
+    # anything that can reach this port in the cluster could delete series or
+    # take snapshots. All of them use the same key, read from the mounted Secret
+    # with file:// rather than put on the command line, where it would show in
+    # the pod spec; the binary re-reads the file every few seconds, so a rotated
+    # key takes effect without a restart, and a missing file leaves the
+    # endpoint locked with a random key rather than open. The read-only
     # -metricsAuthKey, -flagsAuthKey and -configAuthKey stay unset: -flags masks
     # secret values, -config has no scrape config to show here, and a key on
     # /metrics would have to be given to any future scraper.
