@@ -14,7 +14,9 @@ internal sealed class RefOptionsIdRule : IValidationRule
                 + "helpers, AddSSBClassificationCodelistProvider(id, …), AddJoinedAppOptions(id, …), "
                 + "AddAltinn2CodeList(id, …) or AddAltinn3CodeList(optionId, …). An id in code is "
                 + "read when it is a string literal, a string constant or nameof(…); an id computed "
-                + "at runtime can't be seen, so severity stays a warning.",
+                + "at runtime can't be seen, so severity stays a warning. Like the app runtime, an id "
+                + "registered in code matches regardless of case, while an options file name must "
+                + "match exactly.",
             Severity.Warning
         );
 
