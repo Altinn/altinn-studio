@@ -57,6 +57,10 @@ Invariants:
 - `STUDIOCTL_IMAGE_*` pins one reference for a session. It replaced a home-directory override file,
   which an update deletes.
 
+### Language server
+
+`studioctl app lsp` lives in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
+
 ### Changelog & releases
 
 - **Every PR with a user-visible studioctl change** (new commands/flags, behavior changes,

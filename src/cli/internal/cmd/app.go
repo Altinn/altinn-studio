@@ -115,6 +115,7 @@ func (c *AppCommand) Usage() string {
 		"  clone     Clone an app repository from Altinn Studio",
 		"  env       Print app environment for local development",
 		"  logs      Stream app logs",
+		"  lsp       Language server for apps",
 		"  maskinporten  Store the Maskinporten client the app uses for local runs",
 		"  ps        List running apps",
 		"  run       Run app locally",
@@ -160,6 +161,8 @@ func (c *AppCommand) Run(ctx context.Context, args []string) error {
 		return c.runUpgrade(ctx, subArgs)
 	case "vet":
 		return c.runVet(ctx, subArgs)
+	case "lsp":
+		return c.runLsp(ctx, subArgs)
 	case "-h", flagHelp, helpSubcmd:
 		c.out.Print(c.Usage())
 		return nil

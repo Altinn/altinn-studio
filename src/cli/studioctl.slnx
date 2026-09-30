@@ -9,4 +9,6 @@
     <Project Path="common/dotnet/Altinn.Studio.AppConfig/Altinn.Studio.AppConfig.csproj" />
     <Project Path="common/dotnet/tests/Altinn.Studio.AppConfig.Tests/Altinn.Studio.AppConfig.Tests.csproj" />
   </Folder>
+  <Project Path="studioctl-lsp/studioctl-lsp.csproj" />
+  <Project Path="studioctl-lsp-tests/studioctl-lsp.Tests.csproj" />
 </Solution>
