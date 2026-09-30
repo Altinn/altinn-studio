@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Designer.Tests.Fixtures;
@@ -14,14 +15,16 @@ public class CreateIntegrationTests : DbIntegrationTestsBase
         : base(dbFixture) { }
 
     [Theory]
-    [InlineData("ttd")]
-    public async Task Create_ShouldInsertRecordInDatabase(string org)
+    [InlineData("ttd", null)]
+    [InlineData("ttd", AppStatus.Completed)]
+    public async Task Create_ShouldInsertRecordInDatabase(string org, AppStatus? appStatus)
     {
         var repository = new DeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,
-            buildId: buildId.ToString()
+            buildId: buildId.ToString(),
+            appStatus: appStatus
         );
         await repository.Create(deploymentEntity);
         var dbRecord = await DbFixture

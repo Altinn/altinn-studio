@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.Fixtures;
@@ -13,10 +14,11 @@ public class GetSingleIntegrationTests : DbIntegrationTestsBase
         : base(dbFixture) { }
 
     [Theory]
-    [InlineData("ttd")]
-    public async Task Get_ShouldReturnRecordFromDatabase(string org)
+    [InlineData("ttd", null)]
+    [InlineData("ttd", AppStatus.UnderDevelopment)]
+    public async Task Get_ShouldReturnRecordFromDatabase(string org, AppStatus? appStatus)
     {
-        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org);
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, appStatus: appStatus);
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var repository = new DeploymentRepository(DbFixture.DbContext);

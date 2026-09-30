@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ViewModels.Request;
@@ -26,6 +27,12 @@ public class CreateDeploymentRequestViewModel : IValidatableObject
     public string TagName { get; set; }
 
     /// <summary>
+    /// App status to register for the deployed app. When omitted, the default for the environment is used.
+    /// </summary>
+    [JsonProperty("appStatus")]
+    public AppStatus? AppStatus { get; set; }
+
+    /// <summary>
     /// Determines if this instance of the model is valid.
     /// </summary>
     /// <param name="validationContext">The current context of the validation check</param>
@@ -33,6 +40,16 @@ public class CreateDeploymentRequestViewModel : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         List<ValidationResult> issues = new List<ValidationResult>();
+
+        if (AppStatus is not (null or Models.AppStatus.UnderDevelopment or Models.AppStatus.Completed))
+        {
+            issues.Add(
+                new ValidationResult(
+                    $"App status must be {Models.AppStatus.UnderDevelopment} or {Models.AppStatus.Completed}.",
+                    new[] { nameof(AppStatus) }
+                )
+            );
+        }
 
         if (string.IsNullOrEmpty(TagName))
         {
