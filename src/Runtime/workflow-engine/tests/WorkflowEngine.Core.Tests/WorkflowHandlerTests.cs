@@ -9,7 +9,6 @@ using Moq;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
@@ -690,6 +689,63 @@ public class WorkflowHandlerTests
         Assert.Equal(PersistentItemStatus.Completed, workflow.Status);
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.Empty(workflow.Steps[0].ErrorHistory);
+    }
+
+    [Fact]
+    public async Task Handle_StepSucceedsWithState_StoresStateOut()
+    {
+        var executor = MockExecutor(ExecutionResult.Success("produced"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal("produced", workflow.Steps[0].StateOut);
+    }
+
+    [Fact]
+    public async Task Handle_StepDefersWithState_StoresStateOut()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1), state: "carried"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[0].Status);
+        Assert.Equal("carried", workflow.Steps[0].StateOut);
+    }
+
+    [Fact]
+    public async Task Handle_ResultWithoutState_KeepsStateOut()
+    {
+        var executor = MockExecutor(
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1), state: "carried"),
+            ExecutionResult.Success()
+        );
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal("carried", workflow.Steps[0].StateOut);
+    }
+
+    [Theory]
+    [InlineData(ExecutionStatus.RetryableError)]
+    [InlineData(ExecutionStatus.CriticalError)]
+    public async Task Handle_ErrorResultWithState_DoesNotStoreStateOut(ExecutionStatus status)
+    {
+        var executor = MockExecutor(new ExecutionResult(status, "boom", StateOut: "ignored"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Null(workflow.Steps[0].StateOut);
     }
 
     [Fact]

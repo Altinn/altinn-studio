@@ -44,6 +44,7 @@ describe('BpmnGuard', () => {
           extensionElements: {
             values: [
               {
+                $type: 'altinn:TaskExtension',
                 signatureConfig: { dataTypesToSign: [] },
               },
             ],

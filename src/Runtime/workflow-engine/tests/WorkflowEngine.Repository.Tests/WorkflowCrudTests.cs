@@ -5,7 +5,6 @@ using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Repository.Tests;
 

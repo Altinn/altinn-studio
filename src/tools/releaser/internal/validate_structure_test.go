@@ -41,6 +41,116 @@ func TestRunStructureValidation(t *testing.T) {
 	t.Run("skips vendored changelogs", testStructureSkipsVendored)
 	t.Run("validates all tracked changelogs when no range given", testStructureValidatesAllTracked)
 	t.Run("reports every broken changelog", testStructureReportsMultiple)
+	t.Run("fails on a new entry over the word limit", testStructureLongNewEntryFails)
+	t.Run("counts continuation lines toward the word limit", testStructureLongWrappedEntryFails)
+	t.Run("ignores a long entry that is unchanged since the merge base", testStructureLongExistingEntryPasses)
+	t.Run("ignores a long entry that reached base after head diverged", testStructureLongBaseOnlyEntryPasses)
+	t.Run("skips the word limit when no range given", testStructureLongEntryWithoutRangePasses)
+	t.Run("does not count pull request links or link targets", testStructureLinksNotCounted)
+}
+
+func changelogWithEntry(entry string) string {
+	return "# Changelog\n\n## [Unreleased]\n\n### Added\n\n- " + entry + "\n"
+}
+
+func words(n int) string {
+	return strings.TrimSpace(strings.Repeat("word ", n))
+}
+
+func testStructureLongNewEntryFails(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		changelogWithEntry(words(internal.MaxEntryWords+1)), "long entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
+	if !strings.Contains(err.Error(), "src/cli/CHANGELOG.md") {
+		t.Fatalf("error = %v, want it to name the offending changelog", err)
+	}
+}
+
+func testStructureLongWrappedEntryFails(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	half := words(internal.MaxEntryWords/2 + 1)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		changelogWithEntry(half+"\n  "+half), "long wrapped entry")
+
+	err := runStructureValidation(t, repo, base, head)
+	assertValidationError(t, err, internal.ErrEntryTooLong)
+}
+
+func testStructureLongExistingEntryPasses(t *testing.T) {
+	long := words(internal.MaxEntryWords + 1)
+	repo := createStudioctlWorkflowRepo(t, changelogWithEntry(long))
+	base := revParseHead(t, repo)
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- `+long+`
+
+### Fixed
+
+- A new fix
+`, "add fix")
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil for an unchanged entry", err)
+	}
+}
+
+// On a pull request the checkout is head merged into base, so the working tree
+// also holds entries that reached base after head diverged.
+func testStructureLongBaseOnlyEntryPasses(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	runGitCmd(t, repo, "checkout", "-q", "-b", "feature")
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Existing
+
+### Fixed
+
+- A new fix
+`, "add fix")
+	runGitCmd(t, repo, "checkout", "-q", "main")
+	base := commitValidationFile(t, repo, "src/cli/CHANGELOG.md",
+		"# Changelog\n\n## [Unreleased]\n\n### Added\n\n- "+words(internal.MaxEntryWords+1)+"\n- Existing\n",
+		"long entry on base")
+	runGitCmd(t, repo, "checkout", "-q", "--detach", base)
+	runGitCmd(t, repo, "merge", "-q", "--no-edit", head)
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil for an entry only base added", err)
+	}
+}
+
+func testStructureLinksNotCounted(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, validStructureChangelog)
+	base := revParseHead(t, repo)
+	pr := "[#1234](https://github.com/Altinn/altinn-studio/pull/1234)"
+	entry := words(internal.MaxEntryWords-2) + " [the guide](https://docs.altinn.studio/some/page)\n" +
+		"  - (" + pr + ", " + pr + ", " + pr + ")"
+	head := commitValidationFile(t, repo, "src/cli/CHANGELOG.md", changelogWithEntry(entry), "linked entry")
+
+	if err := runStructureValidation(t, repo, base, head); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want links left out of the word count", err)
+	}
+}
+
+func testStructureLongEntryWithoutRangePasses(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, changelogWithEntry(words(internal.MaxEntryWords+1)))
+
+	if err := runStructureValidation(t, repo, "", ""); err != nil {
+		t.Fatalf("RunStructureValidation() error = %v, want nil without a range", err)
+	}
 }
 
 func testStructureValidPasses(t *testing.T) {

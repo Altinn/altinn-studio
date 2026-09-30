@@ -1,0 +1,16 @@
+# The agents image builds from the repo root so it can bundle the v9 layout schemas from src/common.
+# Ignore everything, then include only what the image needs.
+*
+
+!src/AI/agents
+!src/common/ts/layout-contract/schemas/json/layout
+
+# Heavy or irrelevant paths inside the included dirs.
+**/bin
+**/obj
+**/.venv
+**/.ci-venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/node_modules

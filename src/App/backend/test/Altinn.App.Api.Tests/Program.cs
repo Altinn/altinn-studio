@@ -36,14 +36,16 @@ using Microsoft.OpenApi;
 // External interfaces like Platform related services, Authentication, Authorization
 // external api's etc. should be mocked.
 
-// WebApplicationFactory passes the content root a test selects with UseContentRoot as a command line argument.
-// Its own guess (the solution folder plus the project name) does not exist, so only an existing folder is used.
+// Use the test app as the default content root. Startup validation needs its process and application
+// metadata; the build output contains only stub metadata.
 string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
-        ContentRootPath = Directory.Exists(contentRootFromArgs) ? contentRootFromArgs : null,
+        ContentRootPath = Directory.Exists(contentRootFromArgs)
+            ? contentRootFromArgs
+            : TestData.GetApplicationDirectory("tdd", "contributer-restriction"),
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",

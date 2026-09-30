@@ -22,10 +22,10 @@ spec:
             pipelines: [logs/data_plane]
 
     exporters:
-      azuremonitor/control_plane:
+      azure_monitor/control_plane:
         spaneventsenabled: true
         connection_string: $${env:CONTROL_PLANE_CONNECTION_STRING}
-      azuremonitor/data_plane:
+      azure_monitor/data_plane:
         spaneventsenabled: true
         connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
       # Sink metrics while preserving pipeline structure for future re-enable.
@@ -39,11 +39,11 @@ spec:
         traces/control_plane:
           receivers: [routing/traces]
           processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azuremonitor/control_plane]
+          exporters: [azure_monitor/control_plane]
         traces/data_plane:
           receivers: [routing/traces]
           processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
-          exporters: [azuremonitor/data_plane]
+          exporters: [azure_monitor/data_plane]
         metrics/in:
           receivers: [otlp]
           exporters: [routing/metrics]
@@ -61,8 +61,8 @@ spec:
         logs/control_plane:
           receivers: [routing/logs]
           processors: [batch]
-          exporters: [azuremonitor/control_plane]
+          exporters: [azure_monitor/control_plane]
         logs/data_plane:
           receivers: [routing/logs]
           processors: [batch]
-          exporters: [azuremonitor/data_plane]
+          exporters: [azure_monitor/data_plane]

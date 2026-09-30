@@ -234,6 +234,7 @@ function createFormStore({
   return createStore<FormStoreState>()(
     immer((set: FormStoreSet) => ({
       parent,
+      nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
       readOnly,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),

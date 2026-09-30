@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -50,5 +51,10 @@ public class CreateApplicationMetadataTests
         using var response = await HttpClient.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        // Check the file text because deserialization cannot distinguish an omitted property from an
+        // explicit null.
+        string metadataContent = await File.ReadAllTextAsync(metadataPath);
+        Assert.DoesNotContain("enablePdfCreation", metadataContent, StringComparison.OrdinalIgnoreCase);
     }
 }

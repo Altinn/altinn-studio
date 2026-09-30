@@ -39,7 +39,7 @@
     isImplementationType: true,
     isImplementationInstance: false,
     lifetime: 0,
-    materializedType: Altinn.App.Core.EFormidling.EFormidlingConfigValidationService
+    materializedType: Altinn.App.Core.Internal.Process.ProcessTaskConfigurationValidationService
   },
   {
     isImplementationFactory: false,

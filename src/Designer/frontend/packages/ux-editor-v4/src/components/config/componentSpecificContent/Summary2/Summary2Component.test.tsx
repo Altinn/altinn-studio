@@ -92,12 +92,7 @@ describe('Summary2ComponentTargetSelector', () => {
     const select = await componentTargetSelect();
     expect(select).toBeInTheDocument();
 
-    await waitFor(() => {
-      const selectedChip = screen.getByRole('option', {
-        name: (name) => name.includes(component1IdMock),
-      });
-      expect(selectedChip).toBeInTheDocument();
-    });
+    await waitFor(() => expect(select).toHaveValue(component1IdMock));
   });
 
   it('should allow selecting page target', async () => {
@@ -107,12 +102,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     const select = await pageTargetSelect();
     expect(select).toBeInTheDocument();
-    await waitFor(() => {
-      const selectedChip = screen.getByRole('option', {
-        name: (name) => name.includes(layout1NameMock),
-      });
-      expect(selectedChip).toBeInTheDocument();
-    });
+    await waitFor(() => expect(select).toHaveValue(layout1NameMock));
   });
 
   it('should show error if page target is invalid', async () => {

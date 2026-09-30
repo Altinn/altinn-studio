@@ -1,15 +1,10 @@
 """Layout properties tool - retrieves valid properties schema for component types."""
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 
 # Pairings the schema marks optional but the renderer requires.
-BINDING_CONSTRAINTS: dict[str, list[str]] = {
-    "Datepicker": [
-        'A binding to a string with "format": "date" requires "timeStamp": false. '
-        "The property defaults to true, which stores a full ISO timestamp against a "
-        "date-only field, and Altinn Studio refuses to render the component."
-    ],
+VERSION_NEUTRAL_BINDING_CONSTRAINTS: dict[str, list[str]] = {
     "Checkboxes": [
         'Bind "simpleBinding" and nothing else. "group" is a repeating-group '
         "binding: setting it makes Studio apply the repeating-group rules to this "
@@ -31,7 +26,7 @@ _BINDING_ADVICE = (
 
 
 def layout_properties_tool(
-    user_goal: str, component_type: str, schema: dict[str, Any], binding_constraints: dict[str, list[str]]
+    user_goal: str, component_type: str, schema: dict[str, Any], binding_constraints: Mapping[str, Sequence[str]]
 ) -> dict[str, Any]:
     """
     Retrieves schema information for a specific Altinn Studio component type.

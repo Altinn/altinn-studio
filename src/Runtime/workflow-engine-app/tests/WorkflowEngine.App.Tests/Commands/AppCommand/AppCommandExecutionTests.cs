@@ -343,7 +343,7 @@ public class AppCommandExecutionTests
     // --- StateOut handling ---
 
     [Fact]
-    public async Task Execute_SuccessWithStateInResponse_SetsStateOut()
+    public async Task Execute_SuccessWithStateInResponse_ReturnsState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = """{"state": "next-step-state"}""";
@@ -353,13 +353,37 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Equal("next-step-state", step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Equal("next-step-state", result.StateOut);
+        Assert.Null(step.StateOut);
     }
 
     [Fact]
-    public async Task Execute_SuccessWithEmptyBody_DoesNotSetStateOut()
+    public async Task Execute_DeferWithStateInResponse_ReturnsDeferralWithState()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent = """
+            {"state": "carried-state", "defer": {"delay": "00:00:30", "reason": "waiting for receipt"}}
+            """;
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Deferred, result.Status);
+        Assert.Equal(TimeSpan.FromSeconds(30), result.DeferDelay);
+        Assert.Equal("waiting for receipt", result.Message);
+        Assert.Equal("carried-state", result.StateOut);
+        Assert.Null(step.StateOut);
+    }
+
+    [Fact]
+    public async Task Execute_SuccessWithEmptyBody_ReturnsNoState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = "";
@@ -369,13 +393,14 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Null(step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.StateOut);
     }
 
     [Fact]
-    public async Task Execute_SuccessWithNullStateInResponse_DoesNotSetStateOut()
+    public async Task Execute_SuccessWithNullStateInResponse_ReturnsNoState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = """{"state": null}""";
@@ -385,9 +410,10 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Null(step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.StateOut);
     }
 
     [Fact]
