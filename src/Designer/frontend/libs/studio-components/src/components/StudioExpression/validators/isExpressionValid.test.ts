@@ -3,8 +3,19 @@ import { isExpressionValid } from './isExpressionValid';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';
 import { DataLookupFuncName } from '../enums/DataLookupFuncName';
 import { LogicalTupleOperator } from '../enums/LogicalTupleOperator';
+import Ajv from 'ajv';
+import expressionSchema from '@app/layout-contract/schemas/json/layout/expression.schema.v1.json';
 
 describe('isExpressionValid', () => {
+  it('Accepts gateway actions without changing the shared runtime contract', () => {
+    const gatewayAction = ['gatewayAction'];
+    expect(isExpressionValid(gatewayAction)).toBe(true);
+    expect(isExpressionValid(['equals', gatewayAction, 'sign'])).toBe(true);
+
+    const validateRuntimeExpression = new Ajv({ strict: false }).compile(expressionSchema);
+    expect(validateRuntimeExpression(gatewayAction)).toBe(false);
+  });
+
   it('Returns true when expression is valid', () => {
     const equalsExpression: Expression = [
       GeneralRelationOperator.Equals,
