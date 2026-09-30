@@ -1,4 +1,5 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use std::{io::Cursor, path::PathBuf, rc::Rc};
 
@@ -265,6 +266,8 @@ async fn assert_resource_update_and_root_growth(
         root_kib > 4 * 1024 * 1024,
         "root filesystem should have grown past 4 GiB"
     );
+    let cpus = run(backend, &resized.id, shell("nproc")).await;
+    assert_eq!(cpus.stdout.as_ref(), b"2\n", "the restarted VM should have 2 CPUs");
 
     request.spec_mut().resources = direct_resources("2", "768Mi", "4Gi");
     let error = service

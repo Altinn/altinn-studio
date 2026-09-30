@@ -25,5 +25,6 @@ pub async fn attach_terminal(
     };
     let sandbox = provider.backend().inspect(id).await?;
     let outcome = provider.backend().attach_terminal(&sandbox.id, request).await?;
+    drop(provider);
     Ok(outcome)
 }
