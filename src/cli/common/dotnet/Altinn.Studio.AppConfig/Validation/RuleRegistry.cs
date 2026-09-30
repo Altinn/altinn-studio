@@ -4,6 +4,7 @@ using Altinn.Studio.AppConfig.Validation.Rules.Meta;
 using Altinn.Studio.AppConfig.Validation.Rules.Ref;
 using Altinn.Studio.AppConfig.Validation.Rules.Shape;
 using Altinn.Studio.AppConfig.Validation.Rules.Unique;
+using Altinn.Studio.AppConfig.Validation.Schemas;
 
 namespace Altinn.Studio.AppConfig.Validation;
 
@@ -42,7 +43,14 @@ internal static class RuleRegistry
         new UniquePageInOrderRule(),
     ]);
 
+    private static readonly IReadOnlyList<RuleMetadata> _metadata =
+    [
+        .. _rules.Select(r => r.Metadata).Append(SchemaValidator.Metadata).OrderBy(m => m.Id, StringComparer.Ordinal),
+    ];
+
     public static IReadOnlyList<IValidationRule> All() => _rules;
+
+    public static IReadOnlyList<RuleMetadata> AllMetadata() => _metadata;
 
     private static IValidationRule[] Sort(IValidationRule[] rules)
     {

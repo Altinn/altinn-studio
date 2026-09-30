@@ -9,6 +9,20 @@ internal static class SchemaValidator
 {
     public const string RuleId = "JSONSCHEMA-VALID";
 
+    public static RuleMetadata Metadata { get; } =
+        new(
+            RuleId,
+            "Config file must match its Altinn.App JSON schema",
+            "applicationmetadata.json, the text resources, footer.json, Settings.json and the layout "
+                + "files must match the JSON schemas published for the app's Altinn.App version, which "
+                + "are fetched from app-dist and cached. A property the schema does not permit, a "
+                + "missing required property or a value of the wrong type is reported where it occurs. "
+                + "Schema validation is skipped, with a notice, when the app's exact Altinn.App version "
+                + "can't be determined, or when app-dist is unreachable and the schemas for that version "
+                + "are not cached.",
+            Severity.Error
+        );
+
     private const string ApplicationMetadataSchema = "application/application-metadata.schema.v1.json";
     private const string ExpressionSchema = "layout/expression.schema.v1.json";
     private const string FooterSchema = "layout/footer.schema.v1.json";
@@ -62,12 +76,7 @@ internal static class SchemaValidator
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             findings.Add(
-                new Finding(
-                    RuleId,
-                    $"{schemaName} : schema evaluation failed: {ex.Message}",
-                    Severity.Error,
-                    new SourceSpan(filePath, "")
-                )
+                Report($"{schemaName} : schema evaluation failed: {ex.Message}", new SourceSpan(filePath, ""))
             );
         }
         return findings;
@@ -102,18 +111,16 @@ internal static class SchemaValidator
                 else
                     message = $"{key}: {msg}";
                 findings.Add(
-                    new Finding(
-                        RuleId,
-                        $"{schemaName} {pointer}: {message}",
-                        Severity.Error,
-                        new SourceSpan(filePath, pointer, Key: onKey)
-                    )
+                    Report($"{schemaName} {pointer}: {message}", new SourceSpan(filePath, pointer, Key: onKey))
                 );
             }
         }
         foreach (var child in node.Details)
             CollectInvalid(findings, schemaName, filePath, child);
     }
+
+    private static Finding Report(string message, SourceSpan at) =>
+        Metadata.Report(message, at, Metadata.DefaultSeverity);
 
     private static string AfterLastSlash(string s)
     {
