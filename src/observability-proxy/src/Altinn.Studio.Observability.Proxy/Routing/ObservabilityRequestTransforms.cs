@@ -12,7 +12,8 @@ internal static class ObservabilityRequestTransforms
 
     /// <summary>
     /// The request headers an OTLP write keeps: what OTLP/HTTP needs to carry a protobuf or JSON
-    /// body, compressed or not. The proxy adds <see cref="SourceHeader"/> after filtering.
+    /// body, compressed or not. The proxy adds <see cref="SourceHeader"/> and the signal's
+    /// <see cref="ObservabilitySignal.AgentWriteHeaders"/> after filtering.
     ///
     /// Everything else a source sends is dropped, because the agents act on headers the source must
     /// not choose: the Victoria components select a tenant from <c>AccountID</c> and
@@ -31,9 +32,15 @@ internal static class ObservabilityRequestTransforms
 
         if (ObservabilityReverseProxyConfig.RouteGroupOf(transformContext.Route) == ObservabilityPaths.OtlpRouteGroup)
         {
+            var agentWriteHeaders =
+                ObservabilityReverseProxyConfig.WriteSignalOf(transformContext.Route)?.AgentWriteHeaders
+                ?? new Dictionary<string, string>();
+
             // X-Forwarded-* describe the client to a backend that makes no use of it.
             transformContext.UseDefaultForwarders = false;
-            transformContext.AddRequestTransform(KeepOnlyOtlpWriteHeadersAndNoQuery);
+            transformContext.AddRequestTransform(requestContext =>
+                KeepOnlyOtlpWriteHeadersAndNoQuery(requestContext, agentWriteHeaders)
+            );
         }
 
         transformContext.AddRequestTransform(ReplaceTokenWithSource);
@@ -43,8 +50,12 @@ internal static class ObservabilityRequestTransforms
     /// Restricts an OTLP write to <see cref="OtlpWriteHeaders"/>, and drops its query string. The
     /// agents honor query arguments with the same effect as the headers, such as vmagent's
     /// <c>extra_label</c> and VictoriaLogs' <c>extra_fields</c>, and an OTLP/HTTP exporter sends none.
+    /// Then sets the signal's own write headers, so a source's value for one of them never survives.
     /// </summary>
-    private static ValueTask KeepOnlyOtlpWriteHeadersAndNoQuery(RequestTransformContext requestContext)
+    private static ValueTask KeepOnlyOtlpWriteHeadersAndNoQuery(
+        RequestTransformContext requestContext,
+        IReadOnlyDictionary<string, string> agentWriteHeaders
+    )
     {
         var proxyRequest = requestContext.ProxyRequest;
         foreach (var name in proxyRequest.Headers.Select(header => header.Key).ToList())
@@ -67,6 +78,12 @@ internal static class ObservabilityRequestTransforms
         }
 
         requestContext.Query.Collection.Clear();
+
+        foreach (var (name, value) in agentWriteHeaders)
+        {
+            proxyRequest.Headers.TryAddWithoutValidation(name, value);
+        }
+
         return ValueTask.CompletedTask;
     }
 

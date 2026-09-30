@@ -8,6 +8,7 @@ namespace Altinn.Studio.Observability.Proxy.Routing;
 internal static class ObservabilityReverseProxyConfig
 {
     private const string WriteClusterPrefix = "otlp-";
+    private const string SignalMetadataKey = "Signal";
 
     public static IReadOnlyList<RouteConfig> CreateRoutes(ObservabilityProxyOptions options)
     {
@@ -46,6 +47,14 @@ internal static class ObservabilityReverseProxyConfig
         return route?.Metadata?.GetValueOrDefault(ObservabilityPaths.RouteGroupMetadataKey);
     }
 
+    /// <summary>The signal <paramref name="route"/> writes, or <c>null</c> when it is not a write route.</summary>
+    public static ObservabilitySignal? WriteSignalOf(RouteConfig? route)
+    {
+        return route?.Metadata?.GetValueOrDefault(SignalMetadataKey) is { } routeGroup
+            ? ObservabilitySignal.ForReadRouteGroup(routeGroup)
+            : null;
+    }
+
     /// <summary>
     /// One OTLP write route per signal. The three public paths under <c>/otlp</c> reach three
     /// different agents, so they cannot share a cluster, but they share the <c>otlp</c> route group
@@ -72,6 +81,7 @@ internal static class ObservabilityReverseProxyConfig
             Metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 [ObservabilityPaths.RouteGroupMetadataKey] = ObservabilityPaths.OtlpRouteGroup,
+                [SignalMetadataKey] = signal.RouteGroup,
             },
         };
     }

@@ -12,6 +12,14 @@ internal sealed record ObservabilitySignal(
     IReadOnlyList<ReadEndpoint> ReadEndpoints
 )
 {
+    private static readonly IReadOnlyDictionary<string, string> NoHeaders = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Headers the proxy sets on every write to the signal's agent, after dropping the ones the
+    /// source sent. They shape what is stored, so they belong to the protocol, not to a source.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> AgentWriteHeaders { get; init; } = NoHeaders;
+
     /// <summary>
     /// vtagent accepts OTLP over HTTP; VictoriaTraces reads go to the Tempo-compatible API.
     ///
@@ -68,6 +76,10 @@ internal sealed record ObservabilitySignal(
     /// VictoriaLogs serves ingestion and its internal endpoints at that same root, so the query
     /// token reaches only the LogsQL query API and the tenant list, which is what the VictoriaLogs
     /// Grafana datasource calls. It sends both with its configured HTTP method, GET or POST.
+    ///
+    /// Without <c>VL-Stream-Fields</c>, VictoriaLogs makes every resource attribute of an OTLP log a
+    /// stream field. The set here is the one VictoriaLogs recommends instead: the fields that
+    /// identify the instance that wrote the log, plus ones that stay constant for its lifetime.
     /// </summary>
     public static readonly ObservabilitySignal Logs = new(
         ObservabilityPaths.LogsRouteGroup,
@@ -75,7 +87,13 @@ internal sealed record ObservabilitySignal(
         "/insert/opentelemetry/v1/logs",
         "",
         [new("/select/logsql/*", allowsPost: true), new("/select/tenant_ids", allowsPost: true)]
-    );
+    )
+    {
+        AgentWriteHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["VL-Stream-Fields"] = "k8s.cluster.name,k8s.namespace.name,service.name,k8s.pod.name",
+        },
+    };
 
     public static readonly IReadOnlyList<ObservabilitySignal> All = [Traces, Metrics, Logs];
 

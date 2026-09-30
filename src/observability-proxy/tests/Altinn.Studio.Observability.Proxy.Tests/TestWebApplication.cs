@@ -81,6 +81,11 @@ internal sealed class TestWebApplication : IAsyncDisposable
                     context.Response.Headers["X-Observed-Source"] = sourceIdentity;
                 }
 
+                if (context.Request.Headers.TryGetValue("VL-Stream-Fields", out var streamFields))
+                {
+                    context.Response.Headers["X-Observed-Stream-Fields"] = streamFields;
+                }
+
                 if (context.Request.Headers.TryGetValue("Authorization", out var authorization))
                 {
                     context.Response.Headers["X-Observed-Authorization"] = authorization;

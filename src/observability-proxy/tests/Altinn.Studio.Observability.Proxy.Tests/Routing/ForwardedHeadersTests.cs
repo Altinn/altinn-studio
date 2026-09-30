@@ -40,10 +40,27 @@ public sealed class ForwardedHeadersTests
         using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
 
         response.EnsureSuccessStatusCode();
-        Assert.Equal(
-            ["Content-Encoding", "Content-Length", "Content-Type", "Host", "X-Observability-Source"],
-            response.Headers.GetValues("X-Observed-Headers").Single().Split(',')
-        );
+        // Logs writes carry the stream fields the proxy chooses, never the ones the source sent.
+        string[] expectedHeaders =
+            signal == "logs"
+                ?
+                [
+                    "Content-Encoding",
+                    "Content-Length",
+                    "Content-Type",
+                    "Host",
+                    "VL-Stream-Fields",
+                    "X-Observability-Source",
+                ]
+                : ["Content-Encoding", "Content-Length", "Content-Type", "Host", "X-Observability-Source"];
+        Assert.Equal(expectedHeaders, response.Headers.GetValues("X-Observed-Headers").Single().Split(','));
+        if (signal == "logs")
+        {
+            Assert.Equal(
+                "k8s.cluster.name,k8s.namespace.name,service.name,k8s.pod.name",
+                response.Headers.GetValues("X-Observed-Stream-Fields").Single()
+            );
+        }
         Assert.Equal("runtime-prod", response.Headers.GetValues("X-Observed-Source").Single());
         Assert.DoesNotContain('?', response.Headers.GetValues("X-Observed-Path").Single());
         Assert.Equal("7", response.Headers.GetValues("X-Observed-Body-Length").Single());
