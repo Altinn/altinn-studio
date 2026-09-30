@@ -10,7 +10,10 @@ public sealed class SchemaMatchingTests
     [InlineData("App/config/texts/resource.nb.json", "text-resources/text-resources.schema.v1.json")]
     [InlineData("App/ui/footer.json", "layout/footer.schema.v1.json")]
     [InlineData("App/ui/Task_1/Settings.json", "layout/layoutSettings.schema.v1.json")]
-    [InlineData("App/ui/Settings.json", "layout/layoutSettings.schema.v1.json")]
+    [InlineData(
+        "App/ui/Settings.json",
+        "layout/layoutSettings.schema.v1.json#/definitions/GlobalPageSettingsFromSchema"
+    )]
     [InlineData("App/ui/Task_1/layouts/Page1.json", "layout/layout.schema.v1.json")]
     [InlineData("App/models/model.schema.json", null)]
     [InlineData("App/config/process/process.bpmn", null)]

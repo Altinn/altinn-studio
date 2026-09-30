@@ -17,8 +17,11 @@ internal static class SchemaValidator
             "Config file must match its Altinn.App JSON schema",
             "applicationmetadata.json, the text resources, footer.json, Settings.json and the layout "
                 + "files must match the JSON schemas published for the app's Altinn.App version, which "
-                + "are fetched from app-dist and cached. A property the schema does not permit, a "
-                + "missing required property or a value of the wrong type is reported where it occurs. "
+                + "are fetched from app-dist and cached. The global App/ui/Settings.json holds the page "
+                + "settings that apply to every layout folder, so it is checked against the layout "
+                + "settings schema's GlobalPageSettingsFromSchema definition rather than the whole "
+                + "schema. A property the schema does not permit, a missing required property or a "
+                + "value of the wrong type is reported where it occurs. "
                 + "Properties and text resource bindings that a Custom component adds beyond the schema "
                 + "are not reported, because the app frontend passes them on to its web component. "
                 + "Schema validation is skipped, with a notice, when the app's exact Altinn.App version "
@@ -34,6 +37,8 @@ internal static class SchemaValidator
     private const string LayoutSettingsSchema = "layout/layoutSettings.schema.v1.json";
     private const string TextResourcesSchema = "text-resources/text-resources.schema.v1.json";
 
+    private const string GlobalSettingsFile = "App/ui/Settings.json";
+
     internal static readonly string[] KnownSchemaPaths =
     {
         ApplicationMetadataSchema,
@@ -43,6 +48,14 @@ internal static class SchemaValidator
         LayoutSettingsSchema,
         TextResourcesSchema,
     };
+
+    internal static readonly SchemaDefinition GlobalSettingsDefinition = new(
+        LayoutSettingsSchema,
+        "GlobalPageSettingsFromSchema",
+        GlobalSettingsFile
+    );
+
+    internal static readonly SchemaDefinition[] KnownDefinitions = { GlobalSettingsDefinition };
 
     public static IReadOnlyList<Finding> Validate(SchemaSet schemas, string filePath, byte[] data)
     {
@@ -65,7 +78,7 @@ internal static class SchemaValidator
         }
         using var _ = doc;
 
-        var schemaName = AfterLastSlash(schemaPath);
+        var schemaName = SchemaName(schemaPath);
         try
         {
             EvaluationResults results;
@@ -153,6 +166,14 @@ internal static class SchemaValidator
         return idx >= 0 ? s[(idx + 1)..] : s;
     }
 
+    private static string SchemaName(string schemaPath)
+    {
+        var fragment = schemaPath.IndexOf('#', StringComparison.Ordinal);
+        return fragment < 0
+            ? AfterLastSlash(schemaPath)
+            : AfterLastSlash(schemaPath[..fragment]) + schemaPath[fragment..];
+    }
+
     internal static string? SchemaPathFor(string filePath)
     {
         if (string.Equals(filePath, "App/config/applicationmetadata.json", StringComparison.OrdinalIgnoreCase))
@@ -164,6 +185,8 @@ internal static class SchemaValidator
             return TextResourcesSchema;
         if (string.Equals(filePath, "App/ui/footer.json", StringComparison.OrdinalIgnoreCase))
             return FooterSchema;
+        if (string.Equals(filePath, GlobalSettingsFile, StringComparison.OrdinalIgnoreCase))
+            return GlobalSettingsDefinition.Key;
         if (!filePath.StartsWith("App/ui/", StringComparison.OrdinalIgnoreCase))
             return null;
         if (string.Equals(FileName(filePath), "Settings.json", StringComparison.OrdinalIgnoreCase))
