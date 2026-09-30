@@ -10,6 +10,7 @@ using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
@@ -27,6 +28,7 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly IDeploymentRepository _deploymentRepository;
     private readonly IDeployEventRepository _deployEventRepository;
     private readonly IAltinnStorageAppMetadataClient _altinnStorageAppMetadataClient;
+    private readonly IApplicationInformationService _applicationInformationService;
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
@@ -37,6 +39,7 @@ public class DeploymentPipelinePollingJob : IJob
         IDeploymentRepository deploymentRepository,
         IDeployEventRepository deployEventRepository,
         IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient,
+        IApplicationInformationService applicationInformationService,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IPublisher mediatr,
         ILogger<DeploymentPipelinePollingJob> logger,
@@ -47,6 +50,7 @@ public class DeploymentPipelinePollingJob : IJob
         _deploymentRepository = deploymentRepository;
         _deployEventRepository = deployEventRepository;
         _altinnStorageAppMetadataClient = altinnStorageAppMetadataClient;
+        _applicationInformationService = applicationInformationService;
         _entityUpdatedHubContext = entityUpdatedHubContext;
         _mediatr = mediatr;
         _logger = logger;
@@ -106,6 +110,7 @@ public class DeploymentPipelinePollingJob : IJob
                 if (type == PipelineType.Undeploy && build.Result == BuildResult.Succeeded)
                 {
                     await UpdateMetadataInStorage(editingContext, environment);
+                    await DeprecateInResourceRegistry(editingContext, environment);
                 }
                 await _entityUpdatedHubContext
                     .Clients.Group(editingContext.Developer)
@@ -214,12 +219,34 @@ public class DeploymentPipelinePollingJob : IJob
             environment
         );
         appMetadataJson = Helpers.ApplicationMetadataJsonHelper.SetCopyInstanceEnabled(appMetadataJson, enabled: false);
+        appMetadataJson = Helpers.ApplicationMetadataJsonHelper.SetStatus(appMetadataJson, AppStatus.Deprecated);
         await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(
             editingContext.Org,
             editingContext.Repo,
             appMetadataJson,
             environment
         );
+    }
+
+    private async Task DeprecateInResourceRegistry(AltinnRepoEditingContext editingContext, string environment)
+    {
+        ResourceRegistryPublishResult result = await _applicationInformationService.UpdateResourceRegistryStatusAsync(
+            editingContext.Org,
+            editingContext.Repo,
+            environment,
+            AppStatus.Deprecated
+        );
+        if (!result.Succeeded)
+        {
+            _logger.LogWarning(
+                "Failed to set status {AppStatus} in Resource Registry for {Org}/{App} in {Env}: {ErrorMessage}",
+                AppStatus.Deprecated,
+                editingContext.Org,
+                editingContext.Repo,
+                environment,
+                result.ErrorMessage
+            );
+        }
     }
 
     private static void CancelJob(IJobExecutionContext context)

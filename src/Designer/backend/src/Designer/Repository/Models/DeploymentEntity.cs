@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Repository.Models;
@@ -31,6 +32,13 @@ public class DeploymentEntity : BaseEntity
     public string EnvName { get; set; }
 
     public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
+
+    /// <summary>
+    /// App status registered in Storage and Resource Registry by this deployment.
+    /// Null for deployments created before app status was introduced.
+    /// </summary>
+    [JsonProperty("appStatus")]
+    public AppStatus? AppStatus { get; set; }
 
     /// <summary>
     /// Build

@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -74,6 +75,7 @@ public class ApplicationMetadataServiceTest
             appMetadataJson,
             "abcd1234",
             "tt02",
+            AppStatus.UnderDevelopment,
             CancellationToken.None
         );
 
@@ -85,6 +87,9 @@ public class ApplicationMetadataServiceTest
         Assert.NotNull(capturedAppMetadata);
         Assert.Equal("new-org/new-app", capturedAppMetadata.Id);
         Assert.Equal("abcd1234", capturedAppMetadata.VersionId);
+        JsonNode? capturedJson = JsonNode.Parse(capturedAppMetadataJson!);
+        string statusKey = usePascalCasePropertyNames ? "status" : "Status";
+        Assert.Equal(nameof(AppStatus.UnderDevelopment), capturedJson?[statusKey]?.GetValue<string>());
     }
 
     private sealed record Fixture(

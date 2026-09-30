@@ -107,6 +107,8 @@ public class DeploymentService : IDeploymentService
         deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
         deploymentEntity.TagName = deployment.TagName;
         deploymentEntity.EnvName = deployment.EnvName;
+        AppStatus appStatus = deployment.AppStatus ?? GetDefaultAppStatus(deployment.EnvName);
+        deploymentEntity.AppStatus = appStatus;
 
         ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
             authenticatedContext.Org,
@@ -118,14 +120,16 @@ public class DeploymentService : IDeploymentService
             authenticatedContext.Org,
             authenticatedContext.Repo,
             release.TargetCommitish,
-            deployment.EnvName
+            deployment.EnvName,
+            appStatus
         );
 
         var registryResult = await _applicationInformationService.PublishToResourceRegistryAsync(
             authenticatedContext.Org,
             authenticatedContext.Repo,
             release.TargetCommitish,
-            deployment.EnvName
+            deployment.EnvName,
+            appStatus
         );
 
         deploymentEntity = await _deploymentRepository.Create(deploymentEntity);
@@ -197,6 +201,14 @@ public class DeploymentService : IDeploymentService
         );
         return deploymentEntity;
     }
+
+    private static AppStatus GetDefaultAppStatus(string envName) =>
+        IsProductionEnvironment(envName) ? AppStatus.Completed : AppStatus.UnderDevelopment;
+
+    // Designer names the production environment "production", while AltinnEnvironment expects "prod"
+    private static bool IsProductionEnvironment(string envName) =>
+        envName.Equals("production", StringComparison.OrdinalIgnoreCase)
+        || AltinnEnvironment.FromName(envName).IsProd();
 
     private async Task<bool> AddAppToGitOpsRepoIfNotExists(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
@@ -343,6 +355,7 @@ public class DeploymentService : IDeploymentService
         {
             EnvName = env,
             DeploymentType = DeploymentType.Decommission,
+            AppStatus = AppStatus.Deprecated,
             TagName = lastDeployed.TagName,
             Build = new BuildEntity
             {
