@@ -421,9 +421,9 @@ mod tests {
             unavailable(&without_launchers, OpenTarget::Editor(Editor::VsCode)),
             None
         );
-        assert!(
-            unavailable(&without_launchers, OpenTarget::Editor(Editor::Zed))
-                .is_some_and(|reason| reason.contains("zeditor"))
+        assert_eq!(
+            unavailable(&without_launchers, OpenTarget::Editor(Editor::Zed)),
+            Editor::Zed.missing_launcher()
         );
 
         let remote = Environment {
@@ -491,7 +491,10 @@ mod tests {
         let menu = OpenMenu::new(&with_ssh(), &local(&[]), SshSetup::Installed);
         assert_eq!(
             menu.unavailable_reasons(),
-            [(vec!["Zed".to_owned()], "not found on PATH (zed, zeditor)".to_owned())]
+            [(
+                vec!["Zed".to_owned()],
+                Editor::Zed.missing_launcher().expect("Zed needs a launcher")
+            )]
         );
     }
 

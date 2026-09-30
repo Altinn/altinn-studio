@@ -226,7 +226,11 @@ mod tests {
             })
         );
         assert_eq!(Editor::Zed.launch(None, "agentctl-worker", "/srv/work"), None);
-        assert!(Editor::Zed.missing_launcher().is_some());
+        let names = if cfg!(windows) { "zed.exe" } else { "zed, zeditor" };
+        assert_eq!(
+            Editor::Zed.missing_launcher(),
+            Some(format!("not found on PATH ({names})"))
+        );
     }
 
     #[cfg(unix)]

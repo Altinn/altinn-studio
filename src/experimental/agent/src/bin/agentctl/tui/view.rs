@@ -2340,7 +2340,10 @@ mod tests {
             shell.contains("▸") && shell.trim_end().trim_end_matches('│').trim_end().ends_with('e'),
             "{shell}"
         );
-        assert!(text.contains("Zed: not found on PATH (zed, zeditor)"), "{text}");
+        let zed = crate::launch::Editor::Zed
+            .missing_launcher()
+            .expect("Zed needs a launcher");
+        assert!(text.contains(&format!("Zed: {zed}")), "{text}");
         assert!(text.contains("Set up SSH"), "{text}");
         assert!(text.contains("SSH needs a line in ~/.ssh/config;"), "{text}");
         assert!(
