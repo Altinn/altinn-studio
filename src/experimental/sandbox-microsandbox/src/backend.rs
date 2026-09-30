@@ -142,24 +142,28 @@ impl MicrosandboxProvider {
             executions: Rc::new(RefCell::new(HashMap::new())),
         };
         if unused_image_retention.is_some() {
-            if let Err(error) = provider.migrate_images().await {
+            if let Err(error) = Box::pin(provider.migrate_images()).await {
                 tracing::warn!(%error, "failed to migrate the Microsandbox image catalog; retrying when the Provider next opens");
             }
-            provider.images.remove_unused().await;
+            Box::pin(provider.images.remove_unused()).await;
         }
         Ok(provider)
     }
 
     /// Migrates a catalog recorded before Sandboxes held their images, while the Provider opens
-    /// and before anything else runs: every Sandbox holds its image, fetching it again by digest
-    /// when the catalog lost track of it, and then image versions nothing holds are removed. If
-    /// a Sandbox cannot hold its image, nothing is removed and the next open tries again.
+    /// and before anything else runs. Every Sandbox with a runtime holds its image, fetched again
+    /// by digest when the catalog lost track of it, and Microsandbox's prune then removes every
+    /// image no runtime uses. A Sandbox without a runtime fetches its image again when it starts.
+    /// If a Sandbox with a runtime cannot hold its image, nothing is removed and the next open
+    /// tries again.
     async fn migrate_images(&self) -> Result<(), Error> {
         if !self.images.migration_pending().await {
             return Ok(());
         }
         for record in self.state.sandbox_records().await? {
-            self.hold_image(&record).await?;
+            if self.runtime_handle(&record.runtime_name).await?.is_some() {
+                self.hold_image(&record).await?;
+            }
         }
         self.images.finish_migration().await
     }
@@ -198,6 +202,13 @@ impl MicrosandboxProvider {
         Err(Error::Backend(format!(
             "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
         )))
+    }
+
+    /// Removes unused images now, as the Provider also does when it opens, after each image is
+    /// resolved or imported and after each Sandbox is deleted. Only a Provider opened with
+    /// [`MicrosandboxProviderBuilder::remove_unused_images_after`] removes any.
+    pub async fn remove_unused_images(&self) {
+        self.images.remove_unused().await;
     }
 
     #[cfg(test)]
@@ -394,8 +405,10 @@ impl MicrosandboxProvider {
             handle.remove().await.map_err(error::microsandbox)?;
         }
         self.client.local().set_network_controlled(&record.runtime_name, false);
-        self.state.remove_sandbox(&record).await?;
+        // Releasing first keeps a removal pass from taking the image as left behind before its
+        // cache entry is refreshed.
         self.images.release(&record).await;
+        self.state.remove_sandbox(&record).await?;
         self.images.remove_unused().await;
         Ok(())
     }

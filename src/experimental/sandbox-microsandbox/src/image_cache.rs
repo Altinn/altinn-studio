@@ -87,20 +87,39 @@ impl ImageCache {
         Ok((name, fetched))
     }
 
-    /// Adds the entry that keeps a Sandbox's image while the Sandbox exists, and returns its
-    /// name, or `None` when the image is not in the cache. Adding it again changes nothing.
+    /// Adds the entry that keeps a Sandbox's image while the Sandbox exists, and returns the
+    /// name to create its runtime from, or `None` when the image is not in the cache. Adding it
+    /// again changes nothing. Without a retention period nothing removes images, so no entry is
+    /// added and any entry naming the image is returned.
     pub(crate) async fn hold(&self, record: &SandboxRecord) -> Result<Option<String>, Error> {
         let name = sandbox_entry(&record.id);
         let manifest_digest = record.image.manifest_digest.as_str();
         let _recording = self.catalog.read().await;
-        match microsandbox::Image::get_local(self.client.local(), &name).await {
-            Ok(entry) if entry.manifest_digest() == Some(manifest_digest) => return Ok(Some(name)),
-            Ok(_) | Err(microsandbox::MicrosandboxError::ImageNotFound(_)) => {}
-            Err(failure) => return Err(error::microsandbox(failure)),
+        let mut cached = None;
+        for entry in microsandbox::Image::list_local(self.client.local())
+            .await
+            .map_err(error::microsandbox)?
+        {
+            if entry.manifest_digest() != Some(manifest_digest) {
+                continue;
+            }
+            if entry.reference() == name {
+                return Ok(Some(name));
+            }
+            // A tag recorded before images were recorded by digest may have moved on.
+            if cached.is_none()
+                && let Some(metadata) = self.metadata(entry.reference())?
+                && metadata.manifest_digest == manifest_digest
+            {
+                cached = Some((entry.reference().to_string(), metadata));
+            }
         }
-        let Some(metadata) = self.metadata(&cache_entry(manifest_digest))? else {
+        let Some((cached_name, metadata)) = cached else {
             return Ok(None);
         };
+        if self.retention.is_none() {
+            return Ok(Some(cached_name));
+        }
         self.write_entry(&name, metadata).await?;
         Ok(Some(name))
     }
@@ -109,6 +128,9 @@ impl ImageCache {
     /// entry goes, so the image stays for the retention period after the deletion, and never
     /// loses its last entry here. An entry this leaves behind goes with the next pass.
     pub(crate) async fn release(&self, record: &SandboxRecord) {
+        if self.retention.is_none() {
+            return;
+        }
         let name = sandbox_entry(&record.id);
         let taken_over = {
             let _recording = self.catalog.read().await;
@@ -152,13 +174,14 @@ impl ImageCache {
     }
 
     async fn remove_unused_at(&self, now: SystemTime, retention: Duration) -> Result<(), Error> {
-        let sandboxes: HashSet<String> = self
-            .state
-            .sandbox_records()
-            .await?
-            .iter()
-            .map(|record| entry_tag(&record.id))
-            .collect();
+        // Without the records, no Sandbox entry can be known to be left behind.
+        let sandboxes: Option<HashSet<String>> = match self.state.sandbox_records().await {
+            Ok(records) => Some(records.iter().map(|record| entry_tag(&record.id)).collect()),
+            Err(error) => {
+                tracing::warn!(%error, "failed to read Sandbox records; keeping every Sandbox's image entry");
+                None
+            }
+        };
         let cutoff = unix_millis(now).saturating_sub(i64::try_from(retention.as_millis()).unwrap_or(i64::MAX));
         for image in microsandbox::Image::list_local(self.client.local())
             .await
@@ -168,8 +191,10 @@ impl ImageCache {
                 .last_used_at()
                 .or_else(|| image.created_at())
                 .map(|time| time.timestamp_millis());
-            let unused = sandbox_entry_tag(image.reference())
-                .map_or_else(|| is_expired(last_used, cutoff), |tag| !sandboxes.contains(tag));
+            let unused = sandbox_entry_tag(image.reference()).map_or_else(
+                || is_expired(last_used, cutoff),
+                |tag| sandboxes.as_ref().is_some_and(|sandboxes| !sandboxes.contains(tag)),
+            );
             if !unused {
                 continue;
             }
@@ -551,7 +576,7 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn migration_waits_while_a_sandbox_cannot_hold_its_image() {
+    async fn a_sandbox_without_a_runtime_does_not_hold_up_the_migration() {
         let home = Home::open().await;
         let previous_files = record_moved_tag(&home).await;
         let mut record = sandbox_record("00000000-0000-4000-8000-000000000002", &digest('d'));
@@ -561,14 +586,60 @@ mod tests {
         home.state.save_sandbox(&record).await.expect("record saved");
 
         provider(home.path()).await;
+        assert!(!previous_files.exists());
         assert!(
-            previous_files.exists(),
-            "nothing is removed before every Sandbox holds its image"
+            home.state.marker(MIGRATED_MARKER).exists(),
+            "the Sandbox fetches its image when it starts"
         );
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn an_image_recorded_before_cache_entries_is_held() {
+        let home = Home::open().await;
+        let image = digest('a');
+        home.record_legacy("sandbox-microsandbox-import:docker-1234", &image)
+            .await;
+        let record = home.sandbox_needing(&image).await;
+
+        assert_eq!(
+            home.images().hold(&record).await.expect("hold"),
+            Some(sandbox_entry(&record.id))
+        );
+        let unmanaged = ImageCache::new(home.client.clone(), home.state.clone(), None);
+        let other = sandbox_record("00000000-0000-4000-8000-000000000004", &image);
+        let name = unmanaged
+            .hold(&other)
+            .await
+            .expect("hold")
+            .expect("the image is cached");
+        assert_ne!(name, sandbox_entry(&other.id));
         assert!(
-            !home.state.marker(MIGRATED_MARKER).exists(),
-            "the next open tries again"
+            !home.references().await.contains(&sandbox_entry(&other.id)),
+            "without a retention period nothing removes images, so no entry is added"
         );
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn an_unreadable_sandbox_record_keeps_entries_but_not_expired_images() {
+        let home = Home::open().await;
+        let images = home.images();
+        let (held, unused) = (digest('a'), digest('b'));
+        home.resolve(&images, &held).await;
+        let record = home.sandbox_needing(&held).await;
+        let entry = images
+            .hold(&record)
+            .await
+            .expect("hold")
+            .expect("the image should be cached");
+        home.state.remove_sandbox(&record).await.expect("record removed");
+        home.resolve(&images, &unused).await;
+        std::fs::write(home.path().join("state/sandboxes/unreadable.json"), b"{").expect("unreadable record");
+
+        images
+            .remove_unused_at(SystemTime::now() + 2 * DAY, DAY)
+            .await
+            .expect("pass");
+        assert_eq!(home.references().await, [entry]);
     }
 
     #[tokio::test(flavor = "local")]
