@@ -151,11 +151,10 @@ export class GiteaPage extends BasePage {
   }
 
   public async verifySequenceFlowDirection(fromId: string, toId: string): Promise<void> {
-    const firstPartOfText = this.page.getByText('<bpmn:sequenceFlow id="Flow_');
-    await expect(firstPartOfText).toBeVisible();
-
-    const secondPartOfText = this.page.getByText(`" sourceRef="${fromId}" targetRef="${toId}" />`);
-    await expect(secondPartOfText).toBeVisible();
+    const sequenceFlow = this.page.getByText(
+      new RegExp(`<bpmn:sequenceFlow id="Flow_[^"]+" sourceRef="${fromId}" targetRef="${toId}" />`),
+    );
+    await expect(sequenceFlow).toBeVisible();
   }
 
   public async clickOnApplicationMetadataFile(): Promise<void> {
