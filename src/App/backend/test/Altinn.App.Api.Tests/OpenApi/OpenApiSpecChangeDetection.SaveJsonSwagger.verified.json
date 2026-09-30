@@ -9800,7 +9800,9 @@
             "nullable": true
           },
           "enablePdfCreation": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true,
+            "deprecated": true
           },
           "enableFileScan": {
             "type": "boolean"

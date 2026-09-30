@@ -1,6 +1,5 @@
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 

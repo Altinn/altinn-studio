@@ -98,10 +98,8 @@ public class EnqueueSideEffectsWorkflowTests
                     Workflows = [new WorkflowResult { DatabaseId = Guid.NewGuid(), Namespace = "ttd/test-app" }],
                 }
             );
-        var command = new EnqueueSideEffectsWorkflow(
-            client.Object,
-            Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(_instanceId.InstanceGuid) == "callback-token")
-        );
+        var tokens = new RecordingCallbackTokenGenerator();
+        var command = new EnqueueSideEffectsWorkflow(client.Object, tokens);
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest());
 
         ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
@@ -117,7 +115,7 @@ public class EnqueueSideEffectsWorkflowTests
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(capturedRequest.Context!.Value)!;
         Assert.Equal(CreateContext().Payload.Actor, context.Actor);
         Assert.Equal(_instanceId.InstanceGuid, context.InstanceGuid);
-        Assert.Equal("callback-token", context.CallbackToken);
+        tokens.AssertMintedFor(capturedRequest);
         Assert.Equal(2, capturedRequest.Workflows.Count);
         Assert.All(
             capturedRequest.Workflows,
@@ -154,7 +152,10 @@ public class EnqueueSideEffectsWorkflowTests
             .ThrowsAsync(new HttpRequestException("engine unavailable"));
         var command = new EnqueueSideEffectsWorkflow(
             client.Object,
-            Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(_instanceId.InstanceGuid) == "callback-token")
+            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
+                g.GenerateToken(_instanceId.InstanceGuid, It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                == "callback-token"
+            )
         );
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest());
 
@@ -170,7 +171,10 @@ public class EnqueueSideEffectsWorkflowTests
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         var command = new EnqueueSideEffectsWorkflow(
             client.Object,
-            Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(_instanceId.InstanceGuid) == "callback-token")
+            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
+                g.GenerateToken(_instanceId.InstanceGuid, It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                == "callback-token"
+            )
         );
         var payload = new EnqueueSideEffectsWorkflowPayload(CreateEmbeddedRequest() with { Workflows = [] });
 

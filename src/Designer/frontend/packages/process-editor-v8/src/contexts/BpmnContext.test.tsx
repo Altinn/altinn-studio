@@ -1,0 +1,65 @@
+import { render, renderHook, screen } from '@testing-library/react';
+import { BpmnContextProvider, useBpmnContext } from './BpmnContext';
+
+describe('BpmnContext', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  it('should render children', () => {
+    render(
+      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+        <button>My button</button>
+      </BpmnContextProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'My button' })).toBeInTheDocument();
+  });
+
+  it('should provide a useBpmnContext hook', () => {
+    const TestComponent = () => {
+      const {} = useBpmnContext();
+      return <div data-testid='context'></div>;
+    };
+
+    render(
+      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+        <TestComponent />
+      </BpmnContextProvider>,
+    );
+
+    expect(screen.getByTestId('context')).toHaveTextContent('');
+  });
+
+  it('should throw an error when useBpmnContext is used outside of a BpmnContextProvider', () => {
+    const TestComponent = () => {
+      useBpmnContext();
+      return <div data-testid='context'>Test</div>;
+    };
+
+    expect(() => render(<TestComponent />)).toThrow(
+      'useBpmnContext must be used within a BpmnContextProvider',
+    );
+  });
+
+  it('should throw an error when modelerRef.current is undefined', async () => {
+    const wrapper = ({ children }) => (
+      <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>
+        {children}
+      </BpmnContextProvider>
+    );
+    const { result } = renderHook(() => useBpmnContext(), {
+      wrapper,
+    });
+    const { getUpdatedXml } = result.current;
+    await expect(async () => await getUpdatedXml()).rejects.toThrow('Modeler not initialized');
+  });
+
+  describe('isEditAllowed', () => {
+    it('should be false when appVersion is undefined', () => {
+      const { result } = renderHook(() => useBpmnContext(), {
+        wrapper: ({ children }) => <BpmnContextProvider>{children}</BpmnContextProvider>,
+      });
+      expect(result.current.isEditAllowed).toBe(false);
+    });
+  });
+});
