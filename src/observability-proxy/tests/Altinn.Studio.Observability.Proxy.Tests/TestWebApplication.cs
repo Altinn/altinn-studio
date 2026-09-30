@@ -153,7 +153,7 @@ internal sealed class TestWebApplication : IAsyncDisposable
 
     private static WebApplicationBuilder CreateBuilder()
     {
-        var builder = WebApplication.CreateBuilder(
+        var builder = WebApplication.CreateSlimBuilder(
             new WebApplicationOptions
             {
                 EnvironmentName = Environments.Development,

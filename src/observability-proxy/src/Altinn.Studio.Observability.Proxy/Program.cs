@@ -1,6 +1,6 @@
 using Altinn.Studio.Observability.Proxy.Hosting;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddObservabilityProxy();
 
 var app = builder.Build();
