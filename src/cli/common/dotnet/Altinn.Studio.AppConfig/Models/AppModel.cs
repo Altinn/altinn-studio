@@ -31,7 +31,7 @@ public sealed class AppModel
 
     public required IReadOnlyDictionary<string, bool> OptionsFiles { get; init; }
 
-    public required IReadOnlySet<string> OptionsProviders { get; init; }
+    public required IReadOnlyDictionary<string, OptionsProvider> OptionsProviders { get; init; }
 
     public required IReadOnlySet<string> CustomTaskTypes { get; init; }
 

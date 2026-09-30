@@ -23,7 +23,7 @@ public sealed partial class AppSymbols
                 return Closest(r.Value, model.LayoutSets.SelectMany(s => s.AllComponents).Select(c => c.Id));
         foreach (var r in model.Refs.OptionsIds)
             if (Same(r.Position, file, ptr))
-                return Closest(r.Value, model.OptionsFiles.Keys.Concat(model.OptionsProviders));
+                return Closest(r.Value, model.OptionsFiles.Keys.Concat(model.OptionsProviders.Keys));
         foreach (var r in model.Refs.PageFiles)
             if (Same(r.Position, file, ptr))
                 return Closest(r.Value, model.LayoutFiles.Select(f => Path.GetFileNameWithoutExtension(f) ?? ""));

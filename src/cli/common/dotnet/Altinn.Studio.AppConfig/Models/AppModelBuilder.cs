@@ -19,7 +19,7 @@ internal sealed class AppModelBuilder
     public Dictionary<string, ModelTypeInfo> CSharpModel { get; } = new();
 
     public Dictionary<string, bool> OptionsFiles { get; } = new();
-    public HashSet<string> OptionsProviders { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, OptionsProvider> OptionsProviders { get; } = new(StringComparer.Ordinal);
     public HashSet<string> CustomTaskTypes { get; } = new(StringComparer.Ordinal);
 
     public HashSet<string> LayoutFiles { get; } = new(StringComparer.Ordinal);

@@ -148,8 +148,8 @@ public sealed partial class AppSymbols
         string detail;
         if (model.OptionsFiles.ContainsKey(sym.Value))
             detail = $"`App/options/{sym.Value}.json`";
-        else if (model.OptionsProviders.Contains(sym.Value))
-            detail = "Code-registered options provider";
+        else if (model.OptionsProviders.TryGetValue(sym.Value, out var provider))
+            detail = $"Registered in code by `{provider.RegisteredBy}` in `{provider.Position.File}`";
         else
             detail = "Not found (no file or registered provider)";
         return new List<string> { $"**Option list** `{sym.Value}`", detail };
