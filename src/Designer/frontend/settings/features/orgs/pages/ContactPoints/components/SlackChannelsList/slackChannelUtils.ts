@@ -1,5 +1,4 @@
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
-import { noReportFrequency } from 'app-shared/types/ContactPoint';
 import type { SlackChannel } from './SlackChannelDialog/SlackChannelDialog';
 
 export const slackChannelToPayload = (channel: SlackChannel): ContactPointPayload => ({
@@ -14,6 +13,6 @@ export const contactPointToSlackChannel = (cp: ContactPoint): SlackChannel => ({
   channelName: cp.name,
   isActive: cp.isActive,
   environments: cp.environments,
-  reportFrequency: cp.reportFrequency ?? noReportFrequency,
+  reportFrequency: cp.reportFrequency,
   webhookUrl: cp.methods.find((m) => m.methodType === 'slack')?.value ?? '',
 });

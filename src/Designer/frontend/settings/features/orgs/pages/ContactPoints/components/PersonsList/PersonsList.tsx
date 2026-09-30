@@ -103,7 +103,7 @@ export const PersonsList = ({ org, persons }: PersonsListProps): ReactElement =>
                 <StudioTable.Cell>{phone}</StudioTable.Cell>
                 <EnvironmentsCell environments={person.environments} />
                 <StudioTable.Cell>
-                  {person.reportFrequency && person.reportFrequency !== noReportFrequency
+                  {person.reportFrequency !== noReportFrequency
                     ? t(`settings.orgs.contact_points.report_frequency_${person.reportFrequency}`)
                     : emptyCellPlaceholder}
                 </StudioTable.Cell>

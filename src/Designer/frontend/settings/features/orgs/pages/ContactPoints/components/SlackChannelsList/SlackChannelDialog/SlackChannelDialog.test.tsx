@@ -62,6 +62,10 @@ const getWebhookUrlInput = () =>
   screen.getByRole('textbox', {
     name: `${textMock('settings.orgs.contact_points.field_webhook_url')} ${textMock('general.required')}`,
   });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
+  });
 
 describe('SlackChannelDialog', () => {
   afterEach(() => jest.clearAllMocks());
@@ -107,6 +111,17 @@ describe('SlackChannelDialog', () => {
     expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
       org,
       expect.objectContaining({ name: '#general' }),
+    );
+  });
+
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ initialValue: validChannel });
+    await user.selectOptions(getReportFrequencySelect(), 'daily');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'daily' }),
     );
   });
 

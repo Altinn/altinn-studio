@@ -55,6 +55,10 @@ const getEmailInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_email') });
 const getPhoneInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
+  });
 
 describe('PersonDialog', () => {
   afterEach(() => jest.clearAllMocks());
@@ -101,6 +105,19 @@ describe('PersonDialog', () => {
     expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
       org,
       expect.objectContaining({ name: 'Test' }),
+    );
+  });
+
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+    });
+    await user.selectOptions(getReportFrequencySelect(), 'weekly');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'weekly' }),
     );
   });
 
