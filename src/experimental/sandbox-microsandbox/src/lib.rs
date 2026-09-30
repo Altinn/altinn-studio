@@ -13,6 +13,7 @@ mod execution;
 mod files;
 mod guest_tcp;
 mod image;
+mod image_cache;
 mod network_backend;
 mod network_endpoint;
 mod platform;

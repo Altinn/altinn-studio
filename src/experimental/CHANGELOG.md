@@ -26,6 +26,11 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - `q` asks before quitting would close them
   - they close when their Agent is deleted or re-created
 
+### Fixed
+
+- Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+
 ## [0.1.0-preview.8] - 2026-09-30
 
 ### Changed
