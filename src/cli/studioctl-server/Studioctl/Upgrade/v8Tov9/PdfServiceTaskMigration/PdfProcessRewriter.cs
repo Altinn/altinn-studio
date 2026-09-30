@@ -11,7 +11,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 ///
 /// The legacy flag generated one PDF at the end of the task a pdf-enabled datamodel was bound to.
 /// The faithful equivalent is a <c>pdf</c> service task inserted immediately after that task:
-/// <c>T --flow--> X</c> becomes <c>T --flow--> PdfTask_T --newFlow--> X</c>.
+/// <c>T --flow--> X</c> becomes <c>T --flow--> PdfTask_T --newFlow--> X</c>. How the service task
+/// renders the PDF depends on the task's UI settings; see <see cref="SourceTaskPdfLayout"/>.
 ///
 /// We rely on <c>sequenceFlow</c> <c>sourceRef</c>/<c>targetRef</c> (what the process engine uses),
 /// and treat the informational <c>&lt;incoming&gt;</c>/<c>&lt;outgoing&gt;</c> child elements as
@@ -27,6 +28,7 @@ internal sealed class PdfProcessRewriter
     private readonly XNamespace _diNs = "http://www.omg.org/spec/DD/20100524/DI";
     private readonly List<string> _warnings = new();
     private readonly List<string> _skippedTasks = new();
+    private readonly List<string> _insertedTasks = new();
     private readonly bool _sourceHadBom;
     private readonly string _newline;
     private readonly bool _hadTrailingNewline;
@@ -61,13 +63,39 @@ internal sealed class PdfProcessRewriter
     /// </summary>
     public IReadOnlyList<string> GetSkippedTasks() => _skippedTasks;
 
+    /// <summary>Task ids whose PDF service task this rewriter inserted (not counting already migrated ones).</summary>
+    public IReadOnlyList<string> GetInsertedTasks() => _insertedTasks;
+
+    /// <summary>The id of the PDF service task inserted after <paramref name="taskId"/>.</summary>
+    public static string PdfTaskIdFor(string taskId) => $"PdfTask_{taskId}";
+
+    /// <summary>
+    /// Whether the process already has the PDF service task for <paramref name="taskId"/>, typically
+    /// from a previous migration run.
+    /// </summary>
+    public bool HasPdfServiceTaskFor(string taskId)
+    {
+        var pdfTaskId = PdfTaskIdFor(taskId);
+        var processElements =
+            _doc.Root?.Elements().Where(e => e.Name.LocalName == "process").SelectMany(p => p.Elements()) ?? [];
+        return processElements.Any(e => e.Attribute("id")?.Value == pdfTaskId && IsPdfServiceTask(e));
+    }
+
     /// <summary>
     /// Inserts a pdf service task after each of the given tasks. The paired dataType id (the task's
     /// form data model) is used to pin <c>connectedDataTypeId</c> on any downstream gateway whose
     /// expressions previously inferred their data model from the data task. Changes are held in
     /// memory until <see cref="Write"/> is called.
     /// </summary>
-    public void InsertPdfServiceTasks(IReadOnlyCollection<(string TaskId, string? DataTypeId)> tasks)
+    /// <param name="tasks">The tasks to insert a pdf service task after.</param>
+    /// <param name="tasksWithOwnUiFolder">
+    /// The tasks whose pdf service task gets a UI folder of its own, which it renders the PDF from. Their
+    /// service task has no <c>autoPdfTaskIds</c>.
+    /// </param>
+    public void InsertPdfServiceTasks(
+        IReadOnlyCollection<(string TaskId, string? DataTypeId)> tasks,
+        IReadOnlySet<string> tasksWithOwnUiFolder
+    )
     {
         List<XElement> processes = _doc.Root?.Elements().Where(e => e.Name.LocalName == "process").ToList() ?? [];
         if (processes.Count != 1)
@@ -86,7 +114,7 @@ internal sealed class PdfProcessRewriter
 
         foreach (var (taskId, dataTypeId) in tasks)
         {
-            InsertPdfServiceTaskAfter(process, plane, taskId, dataTypeId);
+            InsertPdfServiceTaskAfter(process, plane, taskId, dataTypeId, tasksWithOwnUiFolder.Contains(taskId));
         }
 
         if (plane is not null && HasChanges)
@@ -99,7 +127,13 @@ internal sealed class PdfProcessRewriter
         }
     }
 
-    private void InsertPdfServiceTaskAfter(XElement process, XElement? plane, string taskId, string? dataTypeId)
+    private void InsertPdfServiceTaskAfter(
+        XElement process,
+        XElement? plane,
+        string taskId,
+        string? dataTypeId,
+        bool hasOwnUiFolder
+    )
     {
         var matchingTasks = process.Elements().Where(e => e.Attribute("id")?.Value == taskId).ToList();
         if (matchingTasks.Count != 1)
@@ -152,17 +186,13 @@ internal sealed class PdfProcessRewriter
             flow.Attribute("targetRef")?.Value
             ?? throw new InvalidOperationException($"sequenceFlow '{flowId}' missing targetRef");
 
-        var pdfTaskId = $"PdfTask_{taskId}";
+        var pdfTaskId = PdfTaskIdFor(taskId);
         var newFlowId = $"Flow_{pdfTaskId}_to_{originalTarget}";
 
         var existingPdfElement = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == pdfTaskId);
         if (existingPdfElement is not null)
         {
-            var isPdfServiceTask =
-                existingPdfElement.Name.LocalName == "serviceTask"
-                && existingPdfElement.Descendants().Any(e => e.Name.LocalName == "taskType" && e.Value == "pdf");
-
-            if (isPdfServiceTask)
+            if (IsPdfServiceTask(existingPdfElement))
             {
                 // Satisfied, not skipped: the task already has its PDF service task (typically from a
                 // previous migration run), so re-running the migration can safely strip the legacy flag.
@@ -195,6 +225,7 @@ internal sealed class PdfProcessRewriter
 
         // 1) Redirect the task's existing outgoing flow to the new pdf task.
         HasChanges = true;
+        _insertedTasks.Add(taskId);
         flow.SetAttributeValue("targetRef", pdfTaskId);
 
         // 2) Create the pdf service task (T --flow--> PdfTask_T --newFlow--> X). New elements use the
@@ -210,13 +241,17 @@ internal sealed class PdfProcessRewriter
                     _altinnNs + "taskExtension",
                     // No filenameTextResourceKey: reproduces the legacy default filename (the app title).
                     new XElement(_altinnNs + "taskType", "pdf"),
-                    // A pdf service task has no form layout of its own. autoPdfTaskIds points it at the
-                    // source data task so it renders that task's main layout in summary mode - the faithful
-                    // equivalent of the legacy enablePdfCreation flag. One task id only (no consolidation).
-                    new XElement(
-                        _altinnNs + "pdfConfig",
-                        new XElement(_altinnNs + "autoPdfTaskIds", new XElement(_altinnNs + "taskId", taskId))
-                    )
+                    // autoPdfTaskIds points the pdf task at the source data task, so it renders that task's
+                    // pages in summary mode, as the legacy PDF did for a task without a custom PDF layout. One
+                    // task id only (no consolidation). A pdf task with a UI folder of its own renders the PDF
+                    // from that folder instead, as the legacy PDF was rendered from the data task's, so it gets
+                    // no autoPdfTaskIds.
+                    hasOwnUiFolder
+                        ? null
+                        : new XElement(
+                            _altinnNs + "pdfConfig",
+                            new XElement(_altinnNs + "autoPdfTaskIds", new XElement(_altinnNs + "taskId", taskId))
+                        )
                 )
             ),
             new XElement(bpmnNs + "incoming", flowId),
@@ -415,6 +450,10 @@ internal sealed class PdfProcessRewriter
             )
         );
     }
+
+    private static bool IsPdfServiceTask(XElement element) =>
+        element.Name.LocalName == "serviceTask"
+        && element.Descendants().Any(e => e.Name.LocalName == "taskType" && e.Value == "pdf");
 
     private XElement? FindShape(XElement plane, string bpmnElement) =>
         plane
