@@ -592,6 +592,36 @@ public sealed class LspServerTests
         Assert.Equal(utf16Ch, start.GetProperty("character").GetInt32()); // UTF-16, not byteCol
     }
 
+    [Fact]
+    public void Diagnostics_DuplicateKey_CoverTheIgnoredKey()
+    {
+        const string layout =
+            "{\"data\":{\"layout\":[{\"id\":\"hus-æøå\",\"type\":\"Input\",\"hidden\":true,\n\"hidden\":false}]}}";
+        using var app = new TempApp();
+        app.WriteFile(
+            "App/config/applicationmetadata.json",
+            """{"id":"ttd/lsp","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[]}"""
+        );
+        app.WriteFile("App/ui/Task_1/Settings.json", """{"pages":{"order":["P1"]}}""");
+        app.WriteFile("App/ui/Task_1/layouts/P1.json", layout);
+
+        var diag = RunSession(app.Root, ("App/ui/Task_1/layouts/P1.json", layout))
+            .Where(m => m.TryGetProperty("method", out var me) && me.GetString() == "textDocument/publishDiagnostics")
+            .Select(m => m.GetProperty("params"))
+            .Single(p => p.GetProperty("uri").GetString() is { } u && u.EndsWith("P1.json", StringComparison.Ordinal))
+            .GetProperty("diagnostics")
+            .EnumerateArray()
+            .Single(d => d.GetProperty("code").GetString() == "UNIQUE-JSON-KEY");
+
+        var (line, ch, endCh) = TokenRange(layout, "\"hidden\"");
+        var range = diag.GetProperty("range");
+        Assert.Equal(2, diag.GetProperty("severity").GetInt32());
+        Assert.Equal(line, range.GetProperty("start").GetProperty("line").GetInt32());
+        Assert.Equal(ch, range.GetProperty("start").GetProperty("character").GetInt32());
+        Assert.Equal(line, range.GetProperty("end").GetProperty("line").GetInt32());
+        Assert.Equal(endCh, range.GetProperty("end").GetProperty("character").GetInt32());
+    }
+
     // A layout file gets a "1 reference" page lens at its head, whose command carries the
     // Settings.json order entry as a location for the client-side references view.
     [Fact]

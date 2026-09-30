@@ -43,6 +43,7 @@ internal static class RuleRegistry
         new ShapeAppIdRule(),
         new UniqueComponentIdRule(),
         new UniqueDataTypeIdRule(),
+        new UniqueJsonKeyRule(),
         new UniquePageInOrderRule(),
     ]);
 
