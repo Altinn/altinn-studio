@@ -1,4 +1,4 @@
-use std::{cell::Cell, rc::Rc};
+use std::{cell::Cell, rc::Rc, time::Duration};
 
 use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
@@ -16,25 +16,29 @@ use super::protocol::{
     SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
 };
 
+const RESPONSE_TIMEOUT: Duration = Duration::from_secs(30);
+// Allow the daemon's 30-second watch keepalive plus transport latency.
+const WATCH_RESPONSE_TIMEOUT: Duration = Duration::from_secs(60);
+
 /// A byte stream usable by the Agent Control API client.
 pub trait Connection: AsyncRead + AsyncWrite + Unpin {}
 
 impl<T: AsyncRead + AsyncWrite + Unpin> Connection for T {}
 
-/// Opens one connection for one local API call.
+/// Opens one connection for one API call.
 pub trait Connector {
-    /// Connects to the local control plane.
+    /// Connects to the control plane.
     fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>>;
 }
 
-/// Calls an Agent control plane over a local stream transport.
+/// Calls an Agent control plane over a replaceable stream transport.
 pub struct Client {
     connector: Rc<dyn Connector>,
     next_id: Cell<u64>,
 }
 
 impl Client {
-    /// Creates a client with a replaceable local connector.
+    /// Creates a client with a replaceable connector.
     #[must_use]
     pub fn new(connector: Rc<dyn Connector>) -> Self {
         Self {
@@ -49,7 +53,7 @@ impl Client {
         Self::new(Rc::new(super::socket::PathConnector::new(path)))
     }
 
-    /// Checks whether the local daemon speaks the expected Control API.
+    /// Returns the daemon's Control API and build versions.
     ///
     /// # Errors
     ///
@@ -77,11 +81,12 @@ impl Client {
     /// cannot drain its listeners and in-flight calls.
     pub async fn shutdown_for_upgrade(&self) -> Result<Vec<String>, Error> {
         let result: ShutdownResult = self
-            .call(
+            .call_with_timeout(
                 METHOD_SHUTDOWN,
                 ShutdownParams {
                     reason: "upgrade".into(),
                 },
+                Some(Duration::from_secs(90)),
             )
             .await?;
         Ok(result.warnings)
@@ -152,12 +157,13 @@ impl Client {
         name: &str,
         wait: WaitPolicy,
     ) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(
+        self.call_with_timeout(
             METHOD_EXECUTION_ENSURE,
             ExecutionEnsureParams {
                 name: name.into(),
                 follow: wait == WaitPolicy::UntilReady,
             },
+            None,
         )
         .await
     }
@@ -177,13 +183,14 @@ impl Client {
         after: Option<crate::resources::Revision>,
         output: Option<crate::progress::OutputPosition>,
     ) -> Result<crate::progress::AgentProgress, Error> {
-        self.call(
+        self.call_with_timeout(
             METHOD_PROGRESS,
             ProgressParams {
                 name: name.into(),
                 after,
                 output,
             },
+            Some(WATCH_RESPONSE_TIMEOUT),
         )
         .await
     }
@@ -200,7 +207,12 @@ impl Client {
         &self,
         after: Option<crate::resources::Revision>,
     ) -> Result<crate::resources::Resources, Error> {
-        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after }).await
+        self.call_with_timeout(
+            METHOD_RESOURCES_WATCH,
+            ResourcesWatchParams { after },
+            Some(WATCH_RESPONSE_TIMEOUT),
+        )
+        .await
     }
 
     /// Describes how to reach an Agent over SSH.
@@ -272,7 +284,7 @@ impl Client {
         request: sessions::SessionRequest,
         wait: WaitPolicy,
     ) -> Result<sessions::AttachTarget, Error> {
-        self.call(
+        self.call_with_timeout(
             METHOD_SESSION_ENSURE,
             SessionEnsureParams {
                 agent: agent.into(),
@@ -282,6 +294,7 @@ impl Client {
                 initial_prompt: request.initial_prompt,
                 follow: wait == WaitPolicy::UntilReady,
             },
+            None,
         )
         .await
     }
@@ -305,7 +318,7 @@ impl Client {
         timeout: Option<std::time::Duration>,
     ) -> Result<(), Error> {
         let _result: serde_json::Value = self
-            .call(
+            .call_with_timeout(
                 METHOD_SESSION_PROMPT,
                 SessionPromptParams {
                     agent: agent.into(),
@@ -314,6 +327,7 @@ impl Client {
                     wait,
                     timeout,
                 },
+                None,
             )
             .await?;
         Ok(())
@@ -422,6 +436,18 @@ impl Client {
     }
 
     async fn call<P: Serialize, R: DeserializeOwned>(&self, method: &str, params: P) -> Result<R, Error> {
+        self.call_with_timeout(method, params, Some(RESPONSE_TIMEOUT)).await
+    }
+
+    /// Connection establishment has its own connector-owned deadline. Ordinary
+    /// replies have one deadline, not reset by partial frames.
+    /// Provisioning and prompt delivery keep their caller/server wait policies.
+    async fn call_with_timeout<P: Serialize, R: DeserializeOwned>(
+        &self,
+        method: &str,
+        params: P,
+        response_timeout: Option<Duration>,
+    ) -> Result<R, Error> {
         let id = self.next_id.get().wrapping_add(1);
         self.next_id.set(id);
         let request = Request {
@@ -433,13 +459,35 @@ impl Client {
         let mut stream = self.connector.connect().await?;
         let mut bytes = serde_json::to_vec(&request)?;
         bytes.push(b'\n');
-        stream.write_all(&bytes).await?;
-        stream.flush().await?;
+        tokio::time::timeout(RESPONSE_TIMEOUT, async {
+            stream.write_all(&bytes).await?;
+            stream.flush().await
+        })
+        .await
+        .map_err(|_| timeout_error(method, "sending the request"))??;
 
+        let response = Self::read_response(stream, id);
+        if let Some(timeout) = response_timeout {
+            tokio::time::timeout(timeout, response)
+                .await
+                .map_err(|_| timeout_error(method, "waiting for a response"))?
+        } else {
+            response.await
+        }
+    }
+
+    async fn read_response<R: DeserializeOwned>(stream: Box<dyn Connection>, id: u64) -> Result<R, Error> {
         let mut stream = BufReader::new(stream);
         let line = match read_message(&mut stream).await? {
             ReadMessage::Complete(line) => line,
-            ReadMessage::EndOfStream | ReadMessage::TooLarge => {
+            ReadMessage::EndOfStream => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::UnexpectedEof,
+                    "Agent Control API connection closed before a response",
+                )
+                .into());
+            }
+            ReadMessage::TooLarge => {
                 return Err(Error::Invalid("invalid Agent Control API response".into()));
             }
         };
@@ -456,5 +504,157 @@ impl Client {
                 .ok_or_else(|| Error::Invalid("Agent Control API response has no result".into()))?,
         )
         .map_err(Error::from)
+    }
+}
+
+fn timeout_error(method: &str, phase: &str) -> Error {
+    std::io::Error::new(
+        std::io::ErrorKind::TimedOut,
+        format!("Agent Control API {method} timed out {phase}; the operation may still complete on the daemon"),
+    )
+    .into()
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::io::{AsyncBufReadExt as _, AsyncReadExt as _};
+
+    use super::*;
+
+    #[derive(Default)]
+    struct ScriptedConnector {
+        connect_delay: Duration,
+        frames: Vec<(Duration, &'static [u8])>,
+        calls: Cell<usize>,
+    }
+
+    impl Connector for ScriptedConnector {
+        fn connect(&self) -> LocalFuture<'_, Result<Box<dyn Connection>, Error>> {
+            Box::pin(async move {
+                self.calls.set(self.calls.get() + 1);
+                tokio::time::sleep(self.connect_delay).await;
+                let (client, server) = tokio::io::duplex(4096);
+                let frames = self.frames.clone();
+                tokio::task::spawn_local(async move {
+                    let mut server = BufReader::new(server);
+                    server.read_line(&mut String::new()).await.expect("request");
+                    for (delay, frame) in frames {
+                        tokio::time::sleep(delay).await;
+                        if server.get_mut().write_all(frame).await.is_err() {
+                            return;
+                        }
+                    }
+                    // Keep a silent peer connected until the client closes it.
+                    server.read_to_end(&mut Vec::new()).await.expect("client closed");
+                });
+                Ok(Box::new(client) as Box<dyn Connection>)
+            })
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn ordinary_calls_time_out_after_connect_without_replaying_mutations() {
+        for method in [METHOD_HEALTH, METHOD_GET, METHOD_APPLY, METHOD_SESSION_TURNS] {
+            let connector = Rc::new(ScriptedConnector {
+                connect_delay: Duration::from_secs(9),
+                ..Default::default()
+            });
+            let client = Client::new(connector.clone());
+            let started = tokio::time::Instant::now();
+            let result = client.call::<_, serde_json::Value>(method, ()).await;
+            assert!(matches!(result, Err(Error::Io(ref error)) if error.kind() == std::io::ErrorKind::TimedOut));
+            let message = result.expect_err("response deadline").to_string();
+            assert!(message.contains(method));
+            assert!(message.contains("operation may still complete"));
+            assert_eq!(started.elapsed(), connector.connect_delay + RESPONSE_TIMEOUT);
+            assert_eq!(connector.calls.get(), 1, "never replay a possibly completed mutation");
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn partial_frames_do_not_reset_the_response_deadline() {
+        let client = Client::new(Rc::new(ScriptedConnector {
+            frames: vec![
+                (Duration::from_secs(20), b"{\"jsonrpc\":"),
+                (Duration::from_secs(5), b"\"2.0\",\"id\":"),
+            ],
+            ..Default::default()
+        }));
+        let started = tokio::time::Instant::now();
+        assert!(matches!(client.health().await, Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::TimedOut));
+        assert_eq!(started.elapsed(), RESPONSE_TIMEOUT);
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn watch_calls_allow_keepalives_but_still_time_out_on_silent_peers() {
+        for progress in [false, true] {
+            for replies in [false, true] {
+                let connector = Rc::new(ScriptedConnector {
+                    frames: if replies {
+                        vec![(
+                            Duration::from_secs(35),
+                            b"{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32004,\"message\":\"not found\"}}\n",
+                        )]
+                    } else {
+                        Vec::new()
+                    },
+                    ..Default::default()
+                });
+                let client = Client::new(connector.clone());
+                let started = tokio::time::Instant::now();
+                let result = if progress {
+                    client.agent_progress("test", None, None).await.map(|_| ())
+                } else {
+                    client.watch_resources(None).await.map(|_| ())
+                };
+                if replies {
+                    assert!(matches!(result, Err(Error::Rpc(_))));
+                    assert_eq!(started.elapsed(), Duration::from_secs(35));
+                } else {
+                    assert!(matches!(result, Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::TimedOut));
+                    assert_eq!(started.elapsed(), WATCH_RESPONSE_TIMEOUT);
+                }
+                assert_eq!(connector.calls.get(), 1);
+            }
+        }
+    }
+
+    #[tokio::test(flavor = "local", start_paused = true)]
+    async fn provisioning_prompt_and_shutdown_keep_their_longer_wait_policies() {
+        for operation in 0..4 {
+            let client = Client::new(Rc::new(ScriptedConnector {
+                frames: vec![(
+                    Duration::from_secs(61),
+                    b"{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32004,\"message\":\"operation failed\"}}\n",
+                )],
+                ..Default::default()
+            }));
+            let session = sessions::SessionName::new("test").expect("session");
+            let result = match operation {
+                0 => client
+                    .ensure_execution("test", WaitPolicy::UntilReady)
+                    .await
+                    .map(|_| ()),
+                1 => client
+                    .ensure_session(
+                        "test",
+                        session,
+                        sessions::SessionRequest::default(),
+                        WaitPolicy::UntilReady,
+                    )
+                    .await
+                    .map(|_| ()),
+                2 => {
+                    client
+                        .prompt_session("test", session, "prompt".into(), true, Some(Duration::from_secs(120)))
+                        .await
+                }
+                _ => client.shutdown_for_upgrade().await.map(|_| ()),
+            };
+            assert!(
+                matches!(result, Err(Error::Rpc(_))),
+                "long-running operation {operation}: {result:?}"
+            );
+        }
     }
 }

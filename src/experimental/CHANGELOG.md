@@ -12,6 +12,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- `agentd --insecure-tcp-port PORT` enables loopback-only TCP access for resource and Session management with `agentctl --endpoint tcp://HOST:PORT`. TCP has no authentication or encryption; use only for trusted development. Interactive tools still require local access. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
+
 ### Changed
 
 - On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work
@@ -27,6 +31,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - An Agent started while the host has no network connection resolves names once the host is back online.
 - `agentd` gives back the memory it used to prepare an Agent image once the image is ready.
 - Pressing Ctrl-Z in an attached Session no longer freezes it.
+- Ordinary `agentctl` control commands no longer hang indefinitely when the daemon stops responding. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
+- `agentd` no longer becomes unavailable after temporary connection failures. ([#20618](https://github.com/Altinn/altinn-studio/pull/20618))
 
 ### Security
 
