@@ -15,13 +15,13 @@ so never do resolution arithmetic yourself.
 
 ## Choose the cheapest observation that answers the question
 
-| Question                                                                  | Observe with                                                        |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| What is on a web page, and where                                          | `playwright-cli snapshot`: the whole page, with stable element refs |
-| What is on screen now: the browser's own bar and dialogs, a native window | `desktop tree`: what is showing, with click boxes                   |
-| Does it _look_ right                                                      | `desktop screenshot`                                                |
-| What windows are open, and how big                                        | `desktop windows`                                                   |
-| What does this small control say                                          | `desktop zoom X Y W H`                                              |
+| Question | Observe with |
+| --- | --- |
+| What is on a web page, and where | `playwright-cli snapshot`: the whole page, with stable element refs |
+| What is on screen now: the browser's own bar and dialogs, a native window | `desktop tree`: what is showing, with click boxes |
+| Does it *look* right | `desktop screenshot` |
+| What windows are open, and how big | `desktop windows` |
+| What does this small control say | `desktop zoom X Y W H` |
 
 `playwright-cli open --browser chromium --headed` puts the browser on this same desktop, so one
 browser is scriptable, in the tree and visible: act on refs with `playwright-cli click e12`, and
