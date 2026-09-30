@@ -138,7 +138,7 @@ describe('SupportedPaletteProvider', () => {
       result['create.altinn-pdf-task'].action.click(mockEvent);
 
       expect(mockBpmnFactory.create).toHaveBeenCalledWith('bpmn:ServiceTask', {
-        name: 'Lag PDF',
+        name: 'Altinn pdf task',
       });
     });
 

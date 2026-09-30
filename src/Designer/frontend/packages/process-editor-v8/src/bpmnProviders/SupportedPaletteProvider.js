@@ -226,7 +226,7 @@ class SupportedPaletteProvider {
           return;
         }
 
-        const task = buildAltinnServiceTask(taskType, 'Lag PDF');
+        const task = buildAltinnServiceTask(taskType);
 
         const extensionElements = bpmnFactory.create('bpmn:ExtensionElements', {
           values: [
@@ -258,9 +258,9 @@ class SupportedPaletteProvider {
       return task;
     };
 
-    const buildAltinnServiceTask = (taskType, name = `Altinn ${taskType} task`) => {
+    const buildAltinnServiceTask = (taskType) => {
       const businessObject = bpmnFactory.create('bpmn:ServiceTask', {
-        name,
+        name: `Altinn ${taskType} task`,
       });
 
       const task = elementFactory.createShape({

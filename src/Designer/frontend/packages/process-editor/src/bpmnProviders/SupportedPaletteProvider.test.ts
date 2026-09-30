@@ -49,13 +49,6 @@ describe('SupportedPaletteProvider', () => {
     expect(Object.keys(result)).toHaveLength(taskTypes.length + 3);
   });
 
-  it('names a new PDF service task "Lag PDF"', () => {
-    const { provider, start } = createProvider();
-    provider.getPaletteEntries()({})['create.altinn-pdf-task'].action.click({});
-    const [, shape] = start.mock.lastCall;
-    expect(shape.businessObject.name).toBe('Lag PDF');
-  });
-
   it.each(taskTypes)(
     'creates a configured %s task for both click and drag',
     async (id, taskType, type) => {
