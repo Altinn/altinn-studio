@@ -64,11 +64,9 @@ export const StudioExpression = ({
   );
 };
 
-type ManualDraft = {
-  savedExpressionString: string;
-  isValid: boolean;
-  expression?: BooleanExpression;
-};
+type ManualDraft = { savedExpressionString: string } & (
+  { isValid: true; expression: BooleanExpression } | { isValid: false }
+);
 
 type ValidExpressionProps = Pick<
   StudioExpressionProps,
@@ -111,6 +109,7 @@ const ValidExpression = ({
   };
 
   const handleSave = (): void => {
+    if (!currentDraft?.isValid) return;
     onChange(currentDraft.expression);
     setDraft(null);
   };

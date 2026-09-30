@@ -23,17 +23,6 @@ export const StudioManualExpression = ({
   const isInitiallyValid = isStringValidAsExpression(givenExpressionString);
   const [expressionString, setExpressionString] = useState<string>(givenExpressionString);
   const [isValid, setIsValid] = useState<boolean>(isInitiallyValid);
-  const [lastGivenExpressionString, setLastGivenExpressionString] =
-    useState<string>(givenExpressionString);
-
-  // Apply external expression changes, including undo. Preserve invalid input and keep formatting when the
-  // expression value is unchanged.
-  if (givenExpressionString !== lastGivenExpressionString) {
-    setLastGivenExpressionString(givenExpressionString);
-    if (isValid && formatExpressionString(expressionString) !== givenExpressionString) {
-      setExpressionString(givenExpressionString);
-    }
-  }
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
     const { value } = event.target;
@@ -61,6 +50,3 @@ export const StudioManualExpression = ({
     />
   );
 };
-
-const formatExpressionString = (value: string): string =>
-  expressionToString(stringToExpression(value));

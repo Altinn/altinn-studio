@@ -379,7 +379,7 @@ describe('StudioExpression', () => {
     expect(screen.getByRole('textbox')).toHaveValue(expressionToString(changedExpression));
   });
 
-  it('preserves invalid input after an external expression change', async () => {
+  it('resets invalid input after an external expression change', async () => {
     const user = userEvent.setup();
     const { rerender } = renderExpression(tooComplexExpression);
     const input = screen.getByRole('textbox');
@@ -393,8 +393,8 @@ describe('StudioExpression', () => {
         texts={texts}
       />,
     );
-    expect(input).toHaveValue('tru');
-    expect(screen.getByText(texts.cannotSaveSinceInvalid)).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveValue(expressionToString(generalOperatorRelation));
+    expect(screen.queryByText(texts.cannotSaveSinceInvalid)).not.toBeInTheDocument();
   });
 
   it('Does not call the onChange function and does not change the tab when the user types an invalid expression in the manual editor, tries to switch and rejects the confirm dialog', async () => {
