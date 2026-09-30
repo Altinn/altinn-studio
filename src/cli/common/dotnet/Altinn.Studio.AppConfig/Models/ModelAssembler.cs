@@ -21,6 +21,7 @@ internal static class ModelAssembler
             CSharpModel = Fold(fragments, f => f.CSharpModel),
             OptionsFiles = Fold(fragments, f => f.OptionsFiles),
             OptionsProviders = FoldSet(fragments, f => f.OptionsProviders),
+            CustomTaskTypes = FoldSet(fragments, f => f.CustomTaskTypes),
             LayoutFiles = FoldSet(fragments, f => f.LayoutFiles),
             Refs = AssembleRefs(fragments),
             ParserNotes = Merge(fragments, f => f.ParserNotes),

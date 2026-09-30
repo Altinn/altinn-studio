@@ -33,6 +33,8 @@ public sealed class AppModel
 
     public required IReadOnlySet<string> OptionsProviders { get; init; }
 
+    public required IReadOnlySet<string> CustomTaskTypes { get; init; }
+
     public required IReadOnlySet<string> LayoutFiles { get; init; }
 
     public required SemanticReferences Refs { get; init; }
