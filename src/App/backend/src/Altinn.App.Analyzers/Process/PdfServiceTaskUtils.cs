@@ -225,8 +225,9 @@ internal static class PdfServiceTaskUtils
                 return null;
             }
 
-            var pages = settings.GetProperty("pages");
-            var pdfLayoutName = pages?.Type == JsonType.Object ? pages.GetProperty("pdfLayoutName") : null;
+            // The app backend reads Settings.json ignoring property case and hands the result to the frontend.
+            var pages = settings.GetPropertyIgnoreCase("pages");
+            var pdfLayoutName = pages?.Type == JsonType.Object ? pages.GetPropertyIgnoreCase("pdfLayoutName") : null;
             return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString());
         }
         catch (NanoJsonException)
