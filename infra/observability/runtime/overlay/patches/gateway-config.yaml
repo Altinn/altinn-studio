@@ -46,8 +46,6 @@ spec:
       azure_monitor/data_plane:
         spaneventsenabled: true
         connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
-      # Sink metrics while preserving pipeline structure for future re-enable.
-      nop: {}
       # The Victoria backend in Studio prod, through its public endpoint.
       otlp_http/victoria:
         endpoint: https://altinn.studio/internal/observability/otlp
@@ -91,14 +89,16 @@ spec:
         metrics/in:
           receivers: [otlp]
           exporters: [routing/metrics]
+        # Metrics go to Victoria only, not to Application Insights. Each point takes one of
+        # the two planes, so none is sent twice.
         metrics/control_plane:
           receivers: [routing/metrics]
           processors: [filter/metrics_allowlist, batch]
-          exporters: [nop]
+          exporters: [otlp_http/victoria]
         metrics/data_plane:
           receivers: [routing/metrics]
           processors: [filter/metrics_allowlist, batch]
-          exporters: [nop]
+          exporters: [otlp_http/victoria]
         logs/in:
           receivers: [otlp]
           exporters: [routing/logs]
