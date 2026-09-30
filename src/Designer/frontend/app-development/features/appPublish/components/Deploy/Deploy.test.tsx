@@ -10,6 +10,7 @@ import { appRelease } from 'app-shared/mocks/mocks';
 import { BuildResult } from 'app-shared/types/Build';
 import { type ImageOption } from '../ImageOption';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { app, org } from '@studio/testing/testids';
 
 const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
@@ -161,9 +162,48 @@ describe('DeploymentActions', () => {
     });
     await user.click(deployButton);
 
-    const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
+    const confirmButton = screen.getByRole('button', {
+      name: textMock('app_deployment.deploy_dialog_confirm'),
+    });
     await user.click(confirmButton);
 
     expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+  });
+
+  it('should create a deployment with the selected app status', async () => {
+    const user = userEvent.setup();
+    const createDeployment = jest.fn().mockResolvedValue({});
+    render(
+      { envName: 'production', isProduction: true },
+      {
+        createDeployment,
+        getDeployPermissions: jest.fn().mockResolvedValue(['production']),
+      },
+    );
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_deployment.permission_checking')),
+    );
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('app_deployment.releases_loading')),
+    );
+
+    await user.click(screen.getByLabelText(textMock('app_deployment.choose_version')));
+    await user.click(screen.getByRole('option', { name: imageOptions[0].label }));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.btn_deploy_new_version') }),
+    );
+    await user.click(
+      screen.getByRole('radio', { name: textMock('app_deployment.app_status_under_development') }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.deploy_dialog_confirm') }),
+    );
+
+    expect(createDeployment).toHaveBeenCalledTimes(1);
+    expect(createDeployment).toHaveBeenCalledWith(org, app, {
+      tagName: appReleases[0].tagName,
+      envName: 'production',
+      appStatus: 'UnderDevelopment',
+    });
   });
 });

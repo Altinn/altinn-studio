@@ -18,6 +18,7 @@ const defaultProps: DeployDropdownProps = {
   selectedImageTag: 'test1',
   startDeploy: jest.fn(),
   isPending: false,
+  isProduction: false,
 };
 
 const created = '01.01.2024 18:53';
@@ -181,10 +182,13 @@ describe('DeployDropdown', () => {
     });
     await user.click(deployButton);
 
-    const confirmButton = screen.getByRole('button', { name: textMock('general.yes') });
+    const confirmButton = screen.getByRole('button', {
+      name: textMock('app_deployment.deploy_dialog_confirm'),
+    });
     await user.click(confirmButton);
 
     expect(defaultProps.startDeploy).toHaveBeenCalledTimes(1);
+    expect(defaultProps.startDeploy).toHaveBeenCalledWith('UnderDevelopment');
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
