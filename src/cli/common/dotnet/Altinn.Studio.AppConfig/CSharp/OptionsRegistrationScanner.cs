@@ -33,6 +33,15 @@ internal static class OptionsRegistrationScanner
         ["AddPosten"] = _postenIds,
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
+    private static readonly FrozenDictionary<string, string> _idOfLibraryProvider = new Dictionary<string, string>(
+        StringComparer.Ordinal
+    )
+    {
+        ["CountiesCodelistProvider"] = "fylker-kv",
+        ["MunicipalitiesCodelistProvider"] = "kommuner-kv",
+        ["PostalCodesCodelistsProvider"] = "poststed",
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
     private static readonly FrozenDictionary<string, string> _idParameterOf = new Dictionary<string, string>(
         StringComparer.Ordinal
     )
@@ -59,13 +68,26 @@ internal static class OptionsRegistrationScanner
             else if (
                 _idParameterOf.TryGetValue(method.Identifier.ValueText, out var parameter)
                 && IdArgument(call, parameter) is { } argument
-                && constants.Evaluate(argument) is { Length: > 0 } id
             )
-                app.OptionsProviders.TryAdd(
-                    id,
-                    new OptionsProvider(id, registeredBy, RoslynSyntaxIntrospector.SpanOf(argument, file))
-                );
+            {
+                var span = RoslynSyntaxIntrospector.SpanOf(argument, file);
+                if (constants.Evaluate(argument) is { Length: > 0 } id)
+                    app.OptionsProviders.TryAdd(id, new OptionsProvider(id, registeredBy, span));
+                else
+                    app.OptionsProvidersWithUnknownId.Add(new OptionsProviderWithUnknownId(registeredBy, span));
+            }
         }
+    }
+
+    public static bool RecordLibraryProvider(string typeName, SyntaxNode registration, string file, AppModelBuilder app)
+    {
+        if (!_idOfLibraryProvider.TryGetValue(typeName, out var id))
+            return false;
+        app.OptionsProviders.TryAdd(
+            id,
+            new OptionsProvider(id, typeName, RoslynSyntaxIntrospector.SpanOf(registration, file))
+        );
+        return true;
     }
 
     private static SimpleNameSyntax? MethodName(InvocationExpressionSyntax call) =>

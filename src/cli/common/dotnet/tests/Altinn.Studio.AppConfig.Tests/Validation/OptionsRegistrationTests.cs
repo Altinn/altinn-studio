@@ -1,4 +1,5 @@
 using Altinn.Studio.AppConfig.Documents;
+using Altinn.Studio.AppConfig.Validation;
 
 namespace Altinn.Studio.AppConfig.Tests.Validation;
 
@@ -8,7 +9,9 @@ public sealed class OptionsRegistrationTests
         string optionsId,
         string program,
         string? extraFile = null
-    )
+    ) => OptionsIdFindings(optionsId, program, extraFile).Select(f => f.Message).ToList();
+
+    private static IReadOnlyList<Finding> OptionsIdFindings(string optionsId, string program, string? extraFile = null)
     {
         var files = new Dictionary<string, string>
         {
@@ -24,7 +27,6 @@ public sealed class OptionsRegistrationTests
             .Open(new InMemoryAppDirectory(files))
             .Validate()
             .Findings.Where(f => f.RuleId == "REF-OPTIONS-ID")
-            .Select(f => f.Message)
             .ToList();
     }
 
@@ -168,6 +170,79 @@ public sealed class OptionsRegistrationTests
     [InlineData("lib**ttd**coun tries**latest")]
     public void MalformedLibraryCodeListReference_IsStillFlagged(string optionsId) =>
         Assert.NotEmpty(UnresolvedOptionsIds(optionsId, Program("")));
+
+    [Theory]
+    [InlineData(
+        "services.AddSingleton<IAppOptionsProvider, PackageProvider>();",
+        "",
+        "PackageProvider (App/Program.cs)"
+    )]
+    [InlineData(
+        "services.AddSSBClassificationCodelistProvider(settings.Id, 100);",
+        "",
+        "AddSSBClassificationCodelistProvider() (App/Program.cs)"
+    )]
+    [InlineData(
+        "",
+        "public class KlassProvider : IAppOptionsProvider { public KlassProvider(string id) { Id = id; } public string Id { get; } }",
+        "KlassProvider (App/logic/Ids.cs)"
+    )]
+    public void MissingOptionsId_WhenAProviderIdCannotBeRead_IsInfoNamingTheProvider(
+        string registration,
+        string source,
+        string named
+    )
+    {
+        var finding = Assert.Single(
+            OptionsIdFindings("landIso2", Program(registration), "namespace App.Logic; " + source)
+        );
+
+        Assert.Equal(Severity.Info, finding.Severity);
+        Assert.Contains($"it may come from {named}", finding.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MissingOptionsId_WhenEveryProviderIdIsRead_IsAWarning()
+    {
+        var finding = Assert.Single(
+            OptionsIdFindings("landIso2", Program("services.AddAltinnCodelists();"), "namespace App.Logic;")
+        );
+
+        Assert.Equal(Severity.Warning, finding.Severity);
+    }
+
+    [Fact]
+    public void BaseProviderClassWithoutId_DoesNotCountAsAProviderWithUnknownId()
+    {
+        var finding = Assert.Single(
+            OptionsIdFindings(
+                "landIso2",
+                Program(""),
+                "namespace App.Logic; public class CodeListProvider : IAppOptionsProvider { public virtual string Id { get; set; } } public class CountyProvider : CodeListProvider { public override string Id { get; set; } = \"fylker\"; }"
+            )
+        );
+
+        Assert.Equal(Severity.Warning, finding.Severity);
+    }
+
+    [Fact]
+    public void RegisteredAppClass_WithABaseFromAPackage_IsReadAsAProvider() =>
+        Assert.Empty(
+            UnresolvedOptionsIds(
+                "landIso2",
+                Program("services.AddTransient<IAppOptionsProvider, LandProvider>();"),
+                "namespace App.Logic; public class LandProvider : PackageCodeListProvider { public string Id => \"landIso2\"; }"
+            )
+        );
+
+    [Fact]
+    public void RegisteredCodelistsProviderClass_RegistersItsId() =>
+        Assert.Empty(
+            UnresolvedOptionsIds(
+                "poststed",
+                Program("services.AddTransient<IAppOptionsProvider, PostalCodesCodelistsProvider>();")
+            )
+        );
 
     [Fact]
     public void Hover_NamesTheRegisteringCall()

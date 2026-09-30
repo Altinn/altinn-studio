@@ -20,6 +20,7 @@ internal sealed class AppModelBuilder
 
     public Dictionary<string, bool> OptionsFiles { get; } = new();
     public Dictionary<string, OptionsProvider> OptionsProviders { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public List<OptionsProviderWithUnknownId> OptionsProvidersWithUnknownId { get; } = new();
     public HashSet<string> CustomTaskTypes { get; } = new(StringComparer.Ordinal);
 
     public HashSet<string> LayoutFiles { get; } = new(StringComparer.Ordinal);

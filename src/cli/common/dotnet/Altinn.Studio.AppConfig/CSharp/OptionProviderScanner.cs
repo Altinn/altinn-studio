@@ -7,9 +7,11 @@ namespace Altinn.Studio.AppConfig.CSharp;
 
 /// <summary>
 /// Locates option-list ids registered in C#: non-abstract classes implementing
-/// <c>IAppOptionsProvider</c> / <c>IInstanceAppOptionsProvider</c>, directly or through a base class
-/// in the app, whose <c>Id</c> is a string literal, a string constant or <c>nameof(…)</c> set on the
-/// property or in a constructor, and the registration helpers <see cref="OptionsRegistrationScanner"/> knows.
+/// <c>IAppOptionsProvider</c> / <c>IInstanceAppOptionsProvider</c>, directly, through a base class
+/// in the app or by being registered as one, whose <c>Id</c> is a string literal, a string constant or
+/// <c>nameof(…)</c> set on the property or in a constructor, and the registration helpers
+/// <see cref="OptionsRegistrationScanner"/> knows. A provider whose id can't be read that way is
+/// recorded without one.
 /// </summary>
 internal static class OptionProviderScanner
 {
@@ -35,24 +37,71 @@ internal static class OptionProviderScanner
             )
             .ToList();
         var typesByName = types.ToLookup(t => t.Syntax.Identifier.ValueText, StringComparer.Ordinal);
+        var baseTypeNames = types
+            .SelectMany(t => t.Syntax.BaseList?.Types.Select(b => SimpleName(b.Type)) ?? [])
+            .ToHashSet(StringComparer.Ordinal);
 
         foreach (var type in types)
         {
             if (type.Syntax.Modifiers.Any(SyntaxKind.AbstractKeyword) || !IsProvider(type.Syntax, typesByName, 0))
                 continue;
-            if (IdOf(type, typesByName, constants, 0) is { } source)
-                app.OptionsProviders.TryAdd(
-                    source.Id,
-                    new OptionsProvider(
-                        source.Id,
-                        type.Syntax.Identifier.ValueText,
-                        RoslynSyntaxIntrospector.SpanOf(source.Expression, source.File)
-                    )
-                );
+            var source = IdOf(type, typesByName, constants, 0);
+            if (source is not null || !baseTypeNames.Contains(type.Syntax.Identifier.ValueText))
+                Record(app, type, source);
         }
 
         foreach (var (file, root) in ordered)
+        {
+            CollectRegisteredTypes(file, root, typesByName, constants, app);
             OptionsRegistrationScanner.Collect(file, root, constants, app);
+        }
+    }
+
+    private static void CollectRegisteredTypes(
+        string file,
+        SyntaxNode root,
+        ILookup<string, DeclaredType> typesByName,
+        StringConstants constants,
+        AppModelBuilder app
+    )
+    {
+        foreach (var registration in root.DescendantNodes().OfType<GenericNameSyntax>())
+        {
+            if (
+                registration.Parent is not (InvocationExpressionSyntax or MemberAccessExpressionSyntax)
+                || registration.TypeArgumentList.Arguments is not [var service, var implementation]
+                || !_providerInterfaces.Contains(SimpleName(service))
+            )
+                continue;
+            var name = SimpleName(implementation);
+            var declared = typesByName[name].ToList();
+            if (declared.Count == 0)
+            {
+                if (!OptionsRegistrationScanner.RecordLibraryProvider(name, registration, file, app))
+                    app.OptionsProvidersWithUnknownId.Add(
+                        new OptionsProviderWithUnknownId(name, RoslynSyntaxIntrospector.SpanOf(registration, file))
+                    );
+                continue;
+            }
+            if (declared.Any(t => IsProvider(t.Syntax, typesByName, 0)))
+                continue;
+            foreach (var type in declared)
+                Record(app, type, IdOf(type, typesByName, constants, 0));
+        }
+    }
+
+    private static void Record(AppModelBuilder app, DeclaredType type, IdSource? source)
+    {
+        var name = type.Syntax.Identifier.ValueText;
+        if (source is null)
+            app.OptionsProvidersWithUnknownId.Add(
+                new OptionsProviderWithUnknownId(name, RoslynSyntaxIntrospector.SpanOf(type.Syntax, type.File))
+            );
+        else
+            app.OptionsProviders.TryAdd(
+                source.Id,
+                new OptionsProvider(source.Id, name, RoslynSyntaxIntrospector.SpanOf(source.Expression, source.File))
+            );
     }
 
     private static bool IsProvider(TypeDeclarationSyntax type, ILookup<string, DeclaredType> typesByName, int depth) =>
