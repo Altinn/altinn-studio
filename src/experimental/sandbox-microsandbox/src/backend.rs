@@ -102,11 +102,19 @@ impl MicrosandboxProvider {
         if cache_directory.as_ref().is_some_and(|path| path.as_os_str().is_empty()) {
             return Err(Error::invalid("provider.cacheDirectory", "must not be empty"));
         }
-        if cache_directory.is_some() && unused_image_retention.is_some() {
-            return Err(Error::invalid(
-                "provider.unusedImageRetention",
-                "cannot be combined with a cache directory, which other Providers may share",
-            ));
+        if let Some(retention) = unused_image_retention {
+            if cache_directory.is_some() {
+                return Err(Error::invalid(
+                    "provider.unusedImageRetention",
+                    "cannot be combined with a cache directory, which other Providers may share",
+                ));
+            }
+            if retention < crate::image_cache::MINIMUM_RETENTION {
+                return Err(Error::invalid(
+                    "provider.unusedImageRetention",
+                    "must be at least an hour, to cover the time between resolving an image and creating its Sandbox",
+                ));
+            }
         }
         if let Some(bundle) = &runtime_bundle {
             if !bundle.path.is_file() {
@@ -124,9 +132,8 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let images = ImageCache::new(client.clone(), state.clone(), unused_image_retention);
+        let images = ImageCache::open(client.clone(), state.clone(), unused_image_retention).await;
         let image_backend = MicrosandboxImageBackend::new(client.clone(), images.clone(), registry_authentication);
-        images.remove_unused().await;
         Ok(Self {
             client,
             images,
@@ -134,6 +141,11 @@ impl MicrosandboxProvider {
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
         })
+    }
+
+    #[cfg(test)]
+    pub(crate) const fn images(&self) -> &ImageCache {
+        &self.images
     }
 
     async fn create_record(&self, request: CreateSandboxRequest) -> Result<Sandbox, Error> {
@@ -145,11 +157,16 @@ impl MicrosandboxProvider {
             Err(error) if error.is_not_found() => {}
             Err(error) => return Err(error),
         }
-        self.cached_image_reference(&request.image.manifest_digest).await?;
-
         let record = SandboxRecord::new(request);
         self.state.save_sandbox(&record).await?;
-        self.images.release_pending(&record.image.manifest_digest);
+        // The record comes first, so an image entry without a record is always a deleted
+        // Sandbox's, which removal passes clean up.
+        if let Err(error) = self.images.hold(&record).await {
+            if let Err(cleanup) = self.state.remove_sandbox(&record).await {
+                tracing::warn!(sandbox = %record.id, error = %cleanup, "failed to remove the record of a Sandbox without its image");
+            }
+            return Err(error);
+        }
         Ok(record.to_sandbox(SandboxState::Stopped))
     }
 
@@ -282,7 +299,7 @@ impl MicrosandboxProvider {
     }
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
-        let mut record = self.state.sandbox_by_id(id).await?;
+        let record = self.state.sandbox_by_id(id).await?;
         self.prepare_runtime_network(&record)?;
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
@@ -295,18 +312,7 @@ impl MicrosandboxProvider {
                 step.complete().await;
                 running
             }
-            None => {
-                // A runtime this Provider created is removed only with its record, but the
-                // flag must describe the runtime about to be created, not an earlier one.
-                if record.runtime_created {
-                    record.runtime_created = false;
-                    self.state.update_sandbox(&record).await?;
-                }
-                let running = Box::pin(self.create_runtime(&record, progress)).await?;
-                record.runtime_created = true;
-                self.state.update_sandbox(&record).await?;
-                running
-            }
+            None => Box::pin(self.create_runtime(&record, progress)).await?,
         };
         Ok(())
     }
@@ -327,14 +333,12 @@ impl MicrosandboxProvider {
     async fn delete_sandbox(&self, id: &SandboxId) -> Result<(), Error> {
         let record = self.state.sandbox_by_id(id).await?;
         self.stop_sandbox(id).await?;
-        {
-            let _removal_held_off = self.images.hold_off_removal().await;
-            if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
-                handle.remove().await.map_err(error::microsandbox)?;
-            }
-            self.client.local().set_network_controlled(&record.runtime_name, false);
-            self.state.remove_sandbox(&record).await?;
+        if let Some(handle) = self.runtime_handle(&record.runtime_name).await? {
+            handle.remove().await.map_err(error::microsandbox)?;
         }
+        self.client.local().set_network_controlled(&record.runtime_name, false);
+        self.state.remove_sandbox(&record).await?;
+        self.images.release(&record.id).await;
         self.images.remove_unused().await;
         Ok(())
     }
@@ -374,7 +378,8 @@ impl MicrosandboxProvider {
         let network = self.prepare_runtime_network(record)?;
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
-        let image = self.cached_image_reference(&record.image.manifest_digest).await?;
+        // Adding the entry again also covers a record saved before its entry was added.
+        let image = self.images.hold(record).await?;
         step.complete().await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
             let step = progress.start_step(MATERIALIZE_DIRECT_ROOT_IMAGE).await;
@@ -401,21 +406,6 @@ impl MicrosandboxProvider {
             .map_err(error::microsandbox)?;
         step.complete().await;
         Ok(runtime)
-    }
-
-    async fn cached_image_reference(&self, manifest_digest: &str) -> Result<String, Error> {
-        let images = microsandbox::Image::list_local(self.client.local())
-            .await
-            .map_err(error::microsandbox)?;
-        images
-            .iter()
-            .find(|image| image.manifest_digest() == Some(manifest_digest))
-            .map(|image| image.reference().to_string())
-            .ok_or_else(|| {
-                Error::Backend(format!(
-                    "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
-                ))
-            })
     }
 
     // Image resolution prepares Microsandbox's layered cache, while a direct root
@@ -493,17 +483,15 @@ impl MicrosandboxProviderBuilder {
     /// Removes cached images that no Sandbox needs once they have not been used for
     /// `retention`.
     ///
-    /// An image is needed while a Sandbox uses it, whether or not the Sandbox is running.
-    /// Resolving or importing an image uses it. Removal runs when the Provider opens, after
-    /// each image is resolved or imported and after each Sandbox is deleted, so an unused
-    /// image can outlive `retention` until the next of these. Only resolving and importing
-    /// add images. An image resolved or imported for a Sandbox is kept until the Sandbox is
-    /// created, for up to an hour, so a zero `retention` removes images as soon as no Sandbox
-    /// needs them.
+    /// A Sandbox keeps its image until it is deleted, whether or not it is running. Resolving
+    /// or importing an image uses it, and an image no Sandbox keeps is removed once it has not
+    /// been used for `retention`, which must be at least an hour. Removal runs when the
+    /// Provider opens, after each image is resolved or imported and after each Sandbox is
+    /// deleted, so an unused image can outlive `retention` until the next of these. Only
+    /// resolving and importing add images.
     ///
-    /// Image versions that no catalog reference names, which Providers left behind before
-    /// images were recorded by digest, are removed only once every remaining image belongs to
-    /// a Sandbox whose runtime this Provider created.
+    /// When the Provider opens, image versions left behind before images were recorded this
+    /// way are removed once every Sandbox has a runtime.
     ///
     /// Enable this only for the Provider that owns its home. It cannot be combined with
     /// [`Self::cache_directory`], since another Provider may use a shared cache.
@@ -904,50 +892,6 @@ mod tests {
         assert_eq!(
             RuntimeNetwork::for_attachment(controlled.network.as_ref()).ok(),
             Some(RuntimeNetwork::Controlled)
-        );
-    }
-
-    // A removal pass decides from a snapshot of the runtimes that record using their image;
-    // removing one mid-pass could let it prune an image another Sandbox still needs.
-    #[tokio::test(flavor = "local")]
-    async fn deleting_a_sandbox_waits_for_a_removal_pass_in_progress() {
-        let home = tempfile::tempdir().expect("temporary home should be created");
-        let provider = MicrosandboxProvider::builder(PathBuf::from(home.path()).join("microsandbox"))
-            .remove_unused_images_after(std::time::Duration::from_hours(24))
-            .open()
-            .await
-            .expect("Provider should open without starting a VM");
-        let record = record_with_network(
-            "00000000-0000-4000-8000-000000000012",
-            NetworkEndpointSelection::Control(NetworkControlProtocolId::new(
-                microsandbox_network::control::NETWORK_CONTROL_PROTOCOL,
-            )),
-        );
-        provider
-            .state
-            .save_sandbox(&record)
-            .await
-            .expect("record should be saved");
-
-        let pass = provider.images.removal_in_progress();
-        let deletion = provider.delete_sandbox(&record.id);
-        tokio::pin!(deletion);
-        assert!(
-            tokio::time::timeout(std::time::Duration::from_millis(200), &mut deletion)
-                .await
-                .is_err(),
-            "deletion should wait for the pass"
-        );
-        assert!(provider.state.sandbox_by_id(&record.id).await.is_ok());
-
-        drop(pass);
-        deletion.await.expect("Sandbox should be deleted once the pass ends");
-        assert!(
-            provider
-                .state
-                .sandbox_by_id(&record.id)
-                .await
-                .is_err_and(|error| error.is_not_found())
         );
     }
 

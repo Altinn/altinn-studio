@@ -196,8 +196,7 @@ description (see the review gates). It contains:
   stack relies on, such as protocol, guest agent or firmware changes, or the image catalog semantics
   that `sandbox-microsandbox` image removal relies on: `Image::remove_local` removes a manifest
   with its last reference and refuses while a runtime pins it, `Image::persist` refreshes a
-  reference's last use, `Image::prune_local` keeps pinned images, and a runtime pins its image
-  before its creation returns but not while it boots (see `image_cache.rs`); and
+  reference's last use, and `Image::prune_local` keeps pinned images (see `image_cache.rs`); and
 - upstream refactors that moved or deleted files a patch touches, since `git rebase` reports those
   as delete/modify conflicts and the patch must be re-applied by hand at the new location.
 

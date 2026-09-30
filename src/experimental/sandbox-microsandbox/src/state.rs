@@ -30,12 +30,6 @@ pub(crate) struct SandboxRecord {
     pub(crate) mounts: Vec<Mount>,
     pub(crate) environment: BTreeMap<String, String>,
     pub(crate) network: Option<NetworkAttachment>,
-    /// Set once this Provider has created the Microsandbox runtime. Microsandbox reports a
-    /// runtime created only after recording that it uses the image, which protects the image
-    /// from `Image::prune_local`; a runtime that is still booting, or whose creation was
-    /// interrupted, has no such record yet. Absent in records written before it was tracked.
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub(crate) runtime_created: bool,
 }
 
 impl SandboxRecord {
@@ -53,7 +47,6 @@ impl SandboxRecord {
             mounts: request.mounts,
             environment: request.environment,
             network: request.network,
-            runtime_created: false,
         }
     }
 
@@ -86,6 +79,7 @@ impl VolumeRecord {
 
 #[derive(Clone)]
 pub(crate) struct StateStore {
+    home: PathBuf,
     sandboxes: PathBuf,
     volumes: PathBuf,
 }
@@ -95,6 +89,7 @@ impl StateStore {
         let store = Self {
             sandboxes: home.join("sandboxes"),
             volumes: home.join("volumes"),
+            home,
         };
         for directory in [&store.sandboxes, &store.volumes] {
             tokio::fs::create_dir_all(directory)
@@ -182,6 +177,11 @@ impl StateStore {
 
     pub(crate) async fn remove_volume(&self, record: &VolumeRecord) -> Result<(), sandbox::Error> {
         remove_file(self.volume_path(&record.name), "remove Microsandbox Volume state").await
+    }
+
+    /// Path of a Provider-wide marker file beside the records.
+    pub(crate) fn marker(&self, name: &str) -> PathBuf {
+        self.home.join(name)
     }
 
     fn sandbox_path(&self, name: &SandboxName) -> PathBuf {
@@ -417,22 +417,6 @@ mod tests {
 
         record.hostname = None;
         assert_eq!(legacy, record);
-    }
-
-    #[test]
-    fn records_written_before_runtime_creation_was_tracked_read_as_not_created() {
-        let mut record = sandbox_record("00000000-0000-4000-8000-000000000006");
-        let serialized = serde_json::to_value(&record).expect("record should serialize");
-        assert!(
-            serialized.get("runtimeCreated").is_none(),
-            "records without a created runtime keep the earlier format"
-        );
-        let legacy: SandboxRecord = serde_json::from_value(serialized).expect("legacy record should deserialize");
-        assert!(!legacy.runtime_created);
-
-        record.runtime_created = true;
-        let serialized = serde_json::to_value(&record).expect("record should serialize");
-        assert_eq!(serialized["runtimeCreated"], true);
     }
 
     #[tokio::test(flavor = "local")]
