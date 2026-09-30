@@ -1,4 +1,16 @@
 .container {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: var(--ds-size-3);
   box-sizing: border-box;
+}
+
+.container fieldset {
+  min-inline-size: 0;
+}
+
+.container textarea,
+.container input,
+.container select {
+  max-width: 100%;
 }

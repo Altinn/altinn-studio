@@ -1,0 +1,1 @@
+export { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
