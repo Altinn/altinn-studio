@@ -10,6 +10,7 @@ internal static class PolicyParser
     private const string FileRel = "App/config/authorization/policy.xml";
     private const string OrgId = "urn:altinn:org";
     private const string AppId = "urn:altinn:app";
+    private const string ResourceCategory = "urn:oasis:names:tc:xacml:3.0:attribute-category:resource";
 
     public static void Parse(AppModelBuilder app, IAppDirectory dir)
     {
@@ -58,9 +59,10 @@ internal static class PolicyParser
                     var attrValue = m.Elements().FirstOrDefault(e => e.Name.LocalName == "AttributeValue")?.Value;
                     var designator = m.Elements().FirstOrDefault(e => e.Name.LocalName == "AttributeDesignator");
                     var attrId = designator?.Attribute("AttributeId")?.Value ?? "";
+                    var category = designator?.Attribute("Category")?.Value;
 
                     var v = (attrValue ?? "").Trim();
-                    if (v.Length == 0)
+                    if (v.Length == 0 || !string.Equals(category, ResourceCategory, StringComparison.Ordinal))
                         continue;
 
                     var ptr = $"/Rule[{ri}]/Target[{ti}]/AnyOf[{ai}]/AllOf[{li}]/Match[{mi}]";

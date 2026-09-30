@@ -8,10 +8,12 @@ internal sealed class CrossPolicyAppMatchesMetadataRule : IValidationRule
         new(
             "CROSS-POLICY-APP-MATCHES-METADATA",
             "policy.xml org/app strings must match applicationmetadata.id",
-            "Every urn:altinn:org and urn:altinn:app value in policy.xml must match the "
-                + "org/app split from applicationmetadata.id. Forgotten-rename mistakes (e.g. "
-                + "cloning a template and forgetting to update the policy) are the most common "
-                + "cause of 'no one matches the policy' bugs in production.",
+            "Every urn:altinn:org and urn:altinn:app value that policy.xml matches against the "
+                + "resource must match the org/app split from applicationmetadata.id. Forgotten-rename "
+                + "mistakes (e.g. cloning a template and forgetting to update the policy) are the most "
+                + "common cause of 'no one matches the policy' bugs in production. A urn:altinn:org "
+                + "in a subject names the service owner a rule grants access to, which may be another "
+                + "org, so subject values are not compared.",
             Severity.Error
         );
 
