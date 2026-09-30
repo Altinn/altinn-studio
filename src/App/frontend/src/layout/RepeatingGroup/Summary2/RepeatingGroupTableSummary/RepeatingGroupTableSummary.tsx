@@ -4,10 +4,11 @@ import { useIsMobile } from '@app/form-component';
 import { Table, ValidationMessage } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
-import type { GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
+import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -25,8 +26,9 @@ import { EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSum
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import utilClasses from 'src/styles/utils.module.css';
-import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
+import { getColumnStyles, useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -113,22 +115,13 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
 function renderExtraRows(rows: GridRows | undefined, keyPrefix: 'before' | 'after', showEditColumn: boolean) {
   return rows?.map((row, rowIdx) => (
     <Table.Row key={`row-${keyPrefix}-${rowIdx}`}>
-      {row.cells.map((cell, cellIdx) => {
-        const CellComponent = row.header ? Table.HeaderCell : Table.Cell;
-
-        return (
-          <CellComponent key={cellIdx}>
-            {cell && 'text' in cell && cell.text !== undefined && (
-              <span className={tableClasses.cellValue}>
-                <Lang id={cell.text} />
-              </span>
-            )}
-            {cell && 'component' in cell && cell.component && (
-              <ComponentSummary targetBaseComponentId={cell.component} />
-            )}
-          </CellComponent>
-        );
-      })}
+      {row.cells.map((cell, cellIdx) => (
+        <ExtraRowCell
+          key={cellIdx}
+          cell={cell}
+          isHeader={!!row.header}
+        />
+      ))}
       {showEditColumn &&
         (row.header ? (
           <Table.HeaderCell className={tableClasses.narrowLastColumn} />
@@ -137,6 +130,30 @@ function renderExtraRows(rows: GridRows | undefined, keyPrefix: 'before' | 'afte
         ))}
     </Table.Row>
   ));
+}
+
+function ExtraRowCell({ cell, isHeader }: { cell: GridCell; isHeader: boolean }) {
+  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const colSpan = useEvalExpression(cell?.cellStyle?.colSpan, {
+    returnType: ExprVal.Number,
+    defaultValue: 1,
+    errorIntroText: 'Invalid expression for colSpan in Summary2 repeating group extra row cell',
+  });
+  const columnStyles = cell ? getColumnStyles(cell) : undefined;
+
+  return (
+    <CellComponent
+      colSpan={colSpan > 1 ? colSpan : undefined}
+      style={columnStyles}
+    >
+      {cell && 'text' in cell && cell.text !== undefined && (
+        <span className={tableClasses.cellValue}>
+          <Lang id={cell.text} />
+        </span>
+      )}
+      {cell && 'component' in cell && cell.component && <ComponentSummary targetBaseComponentId={cell.component} />}
+    </CellComponent>
+  );
 }
 
 function HeaderCell({

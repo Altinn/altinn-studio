@@ -181,7 +181,10 @@ describe('MapComponent', () => {
 
     const tiles = container.querySelectorAll<HTMLImageElement>('img.leaflet-tile');
     expect(tiles.length).toBeGreaterThan(0);
-    tiles.forEach((tile) => expect(tile.getAttribute('alt')).toBe(''));
+    tiles.forEach((tile) => {
+      expect(tile.getAttribute('alt')).toBe('');
+      expect(tile.referrerPolicy).toBe('strict-origin-when-cross-origin');
+    });
   });
 
   it('should have expression support for latitude and longitude in centerLocation', async () => {

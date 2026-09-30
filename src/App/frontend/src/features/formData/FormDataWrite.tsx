@@ -653,6 +653,11 @@ const debouncedSelector = (reference: IDataModelReference) => (state: FormStoreS
 const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormStoreState) =>
   dot.pick(reference.field, state.data.models[reference.dataType]?.invalidDebouncedCurrentData);
 
+const dataModelReferenceCacheKey = ([arg]: unknown[]): string[] => {
+  const reference = arg as IDataModelReference;
+  return [reference.dataType, reference.field];
+};
+
 const debouncedRowSelector = (reference: IDataModelReference) => (state: FormStoreState) => {
   const rawRows = dot.pick(reference.field, state.data.models[reference.dataType]?.debouncedCurrentData);
   if (!Array.isArray(rawRows) || !rawRows.length) {
@@ -668,10 +673,11 @@ export const formDataHooks = {
    * model).
    */
   useCurrentSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: currentSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: currentSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -681,10 +687,11 @@ export const formDataHooks = {
    * pretend to have the full data model available to look up values from.
    */
   useDebouncedSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: debouncedSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -693,20 +700,22 @@ export const formDataHooks = {
    * inside them (and re-render if that data changes).
    */
   useDebouncedRowsSelector(): FormDataRowsSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: debouncedRowSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: debouncedRowSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
    * Same as useDebouncedSelector(), but for invalid data.
    */
   useInvalidDebouncedSelector(): FormDataSelector {
-    return FormStore.raw.useDelayedSelector({
-      mode: 'simple',
-      selector: invalidDebouncedSelector,
-    });
+    return FormStore.raw.useDelayedSelector(
+      { mode: 'simple', selector: invalidDebouncedSelector },
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
@@ -734,10 +743,12 @@ export const formDataHooks = {
    * provider is not present.
    */
   useLaxDebouncedSelector(): FormDataSelector | typeof ContextNotProvided {
-    return FormStore.raw.useLaxDelayedSelector({
-      mode: 'simple',
-      selector: debouncedSelector,
-    });
+    return FormStore.raw.useLaxDelayedSelector(
+      { mode: 'simple', selector: debouncedSelector },
+      undefined,
+      undefined,
+      dataModelReferenceCacheKey,
+    );
   },
 
   /**
