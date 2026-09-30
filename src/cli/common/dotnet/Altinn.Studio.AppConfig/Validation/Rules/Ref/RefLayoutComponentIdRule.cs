@@ -25,7 +25,7 @@ internal sealed class RefLayoutComponentIdRule : IValidationRule
             if (!u.ScopeExists)
                 continue;
             yield return Metadata.Report(
-                $"component \"{u.Value}\" does not exist in layout-set \"{u.Scope}\" (referenced from \"{u.OwningComponentId}\")",
+                $"component \"{u.Value}\" does not exist in layout-set \"{u.Scope}\"{ReferenceSource.ReferencedFrom(u.OwningComponentId)}",
                 u.Position
             );
         }
