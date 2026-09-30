@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -163,7 +164,107 @@ public class DeploymentPipelinePollingJobTest
         );
     }
 
-    private static void SetupCompletedBuild(Fixture fixture, BuildResult buildResult)
+    [Fact]
+    public async Task Execute_UndeploySucceeded_AppDeployedAgainAfterUndeploy_SkipsDeprecation()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
+        fixture
+            .MockDeploymentRepository.Setup(x => x.GetLatestDeploy("testorg", "testapp", "tt02"))
+            .ReturnsAsync(new DeploymentEntity { Created = undeployRequested.AddMinutes(5) });
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockStorageAppMetadataClient.Verify(
+            x =>
+                x.UpsertApplicationMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                ),
+            Times.Never
+        );
+        fixture.MockApplicationInformationService.Verify(
+            x =>
+                x.UpdateResourceRegistryStatusAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
+                ),
+            Times.Never
+        );
+        fixture.MockPublisher.Verify(
+            x =>
+                x.Publish(
+                    It.Is<DeploymentPipelineCompleted>(e => e.PipelineType == PipelineType.Undeploy && e.Succeeded),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_LatestDeployBeforeUndeploy_SetsDeprecatedStatus()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
+        fixture
+            .MockDeploymentRepository.Setup(x => x.GetLatestDeploy("testorg", "testapp", "tt02"))
+            .ReturnsAsync(new DeploymentEntity { Created = undeployRequested.AddDays(-1) });
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x => x.UpdateResourceRegistryStatusAsync("testorg", "testapp", "tt02", AppStatus.Deprecated),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_UndeploySucceeded_StorageUpdateFails_StillSetsDeprecatedStatusInResourceRegistry()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
+        SetupCompletedBuild(fixture, BuildResult.Succeeded);
+        fixture
+            .MockStorageAppMetadataClient.Setup(x =>
+                x.UpsertApplicationMetadata(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("Storage unavailable"));
+
+        // Act
+        await Assert.ThrowsAsync<HttpRequestException>(() => fixture.Service.Execute(jobExecutionContext));
+
+        // Assert
+        fixture.MockApplicationInformationService.Verify(
+            x => x.UpdateResourceRegistryStatusAsync("testorg", "testapp", "tt02", AppStatus.Deprecated),
+            Times.Once
+        );
+    }
+
+    private static void SetupCompletedBuild(
+        Fixture fixture,
+        BuildResult buildResult,
+        DateTime? decommissionCreated = null
+    )
     {
         fixture
             .MockStorageAppMetadataClient.Setup(x =>
@@ -181,7 +282,13 @@ public class DeploymentPipelinePollingJobTest
 
         fixture
             .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } });
+            .ReturnsAsync(
+                new DeploymentEntity
+                {
+                    Build = new BuildEntity { Status = BuildStatus.None },
+                    Created = decommissionCreated ?? DateTime.UtcNow,
+                }
+            );
     }
 
     [Fact]
