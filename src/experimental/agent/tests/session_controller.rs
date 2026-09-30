@@ -11,10 +11,9 @@ use std::{
 
 use agent::{
     AgentId, Condition, ConditionStatus, Error, Status,
-    control_plane::{AgentRecord, AgentStore as _, Convergence, WaitPolicy},
+    control_plane::{AgentRecord, AgentStore as _, Convergence},
     local::home::ControlPlaneHome,
     persistence,
-    resources::Changes,
     sandbox::{Assignment as SandboxAssignment, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId},
     sessions::{NewSession, Reconcile, SessionId, SessionName, SessionReports as _, SessionRequest, SessionStore as _},
 };
@@ -56,28 +55,26 @@ impl Reconcile<AgentId> for BlockingAgentReady {
             self.started.notify_one();
             self.release.notified().await;
             let record = self.database.get(id).await?;
+            let mut status = Status::observed(
+                record.agent.metadata.generation,
+                Some(SandboxAssignment::Materialized {
+                    provider: ProviderId::new("memory")?,
+                    id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
+                        .parse()
+                        .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
+                    harnesses: record.agent.spec.harnesses.iter().map(|i| i.kind).collect(),
+                }),
+                vec![Condition {
+                    kind: "Ready".into(),
+                    status: ConditionStatus::True,
+                    reason: "SandboxReady".into(),
+                    message: String::new(),
+                    last_transition_time: None,
+                }],
+            );
+            status.sync.observed = record.agent.status.sync.requested;
             self.database
-                .update_status(
-                    id,
-                    record.agent.metadata.generation,
-                    Status::observed(
-                        record.agent.metadata.generation,
-                        Some(SandboxAssignment::Materialized {
-                            provider: ProviderId::new("memory")?,
-                            id: "3f978c33-4d43-4ea4-b58d-10b90ef166af"
-                                .parse()
-                                .map_err(|error| Error::Database(format!("test Sandbox ID: {error}")))?,
-                            harnesses: record.agent.spec.harnesses.iter().map(|i| i.kind).collect(),
-                        }),
-                        vec![Condition {
-                            kind: "Ready".into(),
-                            status: ConditionStatus::True,
-                            reason: "SandboxReady".into(),
-                            message: String::new(),
-                            last_transition_time: None,
-                        }],
-                    ),
-                )
+                .update_status(id, record.agent.metadata.generation, status)
                 .await
                 .map(drop)
         })
@@ -86,19 +83,29 @@ impl Reconcile<AgentId> for BlockingAgentReady {
 
 struct MarkSessionReady(persistence::Database);
 
-struct NoopAgentReconcile;
+/// An Agent pass that changes nothing but records that it handled the
+/// Agent's requests, as the real reconciler does for a Ready Agent.
+struct RecordAgentPass(Rc<dyn agent::control_plane::AgentStore>);
 
-impl Reconcile<AgentId> for NoopAgentReconcile {
-    fn reconcile(&self, _id: AgentId) -> LocalFuture<'_, Result<(), Error>> {
-        Box::pin(async { Ok(()) })
+impl Reconcile<AgentId> for RecordAgentPass {
+    fn reconcile(&self, id: AgentId) -> LocalFuture<'_, Result<(), Error>> {
+        Box::pin(async move {
+            let record = self.0.get(id).await?;
+            let generation = record.agent.metadata.generation;
+            let mut status = record.agent.status;
+            status.observed_generation = generation;
+            status.sync.observed = status.sync.requested;
+            self.0.update_status(id, generation, status).await.map(drop)
+        })
     }
 }
 
 impl Reconcile<SessionId> for MarkSessionReady {
     fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
+            let session = self.0.get_session(id).await?;
             self.0
-                .update_session_lifecycle(id, agent::sessions::Lifecycle::running(), 0)
+                .update_session_lifecycle(id, agent::sessions::Lifecycle::running(), 0, Some(session.generation))
                 .await
         })
     }
@@ -241,7 +248,7 @@ fn ready_record(name: &str, id: AgentId) -> AgentRecord {
 }
 
 /// A throwaway Sandbox service and tmux runtime for Session Service tests that
-/// never reach the runtime (they resolve with `WaitPolicy::FirstPass`).
+/// never reach the runtime (they resolve before launching).
 fn unused_sandboxes() -> Rc<agent::sandbox::Service> {
     let backend = Rc::new(sandbox_memory::Provider::new());
     let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
@@ -530,7 +537,7 @@ async fn running_session(
         .expect("Session");
     let activation = database.activate_session(session.id).await.expect("activate");
     database
-        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), activation)
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), activation, None)
         .await
         .expect("running");
     database
@@ -635,7 +642,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
     runtime.conversation.borrow_mut().push(earlier);
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -651,7 +658,7 @@ async fn prompt_waits_for_completion_and_turns_are_read_separately() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -739,7 +746,7 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     let agent_store: Rc<dyn agent::control_plane::AgentStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -755,7 +762,7 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         Rc::new(FakeRuntime::default()),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -777,7 +784,16 @@ async fn prompt_wait_reports_a_failed_session_instead_of_hanging() {
     assert!(!send.is_finished());
     // No activity report arrives; the lifecycle write itself wakes the wait.
     session_store
-        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::failed("harness exited"), 1)
+        .update_session_lifecycle(
+            session.id,
+            agent::sessions::Lifecycle::failed(
+                agent::sessions::LifecycleReason::ReconcileFailed,
+                "harness exited",
+                agent::FailureKind::Transient,
+            ),
+            1,
+            None,
+        )
         .await
         .expect("failed");
     let error = send
@@ -800,7 +816,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -816,7 +832,7 @@ async fn prompt_wait_handles_mid_turn_input_after_a_late_start_report() {
         session_store.clone(),
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     ));
     let name = SessionName::new("s1").expect("name");
@@ -928,7 +944,7 @@ impl ServiceHarness {
         let runtime = Rc::new(FakeRuntime::default());
         let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
             agent_store.clone(),
-            Rc::new(NoopAgentReconcile),
+            Rc::new(RecordAgentPass(agent_store.clone())),
             Duration::from_mins(1),
             Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
         );
@@ -952,7 +968,7 @@ impl ServiceHarness {
             session_store,
             Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
             runtime.clone(),
-            Convergence::new(agent_wakeup, agent_store, Changes::new()),
+            Convergence::new(agent_wakeup, agent_store, database.changes()),
             session_wakeup,
         ));
         Self {
@@ -1112,6 +1128,7 @@ async fn daemon_owned_relaunch_marker_is_retryable_and_removed_after_success() {
             harness.session.id,
             agent::sessions::Lifecycle::idle(),
             matched_generation,
+            None,
         )
         .await
         .expect("Idle Session");
@@ -1195,6 +1212,7 @@ async fn upgrade_reactivates_an_idle_session_whose_runtime_is_already_missing() 
             harness.session.id,
             agent::sessions::Lifecycle::idle(),
             matched_generation,
+            None,
         )
         .await
         .expect("Idle Session");
@@ -1379,7 +1397,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -1395,7 +1413,7 @@ async fn a_prompt_without_wait_still_waits_for_the_harness_to_report_in() {
         session_store,
         Rc::new(agent::sessions::AgentSandboxes::new(agent_store.clone(), sandboxes)),
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     ));
     let fire_and_forget = {
@@ -1772,7 +1790,7 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
     let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -1791,7 +1809,7 @@ async fn selection_fixture(directory: &TempDir) -> SelectionFixture {
             unused_sandboxes(),
         )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     );
 
@@ -1917,6 +1935,99 @@ async fn a_session_admitted_before_convergence_is_parked_until_its_optional_harn
     );
 }
 
+/// An attach asks the Agent to converge and holds the Session until it has, so
+/// a Session never launches on Agent status from before the request, such as
+/// a Ready Agent whose Sandbox stopped since its last pass.
+#[tokio::test(flavor = "local")]
+async fn a_session_waits_for_the_agent_sync_its_activation_requested() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    let agent_id: AgentId = "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID");
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider_service =
+        SandboxService::new(backend).with_network_backend(Rc::new(sandbox_memory::NetworkBackend::for_endpoint(
+            "memory",
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+        )));
+    let mut record = ready_record("worker", agent_id);
+    let spec = record
+        .agent
+        .spec
+        .sandbox
+        .resolve_from(&record.source_directory, &Platform::native("linux").architecture);
+    let sandbox = provider_service
+        .ensure(&EnsureSandboxRequest::new(
+            record.sandbox_name().expect("Sandbox name"),
+            spec,
+        ))
+        .await
+        .expect("materialized Sandbox");
+    record.agent.status.sandbox = Some(SandboxAssignment::Materialized {
+        provider: ProviderId::new("memory").expect("Provider ID"),
+        id: sandbox.id().clone(),
+        harnesses: vec![agent::Harness::ClaudeCode],
+    });
+    database.put(record.clone(), 0).await.expect("Agent");
+    let provider: Rc<dyn Provider> = Rc::new(CountingProvider {
+        id: ProviderId::new("memory").expect("Provider ID"),
+        service: provider_service,
+        ensure_calls: Rc::new(Cell::new(0)),
+    });
+    let sandboxes = Rc::new(
+        agent::sandbox::Service::new([provider], [Rc::new(NoopPlatform) as Rc<dyn PlatformAdapter>])
+            .expect("Agent Sandbox service"),
+    );
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let sync = database.request_sync(agent_id).await.expect("sync request");
+    database
+        .activate_session_after_agent_sync(session.id, sync)
+        .await
+        .expect("activate");
+    let runtime = Rc::new(FakeRuntime::default());
+    runtime.present.set(false);
+    let reconciler = agent::sessions::Reconciler::new(
+        Rc::new(database.clone()),
+        Rc::new(agent::sessions::AgentSandboxes::new(
+            Rc::new(database.clone()),
+            sandboxes,
+        )),
+        runtime.clone(),
+        "http://platform-api".into(),
+    );
+
+    reconciler.reconcile(session.id).await.expect("held");
+    let held = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        (held.status.lifecycle.state, held.status.lifecycle.reason),
+        (
+            agent::sessions::LifecycleState::Starting,
+            Some(agent::sessions::LifecycleReason::AgentNotReady)
+        ),
+        "the Agent is Ready, but it has not handled the sync yet"
+    );
+    assert!(runtime.launch_tokens.borrow().is_empty());
+    assert!(held.observed_generation < held.generation, "a hold is not an outcome");
+
+    let mut status = database.get(agent_id).await.expect("Agent").agent.status;
+    status.sync.observed = sync;
+    database
+        .update_status(agent_id, record.agent.metadata.generation, status)
+        .await
+        .expect("the pass that handled the sync");
+    reconciler.reconcile(session.id).await.expect("launch");
+    assert!(
+        !runtime.launch_tokens.borrow().is_empty(),
+        "launched once the Agent has converged"
+    );
+}
+
 /// A failed convergence pass keeps a valid observation, so the refusal must still apply.
 ///
 /// The Agent materialized its Sandbox and observed only Claude Code, then a later pass failed and
@@ -1961,7 +2072,6 @@ async fn an_unready_agent_with_a_materialized_observation_still_refuses_an_absen
                 harness: Some(agent::Harness::Codex),
                 ..SessionRequest::default()
             },
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("an absent harness is refused even while the Agent is not ready");
@@ -2008,7 +2118,6 @@ async fn a_session_on_an_optional_harness_the_agent_does_not_carry_is_refused_wi
                 harness: Some(agent::Harness::Codex),
                 ..SessionRequest::default()
             },
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("an uninstalled optional harness is refused");
@@ -2043,7 +2152,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 initial_prompt: Some(oversized_prompt.clone()),
                 ..SessionRequest::default()
             },
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("oversized initial prompt");
@@ -2061,7 +2169,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 harness: Some(agent::Harness::Codex),
                 ..SessionRequest::default()
             },
-            WaitPolicy::FirstPass,
         )
         .await
         .expect("explicit harness Session");
@@ -2070,7 +2177,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
             "worker",
             &SessionName::new("implicit").expect("name"),
             SessionRequest::default(),
-            WaitPolicy::FirstPass,
         )
         .await
         .expect("implicit default Session");
@@ -2091,7 +2197,6 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
                 harness: Some(agent::Harness::ClaudeCode),
                 ..SessionRequest::default()
             },
-            WaitPolicy::FirstPass,
         )
         .await
         .expect_err("an existing Session keeps its harness");
@@ -2104,10 +2209,7 @@ async fn session_ensure_resolves_explicit_and_implicit_harnesses() {
 impl SelectionFixture {
     async fn ensure(&self, name: &str, request: SessionRequest) -> Result<agent::sessions::Session, Error> {
         let name = SessionName::new(name).expect("name");
-        let target = self
-            .service
-            .ensure("worker", &name, request, WaitPolicy::FirstPass)
-            .await?;
+        let target = self.service.ensure("worker", &name, request).await?;
         Ok(target.session)
     }
 }
@@ -2304,8 +2406,15 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
         .await
         .expect("Session");
     let activation = database.activate_session(session.id).await.expect("activate Session");
+    // The pass that launched it recorded its outcome, so nothing waits on it.
+    let generation = database.get_session(session.id).await.expect("Session").generation;
     database
-        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), activation)
+        .update_session_lifecycle(
+            session.id,
+            agent::sessions::Lifecycle::running(),
+            activation,
+            Some(generation),
+        )
         .await
         .expect("running status");
     database
@@ -2345,6 +2454,28 @@ async fn idle_stop_uses_guest_activity_age_and_explicit_activation_relaunches() 
         Rc::new(agent::sessions::AgentSandboxes::new(agents, sandboxes)),
         tmux_runtime(),
         "http://platform-api".into(),
+    );
+
+    // A request still waiting for its outcome, such as an attach, is answered
+    // with the running harness rather than an idle stop.
+    database.activate_session(session.id).await.expect("attach request");
+    reconciler
+        .reconcile(session.id)
+        .await
+        .expect("requested reconciliation");
+    let attached = database.get_session(session.id).await.expect("attached Session");
+    assert_eq!(
+        attached.status.lifecycle.state,
+        agent::sessions::LifecycleState::Running
+    );
+    assert_eq!(attached.observed_generation, attached.generation);
+    backend.queue_execution_events_matching(
+        is_session_observation,
+        vec![
+            ExecutionEvent::Started { process_id: None },
+            ExecutionEvent::Stdout("0 1900\n".into()),
+            ExecutionEvent::Exited(ExitStatus { code: 0 }),
+        ],
     );
 
     reconciler.reconcile(session.id).await.expect("idle reconciliation");
@@ -2481,7 +2612,7 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
             unused_sandboxes(),
         )),
         tmux_runtime(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     ));
     let ensure_service = service.clone();
@@ -2491,7 +2622,6 @@ async fn session_ensure_persists_intent_before_waiting_for_agent_convergence() {
                 "worker",
                 &SessionName::new("s1").expect("name"),
                 SessionRequest::default(),
-                WaitPolicy::FirstPass,
             )
             .await
     });
@@ -2614,7 +2744,7 @@ async fn prompt_wait_does_not_follow_a_replacement_session_with_the_same_name() 
         .expect("Session");
     harness
         .database
-        .update_session_lifecycle(replacement.id, agent::sessions::Lifecycle::running(), 0)
+        .update_session_lifecycle(replacement.id, agent::sessions::Lifecycle::running(), 0, None)
         .await
         .expect("running");
     let error = tokio::time::timeout(Duration::from_secs(1), waiting)
@@ -2795,7 +2925,7 @@ async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -2817,7 +2947,7 @@ async fn deleting_a_session_through_the_service_releases_it_and_hides_it_at_once
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     );
     let name = SessionName::new("s1").expect("name");
@@ -2852,7 +2982,7 @@ async fn a_delete_that_cannot_stop_the_harness_yet_reports_that_it_is_pending() 
     runtime.stops_failing.set(true);
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -2874,7 +3004,7 @@ async fn a_delete_that_cannot_stop_the_harness_yet_reports_that_it_is_pending() 
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     );
     let name = SessionName::new("s1").expect("name");
@@ -3107,7 +3237,7 @@ async fn an_archived_session_is_attached_again_only_after_unarchiving() {
     let runtime = Rc::new(FakeRuntime::default());
     let (agent_controller, agent_wakeup) = agent::control_plane::Controller::new(
         agent_store.clone(),
-        Rc::new(NoopAgentReconcile),
+        Rc::new(RecordAgentPass(agent_store.clone())),
         Duration::from_mins(1),
         Rc::new(|_, error| panic!("unexpected Agent reconciliation error: {error}")),
     );
@@ -3129,18 +3259,11 @@ async fn an_archived_session_is_attached_again_only_after_unarchiving() {
         session_store.clone(),
         sandboxes,
         runtime.clone(),
-        Convergence::new(agent_wakeup, agent_store, Changes::new()),
+        Convergence::new(agent_wakeup, agent_store, database.changes()),
         session_wakeup,
     );
     let name = SessionName::new("s1").expect("name");
-    let attach = || {
-        service.ensure(
-            "worker",
-            &name,
-            agent::sessions::SessionRequest::default(),
-            WaitPolicy::FirstPass,
-        )
-    };
+    let attach = || service.ensure("worker", &name, agent::sessions::SessionRequest::default());
 
     let archived = service.set_archived("worker", &name, true).await.expect("archive");
     assert_eq!(archived.status.state, agent::sessions::State::Archived);
@@ -3221,8 +3344,9 @@ async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
         .database
         .update_session_lifecycle(
             harness.session.id,
-            agent::sessions::Lifecycle::archived_with("injected stop failure"),
+            agent::sessions::Lifecycle::archived_with("injected stop failure", agent::FailureKind::Transient),
             0,
+            None,
         )
         .await
         .expect("a failed archive pass");

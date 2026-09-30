@@ -63,7 +63,8 @@ impl ControlPlane {
         self
     }
 
-    /// Stores desired state and returns without waiting for reconciliation.
+    /// Stores desired state, records a sync request for an existing Agent, and
+    /// returns without waiting for reconciliation.
     ///
     /// # Errors
     ///
@@ -107,8 +108,10 @@ impl ControlPlane {
                         && current.manifest_path == manifest_path
                         && current.env_file == env_file
                     {
-                        self.notifier.notify(current.id);
-                        return Ok(self.resource(current));
+                        // An unchanged apply still asks for a pass, so a wait
+                        // after editing only an environment file sees it.
+                        let id = current.id;
+                        return self.request_pass(id, self.resource(current)).await;
                     }
 
                     let expected_generation = current.agent.metadata.generation;
@@ -126,7 +129,7 @@ impl ControlPlane {
                             expected_generation,
                         )
                         .await
-                        .map(|()| (current.id, manifest_path, env_file))
+                        .map(|()| (current.id, manifest_path, env_file, true))
                 }
                 Err(Error::NotFound) => {
                     let id = AgentId::generate();
@@ -150,7 +153,7 @@ impl ControlPlane {
                             0,
                         )
                         .await
-                        .map(|()| (id, request.manifest_path.clone(), request.env_file.clone()))
+                        .map(|()| (id, request.manifest_path.clone(), request.env_file.clone(), false))
                 }
                 Err(error) => return Err(error),
             };
@@ -158,17 +161,28 @@ impl ControlPlane {
             match result {
                 Err(Error::Conflict) => {}
                 Err(error) => return Err(error),
-                Ok((id, manifest_path, env_file)) => {
-                    self.notifier.notify(id);
+                Ok((id, manifest_path, env_file, existed)) => {
                     desired.status.provenance = Some(crate::Provenance {
                         source_directory: request.source_directory,
                         manifest_path,
                         env_file,
                     });
+                    if existed {
+                        return self.request_pass(id, desired).await;
+                    }
+                    // A new Agent's first generation already asks for a pass.
+                    self.notifier.notify(id);
                     return Ok(desired);
                 }
             }
         }
+    }
+
+    /// Records a sync request for an applied Agent and wakes its controller.
+    async fn request_pass(&self, id: AgentId, mut agent: Agent) -> Result<Agent, Error> {
+        agent.status.sync.requested = self.store.request_sync(id).await?;
+        self.notifier.notify(id);
+        Ok(agent)
     }
 
     /// Rejects desired state that would expose a selected secret file inside a Sandbox.

@@ -202,7 +202,7 @@ async fn session_reports_require_the_current_launch_token() {
 
     // Lifecycle writes cannot touch the reported half.
     database
-        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), 0)
+        .update_session_lifecycle(session.id, agent::sessions::Lifecycle::running(), 0, None)
         .await
         .expect("status update");
     let stored = database.get_session(session.id).await.expect("session");

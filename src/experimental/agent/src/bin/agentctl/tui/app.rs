@@ -2464,10 +2464,12 @@ fn agent_state(agent: &Agent) -> AgentState {
         .filter(|_| agent.status.observed_generation == agent.metadata.generation);
     match (failure, provisioning(agent)) {
         (Some(FailureKind::Invalid), _) => failed(Tone::Red, "Failed", message(), entered),
-        (Some(FailureKind::Transient), Some(progress)) => {
+        (Some(FailureKind::Transient | FailureKind::Unavailable), Some(progress)) => {
             state(Tone::Yellow, "Retrying", progress_summary(progress), entered)
         }
-        (Some(FailureKind::Transient), None) => failed(Tone::Yellow, "Retrying", message(), entered),
+        (Some(FailureKind::Transient | FailureKind::Unavailable), None) => {
+            failed(Tone::Yellow, "Retrying", message(), entered)
+        }
         (None, Some(progress)) => state(
             Tone::Cyan,
             "Provisioning",

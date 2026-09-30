@@ -136,7 +136,6 @@ impl SessionApi for FakeSessions {
         _agent: &'a str,
         _name: &'a agent::sessions::SessionName,
         request: agent::sessions::SessionRequest,
-        _wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<agent::sessions::AttachTarget, Error>> {
         self.ensured.borrow_mut().push(request);
         Box::pin(async { Err(Error::NotFound) })

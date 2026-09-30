@@ -98,7 +98,11 @@ impl Reconciler {
                     "Sandbox provisioning has not completed",
                 )],
             );
-            record.agent.status = self.update_status(&record, status, None).await?;
+            // Not an outcome: the pass goes on to provision, and its final
+            // status records the sync request it started with.
+            let started_with = record.agent.status.sync;
+            record.agent.status = self.write_status(&record, status, None, started_with.observed).await?;
+            record.agent.status.sync.requested = started_with.requested;
         }
 
         let status = &record.agent.status;
@@ -305,6 +309,8 @@ impl Reconciler {
     }
 
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
+        // Held Sessions record their Agent as deleted without waiting for the release.
+        self.notify_sessions(record.id);
         self.sandboxes.release(record).await?;
         if let Some(ssh) = &self.ssh {
             ssh.remove(record).await?;
@@ -312,7 +318,6 @@ impl Reconciler {
         if let Some(vnc) = &self.vnc {
             vnc.forget(record.id);
         }
-        self.notify_sessions(record.id);
         self.store
             .finalize_deletion(record.id, record.agent.metadata.generation)
             .await?;
@@ -348,17 +353,33 @@ impl Reconciler {
     async fn update_status(
         &self,
         record: &AgentRecord,
-        mut status: Status,
+        status: Status,
         failure: Option<FailureKind>,
     ) -> Result<Status, Error> {
+        // A final status handles every sync request made before the pass read the record.
+        self.write_status(record, status, failure, record.agent.status.sync.requested)
+            .await
+    }
+
+    /// Records a status with the sync request it handled, `observed_sync`.
+    async fn write_status(
+        &self,
+        record: &AgentRecord,
+        mut status: Status,
+        failure: Option<FailureKind>,
+        observed_sync: u64,
+    ) -> Result<Status, Error> {
         status.failure = failure;
+        status.sync.observed = observed_sync;
         // A resync that observes what is already stored writes nothing, so it
-        // advances no revision and wakes no watcher.
-        let stored = Status {
+        // advances no revision and wakes no watcher. The projected request is
+        // not stored in the status, so it takes no part in the comparison.
+        let mut stored = Status {
             progress: None,
             provenance: None,
             ..record.agent.status.clone()
         };
+        stored.sync.requested = 0;
         let mut unchanged = status.clone();
         unchanged.stamp_transitions(&stored, time::OffsetDateTime::UNIX_EPOCH);
         if unchanged == stored {
@@ -447,8 +468,13 @@ fn responsive_condition(responsiveness: Responsiveness) -> Condition {
     }
 }
 
+/// Whether a status change can change what a Session pass decides: its
+/// readiness, Sandbox, harnesses, failure class, or whether the Agent's status
+/// is current for its latest sync request.
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
+        || previous.failure != current.failure
+        || previous.sync.observed != current.sync.observed
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
         || previous

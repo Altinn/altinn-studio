@@ -8,7 +8,7 @@ use crate::Error;
 
 use super::database_error;
 
-pub(crate) const VERSION: u32 = 5;
+pub(crate) const VERSION: u32 = 6;
 
 const PREVIEW_1_SQL: &str = "
     CREATE TABLE agents (
@@ -72,6 +72,12 @@ const SESSION_ARCHIVE_COLUMN_SQL: &str = "
     ALTER TABLE sessions ADD COLUMN archived_at INTEGER;
 ";
 
+const REQUEST_COUNTER_COLUMNS_SQL: &str = "
+    ALTER TABLE agents ADD COLUMN sync_requested INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE sessions ADD COLUMN generation INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE sessions ADD COLUMN agent_sync INTEGER NOT NULL DEFAULT 0;
+";
+
 struct Migration {
     version: u32,
     name: &'static str,
@@ -109,6 +115,12 @@ const MIGRATIONS: &[Migration] = &[
         name: "session archive",
         schema: &[SESSION_ARCHIVE_COLUMN_SQL],
         apply: add_session_archive,
+    },
+    Migration {
+        version: 6,
+        name: "request counters",
+        schema: &[REQUEST_COUNTER_COLUMNS_SQL],
+        apply: add_request_counters,
     },
 ];
 
@@ -232,6 +244,18 @@ fn add_session_archive(transaction: &Transaction<'_>) -> Result<(), Error> {
     }
     transaction
         .execute_batch(SESSION_ARCHIVE_COLUMN_SQL)
+        .map_err(database_error)
+}
+
+/// Adds the counters callers wait on: an Agent's requests to converge now,
+/// and a Session's requests to change. Every existing row starts at 0 with
+/// nothing observed, which reads as settled.
+fn add_request_counters(transaction: &Transaction<'_>) -> Result<(), Error> {
+    if schema_difference(transaction, 6)?.is_none() {
+        return Ok(());
+    }
+    transaction
+        .execute_batch(REQUEST_COUNTER_COLUMNS_SQL)
         .map_err(database_error)
 }
 

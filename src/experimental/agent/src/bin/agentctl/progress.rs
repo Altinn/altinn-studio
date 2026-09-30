@@ -275,6 +275,7 @@ impl<W: Write> Renderer<W> {
             return Ok(());
         }
         self.seen_condition = Some(detail.clone());
+        // Other failures end the wait, and the command reports them itself.
         let failing = progress.status.failure == Some(FailureKind::Transient);
         // A failed pass reports the failure itself, also when following begins after it.
         let explained_by_pass = progress.provisioning.as_ref().is_some_and(|provisioning| {
@@ -314,13 +315,14 @@ impl<W: Write> Renderer<W> {
 
     /// Closes the failed phase.
     ///
-    /// An invalid configuration fails the command, which reports the error
-    /// itself. A transient failure is explained once, with the failed step's
-    /// last output; on a terminal further identical failures only advance a
-    /// counter on the updating line, because the daemon retries every pass.
+    /// An invalid configuration or an unavailable Sandbox fails the command,
+    /// which reports the error itself. A transient failure is explained once,
+    /// with the failed step's last output; on a terminal further identical
+    /// failures only advance a counter on the updating line, because the
+    /// daemon retries every pass.
     fn phase_failed(&mut self, label: &str, detail: &str, failure: FailureKind, elapsed_ms: u64) -> io::Result<()> {
         self.clear_active_line()?;
-        if failure == FailureKind::Invalid {
+        if failure != FailureKind::Transient {
             return writeln!(self.output, "✗ {label} ({})", duration(elapsed_ms));
         }
         // The first failed pass this command observes is always explained in full,
@@ -749,6 +751,26 @@ mod tests {
             "{lines:#?}"
         );
         assert_eq!(lines.first().map(String::as_str), Some("✗ Start Sandbox (0ms)"));
+    }
+
+    #[test]
+    fn a_failure_that_ends_the_wait_is_left_to_the_command() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        daemon
+            .phase(SandboxPhase::SandboxStart)
+            .fail("the guest has not reported progress for 15s");
+        daemon.status.failure = Some(FailureKind::Unavailable);
+        renderer.render(&daemon.snapshot());
+        let mut standing = daemon.snapshot();
+        standing.provisioning = None;
+        renderer.render(&standing);
+        renderer.finish();
+        assert_eq!(
+            lines(renderer),
+            vec!["✗ Start Sandbox (0ms)"],
+            "no retry hint, and the command reports the error once"
+        );
     }
 
     #[test]

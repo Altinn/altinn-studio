@@ -130,7 +130,6 @@ pub trait SessionApi {
         agent: &'a str,
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
-        wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>>;
 
     /// Gets one named Session scoped to an Agent.
@@ -183,9 +182,8 @@ impl SessionApi for sessions::Service {
         agent: &'a str,
         name: &'a sessions::SessionName,
         request: sessions::SessionRequest,
-        wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<sessions::AttachTarget, Error>> {
-        Box::pin(async move { Self::ensure(self, agent, name, request, wait).await })
+        Box::pin(async move { Self::ensure(self, agent, name, request).await })
     }
 
     fn prompt<'a>(
@@ -694,16 +692,14 @@ impl Server {
                 );
             }
         };
-        let wait = wait_policy(params.follow);
+        // A Session wait always ends at the outcome of the Session pass that
+        // handled the request, so `follow` changes nothing for it.
         let request = sessions::SessionRequest {
             harness: params.harness,
             model_selection: params.model_selection,
             initial_prompt: params.initial_prompt,
         };
-        result_response(
-            id,
-            self.sessions.ensure(&params.agent, &params.name, request, wait).await,
-        )
+        result_response(id, self.sessions.ensure(&params.agent, &params.name, request).await)
     }
 
     async fn handle_session_prompt(&self, id: u64, value: Value) -> Response {

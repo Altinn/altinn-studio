@@ -19,6 +19,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
   - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
 - `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl get sessions -o json` reports why a Session is waiting or failed as `lifecycle.reason`, such as `agentNotReady` or `harnessBackoff`, with a `failureKind`. ([#20879](https://github.com/Altinn/altinn-studio/pull/20879))
 
 ### Changed
 
@@ -31,6 +32,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 - Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose Sandbox stops responding, for example after the host wakes from sleep, shows `Ready False` with `SandboxUnresponsive` in `agentctl get agents`. `agentctl exec`, `attach`, `ssh` and Session creation then fail instead of hanging, and `agentctl delete` completes. ([#20868](https://github.com/Altinn/altinn-studio/pull/20868))
+- `agentctl attach` no longer fails with an Agent error that a later `agentctl apply` has already fixed; it waits for the Agent to start. ([#20879](https://github.com/Altinn/altinn-studio/pull/20879))
+- `agentctl prompt` to a Session that another prompt is still being delivered to fails after a while with "try again once it is" instead of waiting indefinitely. ([#20879](https://github.com/Altinn/altinn-studio/pull/20879))
 
 ## [0.1.0-preview.8] - 2026-09-30
 

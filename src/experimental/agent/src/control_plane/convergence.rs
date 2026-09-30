@@ -1,23 +1,24 @@
 //! Requests converging an Agent and waiting for the outcome.
 //!
-//! A waiter reads readiness and failure from the stored Agent and rereads it
-//! whenever the daemon-wide revision advances, so it can skip intermediate
-//! states but never miss the terminal one. Progress is observed separately,
-//! through the Agent's provisioning state.
+//! A request records a sync on the Agent and wakes its controller. A waiter
+//! then reads the stored Agent and rereads it whenever the daemon-wide
+//! revision advances, until [`crate::wait::agent`] decides: the status of a
+//! pass that started after the request tells the outcome, so a waiter can skip
+//! intermediate states but never miss the terminal one. Progress is observed
+//! separately, through the Agent's provisioning state.
 
 use std::time::Duration;
 
-use tokio::time::Instant;
-
-use crate::{AgentId, Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status, resources::Changes};
+use crate::{
+    AgentId, Error,
+    resources::Changes,
+    wait::{self, AgentRequest, Policy, Settled},
+};
 
 use super::{SharedAgentStore, Wakeup};
 
 /// Longest a waiter goes without rereading the stored Agent.
 const RECHECK_INTERVAL: Duration = Duration::from_secs(30);
-/// How long a waiter keeps waiting once the Agent's guest is recorded as
-/// unresponsive, in case it recovers, before it reports the stall.
-const UNRESPONSIVE_WAIT: Duration = Duration::from_secs(5);
 /// How long a waiter lets changes gather before rereading the stored Agent.
 /// Every progress event of any Agent advances the revision, so a waiter
 /// rereads once per burst instead of once per event.
@@ -26,11 +27,11 @@ const SETTLE: Duration = Duration::from_millis(50);
 /// How long a request waits for the Agent it woke.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WaitPolicy {
-    /// Returns after one reconciliation pass with that pass's outcome.
+    /// Returns once a pass that started after the request ends, with its outcome.
     FirstPass,
     /// Keeps waiting through transient failures, which the background controller
-    /// retries, until the Agent is Ready or its desired state is invalid. A
-    /// guest recorded as unresponsive ends the wait shortly after instead.
+    /// retries, until the Agent is Ready, its desired state is invalid, or its
+    /// Sandbox is recorded as unavailable.
     UntilReady,
 }
 
@@ -49,66 +50,67 @@ impl Convergence {
         Self { wakeup, store, changes }
     }
 
+    /// The daemon-wide change history waiters follow.
+    #[must_use]
+    pub const fn changes(&self) -> &Changes {
+        &self.changes
+    }
+
+    /// Records a request to converge the Agent now, wakes its controller, and
+    /// returns what a wait for that request must see handled.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::Conflict` when the Agent is deleted or being deleted, or a storage error.
+    pub async fn request(&self, id: AgentId) -> Result<AgentRequest, Error> {
+        let sync = self.store.request_sync(id).await.map_err(deleted_as_conflict)?;
+        let generation = self
+            .store
+            .get(id)
+            .await
+            .map_err(deleted_as_conflict)?
+            .agent
+            .metadata
+            .generation;
+        self.wakeup.wake(id).await?;
+        Ok(AgentRequest { generation, sync })
+    }
+
     /// Wakes convergence of one Agent and waits according to `wait`.
     ///
     /// # Errors
     ///
-    /// Returns `Error::Invalid` when desired state must change, the first pass's
-    /// failure under [`WaitPolicy::FirstPass`], `Error::SandboxUnresponsive`
-    /// when the Agent's guest stays unresponsive under [`WaitPolicy::UntilReady`],
-    /// `Error::Conflict` when the Agent is deleted while waited on, or a storage error.
+    /// Returns `Error::Invalid` when desired state must change,
+    /// `Error::Unavailable` when its Sandbox cannot do work now, the first
+    /// pass's failure under [`WaitPolicy::FirstPass`], `Error::Conflict` when the
+    /// Agent is deleted while waited on, or a storage error.
     pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
-        match (wait, self.wakeup.reconcile(id).await) {
-            (_, Ok(())) => return Ok(()),
-            (WaitPolicy::FirstPass, Err(failure)) => return Err(failure.into()),
-            (WaitPolicy::UntilReady, Err(failure)) if failure.kind == FailureKind::Invalid => {
-                return Err(failure.into());
-            }
-            (WaitPolicy::UntilReady, Err(_)) => {}
-        }
-        let mut unresponsive_since = None;
+        let request = self.request(id).await?;
+        let policy = match wait {
+            WaitPolicy::FirstPass => Policy::FirstPass,
+            WaitPolicy::UntilReady => Policy::UntilReady,
+        };
         loop {
             let revision = self.changes.revision();
-            let record = match self.store.get(id).await {
-                Ok(record) => record,
-                Err(Error::NotFound) => return Err(Error::Conflict),
-                Err(error) => return Err(error),
-            };
-            let status = &record.agent.status;
-            if status.observed_generation == record.agent.metadata.generation {
-                if status.is_ready() {
-                    return Ok(());
-                }
-                if let Some(message) = status.invalid() {
-                    return Err(ReconcileFailure {
-                        kind: FailureKind::Invalid,
-                        message,
-                    }
-                    .into());
-                }
+            let record = self.store.get(id).await.map_err(deleted_as_conflict)?;
+            if record.agent.metadata.deletion_timestamp.is_some() {
+                return Err(Error::Conflict);
             }
-            let recheck = if let Some(stalled) = unresponsive(status) {
-                let waited = unresponsive_since.get_or_insert_with(Instant::now).elapsed();
-                match UNRESPONSIVE_WAIT
-                    .checked_sub(waited)
-                    .filter(|remaining| !remaining.is_zero())
-                {
-                    Some(remaining) => remaining,
-                    None => return Err(Error::SandboxUnresponsive(stalled.detail())),
-                }
-            } else {
-                unresponsive_since = None;
-                RECHECK_INTERVAL
-            };
-            self.changes.changed_since(Some(revision), SETTLE, recheck).await;
+            match wait::agent(&record.agent.status, request, policy) {
+                Settled::Done => return Ok(()),
+                Settled::Failed(outcome) => return Err(wait::agent_error(outcome)),
+                Settled::Pending | Settled::Superseded(_) => {}
+            }
+            self.changes
+                .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)
+                .await;
         }
     }
 }
 
-/// Returns the recorded condition when the Agent's guest is unresponsive.
-fn unresponsive(status: &Status) -> Option<&Condition> {
-    status
-        .conditions
-        .iter()
-        .find(|condition| condition.kind == Condition::SANDBOX_RESPONSIVE && condition.status == ConditionStatus::False)
+fn deleted_as_conflict(error: Error) -> Error {
+    match error {
+        Error::NotFound => Error::Conflict,
+        error => error,
+    }
 }

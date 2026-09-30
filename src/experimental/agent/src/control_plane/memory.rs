@@ -22,6 +22,18 @@ pub struct InMemoryAgentStore {
 struct State {
     records: BTreeMap<AgentId, AgentRecord>,
     active_names: BTreeMap<String, AgentId>,
+    /// Sync requests, kept apart from records like the database's own column,
+    /// so no record write can revert one.
+    sync_requested: BTreeMap<AgentId, u64>,
+}
+
+impl State {
+    /// A record as read: its sync request is projected into its status.
+    fn read(&self, record: &AgentRecord) -> AgentRecord {
+        let mut record = record.clone();
+        record.agent.status.sync.requested = self.sync_requested.get(&record.id).copied().unwrap_or_default();
+        record
+    }
 }
 
 impl InMemoryAgentStore {
@@ -54,7 +66,7 @@ impl AgentStore for InMemoryAgentStore {
             let state = self.state.borrow();
             let record = state.records.get(&id).ok_or(Error::NotFound)?;
             (state.active_names.get(&record.agent.metadata.name) == Some(&id))
-                .then(|| record.clone())
+                .then(|| state.read(record))
                 .ok_or(Error::NotFound)
         })
     }
@@ -63,7 +75,11 @@ impl AgentStore for InMemoryAgentStore {
         Box::pin(async move {
             let state = self.state.borrow();
             let id = state.active_names.get(name).ok_or(Error::NotFound)?;
-            state.records.get(id).cloned().ok_or(Error::NotFound)
+            state
+                .records
+                .get(id)
+                .map(|record| state.read(record))
+                .ok_or(Error::NotFound)
         })
     }
 
@@ -74,7 +90,7 @@ impl AgentStore for InMemoryAgentStore {
                 .active_names
                 .values()
                 .filter_map(|id| state.records.get(id))
-                .cloned()
+                .map(|record| state.read(record))
                 .collect())
         })
     }
@@ -84,6 +100,7 @@ impl AgentStore for InMemoryAgentStore {
             let result = (|| {
                 record.agent.status.progress = None;
                 record.agent.status.provenance = None;
+                record.agent.status.sync.requested = 0;
                 let id = record.id;
                 let name = record.agent.metadata.name.clone();
                 let mut state = self.state.borrow_mut();
@@ -123,6 +140,7 @@ impl AgentStore for InMemoryAgentStore {
             let result = (|| {
                 status.progress = None;
                 status.provenance = None;
+                status.sync.requested = 0;
                 let mut state = self.state.borrow_mut();
                 let name = state
                     .records
@@ -138,7 +156,27 @@ impl AgentStore for InMemoryAgentStore {
                 }
                 status.stamp_transitions(&record.agent.status, OffsetDateTime::now_utc());
                 record.agent.status = status.clone();
+                status.sync.requested = state.sync_requested.get(&id).copied().unwrap_or_default();
                 Ok(status)
+            })();
+            self.changed(result)
+        })
+    }
+
+    fn request_sync(&self, id: AgentId) -> LocalFuture<'_, Result<u64, Error>> {
+        Box::pin(async move {
+            let result = (|| {
+                let mut state = self.state.borrow_mut();
+                let record = state.records.get(&id).ok_or(Error::NotFound)?;
+                if state.active_names.get(&record.agent.metadata.name) != Some(&id) {
+                    return Err(Error::NotFound);
+                }
+                if record.agent.metadata.deletion_timestamp.is_some() {
+                    return Err(Error::Conflict);
+                }
+                let requested = state.sync_requested.entry(id).or_default();
+                *requested += 1;
+                Ok(*requested)
             })();
             self.changed(result)
         })
@@ -153,7 +191,8 @@ impl AgentStore for InMemoryAgentStore {
                 if record.agent.metadata.deletion_timestamp.is_none() {
                     record.agent.metadata.deletion_timestamp = Some(OffsetDateTime::now_utc());
                 }
-                Ok(record.clone())
+                let record = record.clone();
+                Ok(state.read(&record))
             })();
             self.changed(result)
         })

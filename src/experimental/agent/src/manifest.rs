@@ -790,6 +790,39 @@ pub struct Status {
     /// the stored Agent record; stores scrub it, so it is never persisted.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub provenance: Option<Provenance>,
+    /// Requests to converge the Agent now, and the latest one a pass handled.
+    #[serde(default, skip_serializing_if = "SyncStatus::is_empty")]
+    pub sync: SyncStatus,
+}
+
+/// Requests to converge an Agent now, such as the one each command that runs
+/// in its Sandbox makes, and the latest one a reconciliation pass handled.
+///
+/// A pass records `observed` together with its final status, so a status
+/// whose `observed` has reached a request describes a pass that started after
+/// that request.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncStatus {
+    /// Latest request. Projected onto records and responses from its own
+    /// store column; stores scrub it from the status they persist.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub requested: u64,
+    /// Latest request a pass handled, recorded with that pass's final status.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub observed: u64,
+}
+
+impl SyncStatus {
+    const fn is_empty(&self) -> bool {
+        self.requested == 0 && self.observed == 0
+    }
+
+    /// Whether every request so far has been handled by a pass.
+    #[must_use]
+    pub const fn is_current(&self) -> bool {
+        self.observed >= self.requested
+    }
 }
 
 impl Status {
@@ -807,6 +840,10 @@ impl Status {
             failure: None,
             progress: None,
             provenance: None,
+            sync: SyncStatus {
+                requested: 0,
+                observed: 0,
+            },
         }
     }
 
@@ -817,6 +854,7 @@ impl Status {
             && self.failure.is_none()
             && self.progress.is_none()
             && self.provenance.is_none()
+            && self.sync.is_empty()
     }
 
     /// Carries each condition's transition time forward from `previous`, the
@@ -850,18 +888,6 @@ impl Status {
     #[must_use]
     pub fn is_ready(&self) -> bool {
         Condition::any_ready(&self.conditions)
-    }
-
-    /// Returns the failure detail when desired state must change before
-    /// another pass can succeed.
-    #[must_use]
-    pub fn invalid(&self) -> Option<String> {
-        if self.failure != Some(crate::FailureKind::Invalid) {
-            return None;
-        }
-        self.ready_condition()
-            .or_else(|| self.conditions.first())
-            .map(Condition::detail)
     }
 }
 

@@ -9,7 +9,7 @@ use super::{database_error, secrets};
 pub(super) fn get(connection: &Connection, id: AgentId) -> Result<AgentRecord, Error> {
     connection
         .query_row(
-            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json
+            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json, sync_requested
              FROM agents WHERE id = ?1 AND active_name IS NOT NULL",
             [id.to_string()],
             decode_row,
@@ -22,7 +22,7 @@ pub(super) fn get(connection: &Connection, id: AgentId) -> Result<AgentRecord, E
 pub(super) fn get_by_name(connection: &Connection, name: &str) -> Result<AgentRecord, Error> {
     let record = connection
         .query_row(
-            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json
+            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json, sync_requested
              FROM agents WHERE active_name = ?1",
             [name],
             decode_row,
@@ -42,7 +42,7 @@ pub(super) fn get_by_name(connection: &Connection, name: &str) -> Result<AgentRe
 pub(super) fn list(connection: &Connection) -> Result<Vec<AgentRecord>, Error> {
     let mut statement = connection
         .prepare(
-            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json
+            "SELECT id, active_name, source_directory, desired_json, deletion_timestamp, status_json, sync_requested
              FROM agents WHERE active_name IS NOT NULL ORDER BY active_name",
         )
         .map_err(database_error)?;
@@ -124,7 +124,34 @@ pub(super) fn update_status(
         return Err(Error::Conflict);
     }
     transaction.commit().map_err(database_error)?;
+    status.sync.requested = record.agent.status.sync.requested;
     Ok(status)
+}
+
+/// Records a request to converge the Agent now and returns it. An Agent
+/// being deleted takes no requests: a pass would never handle one.
+pub(super) fn request_sync(connection: &Connection, id: AgentId) -> Result<u64, Error> {
+    let changed = connection
+        .execute(
+            "UPDATE agents SET sync_requested = sync_requested + 1
+             WHERE id = ?1 AND active_name IS NOT NULL AND deletion_timestamp IS NULL",
+            [id.to_string()],
+        )
+        .map_err(database_error)?;
+    if changed != 1 {
+        return match get(connection, id) {
+            Ok(_) => Err(Error::Conflict),
+            Err(error) => Err(error),
+        };
+    }
+    connection
+        .query_row(
+            "SELECT sync_requested FROM agents WHERE id = ?1",
+            [id.to_string()],
+            |row| row.get::<_, i64>(0),
+        )
+        .map_err(database_error)
+        .and_then(|requested| u64::try_from(requested).map_err(|error| Error::Database(error.to_string())))
 }
 
 pub(super) fn mark_deleting(connection: &mut Connection, name: &str) -> Result<AgentRecord, Error> {
@@ -181,10 +208,12 @@ fn encode_status(status: &Status) -> Result<String, Error> {
     serde_json::to_string(&status).map_err(Error::from)
 }
 
-/// Removes what is projected onto responses and never stored.
+/// Removes what is projected onto records and responses and never stored in
+/// the status column. The sync request has its own column.
 fn scrub(status: &mut Status) {
     status.progress = None;
     status.provenance = None;
+    status.sync.requested = 0;
 }
 
 /// Source-column payload: current writes store [`crate::Provenance`]; rows
@@ -210,6 +239,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
     let desired = row.get::<_, String>(3)?;
     let deletion = row.get::<_, Option<i64>>(4)?;
     let status = row.get::<_, String>(5)?;
+    let sync_requested = u64::try_from(row.get::<_, i64>(6)?).map_err(conversion_error)?;
     let id = id.parse::<AgentId>().map_err(conversion_error)?;
     let (source_directory, manifest_path, env_file) = match serde_json::from_str(&source).map_err(conversion_error)? {
         StoredSource::Provenance(provenance) => (
@@ -228,6 +258,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
         .transpose()
         .map_err(conversion_error)?;
     agent.status = serde_json::from_str(&status).map_err(conversion_error)?;
+    agent.status.sync.requested = sync_requested;
     Ok(AgentRecord {
         id,
         source_directory,

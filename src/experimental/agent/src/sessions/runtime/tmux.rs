@@ -755,6 +755,9 @@ mod tests {
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
+            generation: 0,
+            observed_generation: 0,
+            agent_sync: 0,
         }
     }
 

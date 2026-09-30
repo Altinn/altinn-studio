@@ -386,7 +386,7 @@ fn sessions_are_idempotent_and_survive_database_reopen() {
             .expect("create session without selections");
         assert!(unselected.model_selection.is_empty());
         first
-            .update_session_lifecycle(created.id, Lifecycle::running(), 0)
+            .update_session_lifecycle(created.id, Lifecycle::running(), 0, None)
             .await
             .expect("persist observed state");
     });
@@ -525,8 +525,9 @@ fn attach_error_identifies_the_session_and_its_lifecycle_failure() {
         store
             .update_session_lifecycle(
                 session.id,
-                Lifecycle::starting("harness exited; relaunching after up to 10s of backoff"),
+                Lifecycle::held(agent::sessions::LifecycleReason::AgentNotReady, "harness exited; relaunching after up to 10s of backoff", false),
                 1,
+                None,
             )
             .await
             .expect("lifecycle");
@@ -629,7 +630,7 @@ fn released_preview_1_database_migrates_without_losing_state() {
         connection
             .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
             .expect("schema version"),
-        5
+        6
     );
     assert_migrated_session_selections(&connection, 2, 2);
     assert_eq!(
@@ -734,7 +735,7 @@ fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
     });
     drop(database);
 
-    assert_eq!(schema_snapshot(&path).0, 5);
+    assert_eq!(schema_snapshot(&path).0, 6);
     assert_eq!(
         connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
         expanded_desired,
@@ -791,7 +792,7 @@ fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with(
         assert!(sessions[1].model_selection.is_empty());
     });
     drop(database);
-    assert_eq!(schema_snapshot(&path).0, 5);
+    assert_eq!(schema_snapshot(&path).0, 6);
     assert!(
         directory.path().join("backups").is_dir(),
         "a pending migration is backed up first"
@@ -832,27 +833,35 @@ fn expanded_version_1_schema_is_adopted_without_losing_state() {
     drop(database);
 
     let after = schema_snapshot(&path);
-    assert_eq!(after.0, 5);
+    assert_eq!(after.0, 6);
     let unchanged = |snapshot: &[(String, String)]| {
         snapshot
             .iter()
-            .filter(|(name, _)| name != "table:sessions")
+            .filter(|(name, _)| name != "table:sessions" && name != "table:agents")
             .cloned()
             .collect::<Vec<_>>()
     };
     assert_eq!(unchanged(&after.1), unchanged(&before));
-    let sessions_sql = |snapshot: &[(String, String)]| {
+    let table_sql = |snapshot: &[(String, String)], table: &str| {
         snapshot
             .iter()
-            .find(|(name, _)| name == "table:sessions")
+            .find(|(name, _)| name == &format!("table:{table}"))
             .map(|(_, sql)| sql.clone())
-            .expect("sessions table")
+            .expect("table")
     };
-    let (before_sessions, after_sessions) = (sessions_sql(&before), sessions_sql(&after.1));
+    let (before_sessions, after_sessions) = (table_sql(&before, "sessions"), table_sql(&after.1, "sessions"));
     assert!(!before_sessions.contains("model TEXT"));
     assert!(
         after_sessions.contains("model TEXT") && after_sessions.contains("effort TEXT"),
         "only the Session selection columns are added: {after_sessions}"
+    );
+    assert_eq!(
+        table_sql(&after.1, "agents"),
+        format!(
+            "{}, sync_requested INTEGER NOT NULL DEFAULT 0)",
+            table_sql(&before, "agents").trim_end_matches(')')
+        ),
+        "only the Agent sync counter is added"
     );
 }
 
@@ -1162,9 +1171,13 @@ async fn a_session_records_when_it_entered_its_state() {
         )
         .await
         .expect("Session");
-    let failed = Lifecycle::failed("harness exited");
+    let failed = Lifecycle::failed(
+        agent::sessions::LifecycleReason::ReconcileFailed,
+        "harness exited",
+        agent::FailureKind::Transient,
+    );
     database
-        .update_session_lifecycle(session.id, failed.clone(), 0)
+        .update_session_lifecycle(session.id, failed.clone(), 0, None)
         .await
         .expect("failed");
     let entered = database
@@ -1175,7 +1188,7 @@ async fn a_session_records_when_it_entered_its_state() {
         .state_since;
     assert!(entered.is_some(), "a lifecycle change is stamped");
     database
-        .update_session_lifecycle(session.id, failed, 0)
+        .update_session_lifecycle(session.id, failed, 0, None)
         .await
         .expect("still failed");
     assert_eq!(
@@ -1190,7 +1203,7 @@ async fn a_session_records_when_it_entered_its_state() {
     );
 
     database
-        .update_session_lifecycle(session.id, Lifecycle::running(), 0)
+        .update_session_lifecycle(session.id, Lifecycle::running(), 0, None)
         .await
         .expect("running");
     let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
@@ -1491,4 +1504,93 @@ fn archiving_a_session_is_recorded_once_and_survives_reopening() {
             Err(Error::NotFound)
         ));
     });
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_sync_request_is_counted_until_the_agent_is_deleted() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    assert_eq!(database.request_sync(test_agent_id()).await.expect("first sync"), 1);
+    assert_eq!(database.request_sync(test_agent_id()).await.expect("second sync"), 2);
+
+    let mut record = database.get(test_agent_id()).await.expect("Agent");
+    assert_eq!(
+        record.agent.status.sync.requested, 2,
+        "the request is projected into status"
+    );
+    record.agent.status.sync.requested = 0;
+    record.agent.status.sync.observed = 1;
+    database
+        .update_status(test_agent_id(), 1, record.agent.status)
+        .await
+        .expect("status of a pass that read the first request");
+    let status = database.get(test_agent_id()).await.expect("Agent").agent.status;
+    assert_eq!(
+        (status.sync.requested, status.sync.observed),
+        (2, 1),
+        "a status write records what its pass observed and never lowers the request"
+    );
+
+    database.mark_deleting("worker").await.expect("mark deleting");
+    assert!(matches!(
+        database.request_sync(test_agent_id()).await,
+        Err(Error::Conflict)
+    ));
+    assert!(matches!(
+        database
+            .request_sync("9a0e8f3c-2b1d-4c5e-8f7a-6b5c4d3e2f1a".parse().expect("Agent ID"))
+            .await,
+        Err(Error::NotFound)
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_unchanged_session_lifecycle_write_is_not_a_change() {
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let generation = database.activate_session(session.id).await.expect("activate");
+    database
+        .update_session_lifecycle(session.id, Lifecycle::running(), generation, Some(generation))
+        .await
+        .expect("running");
+    let changes = database.changes();
+    let before = changes.revision();
+    database
+        .update_session_lifecycle(session.id, Lifecycle::running(), generation, None)
+        .await
+        .expect("still running");
+    assert_eq!(
+        changes.revision(),
+        before,
+        "a periodic pass that changes nothing wakes no waiter"
+    );
+    let session = database.get_session(session.id).await.expect("Session");
+    assert_eq!(
+        session.observed_generation, generation,
+        "a write without an outcome keeps the observed request"
+    );
+
+    database
+        .set_session_archived("worker", &session.name, true)
+        .await
+        .expect("archive");
+    let archived = database.get_session(session.id).await.expect("Session");
+    assert_eq!(archived.generation, generation + 1, "archiving is a request");
+    assert_eq!(archived.observed_generation, generation);
 }

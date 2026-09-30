@@ -44,6 +44,10 @@ pub enum FailureKind {
     Invalid,
     /// A later pass may succeed without any change to desired state.
     Transient,
+    /// The Sandbox cannot do its work now, such as a guest that stopped
+    /// responding. Passes are retried like [`Self::Transient`] ones, but a
+    /// caller waiting for the resource stops instead of waiting through them.
+    Unavailable,
 }
 
 /// One classified reconciliation failure.
@@ -76,6 +80,8 @@ impl ReconcileFailure {
         Self {
             kind: if permanent {
                 FailureKind::Invalid
+            } else if matches!(error, Error::SandboxUnresponsive(_)) {
+                FailureKind::Unavailable
             } else {
                 FailureKind::Transient
             },
@@ -98,6 +104,7 @@ impl From<ReconcileFailure> for Error {
         match failure.kind {
             FailureKind::Invalid => Self::Invalid(failure.message),
             FailureKind::Transient => Self::Daemon(failure.message),
+            FailureKind::Unavailable => Self::Unavailable(failure.message),
         }
     }
 }
@@ -135,6 +142,21 @@ impl<Key> Wakeup<Key> {
         receiver
             .await
             .map_err(|_| transient(format!("{} controller dropped a response", self.resource)))?
+    }
+
+    /// Queues convergence of already-durable state without waiting for a pass.
+    ///
+    /// Unlike [`Self::notify`], it waits for room in the queue instead of
+    /// dropping the request, so the pass is never left to the periodic scan.
+    ///
+    /// # Errors
+    ///
+    /// Returns a transient failure when the controller stopped.
+    pub async fn wake(&self, key: Key) -> Result<(), ReconcileFailure> {
+        self.sender
+            .send(Request { key, response: None })
+            .await
+            .map_err(|_| transient(format!("{} controller stopped", self.resource)))
     }
 
     /// Provides a best-effort low-latency hint for already-durable state.

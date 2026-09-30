@@ -4,11 +4,11 @@ use std::{rc::Rc, time::Duration};
 
 use ::sandbox::LocalFuture;
 
-use crate::Error;
+use crate::{Error, FailureKind, ReconcileFailure};
 
 use super::{
-    Activity, ActivityEvent, AgentSandboxes, LaunchRecord, LaunchToken, Lifecycle, LifecycleState, Phase, Session,
-    SessionId, SessionRuntime, SharedStore, runtime::Observation,
+    Activity, ActivityEvent, AgentSandboxes, LaunchRecord, LaunchToken, Lifecycle, LifecycleReason, LifecycleState,
+    Phase, Session, SessionId, SessionRuntime, SharedStore, runtime::Observation,
 };
 
 /// A launch is considered healthy after surviving this long, resetting backoff.
@@ -174,7 +174,9 @@ impl Reconciler {
         let now = time::OffsetDateTime::now_utc().unix_timestamp();
 
         if let Observation::Alive { attached, idle_seconds } = self.runtime.observe(session, &sandbox).await? {
+            // A request waiting for its outcome, such as an attach, is never answered with an idle stop.
             if !attached
+                && session.observed_generation >= session.generation
                 && effective_idle_seconds(&session.status.reported.activity, idle_seconds, now) >= IDLE_AFTER_SECONDS
             {
                 self.runtime.stop(session, &sandbox).await?;
@@ -206,9 +208,11 @@ impl Reconciler {
                 attempts = state.attempts;
                 let wait = backoff_seconds(attempts);
                 if attempts > 0 && now < state.launched_at + wait {
-                    return Ok(Lifecycle::failed(format!(
-                        "harness exited; relaunching after up to {wait}s of backoff"
-                    )));
+                    return Ok(Lifecycle::failed(
+                        LifecycleReason::HarnessBackoff,
+                        format!("harness exited; relaunching after up to {wait}s of backoff"),
+                        FailureKind::Transient,
+                    ));
                 }
             } else {
                 // The Sandbox was replaced, and the harness conversation state
@@ -244,8 +248,9 @@ impl Reconciler {
         let token = record.token.clone();
         let initial_prompt = self.sessions.record_session_launch(session.id, record).await?;
         if resume.is_some() {
+            // Mid-pass: the outcome is recorded once the resumed harness is ready.
             self.sessions
-                .update_session_lifecycle(session.id, Lifecycle::resuming(), session.activation_generation)
+                .update_session_lifecycle(session.id, Lifecycle::resuming(), session.activation_generation, None)
                 .await?;
         }
         self.runtime
@@ -306,11 +311,17 @@ impl Reconciler {
             "resumed harness did not become ready for input within {} seconds",
             RESUME_READY_TIMEOUT.as_secs()
         ));
+        // The pass records this failure as its outcome when it returns it.
         self.sessions
             .update_session_lifecycle(
                 session.id,
-                Lifecycle::failed(error.to_string()),
+                Lifecycle::failed(
+                    LifecycleReason::ReconcileFailed,
+                    error.to_string(),
+                    FailureKind::Transient,
+                ),
                 session.activation_generation,
+                None,
             )
             .await?;
         Err(error)
@@ -318,6 +329,11 @@ impl Reconciler {
 }
 
 impl crate::controller::Reconcile<SessionId> for Reconciler {
+    /// Converges one Session and records the outcome of the request it read.
+    ///
+    /// The pass handles the Session's request counter as it read it, and its
+    /// outcome comes from the desired state it read with it. A hold that lasts
+    /// only until the Agent catches up is recorded without being an outcome.
     fn reconcile(&self, id: SessionId) -> LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
             let session = match self.sessions.get_session(id).await {
@@ -325,32 +341,57 @@ impl crate::controller::Reconcile<SessionId> for Reconciler {
                 Err(Error::NotFound) => return Ok(()),
                 Err(error) => return Err(error),
             };
+            let request = session.generation;
             if session.is_deleting() {
-                return self.release(&session).await;
+                return match self.release(&session).await {
+                    Ok(()) => Ok(()),
+                    Err(error) => {
+                        // The release is retried; a caller waiting for it learns why it has not finished.
+                        let lifecycle = Lifecycle::failed(
+                            LifecycleReason::ReleaseFailed,
+                            error.to_string(),
+                            ReconcileFailure::classify(&error).kind,
+                        );
+                        self.sessions
+                            .update_session_lifecycle(
+                                session.id,
+                                lifecycle,
+                                session.activation_generation,
+                                Some(request),
+                            )
+                            .await?;
+                        Err(error)
+                    }
+                };
             }
-            let converged = if session.is_archived() {
+            let archived = session.is_archived();
+            let converged = if archived {
                 self.converge_archive(&session).await
             } else {
                 self.converge(&session).await
             };
             match converged {
                 Ok(lifecycle) => {
+                    let outcome = lifecycle.is_outcome().then_some(request);
                     self.sessions
-                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation)
+                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation, outcome)
                         .await
                 }
                 Err(error) => {
+                    let kind = ReconcileFailure::classify(&error).kind;
                     let current = self.sessions.get_session(session.id).await?;
-                    let lifecycle = if current.is_archived() {
+                    let lifecycle = if archived {
                         // A failed archive stays archived, so unarchiving never relaunches the harness.
-                        Lifecycle::archived_with(error.to_string())
+                        Lifecycle::archived_with(error.to_string(), kind)
                     } else if current.status.lifecycle.state == LifecycleState::Resuming {
-                        Lifecycle::resuming_with(error.to_string())
+                        // Not an outcome: the next pass finishes the resume.
+                        Lifecycle::resuming_with(error.to_string(), kind)
                     } else {
-                        Lifecycle::failed(error.to_string())
+                        Lifecycle::failed(LifecycleReason::ReconcileFailed, error.to_string(), kind)
                     };
+                    let outcome = lifecycle.is_outcome().then_some(request);
                     self.sessions
-                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation)
+                        .update_session_lifecycle(session.id, lifecycle, session.activation_generation, outcome)
                         .await?;
                     Err(error)
                 }
@@ -386,30 +427,57 @@ fn backoff_seconds(attempts: u32) -> i64 {
 ///
 /// The image ships every harness binary, so launching one convergence never installed starts a
 /// process that sits at a login prompt nobody can answer and reports the Session as running.
+///
+/// A hold that ends a waiter's request is derived only from Agent status that
+/// is current, meaning it reflects the Agent's latest desired state and sync
+/// request, so a stale failure never fails a request the next Agent pass would
+/// satisfy. An Agent being deleted ends it regardless. Everything else holds
+/// the Session until the Agent catches up. Launching on a Ready Agent is never
+/// held for a pending sync.
 fn launch_blocked(agent: &crate::control_plane::AgentRecord, session: &Session) -> Option<Lifecycle> {
-    let installed = agent
-        .agent
-        .status
+    let name = &agent.agent.metadata.name;
+    let status = &agent.agent.status;
+    let current = status.observed_generation == agent.agent.metadata.generation && status.sync.is_current();
+    let installed = status
         .sandbox
         .as_ref()
         .and_then(crate::sandbox::Assignment::installed_harnesses);
-    let reason = if agent.agent.metadata.deletion_timestamp.is_some() || !agent.agent.status.is_ready() {
-        format!("Agent {:?} is not ready", agent.agent.metadata.name)
-    } else if !installed.is_some_and(|installed| installed.contains(&session.harness)) {
-        format!(
-            "Agent {:?} does not carry harness {:?}; sign in on the host and the next Agent \
-             convergence installs it",
-            agent.agent.metadata.name,
-            session.harness.as_str()
+    let (reason, detail) = if agent.agent.metadata.deletion_timestamp.is_some() {
+        (
+            LifecycleReason::AgentDeleted,
+            format!("Agent {name:?} is being deleted"),
         )
+    } else if status.sync.observed < session.agent_sync {
+        // The request that activated the Session asked the Agent to converge first.
+        (LifecycleReason::AgentNotReady, format!("Agent {name:?} is converging"))
+    } else if !status.is_ready() {
+        let failure = status.ready_condition().map(crate::Condition::detail);
+        match (current, status.failure, failure) {
+            (true, Some(FailureKind::Invalid), Some(detail)) => (LifecycleReason::AgentInvalid, detail),
+            (true, Some(FailureKind::Unavailable), Some(detail)) => (LifecycleReason::AgentUnavailable, detail),
+            _ => (LifecycleReason::AgentNotReady, format!("Agent {name:?} is not ready")),
+        }
+    } else if !installed.is_some_and(|installed| installed.contains(&session.harness)) {
+        if current {
+            (
+                LifecycleReason::HarnessNotInstalled,
+                format!(
+                    "Agent {name:?} does not carry harness {:?}; sign in on the host and the next Agent \
+                     convergence installs it",
+                    session.harness.as_str()
+                ),
+            )
+        } else {
+            (LifecycleReason::AgentNotReady, format!("Agent {name:?} is not ready"))
+        }
     } else {
         return None;
     };
-    Some(if session.status.lifecycle.state == LifecycleState::Resuming {
-        Lifecycle::resuming_with(reason)
-    } else {
-        Lifecycle::starting(reason)
-    })
+    Some(Lifecycle::held(
+        reason,
+        detail,
+        session.status.lifecycle.state == LifecycleState::Resuming,
+    ))
 }
 
 #[cfg(test)]

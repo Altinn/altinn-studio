@@ -214,6 +214,7 @@ pub(crate) const fn failure_kind(kind: agent::FailureKind) -> &'static str {
     match kind {
         agent::FailureKind::Invalid => "Invalid (change the Agent to continue)",
         agent::FailureKind::Transient => "Transient (retrying in the background)",
+        agent::FailureKind::Unavailable => "Unavailable (retrying in the background)",
     }
 }
 

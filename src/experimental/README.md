@@ -78,7 +78,7 @@ without a round trip to the guest, and `agentd` records when each heartbeat last
 seconds without progress, the Agent reports `SandboxResponsive=False` and `Ready=False` with reason
 `SandboxUnresponsive`. Reconciliation work that reaches into the guest ends as soon as its guest is unresponsive, so a
 stalled guest cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready gives up
-about 5 seconds after the stall is recorded. The Agent becomes Ready again once the heartbeat advances. A stalled guest
+once the stall is recorded. The Agent becomes Ready again once the heartbeat advances. A stalled guest
 is not restarted automatically.
 
 Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`

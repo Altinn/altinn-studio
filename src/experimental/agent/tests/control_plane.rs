@@ -406,6 +406,38 @@ async fn apply_stores_desired_state_without_running_inline() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn every_apply_of_an_existing_agent_requests_a_pass() {
+    let fixture = fixture();
+    let request = apply_request("worker");
+    let created = fixture.control_plane.apply(request.clone()).await.expect("create");
+    assert_eq!(
+        created.status.sync.requested, 0,
+        "a new Agent's first generation already asks for a pass"
+    );
+    let unchanged = fixture
+        .control_plane
+        .apply(request.clone())
+        .await
+        .expect("unchanged apply");
+    assert_eq!((unchanged.metadata.generation, unchanged.status.sync.requested), (1, 1));
+    let mut changed = request;
+    changed.agent.spec.sandbox.retention_policy = Some(RetentionPolicy::Delete);
+    let changed = fixture.control_plane.apply(changed).await.expect("changed apply");
+    assert_eq!((changed.metadata.generation, changed.status.sync.requested), (2, 2));
+    assert_eq!(
+        stored(&fixture, "worker").await.agent.status.sync.requested,
+        2,
+        "the returned request is the stored one"
+    );
+
+    fixture.control_plane.delete("worker").await.expect("delete");
+    assert!(matches!(
+        fixture.store.request_sync(stored(&fixture, "worker").await.id).await,
+        Err(Error::Conflict)
+    ));
+}
+
+#[tokio::test(flavor = "local")]
 async fn lists_agents_and_resolves_the_nearest_unique_source_directory() {
     let fixture = fixture();
     let root = std::env::temp_dir().join("agent-platform-sources");
@@ -1765,7 +1797,7 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
             PlannedFailure::Transient("temporary runtime failure".into()),
             PlannedFailure::Transient("temporary runtime failure".into()),
         ],
-        BACKGROUND_RETRIES,
+        NO_BACKGROUND_PASSES,
     )
     .await;
     let error = fixture
@@ -1775,13 +1807,34 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
         .expect_err("first pass fails");
     assert!(matches!(error, Error::Daemon(message) if message.contains("temporary runtime failure")));
 
-    let target = tokio::time::timeout(
-        Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
-    )
+    let id = fixture.id().await;
+    let waiting = fixture.execution.clone();
+    let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
+    // The pass this wait requested fails as well; the wait outlasts it.
+    tokio::time::timeout(Duration::from_secs(1), async {
+        loop {
+            let status = fixture.store.get(id).await.expect("stored Agent").agent.status;
+            if status.sync.observed >= 2 && status.failure.is_some() {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(1)).await;
+        }
+    })
     .await
-    .expect("background retry should complete")
-    .expect("eventual execution target");
+    .expect("second failure recorded");
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    assert!(
+        !wait.is_finished(),
+        "a transient failure does not end an until-Ready wait"
+    );
+
+    // A background retry succeeds and ends the wait.
+    fixture.wakeup.notify(id);
+    let target = tokio::time::timeout(Duration::from_secs(1), wait)
+        .await
+        .expect("background retry should complete")
+        .expect("wait task")
+        .expect("eventual execution target");
     assert!(target.sandbox.id().is_some());
     fixture.task.abort();
 }
@@ -2191,7 +2244,7 @@ async fn a_stalled_guest_ends_setup_and_its_agent_reports_it_unresponsive() {
         ConditionStatus::True,
         "the Sandbox lifecycle is unchanged"
     );
-    assert_eq!(status.failure, Some(FailureKind::Transient));
+    assert_eq!(status.failure, Some(FailureKind::Unavailable));
 
     // While the guest stays stalled, a pass does not reach into it.
     let setups = fixture.platform.setups.get();
@@ -2235,7 +2288,7 @@ async fn an_agent_with_a_stalled_guest_can_still_be_deleted() {
 }
 
 #[tokio::test(flavor = "local", start_paused = true)]
-async fn waiting_until_ready_ends_soon_after_the_guest_is_unresponsive() {
+async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
     let changes = Changes::new();
     let fixture = stalling(changes.clone()).await;
     let (controller, wakeup) = Controller::new(
@@ -2257,11 +2310,14 @@ async fn waiting_until_ready_ends_soon_after_the_guest_is_unresponsive() {
     let started = tokio::time::Instant::now();
     let result = convergence.converge(fixture.id, WaitPolicy::UntilReady).await;
 
-    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
-    let waited = started.elapsed();
     assert!(
-        waited >= Duration::from_secs(5) && waited < Duration::from_secs(6),
-        "the wait should end about 5s after the stall is recorded, took {waited:?}"
+        matches!(&result, Err(Error::Unavailable(message)) if message.contains("not responding")),
+        "{result:?}"
+    );
+    assert!(
+        started.elapsed() < Duration::from_secs(1),
+        "the wait ends with the pass that records the stall, took {:?}",
+        started.elapsed()
     );
     task.abort();
 }

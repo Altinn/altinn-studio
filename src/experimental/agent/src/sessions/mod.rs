@@ -272,78 +272,145 @@ pub struct Lifecycle {
     /// Normalized lifecycle state.
     #[serde(default)]
     pub state: LifecycleState,
-    /// Failure from the latest reconciliation attempt.
+    /// Why the Session is held, failed or not yet running, when a reason applies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<LifecycleReason>,
+    /// Detail of the reason: the failure or hold of the latest reconciliation attempt.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub failure: Option<String>,
+    /// Classification of a failure, when the reason is one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_kind: Option<crate::FailureKind>,
+}
+
+/// Why a Session's lifecycle is held, failed or not yet running.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum LifecycleReason {
+    /// Its Agent is not ready yet, or has not handled the latest request yet;
+    /// the Session launches once it is. The only reason that is not an
+    /// outcome for a waiter.
+    AgentNotReady,
+    /// Its Agent's desired state must change first.
+    AgentInvalid,
+    /// Its Agent's Sandbox cannot do work now, such as a guest that stopped responding.
+    AgentUnavailable,
+    /// Its Agent is being deleted.
+    AgentDeleted,
+    /// Its Agent's Sandbox does not carry the Session's harness.
+    HarnessNotInstalled,
+    /// Its harness exited and is relaunched after a backoff.
+    HarnessBackoff,
+    /// Stopping the harness of a deleted Session failed; the release is retried.
+    ReleaseFailed,
+    /// A reconciliation pass failed.
+    ReconcileFailed,
+}
+
+impl LifecycleReason {
+    /// Whether the reason holds a Session only until its Agent catches up,
+    /// rather than being an outcome of the request a pass handled.
+    #[must_use]
+    pub const fn is_hold(self) -> bool {
+        matches!(self, Self::AgentNotReady)
+    }
 }
 
 impl Lifecycle {
     /// A running harness with no failure.
     #[must_use]
     pub const fn running() -> Self {
-        Self {
-            state: LifecycleState::Running,
-            failure: None,
-        }
+        Self::plain(LifecycleState::Running)
     }
 
     /// A deliberately stopped harness.
     #[must_use]
     pub const fn idle() -> Self {
-        Self {
-            state: LifecycleState::Idle,
-            failure: None,
-        }
+        Self::plain(LifecycleState::Idle)
     }
 
     /// A stopped harness of an archived Session.
     #[must_use]
     pub const fn archived() -> Self {
-        Self {
-            state: LifecycleState::Archived,
-            failure: None,
-        }
-    }
-
-    /// An archived Session whose harness could not be stopped yet.
-    pub fn archived_with(failure: impl Into<String>) -> Self {
-        Self {
-            state: LifecycleState::Archived,
-            failure: Some(failure.into()),
-        }
+        Self::plain(LifecycleState::Archived)
     }
 
     /// A resumed harness waiting to reach its input prompt.
     #[must_use]
     pub const fn resuming() -> Self {
+        Self::plain(LifecycleState::Resuming)
+    }
+
+    const fn plain(state: LifecycleState) -> Self {
         Self {
-            state: LifecycleState::Resuming,
+            state,
+            reason: None,
             failure: None,
+            failure_kind: None,
         }
+    }
+
+    /// An archived Session whose harness could not be stopped yet.
+    pub fn archived_with(failure: impl Into<String>, kind: crate::FailureKind) -> Self {
+        Self::with(
+            LifecycleState::Archived,
+            LifecycleReason::ReconcileFailed,
+            failure,
+            Some(kind),
+        )
     }
 
     /// A resumed harness whose latest readiness attempt was interrupted.
-    pub fn resuming_with(failure: impl Into<String>) -> Self {
+    pub fn resuming_with(failure: impl Into<String>, kind: crate::FailureKind) -> Self {
+        Self::with(
+            LifecycleState::Resuming,
+            LifecycleReason::ReconcileFailed,
+            failure,
+            Some(kind),
+        )
+    }
+
+    /// A Session held short of launching, or of reaching its input prompt when
+    /// `resuming`, because its Agent cannot run it.
+    pub fn held(reason: LifecycleReason, detail: impl Into<String>, resuming: bool) -> Self {
+        let kind = match reason {
+            LifecycleReason::AgentNotReady => None,
+            LifecycleReason::AgentUnavailable => Some(crate::FailureKind::Unavailable),
+            _ => Some(crate::FailureKind::Invalid),
+        };
+        let state = if resuming {
+            LifecycleState::Resuming
+        } else {
+            LifecycleState::Starting
+        };
+        Self::with(state, reason, detail, kind)
+    }
+
+    /// A reconciliation that failed, with its reason and classification.
+    pub fn failed(reason: LifecycleReason, failure: impl Into<String>, kind: crate::FailureKind) -> Self {
+        Self::with(LifecycleState::Failed, reason, failure, Some(kind))
+    }
+
+    fn with(
+        state: LifecycleState,
+        reason: LifecycleReason,
+        failure: impl Into<String>,
+        kind: Option<crate::FailureKind>,
+    ) -> Self {
         Self {
-            state: LifecycleState::Resuming,
+            state,
+            reason: Some(reason),
             failure: Some(failure.into()),
+            failure_kind: kind,
         }
     }
 
-    /// Not yet running, with the reason.
-    pub fn starting(failure: impl Into<String>) -> Self {
-        Self {
-            state: LifecycleState::Starting,
-            failure: Some(failure.into()),
-        }
-    }
-
-    /// The latest reconciliation failed, with the reason.
-    pub fn failed(failure: impl Into<String>) -> Self {
-        Self {
-            state: LifecycleState::Failed,
-            failure: Some(failure.into()),
-        }
+    /// Whether this lifecycle is an outcome of the request its pass read, as
+    /// opposed to a hold that lasts only until the Agent catches up, or a
+    /// resumed harness that a later pass brings to its input prompt.
+    #[must_use]
+    pub fn is_outcome(&self) -> bool {
+        self.state != LifecycleState::Resuming && !self.reason.is_some_and(LifecycleReason::is_hold)
     }
 }
 
@@ -461,10 +528,23 @@ pub struct Session {
     /// Most recently observed driver state.
     #[serde(default)]
     pub status: Status,
-    /// Desired activation revision, written only by explicit Session ensure.
+    /// Latest request to change what the Session should be: ensure, archive,
+    /// unarchive, delete, or the relaunch after an upgrade.
+    #[serde(default)]
+    pub generation: u64,
+    /// Latest request a reconciliation pass handled, recorded with the
+    /// lifecycle outcome of that pass.
+    #[serde(default)]
+    pub observed_generation: u64,
+    /// Agent sync request the latest activation waits for: the Session is held
+    /// until its Agent has handled it, so it never launches on Agent status
+    /// from before the request, such as a Ready Agent whose Sandbox stopped.
+    #[serde(default)]
+    pub agent_sync: u64,
+    /// Desired launch revision, bumped by ensure and by the relaunch after an upgrade.
     #[serde(skip)]
     pub(crate) activation_generation: u64,
-    /// Activation revision observed by the lifecycle reconciler.
+    /// Launch revision observed by the lifecycle reconciler.
     #[serde(skip)]
     pub(crate) observed_activation_generation: u64,
 }
@@ -616,15 +696,30 @@ pub trait SessionStore: SessionReports {
 
     /// Replaces the lifecycle half of the status for the desired activation
     /// revision observed by the reconciler; the reported half is untouched.
+    ///
+    /// `observed_generation` is the request whose outcome the lifecycle is,
+    /// or `None` for a write that is not an outcome, such as a hold or a
+    /// resume in progress, which keeps the recorded one. A write that changes
+    /// nothing advances no revision.
     fn update_session_lifecycle(
         &self,
         id: SessionId,
         lifecycle: Lifecycle,
         observed_activation_generation: u64,
+        observed_generation: Option<u64>,
     ) -> ::sandbox::LocalFuture<'_, Result<(), Error>>;
 
-    /// Requests that an Idle Session become active and returns the new desired revision.
+    /// Requests that an Idle Session become active and returns the new launch
+    /// revision. The request counter moves with it, in the same write.
     fn activate_session(&self, id: SessionId) -> ::sandbox::LocalFuture<'_, Result<u64, Error>>;
+
+    /// Like [`Self::activate_session`], and holds the launch until the
+    /// Agent has handled its sync request `agent_sync`, in the same write.
+    fn activate_session_after_agent_sync(
+        &self,
+        id: SessionId,
+        agent_sync: u64,
+    ) -> ::sandbox::LocalFuture<'_, Result<u64, Error>>;
 
     /// Atomically records the first release request for one named Session of an
     /// active Agent incarnation, and returns it as marked.
@@ -722,7 +817,8 @@ pub async fn attach(home: &std::path::Path, target: &AttachTarget) -> Result<(),
 
 #[cfg(test)]
 mod tests {
-    use super::{Activity, Lifecycle, LifecycleState, Phase, Reported, State, Status};
+    use super::{Activity, Lifecycle, LifecycleReason, LifecycleState, Phase, Reported, State, Status};
+    use crate::FailureKind;
 
     #[test]
     fn an_archived_session_is_refused_as_archived_whatever_its_harness_does() {
@@ -739,6 +835,9 @@ mod tests {
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
+            generation: 0,
+            observed_generation: 0,
+            agent_sync: 0,
         };
         let refused = session(Some(time::OffsetDateTime::UNIX_EPOCH))
             .not_running_error()
@@ -775,13 +874,20 @@ mod tests {
         assert_eq!(archiving.state_since, Some(at(3)), "since the archive was requested");
         assert_eq!(archiving.harness_state(), State::Working, "the harness still works");
         assert_eq!(
-            status(Lifecycle::archived_with("unreachable"), Some(at(3))).state,
+            status(
+                Lifecycle::archived_with("unreachable", FailureKind::Transient),
+                Some(at(3))
+            )
+            .state,
             State::Archiving,
             "a stop that failed is retried"
         );
         let archived = status(Lifecycle::archived(), Some(at(3)));
         assert_eq!((archived.state, archived.state_since), (State::Archived, Some(at(2))));
-        for lifecycle in [Lifecycle::idle(), Lifecycle::failed("boom")] {
+        for lifecycle in [
+            Lifecycle::idle(),
+            Lifecycle::failed(LifecycleReason::ReconcileFailed, "boom", FailureKind::Transient),
+        ] {
             assert_eq!(
                 status(lifecycle, Some(at(3))).state,
                 State::Archiving,
@@ -793,7 +899,8 @@ mod tests {
             State::Idle,
             "unarchived before the reconciler settles it"
         );
-        let unarchived_after_failed_stop = status(Lifecycle::archived_with("unreachable"), None);
+        let unarchived_after_failed_stop =
+            status(Lifecycle::archived_with("unreachable", FailureKind::Transient), None);
         assert_eq!(
             (
                 unarchived_after_failed_stop.state,
@@ -823,7 +930,12 @@ mod tests {
             Some(at(10)),
             "a running Session is in its activity phase"
         );
-        let failed = Status::observed(Lifecycle::failed("boom"), reported, Some(at(20)), None);
+        let failed = Status::observed(
+            Lifecycle::failed(LifecycleReason::ReconcileFailed, "boom", FailureKind::Transient),
+            reported,
+            Some(at(20)),
+            None,
+        );
         assert_eq!(failed.state_since, Some(at(20)), "otherwise the lifecycle decides");
     }
 
@@ -849,9 +961,13 @@ mod tests {
                 State::WaitingForInput,
             ),
             (Lifecycle::idle(), reported(Phase::WaitingForInput), State::Idle),
-            (Lifecycle::failed("boom"), reported(Phase::Working), State::Failed),
             (
-                Lifecycle::starting("not ready"),
+                Lifecycle::failed(LifecycleReason::ReconcileFailed, "boom", FailureKind::Transient),
+                reported(Phase::Working),
+                State::Failed,
+            ),
+            (
+                Lifecycle::held(LifecycleReason::AgentNotReady, "not ready", false),
                 reported(Phase::Working),
                 State::Starting,
             ),

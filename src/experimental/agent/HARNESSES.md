@@ -62,8 +62,7 @@ on an Agent built with the previous pin.
 | Nested Agent                                                         | Both        | Inside a Session, `agentctl claude login --from-stdin` with `$AGENT_CLAUDE_ACCESS_TOKEN` and `agentctl codex login --from-stdin < ~/.codex/auth.json` let a nested Agent run both harnesses.                              |
 | New `agentd` with the previous pin                                   | Both        | When the change touches adapter code, an Agent on the previous image still creates, prompts, reads turns and resumes.                                                                                                     |
 
-Completion waits poll local database activity every 250 ms and require identical completed, waiting activity
-in two consecutive polls.
+A completion wait counts a completed turn once the harness waits for input and no activity has arrived for 250 ms.
 
 Inspect `get sessions` (including `-o json`) and `turns` alongside the terminal. Check user messages, assistant answers,
 tool results and turn boundaries, including after compaction. A successful model response alone is insufficient.

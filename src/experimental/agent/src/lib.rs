@@ -20,6 +20,7 @@ pub mod sessions;
 pub mod ssh;
 pub mod upgrade;
 pub mod vnc;
+pub mod wait;
 
 pub use control_plane::AgentId;
 pub use controller::{FailureKind, ReconcileFailure};
@@ -28,7 +29,7 @@ pub use manifest::{
     API_VERSION, AccessSpec, Agent, AgentVariant, AgentVariantName, Condition, ConditionStatus, EnvironmentSpec,
     HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec,
     PlatformManifestSpec, Provenance, ResolvedManifest, SandboxManifestSpec, SecretSpec, SkillSpec, Spec, Status,
-    VARIANT_KIND,
+    SyncStatus, VARIANT_KIND,
 };
 
 /// Version embedded in a matched `agentctl`/`agentd` build.
@@ -76,6 +77,10 @@ pub enum Error {
     /// controller keeps observing it.
     #[error("Agent Sandbox is not responding: {0}")]
     SandboxUnresponsive(String),
+    /// The Agent or Session cannot do its work now, and a caller waiting for it
+    /// stops; the message is the recorded outcome's.
+    #[error("{0}")]
+    Unavailable(String),
     /// A generic Sandbox operation failed.
     #[error("Sandbox operation failed: {0}")]
     Sandbox(#[from] ::sandbox::Error),

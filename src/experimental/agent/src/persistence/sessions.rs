@@ -7,8 +7,8 @@ use crate::{
     AgentId, Error,
     sandbox::Assignment,
     sessions::{
-        Activity, ActivityEvent, AttachTarget, LaunchState, LaunchToken, Lifecycle, LifecycleState, NewSession,
-        Reported, Session, SessionId, SessionName, Status,
+        Activity, ActivityEvent, AttachTarget, LaunchState, LaunchToken, Lifecycle, LifecycleReason, LifecycleState,
+        NewSession, Reported, Session, SessionId, SessionName, Status,
     },
 };
 
@@ -17,19 +17,27 @@ use super::{agents, database_error};
 const SESSION_COLUMNS: &str = "sessions.id, sessions.agent_id, agents.active_name, sessions.name, \
     sessions.harness, sessions.created_at, sessions.activation_generation, sessions.lifecycle_json, \
     sessions.harness_native_id, sessions.harness_transcript_path, sessions.activity_json, \
-    sessions.model, sessions.effort, sessions.deletion_timestamp, sessions.archived_at";
+    sessions.model, sessions.effort, sessions.deletion_timestamp, sessions.archived_at, sessions.generation, \
+    sessions.agent_sync";
 
 /// Reconciler-owned column: the lifecycle half of the status plus the
-/// activation revision it was observed at.
-#[derive(Default, Deserialize, Serialize)]
+/// activation revision it was observed at, and the latest request whose
+/// outcome it records.
+#[derive(Default, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct LifecycleRow {
     #[serde(default)]
     state: LifecycleState,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    reason: Option<LifecycleReason>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     failure: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    failure_kind: Option<crate::FailureKind>,
     #[serde(default)]
     observed_activation_generation: u64,
+    #[serde(default)]
+    observed_generation: u64,
     /// When `state` last changed.
     #[serde(
         default,
@@ -141,11 +149,18 @@ pub(super) fn list_for_agent(connection: &Connection, agent: &str) -> Result<Vec
     )
 }
 
-pub(super) fn activate(connection: &Connection, id: SessionId) -> Result<u64, Error> {
+/// Requests a launch: bumps the launch revision and the request counter in
+/// one write, so no pass reads one without the other. Returns the launch revision.
+pub(super) fn activate(connection: &Connection, id: SessionId, agent_sync: Option<u64>) -> Result<u64, Error> {
+    let agent_sync = agent_sync
+        .map(i64::try_from)
+        .transpose()
+        .map_err(|error| Error::Database(error.to_string()))?;
     let changed = connection
         .execute(
-            "UPDATE sessions SET activation_generation = activation_generation + 1 WHERE id = ?1",
-            [id.to_string()],
+            "UPDATE sessions SET activation_generation = activation_generation + 1, generation = generation + 1, \
+             agent_sync = COALESCE(?2, agent_sync) WHERE id = ?1",
+            params![id.to_string(), agent_sync],
         )
         .map_err(database_error)?;
     if changed != 1 {
@@ -172,7 +187,8 @@ pub(super) fn mark_deleting(connection: &mut Connection, agent: &str, name: &Ses
     if !session.is_deleting() {
         let changed = transaction
             .execute(
-                "UPDATE sessions SET deletion_timestamp = ?1 WHERE id = ?2 AND deletion_timestamp IS NULL",
+                "UPDATE sessions SET deletion_timestamp = ?1, generation = generation + 1 \
+                 WHERE id = ?2 AND deletion_timestamp IS NULL",
                 params![time::OffsetDateTime::now_utc().unix_timestamp(), session.id.to_string()],
             )
             .map_err(database_error)?;
@@ -205,7 +221,7 @@ pub(super) fn set_archived(
         let archived_at = archived.then(|| time::OffsetDateTime::now_utc().unix_timestamp());
         transaction
             .execute(
-                "UPDATE sessions SET archived_at = ?1 WHERE id = ?2",
+                "UPDATE sessions SET archived_at = ?1, generation = generation + 1 WHERE id = ?2",
                 params![archived_at, session.id.to_string()],
             )
             .map_err(database_error)?;
@@ -227,12 +243,16 @@ pub(super) fn finalize_deletion(connection: &Connection, id: SessionId) -> Resul
     if changed == 1 { Ok(()) } else { Err(Error::Conflict) }
 }
 
+/// Replaces the lifecycle half of the status. `observed_generation` is the
+/// request whose outcome this is, or `None` for a write that is not an
+/// outcome and keeps the one recorded. Returns whether anything changed.
 pub(super) fn update_lifecycle(
     connection: &Connection,
     id: SessionId,
     lifecycle: Lifecycle,
     observed_activation_generation: u64,
-) -> Result<(), Error> {
+    observed_generation: Option<u64>,
+) -> Result<bool, Error> {
     let current = connection
         .query_row(
             "SELECT lifecycle_json FROM sessions WHERE id = ?1",
@@ -250,17 +270,23 @@ pub(super) fn update_lifecycle(
     };
     let row = LifecycleRow {
         state: lifecycle.state,
+        reason: lifecycle.reason,
         failure: lifecycle.failure,
+        failure_kind: lifecycle.failure_kind,
         observed_activation_generation,
+        observed_generation: observed_generation.unwrap_or(current.observed_generation),
         since,
     };
+    if row == current {
+        return Ok(false);
+    }
     let changed = connection
         .execute(
             "UPDATE sessions SET lifecycle_json = ?1 WHERE id = ?2",
             params![serde_json::to_string(&row)?, id.to_string()],
         )
         .map_err(database_error)?;
-    if changed == 1 { Ok(()) } else { Err(Error::NotFound) }
+    if changed == 1 { Ok(true) } else { Err(Error::NotFound) }
 }
 
 /// Clears every reported column: the previous harness incarnation's
@@ -522,6 +548,8 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         .map(time::OffsetDateTime::from_unix_timestamp)
         .transpose()
         .map_err(conversion_error)?;
+    let generation = u64::try_from(row.get::<_, i64>(15)?).map_err(conversion_error)?;
+    let agent_sync = u64::try_from(row.get::<_, i64>(16)?).map_err(conversion_error)?;
     Ok(Session {
         id,
         agent_id,
@@ -535,7 +563,9 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
         status: Status::observed(
             Lifecycle {
                 state: lifecycle.state,
+                reason: lifecycle.reason,
                 failure: lifecycle.failure,
+                failure_kind: lifecycle.failure_kind,
             },
             Reported {
                 harness_session_id,
@@ -545,6 +575,9 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Session> {
             lifecycle.since,
             archived_at,
         ),
+        generation,
+        observed_generation: lifecycle.observed_generation,
+        agent_sync,
         activation_generation,
         observed_activation_generation: lifecycle.observed_activation_generation,
     })

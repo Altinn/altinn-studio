@@ -40,6 +40,10 @@ pub trait AgentStore {
     /// returns the status as stored.
     fn update_status(&self, id: AgentId, generation: u64, status: Status) -> LocalFuture<'_, Result<Status, Error>>;
 
+    /// Records a request to converge the Agent now and returns it. An Agent
+    /// being deleted takes no requests and returns `Error::Conflict`.
+    fn request_sync(&self, id: AgentId) -> LocalFuture<'_, Result<u64, Error>>;
+
     /// Atomically records the first deletion request.
     fn mark_deleting<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<AgentRecord, Error>>;
 

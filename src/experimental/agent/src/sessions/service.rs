@@ -5,7 +5,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 use ::sandbox::SandboxHandle;
 use tokio::sync::Notify;
 
-use crate::{Error, control_plane, control_plane::WaitPolicy};
+use crate::{Error, control_plane, wait};
 
 use super::{
     AgentSandboxes, AttachTarget, LifecycleState, NewSession, Session, SessionId, SessionName, SessionRequest,
@@ -17,6 +17,11 @@ const PROMPT_TIMEOUT_MAX: Duration = Duration::from_mins(30);
 
 /// Polls durable activity while a caller waits for completion.
 const ACTIVITY_POLL: Duration = Duration::from_millis(250);
+
+/// How long a Session waiter lets changes gather before rereading the Session.
+const SESSION_SETTLE: Duration = Duration::from_millis(50);
+/// Longest a Session waiter goes without rereading the Session.
+const SESSION_RECHECK: Duration = Duration::from_secs(30);
 
 /// Maximum time to wait for a newly launched harness to accept input.
 const INPUT_READY_TIMEOUT: Duration = Duration::from_secs(15);
@@ -111,23 +116,49 @@ impl Service {
     ///
     /// # Errors
     ///
-    /// Returns an error when persistence fails, the Agent is invalid, or an
-    /// explicit selection conflicts with an existing Session; with
-    /// [`WaitPolicy::FirstPass`] also when the single Agent pass fails.
+    /// Returns an error when persistence fails, an explicit selection conflicts
+    /// with an existing Session, or the Session pass that handled the request
+    /// ended without a running harness: its Agent is invalid, being deleted or
+    /// unavailable, the harness is not installed, or the launch failed.
+    ///
+    /// The request asks the Agent to converge, and the Session is held until
+    /// the Agent has, so a stopped Sandbox is started before the Session
+    /// launches in it. An Agent that fails only transiently keeps the Session
+    /// held, and the wait goes on.
     pub async fn ensure(
         &self,
         agent: &str,
         name: &SessionName,
         request: SessionRequest,
-        wait: WaitPolicy,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait).await?;
-        // On a brand-new Agent this is the first moment the answer exists.
-        let converged = self.sandboxes.agent_by_name(agent).await?;
-        Self::reject_omitted_optional_harness(&converged, session.harness)?;
-        self.wakeup.reconcile(session.id).await?;
-        self.store.session_attach_target(session.id).await
+        // The Agent converges first: the Session is held until the Agent has
+        // handled this sync, so a stopped Sandbox is started before it launches.
+        let sync = self.convergence.request(owner.id).await?.sync;
+        self.store.activate_session_after_agent_sync(session.id, sync).await?;
+        let requested = self.live_session(session.id).await?.generation;
+        self.wakeup.wake(session.id).await?;
+        let current = self.settle(session.id, requested, wait::Expected::Running).await?;
+        self.store.session_attach_target(current.id).await
+    }
+
+    /// Waits until a Session pass has handled request `requested`, and
+    /// returns the Session once its outcome is the expected one.
+    async fn settle(&self, id: SessionId, requested: u64, expected: wait::Expected) -> Result<Session, Error> {
+        let changes = self.convergence.changes();
+        loop {
+            let revision = changes.revision();
+            let current = self.live_session(id).await?;
+            match wait::session(&current, requested, expected) {
+                wait::Settled::Done => return Ok(current),
+                wait::Settled::Failed(outcome) => return Err(wait::session_error(&current, outcome)),
+                wait::Settled::Superseded(_) => return Err(current.not_running_error()),
+                wait::Settled::Pending => {}
+            }
+            changes
+                .changed_since(Some(revision), SESSION_SETTLE, SESSION_RECHECK)
+                .await;
+        }
     }
 
     /// Delivers a prompt to a running Session's harness.
@@ -165,7 +196,15 @@ impl Service {
         }
         let (session, sandbox) = self.open_running(agent, name).await?;
         let id = session.id;
-        let delivering = Delivering::acquire(&self.deliveries, id).await;
+        // Deliveries to one Session take turns. One that cannot start within
+        // the input-readiness bound fails instead of queueing without end.
+        let delivering = tokio::time::timeout(INPUT_READY_TIMEOUT, Delivering::acquire(&self.deliveries, id))
+            .await
+            .map_err(|_| {
+                Error::Session(format!(
+                    "another prompt to Session \"{name}\" is still being delivered; try again once it is"
+                ))
+            })?;
         let session = self.ready_to_prompt(id, name, &sandbox).await?;
         let completed_before = session.status.reported.activity.turns;
         self.runtime.prompt(&session, &sandbox, prompt).await?;
@@ -187,42 +226,27 @@ impl Service {
         name: &SessionName,
         mut completed_before: u64,
     ) -> Result<(), Error> {
-        let mut settling = None;
         loop {
             let current = self.store.get_session(id).await?;
-            let activity = &current.status.reported.activity;
-            let waiting = match current.status.state {
-                State::Failed => {
+            match wait::turn(&mut completed_before, &current, time::OffsetDateTime::now_utc()) {
+                wait::Turn::Completed => return Ok(()),
+                wait::Turn::Ended(State::Failed) => {
                     return Err(Error::Session(format!(
                         "Session \"{name}\" failed while waiting for turn completion: {}",
                         current.status.lifecycle.failure.as_deref().unwrap_or("unknown error")
                     )));
                 }
-                State::Idle => {
-                    return Err(Error::Session(format!(
-                        "Session \"{name}\" was stopped while waiting for turn completion"
-                    )));
-                }
-                State::Archived => {
+                wait::Turn::Ended(State::Archived) => {
                     return Err(Error::Session(format!(
                         "Session \"{name}\" was archived while waiting for turn completion"
                     )));
                 }
-                State::WaitingForInput => true,
-                // An archive that has not stopped the harness yet leaves the turn to its own report.
-                State::Archiving => activity.phase == super::Phase::WaitingForInput,
-                State::Starting | State::Working => false,
-            };
-            if activity.turns > completed_before && waiting {
-                if settling.as_ref() == Some(activity) {
-                    return Ok(());
+                wait::Turn::Ended(_) => {
+                    return Err(Error::Session(format!(
+                        "Session \"{name}\" was stopped while waiting for turn completion"
+                    )));
                 }
-                settling = Some(activity.clone());
-            } else {
-                // A new turn can already be running when the previous completion
-                // is observed. Its permission waits must not satisfy this wait.
-                completed_before = completed_before.max(activity.turns);
-                settling = None;
+                wait::Turn::Pending { .. } => {}
             }
             tokio::time::sleep(ACTIVITY_POLL).await;
         }
@@ -377,7 +401,6 @@ impl Service {
         if session.agent_id != owner.id {
             return Err(Error::Conflict);
         }
-        self.store.activate_session(session.id).await?;
         Ok((owner, session))
     }
 
@@ -447,6 +470,15 @@ impl Service {
     /// is gone as far as listings and upgrades are concerned.
     async fn live_sessions(&self) -> Result<Vec<Session>, Error> {
         Ok(live(self.store.list_all_sessions().await?))
+    }
+
+    /// Reads a Session by identity unless it is being deleted.
+    async fn live_session(&self, id: SessionId) -> Result<Session, Error> {
+        let session = self.store.get_session(id).await?;
+        if session.is_deleting() {
+            return Err(Error::NotFound);
+        }
+        Ok(session)
     }
 
     /// Resolves a Session a caller may still act on. A Session marked for

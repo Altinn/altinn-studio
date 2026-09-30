@@ -15,7 +15,8 @@ mod sessions;
 
 /// Persistent Agent store backed by the shared control-plane database owner.
 ///
-/// Every successful write to Agents or Sessions advances [`Database::changes`].
+/// Every successful write to Agents or Sessions advances [`Database::changes`],
+/// except a Session lifecycle write that leaves the stored row unchanged.
 #[derive(Clone)]
 pub struct Database {
     sender: tokio::sync::mpsc::Sender<Command>,
@@ -239,20 +240,51 @@ impl crate::sessions::SessionStore for Database {
         id: crate::sessions::SessionId,
         lifecycle: crate::sessions::Lifecycle,
         observed_activation_generation: u64,
+        observed_generation: Option<u64>,
     ) -> sandbox::LocalFuture<'_, Result<(), Error>> {
         Box::pin(async move {
-            self.request(|response| Command::UpdateSessionLifecycle {
+            let changed = self
+                .request(|response| Command::UpdateSessionLifecycle {
+                    id,
+                    lifecycle,
+                    observed_activation_generation,
+                    observed_generation,
+                    response,
+                })
+                .await?;
+            // A pass that observes what is already stored, such as a periodic
+            // resync of a running Session, advances no revision and wakes no watcher.
+            if changed {
+                self.changes.bump();
+            }
+            Ok(())
+        })
+    }
+
+    fn activate_session(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<u64, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::ActivateSession {
                 id,
-                lifecycle,
-                observed_activation_generation,
+                agent_sync: None,
                 response,
             })
             .await
         })
     }
 
-    fn activate_session(&self, id: crate::sessions::SessionId) -> sandbox::LocalFuture<'_, Result<u64, Error>> {
-        Box::pin(async move { self.request(|response| Command::ActivateSession { id, response }).await })
+    fn activate_session_after_agent_sync(
+        &self,
+        id: crate::sessions::SessionId,
+        agent_sync: u64,
+    ) -> sandbox::LocalFuture<'_, Result<u64, Error>> {
+        Box::pin(async move {
+            self.request(|response| Command::ActivateSession {
+                id,
+                agent_sync: Some(agent_sync),
+                response,
+            })
+            .await
+        })
     }
 
     fn mark_session_deleting<'a>(
@@ -394,6 +426,10 @@ impl crate::control_plane::AgentStore for Database {
         })
     }
 
+    fn request_sync(&self, id: AgentId) -> sandbox::LocalFuture<'_, Result<u64, Error>> {
+        Box::pin(async move { self.request(|response| Command::RequestSync { id, response }).await })
+    }
+
     fn mark_deleting<'a>(&'a self, name: &'a str) -> sandbox::LocalFuture<'a, Result<AgentRecord, Error>> {
         Box::pin(async move {
             self.request(|response| Command::MarkDeleting {
@@ -515,6 +551,10 @@ enum Command {
         status: Box<Status>,
         response: oneshot::Sender<Result<Status, Error>>,
     },
+    RequestSync {
+        id: AgentId,
+        response: oneshot::Sender<Result<u64, Error>>,
+    },
     MarkDeleting {
         name: String,
         response: oneshot::Sender<Result<AgentRecord, Error>>,
@@ -580,10 +620,12 @@ enum Command {
         id: crate::sessions::SessionId,
         lifecycle: crate::sessions::Lifecycle,
         observed_activation_generation: u64,
-        response: oneshot::Sender<Result<(), Error>>,
+        observed_generation: Option<u64>,
+        response: oneshot::Sender<Result<bool, Error>>,
     },
     ActivateSession {
         id: crate::sessions::SessionId,
+        agent_sync: Option<u64>,
         response: oneshot::Sender<Result<u64, Error>>,
     },
     MarkSessionDeleting {
@@ -650,10 +692,10 @@ impl Command {
         match self {
             Self::Put { .. }
             | Self::UpdateStatus { .. }
+            | Self::RequestSync { .. }
             | Self::MarkDeleting { .. }
             | Self::FinalizeDeletion { .. }
             | Self::EnsureSession { .. }
-            | Self::UpdateSessionLifecycle { .. }
             | Self::ActivateSession { .. }
             | Self::MarkSessionDeleting { .. }
             | Self::FinalizeSessionDeletion { .. }
@@ -678,7 +720,9 @@ impl Command {
             | Self::ListSessions { .. }
             | Self::GetAttachTarget { .. }
             | Self::GetSessionLaunchState { .. }
-            | Self::ResetSessionLaunchAttempts { .. } => false,
+            | Self::ResetSessionLaunchAttempts { .. }
+            // It bumps the revision itself, only when the lifecycle changed.
+            | Self::UpdateSessionLifecycle { .. } => false,
         }
     }
 }
@@ -803,6 +847,9 @@ fn execute(connection: &mut Connection, command: Command) {
         } => {
             let _ = response.send(agents::update_status(connection, id, generation, *status));
         }
+        Command::RequestSync { id, response } => {
+            let _ = response.send(agents::request_sync(connection, id));
+        }
         Command::MarkDeleting { name, response } => {
             let _ = response.send(agents::mark_deleting(connection, &name));
         }
@@ -864,6 +911,7 @@ fn execute_session(connection: &mut Connection, command: Command) {
             id,
             lifecycle,
             observed_activation_generation,
+            observed_generation,
             response,
         } => {
             let _ = response.send(sessions::update_lifecycle(
@@ -871,10 +919,15 @@ fn execute_session(connection: &mut Connection, command: Command) {
                 id,
                 lifecycle,
                 observed_activation_generation,
+                observed_generation,
             ));
         }
-        Command::ActivateSession { id, response } => {
-            let _ = response.send(sessions::activate(connection, id));
+        Command::ActivateSession {
+            id,
+            agent_sync,
+            response,
+        } => {
+            let _ = response.send(sessions::activate(connection, id, agent_sync));
         }
         Command::MarkSessionDeleting { agent, name, response } => {
             let _ = response.send(sessions::mark_deleting(connection, &agent, &name));
