@@ -67,6 +67,11 @@ enum Input {
     ManifestsDiscovered(Vec<ManifestCandidate>),
     /// An action a finished step leads to, run in turn with the input already waiting.
     Then(Action),
+    /// OpenSSH resolved an Agent's alias.
+    SshChecked {
+        agent: String,
+        setup: SshSetup,
+    },
     /// A background open finished: the notice to show, or why it failed.
     Opened {
         agent: String,
@@ -164,7 +169,6 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
     app.ssh_include = agent::ssh::UserInclude::for_home(home).ok();
     let mut forwards = ActiveForwards::default();
     let (inputs, mut background) = tokio::sync::mpsc::unbounded_channel();
-    app.ssh_setup = SshSetup::check(app.ssh_include.as_ref());
     let mut tui = Tui::enter()?;
     let mut events = EventStream::new();
     let mut mouse = MouseInput::default();
@@ -180,6 +184,9 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
         app.expire_notice(Instant::now());
         if let Some((agent, session)) = app.transcript_request() {
             spawn_transcript(home.socket_path(), inputs.clone(), agent, session);
+        }
+        if let Some(agent) = app.ssh_check_request() {
+            spawn_ssh_check(inputs.clone(), agent);
         }
         let hit_map = tui.draw(&app)?;
         tui.set_pointer_for(&hit_map, mouse.position())?;
@@ -233,6 +240,10 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                 continue;
             }
             Input::Then(action) => action,
+            Input::SshChecked { agent, setup } => {
+                app.ssh_checked(&agent, setup);
+                continue;
+            }
             Input::Opened { agent, target, result } => {
                 app.opened(&agent, target, result, Instant::now());
                 continue;
@@ -451,6 +462,14 @@ fn spawn_follow(socket_path: PathBuf, agent: String, inputs: Inputs) -> tokio::t
             }
         }
     })
+}
+
+/// Checks in the background how OpenSSH resolves `agent`'s alias.
+fn spawn_ssh_check(inputs: Inputs, agent: String) {
+    tokio::task::spawn_local(async move {
+        let setup = SshSetup::check(&agent).await;
+        let _ = inputs.send(Input::SshChecked { agent, setup });
+    });
 }
 
 /// Opens an editor on the Agent once it is Ready, so the editor's first

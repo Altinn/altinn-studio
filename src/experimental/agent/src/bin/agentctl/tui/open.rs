@@ -3,7 +3,11 @@
 //! The side panel's Connect section follows the same rules, so the panel never
 //! promises something the menu then refuses.
 
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    process::Stdio,
+    time::Duration,
+};
 
 use agent::{Agent, Condition, ConditionStatus};
 
@@ -83,10 +87,15 @@ impl MenuEntry {
     }
 }
 
-/// Whether the user's OpenSSH configuration includes the generated one.
+/// How long OpenSSH may take to resolve an alias; `Match exec` in the user's
+/// configuration runs commands of theirs, which must not hold the check forever.
+const SSH_CHECK_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Whether the user's OpenSSH configuration reaches Agents through the generated one.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) enum SshSetup {
-    /// Not checked yet, or the configuration could not be read.
+    /// Not checked yet, or OpenSSH could not tell: it is missing, timed out
+    /// or rejects the configuration. Nothing is asked for then.
     #[default]
     Unknown,
     Installed,
@@ -94,12 +103,32 @@ pub(crate) enum SshSetup {
 }
 
 impl SshSetup {
-    /// Reads whether the user's configuration carries `include`.
-    pub(crate) fn check(include: Option<&agent::ssh::UserInclude>) -> Self {
-        match include.map(agent::ssh::UserInclude::installed) {
-            Some(Ok(true)) => Self::Installed,
-            Some(Ok(false)) => Self::Missing,
-            Some(Err(_)) | None => Self::Unknown,
+    /// Asks OpenSSH how the user's configuration resolves `agent`'s alias, as
+    /// editors resolve it. `ssh -G` only prints the result and connects nowhere.
+    pub(crate) async fn check(agent: &str) -> Self {
+        Self::resolve(agent, None).await
+    }
+
+    /// [`Self::check`] against `config` in place of the user's configuration.
+    async fn resolve(agent: &str, config: Option<&Path>) -> Self {
+        let mut ssh = tokio::process::Command::new(crate::ssh_client_executable());
+        if let Some(config) = config {
+            ssh.arg("-F").arg(config);
+        }
+        ssh.arg("-G")
+            .arg(agent::ssh::alias(agent))
+            .stdin(Stdio::null())
+            .stderr(Stdio::null())
+            .kill_on_drop(true);
+        match tokio::time::timeout(SSH_CHECK_TIMEOUT, ssh.output()).await {
+            Ok(Ok(output)) if output.status.success() => {
+                if agent::ssh::resolves_through_agentctl(&String::from_utf8_lossy(&output.stdout), agent) {
+                    Self::Installed
+                } else {
+                    Self::Missing
+                }
+            }
+            _ => Self::Unknown,
         }
     }
 }
@@ -492,5 +521,60 @@ mod tests {
             connect_lines(&with_ssh(), &remote, SshSetup::Installed)[1],
             "  editors    none: this terminal has no display to open windows on"
         );
+    }
+
+    /// User configurations OpenSSH reads the generated one from, however they
+    /// spell the `Include`; ones where it does not apply, since a block or a
+    /// match of the user's own comes first; and one OpenSSH rejects.
+    #[cfg(unix)]
+    #[tokio::test(flavor = "local")]
+    async fn ssh_setup_is_what_openssh_resolves_however_the_include_is_written() {
+        if std::process::Command::new(crate::ssh_client_executable())
+            .arg("-V")
+            .output()
+            .is_err()
+        {
+            eprintln!("skipped: no OpenSSH client");
+            return;
+        }
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let generated = directory.path().join("generated").join("config");
+        std::fs::create_dir_all(generated.parent().expect("parent")).expect("directory");
+        let proxy = agent::ssh::render_proxy_command(
+            Path::new("/usr/local/bin/agentctl"),
+            "worker",
+            agent::ssh::CommandShell::Posix,
+        )
+        .expect("proxy command");
+        std::fs::write(&generated, format!("Host agentctl-worker\n    ProxyCommand {proxy}\n")).expect("generated");
+        let path = generated.display().to_string();
+        let glob = generated.with_file_name("*").display().to_string();
+        let cases = [
+            (format!("Include {path}\n"), SshSetup::Installed),
+            (format!("include {path}\n"), SshSetup::Installed),
+            (format!("Include={path}\n"), SshSetup::Installed),
+            (format!("Include \"{path}\" # agentctl\n"), SshSetup::Installed),
+            (format!("Include {glob}\n"), SshSetup::Installed),
+            (format!("Include /nonexistent {path}\n"), SshSetup::Installed),
+            (
+                format!("Host *\n    ServerAliveInterval 30\n\nInclude {path}\n"),
+                SshSetup::Installed,
+            ),
+            (
+                format!("Host github.com\n    User git\n\nInclude {path}\n"),
+                SshSetup::Missing,
+            ),
+            (
+                format!("Host agentctl-*\n    ProxyCommand none\n\nInclude {path}\n"),
+                SshSetup::Missing,
+            ),
+            (String::new(), SshSetup::Missing),
+            ("Bogus yes\n".to_owned(), SshSetup::Unknown),
+        ];
+        for (text, expected) in cases {
+            let user = directory.path().join("user_config");
+            std::fs::write(&user, &text).expect("user config");
+            assert_eq!(SshSetup::resolve("worker", Some(&user)).await, expected, "{text}");
+        }
     }
 }

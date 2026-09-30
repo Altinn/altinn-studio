@@ -175,8 +175,9 @@ policy and systemd unit. An Agent created from an image older than this feature 
 SSH access; delete it and re-apply to pick up the current image.
 
 In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or over SSH, or to copy its SSH alias.
-The TUI offers to add the `Include` above when an editor needs it. Editors open only where the TUI can show windows;
-set `AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong.
+When OpenSSH does not reach the Agent through that configuration, the TUI offers to add the `Include` above before it
+opens an editor, and can open the editor without it. Editors open only where the TUI can show windows; set
+`AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong.
 
 ### Visual Studio Code
 

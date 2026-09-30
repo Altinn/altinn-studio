@@ -35,8 +35,8 @@ use crate::{
 };
 
 pub use client_config::{
-    CommandShell, HostEntry, IncludeOutcome, include_installed, install_include, remove_known_host, render_config,
-    render_include, render_path, render_proxy_command, upsert_known_host,
+    CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
+    render_path, render_proxy_command, resolves_through_agentctl, upsert_known_host,
 };
 pub use keys::KeyPair;
 
@@ -130,15 +130,6 @@ impl UserInclude {
             user_config: user_home.join(".ssh").join("config"),
             line: render_include(&SshHome::new(home).config_path(), Some(&user_home)),
         })
-    }
-
-    /// Returns whether the user's configuration already carries the line.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the configuration exists but cannot be read.
-    pub fn installed(&self) -> Result<bool, Error> {
-        include_installed(&self.user_config, &self.line)
     }
 
     /// Adds the line at the top of the user's configuration unless it is there.

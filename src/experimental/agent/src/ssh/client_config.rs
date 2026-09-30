@@ -127,7 +127,28 @@ pub fn render_proxy_command(agentctl: &Path, agent: &str, shell: CommandShell) -
         CommandShell::Posix => posix_quote(executable),
         CommandShell::Windows => windows_quote(executable),
     };
-    Ok(format!("{} ssh-proxy agent/{agent}", quoted.replace('%', "%%")))
+    Ok(format!("{} {}", quoted.replace('%', "%%"), proxy_arguments(agent)))
+}
+
+/// The arguments every Agent's `ProxyCommand` ends with, whatever the executable.
+fn proxy_arguments(agent: &str) -> String {
+    format!("ssh-proxy agent/{agent}")
+}
+
+/// Returns whether OpenSSH's resolved configuration for an Agent's alias, as
+/// `ssh -G` prints it, dials the Agent through `agentctl`.
+///
+/// This is how the user's own client configuration is known to reach the
+/// generated one: OpenSSH applies its own `Include`, `Host` and `Match`
+/// rules, so however the user included it, only the outcome is checked. The
+/// executable is not compared, since any `agentctl` reaches the same daemon.
+#[must_use]
+pub fn resolves_through_agentctl(resolved: &str, agent: &str) -> bool {
+    let arguments = format!(" {}", proxy_arguments(agent));
+    resolved.lines().any(|line| {
+        line.split_once(' ')
+            .is_some_and(|(keyword, value)| keyword == "proxycommand" && value.trim_end().ends_with(&arguments))
+    })
 }
 
 /// Quotes one word for `/bin/sh`: single quotes, with an embedded `'` written as `'\''`.
@@ -278,7 +299,7 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
         Err(error) => return Err(error.into()),
     };
-    if carries_include(&existing, include) {
+    if global_lines(&existing).any(|line| line == include) {
         return Ok(IncludeOutcome::AlreadyInstalled);
     }
     if let Some(directory) = target.parent()
@@ -294,24 +315,6 @@ pub fn install_include(user_config: &Path, include: &str) -> Result<IncludeOutco
     }
     write_private_file(&target, text.as_bytes())?;
     Ok(IncludeOutcome::Installed)
-}
-
-/// Returns whether `user_config` carries `include` where OpenSSH applies it to
-/// every host, by the rule [`install_include`] uses; a missing file carries none.
-///
-/// # Errors
-///
-/// Returns an error when the file exists but cannot be read.
-pub fn include_installed(user_config: &Path, include: &str) -> Result<bool, Error> {
-    match std::fs::read_to_string(link_target(user_config)?) {
-        Ok(text) => Ok(carries_include(&text, include)),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
-        Err(error) => Err(error.into()),
-    }
-}
-
-fn carries_include(text: &str, include: &str) -> bool {
-    global_lines(text).any(|line| line == include)
 }
 
 /// Follows a chain of symbolic links to the file they name, whether or not it
@@ -360,8 +363,8 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        CommandShell, HostEntry, IncludeOutcome, include_installed, install_include, remove_known_host, render_config,
-        render_include, render_path, render_proxy_command, upsert_known_host,
+        CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
+        render_path, render_proxy_command, resolves_through_agentctl, upsert_known_host,
     };
 
     fn entry(name: &str, id: &str, root: &Path) -> HostEntry {
@@ -561,32 +564,6 @@ Host agentctl-worker
         );
     }
 
-    #[test]
-    fn include_is_installed_only_when_it_applies_to_every_host() {
-        let directory = tempfile::tempdir().expect("temporary directory");
-        let config = directory.path().join(".ssh").join("config");
-        let include = "Include ~/.agent/ssh/config";
-
-        assert!(!include_installed(&config, include).expect("missing file"));
-        std::fs::create_dir_all(config.parent().expect("parent")).expect(".ssh");
-        std::fs::write(&config, "Host x\n  Include ~/.agent/ssh/config\n").expect("scoped include");
-        assert!(!include_installed(&config, include).expect("scoped copy"));
-        install_include(&config, include).expect("install");
-        assert!(include_installed(&config, include).expect("installed"));
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn include_check_follows_a_symlinked_user_config() {
-        let directory = tempfile::tempdir().expect("temporary directory");
-        let dotfiles = directory.path().join("ssh_config");
-        std::fs::write(&dotfiles, "Include ~/.agent/ssh/config\n").expect("managed config");
-        let config = directory.path().join("config");
-        std::os::unix::fs::symlink(&dotfiles, &config).expect("symlink");
-
-        assert!(include_installed(&config, "Include ~/.agent/ssh/config").expect("through link"));
-    }
-
     #[cfg(unix)]
     #[test]
     fn include_install_follows_a_symlinked_user_config() {
@@ -631,6 +608,28 @@ Host agentctl-worker
         assert_eq!(
             std::fs::read_to_string(&dangling_target).expect("created target"),
             "Include ~/.agent/ssh/config\n"
+        );
+    }
+
+    #[test]
+    fn a_resolved_alias_reaches_the_agent_only_through_its_own_proxy_command() {
+        let proxy = render_proxy_command(Path::new("/opt/my tools/100%/agentctl"), "worker", CommandShell::Posix)
+            .expect("proxy command");
+        let resolved = format!("user agent\nproxycommand {proxy}\nhostkeyalias agent-1\n");
+
+        assert!(resolves_through_agentctl(&resolved, "worker"));
+        assert!(!resolves_through_agentctl(&resolved, "coworker"));
+        assert!(!resolves_through_agentctl(
+            &resolved.replace("/worker", "/coworker"),
+            "worker"
+        ));
+        assert!(
+            !resolves_through_agentctl("user me\nhostname agentctl-worker\n", "worker"),
+            "an alias OpenSSH does not know resolves to no proxy command"
+        );
+        assert!(
+            !resolves_through_agentctl("proxycommand ssh -W %h:%p jump\n", "worker"),
+            "an earlier match of the user's own wins over the generated one"
         );
     }
 }

@@ -8,9 +8,10 @@ use ratatui::{
 
 use super::MANIFEST_FILE;
 use super::app::{
-    App, CONFIRM_DELETE_HINTS, CONFIRM_SSH_SETUP_HINTS, CREATE_AGENT_HINTS, CreateField, ForwardField, HELP,
-    HELP_HINTS, HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS, PORT_FORWARD_HINTS,
-    Row as TreeRow, RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View, harness_label,
+    App, CONFIRM_DELETE_HINTS, CONFIRM_SSH_SETUP_HINTS, CONFIRM_SSH_SETUP_THEN_HINTS, CREATE_AGENT_HINTS, CreateField,
+    ForwardField, HELP, HELP_HINTS, HelpSection, Hint, Modal, MouseAction, NEW_SESSION_HINTS, OPEN_HINTS,
+    PORT_FORWARD_HINTS, Row as TreeRow, RowTarget, RowView, SELECTION_HINTS, SessionField, Tone, TreeRowId, View,
+    harness_label,
 };
 use super::open::{MenuEntry, OpenMenu, OpenTarget};
 
@@ -884,7 +885,12 @@ fn render_confirm_ssh_setup(
     hit_map: &mut HitMap,
 ) {
     let file = abbreviate_home(&include.user_config.display().to_string());
-    let mut form = Form::new(" set up SSH ", Color::Cyan, &CONFIRM_SSH_SETUP_HINTS)
+    let hints: &[Hint] = if then.is_some() {
+        &CONFIRM_SSH_SETUP_THEN_HINTS
+    } else {
+        &CONFIRM_SSH_SETUP_HINTS
+    };
+    let mut form = Form::new(" set up SSH ", Color::Cyan, hints)
         .row(Line::from("Editors reach Agents through your OpenSSH config."))
         .row(Line::from(format!("Add this line at the top of {file}?")))
         .row(Line::default())
@@ -2384,6 +2390,6 @@ mod tests {
         );
         assert!(text.contains("  Include ~/.agent/ssh/config"), "{text}");
         assert!(text.contains("Then: VS Code, Remote-SSH."), "{text}");
-        assert!(text.contains("enter add · esc back"), "{text}");
+        assert!(text.contains("enter add · o open anyway · esc back"), "{text}");
     }
 }

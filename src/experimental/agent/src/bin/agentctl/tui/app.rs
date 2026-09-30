@@ -108,6 +108,14 @@ pub(crate) const CONFIRM_SSH_SETUP_HINTS: [Hint; 2] = [
     Hint::key("esc", "back", KeyCode::Esc),
 ];
 
+/// The SSH setup question for something waiting to open, which can also open
+/// without the line: an editor may reach Agents through a configuration of its own.
+pub(crate) const CONFIRM_SSH_SETUP_THEN_HINTS: [Hint; 3] = [
+    Hint::key("enter", "add", KeyCode::Enter),
+    Hint::key("o", "open anyway", KeyCode::Char('o')),
+    Hint::key("esc", "back", KeyCode::Esc),
+];
+
 pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("enter", "forward", KeyCode::Enter),
     Hint::key("tab", "field", KeyCode::Tab),
@@ -271,8 +279,13 @@ pub(crate) struct App {
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
     /// Editors and whether the terminal is remote, which the open menu depends on.
     pub(crate) environment: Environment,
-    /// Whether the user's OpenSSH configuration includes the generated one.
+    /// Whether OpenSSH reaches Agents through the generated configuration, as
+    /// it resolved the alias of the Agent checked last.
     pub(crate) ssh_setup: SshSetup,
+    /// Whether the SSH setup is to be checked again once an Agent can be.
+    pub(crate) ssh_check_due: bool,
+    /// Whether an SSH setup check is running.
+    pub(crate) ssh_checking: bool,
     /// The `Include` SSH setup adds, when the user's home is known.
     pub(crate) ssh_include: Option<agent::ssh::UserInclude>,
     /// Opens waiting in the background, at most one per Agent and target.
@@ -1115,6 +1128,8 @@ impl App {
             queued_candidates: None,
             environment: Environment::default(),
             ssh_setup: SshSetup::Unknown,
+            ssh_check_due: true,
+            ssh_checking: false,
             ssh_include: None,
             opening: Vec::new(),
         }
@@ -1975,7 +1990,8 @@ impl App {
         Action::None
     }
 
-    /// Applies one key to the SSH setup question; declining returns to the menu.
+    /// Applies one key to the SSH setup question; declining returns to the
+    /// menu, and `o` opens what waits without the line.
     fn confirm_ssh_setup_key(
         &mut self,
         agent: String,
@@ -1983,12 +1999,13 @@ impl App {
         then: Option<OpenTarget>,
         key: KeyEvent,
     ) -> Action {
-        match key.code {
-            KeyCode::Enter => Action::SetUpSsh {
+        match (key.code, then) {
+            (KeyCode::Enter, then) => Action::SetUpSsh {
                 include,
                 then: then.map(|target| (agent, target)),
             },
-            KeyCode::Esc | KeyCode::Char('n' | 'q') => {
+            (KeyCode::Char('o'), Some(target)) => Action::Open { agent, target },
+            (KeyCode::Esc | KeyCode::Char('n' | 'q'), _) => {
                 self.open_menu(&agent);
                 Action::None
             }
@@ -1999,11 +2016,63 @@ impl App {
         }
     }
 
-    /// Opens the open menu for the named Agent.
+    /// Opens the open menu for the named Agent, and checks the SSH setup
+    /// again, since the user may have changed their configuration since.
     fn open_menu(&mut self, agent: &str) {
         if let Some(agent) = self.agents.iter().find(|candidate| candidate.metadata.name == agent) {
             self.modal = Some(Modal::Open(OpenMenu::new(agent, &self.environment, self.ssh_setup)));
+            self.ssh_check_due = true;
         }
+    }
+
+    /// The Agent whose alias the SSH setup is to be checked with next, when a
+    /// check is due and none is running: the open menu's Agent, or else any
+    /// Agent with SSH access, since OpenSSH resolves only aliases it has.
+    pub(crate) fn ssh_check_request(&mut self) -> Option<String> {
+        if self.ssh_checking || !self.ssh_check_due {
+            return None;
+        }
+        let menu = match &self.modal {
+            Some(Modal::Open(menu)) => Some(menu.agent.as_str()),
+            _ => None,
+        };
+        let agent = self
+            .agents
+            .iter()
+            .filter(|agent| agent.spec.ssh_access())
+            .min_by_key(|agent| Some(agent.metadata.name.as_str()) != menu)?
+            .metadata
+            .name
+            .clone();
+        self.ssh_check_due = false;
+        self.ssh_checking = true;
+        Some(agent)
+    }
+
+    /// Records how OpenSSH resolved `agent`'s alias, and updates the open
+    /// menu, whose SSH setup row follows it.
+    pub(crate) fn ssh_checked(&mut self, agent: &str, setup: SshSetup) {
+        self.ssh_checking = false;
+        self.ssh_setup = setup;
+        let Some(Modal::Open(menu)) = &self.modal else {
+            return;
+        };
+        if menu.agent != agent {
+            return;
+        }
+        let chosen = menu.chosen();
+        let Some(listed) = self.agents.iter().find(|candidate| candidate.metadata.name == agent) else {
+            return;
+        };
+        let mut rebuilt = OpenMenu::new(listed, &self.environment, setup);
+        if let Some(index) = rebuilt
+            .items
+            .iter()
+            .position(|item| Some(item.entry) == chosen && item.unavailable.is_none())
+        {
+            rebuilt.selected = index;
+        }
+        self.modal = Some(Modal::Open(rebuilt));
     }
 
     /// Chooses `entry` for `agent`, asking first for the SSH setup the entry
@@ -2042,6 +2111,8 @@ impl App {
         match result {
             Ok(user_config) => {
                 self.ssh_setup = SshSetup::Installed;
+                // A check still running began before the line was added.
+                self.ssh_check_due = true;
                 self.notice = Some((format!("SSH set up in {}", user_config.display()), now));
                 then.map(|(agent, target)| Action::Open { agent, target })
             }
@@ -2260,7 +2331,8 @@ impl App {
                 Modal::Prompt(_) => &PROMPT_HINTS,
                 Modal::Help => &HELP_HINTS,
                 Modal::Open(_) => &OPEN_HINTS,
-                Modal::ConfirmSshSetup { .. } => &CONFIRM_SSH_SETUP_HINTS,
+                Modal::ConfirmSshSetup { then: Some(_), .. } => &CONFIRM_SSH_SETUP_THEN_HINTS,
+                Modal::ConfirmSshSetup { then: None, .. } => &CONFIRM_SSH_SETUP_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -4188,7 +4260,7 @@ mod tests {
         assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::None);
         let editor = OpenTarget::Editor(crate::launch::Editor::VsCode);
         assert!(matches!(&app.modal, Some(Modal::ConfirmSshSetup { then: Some(target), .. }) if *target == editor));
-        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_HINTS);
+        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_THEN_HINTS);
         assert_eq!(
             app.on_key(key(KeyCode::Char('y'))),
             Action::None,
@@ -4240,11 +4312,89 @@ mod tests {
             .expect("setup entry");
         app.on_mouse(MouseAction::ChooseOpen(setup));
         assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { then: None, .. })));
+        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::None,
+            "nothing waits to open"
+        );
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { then: None, .. })));
         let Action::SetUpSsh { include, then } = app.on_key(key(KeyCode::Enter)) else {
             panic!("expected SetUpSsh");
         };
         assert_eq!(then, None);
         assert_eq!(app.ssh_set_up(Ok(include.user_config), then, Instant::now()), None);
+    }
+
+    #[test]
+    fn what_waits_on_the_ssh_setup_opens_without_it_on_request() {
+        let mut app = ssh_app(SshSetup::Missing);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        app.on_key(key(KeyCode::Char('y')));
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { .. })));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::CopyAlias,
+            }
+        );
+        assert!(app.modal.is_none());
+        assert_eq!(app.ssh_setup, SshSetup::Missing, "nothing was written");
+    }
+
+    #[test]
+    fn the_ssh_setup_is_checked_with_an_agent_openssh_knows_and_again_on_each_menu() {
+        let mut app = App::new();
+        app.apply_snapshot(vec![ready_agent("builder")], Vec::new());
+        assert_eq!(app.ssh_check_request(), None, "no Agent has an alias to resolve");
+
+        let mut app = ssh_app(SshSetup::Unknown);
+        let mut other = ready_agent("alpha");
+        other.spec.access = vec![agent::AccessSpec::Ssh {}];
+        let worker = app.agents[0].clone();
+        app.apply_snapshot(vec![other, worker], Vec::new());
+        assert_eq!(app.ssh_check_request().as_deref(), Some("alpha"));
+        assert_eq!(app.ssh_check_request(), None, "one check at a time");
+        app.ssh_checked("alpha", SshSetup::Missing);
+        assert_eq!(app.ssh_setup, SshSetup::Missing);
+        assert_eq!(app.ssh_check_request(), None, "checked until a menu opens");
+
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.ssh_check_request().as_deref(),
+            Some("worker"),
+            "the menu's Agent first"
+        );
+    }
+
+    #[test]
+    fn a_finished_ssh_check_updates_the_open_menu_and_keeps_its_selection() {
+        let mut app = ssh_app(SshSetup::Unknown);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        app.on_key(key(KeyCode::Down));
+        let setup_offered = |app: &App| {
+            matches!(&app.modal, Some(Modal::Open(menu))
+                if menu.items.iter().any(|item| item.entry == MenuEntry::SetUpSsh))
+        };
+        assert!(!setup_offered(&app));
+
+        assert_eq!(app.ssh_check_request().as_deref(), Some("worker"));
+        app.ssh_checked("worker", SshSetup::Missing);
+        assert!(setup_offered(&app));
+        let Some(Modal::Open(menu)) = &app.modal else {
+            panic!("expected the open menu");
+        };
+        assert_eq!(
+            menu.chosen(),
+            Some(MenuEntry::Open(OpenTarget::Editor(crate::launch::Editor::VsCode)))
+        );
+
+        app.ssh_checked("worker", SshSetup::Installed);
+        assert!(!setup_offered(&app));
     }
 
     #[test]
