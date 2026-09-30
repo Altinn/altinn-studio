@@ -39,10 +39,12 @@ spec:
     - observability-backend-auth-key
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
-    # -1 counts new series per hour and per day without limiting them, so the
-    # cardinality is measured before any limit is set.
-    storage.maxHourlySeries: "-1"
-    storage.maxDailySeries: "-1"
+    # New series per hour and per day are counted, and samples of new series beyond
+    # these limits are dropped, so a cardinality blow-up cannot exhaust memory or disk.
+    # The limiter's filter is sized for its limit, 16 bits a series, so the limit itself
+    # costs memory: -1, its maximum, would take 4 GiB each.
+    storage.maxHourlySeries: "1000000"
+    storage.maxDailySeries: "4000000"
     # Delivery is at-least-once, so a retried export writes the same samples
     # again. 1ms removes those exact duplicates and nothing else, provided the
     # sources send cumulative metrics: with delta temporality it would drop
@@ -123,8 +125,8 @@ spec:
     - observability-backend-auth-key
   extraArgs:
     storage.minFreeDiskSpaceBytes: 100GiB
-    storage.maxHourlySeries: "-1"
-    storage.maxDailySeries: "-1"
+    storage.maxHourlySeries: "1000000"
+    storage.maxDailySeries: "4000000"
     dedup.minScrapeInterval: 1ms
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
