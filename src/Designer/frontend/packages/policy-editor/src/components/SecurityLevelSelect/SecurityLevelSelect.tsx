@@ -102,7 +102,7 @@ export const SecurityLevelSelect = ({
             <StudioHeading level={5} data-size='xs'>
               {t('policy_editor.system_user_auth_level_heading')}
             </StudioHeading>
-            <StudioParagraph className={classes.bottomSpacing}>
+            <StudioParagraph className={classes.description}>
               {t('policy_editor.system_user_auth_level_description')}
             </StudioParagraph>
             <StudioCheckbox
