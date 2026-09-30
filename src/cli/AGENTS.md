@@ -59,7 +59,7 @@ Invariants:
 
 ### Language server
 
-`studioctl app lsp` lives in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
+`studioctl app lsp` and its VS Code client live in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
 
 ### Changelog & releases
 
@@ -75,6 +75,8 @@ Invariants:
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.
+- The VS Code extension is a separate release component (`studioctl-vscode`) with its own changelog
+  and `release/studioctl-vscode` label; see [`studioctl-lsp/AGENTS.md`](studioctl-lsp/AGENTS.md).
 
 ### Local dev flows (build/serve from source)
 
