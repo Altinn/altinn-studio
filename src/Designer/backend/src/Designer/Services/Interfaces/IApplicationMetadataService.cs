@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
@@ -34,6 +35,7 @@ public interface IApplicationMetadataService
     /// <param name="appMetadataJson">The application metadata file at the commit</param>
     /// <param name="fullCommitId">Commit Id</param>
     /// <param name="envName">Environment Name</param>
+    /// <param name="appStatus">App status to register in Storage</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task UpdateApplicationMetadataInStorageAsync(
         string org,
@@ -41,6 +43,7 @@ public interface IApplicationMetadataService
         string appMetadataJson,
         string fullCommitId,
         string envName,
+        AppStatus appStatus,
         CancellationToken cancellationToken = default
     );
 

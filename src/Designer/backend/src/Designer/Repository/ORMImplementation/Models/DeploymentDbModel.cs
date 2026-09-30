@@ -30,6 +30,8 @@ public partial class DeploymentDbModel
 
     public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
 
+    public string AppStatus { get; set; }
+
     public BuildDbModel Build { get; set; }
 
     public ICollection<DeployEventDbModel> Events { get; set; } = new List<DeployEventDbModel>();

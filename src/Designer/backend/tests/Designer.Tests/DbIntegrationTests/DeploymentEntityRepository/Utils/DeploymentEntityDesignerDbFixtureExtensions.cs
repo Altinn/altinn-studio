@@ -66,6 +66,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             Build = MapBuildToDbModel(entity.Build),
             DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
                 (int)entity.DeploymentType,
+            AppStatus = entity.AppStatus?.ToString(),
         };
 
     private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(
