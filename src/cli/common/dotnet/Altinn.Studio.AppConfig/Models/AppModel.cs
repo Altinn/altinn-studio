@@ -33,6 +33,7 @@ public sealed class AppModel
 
     public required IReadOnlyDictionary<string, OptionsProvider> OptionsProviders { get; init; }
 
+    public required IReadOnlyList<OptionsProviderWithUnknownId> OptionsProvidersWithUnknownId { get; init; }
     public required IReadOnlySet<string> CustomTaskTypes { get; init; }
 
     public required IReadOnlySet<string> LayoutFiles { get; init; }
