@@ -4,6 +4,24 @@ metadata:
   name: otel-gateway
 spec:
   config:
+    extensions:
+      # The token is the one the operator syncs from the cluster's Key Vault into this
+      # namespace, read from its mounted Secret (patches/gateway-victoria-volumes.yaml) and
+      # re-read when the kubelet updates it, so a rotation needs no restart. Without
+      # retry_on_failure, a token file missing at startup would never be read, even once the
+      # Secret exists; with it, the file is looked for in the background until it appears.
+      bearertokenauth/victoria:
+        filename: /var/run/observability-ingest-token/token
+        retry_on_failure:
+          enabled: true
+          max_retries: 0
+          interval: 30s
+      file_storage/victoria:
+        directory: /var/lib/otelcol/victoria-queue
+        compaction:
+          on_rebound: true
+          directory: /var/lib/otelcol/victoria-queue
+
     connectors:
       routing/traces:
         default_pipelines: [traces/control_plane]
@@ -30,8 +48,26 @@ spec:
         connection_string: $${env:DATA_PLANE_CONNECTION_STRING}
       # Sink metrics while preserving pipeline structure for future re-enable.
       nop: {}
+      # The Victoria backend in Studio prod, through its public endpoint.
+      otlp_http/victoria:
+        endpoint: https://altinn.studio/internal/observability/otlp
+        auth:
+          authenticator: bearertokenauth/victoria
+        # Retry without a time limit, so an outage of the Studio prod endpoint is buffered
+        # up to the queue size rather than dropped after a fixed time.
+        retry_on_failure:
+          max_elapsed_time: 0
+        # A persistent queue survives a Collector restart. Its size is in bytes so it stays
+        # well inside the emptyDir sizeLimit it is stored on.
+        sending_queue:
+          enabled: true
+          storage: file_storage/victoria
+          sizer: bytes
+          queue_size: 268435456
 
     service:
+      # The list replaces base's, so it repeats health_check, which the probes need.
+      extensions: [health_check, bearertokenauth/victoria, file_storage/victoria]
       pipelines:
         traces/in:
           receivers: [otlp]
@@ -44,6 +80,14 @@ spec:
           receivers: [routing/traces]
           processors: [transform/azuremonitor, transform/pdf3_expected_429_success, transform/azuremonitor_expected_404, tail_sampling, batch]
           exporters: [azure_monitor/data_plane]
+        # Victoria receives every span once, from both planes, without the Application
+        # Insights transforms, and samples them with its own tail_sampling instance. The
+        # pipelines keep the same traces only while no sampling policy reads an attribute
+        # those transforms change.
+        traces/victoria:
+          receivers: [otlp]
+          processors: [tail_sampling, batch]
+          exporters: [otlp_http/victoria]
         metrics/in:
           receivers: [otlp]
           exporters: [routing/metrics]
@@ -66,3 +110,7 @@ spec:
           receivers: [routing/logs]
           processors: [batch]
           exporters: [azure_monitor/data_plane]
+        logs/victoria:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp_http/victoria]
