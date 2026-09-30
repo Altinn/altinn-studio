@@ -1047,6 +1047,66 @@ public sealed class AppSymbolsTests
         Assert.Contains("string", hover, StringComparison.Ordinal);
     }
 
+    private const string UndeclaredLayout = """
+        {"data":{"layout":[
+          {"id":"name","type":"Input","dataModelBindings":{"simpleBinding":"soker.fornavn"},"textResourceBindings":{"title":"soker.navn.tittel"}},
+          {"id":"amount","type":"Input","dataModelBindings":{"simpleBinding":"rader[0].belop"}}
+        ]}}
+        """;
+
+    private static MutableAppDirectory UndeclaredApp() =>
+        new(
+            new()
+            {
+                ["App/config/applicationmetadata.json"] =
+                    """{"id":"ttd/undeclared","org":"ttd","title":{"nb":"x"},"partyTypesAllowed":{},"dataTypes":[{"id":"model","appLogic":{"classRef":"M"},"taskId":"Task_1"}]}""",
+                ["App/ui/Task_1/Settings.json"] = """{"pages":{"order":["P1"]}}""",
+                ["App/ui/Task_1/layouts/P1.json"] = UndeclaredLayout,
+                ["App/config/texts/resource.nb.json"] =
+                    """{"language":"nb","resources":[{"id":"soker.navn","value":"Navn"}]}""",
+                ["App/models/model.schema.json"] = """
+                {"properties":{
+                  "soker":{"type":"object","properties":{"navn":{"type":"string"}}},
+                  "rader":{"type":"array","items":{"type":"object","properties":{"belop":{"type":"number"}}}}
+                }}
+                """,
+            }
+        );
+
+    [Fact]
+    public void SymbolHover_UndeclaredDataModelPath_IsNull_WhileItsDeclaredSegmentShowsItsType()
+    {
+        var symbols = OpenSymbols(UndeclaredApp());
+        var (ul, uc) = At(UndeclaredLayout, ".fornavn\"", 1);
+        var (sl, sc) = At(UndeclaredLayout, "\"soker.fornavn\"", 1);
+
+        Assert.Null(symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", ul, uc));
+
+        var segment = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", sl, sc);
+        Assert.Contains("**Data model** `soker` — object", segment, StringComparison.Ordinal);
+        Assert.Contains("Model `model`", segment, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SymbolHover_DataModelPathWithArrayIndex_ShowsTheItemsSchemaType()
+    {
+        var symbols = OpenSymbols(UndeclaredApp());
+        var (l, c) = At(UndeclaredLayout, ".belop\"", 1);
+
+        var hover = symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c);
+
+        Assert.Contains("**Data model** `rader[0].belop` — number", hover, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SymbolHover_UndeclaredTextKey_IsNull()
+    {
+        var symbols = OpenSymbols(UndeclaredApp());
+        var (l, c) = At(UndeclaredLayout, "\"soker.navn.tittel\"", 1);
+
+        Assert.Null(symbols.SymbolHover("App/ui/Task_1/layouts/P1.json", l, c));
+    }
+
     [Fact]
     public void SymbolHover_Page_ShowsSetAndComponentCount_AndNonSymbolIsNull()
     {

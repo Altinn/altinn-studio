@@ -61,15 +61,22 @@ public sealed partial class AppSymbols
         return new List<string> { $"**Page** `{sym.Value}`", $"Layout-set `{sym.Scope}`" + suffix };
     }
 
-    private static List<string> DataModelHover(AppModel model, Symbol sym)
+    private static List<string>? DataModelHover(AppModel model, Symbol sym)
     {
         var schemaFile = sym.Scope.Length > 0 ? AppPaths.SchemaFile(sym.Scope) : null;
         var props =
             schemaFile is not null && model.SchemaPropertiesByFile.TryGetValue(schemaFile, out var pinned)
                 ? pinned
                 : model.SchemaProperties;
-        var type = props.TryGetValue(sym.Value, out var t) && t.Length > 0 ? t : null;
-        var lines = new List<string> { $"**Data model** `{sym.Value}`" + (type is null ? "" : $" — {type}") };
+        if (
+            !ModelPath.TryResolveType(props, sym.Value, out var type)
+            && !ReferenceResolver.ResolvesInCSharpModel(model, sym.Scope, sym.Value)
+        )
+            return null;
+        var lines = new List<string>
+        {
+            $"**Data model** `{sym.Value}`" + (type is { Length: > 0 } ? $" — {type}" : ""),
+        };
         lines.Add(
             sym.Scope.Length > 0
                 ? $"Model `{sym.Scope}` ({AppPaths.SchemaFile(sym.Scope)})"
@@ -78,18 +85,21 @@ public sealed partial class AppSymbols
         return lines;
     }
 
-    private static List<string> TextKeyHover(AppModel model, Symbol sym)
+    private static List<string>? TextKeyHover(AppModel model, Symbol sym)
     {
+        var builtin = BuiltinTextKeys.Keys.Contains(sym.Value);
+        if (!builtin && model.SymbolTable.DeclarationsOf(sym).Count == 0)
+            return null;
         var lines = new List<string> { $"**Text key** `{sym.Value}`" };
-        var declared = false;
+        var hasValue = false;
         foreach (var tr in model.TextResources.OrderBy(t => t.Language, StringComparer.Ordinal))
         {
             if (!tr.Values.TryGetValue(sym.Value, out var value))
                 continue;
-            declared = true;
+            hasValue = true;
             lines.Add($"{(tr.Language.Length > 0 ? tr.Language : "?")}: `{Display(value)}`");
         }
-        if (!declared && BuiltinTextKeys.Keys.Contains(sym.Value))
+        if (!hasValue && builtin)
             lines.Add("Built-in frontend text (value ships with the app frontend)");
         return lines;
     }

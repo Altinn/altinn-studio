@@ -127,7 +127,7 @@ internal static class ReferenceResolver
             DataModel: facts
         );
 
-    private static bool ResolvesInCSharpModel(AppModel model, string? dataType, string path)
+    public static bool ResolvesInCSharpModel(AppModel model, string? dataType, string path)
     {
         if (dataType is null)
             return false;
