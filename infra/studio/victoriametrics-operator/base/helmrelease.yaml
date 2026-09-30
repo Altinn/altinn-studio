@@ -84,12 +84,14 @@ spec:
       # with VictoriaMetrics resources directly. Enabled, it would only add
       # watches that produce nothing.
       disable_prometheus_converter: true
-    # Studio has no service mesh, so reachability is not the concern. The
-    # webhook is off because it fails closed: while the operator is down or
-    # unreachable, every write to the Victoria resources is rejected, which is
-    # one more thing that can block a deploy. It would also need ingress from
-    # the API server, which networkpolicy.yaml cannot express. The full CRD
-    # schemas above already make the API server reject malformed resources.
+    # The webhook is off. With its default failure policy, every write to the
+    # Victoria resources is rejected while the operator is down or unreachable,
+    # which is one more thing that can block a deploy, and it would need an
+    # ingress rule for the API server on its port. Without it, the plain CRDs
+    # above still make the API server reject unknown and mistyped fields, but
+    # the operator's own semantic checks run only when it reconciles: a
+    # resource that fails them is applied, and the failure shows only in its
+    # status, not in the Flux Kustomization.
     admissionWebhooks:
       enabled: false
     serviceMonitor:
