@@ -27,7 +27,6 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
-src/AI/agents/**/docker-compose.*.yml                                     @ErlingHauan
 src/AI/agents/**/docker-compose.yaml                                      @ErlingHauan
 src/AI/agents/**/dockerfile*                                              @ErlingHauan
 src/AI/agents/**/pyproject.toml                                           @ErlingHauan
@@ -59,6 +58,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 .github/workflows/deploy-studio-observability.yaml                        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-otel-operator.yaml                        @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-studio-syncroot.yaml                             @altinn/team-altinn-studio-kjoring
+.github/workflows/deploy-studio-victoriametrics-operator.yaml             @altinn/team-altinn-studio-kjoring
 .github/workflows/deployer-check.yaml                                     @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-check-texts-file.yml                              @altinn/team-altinn-studio-kjoring
 .github/workflows/gitea-runner-test.yml                                   @altinn/team-altinn-studio-kjoring

@@ -8,7 +8,6 @@ using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -320,6 +319,9 @@ internal sealed class WorkflowHandler(
         ExecutionResult result
     )
     {
+        if ((result.IsSuccess() || result.IsDeferred()) && result.StateOut is not null)
+            currentStep.StateOut = result.StateOut;
+
         if (result.IsSuccess())
         {
             currentStep.Status = PersistentItemStatus.Completed;

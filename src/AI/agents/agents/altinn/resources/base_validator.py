@@ -4,6 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any
 
+import regex
 import requests
 
 with warnings.catch_warnings():
@@ -14,7 +15,20 @@ with warnings.catch_warnings():
         category=DeprecationWarning,
         message="jsonschema.RefResolver is deprecated*",
     )
-    from jsonschema import Draft7Validator, RefResolver
+    from jsonschema import Draft7Validator, RefResolver, ValidationError, validators
+
+
+def _check_ecma_pattern(validator, pattern, instance, _schema):
+    """Check the `pattern` keyword with the `regex` package.
+
+    JSON Schema patterns use ECMA-262 syntax. The schemas use `\\p{L}`,
+    which Python `re` does not support.
+    """
+    if validator.is_type(instance, "string") and not regex.search(pattern, instance):
+        yield ValidationError(f"{instance!r} does not match {pattern!r}")
+
+
+_SchemaValidator = validators.extend(Draft7Validator, {"pattern": _check_ecma_pattern})
 
 
 class BaseValidator(ABC):
@@ -46,7 +60,7 @@ class BaseValidator(ABC):
         errors = []
         try:
             resolver = RefResolver.from_schema(self.schema)
-            validator = Draft7Validator(self.schema, resolver=resolver)
+            validator = _SchemaValidator(self.schema, resolver=resolver)
 
             for error in validator.iter_errors(data):
                 path = ".".join(str(p) for p in error.absolute_path) if error.absolute_path else "root"

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Notifications.Exceptions;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -53,7 +53,7 @@ internal sealed class NotificationConditionTokenGenerator(INotificationCondition
             Claims = new Dictionary<string, object>
             {
                 [JwtClaimTypes.JwtId] = instanceGuid.ToString(),
-                [JwtClaimTypes.SecretId] = appCode.Id,
+                [JwtClaimTypes.AppCode.SecretId] = appCode.Id,
             },
             Expires = DateTime.UtcNow.AddDays(31),
             SigningCredentials = credentials,

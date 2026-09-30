@@ -1,0 +1,113 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoriametrics-operator
+  namespace: observability
+spec:
+  interval: 1h
+  timeout: 5m
+  # crds.plain below moves the CRDs into the chart's crds/ directory, which Helm
+  # only creates on first install. CreateReplace makes the helm-controller also
+  # replace them on upgrade, so a chart bump brings its schema changes along.
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 5
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 5
+  chart:
+    spec:
+      # Chart 0.67.3 ships operator v0.74.1.
+      chart: victoria-metrics-operator
+      sourceRef:
+        kind: HelmRepository
+        name: victoriametrics-oci
+        namespace: observability
+      version: 0.67.3
+  # With the release in its watched namespace the chart binds a namespaced Role,
+  # but still renders a ClusterRoleBinding to a ClusterRole of the same name that
+  # it no longer creates. Nothing is granted through it today; it is removed so a
+  # ClusterRole that later takes that name is not granted to the operator.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: ClusterRoleBinding
+              name: victoriametrics-operator
+            patch: |
+              $patch: delete
+              apiVersion: rbac.authorization.k8s.io/v1
+              kind: ClusterRoleBinding
+              metadata:
+                name: victoriametrics-operator
+  values:
+    # Without this every resource is named
+    # victoriametrics-operator-victoria-metrics-operator.
+    fullnameOverride: victoriametrics-operator
+    crds:
+      # The default templated CRDs have a schemaless spec that preserves unknown
+      # fields, so a mistyped field in a Victoria resource is accepted and
+      # silently ignored. The plain CRDs carry the full OpenAPI schema, and the
+      # API server rejects unknown and mistyped fields.
+      #
+      # Uninstalling leaves the CRDs, and every Victoria resource with them, in
+      # place. Plain CRDs lose the chart's helm.sh/resource-policy: keep
+      # annotation, which only the templated ones carry, but they no longer need
+      # it: CRDs from crds/ are not part of the release manifest, so neither Helm
+      # nor the helm-controller deletes them. Removing them is a manual step.
+      plain: true
+    rbac:
+      # By default the chart aggregates full access to every VictoriaMetrics
+      # resource into the built-in admin role and read access into view, which
+      # would extend every namespace admin and viewer in the cluster. Nobody but
+      # cluster admins needs to touch them.
+      aggregatedClusterRoles:
+        enabled: false
+    # watchNamespaces limits what the operator watches and reconciles, not what
+    # it is allowed to do. The chart grants its permissions, every verb on
+    # secrets, pods, services, workloads, roles and their bindings among others,
+    # through a namespaced Role only when the single watched namespace is the
+    # release's own (templates/role.yaml); otherwise through a ClusterRole bound
+    # cluster-wide, which would make the service account cluster-admin
+    # equivalent. The release is therefore installed into observability. Within
+    # that namespace the operator can still read every Secret and grant any
+    # namespaced permission.
+    watchNamespaces:
+      - observability
+    operator:
+      # The converter mirrors Prometheus Operator objects (ServiceMonitor,
+      # PodMonitor, PrometheusRule and so on) into their VictoriaMetrics
+      # equivalents. With watchNamespaces set it only ever sees objects in
+      # observability, where there are none: the Victoria backend is declared
+      # with VictoriaMetrics resources directly. Enabled, it would only add
+      # watches that produce nothing.
+      disable_prometheus_converter: true
+    # The webhook is off. With its default failure policy, every write to the
+    # Victoria resources is rejected while the operator is down or unreachable,
+    # which is one more thing that can block a deploy, and it would need an
+    # ingress rule for the API server on its port. Without it, the plain CRDs
+    # above still make the API server reject unknown and mistyped fields, but
+    # the operator's own semantic checks run only when it reconciles: a
+    # resource that fails them is applied, and the failure shows only in its
+    # status, not in the Flux Kustomization.
+    admissionWebhooks:
+      enabled: false
+    serviceMonitor:
+      enabled: false
+    # The operator is a controller, not part of the telemetry data path, so it
+    # stays on the general node pool. It carries no observability toleration or
+    # node selector: pinning it to the pool it schedules workloads onto would
+    # leave nothing able to recreate them if that pool is replaced.
+    # Merged into the chart's pod security context, which sets runAsNonRoot,
+    # runAsUser and fsGroup but no seccomp profile.
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
