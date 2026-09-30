@@ -19,13 +19,13 @@ spec:
       retries: 5
   chart:
     spec:
-      # Chart 0.67.3 ships operator v0.74.1.
+      # Chart 0.68.0 ships operator v0.75.0.
       chart: victoria-metrics-operator
       sourceRef:
         kind: HelmRepository
         name: victoriametrics-oci
         namespace: observability
-      version: 0.67.3
+      version: 0.68.0
   # With the release in its watched namespace the chart binds a namespaced Role,
   # but still renders a ClusterRoleBinding to a ClusterRole of the same name that
   # it no longer creates. Nothing is granted through it today; it is removed so a
