@@ -33,7 +33,12 @@ export const PreviewControlHeader = ({
   return (
     <div className={classes.wrapper}>
       <div className={classes.viewSizeButtons}>
-        <StudioToggleGroup onChange={setViewSize} value={viewSize} data-size='sm'>
+        <StudioToggleGroup
+          aria-label={t('preview.view_size')}
+          onChange={setViewSize}
+          value={viewSize}
+          data-size='sm'
+        >
           <StudioToggleGroup.Item value='desktop'>
             {t('preview.view_size_desktop')}
           </StudioToggleGroup.Item>
