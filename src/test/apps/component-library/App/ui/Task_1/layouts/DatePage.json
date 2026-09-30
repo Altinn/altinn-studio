@@ -88,7 +88,7 @@
         },
         "direction": "vertical",
         "value": "2007-04-05T14:30Z",
-        "format": "yyyy-MM-dd HH:mm:ss z",
+        "format": "yyyy-MM-dd HH:mm:ss",
         "grid": { "xs": 6 }
       },
       {
