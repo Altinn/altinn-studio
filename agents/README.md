@@ -175,7 +175,7 @@ SSH access; delete it and re-apply to pick up the current image.
 
 ### Visual Studio Code
 
-Use the Visual Studio Code extension Remote - SSH (`ms-vscode-remote.remote-ssh`). This extension reads the OpenSSH
+To view the agent's workspace in Visual Studio Code, use the extension Remote - SSH (`ms-vscode-remote.remote-ssh`). This extension reads the OpenSSH
 configuration that `agentctl ssh-config install` writes.
 
 1. Run `agentctl ssh-config install` one time.
