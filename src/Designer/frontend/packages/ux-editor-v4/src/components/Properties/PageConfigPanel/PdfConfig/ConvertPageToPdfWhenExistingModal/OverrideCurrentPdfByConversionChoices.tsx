@@ -1,5 +1,4 @@
-import { StudioButton } from '@studio/components';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioButton, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './OverrideCurrentPdfByConversionChoices.module.css';
 
@@ -16,7 +15,9 @@ export const OverrideCurrentPdfByConversionChoices = ({
 
   return (
     <div className={classes.modal}>
-      <Paragraph>{t('ux_editor.page_config_pdf_convert_info_when_custom_pdf_exists')}</Paragraph>
+      <StudioParagraph>
+        {t('ux_editor.page_config_pdf_convert_info_when_custom_pdf_exists')}
+      </StudioParagraph>
       <div className={classes.buttonContainer}>
         <StudioButton onClick={onConvertPageToPdfAndConvertCurrent}>
           {t('ux_editor.page_config_pdf_convert_existing_pdf')}

@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { Fragment } from 'react';
 import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioParagraph, StudioAvatar } from '@studio/components';
+import { StudioDropdown, StudioParagraph, StudioAvatar } from '@studio/components';
 import { MenuHamburgerIcon } from '@studio/icons';
-import { DropdownMenu } from '@digdir/designsystemet-react';
 import { useHeaderContext } from '../../../../context/HeaderContext';
 import type { HeaderMenuGroup } from '../../../../types/HeaderMenuGroup';
 import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
@@ -19,35 +18,18 @@ import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 
 export function SmallHeaderMenu(): ReactElement {
   const { t } = useTranslation();
-  const [open, setOpen] = useState<boolean>(false);
-
-  const toggleMenu = () => {
-    setOpen((isOpen) => !isOpen);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
 
   return (
-    <DropdownMenu onClose={handleClose} open={open}>
-      <DropdownMenu.Trigger asChild>
-        <StudioButton
-          aria-expanded={open}
-          aria-haspopup='menu'
-          onClick={toggleMenu}
-          icon={<MenuHamburgerIcon />}
-          variant='tertiary'
-          data-color='neutral'
-        >
-          {t('top_menu.menu')}
-        </StudioButton>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <DropdownContentProfile />
-        <DropdownMenuGroups onClickMenuItem={handleClose} />
-      </DropdownMenu.Content>
-    </DropdownMenu>
+    <StudioDropdown
+      icon={<MenuHamburgerIcon />}
+      triggerButtonText={t('top_menu.menu')}
+      triggerButtonVariant='tertiary'
+      data-color='neutral'
+      data-color-scheme='light'
+    >
+      <DropdownContentProfile />
+      <DropdownMenuGroups />
+    </StudioDropdown>
   );
 }
 
@@ -70,10 +52,7 @@ const DropdownContentProfile = (): ReactElement => {
   );
 };
 
-type DropdownMenuGroupsProps = {
-  onClickMenuItem: () => void;
-};
-const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): ReactElement[] => {
+const DropdownMenuGroups = (): ReactElement[] => {
   const { t } = useTranslation();
   const { menuItems, profileMenuGroups } = useHeaderContext();
   const selectedContext = useSelectedContext();
@@ -87,18 +66,13 @@ const DropdownMenuGroups = ({ onClickMenuItem }: DropdownMenuGroupsProps): React
   ];
 
   return menuGroups.map((menuGroup: NavigationMenuGroup) => (
-    <DropdownMenu.Group
-      heading={menuGroup.showName && t(menuGroup.name)}
-      className={classes.dropDownMenuGroup}
-      key={menuGroup.items.map((item) => item.itemName).join('-')}
-    >
-      {menuGroup.items.map((menuItem: NavigationMenuItem) => (
-        <SmallHeaderMenuItem
-          key={menuItem.itemName}
-          menuItem={menuItem}
-          onClick={onClickMenuItem}
-        />
-      ))}
-    </DropdownMenu.Group>
+    <Fragment key={menuGroup.items.map((item) => item.itemName).join('-')}>
+      {menuGroup.showName && <StudioDropdown.Heading>{t(menuGroup.name)}</StudioDropdown.Heading>}
+      <StudioDropdown.List className={classes.dropDownMenuGroup}>
+        {menuGroup.items.map((menuItem: NavigationMenuItem) => (
+          <SmallHeaderMenuItem key={menuItem.itemName} menuItem={menuItem} />
+        ))}
+      </StudioDropdown.List>
+    </Fragment>
   ));
 };

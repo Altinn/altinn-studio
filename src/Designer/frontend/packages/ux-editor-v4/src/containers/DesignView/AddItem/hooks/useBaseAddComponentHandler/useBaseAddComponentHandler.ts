@@ -6,7 +6,7 @@ import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAd
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
-import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
 export const useBaseAddComponentHandler = (layout: IInternalLayout) => {

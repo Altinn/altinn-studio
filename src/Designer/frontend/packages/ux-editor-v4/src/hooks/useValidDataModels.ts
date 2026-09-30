@@ -18,7 +18,7 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   const dataModel = Boolean(currentDataModel)
     ? currentDataModel
-    : (layoutSets?.sets.find((set) => set.id === layoutSet)?.dataType ?? dataModels?.[0]);
+    : (layoutSets?.find((set) => set.id === layoutSet)?.dataType ?? dataModels?.[0]);
 
   const isDataModelValid = validateSelectedDataModel(dataModel, dataModels);
   const { data: dataModelMetadata, isPending: isPendingDataModelMetadata } =

@@ -1,0 +1,9 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+import { LayoutComponentDocs } from '../common/storybook';
+import * as AlertStories from './Alert.stories';
+import { ALERT_PROP_CATEGORIES } from './Alert.stories';
+
+<Meta of={AlertStories} />
+
+<LayoutComponentDocs categories={ALERT_PROP_CATEGORIES} />

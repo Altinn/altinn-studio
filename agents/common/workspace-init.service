@@ -1,0 +1,19 @@
+[Unit]
+Description=Initialize the Altinn Studio Agent workspace
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+# One best-effort clone started at boot; an existing checkout already has `.git`, so the script
+# exits without touching it. `Type=exec` completes the start job once the script has been started,
+# keeping the clone out of the boot transaction so that `systemctl is-system-running --wait` does
+# not wait for it.
+Type=exec
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+PassEnvironment=GITHUB_TOKEN
+ExecStart=/usr/local/libexec/agent-workspace-init
+
+[Install]
+WantedBy=multi-user.target

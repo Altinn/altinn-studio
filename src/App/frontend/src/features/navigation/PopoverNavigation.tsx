@@ -1,24 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
+import { useBrowserWidth, useIsMobile } from '@app/form-component';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { Button } from '@digdir/designsystemet-react';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
+import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
-import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
-import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();
-  const { expandedWidth } = useUiConfigContext();
+  const { expandedWidth } = useExpandedWidth();
   const isScreenSmall = !useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) || expandedWidth;
 
   if (!hasGroupedNavigation || !isScreenSmall) {

@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Internal.Validation;
 /// <summary>
 /// Factory class that resolves the correct file validators to run on against a <see cref="DataType"/>.
 /// </summary>
-public class FileValidatorFactory : IFileValidatorFactory
+internal sealed class FileValidatorFactory : IFileValidatorFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 
@@ -21,7 +21,7 @@ public class FileValidatorFactory : IFileValidatorFactory
     }
 
     /// <summary>
-    /// Finds the specified file analyser implementations based on the specified analyser id's.
+    /// Finds the specified file analyzer implementations based on the specified analyzer id's.
     /// </summary>
     public IEnumerable<IFileValidator> GetFileValidators(IEnumerable<string> validatorIds)
     {

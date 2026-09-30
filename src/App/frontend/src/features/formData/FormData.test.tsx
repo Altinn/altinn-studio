@@ -15,7 +15,11 @@ import { FormStore } from 'src/features/form/FormContext';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
-import { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
+import {
+  DEFAULT_DEBOUNCE_TIMEOUT,
+  IDataModelMultiPatchRequest,
+  IDataModelMultiPatchResponse,
+} from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import {
   makeFormDataMethodProxies,
@@ -158,8 +162,11 @@ async function statefulRender(props: RenderProps) {
     queries: {
       ...props.queries,
       fetchFormBootstrapForInstance: async (...args) => {
-        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? getFormBootstrapMock();
-        obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        const defaults = getFormBootstrapMock();
+        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? defaults;
+        if (obj.dataModels[defaultDataTypeMock].schema === defaults.dataModels[defaultDataTypeMock].schema) {
+          obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        }
         obj.layouts = {};
         return obj;
       },
@@ -324,18 +331,16 @@ describe('FormData', () => {
 
   describe('Locking', () => {
     beforeEach(() => {
-      jest
-        .spyOn(window, 'logWarn')
+      vi.spyOn(window, 'logWarn')
         .mockImplementation(() => {})
         .mockName(`window.logWarn`);
-      jest
-        .spyOn(window, 'logError')
+      vi.spyOn(window, 'logError')
         .mockImplementation(() => {})
         .mockName(`window.logError`);
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     function LockActionButton({ lockId, renderInfo }: { lockId: string; renderInfo: boolean }) {
@@ -414,11 +419,11 @@ describe('FormData', () => {
     }
 
     beforeAll(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterAll(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('Locking should allow changes to the form data, but some values may be overwritten', async () => {
@@ -437,7 +442,7 @@ describe('FormData', () => {
 
       // Locking prevents saving
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Unlock the form
@@ -449,11 +454,10 @@ describe('FormData', () => {
 
       // Saving is now allowed, so the form data we saved earlier is sent. The one value
       // we changed that was overwritten is now lost.
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -468,7 +472,7 @@ describe('FormData', () => {
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       await user.click(await screen.findByRole('button', { name: 'Unlock myLockId' }));
@@ -477,7 +481,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
 
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
       expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
@@ -498,8 +502,7 @@ describe('FormData', () => {
       await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
-      const patchReq = (mutations.doPatchMultipleFormData.mock as jest.Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'a' } }]);
 
       const response: IDataModelMultiPatchResponse = {
@@ -539,7 +542,7 @@ describe('FormData', () => {
       expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
 
       // The other lock id will be locked after the first one is unlocked, so it is still not acquired
-      act(() => jest.advanceTimersByTime(5000));
+      act(() => vi.advanceTimersByTime(5000));
       expect(screen.queryByRole('button', { name: 'Unlock myOtherLockId' })).not.toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
@@ -629,11 +632,11 @@ describe('FormData', () => {
     }
 
     beforeAll(() => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterAll(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('Unsaved changes should be saved before navigating', async () => {
@@ -648,7 +651,7 @@ describe('FormData', () => {
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
 
-      const dataModel = (mutations.doPostStatelessFormData.mock as jest.Mock).mock.calls[0][1];
+      const dataModel = (mutations.doPostStatelessFormData.mock as Mock).mock.calls[0][1];
       expect(dataModel).toEqual({
         obj2: { prop1: 'a' },
       });
@@ -705,7 +708,7 @@ describe('FormData', () => {
       );
 
       const { mutations, queries } = await render();
-      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as jest.Mock;
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as Mock;
       const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
       const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
         string,
@@ -812,4 +815,69 @@ describe('FormData', () => {
       expect(screen.getByTestId('valid-obj3.prop1')).toHaveValue('');
     });
   });
+
+  // Regression test for https://github.com/Altinn/app-frontend-react/issues/4053
+  describe('List data model bindings regression, issue #4053', () => {
+    const listSchema: JSONSchema7 = {
+      type: 'object',
+      properties: {
+        designs: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              attachmentId: {
+                type: 'array',
+                items: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    function ListWriter() {
+      const { formData, setValue } = useDataModelBindings(
+        { list: { field: 'designs[0].attachmentId', dataType: defaultDataTypeMock } },
+        DEFAULT_DEBOUNCE_TIMEOUT,
+        'raw',
+      );
+      const list = (formData.list ?? []) as string[];
+
+      return (
+        <>
+          <div data-testid='list-value'>{list.join(',')}</div>
+          <button onClick={() => setValue('list', [...list].reverse())}>Update list</button>
+        </>
+      );
+    }
+
+    async function render() {
+      return statefulRender({
+        renderer: <ListWriter />,
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = listSchema;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                designs: [{ attachmentId: ['id-1', 'id-2'] }],
+              };
+            }),
+        },
+      });
+    }
+
+    it('writing a list binding that is already pre-populated with 2+ values should not throw', async () => {
+      const user = userEvent.setup();
+      await render();
+      expect(screen.getByTestId('list-value')).toHaveTextContent('id-1,id-2');
+      // This is what MaintainListDataModelBinding does on load when the order of the mapped
+      // attachments differs from the order stored in the data model. Before the fix this throws
+      // "Trying to redefine non-empty obj['attachmentId']".
+      await user.click(screen.getByRole('button', { name: 'Update list' }));
+
+      await waitFor(() => expect(screen.getByTestId('list-value')).toHaveTextContent('id-2,id-1'));
+    });
+  });
 });
+import type { Mock } from 'vitest';

@@ -1,24 +1,27 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
+import layoutSchema from '@app/layout-contract/schemas/json/layout/layout.schema.v1.json';
 import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
-import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
+import path from 'node:path';
 import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfLayoutName, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-jest.mock('src/features/applicationMetadata');
-jest.mock('src/features/form/ui');
-jest.mock('src/queries/queries');
+vi.mock('src/queries/queries');
+vi.mock('src/features/options/useSourceOptions', () => ({
+  useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
+}));
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -41,7 +44,7 @@ const ignoreLogAndErrors = [
 ];
 
 function TestApp() {
-  const errors = FormStore.nodes.useFullErrorList();
+  const errors = FormStore.layoutDiagnostics.useFullErrorList();
   const filteredErrors: Record<string, string[]> = {};
 
   for (const key in errors) {
@@ -59,9 +62,11 @@ function TestApp() {
 
 function RenderAllComponents() {
   const state = FormStore.raw.useStore().getState();
-  const all = Object.values(state.nodes.nodeData)
-    .filter((nodeData) => nodeData.isValid && nodeData.parentId === undefined)
-    .map((nodeData) => nodeData.id);
+  const pageOrder = useRawPageOrder();
+  const pdfLayoutName = usePdfLayoutName();
+  const all = Object.entries(state.bootstrap.layoutLookups.topLevelComponents)
+    .filter(([pageKey]) => pageOrder.includes(pageKey) || pageKey === pdfLayoutName)
+    .flatMap(([, componentIds]) => componentIds ?? []);
 
   return (
     <>
@@ -88,18 +93,23 @@ const consoleLoggers = ['error', 'warn', 'log'];
 
 describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
+  let featureTogglesWere: typeof window.featureToggles;
+  let forceLayoutPropertiesValidationWas: typeof window.forceLayoutPropertiesValidation;
   beforeAll(() => {
-    window.forceNodePropertiesValidation = 'on';
+    forceLayoutPropertiesValidationWas = window.forceLayoutPropertiesValidation;
+    window.forceLayoutPropertiesValidation = 'on';
+    featureTogglesWere = window.featureToggles;
+    window.featureToggles = { ...window.featureToggles, simpleTableEnabled: true };
     pathnameWas = window.location.pathname.toString();
     for (const func of windowLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(global, func as any)
         .mockImplementation(() => {})
         .mockName(`global.${func}`);
     }
     for (const func of consoleLoggers) {
-      jest
+      vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .spyOn(console, func as any)
         .mockImplementation(() => {})
@@ -108,16 +118,17 @@ describe('All known UI folders should render successfully', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    window.forceNodePropertiesValidation = 'off';
-    window.location.pathname = pathnameWas;
-    jest.restoreAllMocks();
+    window.forceLayoutPropertiesValidation = forceLayoutPropertiesValidationWas;
+    window.featureToggles = featureTogglesWere;
+    window.history.replaceState({}, '', pathnameWas);
+    vi.restoreAllMocks();
   });
 
-  const dir = ensureAppsDirIsSet();
+  const dir = ensureAppsDirIsSet(true, path.resolve(import.meta.dirname, '../../../../../test/apps'));
   if (!dir) {
     return;
   }
@@ -134,8 +145,8 @@ describe('All known UI folders should render successfully', () => {
   allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(uiFolder: ExternalAppUiFolder) {
-    const { pathname, mainFolder, subformComponent } = uiFolder.initialize();
-    window.location.pathname = pathname;
+    const { pathname, initialPage, mainFolder, subformComponent } = uiFolder.initialize();
+    window.history.replaceState({}, '', pathname);
     const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
     window.app = app;
@@ -145,12 +156,15 @@ describe('All known UI folders should render successfully', () => {
     const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
       taskId: mainFolder.getTaskId(),
+      initialPath: pathname,
+      initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
             obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            obj.staticOptions = uiFolder.app.getStaticOptions();
             const models = uiFolder.app.getDataModelsFromMetaData();
             obj.dataModels = Object.fromEntries(
               models.map((model) => [
@@ -187,11 +201,11 @@ describe('All known UI folders should render successfully', () => {
     }
 
     // Inject errors from console/window.logError into the full error list for this layout-set
-    const devToolsLoggers = windowLoggers.map((func) => window[func] as jest.Mock);
+    const devToolsLoggers = windowLoggers.map((func) => window[func] as Mock);
     // eslint-disable-next-line no-console
-    const browserLoggers = consoleLoggers.map((func) => console[func] as jest.Mock);
+    const browserLoggers = consoleLoggers.map((func) => console[func] as Mock);
     for (const _mock of [...devToolsLoggers, ...browserLoggers]) {
-      const mock = _mock as jest.Mock;
+      const mock = _mock as Mock;
       const calls = filterAndCleanMockCalls(mock);
       if (calls.length) {
         errors[mock.getMockName()] = calls;
@@ -205,7 +219,7 @@ describe('All known UI folders should render successfully', () => {
   it.each(allSets)('$appName/$setName', async ({ set }) => testSet(set));
 });
 
-function filterAndCleanMockCalls(mock: jest.Mock): string[] {
+function filterAndCleanMockCalls(mock: Mock): string[] {
   return mock.mock.calls
     .map((_call) => {
       let shouldIgnore = false;
@@ -247,3 +261,4 @@ function filterAndCleanMockCalls(mock: jest.Mock): string[] {
     .filter((x) => x)
     .map((x) => (x ?? []).join('\n'));
 }
+import type { Mock } from 'vitest';

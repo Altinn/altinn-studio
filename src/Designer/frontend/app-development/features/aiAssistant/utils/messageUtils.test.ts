@@ -1,12 +1,11 @@
 import type { AgentResponse, AssistantMessageData, Message } from '@studio/assistant';
-import { ErrorMessages, MessageAuthor } from '@studio/assistant';
+import { MessageAuthor } from '@studio/assistant';
 import {
   decorateMessagesWithTraceIds,
-  formatErrorMessage,
+  formatRejectedEventMessage,
   formatRejectionMessage,
   getAssistantMessageContent,
   getAssistantMessageTimestamp,
-  parseBackendErrorContent,
   shouldSkipBranchOps,
 } from './messageUtils';
 
@@ -22,30 +21,33 @@ const rejectionResult: AgentResponse = {
   message: 'Nope',
   parsed_intent: { suggestions: ['Try A', 'Try B'] },
 };
-const backendErrorDetail = "Error: {'message': 'Bad', 'suggestions': ['First', 'Second']}";
+
+const texts = { heading: '**Avvist**', suggestionsLabel: 'Forslag:' };
 
 describe('messageUtils', () => {
   describe('formatRejectionMessage', () => {
     it('formats rejection message with suggestions', () => {
-      expect(formatRejectionMessage(rejectionResult)).toBe(
-        `${ErrorMessages.REQUEST_REJECTED}\n\nNope\n\nSuggestions:\nTry A\nTry B`,
+      expect(formatRejectionMessage(rejectionResult, texts)).toBe(
+        `${texts.heading}\n\nNope\n\n${texts.suggestionsLabel}\nTry A\nTry B`,
       );
     });
   });
 
-  describe('formatErrorMessage', () => {
-    it('formats error messages', () => {
-      expect(formatErrorMessage(new Error('Boom'))).toBe(`${ErrorMessages.REQUEST_FAILED}\n\nBoom`);
+  describe('formatRejectedEventMessage', () => {
+    it('formats rejection reason and suggestions', () => {
+      expect(
+        formatRejectedEventMessage({ message: 'Nope', suggestions: ['Try A', 'Try B'] }, texts),
+      ).toBe(`${texts.heading}\n\nNope\n\n${texts.suggestionsLabel}\nTry A\nTry B`);
     });
-  });
 
-  describe('parseBackendErrorContent', () => {
-    it('parses backend error content with suggestions', () => {
-      const error = new Error(JSON.stringify({ detail: backendErrorDetail }));
-
-      expect(parseBackendErrorContent(error)).toBe(
-        `${ErrorMessages.REQUEST_REJECTED}\n\nBad\n\n**Suggestions:**\n• First\n• Second`,
+    it('omits the suggestions block when there are none', () => {
+      expect(formatRejectedEventMessage({ message: 'Nope' }, texts)).toBe(
+        `${texts.heading}\n\nNope`,
       );
+    });
+
+    it('falls back to the rejection header alone when the event carries no details', () => {
+      expect(formatRejectedEventMessage({}, texts)).toBe(texts.heading);
     });
   });
 

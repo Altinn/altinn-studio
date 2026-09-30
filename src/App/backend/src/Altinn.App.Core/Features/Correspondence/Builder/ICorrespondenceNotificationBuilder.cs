@@ -91,36 +91,59 @@ public interface ICorrespondenceNotificationBuilder : ICorrespondenceNotificatio
     ICorrespondenceNotificationBuilder WithSendersReference(string? sendersReference);
 
     /// <summary>
-    /// Sets the requested send time for the correspondence notification.
+    /// Adds a recipient to the correspondence notification, on top of the correspondence recipient.
     /// </summary>
-    /// <param name="requestedSendTime">The requested send time</param>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    ICorrespondenceNotificationBuilder WithRequestedSendTime(DateTimeOffset? requestedSendTime);
-
-    /// <summary>
-    /// Sets the recipient override for the correspondence notification.
-    /// </summary>
-    /// <param name="recipientOverride">The recipient override</param>
+    /// <remarks>Despite the name, this supplements rather than replaces — see
+    /// <see cref="CorrespondenceNotification.CustomRecipients"/>. Calls accumulate, so this may be chained
+    /// to add several recipients.</remarks>
+    /// <param name="recipientOverride">The recipient to add</param>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         CorrespondenceNotificationRecipient recipientOverride
     );
 
     /// <summary>
-    /// Sets the recipient override for the correspondence notification.
+    /// Adds a recipient to the correspondence notification, on top of the correspondence recipient.
     /// </summary>
-    /// <param name="recipientOverrideBuilder">The recipient override builder.</param>
+    /// <remarks>Despite the name, this supplements rather than replaces — see
+    /// <see cref="CorrespondenceNotification.CustomRecipients"/>. Calls accumulate, so this may be chained
+    /// to add several recipients.</remarks>
+    /// <param name="recipientOverrideBuilder">Builder for the recipient to add.</param>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
     );
 
     /// <summary>
-    /// Sets the recipient override for the correspondence notification.
+    /// Adds a recipient to the correspondence notification if one is configured, on top of the
+    /// correspondence recipient.
     /// </summary>
-    /// <param name="recipientToOverrideWrapper">Recipients to override.</param>
-    /// <returns></returns>
-    [Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper
+    /// <remarks>A <c>null</c> value is ignored, so an optionally-configured recipient needs no
+    /// null check at the call site. Otherwise identical to
+    /// <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>.</remarks>
+    /// <param name="recipientOverride">The recipient to add, or <c>null</c> to add nothing</param>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(
+        CorrespondenceNotificationRecipient? recipientOverride
+    );
+
+    /// <summary>
+    /// Adds several recipients to the correspondence notification, on top of the correspondence recipient.
+    /// </summary>
+    /// <remarks>Despite the name, these supplement rather than replace — see
+    /// <see cref="CorrespondenceNotification.CustomRecipients"/>. Calls accumulate, and compose with
+    /// <see cref="WithRecipientOverride(CorrespondenceNotificationRecipient)"/>.</remarks>
+    /// <param name="recipientOverrides">The recipients to add</param>
+    public ICorrespondenceNotificationBuilder WithRecipientOverrides(
+        IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides
+    );
+
+    /// <summary>
+    /// Sets whether the added recipients replace the correspondence recipient's registered contact
+    /// information, rather than supplementing it. Defaults to <c>false</c>.
+    /// </summary>
+    /// <remarks>Requires at least one recipient to have been added; setting this without any is rejected
+    /// before the request is sent. See <see cref="CorrespondenceNotification.CustomRecipients"/>.</remarks>
+    /// <param name="overrideRegisteredContactInformation"><c>true</c> to notify only the added recipients</param>
+    public ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(
+        bool overrideRegisteredContactInformation
     );
 
     /// <summary>

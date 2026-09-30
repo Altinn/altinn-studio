@@ -7,7 +7,7 @@ import type { AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types
 /**
  * Mutation to add a member to a access list.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param listIdentifier the identifier of the list to add the member to
  * @param env the list environment
  */

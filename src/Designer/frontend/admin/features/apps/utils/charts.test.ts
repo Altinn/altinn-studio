@@ -1,4 +1,4 @@
-import type { TimeScaleOptions, TooltipCallbacks } from 'chart.js';
+import type { TimeScaleOptions, TooltipItem, TooltipModel } from 'chart.js';
 import { getChartOptions } from './charts';
 
 describe('getChartOptions', () => {
@@ -21,7 +21,8 @@ describe('getChartOptions', () => {
     const getTitle = (bucketSize: number, startMs: number): string[] => {
       const options = getChartOptions(bucketSize, 60);
       const title = options.plugins?.tooltip?.callbacks?.title;
-      return title?.call({} as TooltipCallbacks<'bar'>, [{ parsed: { x: startMs } }]) as string[];
+      const tooltipItem = { parsed: { x: startMs, y: 0 } } as TooltipItem<'bar'>;
+      return title?.call({} as TooltipModel<'bar'>, [tooltipItem]) as string[];
     };
 
     it('returns date header and time range on same day', () => {
@@ -41,7 +42,7 @@ describe('getChartOptions', () => {
     it('returns undefined when no items', () => {
       const options = getChartOptions(5, 60);
       const title = options.plugins?.tooltip?.callbacks?.title;
-      const result = title?.call({} as TooltipCallbacks<'bar'>, []);
+      const result = title?.call({} as TooltipModel<'bar'>, []);
       expect(result).toBe(undefined);
     });
   });

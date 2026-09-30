@@ -15,11 +15,6 @@ public sealed record CorrespondenceRequest
     public required string ResourceId { get; init; }
 
     /// <summary>
-    /// The sending organisation of the correspondence.
-    /// </summary>
-    public required OrganisationNumber Sender { get; init; }
-
-    /// <summary>
     /// A reference value given to the message by the creator.
     /// </summary>
     public required string SendersReference { get; init; }
@@ -36,23 +31,17 @@ public sealed record CorrespondenceRequest
     public DateTimeOffset? RequestedPublishTime { get; init; }
 
     /// <summary>
-    /// When can Altinn remove the correspondence from its database?
-    /// </summary>
-    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-    public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
-
-    /// <summary>
     /// When must the recipient respond by?
     /// </summary>
     public DateTimeOffset? DueDateTime { get; init; }
 
     /// <summary>
-    /// The recipients of the correspondence. Either Norwegian organisation numbers or national identity numbers.
+    /// The recipients of the correspondence. Either Norwegian organization numbers or national identity numbers.
     /// </summary>
-    public required IReadOnlyList<OrganisationOrPersonIdentifier> Recipients { get; init; }
+    public required IReadOnlyList<OrganizationOrPersonIdentifier> Recipients { get; init; }
 
     /// <summary>
-    /// An alternative name for the sender of the correspondence. The name will be displayed instead of the organisation name.
+    /// An alternative name for the sender of the correspondence. The name will be displayed instead of the organization name.
     /// </summary>
     public string? MessageSender { get; init; }
 
@@ -97,6 +86,22 @@ public sealed record CorrespondenceRequest
     public IReadOnlyList<Guid>? ExistingAttachments { get; init; }
 
     /// <summary>
+    /// An optional caller-chosen key that prevents the same correspondence being created twice.
+    /// </summary>
+    /// <remarks>
+    /// <p>Reuse the same key when retrying a send that may already have succeeded — for example from a
+    /// process step that can run more than once. Derive it from something stable about the send (the
+    /// instance and the purpose, say), not from <see cref="Guid.NewGuid"/>, which would defeat it.</p>
+    /// <p>This prevents duplicates rather than replaying the original result: a second send with the same
+    /// key fails with <see cref="Exceptions.CorrespondenceRequestException"/> carrying
+    /// <see cref="System.Net.HttpStatusCode.Conflict"/>, which a caller can treat as "already sent". It
+    /// cannot be combined with more than one entry in <see cref="Recipients"/>, and it cannot be
+    /// <see cref="Guid.Empty"/>; both are rejected before the request is sent.</p>
+    /// <p>Named after the Correspondence API's own <c>idempotentKey</c> field.</p>
+    /// </remarks>
+    public Guid? IdempotentKey { get; init; }
+
+    /// <summary>
     /// <p>Validates the state of the request based on some known requirements from the Correspondence API.</p>
     /// <p>Mostly stuff found here: https://github.com/Altinn/altinn-correspondence/blob/main/src/Altinn.Correspondence.Application/InitializeCorrespondences/InitializeCorrespondencesHandler.cs#L51.</p>
     /// </summary>
@@ -104,15 +109,28 @@ public sealed record CorrespondenceRequest
     {
         if (Recipients.Count != Recipients.Distinct().Count())
             ValidationError($"Duplicate recipients found in {nameof(Recipients)} list");
+        if (IdempotentKey == Guid.Empty)
+            ValidationError($"{nameof(IdempotentKey)} cannot be an empty GUID");
+        if (IdempotentKey is not null && Recipients.Count > 1)
+            ValidationError(
+                $"{nameof(IdempotentKey)} cannot be combined with more than one recipient, because the "
+                    + "Correspondence API scopes the key to a single correspondence"
+            );
+        if (Notification is { OverrideRegisteredContactInformation: true, CustomRecipients: null or { Count: 0 } })
+            ValidationError(
+                $"{nameof(CorrespondenceNotification.OverrideRegisteredContactInformation)} requires at least one "
+                    + $"entry in {nameof(CorrespondenceNotification.CustomRecipients)}, otherwise the notification "
+                    + "would have no recipient at all"
+            );
         if (IsConfirmationNeeded is true && DueDateTime is null)
             ValidationError($"When {nameof(IsConfirmationNeeded)} is set, {nameof(DueDateTime)} is also required");
 
         if (DueDateTime is not null)
         {
-            var normalisedDueDate = NormaliseDateTime(DueDateTime.Value);
-            if (normalisedDueDate < DateTimeOffset.UtcNow)
+            var normalizedDueDate = NormalizeDateTime(DueDateTime.Value);
+            if (normalizedDueDate < DateTimeOffset.UtcNow)
                 ValidationError($"{nameof(DueDateTime)} cannot be a time in the past");
-            if (normalisedDueDate < RequestedPublishTime)
+            if (normalizedDueDate < RequestedPublishTime)
                 ValidationError($"{nameof(DueDateTime)} cannot be prior to {nameof(RequestedPublishTime)}");
         }
     }
@@ -126,7 +144,7 @@ public sealed record CorrespondenceRequest
     /// <summary>
     /// Removes the <see cref="DateTimeOffset.Ticks"/> portion of a <see cref="DateTimeOffset"/>.
     /// </summary>
-    internal static DateTimeOffset NormaliseDateTime(DateTimeOffset dateTime)
+    internal static DateTimeOffset NormalizeDateTime(DateTimeOffset dateTime)
     {
         return dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerSecond));
     }

@@ -43,6 +43,8 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   setSelectedTypePointer,
   save,
   name: dataModelName,
+  prefillConfig: {},
+  savePrefillConfig: jest.fn(),
 };
 
 // Mocks:

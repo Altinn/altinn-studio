@@ -126,7 +126,7 @@ public class AzureSharedContentClient : ISharedContentClient
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 throw new HttpRequestException(
-                    $"Unexpected response from blob storage. Organisation name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
+                    $"Unexpected response from blob storage. Organization name: {orgName}. CodeListId: {codeListId}. Version: {version}. Status code: {response.StatusCode}"
                 );
             }
 

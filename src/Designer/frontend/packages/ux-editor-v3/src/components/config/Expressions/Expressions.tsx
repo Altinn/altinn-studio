@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioAlert } from '@studio/components';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';
@@ -70,9 +70,9 @@ export const Expressions = () => {
         />
       ))}
       {isExpressionLimitReached ? (
-        <Alert className={classes.expressionsAlert}>
+        <StudioAlert className={classes.expressionsAlert}>
           {t('right_menu.expressions_expressions_limit_reached_alert')}
-        </Alert>
+        </StudioAlert>
       ) : (
         <>
           {propertiesWithExpressions.length === 0 && (

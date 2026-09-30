@@ -5,7 +5,7 @@ import { SigningActionsDef } from 'src/layout/SigningActions/config.def.generate
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { NodeValidationProps } from 'src/layout/layout';
+import type { ComponentLayoutValidationProps } from 'src/layout/layout';
 
 export class SigningActions extends SigningActionsDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SigningActions'>>(
@@ -14,7 +14,7 @@ export class SigningActions extends SigningActionsDef {
     },
   );
 
-  renderLayoutValidators(props: NodeValidationProps<'SigningActions'>): JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'SigningActions'>): JSX.Element | null {
     return <ValidateSigningTaskType {...props} />;
   }
 }

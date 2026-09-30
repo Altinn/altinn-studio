@@ -48,7 +48,7 @@ public class GitExceptionFilterAttribute : ExceptionFilterAttribute
         }
 
         if (
-            context.Exception is GiteaUnathorizedException
+            context.Exception is GiteaUnauthorizedException
             || (
                 context.Exception is LibGit2SharpException
                 && context.Exception.Message.Contains("server requires authentication that we do not support")

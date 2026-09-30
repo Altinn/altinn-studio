@@ -1,0 +1,32 @@
+.sourceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1);
+  margin-top: var(--ds-size-2);
+}
+
+.sourceLabel {
+  font-size: var(--ds-font-size-small);
+  color: var(--ds-color-text-subtle);
+  margin-right: var(--ds-size-1);
+}
+
+.sourceChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--ds-size-2);
+  font-size: var(--ds-font-size-small);
+  color: var(--ds-color-text-default);
+  background-color: var(--ds-color-surface-subtle);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-border-radius-full);
+  text-decoration: none;
+}
+
+a.sourceChip:hover,
+a.sourceChip:focus {
+  background-color: var(--ds-color-accent-background-tinted);
+  border-color: var(--ds-color-accent-subtle);
+  text-decoration: underline;
+}

@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Configuration;
 
 /// <summary>
 /// Represents a set of configuration options when communicating with the platform API.
-/// Instances of this class is initialised with values from app settings. Some values can be overridden by environment variables.
+/// Instances of this class is initialized with values from app settings. Some values can be overridden by environment variables.
 /// </summary>
 public class PlatformSettings
 {
@@ -55,6 +55,11 @@ public class PlatformSettings
     /// Gets or sets the url for the Access Management (Delegation) API endpoint.
     /// </summary>
     public string ApiAccessManagementEndpoint { get; set; } = "http://localhost:5101/accessmanagement/api/v1/";
+
+    /// <summary>
+    /// Gets or sets the url for the Workflow Engine API endpoint.
+    /// </summary>
+    public string ApiWorkflowEngineEndpoint { get; set; } = "http://localhost:9090/api/v1/";
 
     /// <summary>
     /// Gets or sets the subscription key value to use in requests against the platform.

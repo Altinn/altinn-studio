@@ -9,7 +9,7 @@
       },
       {
         "id": "LinkPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h2",
         "textResourceBindings": {
           "title": "Lenker"
@@ -28,7 +28,7 @@
       },
       {
         "id": "LinkPage-Sub-Header",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Lenker stylet som knapp"
@@ -113,7 +113,6 @@
       {
         "id": "Link-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {}
       }
     ]

@@ -96,80 +96,78 @@ const AddMapLayer = ({
 
   return (
     <>
-      {component.layers?.map(
-        (layer, index): JSX.Element => (
-          // Find a way to avoid using index as key
-          <StudioProperty.Fieldset
-            key={index}
-            legend={t('ux_editor.map_layer') + (index + 1)}
-            menubar={
-              <StudioButton
-                icon={<XMarkIcon title={t('general.delete')} />}
-                onClick={(): void => handleOnDeleteLayer(index)}
-                variant='tertiary'
-              />
-            }
-          >
-            <div className={classes.formGroup}>
-              <FormField
-                id={component.id}
-                label={t('ux_editor.url_label')}
-                value={layer.url || ''}
-                onChange={(value, event) => handleOnLayerChange(index, event)}
-                propertyPath={`${component.propertyPath}/properties/layers/properties/url`}
-                customValidationMessages={(errorCode: string) => {
-                  if (errorCode === 'format') return t('validation_errors.value_as_url');
-                }}
-                renderField={({ fieldProps }) => (
-                  <StudioTextfield
-                    id={component.id}
-                    label={t('ux_editor.url_label')}
-                    value={fieldProps.value}
-                    onChange={(e) => fieldProps.onChange(e.target.value, e)}
-                    name='url'
-                  />
-                )}
-              />
-            </div>
-            <div className={classes.formGroup}>
-              <FormField
-                id={component.id}
-                label={t('ux_editor.attribution_label')}
-                value={layer.attribution || ''}
-                onChange={(value, event) => handleOnLayerChange(index, event)}
-                propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
-                renderField={({ fieldProps }) => (
-                  <StudioTextfield
-                    id={component.id}
-                    label={t('ux_editor.attribution_label')}
-                    value={fieldProps.value}
-                    name='attribution'
-                    onChange={(e) => fieldProps.onChange(e.target.value, e)}
-                  />
-                )}
-              />
+      {component.layers?.map((layer, index): JSX.Element => (
+        // Find a way to avoid using index as key
+        <StudioProperty.Fieldset
+          key={index}
+          legend={t('ux_editor.map_layer') + (index + 1)}
+          menubar={
+            <StudioButton
+              icon={<XMarkIcon title={t('general.delete')} />}
+              onClick={(): void => handleOnDeleteLayer(index)}
+              variant='tertiary'
+            />
+          }
+        >
+          <div className={classes.formGroup}>
+            <FormField
+              id={component.id}
+              label={t('ux_editor.url_label')}
+              value={layer.url || ''}
+              onChange={(value, event) => handleOnLayerChange(index, event)}
+              propertyPath={`${component.propertyPath}/properties/layers/properties/url`}
+              customValidationMessages={(errorCode: string) => {
+                if (errorCode === 'format') return t('validation_errors.value_as_url');
+              }}
+              renderField={({ fieldProps }) => (
+                <StudioTextfield
+                  id={component.id}
+                  label={t('ux_editor.url_label')}
+                  value={fieldProps.value}
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                  name='url'
+                />
+              )}
+            />
+          </div>
+          <div className={classes.formGroup}>
+            <FormField
+              id={component.id}
+              label={t('ux_editor.attribution_label')}
+              value={layer.attribution || ''}
+              onChange={(value, event) => handleOnLayerChange(index, event)}
+              propertyPath={`${component.propertyPath}/properties/layers/properties/attribution`}
+              renderField={({ fieldProps }) => (
+                <StudioTextfield
+                  id={component.id}
+                  label={t('ux_editor.attribution_label')}
+                  value={fieldProps.value}
+                  name='attribution'
+                  onChange={(e) => fieldProps.onChange(e.target.value, e)}
+                />
+              )}
+            />
 
-              <FormField
-                id={component.id}
-                label={t('ux_editor.subdomains_label')}
-                value={layer?.subdomains || []}
-                onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
-                propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
-                renderField={({ fieldProps }) => (
-                  <StudioTextfield
-                    id={component.id}
-                    label={t('ux_editor.subdomains_label')}
-                    name='subdomains'
-                    placeholder={t('ux_editor.subdomains_placeholder')}
-                    onChange={(e) => fieldProps.onChange(stringToArray(e.target.value), e)}
-                    value={arrayToString(fieldProps.value) || ''}
-                  />
-                )}
-              />
-            </div>
-          </StudioProperty.Fieldset>
-        ),
-      )}
+            <FormField
+              id={component.id}
+              label={t('ux_editor.subdomains_label')}
+              value={layer?.subdomains || []}
+              onChange={(value: string[]) => handleOnSubDomainChange(index, value)}
+              propertyPath={`${component.propertyPath}/properties/layers/properties/subdomains`}
+              renderField={({ fieldProps }) => (
+                <StudioTextfield
+                  id={component.id}
+                  label={t('ux_editor.subdomains_label')}
+                  name='subdomains'
+                  placeholder={t('ux_editor.subdomains_placeholder')}
+                  onChange={(e) => fieldProps.onChange(stringToArray(e.target.value), e)}
+                  value={arrayToString(fieldProps.value) || ''}
+                />
+              )}
+            />
+          </div>
+        </StudioProperty.Fieldset>
+      ))}
       <StudioProperty.Button
         className={classes.addMapButton}
         icon={<PlusCircleIcon />}

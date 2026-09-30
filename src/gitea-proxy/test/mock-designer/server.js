@@ -2,6 +2,7 @@ const http = require('http');
 
 // Mirrors Designer's GET /designer/api/v1/studio-oidc/userinfo:
 //   record UserInfoResponse(string? Username, string? GivenName, string? FamilyName, string? AuthMethod)
+// Authenticated requests return 200 with user info; anonymous requests return 204.
 // AuthMethod values are the AuthenticationScheme names: "Cookies" or "ApiKey".
 
 const USERINFO_PATH = '/designer/api/v1/studio-oidc/userinfo';
@@ -25,7 +26,8 @@ const scenarios = {
       authMethod: 'ApiKey',
     },
   },
-  expired: { status: 401, body: '' },
+  expired: { status: 204, body: '' },
+  unauthorized: { status: 401, body: '' },
   forbidden: { status: 403, body: '' },
   not_found: { status: 404, body: '' },
   server_error: { status: 500, body: '' },

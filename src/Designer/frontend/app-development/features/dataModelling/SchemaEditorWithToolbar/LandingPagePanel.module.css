@@ -1,22 +1,22 @@
 .buttonWrapper {
   display: flex;
   flex-direction: row;
-  gap: var(--fds-spacing-3);
-  padding-top: var(--fds-spacing-3);
-  padding-bottom: var(--fds-spacing-3);
+  gap: var(--ds-size-3);
+  padding-top: var(--ds-size-3);
+  padding-bottom: var(--ds-size-3);
   align-items: center;
 }
 
 .landingDialog {
   display: flex;
   flex-direction: column;
-  background-color: var(--fds-semantic-surface-info-subtle);
+  background-color: var(--ds-color-info-surface-tinted);
   box-shadow: 1px 1px 3px 2px rgb(0 0 0 / 25%);
-  padding: var(--fds-spacing-10);
-  gap: var(--fds-spacing-8);
+  padding: var(--ds-size-10);
+  gap: var(--ds-size-8);
   width: 40%;
   height: fit-content;
-  margin-top: var(--fds-spacing-10);
+  margin-top: var(--ds-size-10);
   margin-left: auto;
   margin-right: auto;
 }

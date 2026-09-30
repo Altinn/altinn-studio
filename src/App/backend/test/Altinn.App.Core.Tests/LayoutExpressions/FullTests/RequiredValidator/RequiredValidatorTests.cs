@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -140,20 +141,22 @@ public class RequiredValidatorTests
         var dataUnitOfWorkInitializer = sp.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         var dataMutator = await dataUnitOfWorkInitializer.Init(
             fixture.Instance,
+            StorageVersionMetadata.Empty,
             DataAccessorFixture.TaskId,
             "test-language"
         );
 
         var validationService = sp.GetRequiredService<IValidationService>();
+        var dataType = dataMutator.GetDataType("mainLayout_dataType");
         var changes = new DataElementChanges([
             new FormDataChange(
                 contentType: "application/xml",
-                dataType: dataMutator.GetDataType("mainLayout_dataType"),
+                dataType: dataType,
                 dataElement: null,
                 currentBinaryData: null,
                 previousBinaryData: null,
-                currentFormDataWrapper: FormDataWrapperFactory.Create(data),
-                previousFormDataWrapper: FormDataWrapperFactory.Create(new Model()),
+                currentFormDataWrapper: FormDataWrapperFactory.Create(data, dataType, null),
+                previousFormDataWrapper: FormDataWrapperFactory.Create(new Model(), dataType, null),
                 type: ChangeType.Created
             ),
         ]);

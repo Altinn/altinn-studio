@@ -110,11 +110,7 @@ public class RemoveHiddenDataTests
             }
             """
         );
-        IInstanceDataAccessor dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-            new Instance(),
-            jsonDoc.RootElement
-        );
-        var data = await dataAccessor.GetFormData(dataAccessor.Instance.Data.First());
+        var data = DynamicClassBuilder.DataObjectFromJsonDocument(jsonDoc.RootElement);
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "RemoveHiddenData");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 

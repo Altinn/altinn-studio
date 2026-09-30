@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button, Pagination } from '@app/form-component';
+import { Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
@@ -16,7 +16,6 @@ import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -100,16 +99,12 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
           {paginatedInstances.map((instance) => (
             <Table.Row key={instance.id}>
               <Table.Cell className={classes.mobileTableCell}>
-                <div>
-                  <b>{langAsString('instance_selection.last_changed')}:</b>
-                  <br />
-                  <span>{getDateDisplayString(instance.lastChanged)}</span>
-                </div>
-                <div>
-                  <b>{langAsString('instance_selection.changed_by')}:</b>
-                  <br />
-                  <span>{instance.lastChangedBy}</span>
-                </div>
+                <dl className={classes.instanceDetails}>
+                  <dt>{langAsString('instance_selection.last_changed')}:</dt>
+                  <dd>{getDateDisplayString(instance.lastChanged)}</dd>
+                  <dt>{langAsString('instance_selection.changed_by')}:</dt>
+                  <dd>{instance.lastChangedBy}</dd>
+                </dl>
               </Table.Cell>
               <Table.Cell>
                 <div className={classes.tableButtonWrapper}>
@@ -265,7 +260,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     if (data) {
                       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
                       const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-                      navigate(url);
+                      await navigate(url);
                     }
                   }
                 })

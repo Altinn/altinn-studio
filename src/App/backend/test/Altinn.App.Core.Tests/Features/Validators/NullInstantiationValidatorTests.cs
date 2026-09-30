@@ -1,9 +1,8 @@
-#nullable disable
 using Altinn.App.Core.Features.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 
-namespace Altinn.App.PlatformServices.Tests.Features.Validators;
+namespace Altinn.App.Core.Tests.Features.Validators;
 
 public class NullInstantiationValidatorTests
 {

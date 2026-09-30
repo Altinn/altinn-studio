@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Studio.EnvTopology;
 using Microsoft.AspNetCore.Mvc;
 using LocalTest.Configuration;

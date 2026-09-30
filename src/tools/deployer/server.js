@@ -28,7 +28,7 @@ class FatalSyncError extends Error {
 // --- Service & environment definitions ---
 
 function envDisplayName(name) {
-  return name.replace(/^(runtime_|studio_)/, '');
+  return name.replace(/^(runtime_|studio_|adminservices_)/, '');
 }
 
 function createEnv(name, aliases = [], ungated = false) {
@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio)-/, '')
+    .replace(/^deploy-(runtime|studio|admin)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -66,9 +66,12 @@ const STUDIO_ENVS = Object.freeze([
   createEnv('staging', [], true),
   createEnv('prod', ['preapproved-prod']),
 ]);
+// Admin workflows name their tag jobs after the matrix tag, e.g. "Tag syncroot (test)".
+const ADMIN_ENVS = Object.freeze([createEnv('adminservices_test', ['test'], true)]);
 const PLANE_DEFINITIONS = Object.freeze([
   { name: 'runtime', envs: RUNTIME_ENVS },
   { name: 'studio', envs: STUDIO_ENVS },
+  { name: 'admin', envs: ADMIN_ENVS },
 ]);
 
 function service(workflow, planeDefs) {
@@ -84,10 +87,21 @@ const STUDIO_WORKFLOWS = [
   'deploy-designer.yaml',
   'deploy-repositories.yaml',
   'deploy-gitea-runners.yaml',
-  'deploy-studio-mcp-server.yaml',
   'deploy-studio-otel-operator.yaml',
   'deploy-studio-observability.yaml',
   'deploy-lhci-server.yaml',
+  'deploy-runner-org-sync.yaml',
+  'deploy-studio-ai-agents.yaml',
+  'deploy-studio-external-secrets-operator.yaml',
+  'deploy-studio-keyvault-secret-store.yaml',
+  'deploy-studio-ssl-cert.yaml',
+];
+// Deployed to Studio prod only (override-default-studio-environments: prod).
+const STUDIO_PROD_WORKFLOWS = ['deploy-github-runners.yaml', 'deploy-sandbox-node.yaml'];
+const ADMIN_WORKFLOWS = [
+  'deploy-admin-syncroot.yaml',
+  'deploy-admin-workflow-engine-db.yaml',
+  'deploy-admin-workflow-engine-tenant-db-template.yaml',
 ];
 const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-gateway.yaml', RUNTIME_ENVS],
@@ -107,6 +121,8 @@ const SERVICES = [
     ['studio', STUDIO_ENVS],
   ]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
+  ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
+  ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
   ...STUDIO_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS]])),
 ];
@@ -158,12 +174,32 @@ function normalizeRunJobsForService(service, jobs) {
   return normalized;
 }
 
+// A re-run keeps the run id but bumps run_attempt; the jobs endpoint returns the latest attempt.
+function getRunAttempt(run, jobs) {
+  return Math.max(run.run_attempt ?? 1, ...jobs.map((job) => job.run_attempt ?? 1));
+}
+
+// Last attempt stored for the run. Runs stored before attempts were tracked count as attempt 1.
+function getStoredRunAttempt(runId) {
+  return stmts.getRunAttempt.get(runId)?.run_attempt ?? null;
+}
+
+function hasUnsyncedAttempt(run) {
+  return (run.run_attempt ?? 1) > (getStoredRunAttempt(run.id) ?? 1);
+}
+
 function storeRunJobs(run, jobs, workflowOverride = null) {
   const workflowFile = workflowOverride || path.posix.basename(run.path || '');
   const service = SERVICE_BY_WORKFLOW.get(workflowFile);
   if (!service) return [];
 
   const normalizedJobs = normalizeRunJobsForService(service, jobs);
+  const attempt = getRunAttempt(run, jobs);
+  const storedAttempt = getStoredRunAttempt(run.id);
+  // Jobs fetched before a re-run must not overwrite the newer attempt.
+  if (storedAttempt !== null && attempt < storedAttempt) return normalizedJobs;
+  // A newer (or untracked) attempt replaces all jobs stored for the run.
+  if (storedAttempt === null || attempt > storedAttempt) stmts.deleteRunJobs.run(run.id);
   const commitFirstLine = (run.head_commit?.message || '').split('\n')[0];
   const title = commitFirstLine || run.display_title || '';
   const prMatch = title.match(/\(#(\d+)\)/);
@@ -185,6 +221,7 @@ function storeRunJobs(run, jobs, workflowOverride = null) {
       prNumber,
     );
   }
+  stmts.setRunAttempt.run(run.id, attempt);
   return normalizedJobs;
 }
 
@@ -256,7 +293,8 @@ async function processRunForSync(run, workflow, planes, coverageByPlane = null) 
     runCompleted &&
     run.conclusion === 'success' &&
     Array.isArray(existingJobs) &&
-    existingJobs.length > 0;
+    existingJobs.length > 0 &&
+    !hasUnsyncedAttempt(run);
 
   let jobsToProcess;
   let jobFetches = 0;
@@ -386,13 +424,16 @@ async function syncWorkflowIncremental(service, stopAtRunId) {
     }
     if (newestWorkflowRunId === 0 && page === 1) newestWorkflowRunId = runs[0].id;
 
+    // Runs at or below the watermark are only re-processed when re-run since they were stored.
+    // The rest of the page holding the watermark is scanned for these, at no extra API cost.
     const relevant = [];
     for (const run of runs) {
-      if (run.id <= stopAtRunId) {
-        reachedStopAtRunId = true;
-        break;
+      if (run.id > stopAtRunId) {
+        relevant.push(run);
+        continue;
       }
-      relevant.push(run);
+      reachedStopAtRunId = true;
+      if (hasUnsyncedAttempt(run)) relevant.push(run);
     }
 
     totalRuns += relevant.length;

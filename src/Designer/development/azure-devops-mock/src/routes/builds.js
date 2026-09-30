@@ -3,15 +3,12 @@ import { between, sleep, designerDomain } from '../utils.js';
 import axios from 'axios';
 
 const queue = new pQueue({ concurrency: 1 });
-/**
- * @see backend/src/Designer/appsettings.json
- */
-const DEPLOY_DEFINITION_ID = 81;
 const builds = [];
 let deploys = [];
 export const buildsRoute = async (req, res) => {
   const params = JSON.parse(req.body.parameters);
-  const isDeploy = parseInt(req.body.definition.id) === DEPLOY_DEFINITION_ID;
+  // The GitOps manager definition is shared by deploy, undeploy and sync-root requests.
+  const isDeploy = params.DEPLOYMENT_ID !== undefined;
   const webhookUrl =
     designerDomain() +
     '/designer/api/v1/' +

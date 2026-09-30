@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Models;
 using NetEscapades.EnumGenerators;
 using static Altinn.App.Core.Features.Telemetry.Maskinporten;
 using Tag = System.Collections.Generic.KeyValuePair<string, object?>;
@@ -34,22 +36,44 @@ partial class Telemetry
         );
     }
 
-    internal Activity? StartGetAccessTokenActivity(string variant, string clientId, string scopes)
+    internal Activity? StartGetAccessTokenActivity(string clientId, MaskinportenTokenRequest request)
     {
         var activity = ActivitySource.StartActivity("Maskinporten.GetAccessToken");
-        activity?.SetTag("maskinporten.variant", variant);
-        activity?.SetTag("maskinporten.scopes", scopes);
-        activity?.SetTag("maskinporten.client_id", clientId);
+        SetRequestTags(activity, clientId, request);
         return activity;
     }
 
-    internal Activity? StartGetAltinnExchangedAccessTokenActivity(string variant, string clientId, string scopes)
+    internal Activity? StartGetAltinnExchangedAccessTokenActivity(string clientId, MaskinportenTokenRequest request)
     {
         var activity = ActivitySource.StartActivity("Maskinporten.GetAltinnExchangedAccessToken");
-        activity?.SetTag("maskinporten.variant", variant);
-        activity?.SetTag("maskinporten.scopes", scopes);
-        activity?.SetTag("maskinporten.client_id", clientId);
+        SetRequestTags(activity, clientId, request);
         return activity;
+    }
+
+    private static void SetRequestTags(Activity? activity, string clientId, MaskinportenTokenRequest request)
+    {
+        if (activity is null)
+            return;
+
+        activity.SetTag("maskinporten.scopes", request.FormattedScopes);
+        activity.SetTag("maskinporten.client_id", clientId);
+
+        if (request.ConsumerOrg is { } consumerOrg)
+            activity.SetTag("maskinporten.consumer_org", consumerOrg.Get(OrganizationNumberFormat.Local));
+
+        if (request.Resource is { } resource)
+            activity.SetTag("maskinporten.resource", resource);
+
+        if (request.SystemUser is { } systemUser)
+        {
+            activity.SetTag(
+                "maskinporten.systemuser_org",
+                systemUser.Organization.Get(OrganizationNumberFormat.International)
+            );
+
+            if (systemUser.ExternalRef is { } externalRef)
+                activity.SetTag("maskinporten.systemuser_external_ref", externalRef);
+        }
     }
 
     internal void RecordMaskinportenTokenRequest(RequestResult result)

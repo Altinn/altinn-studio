@@ -1,7 +1,6 @@
 import React from 'react';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { StudioTable } from '@studio/components-legacy';
-import { StudioTag } from '@studio/components';
+import { StudioTag, StudioTable } from '@studio/components';
 import {
   getSubjectCategoryTextKey,
   getSubjectDisplayName,

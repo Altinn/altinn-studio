@@ -1,5 +1,4 @@
 import { useContext } from 'react';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { ExpressionContent } from '../ExpressionContent';
 import classes from './Expressions.module.css';
 import { FormItemContext } from '../../../containers/FormItemContext';
@@ -15,7 +14,7 @@ import type { FormItemProperty } from '../../../types/FormItemProperty';
 import { ExpressionHeading } from './ExpressionHeading';
 import type { FormItem } from '../../../types/FormItem';
 import type { BooleanExpression } from '@studio/components';
-import { StudioCodeFragment } from '@studio/components';
+import { StudioCodeFragment, StudioParagraph } from '@studio/components';
 
 export const Expressions = () => {
   const { formItem, handleUpdate, debounceSave } = useContext(FormItemContext);
@@ -55,7 +54,7 @@ export const Expressions = () => {
 };
 
 const Placeholder = ({ componentName }: { componentName: string }) => (
-  <Paragraph size='small' className={classes.placeHolder}>
+  <StudioParagraph data-size='sm' className={classes.placeHolder}>
     <Trans
       i18nKey={'right_menu.expressions_property_on_component'}
       values={{ componentName }}
@@ -63,5 +62,5 @@ const Placeholder = ({ componentName }: { componentName: string }) => (
         bold: <StudioCodeFragment className={classes.wrapper} title={componentName} />,
       }}
     />
-  </Paragraph>
+  </StudioParagraph>
 );

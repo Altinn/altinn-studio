@@ -4,29 +4,29 @@ using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Tests.Extensions;
 
-public class OrganisationNumberExtensionsTest
+public class OrganizationNumberExtensionsTest
 {
     [Fact]
-    public void ToUrnFormattedString_WithValidOrganisationNumber_ReturnsCorrectUrn()
+    public void ToUrnFormattedString_WithValidOrganizationNumber_ReturnsCorrectUrn()
     {
         // Arrange
-        var organisationNumber = IdentificationNumberProvider.OrganisationNumbers.GetValidNumber(1);
+        var organizationNumber = IdentificationNumberProvider.OrganizationNumbers.GetValidNumber(1);
 
         // Act
-        var result = organisationNumber.ToUrnFormattedString();
+        var result = organizationNumber.ToUrnFormattedString();
 
         // Assert
-        Assert.Equal($"{AltinnUrns.OrganisationNumber}:{organisationNumber}", result);
+        Assert.Equal($"{AltinnUrns.OrganizationNumber}:{organizationNumber}", result);
     }
 
     [Fact]
-    public void ToUrnFormattedString_WithNullOrganisationNumber_ReturnsNull()
+    public void ToUrnFormattedString_WithNullOrganizationNumber_ReturnsNull()
     {
         // Arrange
-        OrganisationNumber? organisationNumber = null;
+        OrganizationNumber? organizationNumber = null;
 
         // Act
-        var result = organisationNumber.ToUrnFormattedString();
+        var result = organizationNumber.ToUrnFormattedString();
 
         // Assert
         Assert.Null(result);

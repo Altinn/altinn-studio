@@ -4,7 +4,7 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 describe('utils', () => {
   describe('isOrg', () => {
     it('Returns true when the input is not a reserved keyword', () => {
-      expect(isOrg('organisation')).toBe(true);
+      expect(isOrg('organization')).toBe(true);
     });
 
     it.each([SelectedContextType.Self, SelectedContextType.All, SelectedContextType.None])(

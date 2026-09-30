@@ -2,7 +2,7 @@
   color: var(--ds-color-text-subtle);
   font-weight: var(--ds-font-weight-medium);
   padding: var(--ds-size-3) var(--ds-size-4);
-  min-height: var(--fds-sizing-11);
+  min-height: var(--ds-size-11);
 }
 
 .openDialogButton svg {

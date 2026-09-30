@@ -1,0 +1,186 @@
+"""Tests for the preview render check: the pure parts (URL handling,
+score building, opt-in gating). The browser flow itself is exercised
+manually against the local stack."""
+
+from __future__ import annotations
+
+from benchmarks.preview_check import (
+    PageRenderResult,
+    PreviewCheckUnavailable,
+    build_scores,
+    is_enabled,
+    run,
+    swap_layout_in_preview_url,
+)
+
+PREVIEW_URL = (
+    "http://studio.localhost/app-specific-preview/ttd/test-app"
+    "?selectedLayoutSet=form#/instance/51001/f1e23d45-6789-1bcd-8c34-56789abcdef0/Task_1/Side1"
+)
+
+
+class TestSwapLayoutInPreviewUrl:
+    def test_replaces_the_selected_layout(self):
+        result = swap_layout_in_preview_url(PREVIEW_URL, "Side2")
+        assert result == PREVIEW_URL.replace("/Task_1/Side1", "/Task_1/Side2")
+
+    def test_appends_layout_when_url_has_none(self):
+        url_without_layout = PREVIEW_URL.rsplit("/", 1)[0]
+        result = swap_layout_in_preview_url(url_without_layout, "Side2")
+        assert result == url_without_layout + "/Side2"
+
+    def test_returns_none_without_instance_fragment(self):
+        stateless_url = "http://studio.localhost/app-specific-preview/ttd/test-app?selectedLayoutSet=form"
+        assert swap_layout_in_preview_url(stateless_url, "Side2") is None
+
+
+class TestBuildScores:
+    def test_all_pages_rendering_scores_full(self):
+        scores = build_scores([PageRenderResult("Side1", True), PageRenderResult("Side2", True)])
+        by_name = {score.name: score for score in scores}
+        assert by_name["bench_renders"].value == 1.0
+        assert by_name["bench_pages_render"].value == 1.0
+        assert "2/2" in by_name["bench_pages_render"].comment
+
+    def test_broken_page_names_the_page_in_the_comment(self):
+        scores = build_scores(
+            [
+                PageRenderResult("Side1", True),
+                PageRenderResult("Side2", False, "error page: Ukjent feil"),
+            ]
+        )
+        by_name = {score.name: score for score in scores}
+        assert by_name["bench_renders"].value == 1.0
+        assert by_name["bench_pages_render"].value == 0.5
+        assert "Side2" in by_name["bench_pages_render"].comment
+        assert "Ukjent feil" in by_name["bench_pages_render"].comment
+
+    def test_first_page_failing_zeroes_bench_renders(self):
+        scores = build_scores([PageRenderResult("Side1", False, "no render marker")])
+        by_name = {score.name: score for score in scores}
+        assert by_name["bench_renders"].value == 0.0
+        assert by_name["bench_pages_render"].value == 0.0
+
+    def test_no_pages_scores_zero_with_explanation(self):
+        by_name = {score.name: score for score in build_scores([])}
+        assert by_name["bench_renders"].value == 0.0
+        assert by_name["bench_pages_render"].value == 0.0
+        assert "no ordered pages" in by_name["bench_renders"].comment
+
+
+class TestOptIn:
+    def test_disabled_by_default(self, monkeypatch):
+        monkeypatch.delenv("BENCH_PREVIEW_CHECK", raising=False)
+        assert is_enabled() is False
+
+    def test_enabled_with_one(self, monkeypatch):
+        monkeypatch.setenv("BENCH_PREVIEW_CHECK", "1")
+        assert is_enabled() is True
+
+    def test_unavailable_infrastructure_skips_without_scores(self, monkeypatch):
+        def raise_unavailable(*args):
+            raise PreviewCheckUnavailable("playwright is not installed")
+
+        monkeypatch.setattr("benchmarks.preview_check._render_results", raise_unavailable)
+
+        assert run("assistant_abc123", ["Side1"]) == []
+
+
+class TestItRunsInsideTheExperimentRunner:
+    """The SDK calls the task inside asyncio.run, where the sync API will not start."""
+
+    def test_the_render_call_happens_off_the_event_loop_thread(self, monkeypatch):
+        import asyncio
+        import threading
+
+        from benchmarks import preview_check
+
+        calling_thread = {}
+
+        def fake_render_results(branch, pages):
+            calling_thread["name"] = threading.current_thread().name
+            try:
+                asyncio.get_running_loop()
+                calling_thread["loop"] = True
+            except RuntimeError:
+                calling_thread["loop"] = False
+            return []
+
+        monkeypatch.setattr(preview_check, "_render_results", fake_render_results)
+
+        async def run_like_the_sdk_does():
+            return preview_check.collect("assistant_abcd1234", ["Side1"])
+
+        assert asyncio.run(run_like_the_sdk_does()) == []
+        assert calling_thread["loop"] is False, (
+            "the render check ran on a thread with a live event loop, so Playwright's sync API will refuse"
+        )
+        assert calling_thread["name"] != "MainThread"
+
+    def test_unavailability_still_propagates_from_the_worker(self, monkeypatch):
+        from benchmarks import preview_check
+        from benchmarks.preview_check import PreviewCheckUnavailable
+
+        def unavailable(branch, pages):
+            raise PreviewCheckUnavailable("playwright not installed")
+
+        monkeypatch.setattr(preview_check, "_render_results", unavailable)
+
+        assert preview_check.collect("assistant_abcd1234", ["Side1"]) is None
+
+
+class TestAPreviewThatNeverAnsweredIsNotAFailure:
+    """A 30s timeout with no marker at all cost a run 0.250 on two behaviors while
+    the same committed branch rendered 1.0 on a retry: that is the preview, not the app."""
+
+    def _scores(self, results):
+        return {score.name: score for score in build_scores(results)}
+
+    def test_an_unmeasured_page_is_left_out_of_the_fraction(self):
+        results = [
+            PageRenderResult("Side1", True),
+            PageRenderResult("Side2", False, "no render marker: Timeout", measured=False),
+        ]
+
+        by_name = self._scores(results)
+
+        assert by_name["bench_pages_render"].value == 1.0
+        assert "1/1 pages rendered" in by_name["bench_pages_render"].comment
+        assert "never answered for" in by_name["bench_pages_render"].comment
+
+    def test_an_error_page_still_fails(self):
+        results = [PageRenderResult("Side1", False, "error page: binding is wrong")]
+
+        by_name = self._scores(results)
+
+        assert by_name["bench_pages_render"].value == 0.0
+        assert "binding is wrong" in by_name["bench_pages_render"].comment
+
+    def test_an_unmeasured_entry_page_is_not_scored_from_a_later_page(self):
+        """A later page rendering says nothing about the entry page."""
+        results = [
+            PageRenderResult("Side1", False, "no render marker: Timeout", measured=False),
+            PageRenderResult("Side2", True),
+        ]
+
+        by_name = self._scores(results)
+
+        assert "bench_renders" not in by_name
+        assert by_name["bench_pages_render"].value == 1.0
+        assert "Side1" in by_name["bench_pages_render"].comment
+
+    def test_a_measured_entry_page_is_still_scored(self):
+        results = [
+            PageRenderResult("Side1", False, "error page: binding is wrong"),
+            PageRenderResult("Side2", True),
+        ]
+
+        assert self._scores(results)["bench_renders"].value == 0.0
+
+    def test_every_page_unmeasured_reports_nothing_for_the_entry_page(self):
+        results = [PageRenderResult("Side1", False, "no render marker: Timeout", measured=False)]
+
+        by_name = self._scores(results)
+
+        assert "bench_renders" not in by_name
+        assert "never answered for" in by_name["bench_pages_render"].comment

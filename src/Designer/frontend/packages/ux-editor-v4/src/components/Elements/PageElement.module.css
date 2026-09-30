@@ -13,7 +13,7 @@
 
 .pageButton {
   cursor: pointer;
-  padding: var(--fds-spacing-3);
+  padding: var(--ds-size-3);
 }
 
 .selected .pageButton {
@@ -21,7 +21,7 @@
 }
 
 .pageField {
-  padding: var(--fds-spacing-1);
+  padding: var(--ds-size-1);
 }
 
 .ellipsisButton {

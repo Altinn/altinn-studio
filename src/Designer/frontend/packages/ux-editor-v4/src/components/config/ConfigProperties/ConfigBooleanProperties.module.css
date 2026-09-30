@@ -1,9 +1,9 @@
 .upIcon,
 .downIcon {
-  font-size: var(--fds-sizing-6);
+  font-size: var(--ds-size-6);
 }
 
 .button {
-  margin: var(--fds-spacing-1);
+  margin: var(--ds-size-1);
   padding-left: 0;
 }

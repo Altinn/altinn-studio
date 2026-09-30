@@ -1,23 +1,27 @@
-import type { CodeListItem } from '../types/CodeListItem';
+import type { MultiLanguageCodeListItem } from '../types/CodeListItem';
 import type { MultiLanguageText } from '../../../types/MultiLanguageText';
 
-export function changeLabel(item: CodeListItem, language: string, label: string): CodeListItem {
+export function changeLabel(
+  item: MultiLanguageCodeListItem,
+  language: string,
+  label: string,
+): MultiLanguageCodeListItem {
   return { ...item, label: changeText(language, label, item.label) };
 }
 
 export function changeDescription(
-  item: CodeListItem,
+  item: MultiLanguageCodeListItem,
   language: string,
   description: string,
-): CodeListItem {
+): MultiLanguageCodeListItem {
   return { ...item, description: changeText(language, description, item.description) };
 }
 
 export function changeHelpText(
-  item: CodeListItem,
+  item: MultiLanguageCodeListItem,
   language: string,
   helpText: string,
-): CodeListItem {
+): MultiLanguageCodeListItem {
   return { ...item, helpText: changeText(language, helpText, item.helpText) };
 }
 
@@ -32,18 +36,21 @@ function changeText(
   };
 }
 
-export function changeValue(item: CodeListItem, value: string): CodeListItem {
+export function changeValue(
+  item: MultiLanguageCodeListItem,
+  value: string,
+): MultiLanguageCodeListItem {
   return { ...item, value };
 }
 
-export function getLabel(item: CodeListItem, language: string): string {
+export function getLabel(item: MultiLanguageCodeListItem, language: string): string {
   return item.label?.[language] ?? '';
 }
 
-export function getDescription(item: CodeListItem, language: string): string {
+export function getDescription(item: MultiLanguageCodeListItem, language: string): string {
   return item.description?.[language] ?? '';
 }
 
-export function getHelpText(item: CodeListItem, language: string): string {
+export function getHelpText(item: MultiLanguageCodeListItem, language: string): string {
   return item.helpText?.[language] ?? '';
 }

@@ -91,7 +91,7 @@ describe('StudioTreeView', () => {
   afterEach(jest.clearAllMocks);
 
   describe.each(['simple', 'complex'])('%s composition', (simpleOrComplex: SimpleOrComplex) => {
-    const renderTreeView = createRenderFunction(simpleOrComplex); // eslint-disable-line testing-library/render-result-naming-convention
+    const renderTreeView = createRenderFunction(simpleOrComplex);
 
     it('Renders a tree component', () => {
       renderTreeView();

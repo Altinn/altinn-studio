@@ -10,14 +10,13 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../../../../.env') 
 const PLAYWRIGHT_RESOURCES_ORGANIZATION = 'ttd';
 const PLAYWRIGHT_RESOURCES_REPO_NAME = 'ttd-resources';
 
-const environment: Record<string, string> = {
+const environment: Record<string, string | null | undefined> = {
   PLAYWRIGHT_TEST_BASE_URL: 'http://studio.localhost',
   PLAYWRIGHT_RESOURCES_ORGANIZATION: PLAYWRIGHT_RESOURCES_ORGANIZATION,
   PLAYWRIGHT_RESOURCES_REPO_NAME: PLAYWRIGHT_RESOURCES_REPO_NAME,
   PLAYWRIGHT_USER: process.env.GITEA_CYPRESS_USER,
   PLAYWRIGHT_PASS: process.env.GITEA_CYPRESS_PASS,
   GITEA_ACCESS_TOKEN: null,
-  STUDIO_OIDC_ENABLED: process.env.FEATUREFLAGS_STUDIOOIDC || 'false',
 };
 
 const createGiteaAccessToken = async (): Promise<void> => {
@@ -51,7 +50,7 @@ const getEnvFilePath = (): string => {
 
 const mapEnvironment = () => {
   return Object.keys(environment)
-    .map((key) => [key, environment[key]].join('='))
+    .map((key) => [key, environment[key] ?? ''].join('='))
     .join(os.EOL);
 };
 

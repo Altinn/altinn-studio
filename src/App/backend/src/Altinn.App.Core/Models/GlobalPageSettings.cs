@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models;
 
@@ -46,10 +47,28 @@ public class GlobalPageSettings
     public AutoSaveBehavior AutoSaveBehavior { get; set; } = AutoSaveBehavior.OnChangeFormData;
 
     /// <summary>
+    /// Overrides the default navigation panel title. Can be a text resource key or an expression.
+    /// </summary>
+    [JsonPropertyName("navigationTitle")]
+    public Expression? NavigationTitle { get; set; }
+
+    /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.
     /// </summary>
     [JsonPropertyName("taskNavigation")]
     public List<TaskNavigationEntry>? TaskNavigation { get; set; }
+
+    /// <summary>
+    /// Page validation settings used when navigating between pages.
+    /// </summary>
+    [JsonPropertyName("validationOnNavigation")]
+    public PageValidation? ValidationOnNavigation { get; set; }
+
+    /// <summary>
+    /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
+    /// </summary>
+    [JsonPropertyName("hideAppNameInPdf")]
+    public Expression? HideAppNameInPdf { get; set; }
 }
 
 /// <summary>
@@ -69,6 +88,98 @@ public enum AutoSaveBehavior
     /// </summary>
     [JsonStringEnumMemberName("onChangePage")]
     OnChangePage,
+}
+
+/// <summary>
+/// Page validation settings used when navigating between pages.
+/// </summary>
+public class PageValidation
+{
+    /// <summary>
+    /// Which pages should be validated.
+    /// </summary>
+    [JsonPropertyName("page")]
+    public PageValidationScope Page { get; set; }
+
+    /// <summary>
+    /// Which validation types to show.
+    /// </summary>
+    [JsonPropertyName("show")]
+    public List<ValidationMask> Show { get; set; } = [];
+}
+
+/// <summary>
+/// Page validation scope.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PageValidationScope>))]
+public enum PageValidationScope
+{
+    /// <summary>
+    /// Validate the current page.
+    /// </summary>
+    [JsonStringEnumMemberName("current")]
+    Current,
+
+    /// <summary>
+    /// Validate the current page and previous pages.
+    /// </summary>
+    [JsonStringEnumMemberName("currentAndPrevious")]
+    CurrentAndPrevious,
+
+    /// <summary>
+    /// Validate all pages.
+    /// </summary>
+    [JsonStringEnumMemberName("all")]
+    All,
+}
+
+/// <summary>
+/// Validation masks used by page validation settings.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<ValidationMask>))]
+public enum ValidationMask
+{
+    /// <summary>
+    /// Schema validations.
+    /// </summary>
+    [JsonStringEnumMemberName("Schema")]
+    Schema,
+
+    /// <summary>
+    /// Component validations.
+    /// </summary>
+    [JsonStringEnumMemberName("Component")]
+    Component,
+
+    /// <summary>
+    /// Expression validations.
+    /// </summary>
+    [JsonStringEnumMemberName("Expression")]
+    Expression,
+
+    /// <summary>
+    /// Custom backend validations.
+    /// </summary>
+    [JsonStringEnumMemberName("CustomBackend")]
+    CustomBackend,
+
+    /// <summary>
+    /// Required validations.
+    /// </summary>
+    [JsonStringEnumMemberName("Required")]
+    Required,
+
+    /// <summary>
+    /// All validations except required validations.
+    /// </summary>
+    [JsonStringEnumMemberName("AllExceptRequired")]
+    AllExceptRequired,
+
+    /// <summary>
+    /// All validations.
+    /// </summary>
+    [JsonStringEnumMemberName("All")]
+    All,
 }
 
 /// <summary>

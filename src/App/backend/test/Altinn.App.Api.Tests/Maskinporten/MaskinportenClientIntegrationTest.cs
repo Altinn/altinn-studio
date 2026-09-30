@@ -1,10 +1,13 @@
 using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Models;
 using FluentAssertions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -12,6 +15,9 @@ namespace Altinn.App.Api.Tests.Maskinporten;
 
 public class MaskinportenClientIntegrationTests
 {
+    private const string _platformHostName = "at22.altinn.cloud";
+    private const string _localtestHostName = "local.altinn.cloud";
+
     [Fact]
     public void ConfigureAppWebHost_AddsMaskinportenService()
     {
@@ -20,138 +26,153 @@ public class MaskinportenClientIntegrationTests
     }
 
     [Fact]
-    public void ConfigureMaskinportenClient_OverridesDefaultMaskinportenConfiguration()
+    public async Task ProvisionedSettingsFile_IsWhatTheClientAuthenticatesWith()
     {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
+        // Arrange - the platform mounts the credentials as a file and says where; this is the only way in
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
-        {
-            services.ConfigureMaskinportenClient(config =>
-            {
-                config.ClientId = clientId;
-                config.Authority = authority;
-                config.JwkBase64 = "gibberish";
-            });
-        });
+        var app = AppBuilder.Build(configData: ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path));
 
         // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Equal("https://test.maskinporten.no/", settings.Authority);
     }
 
     [Fact]
-    public void ConfigureMaskinportenClient_LastConfigurationOverwritesOthers()
+    public async Task AppConfiguration_CannotChangeTheProvisionedIdentity()
     {
-        // Arrange
-        var services = new ServiceCollection();
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-
-        // Act
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = "this should be overwritten";
-            config.Authority = "ditto";
-            config.JwkBase64 = "gibberish";
-        });
-        services.ConfigureMaskinportenClient(config =>
-        {
-            config.ClientId = clientId;
-            config.Authority = authority;
-            config.JwkBase64 = "gibberish";
-        });
-
-        // Assert
-        var serviceProvider = services.BuildStrictServiceProvider();
-        var optionsMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-    }
-
-    [Fact]
-    public void ConfigureMaskinportenClient_BindsToSpecifiedConfigPath()
-    {
-        // Arrange
-        var clientId = "the-client-id";
-        var authority = "https://maskinporten.dev/";
-        var jwkBase64 = "gibberish";
-
-        List<KeyValuePair<string, string?>> configData =
-        [
-            new("CustomMaskinportenSettings:clientId", clientId),
-            new("CustomMaskinportenSettings:authority", authority),
-            new("CustomMaskinportenSettings:jwkBase64", jwkBase64),
-        ];
+        // Arrange - an app supplying its own MaskinportenSettings section, the pre-v9 hazard
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
 
         // Act
         var app = AppBuilder.Build(
-            configData: configData,
-            registerCustomAppServices: services =>
-            {
-                services.ConfigureMaskinportenClient("CustomMaskinportenSettings");
-            }
+            configData:
+            [
+                .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory.Path),
+                new("MaskinportenSettings:clientId", "app-supplied-client"),
+                new("MaskinportenSettings:jwkBase64", "app-supplied-key"),
+                new("MaskinportenSettingsFilepath", "/app/an-identity-of-my-own.json"),
+                new("AppSettings:RuntimeSecretsDirectory", "/app/secrets-of-my-own"),
+            ]
         );
 
-        // Assert
-        var optionsMonitor = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>();
-        Assert.NotNull(optionsMonitor);
-
-        var settings = optionsMonitor.CurrentValue;
-        Assert.NotNull(settings);
-        Assert.Equal(clientId, settings.ClientId);
-        Assert.Equal(authority, settings.Authority);
-        Assert.Equal(jwkBase64, settings.JwkBase64);
+        // Assert - the app's section is not a Maskinporten configuration surface at all
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+        Assert.Null(settings.JwkBase64);
     }
 
-    // TODO: Remove this test when the obsolete method is removed
-    [Theory]
-    [InlineData(nameof(TokenAuthority.Maskinporten), "client1", "scope1")]
-    [InlineData(nameof(TokenAuthority.Maskinporten), "client2", "scope1", "scope2", "scope3")]
-    [InlineData(nameof(TokenAuthority.AltinnTokenExchange), "doesntmatter")]
-    public void UseMaskinportenAuthorisation_AddsHandler_BindsToSpecifiedClient(
-        string tokenAuthority,
-        string scope,
-        params string[] additionalScopes
-    )
+    /// <summary>
+    /// Studio provisions every app's Maskinporten client, so a deployed app given none does not start at all:
+    /// an operator sees a deployment that failed, rather than a token request that fails hours later.
+    /// </summary>
+    [Fact]
+    public async Task Host_DoesNotStart_WhenNoClientIsProvisionedOnThePlatform()
     {
-        // Arrange
-        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
-        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(
+            HostBuilder(),
+            configData: HostConfiguration(secretsDirectory.Path, _platformHostName)
+        );
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => app.StartAsync());
+        Assert.Contains("where the platform provisions them", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A local run starts without a client, because most apps never call a Maskinporten-protected API. What
+    /// the developer pays instead is the first token request, which reads the credentials through
+    /// <c>MaskinportenClient.Settings</c> and fails with the command that stores one.
+    /// </summary>
+    [Fact]
+    public async Task Host_Starts_WhenNoClientIsStoredLocally()
+    {
+        using var secretsDirectory = new TempDirectory();
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(HostBuilder(), configData: HostConfiguration(secretsDirectory.Path));
+
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue
+        );
+        Assert.Contains("studioctl app maskinporten set", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Host_Starts_WhenTheClientIsProvisioned()
+    {
+        using var secretsDirectory = new TempDirectory();
+        await WriteProvisionedClient(secretsDirectory.Path, "provisioned-client");
+        ProvisionedSecretsTestEnvironment.WriteAppCodes(secretsDirectory.Path);
+
+        await using var app = AppBuilder.Build(HostBuilder(), configData: HostConfiguration(secretsDirectory.Path));
+
+        await app.StartAsync();
+        await app.StopAsync();
+
+        var settings = app.Services.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>().CurrentValue;
+        Assert.Equal("provisioned-client", settings.ClientId);
+    }
+
+    /// <summary>
+    /// Creates a host that reads test app files during startup validation.
+    /// Sets the content root after creating the builder to avoid loading the test app's appsettings.json,
+    /// which would override the Kestrel and Application Insights settings controlled by these tests.
+    /// </summary>
+    private static WebApplicationBuilder HostBuilder()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Environment.ContentRootPath = TestData.GetApplicationDirectory("tdd", "contributer-restriction");
+        return builder;
+    }
+
+    /// <summary>
+    /// Uses a temporary port, disables localtest checks, and sets the authorization endpoint for startup validation.
+    /// Writes the callback app code to a file because the app no longer reads the AppCodes section.
+    /// Defaults the host name to localtest.
+    /// </summary>
+    /// <param name="secretsDirectory">The directory used for platform secrets.</param>
+    /// <param name="hostName">The host name of the app.</param>
+    private static IEnumerable<KeyValuePair<string, string?>> HostConfiguration(
+        string secretsDirectory,
+        string hostName = _localtestHostName
+    ) =>
+        [
+            .. ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory),
+            new("PlatformSettings:ApiAuthorizationEndpoint", "http://localhost:5101/authorization/api/v1/"),
+            new("urls", "http://127.0.0.1:0"),
+            new("GeneralSettings:DisableLocaltestValidation", "true"),
+            new("GeneralSettings:HostName", hostName),
+        ];
+
+    private static Task WriteProvisionedClient(string secretsDirectory, string clientId) =>
+        File.WriteAllTextAsync(
+            Path.Join(secretsDirectory, ProvisionedSecretsTestEnvironment.MaskinportenFileName),
+            ProvisionedSecretsTestEnvironment.CreateMaskinportenSettingsJson(clientId)
+        );
+
+    private sealed class TempDirectory : IDisposable
+    {
+        public TempDirectory() => Path = Directory.CreateTempSubdirectory().FullName;
+
+        public string Path { get; }
+
+        public void Dispose()
         {
-            _ = actualTokenAuthority switch
+            if (Directory.Exists(Path))
             {
-                TokenAuthority.Maskinporten => services
-                    .AddHttpClient<DummyHttpClient>()
-                    .UseMaskinportenAuthorisation(scope, additionalScopes),
-                TokenAuthority.AltinnTokenExchange => services
-                    .AddHttpClient<DummyHttpClient>()
-                    .UseMaskinportenAltinnAuthorisation(scope, additionalScopes),
-                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
-            };
-        });
-
-        // Act
-        var client = app.Services.GetRequiredService<DummyHttpClient>();
-
-        // Assert
-        Assert.NotNull(client);
-        var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
-        Assert.NotNull(delegatingHandler);
-        string[] inputScopes = [scope, .. additionalScopes];
-        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
-        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+                Directory.Delete(Path, recursive: true);
+            }
+        }
     }
 
     [Theory]
@@ -188,8 +209,63 @@ public class MaskinportenClientIntegrationTests
         var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
         Assert.NotNull(delegatingHandler);
         string[] inputScopes = [scope, .. additionalScopes];
-        Assert.Equivalent(inputScopes, delegatingHandler.Scopes);
+        Assert.Equivalent(inputScopes, delegatingHandler.Request.Scopes);
         Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+    }
+
+    [Theory]
+    [InlineData(nameof(TokenAuthority.Maskinporten))]
+    [InlineData(nameof(TokenAuthority.AltinnTokenExchange))]
+    public void UseMaskinportenAuthorization_WithRequest_BindsRequestToHandler(string tokenAuthority)
+    {
+        // Arrange
+        Enum.TryParse(tokenAuthority, false, out TokenAuthority actualTokenAuthority);
+        var tokenRequest = new MaskinportenTokenRequest
+        {
+            Scopes = ["scope1", "scope2"],
+            ConsumerOrg = OrganizationNumber.Parse("991825827"),
+            SystemUser = new MaskinportenSystemUser
+            {
+                Organization = OrganizationNumber.Parse("311169963"),
+                ExternalRef = "systembruker-1",
+            },
+        };
+
+        var app = AppBuilder.Build(registerCustomAppServices: services =>
+        {
+            _ = actualTokenAuthority switch
+            {
+                TokenAuthority.Maskinporten => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAuthorization(tokenRequest),
+                TokenAuthority.AltinnTokenExchange => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAltinnAuthorization(tokenRequest),
+                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
+            };
+        });
+
+        // Act
+        var client = app.Services.GetRequiredService<DummyHttpClient>();
+
+        // Assert
+        var delegatingHandler = client.HttpClient.GetDelegatingHandler<MaskinportenDelegatingHandler>();
+        Assert.NotNull(delegatingHandler);
+        Assert.Equal(tokenRequest, delegatingHandler.Request);
+        Assert.Equal(actualTokenAuthority, delegatingHandler.Authority);
+    }
+
+    [Fact]
+    public void UseMaskinportenAuthorization_WithNullRequest_Throws()
+    {
+        var builder = new ServiceCollection().AddHttpClient<DummyHttpClient>();
+
+        Assert.Throws<ArgumentNullException>(() =>
+            builder.UseMaskinportenAuthorization((MaskinportenTokenRequest)null!)
+        );
+        Assert.Throws<ArgumentNullException>(() =>
+            builder.UseMaskinportenAltinnAuthorization((MaskinportenTokenRequest)null!)
+        );
     }
 
     private sealed class DummyHttpClient(HttpClient client)

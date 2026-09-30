@@ -1,0 +1,22 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
+  "taskNavigation": [
+    {
+      "name": "tasks.form",
+      "taskId": "Task_1"
+    },
+    {
+      "taskId": "Task_Confirm"
+    },
+    {
+      "type": "receipt"
+    }
+  ],
+  "validationOnNavigation": {
+    "page": "current",
+    "show": [
+      "Expression",
+      "Schema"
+    ]
+  }
+}

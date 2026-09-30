@@ -14,13 +14,12 @@ import {
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { Switch } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@studio/icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { useText } from '../../../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSwitch } from '@studio/components';
 
 export interface ExpressionEditModeProps {
   expression: Expression;
@@ -89,15 +88,14 @@ export const ExpressionEditMode = ({
 
   return (
     <div className={classes.expressionContainer}>
-      <Switch
+      <StudioSwitch
+        data-size='sm'
         name={'Expression_enable_free_style_editing'}
         onChange={handleToggleFreeStyleEditing}
         checked={freeStyleEditing}
-        size={'small'}
         readOnly={!isStudioFriendly}
-      >
-        {t('right_menu.expression_enable_free_style_editing')}
-      </Switch>
+        label={t('right_menu.expression_enable_free_style_editing')}
+      />
       <div className={classes.topBar}>
         <p>
           <Trans

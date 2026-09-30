@@ -1,0 +1,2902 @@
+{
+  "generated_at": "2026-09-14T12:56:53+00:00",
+  "source": {
+    "commit": "25aa88c304e7ea68465aa14a5ada9f7f0f2ba4e1",
+    "commit_date": "2026-09-14T11:42:09+02:00",
+    "lib_version": "9.0.0-preview.5",
+    "snapshots": [
+      "src/App/backend/test/Altinn.App.Core.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt",
+      "src/App/backend/test/Altinn.App.Api.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt",
+      "src/App/backend/test/Altinn.App.Clients.Fiks.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt"
+    ]
+  },
+  "interfaces": [
+    {
+      "name": "IFiksArkivSetupBuilder",
+      "full_name": "Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder",
+      "namespace": "Altinn.App.Clients.Fiks.Configuration",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [
+        "IFiksSetupBuilder<IFiksArkivSetupBuilder>"
+      ],
+      "members": [
+        "IFiksArkivSetupBuilder WithFiksArkivConfig(Action<FiksArkivSettings> configureOptions);",
+        "IFiksArkivSetupBuilder WithFiksArkivConfig(string configSectionPath);",
+        "IFiksArkivSetupBuilder WithMessageHandler<TMessageHandler>()",
+        "where TMessageHandler : IFiksArkivMessageHandler;",
+        "IFiksArkivSetupBuilder WithPayloadGenerator<TMessageHandler>()",
+        "where TMessageHandler : IFiksArkivPayloadGenerator;"
+      ],
+      "member_count": 6,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "Fiks",
+      "summary": "Builder for configuring the Fiks Arkiv client behavior.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/Configuration/IFiksSetupBuilder.cs"
+    },
+    {
+      "name": "IFiksIOSetupBuilder",
+      "full_name": "Altinn.App.Clients.Fiks.Configuration.IFiksIOSetupBuilder",
+      "namespace": "Altinn.App.Clients.Fiks.Configuration",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [
+        "IFiksSetupBuilder<IFiksIOSetupBuilder>"
+      ],
+      "members": [],
+      "member_count": 0,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "Fiks",
+      "summary": "Builder for configuring the Fiks IO client behavior.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/Configuration/IFiksSetupBuilder.cs"
+    },
+    {
+      "name": "IFiksSetupBuilder",
+      "full_name": "Altinn.App.Clients.Fiks.Configuration.IFiksSetupBuilder",
+      "namespace": "Altinn.App.Clients.Fiks.Configuration",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [],
+      "members": [
+        "IServiceCollection CompleteSetup();",
+        "T WithFiksIOConfig(Action<FiksIOSettings> configureOptions);",
+        "T WithFiksIOConfig(string configSectionPath);",
+        "T WithMaskinportenConfig(Action<MaskinportenSettings> configureOptions);",
+        "T WithMaskinportenConfig(string configSectionPath);"
+      ],
+      "member_count": 5,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "Fiks",
+      "summary": "Builder for configuring common Fiks behavior.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/Configuration/IFiksSetupBuilder.cs"
+    },
+    {
+      "name": "IFiksArkivConfigResolver",
+      "full_name": "Altinn.App.Clients.Fiks.FiksArkiv.IFiksArkivConfigResolver",
+      "namespace": "Altinn.App.Clients.Fiks.FiksArkiv",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [],
+      "members": [
+        "IReadOnlyList<FiksArkivDataTypeSettings> AttachmentSettings { get; }",
+        "FiksArkivDataTypeSettings PrimaryDocumentSettings { get; }",
+        "Task<string> GetApplicationTitle(CancellationToken cancellationToken = default);",
+        "Task<FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(IInstanceDataAccessor dataAccessor, CancellationToken cancellationToken = default);",
+        "Task<IReadOnlyList<Klassifikasjon>> GetCaseFileClassifications(Instance instance, CancellationToken cancellationToken = default);",
+        "Task<Korrespondansepart?> GetInstanceOwnerParty(Instance instance, CancellationToken cancellationToken = default);",
+        "string GetInstanceReference(Instance instance);",
+        "Task<FiksArkivRecipient> GetRecipient(IInstanceDataAccessor dataAccessor, CancellationToken cancellationToken = default);",
+        "Korrespondansepart GetRecipientParty(Instance instance, FiksArkivRecipient recipient);"
+      ],
+      "member_count": 9,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "FiksArkiv",
+      "summary": "Resolver for Fiks Arkiv configuration values.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/FiksArkiv/IFiksArkivConfigResolver.cs"
+    },
+    {
+      "name": "IFiksArkivMessageHandler",
+      "full_name": "Altinn.App.Clients.Fiks.FiksArkiv.IFiksArkivMessageHandler",
+      "namespace": "Altinn.App.Clients.Fiks.FiksArkiv",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [],
+      "members": [
+        "Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "FiksArkiv",
+      "summary": "Optional app hook for the messages the archive sends back — custom bookkeeping such as copying the archive's case number out of the receipt into instance data. Register an implementation with AddFiksArkiv().WithMessageHandler<T>(); without one, the messages are handled by FiksArkivServiceTask alone.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/FiksArkiv/IFiksArkivMessageHandler.cs"
+    },
+    {
+      "name": "IFiksArkivPayloadGenerator",
+      "full_name": "Altinn.App.Clients.Fiks.FiksArkiv.IFiksArkivPayloadGenerator",
+      "namespace": "Altinn.App.Clients.Fiks.FiksArkiv",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [],
+      "members": [
+        "Task<IEnumerable<FiksIOMessagePayload>> GeneratePayload(string taskId, FiksArkivRecipient recipient, string messageType, DateTimeOffset executionReferenceTime, IInstanceDataAccessor dataAccessor, CancellationToken cancellationToken = default);",
+        "Task ValidateConfiguration(IReadOnlyList<DataType> configuredDataTypes, IReadOnlyList<ProcessTask> configuredProcessTasks);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "FiksArkiv",
+      "summary": "Generator for the content of a Fiks Arkiv message request.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/FiksArkiv/IFiksArkivPayloadGenerator.cs"
+    },
+    {
+      "name": "IFiksIOClient",
+      "full_name": "Altinn.App.Clients.Fiks.FiksIO.IFiksIOClient",
+      "namespace": "Altinn.App.Clients.Fiks.FiksIO",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [
+        "IAsyncDisposable"
+      ],
+      "members": [
+        "IFiksIOAccountSettings AccountSettings { get; }",
+        "Task<bool> IsHealthy();",
+        "Task OnMessageReceived(Func<FiksIOReceivedMessage, Task> listener);",
+        "Task Reconnect();",
+        "Task<FiksIOMessageResponse> SendMessage(FiksIOMessageRequest request, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 5,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "FiksIO",
+      "summary": "Contains logic for interacting with Fiks IO to send and receive messages.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/FiksIO/IFiksIOClient.cs"
+    },
+    {
+      "name": "IFiksIOAccountSettings",
+      "full_name": "Altinn.App.Clients.Fiks.FiksIO.Models.IFiksIOAccountSettings",
+      "namespace": "Altinn.App.Clients.Fiks.FiksIO.Models",
+      "assembly": "Altinn.App.Clients.Fiks",
+      "base_interfaces": [],
+      "members": [
+        "Guid AccountId { get; }",
+        "Guid IntegrationId { get; }"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Fiks",
+      "group": "FiksIO",
+      "summary": "Represents the non-sensitive settings for a FIKS IO account.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Clients.Fiks/FiksIO/Models/FiksIOSettings.cs"
+    },
+    {
+      "name": "IEFormidlingBuilder",
+      "full_name": "Altinn.App.Core.EFormidling.Configuration.IEFormidlingBuilder",
+      "namespace": "Altinn.App.Core.EFormidling.Configuration",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IEFormidlingBuilder WithConfig(Action<EFormidlingClientSettings> configure);",
+        "IEFormidlingBuilder WithConfig(string configSectionPath);",
+        "IEFormidlingBuilder WithReceivers<TReceivers>()",
+        "where TReceivers : IEFormidlingReceivers;"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "Configures the optional parts of an eFormidling registration. Every call is optional: the defaults registered by AddEFormidling() are a working setup once metadata has been supplied.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Configuration/IEFormidlingBuilder.cs"
+    },
+    {
+      "name": "IEFormidlingMetadataStage",
+      "full_name": "Altinn.App.Core.EFormidling.Configuration.IEFormidlingMetadataStage",
+      "namespace": "Altinn.App.Core.EFormidling.Configuration",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IEFormidlingBuilder WithMetadata<TMetadata>()",
+        "where TMetadata : IEFormidlingMetadata;"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "The first stage of an eFormidling registration, returned by AddEFormidling().",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Configuration/IEFormidlingBuilder.cs"
+    },
+    {
+      "name": "IEFormidlingClient",
+      "full_name": "Altinn.App.Core.EFormidling.Interface.IEFormidlingClient",
+      "namespace": "Altinn.App.Core.EFormidling.Interface",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd, CancellationToken cancellationToken = default);",
+        "Task<Statuses> GetMessageStatusById(string messageId, CancellationToken cancellationToken = default);",
+        "Task SendMessage(string messageId, CancellationToken cancellationToken = default);",
+        "Task UploadAttachment(Stream attachment, string messageId, string filename, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "Actions on the eFormidling integrasjonspunkt (IP) API. Ref: .",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Interface/IEFormidlingClient.cs"
+    },
+    {
+      "name": "IEFormidlingMetadata",
+      "full_name": "Altinn.App.Core.EFormidling.Interface.IEFormidlingMetadata",
+      "namespace": "Altinn.App.Core.EFormidling.Interface",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "\"MetadataFilename\",",
+        "\"Metadata\"})]",
+        "Task<ValueTuple<string, Stream>> GenerateEFormidlingMetadata(IInstanceDataAccessor dataAccessor);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "Interface for implementing app specific eFormidling metadata to be sendt. Required when enabling eFormidling for an app.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Interface/IEFormidlingMetadata.cs"
+    },
+    {
+      "name": "IEFormidlingReceivers",
+      "full_name": "Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers",
+      "namespace": "Altinn.App.Core.EFormidling.Interface",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "Interface for implementing custom logic for retrieving the receivers of eFormidling shipments.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Interface/IEFormidlingReceivers.cs"
+    },
+    {
+      "name": "IEFormidlingService",
+      "full_name": "Altinn.App.Core.EFormidling.Interface.IEFormidlingService",
+      "namespace": "Altinn.App.Core.EFormidling.Interface",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<EFormidlingShipmentStatus> GetEFormidlingShipmentStatus(IInstanceDataAccessor dataAccessor, ValidAltinnEFormidlingConfiguration configuration, CancellationToken cancellationToken = default);",
+        "Task SendEFormidlingShipment(IInstanceDataAccessor dataAccessor, ValidAltinnEFormidlingConfiguration configuration, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "EFormidling",
+      "group": "EFormidling",
+      "summary": "Interface for implementing custom logic for sending eFormidling shipments and following them to delivery. A default implementation is registered by AddEFormidling(); replace it by registering your own implementation of this interface.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/EFormidling/Interface/IEFormidlingService.cs"
+    },
+    {
+      "name": "IAppOptionsProvider",
+      "full_name": "Altinn.App.Core.Features.IAppOptionsProvider",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for providing AppOptions",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IAppOptionsProvider.cs"
+    },
+    {
+      "name": "ICopyInstanceValidator",
+      "full_name": "Altinn.App.Core.Features.ICopyInstanceValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<InstantiationValidationResult?> Validate(IInstanceDataAccessor sourceInstanceDataAccessor);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "ICopyInstanceValidator is designed to handle specific validation scenarios that is just relevant while copying an instance",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/ICopyInstanceValidator.cs"
+    },
+    {
+      "name": "IDataElementValidator",
+      "full_name": "Altinn.App.Core.Features.IDataElementValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string DataType { get; }",
+        "bool NoIncrementalValidation { get; }",
+        "string ValidationSource { get; }",
+        "Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataElement dataElement, DataType dataType, string? language);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Validator for data elements. See IFormDataValidator for an alternative validator for data elements with app logic. and that support incremental validation on save. For validating the content of files, see IFileAnalyzer and IFileValidator",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IDataElementValidator.cs"
+    },
+    {
+      "name": "IDataListProvider",
+      "full_name": "Altinn.App.Core.Features.IDataListProvider",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for providing DataList",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IDataListProvider.cs"
+    },
+    {
+      "name": "IDataProcessor",
+      "full_name": "Altinn.App.Core.Features.IDataProcessor",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language);",
+        "Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "This interface defines all the methods that are required for overriding DataProcessing calls.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IDataProcessor.cs"
+    },
+    {
+      "name": "IDataWriteProcessor",
+      "full_name": "Altinn.App.Core.Features.IDataWriteProcessor",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "This interface defines how you can make changes to the data model on every write operation from frontend.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IDataWriteProcessor.cs"
+    },
+    {
+      "name": "IEmailNotificationClient",
+      "full_name": "Altinn.App.Core.Features.IEmailNotificationClient",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken ct);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Client for managing Altinn email notifications",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IEmailNotificationClient.cs"
+    },
+    {
+      "name": "IFormDataValidator",
+      "full_name": "Altinn.App.Core.Features.IFormDataValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string DataType { get; }",
+        "bool NoIncrementalValidation { get; }",
+        "bool ShouldRunAfterRemovingHiddenData { get; }",
+        "string ValidationSource { get; }",
+        "bool HasRelevantChanges(object current, object previous);",
+        "Task<List<ValidationIssue>> ValidateFormData(Instance instance, DataElement dataElement, object data, string? language);"
+      ],
+      "member_count": 6,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for handling validation of form data. (i.e. dataElements with AppLogic defined",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IFormDataValidator.cs"
+    },
+    {
+      "name": "IInstanceAppOptionsProvider",
+      "full_name": "Altinn.App.Core.Features.IInstanceAppOptionsProvider",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for providing AppOptions related to an instance/instance owner.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstanceAppOptionsProvider.cs"
+    },
+    {
+      "name": "IInstanceDataAccessor",
+      "full_name": "Altinn.App.Core.Features.IInstanceDataAccessor",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IReadOnlyDictionary<DataType, StorageAuthenticationMethod> AuthenticationMethodOverrides { get; }",
+        "IReadOnlyCollection<DataType> DataTypes { get; }",
+        "Instance Instance { get; }",
+        "string? Language { get; }",
+        "string? TaskId { get; }",
+        "Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier);",
+        "IInstanceDataAccessor GetCleanAccessor(RowRemovalOption rowRemovalOption = 1);",
+        "DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);",
+        "Task<object> GetFormData(DataElementIdentifier dataElementIdentifier);",
+        "void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method);"
+      ],
+      "member_count": 10,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Service for accessing data from other data elements in the",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstanceDataAccessor.cs"
+    },
+    {
+      "name": "IInstanceDataListProvider",
+      "full_name": "Altinn.App.Core.Features.IInstanceDataListProvider",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for providing DataList related to an instance/instance owner.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstanceDataListProvider.cs"
+    },
+    {
+      "name": "IInstanceDataMutator",
+      "full_name": "Altinn.App.Core.Features.IInstanceDataMutator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IInstanceDataAccessor"
+      ],
+      "members": [
+        "void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues);",
+        "BinaryDataChange AddBinaryDataElement(DataType dataType, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);",
+        "BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);",
+        "FormDataChange AddFormDataElement(DataType dataType, object model);",
+        "FormDataChange AddFormDataElement(string dataTypeId, object model);",
+        "void RemoveDataElement(DataElementIdentifier dataElementIdentifier);",
+        "BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);"
+      ],
+      "member_count": 7,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Extension of the IInstanceDataAccessor that allows for adding, updating and removing data elements, and also indicate that it is OK to mutate the models",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstanceDataMutator.cs"
+    },
+    {
+      "name": "IInstanceValidator",
+      "full_name": "Altinn.App.Core.Features.IInstanceValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task ValidateData(object data, ModelStateDictionary validationResults);",
+        "Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults);"
+      ],
+      "member_count": 2,
+      "is_obsolete": true,
+      "obsolete_message": "Use ITaskValidator, IDataElementValidator or IFormDataValidator instead",
+      "area": "Features",
+      "group": "Features",
+      "summary": "IInstanceValidator defines the methods that are used to validate data and tasks",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstanceValidator.cs"
+    },
+    {
+      "name": "IInstantiationProcessor",
+      "full_name": "Altinn.App.Core.Features.IInstantiationProcessor",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill);",
+        "Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "IInstantiation defines the methods that must be implemented by a class that handles custom logic during instantiation of a new instance.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstantiationProcessor.cs"
+    },
+    {
+      "name": "IInstantiationValidator",
+      "full_name": "Altinn.App.Core.Features.IInstantiationValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<InstantiationValidationResult?> Validate(Instance instance);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "IInstantiationValidator defines the methods that must be implemented by a class that handles custom validation logic during instantiation of a new instance.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IInstantiationValidator.cs"
+    },
+    {
+      "name": "INotificationCancelClient",
+      "full_name": "Altinn.App.Core.Features.INotificationCancelClient",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task Cancel(Guid notificationOrderId, CancellationToken ct);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Client for managing cancellation of notifications ordered through the app. This is used to cancel notifications that have been ordered but not yet sent, for example when a process is ended before the notification has been sent.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/INotificationCancelClient.cs"
+    },
+    {
+      "name": "INotificationOrderClient",
+      "full_name": "Altinn.App.Core.Features.INotificationOrderClient",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken ct);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Client for managing notification orders in the Altinn notification system.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/INotificationOrderClient.cs"
+    },
+    {
+      "name": "IPdfFormatter",
+      "full_name": "Altinn.App.Core.Features.IPdfFormatter",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);",
+        "Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data, Instance instance);"
+      ],
+      "member_count": 2,
+      "is_obsolete": true,
+      "obsolete_message": "This interface was used for the old PDF generator, and is used for backwards compatibility in the chromium based one. It will be removed in the future. Create a custom pdf layout instead if you need to customize the PDF layout.",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface to customize PDF formatting.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IPdfFormatter.cs"
+    },
+    {
+      "name": "IProcessEnd",
+      "full_name": "Altinn.App.Core.Features.IProcessEnd",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task End(Instance instance, List<InstanceEvent>? events);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Custom logic to run when the entire process has ended. E.g. when we have arrived at an `endEvent` in the BPMN model",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IProcessEnd.cs"
+    },
+    {
+      "name": "IProcessExclusiveGateway",
+      "full_name": "Altinn.App.Core.Features.IProcessExclusiveGateway",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string GatewayId { get; }",
+        "\"ayInformation) instead\")]",
+        "Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, ProcessGatewayInformation processGatewayInformation);",
+        "Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, IInstanceDataAccessor dataAccessor, ProcessGatewayInformation processGatewayInformation);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for defining custom decision logic for exclusive gateways",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IProcessExclusiveGateway.cs"
+    },
+    {
+      "name": "ISmsNotificationClient",
+      "full_name": "Altinn.App.Core.Features.ISmsNotificationClient",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Client for managing Altinn SMS notifications",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/ISmsNotificationClient.cs"
+    },
+    {
+      "name": "ITaskValidator",
+      "full_name": "Altinn.App.Core.Features.ITaskValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "bool NoIncrementalValidation { get; }",
+        "string TaskId { get; }",
+        "string ValidationSource { get; }",
+        "Task<List<ValidationIssue>> ValidateTask(Instance instance, string taskId, string? language);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for handling validation of tasks.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/ITaskValidator.cs"
+    },
+    {
+      "name": "IUserAction",
+      "full_name": "Altinn.App.Core.Features.IUserAction",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<UserActionResult> HandleAction(UserActionContext context);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for implementing custom code for user actions",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IUserAction.cs"
+    },
+    {
+      "name": "IUserActionAuthorizer",
+      "full_name": "Altinn.App.Core.Features.IUserActionAuthorizer",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> AuthorizeAction(UserActionAuthorizerContext context);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Interface for writing custom authorization logic for actions in the app that cannot be handled by the default authorization policies",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IUserActionAuthorizer.cs"
+    },
+    {
+      "name": "IValidateQueryParamPrefill",
+      "full_name": "Altinn.App.Core.Features.IValidateQueryParamPrefill",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<ValidationIssue?> PrefillFromQueryParamsIsValid(Dictionary<string, string> prefill);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Allows service owners to validate values of prefill from query params",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IValidateQueryParamPrefill.cs"
+    },
+    {
+      "name": "IValidator",
+      "full_name": "Altinn.App.Core.Features.IValidator",
+      "namespace": "Altinn.App.Core.Features",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "bool NoIncrementalValidation { get; }",
+        "bool ShouldRunAfterRemovingHiddenData { get; }",
+        "string TaskId { get; }",
+        "string ValidationSource { get; }",
+        "Task<bool> HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes);",
+        "bool ShouldRunForTask(string taskId);",
+        "Task<List<ValidationIssue>> Validate(IInstanceDataAccessor dataAccessor, string taskId, string? language);"
+      ],
+      "member_count": 7,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Features",
+      "summary": "Main interface for validation of instances",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IValidator.cs"
+    },
+    {
+      "name": "IAccessManagementClient",
+      "full_name": "Altinn.App.Core.Features.AccessManagement.IAccessManagementClient",
+      "namespace": "Altinn.App.Core.Features.AccessManagement",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<DelegationResponse> DelegateRights(DelegationRequest delegation, CancellationToken ct = default);",
+        "Task<DelegationResponse> RevokeRights(DelegationRequest delegation, CancellationToken ct = default);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "AccessManagement",
+      "summary": "Interface for access management client that handles delegation of rights. This interface is used to delegate and revoke rights for users in the context of an application.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/AccessManagement/IAccessManagementClient.cs"
+    },
+    {
+      "name": "IAuthenticationContext",
+      "full_name": "Altinn.App.Core.Features.Auth.IAuthenticationContext",
+      "namespace": "Altinn.App.Core.Features.Auth",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Authenticated Current { get; }"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Auth",
+      "summary": "Provides access to the current authentication context.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Auth/IAuthenticationContext.cs"
+    },
+    {
+      "name": "ICorrespondenceClient",
+      "full_name": "Altinn.App.Core.Features.Correspondence.ICorrespondenceClient",
+      "namespace": "Altinn.App.Core.Features.Correspondence",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<GetCorrespondenceStatusResponse> GetStatus(GetCorrespondenceStatusPayload payload, CancellationToken cancellationToken = default);",
+        "Task<SendCorrespondenceResponse> Send(SendCorrespondencePayload payload, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Contains logic for interacting with the correspondence message service. The use of this client requires Maskinporten scopes altinn:correspondence.write and altinn:serviceowner.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/ICorrespondenceClient.cs"
+    },
+    {
+      "name": "ICorrespondenceAttachmentBuilder",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "ICorrespondenceAttachmentBuilderData",
+        "ICorrespondenceAttachmentBuilderFilename",
+        "ICorrespondenceAttachmentBuilderSendersReference"
+      ],
+      "members": [
+        "CorrespondenceAttachment Build();",
+        "ICorrespondenceAttachmentBuilder WithIsEncrypted(bool isEncrypted);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceAttachmentBuilder instance has completed all required steps and can proceed to Build.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceAttachmentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceAttachmentBuilderData",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderData",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceAttachmentBuilder WithData(Stream data);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceAttachmentBuilder instance is on the Data step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceAttachmentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceAttachmentBuilderFilename",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderFilename",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceAttachmentBuilderSendersReference WithFilename(string filename);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceAttachmentBuilder instance is on the Filename step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceAttachmentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceAttachmentBuilderSendersReference",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderSendersReference",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceAttachmentBuilderData WithSendersReference(string sendersReference);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceAttachmentBuilder instance is on the SendersReference step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceAttachmentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceContentBuilder",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceContentBuilder",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "ICorrespondenceContentBuilderBody",
+        "ICorrespondenceContentBuilderLanguage",
+        "ICorrespondenceContentBuilderSummary",
+        "ICorrespondenceContentBuilderTitle"
+      ],
+      "members": [
+        "CorrespondenceContent Build();"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceContentBuilder instance has completed all required steps and can proceed to Build.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceContentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceContentBuilderBody",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceContentBuilderBody",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceContentBuilder WithBody(string body);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceContentBuilder instance is on the Body step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceContentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceContentBuilderLanguage",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceContentBuilderLanguage",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceContentBuilderTitle WithLanguage(LanguageCode<Iso6391> language);",
+        "ICorrespondenceContentBuilderTitle WithLanguage(string language);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceContentBuilder instance is on the Language step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceContentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceContentBuilderSummary",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceContentBuilderSummary",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceContentBuilderBody WithSummary(string summary);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceContentBuilder instance is on the Summary step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceContentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceContentBuilderTitle",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceContentBuilderTitle",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceContentBuilderSummary WithTitle(string title);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceContentBuilder instance is on the Title step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceContentBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceNotificationBuilder",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilder",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "ICorrespondenceNotificationBuilderTemplate"
+      ],
+      "members": [
+        "CorrespondenceNotification Build();",
+        "ICorrespondenceNotificationBuilder WithEmailBody(string? emailBody);",
+        "ICorrespondenceNotificationBuilder WithEmailSubject(string? emailSubject);",
+        "ICorrespondenceNotificationBuilder WithNotificationChannel(CorrespondenceNotificationChannel? notificationChannel);",
+        "ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(bool overrideRegisteredContactInformation);",
+        "ICorrespondenceNotificationBuilder WithRecipientOverride(ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder);",
+        "ICorrespondenceNotificationBuilder WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride);",
+        "ICorrespondenceNotificationBuilder WithRecipientOverrideIfConfigured(CorrespondenceNotificationRecipient? recipientOverride);",
+        "ICorrespondenceNotificationBuilder WithRecipientOverrides(IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides);",
+        "ICorrespondenceNotificationBuilder WithReminderEmailBody(string? reminderEmailBody);",
+        "ICorrespondenceNotificationBuilder WithReminderEmailSubject(string? reminderEmailSubject);",
+        "ICorrespondenceNotificationBuilder WithReminderNotificationChannel(CorrespondenceNotificationChannel? reminderNotificationChannel);",
+        "ICorrespondenceNotificationBuilder WithReminderSmsBody(string? reminderSmsBody);",
+        "ICorrespondenceNotificationBuilder WithSendReminder(bool? sendReminder);",
+        "ICorrespondenceNotificationBuilder WithSendersReference(string? sendersReference);",
+        "ICorrespondenceNotificationBuilder WithSmsBody(string? smsBody);"
+      ],
+      "member_count": 16,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceNotificationBuilder instance has completed all required steps and can proceed to Build.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceNotificationBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceNotificationBuilderTemplate",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationBuilderTemplate",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceNotificationBuilder WithNotificationTemplate(CorrespondenceNotificationTemplate notificationTemplate);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceNotificationBuilder instance is on the NotificationTemplate step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceNotificationBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceNotificationOverrideBuilder",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceNotificationOverrideBuilder",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "CorrespondenceNotificationRecipient Build();",
+        "ICorrespondenceNotificationOverrideBuilder WithEmailAddress(string? emailAddress);",
+        "ICorrespondenceNotificationOverrideBuilder WithMobileNumber(string? mobileNumber);",
+        "ICorrespondenceNotificationOverrideBuilder WithNationalIdentityNumber(NationalIdentityNumber? nationalIdentityNumber);",
+        "ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganizationNumber? organizationNumber);",
+        "ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(OrganizationOrPersonIdentifier? organizationOrPersonIdentifier);"
+      ],
+      "member_count": 6,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Builder for a single additional CorrespondenceNotificationRecipient, to be passed to WithRecipientOverride(ICorrespondenceNotificationOverrideBuilder).",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceNotificationOverrideBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceRequestBuilder",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "ICorrespondenceRequestBuilderContent",
+        "ICorrespondenceRequestBuilderRecipients",
+        "ICorrespondenceRequestBuilderResourceId",
+        "ICorrespondenceRequestBuilderSendersReference"
+      ],
+      "members": [
+        "CorrespondenceRequest Build();",
+        "ICorrespondenceRequestBuilder WithAttachment(ICorrespondenceAttachmentBuilder builder);",
+        "ICorrespondenceRequestBuilder WithAttachment(CorrespondenceAttachment attachment);",
+        "ICorrespondenceRequestBuilder WithAttachments(IEnumerable<CorrespondenceAttachment> attachments);",
+        "ICorrespondenceRequestBuilder WithDueDateTime(DateTimeOffset dueDateTime);",
+        "ICorrespondenceRequestBuilder WithExistingAttachment(Guid existingAttachment);",
+        "ICorrespondenceRequestBuilder WithExistingAttachments(IEnumerable<Guid> existingAttachments);",
+        "ICorrespondenceRequestBuilder WithExternalReference(CorrespondenceExternalReference externalReference);",
+        "ICorrespondenceRequestBuilder WithExternalReference(CorrespondenceReferenceType type, string value);",
+        "ICorrespondenceRequestBuilder WithExternalReferences(IEnumerable<CorrespondenceExternalReference> externalReferences);",
+        "ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey);",
+        "ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation);",
+        "ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential);",
+        "ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded);",
+        "ICorrespondenceRequestBuilder WithMessageSender(string messageSender);",
+        "ICorrespondenceRequestBuilder WithNotification(ICorrespondenceNotificationBuilder builder);",
+        "ICorrespondenceRequestBuilder WithNotification(CorrespondenceNotification notification);",
+        "ICorrespondenceRequestBuilder WithNotificationIfConfigured(CorrespondenceNotification? notification);",
+        "ICorrespondenceRequestBuilder WithPropertyList(IReadOnlyDictionary<string, string> propertyList);",
+        "ICorrespondenceRequestBuilder WithReplyOption(CorrespondenceReplyOption replyOption);",
+        "ICorrespondenceRequestBuilder WithReplyOption(string linkUrl, string linkText);",
+        "ICorrespondenceRequestBuilder WithReplyOptions(IEnumerable<CorrespondenceReplyOption> replyOptions);",
+        "ICorrespondenceRequestBuilder WithRequestedPublishTime(DateTimeOffset requestedPublishTime);"
+      ],
+      "member_count": 23,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceRequestBuilder instance has completed all required steps and can proceed to Build.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceRequestBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceRequestBuilderContent",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceRequestBuilder WithContent(ICorrespondenceContentBuilder builder);",
+        "ICorrespondenceRequestBuilder WithContent(CorrespondenceContent content);",
+        "ICorrespondenceRequestBuilder WithContent(LanguageCode<Iso6391> language, string title, string summary, string body);",
+        "ICorrespondenceRequestBuilder WithContent(string language, string title, string summary, string body);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceRequestBuilder instance is on the Content step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceRequestBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceRequestBuilderRecipients",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceRequestBuilderContent WithRecipient(NationalIdentityNumber person);",
+        "ICorrespondenceRequestBuilderContent WithRecipient(OrganizationNumber organization);",
+        "ICorrespondenceRequestBuilderContent WithRecipient(OrganizationOrPersonIdentifier recipient);",
+        "ICorrespondenceRequestBuilderContent WithRecipient(string recipient);",
+        "ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganizationOrPersonIdentifier> recipients);",
+        "ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<string> recipients);"
+      ],
+      "member_count": 6,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceRequestBuilder instance is on the Recipients step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceRequestBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceRequestBuilderResourceId",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceRequestBuilder instance is on the ResourceId step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceRequestBuilder.cs"
+    },
+    {
+      "name": "ICorrespondenceRequestBuilderSendersReference",
+      "full_name": "Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference",
+      "namespace": "Altinn.App.Core.Features.Correspondence.Builder",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ICorrespondenceRequestBuilderRecipients WithSendersReference(string sendersReference);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Correspondence",
+      "summary": "Indicates that the CorrespondenceRequestBuilder instance is on the SendersReference step.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/ICorrespondenceRequestBuilder.cs"
+    },
+    {
+      "name": "IDataListsService",
+      "full_name": "Altinn.App.Core.Features.DataLists.IDataListsService",
+      "namespace": "Altinn.App.Core.Features.DataLists",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<DataList> GetDataListAsync(string dataListId, string? language, Dictionary<string, string> keyValuePairs);",
+        "Task<DataList> GetDataListAsync(InstanceIdentifier instanceIdentifier, string dataListId, string? language, Dictionary<string, string> keyValuePairs);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "DataLists",
+      "summary": "Interface for working with DataList",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/DataLists/IDataListsService.cs"
+    },
+    {
+      "name": "IExternalApiClient",
+      "full_name": "Altinn.App.Core.Features.ExternalApi.IExternalApiClient",
+      "namespace": "Altinn.App.Core.Features.ExternalApi",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<object?> GetExternalApiDataAsync(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "ExternalApi",
+      "summary": "Interface for providing external api data",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/ExternalApi/IExternalApiClient.cs"
+    },
+    {
+      "name": "IExternalApiService",
+      "full_name": "Altinn.App.Core.Features.ExternalApi.IExternalApiService",
+      "namespace": "Altinn.App.Core.Features.ExternalApi",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<ExternalApiDataResult> GetExternalApiData(string externalApiId, InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "ExternalApi",
+      "summary": "Interface for handling external api data",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/ExternalApi/ExternalApiService.cs"
+    },
+    {
+      "name": "IFileAnalysisService",
+      "full_name": "Altinn.App.Core.Features.FileAnalysis.IFileAnalysisService",
+      "namespace": "Altinn.App.Core.Features.FileAnalysis",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<IEnumerable<FileAnalysisResult>> Analyze(DataType dataType, Stream fileStream, string? filename = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "FileAnalysis",
+      "summary": "Interface for running all file analyzers registered on a data type.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/FileAnalysis/IFileAnalysisService.cs"
+    },
+    {
+      "name": "IFileAnalyzer",
+      "full_name": "Altinn.App.Core.Features.FileAnalysis.IFileAnalyzer",
+      "namespace": "Altinn.App.Core.Features.FileAnalysis",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "FileAnalysis",
+      "summary": "Interface for doing extended binary file analyzing.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/FileAnalysis/IFileAnalyzer.cs"
+    },
+    {
+      "name": "IFileAnalyzerFactory",
+      "full_name": "Altinn.App.Core.Features.FileAnalysis.IFileAnalyzerFactory",
+      "namespace": "Altinn.App.Core.Features.FileAnalysis",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IEnumerable<IFileAnalyzer> GetFileAnalyzers(IEnumerable<string> analyzerIds);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "FileAnalysis",
+      "summary": "Interface responsible for resolving the correct file analyzers to run on against a DataType.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/FileAnalysis/IFileAnalyzerFactory.cs"
+    },
+    {
+      "name": "IMaskinportenClient",
+      "full_name": "Altinn.App.Core.Features.Maskinporten.IMaskinportenClient",
+      "namespace": "Altinn.App.Core.Features.Maskinporten",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<JwtToken> GetAccessToken(MaskinportenTokenRequest request, CancellationToken cancellationToken = default);",
+        "Task<JwtToken> GetAccessToken(IEnumerable<string> scopes, CancellationToken cancellationToken = default);",
+        "Task<JwtToken> GetAltinnExchangedToken(MaskinportenTokenRequest request, CancellationToken cancellationToken = default);",
+        "Task<JwtToken> GetAltinnExchangedToken(IEnumerable<string> scopes, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Maskinporten",
+      "summary": "Contains logic for handling authorization requests with Maskinporten.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Maskinporten/IMaskinportenClient.cs"
+    },
+    {
+      "name": "INotificationService",
+      "full_name": "Altinn.App.Core.Features.Notifications.INotificationService",
+      "namespace": "Altinn.App.Core.Features.Notifications",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task NotifyInstanceOwnerOnInstantiation(Instance instance, Party party, InstantiationNotification instantiationNotification, CancellationToken ct);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Notifications",
+      "summary": "Interface for handling notifications related to instances.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Notifications/INotificationService.cs"
+    },
+    {
+      "name": "ICancelInstantiationNotification",
+      "full_name": "Altinn.App.Core.Features.Notifications.Cancellation.ICancelInstantiationNotification",
+      "namespace": "Altinn.App.Core.Features.Notifications.Cancellation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "bool ShouldSend(Instance instance);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Notifications",
+      "summary": "Interface for determining whether a scheduled instantiation notification should be sent",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Notifications/Cancellation/ICancelInstantiationNotification.cs"
+    },
+    {
+      "name": "INotificationConditionCodeValidator",
+      "full_name": "Altinn.App.Core.Features.Notifications.SecretProvider.INotificationConditionCodeValidator",
+      "namespace": "Altinn.App.Core.Features.Notifications.SecretProvider",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> ValidateCode(string? code, Guid instanceGuid, Telemetry? telemetry = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Notifications",
+      "summary": "Validates JWT codes used for notification condition endpoints.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Notifications/SecretProvider/NotificationConditionCodeValidator.cs"
+    },
+    {
+      "name": "IAppOptionsFileHandler",
+      "full_name": "Altinn.App.Core.Features.Options.IAppOptionsFileHandler",
+      "namespace": "Altinn.App.Core.Features.Options",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Options",
+      "summary": "Interface for handling option files on disk",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Options/IAppOptionsFileHandler.cs"
+    },
+    {
+      "name": "IAppOptionsService",
+      "full_name": "Altinn.App.Core.Features.Options.IAppOptionsService",
+      "namespace": "Altinn.App.Core.Features.Options",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs);",
+        "Task<AppOptions?> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs);",
+        "bool IsInstanceAppOptionsProviderRegistered(string optionId);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Options",
+      "summary": "Interface for working with AppOption",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Options/IAppOptionsService.cs"
+    },
+    {
+      "name": "IAltinn3LibraryCodeListService",
+      "full_name": "Altinn.App.Core.Features.Options.Altinn3LibraryCodeList.IAltinn3LibraryCodeListService",
+      "namespace": "Altinn.App.Core.Features.Options.Altinn3LibraryCodeList",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<AppOptions> GetAppOptionsAsync(string org, string codeListId, string version, string? language, CancellationToken cancellationToken);",
+        "Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(string org, string codeListId, string? version, CancellationToken cancellationToken);",
+        "AppOptions MapAppOptions(Altinn3LibraryCodeListResponse libraryCodeListResponse, string? language);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Options",
+      "summary": "Service for handling Altinn 3 library code lists.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Options/Altinn3LibraryCodeList/IAltinn3LibraryCodeListService.cs"
+    },
+    {
+      "name": "IOrderDetailsCalculator",
+      "full_name": "Altinn.App.Core.Features.Payment.IOrderDetailsCalculator",
+      "namespace": "Altinn.App.Core.Features.Payment",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Payment",
+      "summary": "Interface that app developers need to implement in order to use the payment feature",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Payment/IOrderDetailsCalculator.cs"
+    },
+    {
+      "name": "IPaymentProcessor",
+      "full_name": "Altinn.App.Core.Features.Payment.Processors.IPaymentProcessor",
+      "namespace": "Altinn.App.Core.Features.Payment.Processors",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string PaymentProcessorId { get; }",
+        "\"status\",",
+        "\"paymentDetails\"})]",
+        "Task<ValueTuple<PaymentStatus, PaymentDetails>> GetPaymentStatus(Instance instance, string paymentId, decimal expectedTotalIncVat, string? language);",
+        "Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language);",
+        "Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation);"
+      ],
+      "member_count": 6,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Payment",
+      "summary": "Represents a payment processor that handles payment-related operations.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Payment/Processors/IPaymentProcessor.cs"
+    },
+    {
+      "name": "IOnProcessEndingHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnProcessEndingHandler",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IProcessStepConfigurable"
+      ],
+      "members": [
+        "Task<HookResult> Execute(OnProcessEndingContext context);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Hook interface for custom end process logic.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnProcessEndingHandler.cs"
+    },
+    {
+      "name": "IOnTaskAbandonHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnTaskAbandonHandler",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IProcessStepConfigurable"
+      ],
+      "members": [
+        "Task<HookResult> Execute(OnTaskAbandonContext context);",
+        "bool ShouldRunForTask(string taskId);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Hook interface for custom abandon task logic.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskAbandonHandler.cs"
+    },
+    {
+      "name": "IOnTaskEndingHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnTaskEndingHandler",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IProcessStepConfigurable"
+      ],
+      "members": [
+        "Task<HookResult> Execute(OnTaskEndingContext context);",
+        "bool ShouldRunForTask(string taskId);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Hook interface for custom end task logic.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskEndingHandler.cs"
+    },
+    {
+      "name": "IOnTaskStartingHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnTaskStartingHandler",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IProcessStepConfigurable"
+      ],
+      "members": [
+        "Task<HookResult> Execute(OnTaskStartingContext context);",
+        "bool ShouldRunForTask(string taskId);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Hook interface for custom start task logic.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskStartingHandler.cs"
+    },
+    {
+      "name": "IPipelineServiceTask",
+      "full_name": "Altinn.App.Core.Features.Process.IPipelineServiceTask",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IProcessStepConfigurable",
+        "IProcessTask"
+      ],
+      "members": [
+        "ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "A service task defined as a pipeline: ordered durable stages followed by the one conclusion, composed in Define. The conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work answered by a message into a mailbox a stage opened. A task that does one thing should implement IServiceTask instead — this interface specialized to just the concluding step.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IPipelineServiceTask.cs"
+    },
+    {
+      "name": "IProcessStepConfigurable",
+      "full_name": "Altinn.App.Core.Features.Process.IProcessStepConfigurable",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ProcessStepOptions? StepOptions { get; }"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Implemented by process handlers (service tasks and task/process lifecycle hooks) that want to override the workflow engine's default execution timeout and/or retry strategy for the step that runs them. This is the most specific tier in the resolution order: implementation override → command default → engine default.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IProcessStepConfigurable.cs"
+    },
+    {
+      "name": "IServiceTask",
+      "full_name": "Altinn.App.Core.Features.Process.IServiceTask",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [
+        "IPipelineServiceTask",
+        "IProcessStepConfigurable",
+        "IProcessTask"
+      ],
+      "members": [
+        "Task<ServiceTaskResult> Execute(ServiceTaskContext context);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "A service task that does one thing: a single unit of work executed (and on failure, retried) durably by the workflow engine when the process enters a BPMN service task. This is the shape almost every service task wants. A task with several consecutive units of work — dispatch then await, or a series of API calls — should implement IPipelineServiceTask instead and give each unit its own durable stage.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IServiceTask.cs"
+    },
+    {
+      "name": "IServiceTaskReplyForwarder",
+      "full_name": "Altinn.App.Core.Features.Process.IServiceTaskReplyForwarder",
+      "namespace": "Altinn.App.Core.Features.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task ForwardReply(Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Process",
+      "summary": "Hands a message received from an external system to the mailbox a service task is waiting on, where the task's reply handler processes it as its own durable piece of work.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IServiceTaskReplyForwarder.cs"
+    },
+    {
+      "name": "IReturnUrlService",
+      "full_name": "Altinn.App.Core.Features.Redirect.IReturnUrlService",
+      "namespace": "Altinn.App.Core.Features.Redirect",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "ReturnUrlValidationResult Validate(string? base64Url);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Redirect",
+      "summary": "Service for validating redirect URLs.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Redirect/IReturnUrlService.cs"
+    },
+    {
+      "name": "ISigneeProvider",
+      "full_name": "Altinn.App.Core.Features.Signing.ISigneeProvider",
+      "namespace": "Altinn.App.Core.Features.Signing",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; init; }",
+        "Task<SigneeProviderResult> GetSignees(GetSigneesParameters parameters);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Signing",
+      "summary": "Interface for implementing app-specific logic for deriving signees.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Signing/ISigneeProvider.cs"
+    },
+    {
+      "name": "IFileValidator",
+      "full_name": "Altinn.App.Core.Features.Validation.IFileValidator",
+      "namespace": "Altinn.App.Core.Features.Validation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Id { get; }",
+        "\"Success\",",
+        "\"Errors\"})]",
+        "Task<ValueTuple<bool, IEnumerable<ValidationIssue>>> Validate(DataType dataType, IEnumerable<FileAnalysisResult> fileAnalysisResults);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Features",
+      "group": "Validation",
+      "summary": "Interface for handling validation of files added to an instance.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Validation/IFileValidator.cs"
+    },
+    {
+      "name": "IAppEvents",
+      "full_name": "Altinn.App.Core.Internal.App.IAppEvents",
+      "namespace": "Altinn.App.Core.Internal.App",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task OnEndAppEvent(string endEvent, Instance instance);",
+        "Task OnStartAppEvent(string startEvent, Instance instance);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "App",
+      "summary": "Interface for implementing a receiver handling instance events.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IAppEvents.cs"
+    },
+    {
+      "name": "IAppMetadata",
+      "full_name": "Altinn.App.Core.Internal.App.IAppMetadata",
+      "namespace": "Altinn.App.Core.Internal.App",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<string> GetApplicationBPMNProcess();",
+        "Task<ApplicationMetadata> GetApplicationMetadata();",
+        "Task<string> GetApplicationXACMLPolicy();"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "App",
+      "summary": "Interface for fetching app metadata",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IAppMetadata.cs"
+    },
+    {
+      "name": "IAppResources",
+      "full_name": "Altinn.App.Core.Internal.App.IAppResources",
+      "namespace": "Altinn.App.Core.Internal.App",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string? GetCalculationConfiguration(string dataTypeId);",
+        "string GetClassRefForLogicDataType(string dataType);",
+        "Task<string?> GetFooter();",
+        "GlobalPageSettings? GetGlobalUiSettings();",
+        "LayoutModel GetLayoutModel(string? layoutSetId = null);",
+        "LayoutModel? GetLayoutModelForFolder(string folder);",
+        "LayoutModel? GetLayoutModelForTask(string taskId);",
+        "LayoutSet? GetLayoutSetForTask(string taskId);",
+        "\" the same as the task ID.\", true)]",
+        "object? GetLayoutSets();",
+        "\" the same as the task ID.\", true)]",
+        "string? GetLayoutSetsString();",
+        "LayoutSettings? GetLayoutSettingsForFolder(string? folder);",
+        "LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);",
+        "string? GetLayoutSettingsStringForFolder(string folder);",
+        "string? GetLayoutSettingsStringForSet(string layoutSetId);",
+        "string GetLayoutsForSet(string layoutSetId);",
+        "string GetLayoutsInFolder(string folderId);",
+        "string GetModelJsonSchema(string modelId);",
+        "string? GetPrefillJson(string dataModelName = \"ServiceModel\");",
+        "byte[] GetText(string org, string app, string textResource);",
+        "Task<TextResource?> GetTexts(string org, string app, string language);",
+        "UiConfiguration? GetUiConfiguration();",
+        "string? GetValidationConfiguration(string dataTypeId);",
+        "string? GetXsdSchema(string modelId);"
+      ],
+      "member_count": 25,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "App",
+      "summary": "Interface for execution functionality",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IAppResources.cs"
+    },
+    {
+      "name": "IApplicationClient",
+      "full_name": "Altinn.App.Core.Internal.App.IApplicationClient",
+      "namespace": "Altinn.App.Core.Internal.App",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Application?> GetApplication(string org, string app);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "App",
+      "summary": "Interface for retrieving application metadata data related operations",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IApplicationClient.cs"
+    },
+    {
+      "name": "IFrontendFeatures",
+      "full_name": "Altinn.App.Core.Internal.App.IFrontendFeatures",
+      "namespace": "Altinn.App.Core.Internal.App",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Dictionary<string, bool>> GetFrontendFeatures();"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "App",
+      "summary": "Interface reporting features needed by frontend and their status to support multiple versions of the backend",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IFrontendFeatures.cs"
+    },
+    {
+      "name": "IAppModel",
+      "full_name": "Altinn.App.Core.Internal.AppModel.IAppModel",
+      "namespace": "Altinn.App.Core.Internal.AppModel",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "object Create(string classRef);",
+        "Type GetModelType(string classRef);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "AppModel",
+      "summary": "This interface is used to define the methods that are used to instantiate the applications data model.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/AppModel/IAppModel.cs"
+    },
+    {
+      "name": "IAuthenticationClient",
+      "full_name": "Altinn.App.Core.Internal.Auth.IAuthenticationClient",
+      "namespace": "Altinn.App.Core.Internal.Auth",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<string> RefreshToken();"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Auth",
+      "summary": "Authentication interface.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Auth/IAuthenticationClient.cs"
+    },
+    {
+      "name": "IAuthorizationClient",
+      "full_name": "Altinn.App.Core.Internal.Auth.IAuthorizationClient",
+      "namespace": "Altinn.App.Core.Internal.Auth",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);",
+        "Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions);",
+        "Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers);",
+        "Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null);",
+        "Task<bool?> ValidateSelectedParty(int userId, int partyId, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 5,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Auth",
+      "summary": "Interface for authorization functionality.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Auth/IAuthorizationClient.cs"
+    },
+    {
+      "name": "IAuthorizationService",
+      "full_name": "Altinn.App.Core.Internal.Auth.IAuthorizationService",
+      "namespace": "Altinn.App.Core.Internal.Auth",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);",
+        "Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions);",
+        "Task<List<Party>?> GetPartyList(int userId);",
+        "Task<bool?> ValidateSelectedParty(int userId, int partyId);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Auth",
+      "summary": "Interface for authorization functionality.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Auth/IAuthorizationService.cs"
+    },
+    {
+      "name": "IUserTokenProvider",
+      "full_name": "Altinn.App.Core.Internal.Auth.IUserTokenProvider",
+      "namespace": "Altinn.App.Core.Internal.Auth",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string GetUserToken();"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Auth",
+      "summary": "Defines the methods required for an implementation of a user JSON Web Token provider. The provider is used by client implementations that needs the user token in requests against other systems.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Auth/IUserTokenProvider.cs"
+    },
+    {
+      "name": "IDataClient",
+      "full_name": "Altinn.App.Core.Internal.Data.IDataClient",
+      "namespace": "Altinn.App.Core.Internal.Data",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> DeleteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay);",
+        "Task<bool> DeleteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay);",
+        "Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<Stream> GetBinaryData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);",
+        "Task<Stream> GetBinaryData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);",
+        "Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<List<AttachmentList>> GetBinaryDataList(int instanceOwnerPartyId, Guid instanceGuid);",
+        "Task<List<AttachmentList>> GetBinaryDataList(int instanceOwnerPartyId, Guid instanceGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid);",
+        "Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<Stream> GetBinaryDataStream(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);",
+        "Task<Stream> GetBinaryDataStream(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, TimeSpan? timeout = default, CancellationToken cancellationToken = default);",
+        "Task<byte[]> GetDataBytes(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);",
+        "Task<byte[]> GetDataBytes(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);",
+        "Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<object> GetFormData(Instance instance, DataElement dataElement);",
+        "Task<object> GetFormData(Instance instance, DataElement dataElement, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId);",
+        "Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream);",
+        "Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream, string? generatedFromTask);",
+        "\"a Stream instead\")]",
+        "Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request);",
+        "Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string? filename, Stream stream, string? generatedFromTask = null, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "\"a Stream instead\")]",
+        "Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> InsertFormData(Instance instance, string dataTypeId, object dataToSerialize);",
+        "Task<DataElement> InsertFormData(Instance instance, string dataTypeId, object dataToSerialize, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> InsertFormData<T>(Instance instance, string dataTypeString, T dataToSerialize, Type type)",
+        "where T :  notnull;",
+        "Task<DataElement> InsertFormData<T>(Instance instance, string dataTypeString, T dataToSerialize, Type type, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default)",
+        "where T :  notnull;",
+        "Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType)",
+        "where T :  notnull;",
+        "Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default)",
+        "where T :  notnull;",
+        "Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);",
+        "Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid);",
+        "Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> Update(Instance instance, DataElement dataElement);",
+        "Task<DataElement> Update(Instance instance, DataElement dataElement, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string? filename, Guid dataGuid, Stream stream);",
+        "Task<DataElement> UpdateBinaryData(InstanceIdentifier instanceIdentifier, string? contentType, string? filename, Guid dataGuid, Stream stream, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)",
+        "where T :  notnull;",
+        "Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default)",
+        "where T :  notnull;",
+        "Task<DataElement> UpdateFormData(Instance instance, object dataToSerialize, DataElement dataElement);",
+        "Task<DataElement> UpdateFormData(Instance instance, object dataToSerialize, DataElement dataElement, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
+      ],
+      "member_count": 53,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Data",
+      "summary": "Interface for data handling",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Data/IDataClient.cs"
+    },
+    {
+      "name": "IDataElementAccessChecker",
+      "full_name": "Altinn.App.Core.Internal.Data.IDataElementAccessChecker",
+      "namespace": "Altinn.App.Core.Internal.Data",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> CanCreate(Instance instance, DataType dataType, Authenticated? auth = null, long? contentLength = default);",
+        "Task<bool> CanDelete(Instance instance, DataType dataType, Guid dataElementId, Authenticated? auth = null);",
+        "Task<bool> CanRead(Instance instance, DataType dataType);",
+        "Task<bool> CanUpdate(Instance instance, DataType dataType, Authenticated? auth = null);",
+        "Task<ProblemDetails?> GetCreateProblem(Instance instance, DataType dataType, Authenticated? auth = null, long? contentLength = default);",
+        "Task<ProblemDetails?> GetDeleteProblem(Instance instance, DataType dataType, Guid dataElementId, Authenticated? auth = null);",
+        "Task<ProblemDetails?> GetReaderProblem(Instance instance, DataElement dataElement);",
+        "Task<ProblemDetails?> GetReaderProblem(Instance instance, DataType dataType);",
+        "Task<ProblemDetails?> GetUpdateProblem(Instance instance, DataType dataType, Authenticated? auth = null);"
+      ],
+      "member_count": 9,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Data",
+      "summary": "Interface for checking if the current user has access to perform operations on data elements of an instance.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Data/IDataElementAccessChecker.cs"
+    },
+    {
+      "name": "IDataService",
+      "full_name": "Altinn.App.Core.Internal.Data.IDataService",
+      "namespace": "Altinn.App.Core.Internal.Data",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> DeleteById(InstanceIdentifier instanceIdentifier, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<T> GetById<T>(Instance instance, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "\"dataElementId\",",
+        "\"model\"})]",
+        "Task<ValueTuple<Guid, T?>> GetByType<T>(Instance instance, string dataTypeId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<DataElement> InsertJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<DataElement> UpdateJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, Guid dataElementId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+      ],
+      "member_count": 7,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Data",
+      "summary": "DRAFT. Don't make public yet. Service that simplifies framework-owned access to data elements in Storage.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Data/IDataService.cs"
+    },
+    {
+      "name": "IFormDataWrapper",
+      "full_name": "Altinn.App.Core.Internal.Data.IFormDataWrapper",
+      "namespace": "Altinn.App.Core.Internal.Data",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Type BackingDataType { get; }",
+        "DataElement? DataElement { get; }",
+        "DataType DataType { get; }",
+        "ReadOnlySpan<char> AddIndexToPath(ReadOnlySpan<char> path, ReadOnlySpan<int> rowIndexes, Span<char> buffer);",
+        "T BackingData<T>()",
+        "where T :  class;",
+        "IFormDataWrapper Copy();",
+        "object? Get(ReadOnlySpan<char> path);",
+        "void InitializeAltinnRowIds();",
+        "void RemoveAltinnRowIds();",
+        "void RemoveField(ReadOnlySpan<char> path, RowRemovalOption rowRemovalOption);",
+        "bool Set(ReadOnlySpan<char> path, ExpressionValue value);"
+      ],
+      "member_count": 12,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Data",
+      "summary": "Interface for a wrapper around a data model, that allows for easy access to fields and rows in the model. Implementations for each data model type will be created by a source generator and retrieved by the FormDataWrapperFactory",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Data/IFormDataWrapper.cs"
+    },
+    {
+      "name": "IEventsClient",
+      "full_name": "Altinn.App.Core.Internal.Events.IEventsClient",
+      "namespace": "Altinn.App.Core.Internal.Events",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<string> AddEvent(string eventType, Instance instance, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Events",
+      "summary": "Interface describing client implementations for the Events component in the Altinn 3 platform.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Events/IEventsClient.cs"
+    },
+    {
+      "name": "ILayoutEvaluatorStateInitializer",
+      "full_name": "Altinn.App.Core.Internal.Expressions.ILayoutEvaluatorStateInitializer",
+      "namespace": "Altinn.App.Core.Internal.Expressions",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<LayoutEvaluatorState> Init(IInstanceDataAccessor dataAccessor, string? taskId, string? gatewayAction = null, string? language = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Expressions",
+      "summary": "Interface for initializing a LayoutEvaluatorState from dependency injection services",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Expressions/ILayoutEvaluatorStateInitializer.cs"
+    },
+    {
+      "name": "IInstanceClient",
+      "full_name": "Altinn.App.Core.Internal.Instances.IInstanceClient",
+      "namespace": "Altinn.App.Core.Internal.Instances",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid);",
+        "Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate);",
+        "Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard);",
+        "Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> GetInstance(Instance instance);",
+        "Task<Instance> GetInstance(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);",
+        "Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams);",
+        "Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateDataValue(Instance instance, string key, string? value);",
+        "Task<Instance> UpdateDataValue(Instance instance, string key, string? value, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues);",
+        "Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues);",
+        "Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts);",
+        "Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateProcess(Instance instance);",
+        "Task<Instance> UpdateProcess(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events);",
+        "Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus);",
+        "Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus);",
+        "Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+      ],
+      "member_count": 28,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Instances",
+      "summary": "Interface for handling form data related operations",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Instances/IInstanceClient.cs"
+    },
+    {
+      "name": "IInstanceEventClient",
+      "full_name": "Altinn.App.Core.Internal.Instances.IInstanceEventClient",
+      "namespace": "Altinn.App.Core.Internal.Instances",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to, StorageAuthenticationMethod? authenticationMethod = null);",
+        "Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Instances",
+      "summary": "Interface for handling instance event related operations",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Instances/IInstanceEventClient.cs"
+    },
+    {
+      "name": "IApplicationLanguage",
+      "full_name": "Altinn.App.Core.Internal.Language.IApplicationLanguage",
+      "namespace": "Altinn.App.Core.Internal.Language",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<List<ApplicationLanguage>> GetApplicationLanguages();"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Language",
+      "summary": "Interface for retrieving languages supported by the application.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Language/IApplicationLanguage.cs"
+    },
+    {
+      "name": "IPdfGeneratorClient",
+      "full_name": "Altinn.App.Core.Internal.Pdf.IPdfGeneratorClient",
+      "namespace": "Altinn.App.Core.Internal.Pdf",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Stream> GeneratePdf(Uri uri, CancellationToken ct);",
+        "Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct);",
+        "Task<Stream> GeneratePdf(Uri uri, string? footerContent, StorageAuthenticationMethod? authenticationMethod, CancellationToken ct);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Pdf",
+      "summary": "Defines the required operations on a client of the PDF generator service.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Pdf/IPdfGeneratorClient.cs"
+    },
+    {
+      "name": "IPdfService",
+      "full_name": "Altinn.App.Core.Internal.Pdf.IPdfService",
+      "namespace": "Altinn.App.Core.Internal.Pdf",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task GenerateAndStorePdf(IInstanceDataMutator instanceDataMutator, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<BinaryDataChange> GenerateAndStorePdf(IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, List<string>? autoGeneratePdfForTaskIds = null, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);",
+        "Task<Stream> GeneratePdf(Instance instance, string taskId, bool isPreview, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Pdf",
+      "summary": "Interface for handling generation and storing of PDF's",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Pdf/IPdfService.cs"
+    },
+    {
+      "name": "IPrefill",
+      "full_name": "Altinn.App.Core.Internal.Prefill.IPrefill",
+      "namespace": "Altinn.App.Core.Internal.Prefill",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "void PrefillDataModel(object dataModel, Dictionary<string, string> externalPrefill, bool continueOnError = false);",
+        "Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string>? externalPrefill = null);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Prefill",
+      "summary": "The prefill service",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Prefill/IPrefill.cs"
+    },
+    {
+      "name": "IProcessClient",
+      "full_name": "Altinn.App.Core.Internal.Process.IProcessClient",
+      "namespace": "Altinn.App.Core.Internal.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Stream GetProcessDefinition();",
+        "Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Process service that encapsulate reading of the BPMN process definition.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Interfaces/IProcessClient.cs"
+    },
+    {
+      "name": "IProcessEngineAuthorizer",
+      "full_name": "Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer",
+      "namespace": "Altinn.App.Core.Internal.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<bool> AuthorizeProcessNext(Instance instance, string? action = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Authorizer for the process engine.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Interfaces/IProcessEngineAuthorizer.cs"
+    },
+    {
+      "name": "IProcessNavigator",
+      "full_name": "Altinn.App.Core.Internal.Process.IProcessNavigator",
+      "namespace": "Altinn.App.Core.Internal.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Interface used to descipt the process navigator",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Interfaces/IProcessNavigator.cs"
+    },
+    {
+      "name": "IProcessReader",
+      "full_name": "Altinn.App.Core.Internal.Process.IProcessReader",
+      "namespace": "Altinn.App.Core.Internal.Process",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "List<ProcessElement> GetAllFlowElements();",
+        "AltinnTaskExtension? GetAltinnTaskExtension(string elementId);",
+        "List<string> GetEndEventIds();",
+        "List<EndEvent> GetEndEvents();",
+        "List<string> GetExclusiveGatewayIds();",
+        "List<ExclusiveGateway> GetExclusiveGateways();",
+        "ProcessElement? GetFlowElement(string? elementId);",
+        "List<ProcessElement> GetNextElements(string? currentElementId);",
+        "List<SequenceFlow> GetOutgoingSequenceFlows(ProcessElement? flowElement);",
+        "List<string> GetProcessTaskIds();",
+        "List<ProcessTask> GetProcessTasks();",
+        "List<string> GetSequenceFlowIds();",
+        "List<SequenceFlow> GetSequenceFlows();",
+        "List<string> GetStartEventIds();",
+        "List<StartEvent> GetStartEvents();",
+        "bool IsEndEvent(string? elementId);",
+        "bool IsProcessTask(string? elementId);",
+        "bool IsStartEvent(string? elementId);"
+      ],
+      "member_count": 18,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Interface for classes that reads the applications process",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Interfaces/IProcessReader.cs"
+    },
+    {
+      "name": "IUserActionAuthorizerProvider",
+      "full_name": "Altinn.App.Core.Internal.Process.Authorization.IUserActionAuthorizerProvider",
+      "namespace": "Altinn.App.Core.Internal.Process.Authorization",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string? Action { get; }",
+        "IUserActionAuthorizer Authorizer { get; }",
+        "string? TaskId { get; }"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Register a user action authorizer for a given action and/or task",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Authorization/IUserActionAuthorizerProvider.cs"
+    },
+    {
+      "name": "IProcessTask",
+      "full_name": "Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask",
+      "namespace": "Altinn.App.Core.Internal.Process.ProcessTasks",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "string Type { get; }",
+        "Task Abandon(ProcessTaskContext context);",
+        "Task End(ProcessTaskContext context);",
+        "Task Start(ProcessTaskContext context);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Implement this interface to create a new type of task for the process engine.",
+      "implementable_by_apps": true,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessTasks/IProcessTask.cs"
+    },
+    {
+      "name": "IProcessTaskDataLocker",
+      "full_name": "Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTaskDataLocker",
+      "namespace": "Altinn.App.Core.Internal.Process.ProcessTasks",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task Lock(string taskId, Instance instance);",
+        "Task Unlock(string taskId, Instance instance);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Process",
+      "summary": "Can be used to lock data elements connected to a process task",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/ProcessTasks/Common/IProcessTaskDataLocker.cs"
+    },
+    {
+      "name": "IProfileClient",
+      "full_name": "Altinn.App.Core.Internal.Profile.IProfileClient",
+      "namespace": "Altinn.App.Core.Internal.Profile",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<UserProfile?> GetUserProfile(Guid userUuid);",
+        "Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null);",
+        "Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Profile",
+      "summary": "Interface for profile functionality",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Profile/IProfileClient.cs"
+    },
+    {
+      "name": "IAltinnPartyClient",
+      "full_name": "Altinn.App.Core.Internal.Registers.IAltinnPartyClient",
+      "namespace": "Altinn.App.Core.Internal.Registers",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null);",
+        "Task<int?> GetPartyIdByUrn(string urn);",
+        "Task<Guid?> GetPartyUuidByUrn(string urn);",
+        "Task<Party> LookupParty(PartyLookup partyLookup, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Registers",
+      "summary": "Interface for register functionality",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Registers/IAltinnPartyClient.cs"
+    },
+    {
+      "name": "IOrganizationClient",
+      "full_name": "Altinn.App.Core.Internal.Registers.IOrganizationClient",
+      "namespace": "Altinn.App.Core.Internal.Registers",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Organization?> GetOrganization(string OrgNr, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Registers",
+      "summary": "Interface for the entity registry (ER: Enhetsregisteret)",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Registers/IOrganizationClient.cs"
+    },
+    {
+      "name": "IPersonClient",
+      "full_name": "Altinn.App.Core.Internal.Registers.IPersonClient",
+      "namespace": "Altinn.App.Core.Internal.Registers",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Registers",
+      "summary": "Describes the required methods for an implementation of a person repository client.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Registers/IPersonClient.cs"
+    },
+    {
+      "name": "ISecretsClient",
+      "full_name": "Altinn.App.Core.Internal.Secrets.ISecretsClient",
+      "namespace": "Altinn.App.Core.Internal.Secrets",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<byte[]> GetCertificateAsync(string certificateName);",
+        "Task<JsonWebKey> GetKeyAsync(string keyName);",
+        "KeyVaultClient GetKeyVaultClient();",
+        "Task<string> GetSecretAsync(string secretName);"
+      ],
+      "member_count": 4,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Secrets",
+      "summary": "Interface for secrets service",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Secrets/ISecretsClient.cs"
+    },
+    {
+      "name": "ISignClient",
+      "full_name": "Altinn.App.Core.Internal.Sign.ISignClient",
+      "namespace": "Altinn.App.Core.Internal.Sign",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task SignDataElements(SignatureContext signatureContext, StorageAuthenticationMethod? authenticationMethod = null);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Sign",
+      "summary": "Interface for httpClient to send sign requests to platform",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Sign/ISignClient.cs"
+    },
+    {
+      "name": "ITranslationService",
+      "full_name": "Altinn.App.Core.Internal.Texts.ITranslationService",
+      "namespace": "Altinn.App.Core.Internal.Texts",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "\"er key\")]",
+        "Task<string?> TranslateFirstMatchingTextKey(string? language, params string[] keys);",
+        "Task<string?> TranslateTextKey(string key, string? language, Dictionary<string, string>? customTextParameters = null);",
+        "Task<string?> TranslateTextKey(string key, IInstanceDataAccessor instanceDataAccessor, ComponentContext? context = null, Dictionary<string, string>? customTextParameters = null);",
+        "\"ate is being phased out\")]",
+        "Task<string?> TranslateTextKey(string key, LayoutEvaluatorState state, ComponentContext? context, Dictionary<string, string>? customTextParameters = null);",
+        "Task<string?> TranslateTextKeyLenient(string? key, string? language);"
+      ],
+      "member_count": 7,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Texts",
+      "summary": "Describes the public methods of a translation service",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Texts/ITranslationService.cs"
+    },
+    {
+      "name": "IFileValidationService",
+      "full_name": "Altinn.App.Core.Internal.Validation.IFileValidationService",
+      "namespace": "Altinn.App.Core.Internal.Validation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "\"Success\",",
+        "\"Errors\"})]",
+        "Task<ValueTuple<bool, List<ValidationIssueWithSource>>> Validate(DataType dataType, List<FileAnalysisResult> fileAnalysisResults);"
+      ],
+      "member_count": 3,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Validation",
+      "summary": "Interface for running all file validators registered on a data type.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Validation/IFileValidationService.cs"
+    },
+    {
+      "name": "IFileValidatorFactory",
+      "full_name": "Altinn.App.Core.Internal.Validation.IFileValidatorFactory",
+      "namespace": "Altinn.App.Core.Internal.Validation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IEnumerable<IFileValidator> GetFileValidators(IEnumerable<string> validatorIds);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Validation",
+      "summary": "Interface responsible for resolving the correct file validators to run on against a DataType.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Validation/IFileValidatorFactory.cs"
+    },
+    {
+      "name": "IValidationService",
+      "full_name": "Altinn.App.Core.Internal.Validation.IValidationService",
+      "namespace": "Altinn.App.Core.Internal.Validation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "Task<List<ValidationSourcePair>> ValidateIncrementalFormData(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes, List<string>? ignoredValidators, string? language);",
+        "Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(IInstanceDataAccessor dataAccessor, string taskId, List<string>? ignoredValidators, bool? onlyIncrementalValidators, string? language);"
+      ],
+      "member_count": 2,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Validation",
+      "summary": "Core interface for validation of instances. Only a single implementation of this interface should exist in the app.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Validation/IValidationService.cs"
+    },
+    {
+      "name": "IValidatorFactory",
+      "full_name": "Altinn.App.Core.Internal.Validation.IValidatorFactory",
+      "namespace": "Altinn.App.Core.Internal.Validation",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "IEnumerable<IValidator> GetValidators(string taskId);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Internal",
+      "group": "Validation",
+      "summary": "Interface for a factory that can provide validators for a given task or data element.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Validation/IValidatorFactory.cs"
+    },
+    {
+      "name": "ILanguageCodeStandard",
+      "full_name": "Altinn.App.Core.Models.ILanguageCodeStandard",
+      "namespace": "Altinn.App.Core.Models",
+      "assembly": "Altinn.App.Core",
+      "base_interfaces": [],
+      "members": [
+        "LanguageCodeValidationResult Validate(string code);"
+      ],
+      "member_count": 1,
+      "is_obsolete": false,
+      "obsolete_message": "",
+      "area": "Models",
+      "group": "Models",
+      "summary": "Specifications for language code standards.",
+      "implementable_by_apps": false,
+      "source_path": "src/App/backend/src/Altinn.App.Core/Models/LanguageCode.cs"
+    }
+  ],
+  "base_classes": {
+    "AltinnPartyClient": [
+      "IAltinnPartyClient"
+    ],
+    "AppMetadata": [
+      "IAppMetadata"
+    ],
+    "AppOptionsFileHandler": [
+      "IAppOptionsFileHandler"
+    ],
+    "AppOptionsService": [
+      "IAppOptionsService"
+    ],
+    "AppResourcesSI": [
+      "IAppResources"
+    ],
+    "ApplicationClient": [
+      "IApplicationClient"
+    ],
+    "ApplicationLanguage": [
+      "IApplicationLanguage"
+    ],
+    "AuthenticationClient": [
+      "IAuthenticationClient"
+    ],
+    "AuthorizationClient": [
+      "IAuthorizationClient"
+    ],
+    "AuthorizationService": [
+      "IAuthorizationService"
+    ],
+    "ConfirmationProcessTask": [
+      "IProcessTask"
+    ],
+    "CorrespondenceAttachmentBuilder": [
+      "ICorrespondenceAttachmentBuilder",
+      "ICorrespondenceAttachmentBuilderData",
+      "ICorrespondenceAttachmentBuilderFilename",
+      "ICorrespondenceAttachmentBuilderSendersReference"
+    ],
+    "CorrespondenceContentBuilder": [
+      "ICorrespondenceContentBuilder",
+      "ICorrespondenceContentBuilderBody",
+      "ICorrespondenceContentBuilderLanguage",
+      "ICorrespondenceContentBuilderSummary",
+      "ICorrespondenceContentBuilderTitle"
+    ],
+    "CorrespondenceNotificationBuilder": [
+      "ICorrespondenceNotificationBuilder",
+      "ICorrespondenceNotificationBuilderTemplate"
+    ],
+    "CorrespondenceNotificationOverrideBuilder": [
+      "ICorrespondenceNotificationOverrideBuilder"
+    ],
+    "CorrespondenceRequestBuilder": [
+      "ICorrespondenceRequestBuilder",
+      "ICorrespondenceRequestBuilderContent",
+      "ICorrespondenceRequestBuilderRecipients",
+      "ICorrespondenceRequestBuilderResourceId",
+      "ICorrespondenceRequestBuilderSendersReference"
+    ],
+    "DataAnnotationValidator": [
+      "IFormDataValidator"
+    ],
+    "DataClient": [
+      "IDataClient"
+    ],
+    "DataListsService": [
+      "IDataListsService"
+    ],
+    "DataProcessTask": [
+      "IProcessTask"
+    ],
+    "DefaultAppEvents": [
+      "IAppEvents"
+    ],
+    "DefaultAppModel": [
+      "IAppModel"
+    ],
+    "DefaultAppOptionsProvider": [
+      "IAppOptionsProvider"
+    ],
+    "DefaultDataElementValidator": [
+      "IDataElementValidator"
+    ],
+    "DefaultEFormidlingReceivers": [
+      "IEFormidlingReceivers"
+    ],
+    "DefaultTaskValidator": [
+      "ITaskValidator"
+    ],
+    "EventsClient": [
+      "IEventsClient"
+    ],
+    "ExpressionValidator": [
+      "IValidator"
+    ],
+    "ExpressionsExclusiveGateway": [
+      "IProcessExclusiveGateway"
+    ],
+    "ExternalApiService": [
+      "IExternalApiService"
+    ],
+    "FeedbackProcessTask": [
+      "IProcessTask"
+    ],
+    "FiksIOSettings": [
+      "IFiksIOAccountSettings"
+    ],
+    "FileAnalysisService": [
+      "IFileAnalysisService"
+    ],
+    "FileAnalyzerFactory": [
+      "IFileAnalyzerFactory"
+    ],
+    "FileValidationService": [
+      "IFileValidationService"
+    ],
+    "FileValidatorFactory": [
+      "IFileValidatorFactory"
+    ],
+    "FrontendFeatures": [
+      "IFrontendFeatures"
+    ],
+    "GenericDataProcessor": [
+      "IDataProcessor"
+    ],
+    "GenericFormDataValidator": [
+      "IFormDataValidator"
+    ],
+    "InstanceEventClient": [
+      "IInstanceEventClient"
+    ],
+    "JoinedAppOptionsProvider": [
+      "IAppOptionsProvider"
+    ],
+    "LayoutEvaluatorStateInitializer": [
+      "ILayoutEvaluatorStateInitializer"
+    ],
+    "LegacyIInstanceValidatorFormDataValidator": [
+      "IValidator"
+    ],
+    "LegacyIInstanceValidatorTaskValidator": [
+      "IValidator"
+    ],
+    "NullDataListProvider": [
+      "IDataListProvider"
+    ],
+    "NullInstanceDataListProvider": [
+      "IInstanceDataListProvider"
+    ],
+    "NullInstantiationProcessor": [
+      "IInstantiationProcessor"
+    ],
+    "NullInstantiationValidator": [
+      "IInstantiationValidator"
+    ],
+    "NullPdfFormatter": [
+      "IPdfFormatter"
+    ],
+    "NullTypeProcessTask": [
+      "IProcessTask"
+    ],
+    "PdfService": [
+      "IPdfService"
+    ],
+    "PersonClient": [
+      "IPersonClient"
+    ],
+    "PrefillSI": [
+      "IPrefill"
+    ],
+    "ProcessClient": [
+      "IProcessClient"
+    ],
+    "ProcessNavigator": [
+      "IProcessNavigator"
+    ],
+    "ProcessReader": [
+      "IProcessReader"
+    ],
+    "ProcessTaskDataLocker": [
+      "IProcessTaskDataLocker"
+    ],
+    "ProfileClient": [
+      "IProfileClient"
+    ],
+    "ProfileClientCachingDecorator": [
+      "IProfileClient"
+    ],
+    "RegisterERClient": [
+      "IOrganizationClient"
+    ],
+    "RequiredLayoutValidator": [
+      "IValidator"
+    ],
+    "SecretsClient": [
+      "ISecretsClient"
+    ],
+    "SecretsLocalClient": [
+      "ISecretsClient"
+    ],
+    "SendOnProcessNotEnded": [
+      "ICancelInstantiationNotification"
+    ],
+    "SignClient": [
+      "ISignClient"
+    ],
+    "UniqueSignatureAuthorizer": [
+      "IUserActionAuthorizer"
+    ],
+    "UserActionAuthorizerProvider": [
+      "IUserActionAuthorizerProvider"
+    ],
+    "UserTokenProvider": [
+      "IUserTokenProvider"
+    ],
+    "ValidationService": [
+      "IValidationService"
+    ],
+    "ValidatorFactory": [
+      "IValidatorFactory"
+    ]
+  }
+}

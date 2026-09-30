@@ -7,7 +7,7 @@ import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 describe('Loader', () => {
   it('should be able to render with minimal providers', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     await renderWithMinimalProviders({
       renderer: () => <Loader reason='testing-reason' />,
       waitUntilLoaded: false,

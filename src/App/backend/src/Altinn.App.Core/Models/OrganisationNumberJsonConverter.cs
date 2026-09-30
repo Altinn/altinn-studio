@@ -5,16 +5,16 @@ using Altinn.App.Core.Constants;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Json converter to transform between <see cref="string"/> and <see cref="OrganisationNumber"/>.
+/// Json converter to transform between <see cref="string"/> and <see cref="OrganizationNumber"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false)]
-internal class OrganisationNumberJsonConverterAttribute : JsonConverterAttribute
+internal class OrganizationNumberJsonConverterAttribute : JsonConverterAttribute
 {
-    private OrganisationNumberFormat _format { get; init; }
+    private OrganizationNumberFormat _format { get; init; }
 
-    /// <inheritdoc cref="OrganisationNumberJsonConverterAttribute"/>
-    /// <param name="format">The desired organisation number format to use for <b>serialization</b></param>
-    public OrganisationNumberJsonConverterAttribute(OrganisationNumberFormat format)
+    /// <inheritdoc cref="OrganizationNumberJsonConverterAttribute"/>
+    /// <param name="format">The desired organization number format to use for <b>serialization</b></param>
+    public OrganizationNumberJsonConverterAttribute(OrganizationNumberFormat format)
     {
         _format = format;
     }
@@ -22,21 +22,21 @@ internal class OrganisationNumberJsonConverterAttribute : JsonConverterAttribute
     /// <inheritdoc/>
     public override JsonConverter? CreateConverter(Type typeToConvert)
     {
-        return new OrganisationNumberJsonConverter(_format);
+        return new OrganizationNumberJsonConverter(_format);
     }
 }
 
-internal class OrganisationNumberJsonConverter : JsonConverter<OrganisationNumber>
+internal class OrganizationNumberJsonConverter : JsonConverter<OrganizationNumber>
 {
-    private OrganisationNumberFormat _format { get; init; }
-    private const string OrgUrnPrefix = $"{AltinnUrns.OrganisationNumber}:";
+    private OrganizationNumberFormat _format { get; init; }
+    private const string OrgUrnPrefix = $"{AltinnUrns.OrganizationNumber}:";
 
-    public OrganisationNumberJsonConverter(OrganisationNumberFormat format)
+    public OrganizationNumberJsonConverter(OrganizationNumberFormat format)
     {
         _format = format;
     }
 
-    public override OrganisationNumber Read(
+    public override OrganizationNumber Read(
         ref Utf8JsonReader reader,
         Type typeToConvert,
         JsonSerializerOptions options
@@ -44,10 +44,10 @@ internal class OrganisationNumberJsonConverter : JsonConverter<OrganisationNumbe
     {
         if (reader.TokenType != JsonTokenType.String)
         {
-            throw new JsonException("Expected string token for OrganisationNumber property.");
+            throw new JsonException("Expected string token for OrganizationNumber property.");
         }
 
-        var tokenValue = reader.GetString() ?? throw new JsonException("OrganisationNumber string value is null.");
+        var tokenValue = reader.GetString() ?? throw new JsonException("OrganizationNumber string value is null.");
 
         // Trim the urn:altinn:organization:identifier-no prefix if present
         if (tokenValue.StartsWith(OrgUrnPrefix, StringComparison.OrdinalIgnoreCase))
@@ -55,10 +55,10 @@ internal class OrganisationNumberJsonConverter : JsonConverter<OrganisationNumbe
             tokenValue = tokenValue[OrgUrnPrefix.Length..];
         }
 
-        return OrganisationNumber.Parse(tokenValue);
+        return OrganizationNumber.Parse(tokenValue);
     }
 
-    public override void Write(Utf8JsonWriter writer, OrganisationNumber value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, OrganizationNumber value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.Get(_format));
     }

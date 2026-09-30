@@ -36,6 +36,109 @@ public static class Diagnostics
         );
     }
 
+    public static class Contracts
+    {
+        public static readonly DiagnosticDescriptor SealedImplementationReplaced = Error(
+            "ALTINNAPP0700",
+            Category.Contracts,
+            "Sealed default implementation replaced",
+            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
+        );
+
+        public static readonly DiagnosticDescriptor IncompleteBuilderDiscarded = Error(
+            "ALTINNAPP0701",
+            Category.Contracts,
+            "Incomplete registration discarded",
+            "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
+        );
+
+        // Close to the runtime backstop in ServiceTaskPipelineBuilder.ClaimMailbox (which names the opening
+        // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
+        // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
+        // into.
+        public static readonly DiagnosticDescriptor MailboxHandleAnsweredTwice = Error(
+            "ALTINNAPP0702",
+            Category.Contracts,
+            "Mailbox handle answered twice",
+            "The mailbox opened into '{0}' is already answered by an earlier handler. Each mailbox is answered "
+                + "exactly once — by HandleReplies or by ConcludeOnReplies, never by both and never twice — so a "
+                + "second handler for the same exchange would be dead code."
+        );
+
+        // Likewise close to the wording of ServiceTaskPipelineBuilder.RequireEveryMailboxAnswered, which is
+        // what fails app startup for every shape this rule cannot prove.
+        public static readonly DiagnosticDescriptor MailboxNeverAnswered = Error(
+            "ALTINNAPP0703",
+            Category.Contracts,
+            "Mailbox opened but never answered",
+            "The mailbox opened into '{0}' is never answered: its handle is never passed anywhere, so the "
+                + "messages that come back would have no handler. Answer it before the pipeline ends — with "
+                + "HandleReplies to carry on afterwards, or with ConcludeOnReplies to end there."
+        );
+    }
+
+    public static class Authorization
+    {
+        public static readonly DiagnosticDescriptor MissingServiceOwnerGrant = Error(
+            "ALTINNAPP0800",
+            Category.Authorization,
+            "Service owner is missing required authorization",
+            "policy.xml does not permit the app owner '{0}' any of the action(s) [{1}] on {0}/{2}, which is "
+                + "required because the app {3} as the service owner. Grant the action(s) to the org subject in "
+                + "config/authorization/policy.xml, or run the v8 to v9 upgrade to have a rule inserted."
+        );
+
+        public static readonly DiagnosticDescriptor ServiceOwnerGrantNotVerifiable = Warning(
+            "ALTINNAPP0801",
+            Category.Authorization,
+            "Service owner authorization could not be verified",
+            "Could not verify that the app owner '{0}' is permitted the action(s) [{1}] on {0}/{2}: {3}. Verify "
+                + "this manually - the app performs the corresponding operations as the service owner."
+        );
+    }
+
+    internal static class Metadata
+    {
+        // Close to the runtime backstop in DataHelper.GetDataFieldValues, so an author who meets one of
+        // them after the other reads one explanation rather than two. Deliberately scoped to entries
+        // sharing a data type - see MetadataFieldUtils for why the cross-data-type case is left alone.
+        public static readonly DiagnosticDescriptor DuplicateFieldId = Error(
+            "ALTINNAPP0900",
+            Category.Metadata,
+            "Duplicate field id in applicationmetadata.json",
+            "'{0}' declares the id '{1}' twice for dataTypeId '{2}', on '{3}' and on '{4}'. The id is the key "
+                + "the value is stored under on the instance, and the entries for one data type are computed "
+                + "together into a map that cannot hold the same key twice - so the app fails instead of "
+                + "computing either of them. Give each entry its own id."
+        );
+
+        public static readonly DiagnosticDescriptor UnknownFieldDataType = Error(
+            "ALTINNAPP0901",
+            Category.Metadata,
+            "Field references an unknown data type",
+            "'{0}' entry '{1}' names the dataTypeId '{2}', which no entry in 'dataTypes' declares. Nothing "
+                + "computes it, so its value never reaches the instance. Point it at one of the app's data types, "
+                + "or remove the entry."
+        );
+    }
+
+    internal static class Deprecations
+    {
+        public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
+            "ALTINNAPP0600",
+            Category.Deprecation,
+            "enablePdfCreation is not supported",
+            "'enablePdfCreation' on dataType '{0}' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead."
+        );
+
+        public static readonly DiagnosticDescriptor LegacyEFormidling = Error(
+            "ALTINNAPP0601",
+            Category.Deprecation,
+            "Legacy eFormidling configuration is not supported",
+            "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
+        );
+    }
+
     private const string DocsRoot = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/";
     private const string RulesRoot = DocsRoot + "rules/";
 
@@ -58,5 +161,8 @@ public static class Diagnostics
         public const string General = nameof(General);
         public const string Metadata = nameof(Metadata);
         public const string CodeSmells = nameof(CodeSmells);
+        public const string Deprecation = nameof(Deprecation);
+        public const string Contracts = nameof(Contracts);
+        public const string Authorization = nameof(Authorization);
     }
 }

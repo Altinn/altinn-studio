@@ -12,7 +12,7 @@ export interface StudioDragAndDropNewItemProps<T> {
   /** The item to be dragged. */
   children?: ReactNode;
 
-  /** Payload that wll be sent to the drop function when dropping the component somewhere. */
+  /** Payload that will be sent to the drop function when dropping the component somewhere. */
   payload: T;
 }
 

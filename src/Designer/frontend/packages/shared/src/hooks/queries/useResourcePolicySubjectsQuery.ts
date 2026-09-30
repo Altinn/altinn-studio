@@ -9,7 +9,7 @@ import { policySubjectOrg } from '@altinn/policy-editor/utils';
 /**
  * Query to get the list of subjects for a policy.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param addOrgToList if the value for org should be added to the list of subjects
  *

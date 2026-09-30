@@ -12,7 +12,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
-	"altinn.studio/devenv/pkg/resource"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/config"
@@ -35,7 +35,7 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 			return containertypes.ContainerInfo{}, containertypes.ErrContainerNotFound
 		}
 		return containertypes.ContainerInfo{
-			Labels: map[string]string{resource.GraphIDLabel: "studioctl-localtest"},
+			Labels: map[string]string{containerbackend.GraphIDLabel: "studioctl-localtest"},
 			State:  containertypes.ContainerState{Status: "running", Running: true},
 		}, nil
 	}

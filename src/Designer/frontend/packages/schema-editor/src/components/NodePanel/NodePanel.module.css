@@ -1,15 +1,10 @@
 .top {
-  box-shadow: var(--fds-shadow-small);
-  margin-bottom: var(--fds-spacing-1);
+  box-shadow: var(--ds-shadow-sm);
+  margin-bottom: var(--ds-size-1);
 }
 
 .backButton {
-  background-color: var(--fds-semantic-surface-action-subtle);
-  border: none;
-  height: var(--fds-sizing-6);
+  display: flex;
   width: 100%;
-}
-
-.backButton:hover {
-  background-color: var(--fds-semantic-surface-action-subtle-hover);
+  justify-content: start;
 }

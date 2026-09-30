@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -8,12 +7,10 @@ using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/v1/studioctl/auth")]
 public class StudioctlAuthController(StudioctlAuthService studioctlAuthService) : ControllerBase
 {

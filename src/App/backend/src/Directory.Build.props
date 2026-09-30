@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <Import Project="../Directory.Build.props" />
+  <Import Project="$(MSBuildThisFileDirectory)../../PackageVersioning.props" />
 
   <ItemGroup>
-    <PackageReference Include="MinVer" PrivateAssets="All" />
     <PackageReference Include="Nullable.Extended.Analyzer">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -26,10 +26,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
-    <MinVerTagPrefix>v</MinVerTagPrefix>
 
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
+    <PackageVersionTagPrefix>app/v</PackageVersionTagPrefix>
+    <PackageDefaultBaseVersion>9.0.0-preview.0</PackageDefaultBaseVersion>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Altinn Platform Contributors</Authors>
@@ -43,17 +43,13 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MinVerVersionOverride)'!=''">
-    <PackageId>$(MSBuildProjectName).Experimental</PackageId>
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == ''">
+    <UseExperimentalPackageId>false</UseExperimentalPackageId>
   </PropertyGroup>
 
-  <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!='' AND '$(BuildNumber)' != ''">
-    <PropertyGroup>
-      <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</FileVersion>
-      <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</Version>
-      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</AssemblyVersion>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == 'true'">
+    <PackageId>$(MSBuildProjectName).Experimental</PackageId>
+  </PropertyGroup>
 
   <ItemGroup Condition="'$(Deterministic)'=='true'">
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />

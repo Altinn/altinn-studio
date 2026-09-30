@@ -3,11 +3,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
+    <Nullable>enable</Nullable>
     <UserSecretsId>833f0be1-8b48-403d-8631-c14e0da2ef0a</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
-    <ProjectReference Include="../../../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <Using Include="Altinn.App.Core.Features" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
   </ItemGroup>
   <ItemGroup>

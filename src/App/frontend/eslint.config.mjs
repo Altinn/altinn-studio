@@ -18,19 +18,15 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
-// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
-import langKey from './src/language/eslint.js';
+import { langKey } from './src/language/eslint.js';
 
-// eslint-disable-next-line import/no-default-export
 export default defineConfig([
   globalIgnores([
     '**/node_modules',
     '**/coverage',
     '**/dist',
     '**/*.snap',
-    'src/features/expressions/shared-tests/**/*.json',
     'schemas/**/*.json',
-    'webpack*.js', // FIXME: should this be included?
     '.yarn/*',
     'test/e2e/k6-browser/**/*',
   ]),
@@ -173,7 +169,7 @@ export default defineConfig([
     },
     languageOptions: {
       globals: {
-        ...globals.jest,
+        ...globals.vitest,
       },
     },
     rules: {
@@ -192,6 +188,15 @@ export default defineConfig([
     files: ['src/codegen/**/*.ts'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    // Config files loaded directly by their own tool: each tool reads a default export, and
+    // reads the file before tsconfig path aliases are in play, so their imports must be relative.
+    files: ['vite.config*.ts', 'vitest.config.ts', 'cypress.config.js', 'prettier.config.js', 'eslint.config.mjs'],
+    rules: {
+      'import/no-default-export': 'off',
+      'no-relative-import-paths/no-relative-import-paths': 'off',
     },
   },
   {
@@ -240,6 +245,13 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    // Route modules must default-export their component - that is React Router's Route Module API.
+    files: ['src/routes/**/*.route.tsx'],
+    rules: {
+      'import/no-default-export': ['off'],
     },
   },
   {

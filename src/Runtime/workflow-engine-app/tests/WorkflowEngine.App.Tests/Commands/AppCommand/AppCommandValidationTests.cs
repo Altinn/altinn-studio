@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -19,12 +20,12 @@ public class AppCommandValidationTests
     private static AppWorkflowContext ValidContext =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
-            LockToken = "test-lock-key",
+            Actor = new Actor { OrgId = "test-user-123" },
             Org = "ttd",
             App = "test-app",
             InstanceOwnerPartyId = 12345,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            CallbackToken = "test-callback-token",
         };
 
     private static AppCommandData ValidData => new() { CommandKey = "do-something" };
@@ -33,6 +34,30 @@ public class AppCommandValidationTests
     public void Validate_ValidDataAndContext_Accepts()
     {
         var result = Command.Validate(ValidData, ValidContext);
+
+        Assert.IsType<CommandValidationResult.Valid>(result);
+    }
+
+    [Fact]
+    public void Validate_ContextWithUnknownLegacyLockToken_Accepts()
+    {
+        const string json = """
+            {
+              "actor": { "orgId": "test-user-123" },
+              "lockToken": "legacy-lock-token",
+              "org": "ttd",
+              "app": "test-app",
+              "instanceOwnerPartyId": 12345,
+              "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+              "callbackToken": "test-callback-token"
+            }
+            """;
+        AppWorkflowContext? context = JsonSerializer.Deserialize<AppWorkflowContext>(
+            json,
+            CommandDefinition.SerializerOptions
+        );
+
+        var result = Command.Validate(ValidData, context);
 
         Assert.IsType<CommandValidationResult.Valid>(result);
     }
@@ -79,17 +104,15 @@ public class AppCommandValidationTests
         Assert.Contains("actor", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_EmptyActorUserIdOrOrgNumber_Rejects(string? userIdOrOrgNumber)
+    [Fact]
+    public void Validate_ActorWithoutIdentity_Rejects()
     {
-        var context = ValidContext with { Actor = new Actor { UserIdOrOrgNumber = userIdOrOrgNumber! } };
+        var context = ValidContext with { Actor = new Actor() };
 
         var result = Command.Validate(ValidData, context);
 
-        Assert.IsType<CommandValidationResult.Invalid>(result);
+        var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
+        Assert.Contains("identity", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -138,14 +161,14 @@ public class AppCommandValidationTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_MissingLockToken_Rejects(string? lockToken)
+    public void Validate_MissingCallbackToken_Rejects(string? callbackToken)
     {
-        var context = ValidContext with { LockToken = lockToken! };
+        var context = ValidContext with { CallbackToken = callbackToken! };
 
         var result = Command.Validate(ValidData, context);
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
-        Assert.Contains("lockToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("callbackToken", invalid.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

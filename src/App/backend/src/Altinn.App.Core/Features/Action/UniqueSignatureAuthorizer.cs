@@ -28,7 +28,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
     private readonly IDataClient _dataClient;
 
     /// <summary>
-    /// Intializes a new instance of the <see cref="UniqueSignatureAuthorizer"/> class
+    /// Initializes a new instance of the <see cref="UniqueSignatureAuthorizer"/> class
     /// </summary>
     /// <param name="processReader">The process reader</param>
     /// <param name="instanceClient">The instance client</param>
@@ -60,7 +60,7 @@ public class UniqueSignatureAuthorizer : IUserActionAuthorizer
             > 0
         )
         {
-            var appMetadata = await _appMetadata.GetApplicationMetadata();
+            var appMetadata = _appMetadata.ApplicationMetadata;
             var instance = await _instanceClient.GetInstance(
                 appMetadata.AppIdentifier.App,
                 appMetadata.AppIdentifier.Org,

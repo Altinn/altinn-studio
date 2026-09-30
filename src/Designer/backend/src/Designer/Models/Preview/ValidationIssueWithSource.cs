@@ -24,7 +24,11 @@ public class ValidationIssueWithSource
             Source = source,
             NoIncrementalUpdates = noIncrementalUpdates,
             CustomTextKey = issue.CustomTextKey,
+            // The preview frontend still requires customTextParams, although Altinn.App.Core marks it as
+            // obsolete.
+#pragma warning disable CS0618 // Type or member is obsolete
             CustomTextParams = issue.CustomTextParams,
+#pragma warning restore CS0618
         };
     }
 
@@ -94,7 +98,7 @@ public class ValidationIssueWithSource
     /// </summary>
     /// <example>
     /// The localized text for the key might be "Date must be between {0} and {1}"
-    /// and the param will provide the dynamical range of allowable dates (eg teh reporting period)
+    /// and the param will provide the dynamical range of allowable dates (eg the reporting period)
     /// </example>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("customTextParams")]

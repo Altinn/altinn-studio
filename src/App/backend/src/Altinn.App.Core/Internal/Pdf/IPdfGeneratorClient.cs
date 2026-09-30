@@ -1,3 +1,5 @@
+using Altinn.App.Core.Features;
+
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
@@ -8,12 +10,32 @@ public interface IPdfGeneratorClient
     /// <summary>
     /// Generates a PDF.
     /// </summary>
-    /// <returns>A stream with the binary content of the generated PDF</returns>
-    Task<Stream> GeneratePdf(Uri uri, CancellationToken ct);
+    /// <returns>
+    /// A stream with the binary content of the generated PDF. The caller owns the stream and should
+    /// dispose it: it holds the underlying HTTP response, which is released with it.
+    /// </returns>
+    Task<Stream> GeneratePdf(Uri uri, CancellationToken cancellationToken);
 
     /// <summary>
     /// Generates a PDF.
     /// </summary>
-    /// <returns>A stream with the binary content of the generated PDF with a footer</returns>
-    Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct);
+    /// <returns>
+    /// A stream with the binary content of the generated PDF with a footer. The caller owns the stream
+    /// and should dispose it: it holds the underlying HTTP response, which is released with it.
+    /// </returns>
+    Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Generates a PDF.
+    /// </summary>
+    /// <returns>
+    /// A stream with the binary content of the generated PDF with a footer. The caller owns the stream
+    /// and should dispose it: it holds the underlying HTTP response, which is released with it.
+    /// </returns>
+    Task<Stream> GeneratePdf(
+        Uri uri,
+        string? footerContent,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken cancellationToken
+    ) => GeneratePdf(uri, footerContent, cancellationToken);
 }

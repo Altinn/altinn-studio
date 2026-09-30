@@ -25,7 +25,7 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Bruk 10 eller færre tegn',
     );
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findByRole('textbox', { name: /tekstfelt 1/i }).clear();
     cy.findByRole('textbox', { name: /tekstfelt 2/i }).clear();
@@ -37,7 +37,7 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Postnummer er ugyldig',
     );
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /postnr/i }).clear();
     cy.get(appFrontend.errorReport).should('not.exist');
 
@@ -53,7 +53,7 @@ describe('validating multiple data models', () => {
     cy.gotoNavPage('Side6');
     cy.findByRole('radio', { name: /kåre/i }).check();
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: /send inn/i }).click();
+    cy.findByRole('button', { name: /send inn/i }).clickAndWaitForProcessNext();
     cy.findByRole('heading', { name: /fra forrige steg/i }).should('be.visible');
   });
 
@@ -98,7 +98,7 @@ describe('validating multiple data models', () => {
         v.dataElementId === dataElementIds.modell1,
     );
 
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).should('not.exist');
     cy.getNextPatchValidations(validationResult);
     cy.findByRole('textbox', { name: /tekstfelt 1/i }).clear();
     cy.expectValidationToExist(
@@ -154,7 +154,7 @@ describe('validating multiple data models', () => {
         v.field === 'bransje' &&
         v.dataElementId === dataElementIds.modell1,
     );
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findByRole('checkbox', { name: /verkstedindustri/i }).click();
 
@@ -180,7 +180,7 @@ describe('validating multiple data models', () => {
         v.dataElementId === dataElementIds.modell2,
     );
 
-    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
+    cy.get(appFrontend.errorReport).should('not.exist');
 
     cy.findAllByRole('button', { name: /slett/i }).first().click();
 

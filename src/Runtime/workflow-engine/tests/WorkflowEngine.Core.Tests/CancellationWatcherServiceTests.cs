@@ -3,13 +3,14 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 
 [Collection("BackgroundServiceTests")]
 public class CancellationWatcherServiceTests
 {
+    private static readonly TimeSpan GateTimeout = TimeSpan.FromSeconds(5);
+
     private static Workflow DummyWorkflow() =>
         new()
         {
@@ -23,6 +24,7 @@ public class CancellationWatcherServiceTests
         new()
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
@@ -52,6 +54,8 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
+        var cancellationObserved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var registration = workflowCts.Token.Register(() => cancellationObserved.TrySetResult());
         tracker.TryAdd(id, workflowCts, workflow);
 
         // When polled, return the workflow as pending cancellation
@@ -70,8 +74,7 @@ public class CancellationWatcherServiceTests
 
         try
         {
-            // Wait for at least one poll cycle
-            await Task.Delay(200, TestContext.Current.CancellationToken);
+            await cancellationObserved.Task.WaitAsync(GateTimeout, TestContext.Current.CancellationToken);
 
             Assert.True(workflowCts.IsCancellationRequested);
             Assert.NotNull(workflow.CancellationRequestedAt);
@@ -130,6 +133,8 @@ public class CancellationWatcherServiceTests
         var workflow = DummyWorkflow();
         var id = Guid.NewGuid();
         using var workflowCts = new CancellationTokenSource();
+        var cancellationObserved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var registration = workflowCts.Token.Register(() => cancellationObserved.TrySetResult());
         tracker.TryAdd(id, workflowCts, workflow);
 
         var callCount = 0;
@@ -157,8 +162,7 @@ public class CancellationWatcherServiceTests
 
         try
         {
-            // Wait for multiple poll cycles
-            await Task.Delay(300, TestContext.Current.CancellationToken);
+            await cancellationObserved.Task.WaitAsync(GateTimeout, TestContext.Current.CancellationToken);
 
             Assert.True(callCount >= 2, $"Expected at least 2 calls but got {callCount}");
             Assert.True(workflowCts.IsCancellationRequested);

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
 
@@ -18,13 +19,21 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tools for working with the data in an object using json like keys and reflection
     /// </summary>
-    public ReflectionFormDataWrapper(object dataModel)
+    public ReflectionFormDataWrapper(object dataModel, DataType dataType, DataElement? dataElement = null)
     {
         _dataModel = dataModel;
+        DataType = dataType;
+        DataElement = dataElement;
     }
 
     /// <inheritdoc />
     public Type BackingDataType => _dataModel.GetType();
+
+    /// <inheritdoc />
+    public DataType DataType { get; }
+
+    /// <inheritdoc />
+    public DataElement? DataElement { get; }
 
     /// <inheritdoc />
     public T BackingData<T>()
@@ -86,7 +95,9 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     {
         return new ReflectionFormDataWrapper(
             JsonSerializer.Deserialize(JsonSerializer.SerializeToUtf8Bytes(_dataModel), _dataModel.GetType())
-                ?? throw new InvalidOperationException("Failed to copy data model")
+                ?? throw new InvalidOperationException("Failed to copy data model"),
+            DataType,
+            DataElement
         );
     }
 

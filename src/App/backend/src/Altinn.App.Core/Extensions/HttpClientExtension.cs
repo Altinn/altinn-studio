@@ -17,16 +17,49 @@ public static class HttpClientExtension
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static async Task<HttpResponseMessage> PostAsync(
+    public static Task<HttpResponseMessage> PostAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
         CancellationToken cancellationToken = default
+    ) =>
+        httpClient.PostAsync(
+            authorizationToken,
+            requestUri,
+            content,
+            idempotencyKey: null,
+            platformAccessToken: platformAccessToken,
+            cancellationToken: cancellationToken
+        );
+
+    /// <summary>
+    /// Extension that adds an authorization header to the request and, when
+    /// <paramref name="idempotencyKey"/> is set, the <c>Idempotency-Key</c> header that lets the
+    /// receiving platform service recognize a repeated request as the same one.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient</param>
+    /// <param name="authorizationToken">the authorization token (jwt)</param>
+    /// <param name="requestUri">The request Uri</param>
+    /// <param name="content">The http content</param>
+    /// <param name="idempotencyKey">The key identifying this request across its retries, or null to send none</param>
+    /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A HttpResponseMessage</returns>
+    internal static async Task<HttpResponseMessage> PostAsync(
+        this HttpClient httpClient,
+        string authorizationToken,
+        string requestUri,
+        HttpContent? content,
+        Guid? idempotencyKey,
+        string? platformAccessToken = null,
+        CancellationToken cancellationToken = default
     )
     {
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
         using HttpRequestMessage request = new(HttpMethod.Post, requestUri);
+#pragma warning restore S7044
         request.Content = content;
 
         request.Headers.Authorization = new AuthenticationHeaderValue(
@@ -37,6 +70,11 @@ public static class HttpClientExtension
         if (!string.IsNullOrEmpty(platformAccessToken))
         {
             request.Headers.Add(Constants.General.PlatformAccessTokenHeaderName, platformAccessToken);
+        }
+
+        if (idempotencyKey.HasValue)
+        {
+            request.Headers.Add(Constants.General.IdempotencyKeyHeaderName, idempotencyKey.Value.ToString());
         }
 
         return await httpClient.SendAsync(request, cancellationToken);
@@ -52,15 +90,52 @@ public static class HttpClientExtension
     /// <param name="platformAccessToken">The platformAccess tokens</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A HttpResponseMessage</returns>
-    public static async Task<HttpResponseMessage> PutAsync(
+    public static Task<HttpResponseMessage> PutAsync(
         this HttpClient httpClient,
         string authorizationToken,
         string requestUri,
         HttpContent? content,
         string? platformAccessToken = null,
         CancellationToken cancellationToken = default
+    ) =>
+        httpClient.PutAsync(
+            authorizationToken,
+            requestUri,
+            content,
+            skipTaskDataCleanup: false,
+            platformAccessToken: platformAccessToken,
+            cancellationToken: cancellationToken
+        );
+
+    /// <summary>
+    /// Extension that adds an authorization header to the request and, when
+    /// <paramref name="skipTaskDataCleanup"/> is set, tells Storage the caller manages its own
+    /// task-generated data cleanup so Storage should skip its own.
+    /// </summary>
+    /// <param name="httpClient">The HttpClient</param>
+    /// <param name="authorizationToken">the authorization token (jwt)</param>
+    /// <param name="requestUri">The request Uri</param>
+    /// <param name="content">The http content</param>
+    /// <param name="skipTaskDataCleanup">When true, adds the <c>deleteGeneratedElements=false</c> query parameter that opts out of Storage's task-generated data cleanup</param>
+    /// <param name="platformAccessToken">The platformAccess tokens</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A HttpResponseMessage</returns>
+    internal static async Task<HttpResponseMessage> PutAsync(
+        this HttpClient httpClient,
+        string authorizationToken,
+        string requestUri,
+        HttpContent? content,
+        bool skipTaskDataCleanup,
+        string? platformAccessToken = null,
+        CancellationToken cancellationToken = default
     )
     {
+        if (skipTaskDataCleanup)
+        {
+            char separator = requestUri.Contains('?', StringComparison.Ordinal) ? '&' : '?';
+            requestUri = $"{requestUri}{separator}deleteGeneratedElements=false";
+        }
+
         using HttpRequestMessage request = new(HttpMethod.Put, requestUri);
         request.Content = content;
 
@@ -94,7 +169,9 @@ public static class HttpClientExtension
         CancellationToken cancellationToken = default
     )
     {
+#pragma warning disable S7044 // URLs are constructed from platform configuration, not user input
         using HttpRequestMessage request = new(HttpMethod.Get, requestUri);
+#pragma warning restore S7044
 
         request.Headers.Authorization = new AuthenticationHeaderValue(
             Constants.AuthorizationSchemes.Bearer,

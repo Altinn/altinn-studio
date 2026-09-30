@@ -1,24 +1,19 @@
 .actionLinksContainer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--fds-spacing-1);
+  gap: var(--ds-size-1);
 }
 
 .giteaButton {
-  margin-right: var(--fds-spacing-2);
+  margin-right: var(--ds-size-2);
 }
 
 .giteaIcon {
-  font-size: var(--fds-sizing-8);
-  padding-top: var(--fds-spacing-1);
-  color: var(--fds-semantic-text-success-default);
-}
-
-.editButton {
-  padding-top: var(--fds-spacing-2);
+  --ds-icon-size: var(--ds-size-8);
+  color: var(--ds-color-success-text-default);
 }
 
 .akselIcon {
-  font-size: var(--fds-sizing-7);
-  color: var(--fds-semantic-text-action-default);
+  --ds-icon-size: var(--ds-size-7);
+  color: var(--ds-color-accent-base-default);
 }

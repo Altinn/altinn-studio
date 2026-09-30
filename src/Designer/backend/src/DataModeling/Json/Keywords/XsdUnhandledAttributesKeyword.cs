@@ -50,7 +50,7 @@ public sealed class XsdUnhandledAttributesKeyword : IJsonSchemaKeyword, IEquatab
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -120,7 +120,6 @@ public sealed class XsdUnhandledAttributesKeyword : IJsonSchemaKeyword, IEquatab
             JsonSerializerOptions options
         )
         {
-            writer.WritePropertyName(Name);
             writer.WriteStartObject();
             foreach ((string name, string s) in value.Properties)
             {

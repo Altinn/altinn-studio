@@ -1,7 +1,8 @@
 """
 Altinity Agent API Server
-Provides API interface for Altinn Studio AI agents
+Provides API interface for the Studio Assistant agent
 """
+
 import asyncio
 import logging
 import sys
@@ -15,17 +16,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
+from api.routes import (
+    agent_router,
+    register_websocket_routes,
+    token_usage_router,
+    traces_router,
+)
 from shared.config import get_config
 
 # Get configuration
 config = get_config()
-from api.routes import register_websocket_routes, agent_router, feedback_router
 
 # Configure logging
-logging.basicConfig(
-    level=getattr(logging, config.LOG_LEVEL),
-    format=config.LOG_FORMAT
-)
+logging.basicConfig(level=getattr(logging, config.LOG_LEVEL), format=config.LOG_FORMAT)
 
 
 class SuppressLangfuseTimeouts(logging.Filter):
@@ -38,9 +41,7 @@ class SuppressLangfuseTimeouts(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
         msg = record.getMessage()
-        if ("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg:
-            return False
-        return True
+        return not (("cloud.langfuse.com" in msg or "langfuse.digdir.cloud" in msg) and "ReadTimeout" in msg)
 
 
 # Attach filter to root logger handlers so child loggers (e.g.
@@ -57,15 +58,12 @@ async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown logic."""
     # --- Startup ---
     from agents.services.events import sink
-    from agents.services.mcp import start_mcp_connection_loop
-
-    # Start background MCP connection (non-blocking — agent starts even if MCP is down)
-    mcp_task = start_mcp_connection_loop()
 
     # Initialize Langfuse if enabled
     if config.LANGFUSE_ENABLED:
         try:
             from shared.utils.langfuse_utils import init_langfuse
+
             init_langfuse()
             logger.info(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
         except Exception as e:
@@ -79,12 +77,6 @@ async def lifespan(app: FastAPI):
 
     # --- Shutdown ---
     logger.info("Shutting down Altinity Agent API...")
-    if mcp_task is not None and not mcp_task.done():
-        mcp_task.cancel()
-        try:
-            await mcp_task
-        except asyncio.CancelledError:
-            pass
 
 
 # Create FastAPI app
@@ -107,7 +99,8 @@ app.add_middleware(
 # Register routes
 register_websocket_routes(app)
 app.include_router(agent_router)
-app.include_router(feedback_router)
+app.include_router(traces_router)
+app.include_router(token_usage_router)
 
 
 @app.get("/favicon.ico")
@@ -118,39 +111,19 @@ async def favicon():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint including MCP connection and docs status."""
-    from agents.services.mcp import get_mcp_client
+    """Health check endpoint. The models let a caller record what this service runs."""
+    from shared.config.base_config import resolved_role_models
 
-    mcp = get_mcp_client()
-    if mcp.is_ready:
-        mcp_status = "connected"
-    else:
-        mcp_status = "connecting"
-
-    if mcp.is_docs_ready:
-        docs_status = "ready"
-    elif mcp.is_docs_indexing:
-        docs_status = "indexing"
-    else:
-        docs_status = "unknown"
-
-    return {
-        "status": "ok",
-        "mcp": {
-            "status": mcp_status,
-            "server_url": mcp.server_url,
-            "last_error": mcp.last_error,
-            "docs_status": docs_status,
-        },
-    }
+    return {"status": "ok", "models": resolved_role_models()}
 
 
 if __name__ == "__main__":
     import uvicorn
+
     logger.info(f"Starting Altinity Agent API on {config.API_HOST}:{config.API_PORT}")
     uvicorn.run(
         app,
         host=config.API_HOST,
         port=config.API_PORT,
-        log_level=config.LOG_LEVEL.lower()
+        log_level=config.LOG_LEVEL.lower(),
     )

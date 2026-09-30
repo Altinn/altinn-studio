@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace Altinn.Platform.Storage.Models;
 
 /// <summary>
@@ -11,7 +13,7 @@ public enum PartyType
     Person,
 
     /// <summary>
-    /// Represents an organisation.
+    /// Represents an organization.
     /// </summary>
     Organisation,
 }

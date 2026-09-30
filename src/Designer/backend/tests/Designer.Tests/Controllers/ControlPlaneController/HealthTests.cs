@@ -34,8 +34,8 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory
-            .WithWebHostBuilder(builder =>
+        return CreateTestClient(
+            builder =>
             {
                 builder.UseConfiguration(configuration);
                 builder.ConfigureAppConfiguration(
@@ -94,8 +94,9 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
                             }
                         );
                 });
-            })
-            .CreateDefaultClient(new CookieContainerHandler());
+            },
+            new CookieContainerHandler()
+        );
     }
 
     [Fact]

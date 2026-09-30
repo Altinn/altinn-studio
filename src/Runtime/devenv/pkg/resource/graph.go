@@ -18,7 +18,6 @@ var (
 	errGraphDisabledDependency = errors.New("enabled resource depends on disabled resource")
 	errGraphNilDependency      = errors.New("resource depends on nil resource")
 	errGraphDependencyCycle    = errors.New("dependency cycle detected")
-	errGraphEmptyID            = errors.New("resource graph ID is empty")
 )
 
 // Graph manages a DAG of resources with dependency tracking.
@@ -63,6 +62,19 @@ func (g *Graph) Add(r Resource) error {
 		return fmt.Errorf("%w: %q", errGraphDuplicateResource, id)
 	}
 	g.resources[id] = r
+	return nil
+}
+
+// AddAll registers a set of resources in insertion order.
+func (g *Graph) AddAll(resources ...Resource) error {
+	for _, r := range resources {
+		if err := g.Add(r); err != nil {
+			if r == nil {
+				return err
+			}
+			return fmt.Errorf("add resource %s: %w", r.ID(), err)
+		}
+	}
 	return nil
 }
 

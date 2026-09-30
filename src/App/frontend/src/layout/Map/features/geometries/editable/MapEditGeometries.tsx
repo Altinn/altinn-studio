@@ -14,7 +14,6 @@ import type { Feature } from 'geojson';
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
-import { useLeafletDrawSpritesheetFix } from 'src/layout/Map/features/geometries/editable/useLeafletDrawSpritesheetFix';
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -57,8 +56,6 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
   const removeFromList = FormStore.data.useRemoveFromListCallback();
 
   const { toolbar } = useItemWhenType(baseComponentId, 'Map');
-
-  useLeafletDrawSpritesheetFix();
 
   // Load initial data into the FeatureGroup on component mount
   useEffect(() => {

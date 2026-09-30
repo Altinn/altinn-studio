@@ -6,7 +6,7 @@ import type { FeatureFlagsContextValue } from './FeatureFlagsContext';
 import { useFeatureFlag } from './useFeatureFlag';
 
 // Test data:
-const enabledFlag = FeatureFlag.Admin;
+const enabledFlag = FeatureFlag.AiAssistant;
 const disabledFlag = FeatureFlag.NewCodeLists;
 const flags = [enabledFlag];
 const contextValue: FeatureFlagsContextValue = { flags };

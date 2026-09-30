@@ -51,14 +51,14 @@ internal abstract record AuthenticationMethod
 
     /// <summary>
     /// Indicates that an operation should be authenticated using a token with the specified scopes,
-    /// provided by <see cref="MaskinportenClient.GetAltinnExchangedToken">MaskinportenClient.GetAltinnExchangedToken</see>.
+    /// provided by <see cref="IMaskinportenClient.GetAltinnExchangedToken(System.Collections.Generic.IEnumerable{string}, System.Threading.CancellationToken)">MaskinportenClient.GetAltinnExchangedToken</see>.
     /// </summary>
     /// <param name="Scopes">The scopes associated with this request.</param>
     internal sealed record AltinnToken(string[] Scopes) : AuthenticationMethod;
 
     /// <summary>
     /// Indicates that an operation should be authenticated using a token with the specified scopes,
-    /// provided by <see cref="MaskinportenClient.GetAccessToken">MaskinportenClient.GetAccessToken</see>.
+    /// provided by <see cref="IMaskinportenClient.GetAccessToken(System.Collections.Generic.IEnumerable{string}, System.Threading.CancellationToken)">MaskinportenClient.GetAccessToken</see>.
     /// </summary>
     /// <param name="Scopes">The scopes associated with this request.</param>
     internal sealed record MaskinportenToken(string[] Scopes) : AuthenticationMethod;

@@ -3,7 +3,7 @@ import type {
   CodeListEditorTexts,
   CodeListItemTextProperty,
   TextResourceInputTexts,
-} from '@studio/components-legacy';
+} from '@studio/components';
 
 export function useOptionListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();
@@ -51,6 +51,7 @@ function useTextResourceTexts(): (
     idLabel: t(`${prefix}.id_label`),
     search: t(`${prefix}.${property}.search_mode`, { number }),
     textResourcePickerLabel: t(`${prefix}.${property}.select`, { number }),
+    clearSelection: t('general.clear_selection'),
     noTextResourceOptionLabel: t(`${prefix}.no_text_resource_option_label`),
     valueLabel: t(`${prefix}.${property}.value`, { number }),
   });

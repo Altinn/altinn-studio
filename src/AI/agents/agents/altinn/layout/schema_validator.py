@@ -1,0 +1,241 @@
+"""Validate layout JSON against Altinn schemas."""
+
+from collections import defaultdict
+from collections.abc import Mapping
+from typing import Any
+from urllib.parse import urlparse
+
+import requests
+from jsonschema import Draft7Validator, ValidationError
+from referencing import Registry, Resource
+from referencing.exceptions import NoSuchResource
+from referencing.jsonschema import DRAFT7
+
+_EXPRESSION_SCHEMA_FILE_NAME = "expression.schema.v1.json"
+# Stands in for an expression schema that cannot be fetched. The layout schemas
+# reference only these three of its definitions.
+_EXPRESSION_SCHEMA_FALLBACK = {
+    "definitions": {
+        "string": {"type": "string"},
+        "boolean": {"type": "boolean"},
+        "number": {"type": "number"},
+    }
+}
+
+
+def validate_layout_json(
+    layout: dict[str, Any],
+    schema: dict[str, Any],
+    referenced_schemas: Mapping[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """
+    Validate an entire json against the schema.
+
+    Args:
+        layout: The json to validate (full structure with $schema and data)
+        schema: The schema to validate against
+        referenced_schemas: Schemas its `$ref`s point to, keyed by `$id`
+
+    Returns:
+        Dictionary with validation results
+    """
+    validation_errors = []
+
+    try:
+        registry = _build_schema_registry(schema, referenced_schemas or {})
+        validator = Draft7Validator(_reference_to_root(schema), registry=registry)
+
+        # Collect all validation errors
+        raw_errors = list(validator.iter_errors(layout))
+
+        # Deduplicate and prioritize errors to avoid overwhelming output
+        validation_errors = _deduplicate_validation_errors(raw_errors)
+
+    except Exception as e:
+        return {"status": "error", "message": f"Unexpected error during validation: {e!s}", "validation_errors": []}
+
+    # Determine overall status
+    if validation_errors:
+        status = "validation_failed"
+        message = f"Layout validation failed with {len(validation_errors)} error(s)"
+    else:
+        status = "validation_passed"
+        message = "Layout validation passed"
+
+    return {"status": status, "message": message, "validation_errors": validation_errors}
+
+
+def _build_schema_registry(schema: dict[str, Any], referenced_schemas: Mapping[str, dict[str, Any]]) -> Registry:
+    schemas_by_uri = {**referenced_schemas, schema.get("$id", ""): schema}
+    resources = [(uri, _draft7_resource(contents)) for uri, contents in schemas_by_uri.items() if uri]
+    return Registry(retrieve=_retrieve_referenced_schema).with_resources(resources)
+
+
+def _draft7_resource(contents: dict[str, Any]) -> Resource:
+    return Resource.from_contents(_check_function_name_first(contents), default_specification=DRAFT7)
+
+
+def _check_function_name_first(node: Any) -> Any:
+    """An expression function schema is a tuple that starts with the function name.
+
+    jsonschema evaluates every keyword of a subschema, also after the name
+    check has failed. So an `anyOf` over all functions descends into the
+    arguments of every function with a different name, and the time grows
+    exponentially with the nesting depth of the expression. Checking the name
+    first gives the same result and stops that descent.
+    """
+    if isinstance(node, list):
+        return [_check_function_name_first(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+    checked = {key: _check_function_name_first(value) for key, value in node.items()}
+    function_name = _tuple_function_name(checked)
+    if function_name is None:
+        return checked
+    name_matches = {"type": "array", "items": [{"const": function_name}]}
+    return {"if": name_matches, "then": checked, "else": False}
+
+
+def _tuple_function_name(schema: dict[str, Any]) -> str | None:
+    items = schema.get("items")
+    if isinstance(items, list) and items and isinstance(items[0], dict) and isinstance(items[0].get("const"), str):
+        return items[0]["const"]
+    return None
+
+
+def _reference_to_root(schema: dict[str, Any]) -> dict[str, Any]:
+    """Draft 7 ignores a `$id` next to `$ref`, as at the root of the layout schemas.
+
+    Without it the schema's relative `$ref`s have no base URI. Validating
+    through a `$ref` to the registered schema gives them that base again.
+    """
+    root_id = schema.get("$id")
+    return {"$ref": root_id} if root_id else schema
+
+
+def _retrieve_referenced_schema(uri: str) -> Resource:
+    """Fetch a `$ref` target that is not registered, from altinncdn.no."""
+    from . import get_layout_schema
+
+    try:
+        contents = get_layout_schema(uri)
+    except Exception as exc:
+        if _EXPRESSION_SCHEMA_FILE_NAME not in uri:
+            raise NoSuchResource(ref=uri) from exc
+        contents = _EXPRESSION_SCHEMA_FALLBACK
+    return _draft7_resource(contents)
+
+
+def _deduplicate_validation_errors(raw_errors: list[ValidationError]) -> list[dict[str, Any]]:
+    """
+    Deduplicate and prioritize validation errors to avoid overwhelming output.
+
+    This function specifically addresses the issue where missing/invalid refs cause
+    the schema validator to try validating against all possible defs schemas,
+    generating hundreds of errors for a single root issue.
+
+    The function groups errors by json path and collapses errors caused by invalid refs into a single error.
+    This is to avoid overwhelming output and to make it easier to identify the root cause of the issue.
+
+    Args:
+        raw_errors: List of ValidationError objects from jsonschema
+
+    Returns:
+        List of deduplicated error dictionaries
+    """
+    # Group errors by json path (e.g., "data.layout.2")
+    errors_by_json = defaultdict(list)
+
+    for error in raw_errors:
+        # Extract json path (e.g., "data.layout.2")
+        path_parts = list(error.absolute_path)
+        if len(path_parts) >= 3 and path_parts[0] == "data" and path_parts[1] == "layout":
+            json_path = f"{path_parts[0]}.{path_parts[1]}.{path_parts[2]}"
+        else:
+            json_path = ".".join(str(p) for p in path_parts) if path_parts else "root"
+
+        errors_by_json[json_path].append(error)
+
+    deduplicated_errors = []
+
+    for json_path, json_errors in errors_by_json.items():
+        # Check if this json has structural issues (missing/invalid type)
+        has_type_issues = any(
+            (error.validator == "required" and "type" in str(error.validator_value)) or "type" in error.message.lower()
+            for error in json_errors
+        )
+
+        if has_type_issues and len(json_errors) > 10:
+            # Collapse many errors into a single meaningful error
+            type_error = next(
+                (
+                    error
+                    for error in json_errors
+                    if error.validator == "required" and "type" in str(error.validator_value)
+                ),
+                json_errors[0],  # fallback
+            )
+
+            deduplicated_errors.append(
+                {
+                    "path": json_path,
+                    "message": f"Json missing required 'type' property (collapsed {len(json_errors)} related errors)",
+                    "validator": "required",
+                    "validator_value": "type",
+                    "schema_path": ".".join(str(p) for p in type_error.schema_path)
+                    if type_error.schema_path
+                    else "root",
+                }
+            )
+        else:
+            # Keep individual errors for json without structural issues
+            for error in json_errors:
+                deduplicated_errors.append(
+                    {
+                        "path": ".".join(str(p) for p in error.absolute_path) if error.absolute_path else "root",
+                        "message": error.message,
+                        "validator": error.validator,
+                        "validator_value": error.validator_value,
+                        "schema_path": ".".join(str(p) for p in error.schema_path) if error.schema_path else "root",
+                    }
+                )
+
+    return deduplicated_errors
+
+
+def load_layout_schema(schema_url: str) -> dict[str, Any]:
+    """Load the layout schema from the repository.
+
+    Args:
+        schema_url: URL to the schema file
+
+    Returns:
+        The parsed schema dictionary
+    """
+    try:
+        # Validate that the URL is from altinncdn.no domain for security
+        parsed_url = urlparse(schema_url)
+        if parsed_url.netloc != "altinncdn.no":
+            raise Exception(
+                f"INVALID_DOMAIN: Schema URL must be from altinncdn.no domain, got: '{parsed_url.netloc}'. "
+                f"Valid example: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json. "
+                f"This is a security restriction - only official Altinn schemas are supported. "
+                f"DO NOT RETRY with the same URL."
+            )
+
+        # Ensure HTTPS for security
+        if parsed_url.scheme != "https":
+            raise Exception(
+                f"INVALID_PROTOCOL: Schema URL must use HTTPS, got: '{parsed_url.scheme}'. "
+                f"Change the URL to use https:// instead of {parsed_url.scheme}://. "
+                f"DO NOT RETRY with the same URL."
+            )
+
+        response = requests.get(schema_url)
+        response.raise_for_status()
+
+        schema_path = response.json()
+        return schema_path
+
+    except Exception as e:
+        raise Exception(f"Failed to load layout schema: {e!s}") from e

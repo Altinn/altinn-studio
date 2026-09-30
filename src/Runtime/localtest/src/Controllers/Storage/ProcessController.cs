@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +28,9 @@ public class ProcessController : ControllerBase
 {
     private readonly IInstanceRepository _instanceRepository;
     private readonly IInstanceEventRepository _instanceEventRepository;
-    private readonly IInstanceAndEventsRepository _instanceAndEventsRepository;
+    private readonly IInstanceMutationRepository _instanceMutationRepository;
+    private readonly IDataService _dataService;
+    private readonly IApplicationService _applicationService;
     private readonly string _storageBaseAndHost;
     private readonly IProcessAuthorizer _processAuthorizer;
     private readonly IInstanceEventService _instanceEventService;
@@ -40,7 +41,9 @@ public class ProcessController : ControllerBase
     /// </summary>
     /// <param name="instanceRepository">the instance repository handler</param>
     /// <param name="instanceEventRepository">the instance event repository service</param>
-    /// <param name="instanceAndEventsRepository">the instance and events repository</param>
+    /// <param name="instanceMutationRepository">the aggregate instance mutation repository</param>
+    /// <param name="dataService">the data service</param>
+    /// <param name="applicationService">the application service</param>
     /// <param name="generalsettings">the general settings</param>
     /// <param name="processAuthorizer">the process authorizer</param>
     /// <param name="instanceEventService">the instance event service</param>
@@ -48,7 +51,9 @@ public class ProcessController : ControllerBase
     public ProcessController(
         IInstanceRepository instanceRepository,
         IInstanceEventRepository instanceEventRepository,
-        IInstanceAndEventsRepository instanceAndEventsRepository,
+        IInstanceMutationRepository instanceMutationRepository,
+        IDataService dataService,
+        IApplicationService applicationService,
         IOptions<GeneralSettings> generalsettings,
         IProcessAuthorizer processAuthorizer,
         IInstanceEventService instanceEventService,
@@ -57,7 +62,9 @@ public class ProcessController : ControllerBase
     {
         _instanceRepository = instanceRepository;
         _instanceEventRepository = instanceEventRepository;
-        _instanceAndEventsRepository = instanceAndEventsRepository;
+        _instanceMutationRepository = instanceMutationRepository;
+        _dataService = dataService;
+        _applicationService = applicationService;
         _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
         _processAuthorizer = processAuthorizer;
         _instanceEventService = instanceEventService;
@@ -101,13 +108,34 @@ public class ProcessController : ControllerBase
             return Forbid();
         }
 
+        (VersionPreconditions preconditions, ActionResult? versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
+        {
+            return versionError;
+        }
+
         UpdateInstance(existingInstance, processState, out var updateProperties);
 
-        Instance updatedInstance = await _instanceRepository.Update(
-            existingInstance,
-            updateProperties,
-            cancellationToken
-        );
+        Instance updatedInstance;
+        try
+        {
+            updatedInstance = await _instanceRepository.Update(
+                existingInstance,
+                updateProperties,
+                cancellationToken,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion
+            );
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (ProcessStatusConflictException exception)
+        {
+            return Conflict(exception.Message);
+        }
 
         if (processState?.CurrentTask?.AltinnTaskType == "signing")
         {
@@ -118,6 +146,10 @@ public class ProcessController : ControllerBase
         }
 
         updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+        VersionPreconditionHelper.WriteVersionResponseHeaders(
+            Response,
+            await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
+        );
         return Ok(updatedInstance);
     }
 
@@ -127,6 +159,15 @@ public class ProcessController : ControllerBase
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance that should have its process updated.</param>
     /// <param name="processStateUpdate">The new process state of the instance (including instance events).</param>
+    /// <param name="deleteGeneratedElements">
+    /// Optional <c>deleteGeneratedElements</c> query parameter, bound as a nullable boolean. Defaults to
+    /// <c>true</c> when absent: on task entry this controller deletes the data elements generated from the
+    /// entered task, exactly as it always has. A caller that manages its own task-generated data cleanup
+    /// (e.g. a v9 app, which prunes those elements at task start) opts out with <c>deleteGeneratedElements=false</c>
+    /// so this controller does not delete elements it just created. A non-boolean value is rejected with
+    /// <c>400 Bad Request</c> by model binding - a caller sending this deliberate parameter is expected to
+    /// encode a valid boolean.
+    /// </param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns></returns>
     [Authorize]
@@ -140,6 +181,7 @@ public class ProcessController : ControllerBase
         int instanceOwnerPartyId,
         Guid instanceGuid,
         [FromBody] ProcessStateUpdate processStateUpdate,
+        [FromQuery] bool? deleteGeneratedElements,
         CancellationToken cancellationToken
     )
     {
@@ -154,6 +196,15 @@ public class ProcessController : ControllerBase
             return NotFound();
         }
 
+        try
+        {
+            ProcessStatusHelper.EnsureExpectedStatus(existingInstance);
+        }
+        catch (ProcessStatusConflictException exception)
+        {
+            return Conflict(exception.Message);
+        }
+
         foreach (InstanceEvent instanceEvent in processStateUpdate.Events ?? [])
         {
             if (string.IsNullOrWhiteSpace(instanceEvent.InstanceId))
@@ -165,7 +216,7 @@ public class ProcessController : ControllerBase
                 return BadRequest("Instance ID in InstanceEvent does not match the Instance ID");
             }
 
-            instanceEvent.Created = instanceEvent.Created?.ToUniversalTime() ?? DateTime.UtcNow;
+            instanceEvent.Created ??= DateTime.UtcNow;
         }
 
         ProcessState processState = processStateUpdate.State;
@@ -179,16 +230,39 @@ public class ProcessController : ControllerBase
             return Forbid();
         }
 
-        // When the instance is entering a task, remove any data elements that were generated by previous
-        // visits to that same task (e.g. stale PDFs, signatures).
-        string? targetTaskId = processState.CurrentTask?.ElementId;
-        if (!string.IsNullOrWhiteSpace(targetTaskId))
+        (VersionPreconditions preconditions, ActionResult? versionError) =
+            VersionPreconditionHelper.TryParse(Request);
+        if (versionError is not null)
         {
-            await _processDataCleanupService.CleanupGeneratedFromTask(
-                existingInstance,
-                targetTaskId,
-                cancellationToken
-            );
+            return versionError;
+        }
+
+        try
+        {
+            await _instanceRepository.CheckVersions(
+                instanceGuid,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion,
+                cancellationToken);
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+
+        // When the instance is entering a task, remove any data elements that were generated by previous
+        // visits to that same task (e.g. stale PDFs, signatures) - unless the caller manages its own
+        // task-generated data cleanup and has opted out with deleteGeneratedElements=false.
+        string? targetTaskId = processState.CurrentTask?.ElementId;
+        IReadOnlyList<DataElement> generatedDataElementsToDelete = [];
+        if (!string.IsNullOrWhiteSpace(targetTaskId) && (deleteGeneratedElements ?? true))
+        {
+            generatedDataElementsToDelete =
+                await _processDataCleanupService.GetGeneratedFromTaskDataElements(
+                    existingInstance,
+                    targetTaskId,
+                    cancellationToken
+                );
         }
 
         processStateUpdate.Events ??= [];
@@ -202,14 +276,94 @@ public class ProcessController : ControllerBase
             processStateUpdate.Events.Add(instanceEvent);
         }
 
-        Instance updatedInstance = await _instanceAndEventsRepository.Update(
-            existingInstance,
-            updateProperties,
-            processStateUpdate.Events,
+        Instance updatedInstance;
+        try
+        {
+            foreach (DataElement dataElement in generatedDataElementsToDelete)
+            {
+                dataElement.LastChangedBy = existingInstance.LastChangedBy;
+                processStateUpdate.Events.Add(
+                    _instanceEventService.BuildInstanceEvent(
+                        InstanceEventType.Deleted,
+                        existingInstance,
+                        dataElement
+                    )
+                );
+            }
+
+            InstanceMutationCommit mutation = new(
+                [],
+                [],
+                [
+                    .. generatedDataElementsToDelete.Select(dataElement =>
+                        new InstanceMutationDataElementDelete(dataElement, IgnoreLock: true)
+                    ),
+                ],
+                existingInstance,
+                updateProperties,
+                preconditions.InstanceVersion,
+                preconditions.ProcessStateVersion,
+                processState,
+                processStateUpdate.Events
+            );
+
+            await _instanceMutationRepository.Apply(
+                instanceGuid,
+                0,
+                mutation,
+                cancellationToken
+            );
+        }
+        catch (StorageVersionMismatchException exception)
+        {
+            return VersionPreconditionHelper.VersionMismatch(Response, exception);
+        }
+        catch (RepositoryException exception) when (exception.StatusCodeSuggestion.HasValue)
+        {
+            return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
+        }
+
+        (updatedInstance, _) = await _instanceRepository.GetOne(
+            instanceGuid,
+            true,
             cancellationToken
         );
+        if (updatedInstance is null)
+        {
+            return NotFound();
+        }
 
         updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+        VersionPreconditionHelper.WriteVersionResponseHeaders(
+            Response,
+            await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
+        );
+
+        int? cleanupStorageAccountNumber = null;
+        if (generatedDataElementsToDelete.Count > 0)
+        {
+            try
+            {
+                (Application application, _) =
+                    await _applicationService.GetApplicationOrErrorAsync(updatedInstance.AppId);
+                cleanupStorageAccountNumber = application?.StorageAccountNumber;
+            }
+            catch
+            {
+                cleanupStorageAccountNumber = null;
+            }
+        }
+
+        foreach (DataElement dataElement in generatedDataElementsToDelete)
+        {
+            await _dataService.CleanupDeletedDataElementBlobs(
+                updatedInstance,
+                dataElement,
+                cleanupStorageAccountNumber,
+                CancellationToken.None
+            );
+        }
+
         return Ok(updatedInstance);
     }
 
@@ -217,7 +371,7 @@ public class ProcessController : ControllerBase
     /// Get the process history for an instance.
     /// </summary>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-    /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
+    /// <param name="instanceGuid">The id of the instance whose process history to retrieve.</param>
     /// <returns>Returns a list of the process events.</returns>
     [HttpGet("history")]
     [Authorize(Policy = "InstanceRead")]
@@ -275,6 +429,10 @@ public class ProcessController : ControllerBase
             );
             if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
             {
+                VersionPreconditionHelper.WriteVersionResponseHeaders(
+                    Response,
+                    await _instanceRepository.ReadVersions(instanceGuid, cancellationToken)
+                );
                 return Ok(new AuthInfo() { Process = instance.Process, AppId = instance.AppId });
             }
         }

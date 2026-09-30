@@ -6,12 +6,18 @@ import type { StorageState } from '../../types/StorageState';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { OverviewPage } from '../../pages/OverviewPage';
 import { Gitea } from '../../helpers/Gitea';
+import type { AppTemplate } from '../../enum/AppTemplate';
 
 const getExtraAppName = (appName: string): string => `extra-app-${appName}`;
 
 // Before the tests starts, we need to create the dashboard app
-test.beforeAll(async ({ testAppName, request, storageState }) => {
-  const response = await createApp(testAppName, request, storageState as StorageState);
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
+  const response = await createApp(
+    testAppName,
+    request,
+    storageState as StorageState,
+    testAppTemplate,
+  );
   expect(response.ok()).toBeTruthy();
 });
 
@@ -29,9 +35,10 @@ const createApp = async (
   appName: string,
   request: APIRequestContext,
   storageState: StorageState,
+  appTemplate: AppTemplate,
 ) => {
   const designerApi = new DesignerApi({ app: appName });
-  return await designerApi.createApp(request, storageState);
+  return await designerApi.createApp(request, storageState, { appTemplate });
 };
 
 const setupAndVerifyDashboardPage = async (
@@ -44,7 +51,7 @@ const setupAndVerifyDashboardPage = async (
   return dashboardPage;
 };
 
-test('It is possible to view apps, and add and remove from favourites', async ({
+test('It is possible to view apps, and add and remove from favorites', async ({
   page,
   testAppName,
 }) => {
@@ -79,6 +86,7 @@ test('It is possible to change context and view only Testdepartementet apps', as
 test('It is possible to search an app by name', async ({
   page,
   testAppName,
+  testAppTemplate,
   request,
   storageState,
 }) => {
@@ -87,7 +95,12 @@ test('It is possible to search an app by name', async ({
 
   // Need to wait a bit to make sure that Gitea does not crash
   dashboardPage.waitForXAmountOfMilliseconds(3000);
-  const response = await createApp(testAppName2, request, storageState as StorageState);
+  const response = await createApp(
+    testAppName2,
+    request,
+    storageState as StorageState,
+    testAppTemplate,
+  );
   expect(response.ok()).toBeTruthy();
 
   await dashboardPage.checkThatAppIsVisible(testAppName);

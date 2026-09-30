@@ -1,6 +1,7 @@
 import {
   addCombinationItem,
   deleteNode,
+  duplicateNode,
   setCombinationType,
   setCustomProperties,
   setDescription,
@@ -67,6 +68,22 @@ describe('ui-schema-reducers', () => {
       const { schemaPointer } = stringNodeMock;
       result = deleteNode(createNewModelMock(), schemaPointer);
       expect(getPointers(result.asArray())).not.toContain(schemaPointer);
+    });
+  });
+
+  describe('duplicateNode', () => {
+    it('Adds a copy of the given node right after it, with the same settings', () => {
+      const { schemaPointer } = requiredNodeMock;
+      result = duplicateNode(createNewModelMock(), schemaPointer);
+      const parent = result.getParentNode(schemaPointer) as FieldNode;
+      const originalIndex = parent.children.indexOf(schemaPointer);
+      const newPointer = parent.children[originalIndex + 1];
+      expect(newPointer).not.toEqual(schemaPointer);
+      expect(result.getNodeBySchemaPointer(newPointer)).toEqual({
+        ...requiredNodeMock,
+        schemaPointer: newPointer,
+        implicitType: false,
+      });
     });
   });
 

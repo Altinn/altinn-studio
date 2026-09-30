@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+#nullable disable
+
+using System.Text.Json.Serialization;
 
 using Altinn.Notifications.Core.Enums;
 
@@ -34,7 +36,7 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
     public string? ResourceId { get; internal set; }
 
     /// <summary>
-    /// Gets the processing status of the notication order
+    /// Gets the processing status of the notification order
     /// </summary>
     public ProcessingStatus ProcessingStatus { get; internal set; } = new();
 
@@ -88,7 +90,7 @@ public class NotificationOrderWithStatus : IBaseNotificationOrder
 /// A class representing a summary of status overviews of all notification channels
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class ProcessingStatus
 {
@@ -132,7 +134,7 @@ public class ProcessingStatus
 /// A class representing a summary of status overviews of all notification channels
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class NotificationStatus
 {
@@ -143,7 +145,7 @@ public class NotificationStatus
     public int Generated { get; internal set; }
 
     /// <summary>
-    /// Gets the number of succeeeded notifications
+    /// Gets the number of succeeded notifications
     /// </summary>
     [JsonPropertyName("succeeded")]
     public int Succeeded { get; internal set; }

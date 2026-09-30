@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import classes from './TextEditor.module.css';
 import type { LangCode, TextResourceEntryDeletion, TextResourceIdMutation } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { Chip } from '@digdir/designsystemet-react';
 import { ArrowsUpDownIcon } from '@studio/icons';
-import { StudioButton, StudioSearch } from '@studio/components';
+import { StudioButton, StudioChip, StudioSearch } from '@studio/components';
 import { RightMenu } from './RightMenu';
 import { getRandNumber, mapResourceFilesToTableRows } from './utils';
-import { defaultLangCode } from './constants';
+import { defaultLangCode, searchDebounceTimeInMs } from './constants';
+import { useDebounce } from '@studio/hooks';
 import { TextList } from './TextList';
 import ISO6391 from 'iso-639-1';
 import type { ITextResources } from 'app-shared/types/global';
@@ -40,6 +41,11 @@ export const TextEditor = ({
 }: TextEditorProps) => {
   const { t } = useTranslation();
   const [sortTextsAlphabetically, setSortTextsAlphabetically] = useState<boolean>(false);
+  const [searchInputValue, setSearchInputValue] = useState<string>(searchQuery ?? '');
+  const { debounce } = useDebounce({ debounceTimeInMs: searchDebounceTimeInMs });
+  useEffect(() => {
+    setSearchInputValue(searchQuery ?? '');
+  }, [searchQuery]);
   const resourceRows = mapResourceFilesToTableRows(textResourceFiles, sortTextsAlphabetically);
   const previousSelectedLanguages = useRef<string[]>([]);
 
@@ -67,7 +73,8 @@ export const TextEditor = ({
     availableLangCodesFiltered.forEach((language) =>
       upsertTextResource({ language, textId, translation: '' }),
     );
-    setSearchQuery('');
+    setSearchInputValue('');
+    applySearchQuery('');
   };
 
   const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
@@ -85,7 +92,13 @@ export const TextEditor = ({
       console.error('Renaming text-id failed:\n', e);
     }
   };
-  const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
+  const applySearchQuery = (value: string): void =>
+    debounce(() => setSearchQuery(value), value ? {} : { debounceTimeInMs: 0 });
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    setSearchInputValue(event.target.value);
+    applySearchQuery(event.target.value);
+  };
 
   return (
     <div className={classes.textEditor}>
@@ -95,22 +108,21 @@ export const TextEditor = ({
             {t('text_editor.new_text')}
           </StudioButton>
           <div className={classes.filterAndSearch}>
-            <Chip.Toggle
-              size='small'
-              onClick={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
-              selected={sortTextsAlphabetically}
+            <StudioChip.Checkbox
+              className={classes.sortChip}
+              data-size='sm'
+              checked={sortTextsAlphabetically}
+              onChange={() => setSortTextsAlphabetically(!sortTextsAlphabetically)}
             >
-              {
-                <div className={classes.sortAlphabetically}>
-                  {t('text_editor.sort_alphabetically')}
-                  <ArrowsUpDownIcon />
-                </div>
-              }
-            </Chip.Toggle>
+              <div className={classes.sortAlphabetically}>
+                {t('text_editor.sort_alphabetically')}
+                <ArrowsUpDownIcon />
+              </div>
+            </StudioChip.Checkbox>
             <StudioSearch
               className={classes.search}
               label={t('text_editor.search_for_text')}
-              value={searchQuery}
+              value={searchInputValue}
               onChange={handleSearchChange}
               clearButtonLabel={t('general.search_clear_button_title')}
             />

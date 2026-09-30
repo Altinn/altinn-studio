@@ -19,9 +19,9 @@ import {
   ruleConfigPath,
   textResourceIdsPath,
   textResourcesPath,
-  userLogoutPath,
   userStarredRepoPath,
   dataModelPath,
+  dataModelPrefillPath,
   resourcePolicyPath,
   resourceCreatePath,
   resourceEditPath,
@@ -31,17 +31,18 @@ import {
   publishResourcePath,
   appMetadataPath,
   serviceConfigPath,
-  importResourceFromAltinn2Path,
   importResourceFromAltinn3Path,
   accessListPath,
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  layoutSetPath,
+  uiFoldersLayoutSetPath,
+  uiFoldersLayoutSetsPath,
+  subformPdfComponentPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
-  altinn2DelegationsMigrationPath,
+  replaceDataModelXsdPath,
   imagePath,
   addImagePath,
   optionListUploadPath,
@@ -62,11 +63,11 @@ import {
   layoutPageGroupsPath,
   layoutConvertToPageGroupsPath,
   layoutConvertToPageOrderPath,
-  taskNavigationGroupPath,
+  taskNavigationGroupV4Path,
+  validationOnNavigationPath,
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
-  layoutSetsPath,
   studioctlAuthRequestCancelPath,
   studioctlAuthRequestConfirmPath,
   userApiKeyPath,
@@ -86,8 +87,11 @@ import {
   chatMessagesPath,
   chatMessagePath,
   chatFeedbackPath,
+  taskNavigationGroupPath,
+  layoutSetsV4Path,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
+import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
@@ -97,19 +101,23 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings } from 'app-shared/types/global';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
+import type { SubformPdfComponentPayload } from 'app-shared/types/api/SubformPdfComponentPayload';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
-import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
 import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
+import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
@@ -138,13 +146,15 @@ const headers = {
 
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
-export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<AddLayoutSetResponse>(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
+export const addLayoutSet = (org: string, app: string, payload: LayoutSetPayload) => post<void>(uiFoldersLayoutSetsPath(org, app), payload);
 export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
 
-export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
+export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
-export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
+export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
+export const saveSubformPdfComponent = (org: string, app: string, layoutSetId: string, payload: SubformPdfComponentPayload) =>
+  payload.componentId === null ? del<SubformComponent[]>(subformPdfComponentPath(org, app, layoutSetId), { params: { componentId: payload.previousComponentId } }) : post<SubformComponent[], SubformPdfComponentPayload>(subformPdfComponentPath(org, app, layoutSetId), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
@@ -163,11 +173,11 @@ export const deleteDataModel = (org: string, app: string, modelPath: string) => 
 export const deleteFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string) => del(formLayoutPath(org, app, layoutName, layoutSetName));
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
-export const logout = () => get(userLogoutPath());
 export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
+export const saveDataModelPrefill = (org: string, app: string, modelPath: string, payload: PrefillConfig) => put<void, PrefillConfig>(dataModelPrefillPath(org, app, modelPath), payload);
 export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
@@ -182,10 +192,12 @@ export const updateAppPolicy = (org: string, app: string, payload: Policy) => pu
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateDataType = (org: string, app: string, dataModelName: string, payload: DataType) => put<void>(dataTypePath(org, app, dataModelName), payload);
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
+export const updateTaskNavigationGroupV4 = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupV4Path(org, app), payload);
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
 export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
 export const updateValidationOnNavigationPageSettings = (org: string, app: string, payload: IValidationOnNavigationPageSettings[]) => post<void, IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(org, app), payload);
@@ -198,12 +210,14 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
-export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
-export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
+export const updateValidationOnNavigation = <TLevel extends ValidationOnNavigationLevel>(org: string, app: string, level: TLevel, config: ValidationOnNavigationByLevel[TLevel]) =>
+  post<void, ValidationOnNavigationByLevel[TLevel]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level })}`, config);
+
+export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsV4Path(org, app)}/validation-on-navigation`, payload);
+export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsV4Path(org, app)}/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
-export const importResourceFromAltinn2 = (org: string, environment: string, code: string, edition: string, payload: string) => post<Resource>(importResourceFromAltinn2Path(org, environment, code, edition), JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
 export const importResourceFromAltinn3 = (org: string, resourceId: string, environment: string) => post<Resource>(importResourceFromAltinn3Path(org, resourceId, environment));
 export const createAccessList = (org: string, environment: string, payload: Partial<AccessList>) => post<AccessList>(createAccessListsPath(org, environment), payload);
 export const updateAccessList = (org: string, listId: string, environment: string, payload: AccessList) => put<AccessList>(accessListPath(org, listId, environment), payload);
@@ -215,14 +229,13 @@ export const removeResourceAccessList = (org: string, resourceId: string, listId
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
-export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
 
 // Preview
 export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {}, { headers });
 
 // ProcessEditor
 
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributors?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributors);
+export const addDataTypeToAppMetadata = (org: string, app: string, { dataTypeId, taskId, allowedContributors, allowedContentTypes }: AddDataTypeToAppMetadataPayload) => post(processEditorDataTypePath(org, app, dataTypeId, taskId, allowedContentTypes), allowedContributors);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
@@ -238,17 +251,17 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
 export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
 
-// Organisation library
+// Organization library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);
 
-// Organisation library code lists:
+// Organization library code lists:
 export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
 
-// Organisation text resources:
+// Organization text resources:
 export const createOrgTextResources = async (org: string, language: string, payload: ITextResourcesWithLanguage): Promise<ITextResourcesWithLanguage> => post<ITextResourcesWithLanguage, ITextResourcesWithLanguage>(orgTextResourcesPath(org, language), payload);
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
@@ -284,3 +297,4 @@ export const deleteChatThread = (org: string, app: string, threadId: string) => 
 export const createChatMessage = (org: string, app: string, threadId: string, payload: CreateChatMessagePayload) => post<ChatMessage, CreateChatMessagePayload>(chatMessagesPath(org, app, threadId), payload);
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
 export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);
+export const clearChatFeedback = (org: string, app: string, traceId: string) => del(chatFeedbackPath(org, app, traceId));

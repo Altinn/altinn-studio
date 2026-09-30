@@ -6,12 +6,13 @@ using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IAuthorizationService = Altinn.App.Core.Internal.Auth.IAuthorizationService;
@@ -26,7 +27,7 @@ namespace Altinn.App.Api.Controllers;
 public class ActionsController : ControllerBase
 {
     private readonly IAuthorizationService _authorization;
-    private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly UserActionService _userActionService;
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
@@ -45,9 +46,9 @@ public class ActionsController : ControllerBase
     )
     {
         _authorization = authorization;
-        _instanceClient = instanceClient;
         _userActionService = userActionService;
         _validationService = validationService;
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
     }
@@ -55,12 +56,12 @@ public class ActionsController : ControllerBase
     /// <summary>
     /// Perform a task action on an instance
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="actionRequest">user action request</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <returns><see cref="UserActionResponse"/></returns>
     [HttpPost]
@@ -72,6 +73,11 @@ public class ActionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict,
+        ProcessStatusProblemResult.ContentType
+    )]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(typeof(UserActionResponse), StatusCodes.Status401Unauthorized)]
@@ -81,7 +87,7 @@ public class ActionsController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromBody] UserActionRequest actionRequest,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null
     )
     {
@@ -99,15 +105,16 @@ public class ActionsController : ControllerBase
             );
         }
 
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            CancellationToken.None
-        );
-        if (instance?.Process is null)
+        InstanceWithStorageMetadata? fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+        if (fetchedInstance?.Instance is not { } instance || instance.Process is null)
         {
             return Conflict($"Process is not started.");
         }
@@ -133,14 +140,21 @@ public class ActionsController : ControllerBase
             new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
             HttpContext.User,
             action,
-            instance.Process?.CurrentTask?.ElementId
+            instance.Process?.CurrentTask?.ElementId,
+            cancellationToken
         );
         if (!authorized)
         {
             return Forbid();
         }
+
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, taskId, language);
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            fetchedInstance.Metadata,
+            taskId,
+            language
+        );
 
         UserActionContext userActionContext = new(
             dataMutator,
@@ -150,8 +164,9 @@ public class ActionsController : ControllerBase
             language,
             currentAuth,
             actionRequest.OnBehalfOf,
-            cancellationToken: ct
+            cancellationToken: cancellationToken
         );
+
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
         {
@@ -166,6 +181,11 @@ public class ActionsController : ControllerBase
                     },
                 }
             );
+        }
+
+        if (ProcessStatusHelper.GetMutationProblem(instance) is { } processStatusProblem)
+        {
+            return ProcessStatusProblemResult.Create(processStatusProblem);
         }
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
@@ -210,16 +230,17 @@ public class ActionsController : ControllerBase
             {
                 // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
                 // we still need to return it to the frontend, but we assume it was already saved to storage
-                dataMutator.SetFormData(new DataElementIdentifier(elementId), FormDataWrapperFactory.Create(data));
+                var elementIdentifier = new DataElementIdentifier(elementId);
+                var dataElement = dataMutator.GetDataElement(elementIdentifier);
+                var dataType = dataMutator.GetDataType(elementIdentifier);
+                dataMutator.SetFormData(elementIdentifier, FormDataWrapperFactory.Create(data, dataType, dataElement));
             }
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
-        await dataMutator.UpdateInstanceData(changes);
-
-        var saveTask = dataMutator.SaveChanges(changes);
+        await dataMutator.SaveChanges(changes);
 
         var validationIssues = await GetIncrementalValidations(
             dataMutator,
@@ -227,7 +248,6 @@ public class ActionsController : ControllerBase
             actionRequest.IgnoredValidators,
             language
         );
-        await saveTask;
 
         var updatedDataModels = changes
             .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
@@ -267,7 +287,7 @@ public class ActionsController : ControllerBase
         );
 
         // For historical reasons the validation issues from actions controller is separated per data element
-        // The easiest way was to keep this behaviour to improve compatibility with older frontend versions
+        // The easiest way was to keep this behavior to improve compatibility with older frontend versions
         return PartitionValidationIssuesByDataElement(validationIssues);
     }
 

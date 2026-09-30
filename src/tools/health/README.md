@@ -6,7 +6,7 @@ Run it from `src/tools/health`.
 
 - Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
 - Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
-- Must have Go 1.26 installed
+- Must have Go 1.26.4 installed
 
 ```sh
 # Run this to trigger prompt for az cli extension installation
@@ -39,6 +39,7 @@ Examples:
   go run cmd/main.go init tt02
   go run cmd/main.go init at22,at24
   go run cmd/main.go init -s ttd tt02,prod
+  go run cmd/main.go init --kubeconfig ./kubeconfigs/tt02.yaml tt02
 
   # Check resource status
   go run cmd/main.go status tt02 hr traefik/altinn-traefik
@@ -58,3 +59,7 @@ Examples:
 
 Run 'go run cmd/main.go <command> -h' for more information on a specific command.
 ```
+
+By default, `init` reads contexts from `$HOME/.kube/config` and lets Azure CLI use its default
+credentials destination. Pass `--kubeconfig PATH` to inspect contexts in a specific file and write
+new credentials to that same file. The custom file may be new, but its parent directory must exist.

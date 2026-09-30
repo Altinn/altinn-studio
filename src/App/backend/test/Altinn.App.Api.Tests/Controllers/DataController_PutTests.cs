@@ -79,7 +79,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
+
+        // Re-fetch instance to get data elements (created by ProcessEngine during task start)
+        var getInstanceResponse = await client.GetAsync($"{org}/{app}/instances/{instanceId}");
+        var instanceWithData = await VerifyStatusAndDeserialize<Instance>(getInstanceResponse, HttpStatusCode.OK);
+        var dataGuid = instanceWithData.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Update data element
         using var updateDataElementContent = new StringContent(
@@ -190,7 +194,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
         var instanceId = createResponseParsed.Id;
-        var dataGuid = createResponseParsed.Data.First(x => x.DataType.Equals("default")).Id;
+
+        // Re-fetch instance to get data elements (created by ProcessEngine during task start)
+        var getInstanceResponse = await client.GetAsync($"{org}/{app}/instances/{instanceId}");
+        var instanceWithData = await VerifyStatusAndDeserialize<Instance>(getInstanceResponse, HttpStatusCode.OK);
+        var dataGuid = instanceWithData.Data.First(x => x.DataType.Equals("default")).Id;
 
         // Verify stored data
         var firstReadDataElementResponse = await client.GetAsync(

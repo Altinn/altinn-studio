@@ -1,25 +1,24 @@
 import { useCallback, useMemo } from 'react';
 
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import type { IDataModelReference } from 'src/layout/common.generated';
 
 export const formBootstrapHooks = {
   useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.processedLayouts),
-  useLaxLayouts: () => {
-    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.processedLayouts);
-    return out === ContextNotProvided ? undefined : out;
-  },
   useLayoutCollection: () => FormStore.raw.useSelector((s) => s.bootstrap.layouts),
-  useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
-  useHiddenLayoutsExpressions: () => FormStore.raw.useSelector((s) => s.bootstrap.hiddenLayoutsExpressions),
-  useLaxHiddenLayoutsExpressions: () => {
-    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.hiddenLayoutsExpressions);
+  useLaxLayoutCollection: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layouts);
     return out === ContextNotProvided ? undefined : out;
   },
-  useExpandedWidthLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.expandedWidthLayouts),
+  useLayoutLookups: () => FormStore.raw.useSelector((s) => s.bootstrap.layoutLookups),
+  useLaxLayoutLookups: () => {
+    const out = FormStore.raw.useLaxSelector((s) => s.bootstrap.layoutLookups);
+    return out === ContextNotProvided ? undefined : out;
+  },
   useDataModels: () => FormStore.raw.useSelector((s) => s.bootstrap.dataModels),
 
   useDefaultDataType: () => {

@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process;
@@ -16,5 +17,14 @@ public interface IProcessClient
     /// <summary>
     /// Gets the instance process events related to the instance matching the instance id.
     /// </summary>
-    Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId);
+    /// <param name="instanceGuid">The instance guid</param>
+    /// <param name="instanceOwnerPartyId">The instance owner party id</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<ProcessHistoryList> GetProcessHistory(
+        string instanceGuid,
+        string instanceOwnerPartyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 }

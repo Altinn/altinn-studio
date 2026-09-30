@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+#nullable disable
+
+using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
 
@@ -8,7 +10,7 @@ namespace Altinn.Notifications.Models;
 public class EmailTemplateExt
 {
     /// <summary>
-    /// Gets the from adress of emails created by the template
+    /// Gets the from address of emails created by the template
     /// </summary>
     [JsonPropertyName("fromAddress")]
     public string FromAddress { get; set; } = string.Empty;

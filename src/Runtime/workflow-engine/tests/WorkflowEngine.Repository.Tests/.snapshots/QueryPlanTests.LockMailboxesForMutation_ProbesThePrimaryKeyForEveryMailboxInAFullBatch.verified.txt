@@ -1,0 +1,76 @@
+﻿[
+  {
+    Plan: {
+      Node Type: LockRows,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Plans: [
+        {
+          Node Type: Sort,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Sort Key: [
+            m.id
+          ],
+          Plans: [
+            {
+              Node Type: Nested Loop,
+              Parent Relationship: Outer,
+              Parallel Aware: {Scrubbed},
+              Async Capable: {Scrubbed},
+              Join Type: Inner,
+              Startup Cost: {Scrubbed},
+              Total Cost: {Scrubbed},
+              Plan Rows: {Scrubbed},
+              Plan Width: {Scrubbed},
+              Disabled: false,
+              Inner Unique: true,
+              Plans: [
+                {
+                  Node Type: Function Scan,
+                  Parent Relationship: Outer,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Alias: t,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false
+                },
+                {
+                  Node Type: Index Scan,
+                  Parent Relationship: Inner,
+                  Parallel Aware: {Scrubbed},
+                  Async Capable: {Scrubbed},
+                  Scan Direction: Forward,
+                  Index Name: pk_mailboxes,
+                  Relation Name: mailboxes,
+                  Alias: m,
+                  Startup Cost: {Scrubbed},
+                  Total Cost: {Scrubbed},
+                  Plan Rows: {Scrubbed},
+                  Plan Width: {Scrubbed},
+                  Disabled: false,
+                  Index Cond: (id = t.id),
+                  Filter: (t.ns = (namespace)::text)
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

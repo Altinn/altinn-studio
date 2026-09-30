@@ -19,8 +19,6 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
     private readonly EngineApiClient _client = new(fixture);
     private readonly AppTestHelpers _testHelpers = new(fixture);
 
-    private const string InstanceLockToken = AppTestFixture.DefaultInstanceLockToken;
-
     public async ValueTask InitializeAsync()
     {
         await fixture.Reset();
@@ -59,12 +57,12 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                 "idempotencyKey": "complex-dag-raw-json",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "context": {
-                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
-                    "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
+                    "actor": { "orgId": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {
@@ -133,10 +131,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
         var appStep = AppTestHelpers.CreateAppCommandStep("/mixed-app-step");
         var webhookStep = _testHelpers.CreateWebhookStep("/mixed-webhook-step");
 
-        var request = AppTestHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [appStep, webhookStep]),
-            lockToken: InstanceLockToken
-        );
+        var request = AppTestHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [appStep, webhookStep]));
 
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
@@ -155,7 +150,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
         var wf2 = _testHelpers.CreateWorkflow("wf-2", [AppTestHelpers.CreateAppCommandStep("/multi-2")]);
         var wf3 = _testHelpers.CreateWorkflow("wf-3", [AppTestHelpers.CreateAppCommandStep("/multi-3")]);
 
-        var request = AppTestHelpers.CreateEnqueueRequest([wf1, wf2, wf3], lockToken: InstanceLockToken);
+        var request = AppTestHelpers.CreateEnqueueRequest([wf1, wf2, wf3]);
 
         var response = await _client.Enqueue(request);
         var allIds = response.Workflows.Select(w => w.DatabaseId);
@@ -195,11 +190,11 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                 "namespace": "ttd-e2e-tests",
                 "idempotencyKey": "incomplete-context-test",
                 "context": {
-                    "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {
@@ -224,12 +219,12 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
                 "idempotencyKey": "process-next-payload-test",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "context": {
-                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
-                    "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
+                    "actor": { "orgId": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
                     "org": "{{EngineAppFixture.DefaultOrg}}",
                     "app": "{{EngineAppFixture.DefaultApp}}",
                     "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                    "callbackToken": "test-callback-token"
                 },
                 "workflows": [
                     {

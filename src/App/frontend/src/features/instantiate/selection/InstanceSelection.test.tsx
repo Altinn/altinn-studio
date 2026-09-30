@@ -24,7 +24,7 @@ const mockActiveInstances: ISimpleInstance[] = [
 ];
 
 const render = async (instances = mockActiveInstances) => {
-  const instanceCreateMock = jest.fn(async () => ({
+  const instanceCreateMock = vi.fn(async () => ({
     ...getInstanceDataMock(),
     id: '512345/new-instance-guid',
     process: getProcessDataMock(),

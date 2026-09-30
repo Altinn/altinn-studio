@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button } from '@app/form-component';
+import { Button, useIsMobile } from '@app/form-component';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
@@ -8,7 +8,6 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';

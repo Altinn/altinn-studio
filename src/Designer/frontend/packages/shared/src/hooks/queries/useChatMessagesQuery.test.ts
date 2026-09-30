@@ -103,9 +103,25 @@ describe('mapChatMessageToFrontend', () => {
       expect(result).toMatchObject({ sources });
     });
 
-    it('leaves filesChanged and sources undefined when absent', () => {
+    it('maps traceId', () => {
+      const message: ChatMessage = { ...assistantBase, traceId: 'trace-1' };
+      const result = mapChatMessageToFrontend(message);
+      expect(result).toMatchObject({ traceId: 'trace-1' });
+    });
+
+    it('maps feedbackThumbsUp', () => {
+      const result = mapChatMessageToFrontend({ ...assistantBase, feedbackThumbsUp: false });
+      expect(result).toMatchObject({ feedbackThumbsUp: false });
+    });
+
+    it('leaves filesChanged, sources, traceId and feedbackThumbsUp undefined when absent', () => {
       const result = mapChatMessageToFrontend(assistantBase);
-      expect(result).toMatchObject({ filesChanged: undefined, sources: undefined });
+      expect(result).toMatchObject({
+        filesChanged: undefined,
+        sources: undefined,
+        traceId: undefined,
+        feedbackThumbsUp: undefined,
+      });
     });
   });
 });

@@ -8,7 +8,7 @@ import {
   SignTaskIcon,
   UserControlledSigningIcon,
 } from '@studio/icons';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 import type { StudioIconCardIconColors } from '@studio/components';
 
@@ -19,12 +19,12 @@ type IconMetaData = {
   iconColor: StudioIconCardIconColors;
 };
 
-export const getLayoutSetIcon = (layoutSetModel: LayoutSetModel): IconMetaData => {
-  const { type, task } = layoutSetModel;
+export const getLayoutSetIcon = (layoutSetModel: UiFolderLayoutSetModel): IconMetaData => {
+  const { id, type, taskType } = layoutSetModel;
   return (
     iconByLayoutSetModelType[type] ||
-    iconByTaskIdMap[task?.id] ||
-    iconByTaskTypeMap[task?.type] ||
+    iconByTaskIdMap[id] ||
+    iconByTaskTypeMap[taskType] ||
     defaultIcon
   );
 };

@@ -7,16 +7,16 @@ describe('formatDateAndTime', () => {
     toLocaleTimeStringSpy?.mockRestore();
   });
 
-  it('formats timestamp as date, time with dots and AM/PM', () => {
+  it('formats timestamp as date and time on a 24-hour clock', () => {
     const timestamp = new Date('2026-03-03T16:27:15Z').getTime();
     const isoString = new Date(timestamp).toISOString();
     const expectedDatePart = DateUtils.formatDateDDMMYYYY(isoString);
 
     toLocaleTimeStringSpy = jest
       .spyOn(Date.prototype, 'toLocaleTimeString')
-      .mockReturnValue('4:27:15 PM');
+      .mockReturnValue('16:27:15');
 
     const result = formatDateAndTime(timestamp);
-    expect(result).toBe(`${expectedDatePart}, 4.27.15 PM`);
+    expect(result).toBe(`${expectedDatePart}, 16:27:15`);
   });
 });

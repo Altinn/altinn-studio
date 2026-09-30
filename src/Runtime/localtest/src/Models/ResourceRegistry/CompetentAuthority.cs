@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace Altinn.ResourceRegistry.Core.Models
 {
     /// <summary>
@@ -18,7 +16,7 @@ namespace Altinn.ResourceRegistry.Core.Models
         public string Orgcode { get; set; } = default!;
 
         /// <summary>
-        /// The organization name. If not set it will be retrived from register based on Organization number
+        /// The organization name. If not set it will be retrieved from register based on Organization number
         /// </summary>
         public Dictionary<string, string>? Name { get; set; }
     }

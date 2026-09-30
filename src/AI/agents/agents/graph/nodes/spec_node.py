@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import contextvars
 import time
+
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from agents.workflows.spec.pipeline import run_spec_pipeline
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
+
+
+def _spec_status(form_spec) -> str:
+    pages = form_spec.total_pages
+    return f"Hentet ut feltliste: {form_spec.field_count()} felt på {pages} {'side' if pages == 1 else 'sider'}"
 
 
 async def handle(state: AgentState) -> AgentState:
@@ -21,8 +27,26 @@ async def handle(state: AgentState) -> AgentState:
         state.next_action = "scan"
         return state
 
+    # Spec extraction is a single 20-90s blocking LLM call against the
+    # attached file(s).  Without an explicit status the UI sits on the
+    # last-known message for the whole duration and looks frozen.
+    attachment_count = len(state.attachments)
+    pre_status = (
+        "Leser vedlegg og henter ut feltlister…"
+        if attachment_count == 1
+        else f"Leser {attachment_count} vedlegg og henter ut feltlister…"
+    )
+    sink.send(
+        AgentEvent(
+            type="status",
+            session_id=state.session_id,
+            data={"message": pre_status, "phase": "reading"},
+        )
+    )
+
     try:
         import asyncio
+
         loop = asyncio.get_running_loop()
         ctx = contextvars.copy_context()
         form_spec = await loop.run_in_executor(
@@ -37,7 +61,7 @@ async def handle(state: AgentState) -> AgentState:
         if form_spec:
             state.form_spec = form_spec
             log.info(
-                f"✅ FormSpec stored: \"{form_spec.title}\" — "
+                f'✅ FormSpec stored: "{form_spec.title}" — '
                 f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
             )
             sink.send(
@@ -45,7 +69,7 @@ async def handle(state: AgentState) -> AgentState:
                     type="status",
                     session_id=state.session_id,
                     data={
-                        "message": f"Extracted form spec: {form_spec.field_count()} fields across {form_spec.total_pages} pages",
+                        "message": _spec_status(form_spec),
                         "spec_title": form_spec.title,
                         "spec_pages": form_spec.total_pages,
                         "spec_fields": form_spec.field_count(),
@@ -63,7 +87,7 @@ async def handle(state: AgentState) -> AgentState:
             AgentEvent(
                 type="error",
                 session_id=state.session_id,
-                data={"message": f"Spec extraction failed: {exc}"},
+                data={"message": "Klarte ikke å hente ut feltlisten fra vedlegget."},
             )
         )
         # Non-fatal: continue without spec

@@ -11,7 +11,7 @@ public interface IApplicationInformationService
     /// <summary>
     /// Updates application metadata, authorization policy, and text resources for a deployment
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="shortCommitId">Commit Id</param>
     /// <param name="envName">Environment Name</param>
@@ -27,7 +27,7 @@ public interface IApplicationInformationService
     /// <summary>
     /// Publishes the app's service resource to Resource Registry
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="shortCommitId">Commit Id</param>
     /// <param name="envName">Environment Name</param>

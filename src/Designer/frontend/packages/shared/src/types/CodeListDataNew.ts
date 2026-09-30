@@ -1,9 +1,9 @@
-import type { CodeListItem } from '@studio/components';
+import type { MultiLanguageCodeListItem } from '@studio/components';
 
 export type CodeListDataNew = {
   title: string;
   codeList?: {
-    codes: CodeListItem[];
+    codes: MultiLanguageCodeListItem[];
     source?: string;
     tagNames?: string[];
   };

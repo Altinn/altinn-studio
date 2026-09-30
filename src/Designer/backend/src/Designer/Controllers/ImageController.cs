@@ -41,8 +41,8 @@ public class ImageController : ControllerBase
     /// <summary>
     /// Endpoint for getting a specific image
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="encodedImagePath">Relative encoded path of image to fetch</param>
     /// <returns>Image</returns>
     [HttpGet("{encodedImagePath}")]
@@ -59,8 +59,8 @@ public class ImageController : ControllerBase
     /// <summary>
     /// Endpoint for getting all image file names in application
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>All image file names</returns>
     [HttpGet("fileNames")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -96,8 +96,8 @@ public class ImageController : ControllerBase
     /// <summary>
     /// Endpoint for uploading image to application.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="image">The actual image</param>
     /// <param name="overrideExisting">Optional parameter that overrides existing image if set. Default is false</param>
     [HttpPost]
@@ -138,8 +138,8 @@ public class ImageController : ControllerBase
     /// <summary>
     /// Endpoint for deleting image from application.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="encodedImagePath">Relative encoded path of image to delete</param>
     [HttpDelete("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]

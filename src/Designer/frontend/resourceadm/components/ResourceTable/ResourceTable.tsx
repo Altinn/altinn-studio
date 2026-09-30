@@ -31,7 +31,7 @@ export type ResourceTableProps = {
    */
   list: ResourceListItem[];
   /**
-   * Function to be executed when clicking the edit resoruce
+   * Function to be executed when clicking the edit resource
    * @param id the id of the resource
    * @returns void
    */
@@ -54,7 +54,7 @@ export type ResourceTableProps = {
  *    Table to display a list of all resources available
  *
  * @property {ResourceListItem[]}[list] - The list to display in the table
- * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resoruce
+ * @property {function}[onClickEditResource] - Function to be executed when clicking the edit resource
  *
  * @returns {React.JSX.Element} - The rendered component
  */

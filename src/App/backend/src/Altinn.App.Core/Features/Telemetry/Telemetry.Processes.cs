@@ -106,6 +106,65 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartProcessEngineCallbackActivity(Guid instanceGuid, string commandKey)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.Callback");
+        activity?.SetInstanceId(instanceGuid);
+        activity?.SetTag(InternalLabels.ProcessCallbackCommand, commandKey);
+        return activity;
+    }
+
+    internal Activity? StartProcessHandleUserActionActivity(Instance instance, string? action)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.HandleUserAction");
+        activity?.SetInstanceId(instance);
+        activity?.SetTag(InternalLabels.ProcessAction, action);
+        return activity;
+    }
+
+    internal Activity? StartProcessMoveToNextActivity(Instance instance, string? action)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.MoveToNext");
+        activity?.SetInstanceId(instance);
+        activity?.SetTag(InternalLabels.ProcessAction, action);
+        return activity;
+    }
+
+    internal Activity? StartProcessGenerateChangeEventActivity(Instance instance, string eventType)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.GenerateChangeEvent");
+        activity?.SetInstanceId(instance);
+        activity?.SetTag(InternalLabels.ProcessEventType, eventType);
+        return activity;
+    }
+
+    internal Activity? StartProcessLoadAuthDetailsActivity(string authType)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.LoadAuthDetails");
+        activity?.SetTag(Labels.UserAuthenticationType, authType);
+        return activity;
+    }
+
+    internal Activity? StartProcessRegisterEventActivity(Instance instance)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.RegisterEvent");
+        activity?.SetInstanceId(instance);
+        return activity;
+    }
+
+    internal Activity? StartProcessNavigatorGetNextTaskActivity(
+        Instance instance,
+        string currentElement,
+        string? action
+    )
+    {
+        var activity = ActivitySource.StartActivity("ProcessNavigator.GetNextTask");
+        activity?.SetInstanceId(instance);
+        activity?.SetTag(InternalLabels.ProcessCurrentElement, currentElement);
+        activity?.SetTag(InternalLabels.ProcessAction, action);
+        return activity;
+    }
+
     internal static class Processes
     {
         internal const string Prefix = "Process";

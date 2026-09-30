@@ -39,7 +39,7 @@ public sealed class FormatMaximumKeyword : IJsonSchemaKeyword, IEquatable<Format
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -96,7 +96,7 @@ public sealed class FormatMaximumKeyword : IJsonSchemaKeyword, IEquatable<Format
         /// </summary>
         public override void Write(Utf8JsonWriter writer, FormatMaximumKeyword value, JsonSerializerOptions options)
         {
-            writer.WriteString(Name, value.Value);
+            writer.WriteStringValue(value.Value);
         }
     }
 }

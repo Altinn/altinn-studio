@@ -1,12 +1,12 @@
-import { randomUUID } from 'crypto';
+const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 import { ZodError } from 'zod';
 
 import { fetchSigneeList, NotificationStatus, SigneeState } from 'src/layout/SigneeList/api';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 
-jest.mock('src/utils/network/sharedNetworking');
+vi.mock('src/utils/network/sharedNetworking');
 
-const mockedGet = jest.mocked(httpGet);
+const mockedGet = vi.mocked(httpGet);
 
 describe('fetchSigneeList', () => {
   const partyId = '40003';

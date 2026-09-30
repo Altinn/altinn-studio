@@ -1,3 +1,7 @@
+import type { DisplayAttachment } from '@app/form-component';
+
+import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
+import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IData, IDataType, IDisplayAttachment } from 'src/types/shared';
 
 export enum DataTypeReference {
@@ -57,6 +61,21 @@ export function toDisplayAttachments(data: AttachmentWithDataType[]): IDisplayAt
     dataType: attachment.dataType,
     grouping: dataType?.grouping ?? undefined,
     description: dataType?.description ?? undefined,
+  }));
+}
+
+/** Maps app display attachments into the lib render model (filename parts + relative urls). */
+export function toRenderableAttachments(attachments: IDisplayAttachment[]): DisplayAttachment[] {
+  return attachments.map((attachment) => ({
+    name: attachment.name,
+    baseName: removeFileEnding(attachment.name),
+    fileEnding: getFileEnding(attachment.name),
+    iconClass: attachment.iconClass,
+    grouping: attachment.grouping,
+    description: attachment.description,
+    url: attachment.url ? makeUrlRelativeIfSameDomain(attachment.url) : undefined,
+    dataType: attachment.dataType,
+    tags: attachment.tags,
   }));
 }
 

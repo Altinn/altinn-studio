@@ -6,7 +6,7 @@
       {
         "size": "L",
         "id": "Header-wtBlvU",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Side1.Header-wtBlvU.title"
         }

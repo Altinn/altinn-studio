@@ -7,8 +7,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
-import { Alert, Heading, Link } from '@digdir/designsystemet-react';
+import { StudioLink, StudioSpinner, StudioHeading, StudioAlert } from '@studio/components';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
@@ -50,22 +49,22 @@ export const ResourcesRepoList = ({
   }
 
   if (isResourceListError) {
-    return <Alert severity='danger'>{t('dashboard.resource_list_load_error')}</Alert>;
+    return <StudioAlert data-color='danger'>{t('dashboard.resource_list_load_error')}</StudioAlert>;
   }
 
   return (
     <div>
-      <Heading level={2} size='small' spacing>
+      <StudioHeading level={2} data-size='md' spacing>
         {getReposLabel({
           selectedContext,
           orgs: organizations,
           t,
           isResourcesRepo: true,
         })}
-      </Heading>
-      <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+      </StudioHeading>
+      <StudioLink href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
         {t('dashboard.go_to_resources')}
-      </Link>
+      </StudioLink>
       {isLoadingResourceList ? (
         <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (

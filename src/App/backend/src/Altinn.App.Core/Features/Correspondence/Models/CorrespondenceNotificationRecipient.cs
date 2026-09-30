@@ -20,18 +20,10 @@ public sealed record CorrespondenceNotificationRecipient
     /// <summary>
     /// The organization number of the recipient.
     /// </summary>
-    public OrganisationNumber? OrganizationNumber { get; init; }
+    public OrganizationNumber? OrganizationNumber { get; init; }
 
     /// <summary>
     /// The national identity number of the recipient.
     /// </summary>
     public NationalIdentityNumber? NationalIdentityNumber { get; init; }
-
-    /// <summary>
-    /// Boolean indicating if the recipient is reserved.
-    /// </summary>
-    [Obsolete(
-        "This property is deprecated and will be removed in a future version. Use Correspondence.IgnoreReservation instead."
-    )]
-    public bool IsReserved { get; init; }
 }

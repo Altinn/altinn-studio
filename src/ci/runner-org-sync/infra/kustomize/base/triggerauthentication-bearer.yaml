@@ -1,0 +1,12 @@
+# KEDA TriggerAuthentication for the metrics-api scaler. It deliberately
+# coexists with keda-gitea-auth so forward rollout and rollback remain safe
+# regardless of Flux reconciliation order. Both references reuse the same PAT.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-gitea-auth-bearer
+spec:
+  secretTargetRef:
+    - parameter: token
+      name: keda-gitea-pat
+      key: token

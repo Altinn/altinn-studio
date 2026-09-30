@@ -5,7 +5,6 @@ import { formatDate } from 'date-fns';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
-import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -15,7 +14,6 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { getInstanceSender } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
-import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { useNavigationParam } from 'src/hooks/navigation';
 import {
   filterOutDataModelRefDataAsPdfAndAppOwnedDataTypes,
@@ -71,16 +69,6 @@ export const getSummaryDataObject = ({
 
   return obj;
 };
-
-export function DefaultReceipt() {
-  return (
-    <FixWrongReceiptType>
-      <PresentationComponent showNavigation={false}>
-        <ReceiptContainer />
-      </PresentationComponent>
-    </FixWrongReceiptType>
-  );
-}
 
 export const ReceiptContainer = () => {
   const applicationMetadata = getApplicationMetadata();

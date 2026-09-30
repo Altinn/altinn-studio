@@ -1,7 +1,7 @@
-ARG GITEA_VERSION=1.26.1
+ARG GITEA_VERSION=1.27.3
 
 # Extract the upstream locale files from the gitea binary, then merge them with the custom locale files
-FROM gitea/gitea:${GITEA_VERSION}-rootless AS locale_builder
+FROM docker.io/gitea/gitea:${GITEA_VERSION}-rootless AS locale_builder
 USER 0:0
 RUN apk --no-cache add jq
 USER 1000:1000
@@ -14,7 +14,7 @@ RUN gitea embedded extract --destination /var/lib/gitea/ options/locale/**.* && 
     jq -s '.[0] * .[1]' ./base/locale_nb-NO.json ./custom/locale_nb-NO.json > ./locale/locale_nb-NO.json
 
 # Ensure to update the locales, templates, and configuration when upgrading Gitea
-FROM gitea/gitea:${GITEA_VERSION}-rootless
+FROM docker.io/gitea/gitea:${GITEA_VERSION}-rootless
 USER 0:0
 RUN apk --no-cache upgrade expat git libxml2 libcurl curl
 USER 1000:1000

@@ -153,6 +153,9 @@ class DelayedSelectorController<C extends DSConfig> {
       if (this.strictness === SelectorStrictness.throwWhenNotProvided) {
         throw new Error('useDelayedSelector: store not provided');
       }
+      if (this.strictness === SelectorStrictness.returnUndefinedWhenNotProvided) {
+        return undefined;
+      }
       return ContextNotProvided;
     }
 
@@ -227,7 +230,8 @@ function defaultMakeCacheKey(args: unknown[]): unknown[] {
 
 export enum SelectorStrictness {
   throwWhenNotProvided = 'throwWhenNotProvided',
-  returnWhenNotProvided = 'returnWhenNotProvided',
+  returnSymbolWhenNotProvided = 'returnSymbolWhenNotProvided',
+  returnUndefinedWhenNotProvided = 'returnUndefinedWhenNotProvided',
 }
 
 export interface SimpleArgMode<T = unknown, Args extends unknown[] = unknown[], RetVal = unknown> {
@@ -278,4 +282,8 @@ export type DSReturn<C extends DSConfig> =
         innerSelector: (...args: ReturnType<C['mode']['makeArgs']>) => U,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         deps: any[],
-      ) => C['strictness'] extends SelectorStrictness.returnWhenNotProvided ? U | typeof ContextNotProvided : U;
+      ) => C['strictness'] extends SelectorStrictness.returnSymbolWhenNotProvided
+        ? U | typeof ContextNotProvided
+        : C['strictness'] extends SelectorStrictness.returnUndefinedWhenNotProvided
+          ? U | undefined
+          : U;

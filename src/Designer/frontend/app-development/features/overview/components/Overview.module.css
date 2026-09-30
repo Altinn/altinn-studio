@@ -1,19 +1,19 @@
 .spinner {
   display: flex;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
   flex-direction: column;
 }
 
 .container {
   margin: auto;
-  padding: var(--fds-spacing-12);
+  padding: var(--ds-size-12);
   max-width: 1400px;
   position: relative;
 }
 
 .header {
   font-family: var(--studio-font-family);
-  padding: var(--fds-spacing-6) 0 var(--fds-spacing-6) 0;
+  padding: var(--ds-size-6) 0 var(--ds-size-6) 0;
 }
 
 .header h1 {
@@ -24,27 +24,27 @@
   background-color: white;
   border-radius: var(--ds-border-radius-md);
   box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
-  padding: var(--fds-spacing-10);
+  padding: var(--ds-size-10);
   position: relative;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-10);
+  gap: var(--ds-size-10);
 }
 
 .main,
 .aside {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-10);
+  gap: var(--ds-size-10);
 }
 
 .mainSection {
   background-color: #f4f5f6;
   border-radius: var(--ds-border-radius-md);
-  padding: var(--fds-spacing-4);
+  padding: var(--ds-size-4);
 }
 
 .asideSection {
@@ -52,13 +52,13 @@
   border: solid 2px #efefef;
   border-radius: var(--ds-border-radius-md);
 
-  padding: var(--fds-spacing-4);
+  padding: var(--ds-size-4);
 }
 
 .footer {
   border-top: 2px solid #efefef;
-  margin-top: var(--fds-spacing-10);
-  padding-top: var(--fds-spacing-8);
+  margin-top: var(--ds-size-10);
+  padding-top: var(--ds-size-8);
 }
 
 @media (min-width: 768px) {

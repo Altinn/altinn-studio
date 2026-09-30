@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	opclock "altinn.studio/operator/internal/clock"
-	"altinn.studio/operator/test/utils"
+	"altinn.studio/operator/internal/testutils"
 )
 
 var testSubject = CertSubject{
@@ -206,7 +206,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	publicJwks, err := jwks.ToPublic()
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(publicJwks).NotTo(BeNil())
-	// Certificates is marshalled as "x5c", which Maskinporten doesn't want
+	// Certificates is marshaled as "x5c", which Maskinporten doesn't want
 	g.Expect(publicJwks.Keys[0].Certificates()).To(BeNil())
 	g.Expect(jwks.Keys[0].Certificates()).NotTo(BeNil())
 
@@ -228,7 +228,7 @@ func TestPublicJwksConversion(t *testing.T) {
 
 func createService() (*CryptoService, *opclock.FakeClock) {
 	clock := opclock.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
-	random := utils.NewDeterministicRand()
+	random := testutils.NewDeterministicRand()
 	service := NewDefaultService(clock, random)
 	return service, clock
 }

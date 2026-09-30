@@ -130,18 +130,58 @@ describe('MapComponent', () => {
     expect(screen.queryByRole('link', { name: 'Dummy link' })).toBeInTheDocument();
   });
 
-  it('should show map with zoom buttons when readonly is false', async () => {
+  it('should show map with localized zoom buttons when readonly is false', async () => {
     await render();
 
-    expect(screen.queryByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Zoom inn' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Zoom ut' })).toBeInTheDocument();
   });
 
   it('should show map without zoom buttons when readonly is true', async () => {
     await render({ component: { readOnly: true } });
 
-    expect(screen.queryByRole('button', { name: 'Zoom in' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Zoom out' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Zoom inn' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Zoom ut' })).not.toBeInTheDocument();
+  });
+
+  it('should expose the map as a group with a localized accessible name', async () => {
+    await render();
+
+    expect(
+      screen.getByRole('group', {
+        name: 'Interaktivt kart. Bruk piltaster for å panorere, pluss og minus for å zoome.',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should announce the component label first in the map group name', async () => {
+    await render({
+      component: {
+        textResourceBindings: { title: 'Min Kartkomponent' },
+      },
+    });
+
+    expect(
+      screen.getByRole('group', {
+        name: 'Min Kartkomponent. Interaktivt kart. Bruk piltaster for å panorere, pluss og minus for å zoome.',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should announce the selection state via a polite live region', async () => {
+    await render();
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Ingen lokasjon valgt');
+    expect(status).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('should render map tiles as decorative (empty alt)', async () => {
+    const { container } = await render();
+
+    const tiles = container.querySelectorAll<HTMLImageElement>('img.leaflet-tile');
+    expect(tiles.length).toBeGreaterThan(0);
+    tiles.forEach((tile) => expect(tile.getAttribute('alt')).toBe(''));
   });
 
   it('should have expression support for latitude and longitude in centerLocation', async () => {

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -24,6 +27,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Altinn.Studio.Designer.Infrastructure.StudioOidc;
@@ -39,14 +43,6 @@ public static class StudioOidcAuthenticationExtensions
         IWebHostEnvironment env
     )
     {
-        bool featureEnabled =
-            configuration.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-        if (!featureEnabled)
-        {
-            return services;
-        }
-
         StudioOidcLoginSettings? oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
         if (oidcSettings == null)
@@ -174,6 +170,24 @@ public static class StudioOidcAuthenticationExtensions
                         }
                     };
 
+                    options.Events.OnTicketReceived = ResolveStudioIdentity;
+
+                    options.Events.OnRemoteFailure = context =>
+                    {
+                        RejectLogin(
+                            context,
+                            context.Failure?.Message ?? "Remote authentication failed.",
+                            context.Failure
+                        );
+                        return Task.CompletedTask;
+                    };
+
+                    options.Events.OnRedirectToIdentityProviderForSignOut = context =>
+                    {
+                        context.ProtocolMessage.ClientId = oidcSettings.ClientId;
+                        return Task.CompletedTask;
+                    };
+
                     // Temporarily using client_secret_basic (Authorization header) instead of client_secret_post to support the same client that Gitea uses
                     options.Events.OnAuthorizationCodeReceived = context =>
                     {
@@ -192,6 +206,70 @@ public static class StudioOidcAuthenticationExtensions
             );
 
         return services;
+    }
+
+    private static async Task ResolveStudioIdentity(TicketReceivedContext context)
+    {
+        IServiceProvider services = context.HttpContext.RequestServices;
+        ClaimsPrincipal incoming = context.Principal!;
+
+        string? pid = incoming.FindFirst("pid")?.Value;
+        string? sub = incoming.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(sub))
+        {
+            RejectLogin(context, "The identity provider did not return pid and sub.");
+            return;
+        }
+
+        string? givenName = incoming.FindFirst("given_name")?.Value;
+        string? familyName = incoming.FindFirst("family_name")?.Value;
+        PidHash pidHash = PidHash.FromPid(pid, services.GetRequiredService<DeveloperMappingSettings>());
+
+        string username;
+        try
+        {
+            username = await services
+                .GetRequiredService<IStudioOidcUsernameProvider>()
+                .ResolveUsernameAsync(sub, pidHash, givenName, familyName);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            RejectLogin(context, ex.Message, ex);
+            return;
+        }
+
+        var claims = new List<Claim> { new(ClaimTypes.Name, username), new("pid", pid), new("sub", sub) };
+        if (givenName is not null)
+        {
+            claims.Add(new Claim("given_name", givenName));
+        }
+        if (familyName is not null)
+        {
+            claims.Add(new Claim("family_name", familyName));
+        }
+
+        context.Principal = new ClaimsPrincipal(
+            new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)
+        );
+
+        string fullName = $"{givenName} {familyName}".Trim();
+        await services
+            .GetRequiredService<IUserProvisioningService>()
+            .EnsureUserExistsAsync(username, string.IsNullOrEmpty(fullName) ? null : fullName);
+    }
+
+    private static void RejectLogin(
+        HandleRequestContext<RemoteAuthenticationOptions> context,
+        string reason,
+        Exception? exception = null
+    )
+    {
+        context
+            .HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger(typeof(StudioOidcAuthenticationExtensions))
+            .LogWarning(exception, "Studio OIDC login rejected: {Reason}", reason);
+        context.Response.Redirect("/");
+        context.HandleResponse();
     }
 
     private static StudioOidcLoginSettings? FetchOidcSettingsFromConfiguration(
@@ -329,11 +407,21 @@ public static class StudioOidcAuthenticationExtensions
                 .AddSeconds(expiresIn)
                 .ToString("o", CultureInfo.InvariantCulture);
 
-            properties.StoreTokens([
-                new AuthenticationToken { Name = "access_token", Value = newAccessToken },
-                new AuthenticationToken { Name = "refresh_token", Value = resolvedRefreshToken },
-                new AuthenticationToken { Name = "expires_at", Value = newExpiresAt },
-            ]);
+            var tokens = new List<AuthenticationToken>
+            {
+                new() { Name = "access_token", Value = newAccessToken },
+                new() { Name = "refresh_token", Value = resolvedRefreshToken },
+                new() { Name = "expires_at", Value = newExpiresAt },
+            };
+
+            bool newIdTokenIssued = root.TryGetProperty("id_token", out var idt);
+            string? resolvedIdToken = newIdTokenIssued ? idt.GetString() : properties.GetTokenValue("id_token");
+            if (!string.IsNullOrEmpty(resolvedIdToken))
+            {
+                tokens.Add(new AuthenticationToken { Name = "id_token", Value = resolvedIdToken });
+            }
+
+            properties.StoreTokens(tokens);
 
             context.ShouldRenew = true;
 

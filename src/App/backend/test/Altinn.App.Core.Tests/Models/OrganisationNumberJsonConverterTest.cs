@@ -5,24 +5,24 @@ using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Models;
 
-public class OrganisationNumberJsonConverterTest
+public class OrganizationNumberJsonConverterTest
 {
     public record TestObjectLocal
     {
-        [OrganisationNumberJsonConverter(OrganisationNumberFormat.Local)]
-        public OrganisationNumber Value { get; init; }
+        [OrganizationNumberJsonConverter(OrganizationNumberFormat.Local)]
+        public OrganizationNumber Value { get; init; }
     }
 
     public record TestObjectInternational
     {
-        [OrganisationNumberJsonConverter(OrganisationNumberFormat.International)]
-        public OrganisationNumber Value { get; init; }
+        [OrganizationNumberJsonConverter(OrganizationNumberFormat.International)]
+        public OrganizationNumber Value { get; init; }
     }
 
     [Theory]
     [InlineData("474103390", "474103390")]
     [InlineData("0192:474103390", "474103390")]
-    [InlineData($"{AltinnUrns.OrganisationNumber}:474103390", "474103390")]
+    [InlineData($"{AltinnUrns.OrganizationNumber}:474103390", "474103390")]
     public void JsonDeserialisesCorrectly(string incomingJsonData, string expectedParsedNumber)
     {
         // Arrange
@@ -54,8 +54,8 @@ public class OrganisationNumberJsonConverterTest
     )
     {
         // Arrange
-        var dataLocal = new TestObjectLocal { Value = OrganisationNumber.Parse(originalValue) };
-        var dataInternational = new TestObjectInternational { Value = OrganisationNumber.Parse(originalValue) };
+        var dataLocal = new TestObjectLocal { Value = OrganizationNumber.Parse(originalValue) };
+        var dataInternational = new TestObjectInternational { Value = OrganizationNumber.Parse(originalValue) };
 
         // Act
         var result1 = JsonSerializer.Serialize(dataLocal);

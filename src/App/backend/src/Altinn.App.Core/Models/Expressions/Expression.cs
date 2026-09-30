@@ -99,7 +99,16 @@ public readonly struct Expression : IEquatable<Expression>
     /// Get the object value for backwards compatibility
     /// </summary>
     [Obsolete("Use ValueUnion instead")]
-    public object? Value => ValueUnion.ToObject();
+    public object? Value =>
+        ValueUnion.ValueKind switch
+        {
+            JsonValueKind.Null => null,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => ValueUnion.String,
+            JsonValueKind.Number => ValueUnion.Number,
+            _ => throw new InvalidOperationException("Invalid value kind"),
+        };
 
     /// <summary>
     /// Some expressions are just literal values that evaluate to the same value.

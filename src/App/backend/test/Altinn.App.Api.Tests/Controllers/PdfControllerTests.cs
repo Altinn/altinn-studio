@@ -6,10 +6,12 @@ using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +38,6 @@ public class PdfControllerTests
     private readonly Mock<IInstanceClient> _instanceClient = new();
     private readonly Mock<IPdfFormatter> _pdfFormatter = new();
     private readonly Mock<IAppModel> _appModel = new();
-    private readonly Mock<IUserTokenProvider> _userTokenProvider = new();
 
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -82,14 +83,14 @@ public class PdfControllerTests
     )
     {
         var pdfService = new PdfService(
-            _dataClient.Object,
             httpContextAccessor.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
             generalSettingsOptions,
             _logger.Object,
             _authenticationContext.Object,
-            _translationService.Object
+            _translationService.Object,
+            _appResources.Object
         );
         return pdfService;
     }
@@ -108,13 +109,14 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object
+            authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -175,13 +177,14 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var authenticationTokenResolver = BuildAuthenticationTokenResolver();
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
-            _userTokenProvider.Object
+            authenticationTokenResolver.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -226,5 +229,14 @@ public class PdfControllerTests
             .Contain(
                 @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
+    }
+
+    private static Mock<IAuthenticationTokenResolver> BuildAuthenticationTokenResolver()
+    {
+        var authenticationTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authenticationTokenResolver
+            .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(TestAuthentication.GetUserToken()));
+        return authenticationTokenResolver;
     }
 }

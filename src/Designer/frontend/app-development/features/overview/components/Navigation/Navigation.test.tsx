@@ -1,74 +1,57 @@
 import { screen } from '@testing-library/react';
 import { Navigation } from './Navigation';
-import {
-  getFilteredMenuListForOverviewPage,
-  topBarMenuItems,
-} from 'app-development/utils/headerMenu/headerMenuUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { type FeatureFlag } from '@studio/feature-flags';
-import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('app-development/hooks/useIsRepoOwnerOrg', () => ({
+  useIsRepoOwnerOrg: () => true,
+}));
 
 describe('Navigation', () => {
-  it('renders component', async () => {
+  it.each([
+    HeaderMenuItemKey.Create,
+    HeaderMenuItemKey.DataModel,
+    HeaderMenuItemKey.Text,
+    HeaderMenuItemKey.ProcessEditor,
+    HeaderMenuItemKey.ContentLibrary,
+  ])('renders a link to the %s tool', (menuItemKey) => {
     renderNavigation();
-
-    getFilteredMenuListForOverviewPage([]).forEach((link) => {
-      expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
-    });
+    const toolLink = screen.getByRole('link', { name: textMock(menuItemKey) });
+    expect(toolLink).toBeInTheDocument();
   });
 
-  it('only renders menu items that are not hidden by featureFlags', async () => {
+  it('does not render the About item', () => {
     renderNavigation();
-
-    getFilteredMenuListForOverviewPage([]).forEach((link) => {
-      if (link.featureFlagName) {
-        expect(screen.queryByRole('link', { name: textMock(link.key) })).not.toBeInTheDocument();
-      } else {
-        expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
-      }
-    });
+    const aboutLink = screen.queryByRole('link', { name: textMock(HeaderMenuItemKey.About) });
+    expect(aboutLink).not.toBeInTheDocument();
   });
 
-  it('only renders menu items that are hidden by featureFlags if the feature flag is toggled on', async () => {
-    const featureFlags = getFeatureFlags(topBarMenuItems);
-    renderNavigation(featureFlags);
-
-    getFilteredMenuListForOverviewPage(featureFlags).forEach((link) => {
-      expect(screen.getByRole('link', { name: textMock(link.key) })).toBeInTheDocument();
-    });
-  });
-
-  it('renders menu items that are tagged as beta, with isBeta class', () => {
-    const betaItems = topBarMenuItems.filter((item) => !!item.isBeta);
-    const featureFlags = getFeatureFlags(betaItems);
-
-    renderNavigation(featureFlags);
-
-    betaItems.forEach((link) => {
-      expect(screen.getByRole('link', { name: textMock(link.key) })).toHaveClass('isBeta');
-    });
-  });
-
-  it('renders menu items that are not tagged as beta, without isBeta class', () => {
-    const menuItemsNotBeta = getFilteredMenuListForOverviewPage([]).filter((item) => !item.isBeta);
-
+  it('does not render the Deploy item, even when an org owns the repo', () => {
     renderNavigation();
+    const deployLink = screen.queryByRole('link', { name: textMock(HeaderMenuItemKey.Deploy) });
+    expect(deployLink).not.toBeInTheDocument();
+  });
 
-    menuItemsNotBeta.forEach((link) => {
-      expect(screen.getByRole('link', { name: textMock(link.key) })).not.toHaveClass('isBeta');
+  it('marks beta items with the beta class', () => {
+    renderNavigation();
+    const contentLibraryLink = screen.getByRole('link', {
+      name: textMock(HeaderMenuItemKey.ContentLibrary),
     });
+    expect(contentLibraryLink).toHaveClass('isBeta');
+  });
+
+  it('does not mark non-beta items with the beta class', () => {
+    renderNavigation();
+    const createLink = screen.getByRole('link', { name: textMock(HeaderMenuItemKey.Create) });
+    expect(createLink).not.toHaveClass('isBeta');
   });
 });
 
-const getFeatureFlags = (menuItems: HeaderMenuItem[]): FeatureFlag[] => {
-  return menuItems.filter((item) => !!item.featureFlagName).map((item) => item.featureFlagName);
-};
-
-const renderNavigation = (featureFlags: FeatureFlag[] = []) => {
+const renderNavigation = () => {
   renderWithProviders(<Navigation />, {
-    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-    featureFlags,
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
   });
 };

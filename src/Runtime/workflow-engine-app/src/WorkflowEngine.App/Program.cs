@@ -1,3 +1,4 @@
+using Altinn.Studio.Common;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Extensions;
 using WorkflowEngine.Core.Extensions;
@@ -10,6 +11,7 @@ builder.Configuration.AddJsonFile(
     optional: true,
     reloadOnChange: true
 );
+builder.Configuration.AddEnvironmentVariables();
 
 var connectionString =
     builder.Configuration.GetConnectionString("WorkflowEngine")
@@ -18,6 +20,11 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
+builder.Services.AddGracefulShutdown(
+    builder.Environment,
+    endpointDrainDelay: TimeSpan.FromSeconds(5),
+    applicationShutdownTimeout: TimeSpan.FromSeconds(35)
+);
 
 // App-specific commands
 builder.Services.ConfigureAppCommand();

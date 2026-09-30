@@ -8,7 +8,7 @@
       },
       {
         "id": "tittel1",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "Skjul_felter.tittel.title"
@@ -94,7 +94,6 @@
       {
         "id": "nav2",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Skjul_felter.nav2.next",
           "back": "Skjul_felter.nav2.back"

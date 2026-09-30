@@ -13,7 +13,7 @@ jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
 
 const mockTask = {
   name: 'Test Task',
-  taskId: 'Task_1',
+  taskId: layoutSet1NameMock,
   taskType: 'data',
 };
 
@@ -37,6 +37,7 @@ describe('useTaskNames', () => {
 
 const renderUseTaskNames = (task: TaskNavigationGroup) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.AppVersion, org, app], { backendVersion: '9.0.0' });
   queryClient.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
 
   return renderHookWithProviders(() => useTaskNavigationGroupName(task), {

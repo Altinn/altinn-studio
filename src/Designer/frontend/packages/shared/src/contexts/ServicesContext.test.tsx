@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
+import { renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -8,6 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
@@ -39,6 +40,22 @@ const wrapper = ({
 };
 
 describe('ServicesContext', () => {
+  const originalLocation = window.location;
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, assign: jest.fn() },
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
+  });
+
   it('logs non-Axios errors to the console', async () => {
     const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
     renderHook(
@@ -59,9 +76,7 @@ describe('ServicesContext', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('logs the user out after displaying a toast when the api returns 401 with SessionExpired error code', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+  it('redirects to the logout page when the api returns 401 with SessionExpired error code', async () => {
     renderHook(
       () =>
         useQuery({
@@ -71,27 +86,36 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
+          return wrapper({ children });
         },
       },
     );
 
-    const progressBar = await screen.findByRole('progressbar');
-    fireEvent.animationEnd(progressBar);
-
-    const container = await screen.findByText(textMock('api_errors.SessionExpired'));
-    expect(container).toBeInTheDocument();
-    fireEvent.animationEnd(container);
-
     await waitFor(() => {
-      expect(logout).toHaveBeenCalled();
+      expect(window.location.assign).toHaveBeenCalledWith(userLogoutAfterPath());
     });
-
-    mockConsoleError.mockRestore();
   });
 
-  it('does not log the user out when the api returns a plain 401 with no error code', async () => {
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+  it('does not display an error toast when the session is expired', async () => {
+    renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children });
+        },
+      },
+    );
+
+    await waitFor(() => expect(window.location.assign).toHaveBeenCalled());
+    expect(screen.queryByText(textMock('api_errors.SessionExpired'))).not.toBeInTheDocument();
+  });
+
+  it('does not redirect when the api returns a plain 401 with no error code', async () => {
     const { result } = renderHook(
       () =>
         useQuery({
@@ -101,37 +125,13 @@ describe('ServicesContext', () => {
         }),
       {
         wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
+          return wrapper({ children });
         },
       },
     );
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(logout).not.toHaveBeenCalled();
-  });
-
-  it('displays the api error when the session is invalid or expired', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-    const logout = jest.fn().mockImplementation(() => Promise.resolve());
-
-    const { result } = renderHook(
-      () =>
-        useQuery({
-          queryKey: ['fetchData'],
-          queryFn: () => Promise.reject(createApiErrorMock(401, ApiErrorCodes.SessionExpired)),
-          retry: false,
-        }),
-      {
-        wrapper: ({ children }) => {
-          return wrapper({ children, queries: { logout } });
-        },
-      },
-    );
-
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    const errorMessage = await screen.findByText(textMock('api_errors.SessionExpired'));
-    expect(errorMessage).toBeInTheDocument();
-    mockConsoleError.mockRestore();
+    expect(window.location.assign).not.toHaveBeenCalled();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {

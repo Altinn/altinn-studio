@@ -3,114 +3,72 @@ using LibGit2Sharp;
 namespace Altinn.Studio.Cli.Upgrade;
 
 /// <summary>
-/// Helper class for git operations using LibGit2Sharp.
-/// Stages file changes so that moves are detected as renames by git.
+/// Git helpers on top of LibGit2Sharp.
 /// </summary>
-internal sealed class GitOperations : IDisposable
+internal static class GitOperations
 {
-    private readonly Repository _repo;
-    private readonly string _repoRoot;
-
-    private GitOperations(Repository repo, string repoRoot)
+    /// <summary>
+    /// Whether the working tree of the repository containing <paramref name="path"/> is confirmed clean — no
+    /// staged, unstaged or untracked changes. A path deliberately outside git counts as clean. Anything we
+    /// cannot confirm is not clean: local changes leave <paramref name="error"/> <c>null</c>, while a
+    /// repository we cannot read reports the git failure in <paramref name="error"/>.
+    /// </summary>
+    public static bool IsWorkingTreeClean(string path, out string? error)
     {
-        _repo = repo;
-        _repoRoot = repoRoot;
+        error = null;
+
+        try
+        {
+            using var repo = TryOpenRepository(path);
+            if (repo is null)
+            {
+                return true;
+            }
+
+            return !repo.RetrieveStatus().IsDirty;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            error = ex.Message;
+            return false;
+        }
     }
 
     /// <summary>
-    /// Tries to create a GitOperations instance for the given path.
-    /// Returns null if the path is not inside a git repository.
+    /// Stages every change in the repository containing <paramref name="path"/> — the equivalent of
+    /// <c>git add -A</c>. Failures are reported and never fail the caller.
     /// </summary>
-    public static GitOperations? TryCreate(string path)
+    public static void StageAllChanges(string path)
+    {
+        try
+        {
+            using var repo = TryOpenRepository(path);
+            if (repo is null)
+            {
+                UpgradeConsole.Skip("Not a git repository - leaving changes unstaged");
+                return;
+            }
+
+            Commands.Stage(repo, "*");
+
+            using var stagedChanges = repo.Diff.Compare<TreeChanges>(repo.Head.Tip?.Tree, DiffTargets.Index);
+            UpgradeConsole.Ok(
+                $"Staged the {stagedChanges.Count} updated file(s) - run 'git status' for overview and 'git diff --cached' to review them"
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            UpgradeConsole.Warning($"Failed to stage changes: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Opens the repository containing <paramref name="path"/>, or <c>null</c> when <paramref name="path"/> is
+    /// not inside a git repository.
+    /// </summary>
+    private static Repository? TryOpenRepository(string path)
     {
         var repoPath = Repository.Discover(path);
-        if (string.IsNullOrEmpty(repoPath))
-        {
-            return null;
-        }
-
-        var repo = new Repository(repoPath);
-        var workingDir = repo.Info.WorkingDirectory;
-        if (string.IsNullOrEmpty(workingDir))
-        {
-            repo.Dispose();
-            return null;
-        }
-
-        var repoRoot = workingDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return new GitOperations(repo, repoRoot);
-    }
-
-    /// <summary>
-    /// Moves a directory and stages the changes as a rename in git.
-    /// </summary>
-    public void MoveDirectory(string sourcePath, string destinationPath)
-    {
-        var sourceFiles = Directory
-            .GetFiles(sourcePath, "*", SearchOption.AllDirectories)
-            .Select(f => GetRelativePath(f))
-            .ToList();
-
-        Directory.Move(sourcePath, destinationPath);
-
-        foreach (var relativePath in sourceFiles)
-        {
-            Commands.Remove(_repo, relativePath, removeFromWorkingDirectory: false);
-        }
-
-        var newFiles = Directory
-            .GetFiles(destinationPath, "*", SearchOption.AllDirectories)
-            .Select(f => GetRelativePath(f));
-        Commands.Stage(_repo, newFiles);
-    }
-
-    /// <summary>
-    /// Deletes a directory and stages the removal in git.
-    /// </summary>
-    public void DeleteDirectory(string path)
-    {
-        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Select(f => GetRelativePath(f)).ToList();
-
-        Directory.Delete(path, recursive: true);
-
-        foreach (var relativePath in files)
-        {
-            Commands.Remove(_repo, relativePath, removeFromWorkingDirectory: false);
-        }
-    }
-
-    /// <summary>
-    /// Stages all files in a directory as additions.
-    /// </summary>
-    public void StageDirectory(string path)
-    {
-        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Select(f => GetRelativePath(f));
-        Commands.Stage(_repo, files);
-    }
-
-    /// <summary>
-    /// Stages a single file.
-    /// </summary>
-    public void StageFile(string path)
-    {
-        Commands.Stage(_repo, GetRelativePath(path));
-    }
-
-    /// <summary>
-    /// Stages a file removal.
-    /// </summary>
-    public void StageRemoval(string path)
-    {
-        Commands.Remove(_repo, GetRelativePath(path), removeFromWorkingDirectory: false);
-    }
-
-    private string GetRelativePath(string absolutePath)
-    {
-        return Path.GetRelativePath(_repoRoot, absolutePath).Replace('\\', '/');
-    }
-
-    public void Dispose()
-    {
-        _repo.Dispose();
+        return string.IsNullOrEmpty(repoPath) ? null : new Repository(repoPath);
     }
 }

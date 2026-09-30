@@ -71,7 +71,7 @@ export const useUpdateFormComponentMutation = (
           ) {
             // Todo: Consider handling this in the backend
             const taskId = layoutSets
-              ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
+              ? layoutSets?.find((set) => set.id === layoutSetName)?.taskId
               : TASKID_FOR_STATELESS_APPS;
             const {
               maxNumberOfAttachments,

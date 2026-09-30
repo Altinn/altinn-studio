@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.ResourceRegistry.Core.Models;
 using Altinn.ResourceRegistry.Models;
 using System.Collections.Generic;
@@ -40,8 +42,8 @@ namespace Altinn.ResourceRegistry.Core
         /// <summary>
         /// Allows for searching for resources in the resource registry
         /// </summary>
-        /// <param name="resourceSearch">The search model defining the search filter criterias</param>
-        /// <returns>A list of service resources found to match the search criterias</returns>
+        /// <param name="resourceSearch">The search model defining the search filter criteria</param>
+        /// <returns>A list of service resources found to match the search criteria</returns>
         Task<List<ServiceResource>> Search(ResourceSearch resourceSearch);
     }
 }

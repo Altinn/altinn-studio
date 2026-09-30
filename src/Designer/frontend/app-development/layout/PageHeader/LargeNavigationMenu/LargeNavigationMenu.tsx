@@ -4,6 +4,7 @@ import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { StudioPageHeader } from '@studio/components';
 import { UrlUtils } from '@studio/pure-functions';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 
 export type LargeNavigationMenuProps = {
@@ -27,8 +28,12 @@ type HeaderButtonListItemProps = {
 };
 const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
   const location = useLocation();
-  const currentRoutePath: string = UrlUtils.extractLastRouterParam(location.pathname);
+  const { app } = useStudioEnvironmentParams();
 
+  const appNameMatchesMenuItemLink = menuItem.link === app;
+  const isActive: boolean = appNameMatchesMenuItemLink
+    ? UrlUtils.extractThirdRouterParam(location.pathname) === menuItem.link
+    : location.pathname.includes(menuItem.link);
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
@@ -37,8 +42,7 @@ const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactEle
           <NavLink data-color='neutral' to={menuItem.link} {...props}>
             <span
               className={cn({
-                [classes.active]:
-                  UrlUtils.extractLastRouterParam(menuItem.link) === currentRoutePath,
+                [classes.active]: isActive,
               })}
             >
               {menuItem.name}

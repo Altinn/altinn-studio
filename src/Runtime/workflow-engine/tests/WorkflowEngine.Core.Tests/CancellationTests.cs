@@ -3,8 +3,8 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -37,6 +37,7 @@ public class CancellationTests
             buffer.Object,
             Options.Create(settings),
             TimeProvider.System,
+            new ThrottleStateView(TimeProvider.System, Options.Create(settings)),
             NullLogger<WorkflowHandler>.Instance
         );
     }
@@ -45,6 +46,7 @@ public class CancellationTests
         new()
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),

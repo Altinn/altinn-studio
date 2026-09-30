@@ -1,0 +1,5 @@
+[
+  { "value": "apple", "label": { "nb": "Eple", "en": "Apple" } },
+  { "value": "banana", "label": { "nb": "Banan", "en": "Banana" } },
+  { "value": "cherry", "label": { "nb": "Kirsebær", "en": "Cherry" } }
+]

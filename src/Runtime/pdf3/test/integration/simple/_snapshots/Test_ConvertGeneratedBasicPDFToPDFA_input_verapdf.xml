@@ -7,11 +7,11 @@
   </buildInformation>
   <jobs>
     <job>
-      <item size="10379">
+      <item size="10362">
         <name>/data/input.pdf</name>
       </item>
       <validationReport jobEndStatus="normal" profileName="PDF/A-2B validation profile" statement="PDF file is not compliant with Validation Profile requirements." isCompliant="false">
-        <details passedRules="141" failedRules="3" passedChecks="2135" failedChecks="206">
+        <details passedRules="141" failedRules="3" passedChecks="2133" failedChecks="206">
           <rule specification="ISO 19005-2:2011" clause="6.2.4.3" testNumber="2" status="failed" failedChecks="204">
             <description>DeviceRGB shall only be used if a device independent DefaultRGB colour space has been set when the DeviceRGB colour space is used, or if the file has a PDF/A OutputIntent that contains an RGB destination profile</description>
             <object>PDDeviceRGB</object>

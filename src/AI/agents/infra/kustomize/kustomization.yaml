@@ -4,14 +4,15 @@ resources:
   - serviceaccount.yaml
   - service.yaml
   - deployment.yaml
+  - external-secret.yaml
 replacements:
-- source:
-    kind: Deployment
-    name: altinn-altinity-agents
-    fieldPath: metadata.annotations.[altinn.studio/image]
-  targets:
-  - select:
+  - source:
       kind: Deployment
       name: altinn-altinity-agents
-    fieldPaths:
-      - spec.template.spec.containers.[name=altinn-altinity-agents].image
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: altinn-altinity-agents
+        fieldPaths:
+          - spec.template.spec.containers.[name=altinn-altinity-agents].image

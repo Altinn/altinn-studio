@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ReferenceIcon, TrashIcon } from '@studio/icons';
+import { FilesIcon, ReferenceIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButtons.module.css';
 import cn from 'classnames';
@@ -22,6 +22,7 @@ export const ActionButtons = ({ schemaPointer, className, uniquePointer }: Actio
   const node = savableModel.getNodeBySchemaPointer(schemaPointer);
 
   const convertToReference = () => savableModel.convertToDefinitionAndSave(schemaPointer);
+  const duplicateNode = () => savableModel.duplicateNodeAndSave(schemaPointer);
   const hasReferringNodes = savableModel.hasReferringNodes(schemaPointer);
   const actionButtonTitleKey = hasReferringNodes
     ? 'schema_editor.disable_deletion_info_for_used_definition'
@@ -39,6 +40,11 @@ export const ActionButtons = ({ schemaPointer, className, uniquePointer }: Actio
           onClick={convertToReference}
         />
       )}
+      <ActionButton
+        icon={<FilesIcon />}
+        titleKey='schema_editor.duplicate_field'
+        onClick={duplicateNode}
+      />
       <ActionButton
         data-color='danger'
         icon={<TrashIcon />}

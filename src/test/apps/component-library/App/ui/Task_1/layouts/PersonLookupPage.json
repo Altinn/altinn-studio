@@ -11,8 +11,8 @@
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "person_lookup_ssn": "GridExample.ExampleInputTwo",
-          "person_lookup_name": "street"
+          "ssn": "GridExample.ExampleInputTwo",
+          "fullName": "street"
         },
         "textResourceBindings": {
           "title": "Legg til person",
@@ -23,7 +23,7 @@
       },
       {
         "id": "PersonLookup-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         },
@@ -40,7 +40,6 @@
       {
         "id": "PersonLookupPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

@@ -13,7 +13,7 @@ public interface IKubernetesDeploymentsService
     /// <summary>
     /// Gets kubernetes deployments
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>List of kubernetes deployments for a specific app</returns>

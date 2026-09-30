@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { TextResource } from '@studio/components-legacy';
+import type { TextResource } from '@studio/pure-functions';
 import { createTextResourceWithLanguage, convertTextResourceToMutationArgs } from '../utils';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

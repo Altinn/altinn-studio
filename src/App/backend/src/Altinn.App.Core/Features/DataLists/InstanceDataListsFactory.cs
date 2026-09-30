@@ -6,12 +6,12 @@ namespace Altinn.App.Core.Features.DataLists;
 /// Factory class for resolving <see cref="IInstanceDataListProvider"/> implementations
 /// based on the name/id of the data lists requested.
 /// </summary>
-public class InstanceDataListsFactory
+internal sealed class InstanceDataListsFactory
 {
     private readonly AppImplementationFactory _appImplementationFactory;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DataListsFactory"/> class.
+    /// Initializes a new instance of the <see cref="InstanceDataListsFactory"/> class.
     /// </summary>
     public InstanceDataListsFactory(IServiceProvider serviceProvider)
     {

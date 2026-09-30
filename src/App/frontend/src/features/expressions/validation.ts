@@ -5,7 +5,15 @@ import {
 } from 'src/features/expressions/expression-functions';
 import { prettyErrors } from 'src/features/expressions/prettyErrors';
 import { ExprVal } from 'src/features/expressions/types';
-import type { AnyExprArg, Expression, ExprFunctionName, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type {
+  AnyExprArg,
+  Expression,
+  ExprFunctionName,
+  ExprValToActualOrExpr,
+  ValidArray,
+  ValidObject,
+  ValidValue,
+} from 'src/features/expressions/types';
 
 export enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',
@@ -322,3 +330,39 @@ export const ExprValidation = {
    */
   throwIfInvalid,
 };
+
+export function assertValidValue(value: unknown): asserts value is ValidValue {
+  if (!isValidValue(value)) {
+    throw new Error(`Invalid expression value.`);
+  }
+}
+
+export function isValidValue(value: unknown): value is ValidValue {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    value === null ||
+    isValidArray(value) ||
+    isValidObject(value)
+  );
+}
+
+export function isValidArray(value: unknown): value is ValidArray {
+  return Array.isArray(value) && value.every(isValidValue);
+}
+
+export function isValidObject(value: unknown): value is ValidObject {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !isClassInstance(value) &&
+    Object.values(value).every(isValidValue)
+  );
+}
+
+function isClassInstance(value: unknown): boolean {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype !== Object.prototype && prototype !== null;
+}

@@ -7,6 +7,7 @@ import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
 import { NoEnvironmentsAlert } from './NoEnvironmentsAlert';
 import { DeploymentContainer } from './DeploymentContainer';
+import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
 
 type DeploymentsProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
@@ -19,13 +20,14 @@ export const Deployments = ({ className }: DeploymentsProps) => {
     isError: isOrgsError,
   } = useOrgListQuery({ hideDefaultError: true });
 
-  const {
-    data: repository,
-    isPending: repositoryIsPending,
-    isError: repositoryIsError,
-  } = useRepoMetadataQuery(org, app, { hideDefaultError: true });
+  const { isPending: repositoryIsPending, isError: repositoryIsError } = useRepoMetadataQuery(
+    org,
+    app,
+    { hideDefaultError: true },
+  );
   const selectedOrg = orgs?.[org];
   const hasNoEnvironments = !(selectedOrg?.environments?.length ?? 0);
+  const isRepoOwnerOrg = useIsRepoOwnerOrg();
 
   const { t } = useTranslation();
 
@@ -36,10 +38,7 @@ export const Deployments = ({ className }: DeploymentsProps) => {
   if (isOrgsError || repositoryIsError)
     return <StudioError>{t('overview.deployments_error')}</StudioError>;
 
-  // If repo-owner is an organisation
-  const repoOwnerIsOrg = orgs && Object.keys(orgs).includes(repository?.owner.login);
-
-  if (!repoOwnerIsOrg) {
+  if (!isRepoOwnerOrg) {
     return (
       <section className={className}>
         <RepoOwnedByPersonInfo />

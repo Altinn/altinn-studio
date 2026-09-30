@@ -46,7 +46,7 @@ export const ResourceDeployEnvCard = ({
   const { org, app, resourceId } = useUrlParams();
 
   // Query function for publishing a resource
-  const { mutate: publishResource, isPending: publisingResourcePending } =
+  const { mutate: publishResource, isPending: publishingResourcePending } =
     usePublishResourceMutation(org, app, resourceId);
 
   const handlePublish = () => {
@@ -64,7 +64,7 @@ export const ResourceDeployEnvCard = ({
 
   return (
     <div className={classes.cardWrapper}>
-      {publisingResourcePending ? (
+      {publishingResourcePending ? (
         <StudioSpinner aria-label={t('resourceadm.deploy_deploying')}></StudioSpinner>
       ) : (
         <>

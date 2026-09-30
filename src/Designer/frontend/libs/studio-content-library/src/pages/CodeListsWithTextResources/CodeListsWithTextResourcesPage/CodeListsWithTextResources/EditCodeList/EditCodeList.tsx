@@ -1,16 +1,14 @@
-import type {
-  CodeListWithTextResources,
-  CodeListEditorTexts,
-  TextResource,
-} from '@studio/components-legacy';
-import { StudioCodeListEditor } from '@studio/components-legacy';
+import type { CodeListWithTextResources, CodeListEditorTexts } from '@studio/components';
+import type { TextResource } from '@studio/pure-functions';
 import {
+  StudioCodeListEditorWithTextResources,
   StudioDeleteButton,
   StudioDisplayTile,
   StudioDialog,
   StudioHeading,
   StudioToggleableTextfield,
 } from '@studio/components';
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../types/CodeListWithMetadata';
@@ -70,7 +68,7 @@ export function EditCodeList({
         codeListNames={codeListNames}
         onUpdateCodeListId={onUpdateCodeListId}
       />
-      <StudioCodeListEditor
+      <StudioCodeListEditorWithTextResources
         codeList={codeList}
         onCreateTextResource={onCreateTextResource}
         onUpdateTextResource={onUpdateTextResource}

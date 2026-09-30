@@ -5,20 +5,21 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 )
 
 func newRenderModel(
 	resources []resource.Resource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) *renderModel {
 	return newRenderModelResources(renderResourcesFromResources(resources), operation, statuses)
 }
 
 func newRenderModelPlanned(
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) *renderModel {
 	return newRenderModelResources(renderResourcesFromPlan(resources), operation, statuses)
 }
@@ -39,7 +40,7 @@ func renderResourcesFromResources(resources []resource.Resource) []renderResourc
 	return rows
 }
 
-func renderResourcesFromPlan(resources []resource.PlannedResource) []renderResource {
+func renderResourcesFromPlan(resources []executor.PlannedResource) []renderResource {
 	rows := make([]renderResource, 0, len(resources))
 	for _, res := range resources {
 		if row, ok := renderResourceFromResource(res.Resource, res.ID); ok {
@@ -83,7 +84,7 @@ func renderNameFromID(id resource.ResourceID) string {
 func newRenderModelResources(
 	resources []renderResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) *renderModel {
 	rowMap := make(map[string]*progressRow)
 	order := make([]string, 0)
@@ -126,22 +127,22 @@ func newRenderModelResources(
 func skipInitialResource(
 	id resource.ResourceID,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) bool {
 	if operation != OperationDestroy || statuses == nil {
 		return false
 	}
 	status, ok := statuses[id]
-	return ok && status == resource.StatusDestroyed
+	return ok && status == executor.StatusDestroyed
 }
 
 func newProgressRowFromStatus(
 	name string,
 	operation Operation,
-	status resource.Status,
+	status executor.Status,
 ) *progressRow {
 	row := newProgressRow(name)
-	if operation != OperationApply || status != resource.StatusReady {
+	if operation != OperationApply || status != executor.StatusReady {
 		return row
 	}
 
@@ -164,7 +165,7 @@ func newProgressRow(name string) *progressRow {
 	}
 }
 
-func (m *renderModel) applyEvent(event resource.Event, now time.Time) []string {
+func (m *renderModel) applyEvent(event executor.Event, now time.Time) []string {
 	rowNames, ok := m.resourceToRows[event.Resource]
 	if !ok {
 		return nil
@@ -236,26 +237,26 @@ func (m *renderModel) hasLiveRows() bool {
 	return false
 }
 
-func applyEventToRow(row *progressRow, event resource.Event, now time.Time) bool {
+func applyEventToRow(row *progressRow, event executor.Event, now time.Time) bool {
 	switch event.Type {
-	case resource.EventApplyStart:
+	case executor.EventApplyStart:
 		applyStartEvent(row, event.Resource, now)
 		return true
-	case resource.EventApplyProgress:
+	case executor.EventApplyProgress:
 		return applyProgressEvent(row, event.Progress, now)
-	case resource.EventApplyDone:
+	case executor.EventApplyDone:
 		applyDoneEvent(row, event.Resource, now)
 		return true
-	case resource.EventApplyFailed:
+	case executor.EventApplyFailed:
 		applyFailedEvent(row, event.Error, now)
 		return true
-	case resource.EventDestroyStart:
+	case executor.EventDestroyStart:
 		destroyStartEvent(row, event.Resource, now)
 		return true
-	case resource.EventDestroyDone:
+	case executor.EventDestroyDone:
 		destroyDoneEvent(row, now)
 		return true
-	case resource.EventDestroyFailed:
+	case executor.EventDestroyFailed:
 		applyFailedEvent(row, event.Error, now)
 		return true
 	default:
@@ -273,7 +274,7 @@ func applyStartEvent(row *progressRow, resourceID resource.ResourceID, now time.
 	row.state = stateForApplyStart(resourceID)
 }
 
-func applyProgressEvent(row *progressRow, progress *resource.Progress, now time.Time) bool {
+func applyProgressEvent(row *progressRow, progress *executor.Progress, now time.Time) bool {
 	if progress == nil {
 		return false
 	}
@@ -385,10 +386,12 @@ func stateForApplyStart(resourceID resource.ResourceID) string {
 	switch {
 	case strings.HasPrefix(id, "network:"):
 		return stateCreating
-	case strings.HasPrefix(id, "image:local:"):
+	case strings.HasPrefix(id, "image:built:"):
 		return stateBuilding
-	case strings.HasPrefix(id, "image:remote:"):
+	case strings.HasPrefix(id, "image:pulled:"):
 		return statePulling
+	case strings.HasPrefix(id, "image:published:"):
+		return stateWorking
 	case strings.HasPrefix(id, "container:"):
 		return stateStarting
 	default:

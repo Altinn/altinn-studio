@@ -17,7 +17,7 @@ import {
   getPageOptions,
   getTargetLayoutSetName,
 } from './targetUtils';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../../../../hooks/queries/useLayoutSetsExtendedQuery';
 import cn from 'classnames';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
@@ -79,7 +79,7 @@ export const Summary2Target = ({ target, onChange, className }: Summary2TargetPr
         onChange={(e) => handleLayoutSetChange(e.target.value)}
       >
         {layoutSetOptions.map((set) => (
-          <StudioSelect.Option key={set.id} value={set.id === layoutSet ? '' : set.task.id}>
+          <StudioSelect.Option key={set.id} value={set.id === layoutSet ? '' : set.id}>
             {set.id}
           </StudioSelect.Option>
         ))}

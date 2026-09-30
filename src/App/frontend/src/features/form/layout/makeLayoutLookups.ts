@@ -1,9 +1,14 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
-import type { IDataModelReference } from 'src/layout/common.generated';
-import type { CompExternal, CompTypes, ILayouts } from 'src/layout/layout';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { CompExternal, CompTypes, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
-import type { ChildClaimsMap } from 'src/utils/layout/generator/GeneratorContext';
+
+type ChildClaimsMap = {
+  [parentId: string]: Set<string>;
+};
 
 interface PlainLayoutLookups {
   // Map of all component ids (without row indexes) to component definitions
@@ -28,6 +33,11 @@ interface PlainLayoutLookups {
           [field: string]: string[] | undefined;
         }
       | undefined;
+  };
+
+  // Map of hidden expressions for pages
+  hiddenPerPage: {
+    [pageKey: string]: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
   };
 }
 
@@ -69,11 +79,12 @@ export type LayoutLookups = PlainLayoutLookups & RelationshipLookups & LookupFun
  * Make the simple hash-maps for all components in the layouts. This is used to quickly look up component, and
  * which components are on which pages.
  */
-function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
+function makePlainLookup(layouts: ILayouts, layoutCollection: ILayoutCollection): PlainLayoutLookups {
   const allComponents: PlainLayoutLookups['allComponents'] = {};
   const allPerPage: PlainLayoutLookups['allPerPage'] = {};
   const componentToPage: PlainLayoutLookups['componentToPage'] = {};
   const dataModelToComponents: PlainLayoutLookups['dataModelToComponents'] = {};
+  const hiddenPerPage: PlainLayoutLookups['hiddenPerPage'] = {};
 
   for (const pageKey of Object.keys(layouts)) {
     const page = layouts[pageKey];
@@ -81,6 +92,7 @@ function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
       continue;
     }
 
+    hiddenPerPage[pageKey] = layoutCollection[pageKey]?.data.hidden;
     allPerPage[pageKey] = [];
     for (const component of page) {
       allComponents[component.id] = component;
@@ -104,7 +116,7 @@ function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
     }
   }
 
-  return { allComponents, allPerPage, componentToPage, dataModelToComponents };
+  return { allComponents, allPerPage, componentToPage, dataModelToComponents, hiddenPerPage };
 }
 
 /**
@@ -112,8 +124,8 @@ function makePlainLookup(layouts: ILayouts): PlainLayoutLookups {
  * page (in their defined order), and serves as a tool for looking up component definitions by id, along with
  * parent/child relationships.
  */
-export function makeLayoutLookups(layouts: ILayouts): LayoutLookups {
-  const plainLookups = makePlainLookup(layouts);
+export function makeLayoutLookups(layouts: ILayouts, layoutCollection: ILayoutCollection): LayoutLookups {
+  const plainLookups = makePlainLookup(layouts, layoutCollection);
   const componentToParent: { [componentId: string]: { type: 'page'; id: string } | { type: 'node'; id: string } } = {};
   const componentToChildren: { [componentId: string]: string[] } = {};
   const topLevelComponents: { [pageKey: string]: string[] } = {};

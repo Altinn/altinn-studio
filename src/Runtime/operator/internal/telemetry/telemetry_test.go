@@ -210,7 +210,7 @@ func assertKubernetesTransportLeavesErrorStatus(t *testing.T, statusCode int, pa
 		t.Fatalf("unexpected span status: got %s want %s", span.Status().Code, codes.Error)
 	}
 
-	if got := findAttribute(span.Attributes(), testAzureMonitorExpected404Attribute); got.Type() != attribute.INVALID {
+	if got := findAttribute(span.Attributes(), testAzureMonitorExpected404Attribute); got.Type() != attribute.EMPTY {
 		t.Fatalf("unexpected success override attribute: got %v", got)
 	}
 }

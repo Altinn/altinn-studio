@@ -13,7 +13,7 @@ import { renderGenericComponentTest, RenderGenericComponentTestProps } from 'src
 const attachmentsMock: UploadedAttachment[] = getAttachmentsMock({ count: 1, fileSize: 500 });
 
 describe('ImageUploadComponent', () => {
-  beforeEach(() => jest.restoreAllMocks());
+  beforeEach(() => vi.restoreAllMocks());
 
   it('should render label', async () => {
     await renderImageUploadComponent();
@@ -21,10 +21,10 @@ describe('ImageUploadComponent', () => {
   });
 
   it('should render delete button when there is an stored image', async () => {
-    jest.spyOn(imageHooks, 'useImageFile').mockReturnValue({
+    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
       storedImage: attachmentsMock[0],
-      saveImage: jest.fn(),
-      deleteImage: jest.fn(),
+      saveImage: vi.fn(),
+      deleteImage: vi.fn(),
     });
 
     await renderImageUploadComponent();
@@ -33,10 +33,10 @@ describe('ImageUploadComponent', () => {
   });
 
   it('should render disabled delete button when there is an stored image and is readOnly', async () => {
-    jest.spyOn(imageHooks, 'useImageFile').mockReturnValue({
+    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
       storedImage: attachmentsMock[0],
-      saveImage: jest.fn(),
-      deleteImage: jest.fn(),
+      saveImage: vi.fn(),
+      deleteImage: vi.fn(),
     });
     await renderImageUploadComponent({ component: { readOnly: true } });
     const deleteButton = screen.getByRole('button', { name: 'Slett bildet' });
@@ -46,11 +46,11 @@ describe('ImageUploadComponent', () => {
 
   it('should call to delete image when delete button is clicked', async () => {
     const user = userEvent.setup();
-    const deleteImage = jest.fn();
+    const deleteImage = vi.fn();
 
-    jest.spyOn(imageHooks, 'useImageFile').mockReturnValue({
+    vi.spyOn(imageHooks, 'useImageFile').mockReturnValue({
       storedImage: attachmentsMock[0],
-      saveImage: jest.fn(),
+      saveImage: vi.fn(),
       deleteImage,
     });
 

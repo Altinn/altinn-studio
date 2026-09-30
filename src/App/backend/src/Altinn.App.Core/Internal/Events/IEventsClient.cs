@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Events;
@@ -10,5 +11,19 @@ public interface IEventsClient
     /// <summary>
     /// Adds a new event to the events published by the Events component.
     /// </summary>
-    Task<string> AddEvent(string eventType, Instance instance);
+    /// <param name="eventType">The type of the event</param>
+    /// <param name="instance">The instance the event relates to</param>
+    /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="idempotencyKey">
+    /// Optional key identifying this registration across every attempt at it. A key is globally unique and
+    /// registers exactly one event.
+    /// </param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
+    Task<string> AddEvent(
+        string eventType,
+        Instance instance,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        Guid? idempotencyKey = null,
+        CancellationToken cancellationToken = default
+    );
 }

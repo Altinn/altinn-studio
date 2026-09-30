@@ -1,5 +1,7 @@
 #nullable disable
+using System.Net.Http;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.AppDist;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -10,18 +12,19 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Implementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.Assistant;
 using Altinn.Studio.Designer.Services.Implementation.GitOps;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Implementation.Validation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
@@ -30,6 +33,7 @@ using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure;
@@ -51,12 +55,34 @@ public static class ServiceRegistration
     {
         services.AddTransient<IRepository, RepositoryService>();
         services.AddTransient<ISchemaModelService, SchemaModelService>();
+        services.AddTransient<IPrefillService, PrefillService>();
         services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
         services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
+        services.AddTransient<IRepositoryCleanupService, RepositoryCleanupService>();
+        services.AddTransient<RepositoryCleanupCandidateSource>();
+        services.AddTransient<RepositoryCleanupCandidateProcessor>();
+        services.AddTransient<RepositoryFileTimestampScanner>();
+        services.AddTransient<IRepositoryDirectoryCleaner, RepositoryDirectoryCleaner>();
 
         services.AddTransient<ISourceControl, SourceControlService>();
 
         services.AddSingleton(configuration);
+
+        services.AddHttpClient(nameof(OciRegistrySource));
+        services.AddSingleton<IAppDistProvider>(serviceProvider =>
+        {
+            AppDistSettings appDistSettings = serviceProvider.GetRequiredService<IOptions<AppDistSettings>>().Value;
+            ServiceRepositorySettings repositorySettings = serviceProvider
+                .GetRequiredService<IOptions<ServiceRepositorySettings>>()
+                .Value;
+            HttpClient httpClient = serviceProvider
+                .GetRequiredService<IHttpClientFactory>()
+                .CreateClient(nameof(OciRegistrySource));
+            return new AppDistProvider(
+                new OciRegistrySource(httpClient, appDistSettings.Repository),
+                new FileSystemAppDistStore(appDistSettings.ResolveCacheDirectory(repositorySettings.RepositoryLocation))
+            );
+        });
 
         services.AddDbContext<DesignerdbContext>(options =>
         {
@@ -75,11 +101,15 @@ public static class ServiceRegistration
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
         services.AddScoped<IContactPointsRepository, ContactPointRepository>();
+        services.AddScoped<IAdminAuditLogRepository, AdminAuditLogRepository>();
+        services.AddScoped<IAdminAuditLogger, AdminAuditLogger>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
         services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
         services.AddScoped<IUserOrganizationService, UserOrganizationService>();
         services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
+        services.AddScoped<ICanUseFeatureEvaluator, CanUseAiAssistantEvaluator>();
+        services.AddScoped<ICanUseAiAssistantEvaluator, CanUseAiAssistantEvaluator>();
         services.AddTransient<IReleaseService, ReleaseService>();
         services.AddTransient<IDeploymentService, DeploymentService>();
         services.AddTransient<IAppScopesService, AppScopesService>();
@@ -109,10 +139,13 @@ public static class ServiceRegistration
         services.AddScoped<StudioctlAuthService>();
         services.AddHttpClient<IOrgService, OrgService>();
         services.AddHttpClient<ImageClient>();
+        services.AddTransient<IAppVersionService, AppVersionService>();
         services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
         services.AddTransient<IUiFoldersService, UiFoldersService>();
+        services.AddTransient<ILayoutReferenceUpdater, LayoutReferenceUpdater>();
         services.AddTransient<ITaskNavigationService, TaskNavigationService>();
         services.AddTransient<IPreviewService, PreviewService>();
+        services.AddTransient<IPreviewBootstrapService, PreviewBootstrapService>();
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
@@ -120,15 +153,18 @@ public static class ServiceRegistration
         services.AddTransient<ILayoutService, LayoutService>();
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
+        services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
+        services.AddSingleton<AssistantAttachmentBuffer>();
+        services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
         services.RegisterDatamodeling(configuration);
-        services.RegisterSettingsSingleton<KafkaSettings>(configuration);
-        services.AddTransient<IKafkaProducer, KafkaProducer>();
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();
         services.AddTransient<IGitOpsManifestsRenderer, GitOpsManifestsRenderer>();
         services.AddTransient<IOrgLibraryService, OrgLibraryService>();
         services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
+        services.AddTransient<ITaskDefaultDataTypeBindingValidator, TaskDefaultDataTypeBindingValidator>();
         services.AddTransient<ICustomTemplateService, CustomTemplateService>();
+        services.AddSingleton<IAppTemplateCatalog, AppTemplateCatalog>();
         services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
         services.AddScoped<IApiKeyService, ApiKeyService>();
         services.AddScoped<IBotAccountService, BotAccountService>();

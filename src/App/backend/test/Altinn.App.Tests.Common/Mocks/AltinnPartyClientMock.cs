@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Tests.Common.Data;
 using Altinn.Platform.Register.Models;
@@ -15,24 +16,32 @@ public class AltinnPartyClientMock : IAltinnPartyClient
 
     private readonly string _partyFolder = CommonTestData.GetAltinnProfilePath();
 
-    public async Task<Party?> GetParty(int partyId)
+    public async Task<Party?> GetParty(
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         var file = Path.Join(_partyFolder, $"{partyId}.json");
         await using var fileHandle = File.OpenRead(file); // Throws exception if missing (helps with debugging tests)
         return await JsonSerializer.DeserializeAsync<Party>(fileHandle, _jsonSerializerOptions);
     }
 
-    public Task<int?> GetPartyIdByUrn(string urn)
+    public Task<int?> GetPartyIdByUrn(string urn, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Guid?> GetPartyUuidByUrn(string urn)
+    public Task<Guid?> GetPartyUuidByUrn(string urn, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<Party> LookupParty(PartyLookup partyLookup)
+    public async Task<Party> LookupParty(
+        PartyLookup partyLookup,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         var files = Directory.GetFiles(_partyFolder, "*.json");
         foreach (var file in files)
@@ -50,7 +59,7 @@ public class AltinnPartyClientMock : IAltinnPartyClient
             }
         }
 
-        // Current implementation throws PlatformException if party is not found. Not sure what the correct behaviour for tests is.
+        // Current implementation throws PlatformException if party is not found. Not sure what the correct behavior for tests is.
         throw new Exception(
             $"Could not find party with orgNo {partyLookup.OrgNo} or ssn {partyLookup.Ssn} in {_partyFolder}"
         );

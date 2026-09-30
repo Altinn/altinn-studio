@@ -35,7 +35,7 @@ export class UnexpectedType extends ExprRuntimeError {
 }
 
 export class NodeRelationNotFound extends ExprRuntimeError {
-  public constructor(ctx: EvaluateExpressionParams<[]>, id: string) {
+  public constructor(ctx: EvaluateExpressionParams, id: string) {
     super(
       ctx.expr,
       ctx.path,

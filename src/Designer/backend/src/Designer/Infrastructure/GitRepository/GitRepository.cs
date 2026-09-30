@@ -90,7 +90,10 @@ public class GitRepository
 
         string searchPatternMatch = patternMatch ?? "*.*";
 
-        return Directory.GetFiles(absoluteDirectory, searchPatternMatch, searchOption);
+        return Directory
+            .GetFiles(absoluteDirectory, searchPatternMatch, searchOption)
+            .Where(filePath => !IsReplacementFile(filePath))
+            .ToArray();
     }
 
     /// <summary>
@@ -137,7 +140,7 @@ public class GitRepository
     {
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
-        // Commented out ref comment below in the ReadTextByRelativePathAsync methdod
+        // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
         return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
     }
@@ -371,9 +374,13 @@ public class GitRepository
     /// <param name="relativeFilePath">Relative path to file to check for existence.</param>
     public bool FileExistsByRelativePath(string relativeFilePath)
     {
-        string absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
-
-        if (!absoluteFilePath.StartsWith(RepositoryDirectory))
+        string absoluteFilePath;
+        try
+        {
+            absoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(relativeFilePath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        }
+        catch (ArgumentException)
         {
             return false;
         }
@@ -387,9 +394,12 @@ public class GitRepository
     /// <param name="relativeDirectoryPath">Relative path to directory to check for existence.</param>
     public bool DirectoryExistsByRelativePath(string relativeDirectoryPath)
     {
-        string absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
-
-        if (!absoluteDirectoryPath.StartsWith(RepositoryDirectory))
+        string absoluteDirectoryPath;
+        try
+        {
+            absoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectoryPath);
+        }
+        catch (ArgumentException)
         {
             return false;
         }
@@ -456,8 +466,19 @@ public class GitRepository
         // By first combining the paths, the getting the full path you will get c:\altinn\repositories\developer\org\repo\somefile.txt
         // This also makes it easier to avoid people trying to get outside their repository directory.
         relativeFilePath = relativeFilePath.Replace('\\', Path.DirectorySeparatorChar);
-        string absoluteFilePath = Path.Combine(RepositoryDirectory, relativeFilePath);
-        absoluteFilePath = Path.GetFullPath(absoluteFilePath);
+        string absoluteFilePath = Path.GetFullPath(Path.Combine(RepositoryDirectory, relativeFilePath));
+
+        // Verify the canonical path stays within the repository directory. The normalization and the
+        // prefix check are kept together here (including the trailing separator) so static analysis
+        // credits this as a path-traversal barrier on the value returned to every caller.
+        string repositoryDirectoryWithSeparator = RepositoryDirectory + Path.DirectorySeparatorChar;
+        if (!absoluteFilePath.StartsWith(repositoryDirectoryWithSeparator, StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                $"The path '{absoluteFilePath}' must be located within the repository directory '{RepositoryDirectory}'."
+            );
+        }
+
         return absoluteFilePath;
     }
 
@@ -502,15 +523,10 @@ public class GitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] encodedText = Encoding.UTF8.GetBytes(text);
-        await using FileStream sourceStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => targetStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken)
         );
-        await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
     private static async Task WriteAsync(
@@ -519,14 +535,66 @@ public class GitRepository
         CancellationToken cancellationToken = default
     )
     {
-        await using FileStream targetStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => new ValueTask(
+                stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken)
+            )
         );
-        await stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken);
+    }
+
+    private const string ReplacementFilePrefix = ".";
+
+    // The app template ignores *.tmp, so git does not stage a replacement file in an app repository.
+    private const string ReplacementFileExtension = ".tmp";
+
+    private static bool IsReplacementFile(string filePath)
+    {
+        string fileName = Path.GetFileName(filePath);
+        return fileName.StartsWith(ReplacementFilePrefix, StringComparison.Ordinal)
+            && fileName.EndsWith(ReplacementFileExtension, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Writes the content to a temporary file next to the target and then moves it over the target, so a concurrent
+    /// reader gets either the previous or the new content, and a failed write leaves the previous content.
+    /// </summary>
+    private static async Task ReplaceFileAsync(string absoluteFilePath, Func<FileStream, ValueTask> writeContent)
+    {
+        string temporaryFilePath = Path.Combine(
+            Path.GetDirectoryName(absoluteFilePath),
+            $"{ReplacementFilePrefix}{Path.GetFileName(absoluteFilePath)}.{Guid.NewGuid():N}{ReplacementFileExtension}"
+        );
+        try
+        {
+            await using (
+                FileStream temporaryStream = new(
+                    temporaryFilePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true
+                )
+            )
+            {
+                await writeContent(temporaryStream);
+            }
+
+            if (!OperatingSystem.IsWindows() && File.Exists(absoluteFilePath))
+            {
+                File.SetUnixFileMode(temporaryFilePath, File.GetUnixFileMode(absoluteFilePath));
+            }
+
+            File.Move(temporaryFilePath, absoluteFilePath, overwrite: true);
+        }
+        catch
+        {
+            if (File.Exists(temporaryFilePath))
+            {
+                File.Delete(temporaryFilePath);
+            }
+            throw;
+        }
     }
 }

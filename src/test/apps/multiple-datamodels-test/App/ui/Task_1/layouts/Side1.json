@@ -10,7 +10,7 @@
       {
         "size": "M",
         "id": "Header-GPW9rL",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Side1.Header-GPW9rL.title"
         }
@@ -32,7 +32,7 @@
       {
         "size": "M",
         "id": "Header-vzkx0K",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Side1.Header-vzkx0K.title"
         }
@@ -75,7 +75,7 @@
       {
         "size": "M",
         "id": "Header-adresse",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "En god blanding"
         }
@@ -104,7 +104,7 @@
       },
       {
         "id": "Header-sharedperson",
-        "type": "Header",
+        "type": "Heading",
         "size": "M",
         "textResourceBindings": {
           "title": "sharedperson-header"
@@ -112,7 +112,6 @@
       },
       {
         "id": "navbuttons1",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

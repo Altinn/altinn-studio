@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.ResourceRegistry.Core.Enums;
 using Altinn.ResourceRegistry.Core.Models;
 using System.Text.Json.Serialization;
@@ -6,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.ResourceRegistry.Models
 {
     /// <summary>
-    /// Model describing a complete resource from the resrouce registry
+    /// Model describing a complete resource from the resource registry
     /// </summary>
     public class ServiceResource
     {

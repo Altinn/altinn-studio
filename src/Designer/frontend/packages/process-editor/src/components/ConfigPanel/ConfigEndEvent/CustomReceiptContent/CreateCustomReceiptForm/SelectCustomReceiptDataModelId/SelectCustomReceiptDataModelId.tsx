@@ -27,25 +27,22 @@ export const SelectCustomReceiptDataModelId = ({
     existingDataModelId,
   );
 
-  const selectedItems: StudioSuggestionItem = selectedValue
-    ? { value: selectedValue, label: selectedValue }
-    : undefined;
-
-  const handleSelectedChange = (item: StudioSuggestionItem) => {
-    const newValue = item.value || '';
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    const newValue = item?.value ?? '';
     setSelectedValue(newValue);
     onChange(newValue);
   };
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       multiple={false}
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       emptyText={t('process_editor.configuration_panel_no_data_model_to_select')}
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      selected={selectedItems}
+      selected={selectedValue || null}
       onSelectedChange={handleSelectedChange}
     >
       {allDataModelIds.map((option) => (

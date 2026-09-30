@@ -9,6 +9,8 @@ internal sealed class ContainerDiscovery : IAppDiscovery
     private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
 
+    public TimeSpan PassivePollInterval => TimeSpan.FromSeconds(10);
+
     private readonly string? _studioctlPath;
     private readonly ILogger<ContainerDiscovery> _logger;
 

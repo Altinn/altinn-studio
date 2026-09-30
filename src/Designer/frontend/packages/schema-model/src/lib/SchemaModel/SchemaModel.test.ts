@@ -14,6 +14,7 @@ import {
   referenceNodeMock,
   referenceToCombinationDefNodeMock,
   referenceToObjectNodeMock,
+  requiredNodeMock,
   rootNodeMock,
   simpleArrayMock,
   simpleChildNodeMock,
@@ -108,6 +109,23 @@ describe('SchemaModel', () => {
       expect(schemaModel.getNodeByUniquePointer(uniqueGrandchildPointer)).toEqual(
         defNodeWithChildrenGrandchildMock,
       );
+    });
+  });
+
+  describe('hasUniquePointer', () => {
+    it('Returns true when the unique pointer refers to an existing node', () => {
+      const uniqueParentPointer = `${UNIQUE_POINTER_PREFIX}${parentNodeMock.schemaPointer}`;
+      expect(schemaModel.hasUniquePointer(uniqueParentPointer)).toBe(true);
+    });
+
+    it('Returns false when the unique pointer refers to a node that does not exist', () => {
+      const uniquePointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/doesNotExist`;
+      expect(schemaModel.hasUniquePointer(uniquePointer)).toBe(false);
+    });
+
+    it('Returns false when the parents of the unique pointer do not exist', () => {
+      const uniquePointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/doesNotExist/properties/child`;
+      expect(schemaModel.hasUniquePointer(uniquePointer)).toBe(false);
     });
   });
 
@@ -438,8 +456,7 @@ describe('SchemaModel', () => {
             setup();
             const updatedChildren = model.getChildNodes(parentPointer);
             const updatedParent = model.getNodeBySchemaPointer(parentPointer) as
-              | FieldNode
-              | CombinationNode;
+              FieldNode | CombinationNode;
             const childAtExpectedIndex = updatedChildren[index];
             const childPointerAtExpectedIndex = updatedParent.children[index];
             expect(childAtExpectedIndex).toEqual({
@@ -631,6 +648,22 @@ describe('SchemaModel', () => {
       validateTestUiSchema(result.asArray());
     });
 
+    it('Renumbers the remaining children when a child of a combination is deleted', () => {
+      const model = schemaModel.deepClone();
+      const parentPointer = combinationNodeWithMultipleChildrenMock.schemaPointer;
+      const [firstChildPointer, secondChildPointer, thirdChildPointer] =
+        combinationNodeWithMultipleChildrenMock.children;
+      const secondChildTitle = model.getNodeBySchemaPointer(secondChildPointer).title;
+      const thirdChildTitle = model.getNodeBySchemaPointer(thirdChildPointer).title;
+      const result = model.deleteNode(firstChildPointer);
+      const parent = result.getNodeBySchemaPointer(parentPointer) as CombinationNode;
+      expect(parent.children).toEqual([firstChildPointer, secondChildPointer]);
+      expect(result.getNodeBySchemaPointer(firstChildPointer).title).toBe(secondChildTitle);
+      expect(result.getNodeBySchemaPointer(secondChildPointer).title).toBe(thirdChildTitle);
+      expect(result.hasNode(thirdChildPointer)).toBe(false);
+      validateTestUiSchema(result.asArray());
+    });
+
     it('Deletes the given node when it is an unused definition', () => {
       const model = schemaModel.deepClone();
       const result = model.deleteNode(unusedDefinitionMock.schemaPointer);
@@ -655,6 +688,58 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       expect(() => model.deleteNode(defNodeWithChildrenChildMock.schemaPointer)).not.toThrow();
       expect(model.asArray()).not.toEqual(schemaModel.asArray());
+    });
+  });
+
+  describe('duplicateNode', () => {
+    it('Adds a new node as a sibling of the original node, right after it', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(stringNodeMock.schemaPointer);
+      const parent = model.getNodeBySchemaPointer(parentNodeMock.schemaPointer) as FieldNode;
+      const originalIndex = parent.children.indexOf(stringNodeMock.schemaPointer);
+      expect(parent.children[originalIndex + 1]).toEqual(result.schemaPointer);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Copies all settings from the original node', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(requiredNodeMock.schemaPointer);
+      const duplicatedNode = model.getNodeBySchemaPointer(result.schemaPointer);
+      expect(duplicatedNode).toEqual({
+        ...requiredNodeMock,
+        schemaPointer: result.schemaPointer,
+        implicitType: false,
+      });
+    });
+
+    it('Generates a unique name for the new node', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(stringNodeMock.schemaPointer);
+      expect(model.hasNode(result.schemaPointer)).toBe(true);
+      expect(result.schemaPointer).not.toEqual(stringNodeMock.schemaPointer);
+      validateTestUiSchema(model.asArray());
+    });
+
+    it('Does not modify the original node', () => {
+      const model = schemaModel.deepClone();
+      const originalNode = model.getNodeBySchemaPointer(stringNodeMock.schemaPointer);
+      model.duplicateNode(stringNodeMock.schemaPointer);
+      expect(model.getNodeBySchemaPointer(stringNodeMock.schemaPointer)).toEqual(originalNode);
+    });
+
+    it('Duplicates children and grandchildren recursively', () => {
+      const model = schemaModel.deepClone();
+      const result = model.duplicateNode(subParentNodeMock.schemaPointer) as FieldNode;
+      const originalSubParentNode = subParentNodeMock as FieldNode;
+      expect(result.children).toHaveLength(originalSubParentNode.children.length);
+      const duplicatedChild = model.getNodeBySchemaPointer(result.children[0]);
+      expect(duplicatedChild).toEqual({
+        ...subSubNodeMock,
+        schemaPointer: result.children[0],
+        implicitType: false,
+      });
+      expect(duplicatedChild.schemaPointer).not.toEqual(subSubNodeMock.schemaPointer);
+      validateTestUiSchema(model.asArray());
     });
   });
 

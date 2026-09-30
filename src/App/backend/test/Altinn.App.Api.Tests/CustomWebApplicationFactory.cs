@@ -6,6 +6,8 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -152,16 +154,23 @@ public class ApiTestBase
                 .AddInMemoryCollection(_configOverrides)
                 .Build();
 
-            configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
             IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
 
             builder.ConfigureLogging(logging => ConfigureFakeLogging(logging, OutputHelper));
 
+            // The app files are read from the content root, which the test host takes from this setting
+            builder.UseContentRoot(appRootPath);
             builder.ConfigureServices(services => services.Configure<AppSettings>(appSettingSection));
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
             builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
+            if (UseInProcessProcessEngineClient)
+            {
+                builder.ConfigureTestServices(ConfigureInProcessProcessEngineClient);
+            }
             builder.ConfigureTestServices(services => configureServices?.Invoke(services));
+            // Last, so that the hooks every registration above added are applied to the loaded app files
+            builder.ConfigureTestServices(AppFilesMutationHook.Apply);
 
             // Mock IHostEnvironment to return the environment name we want to test
             if (OverrideEnvironment is not null)
@@ -304,6 +313,12 @@ public class ApiTestBase
     protected Action<IServiceCollection> OverrideServicesForAllTests { get; set; } = (services) => { };
 
     /// <summary>
+    /// Set to false in tests that specifically need to test HTTP-based ProcessEngine integration.
+    /// Defaults to true to enable in-process command execution for most tests.
+    /// </summary>
+    protected bool UseInProcessProcessEngineClient { get; set; } = true;
+
+    /// <summary>
     /// Set this within a test to override the service just for that test.
     /// </summary>
     protected Action<IServiceCollection> OverrideServicesForThisTest { get; set; } = (services) => { };
@@ -314,4 +329,38 @@ public class ApiTestBase
     protected Func<HttpRequestMessage, Task<HttpResponseMessage>> SendAsync { get; set; } =
         (request) =>
             throw new NotImplementedException("You must set SendAsync in your test when it uses a real http client.");
+
+    /// <summary>
+    /// Configures the in-process process engine client for testing.
+    /// This replaces the HTTP-based ProcessEngineClient with a synchronous in-process implementation
+    /// that executes commands directly without HTTP calls.
+    /// Call this in your test's OverrideServicesForAllTests or OverrideServicesForThisTest.
+    /// </summary>
+    protected static void ConfigureInProcessProcessEngineClient(IServiceCollection services)
+    {
+        // Remove ALL registrations of IProcessEngineClient (AddHttpClient registers multiple descriptors)
+        services.RemoveAll<IWorkflowEngineClient>();
+
+        // Add the in-process implementation as singleton to ensure it's resolved correctly
+        services.AddSingleton<IWorkflowEngineClient>(sp => new FakeWorkflowEngineClient(
+            sp,
+            sp.GetRequiredService<Altinn.App.Core.Internal.WorkflowEngine.WorkflowCallbackStateService>()
+        ));
+
+        // Mock the events client since it calls external services
+        var eventsClientMock = new Mock<Altinn.App.Core.Internal.Events.IEventsClient>();
+        eventsClientMock
+            .Setup(x =>
+                x.AddEvent(
+                    It.IsAny<string>(),
+                    It.IsAny<Altinn.Platform.Storage.Interface.Models.Instance>(),
+                    It.IsAny<Altinn.App.Core.Features.StorageAuthenticationMethod>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync("mock-event-id");
+        services.RemoveAll<Altinn.App.Core.Internal.Events.IEventsClient>();
+        services.AddSingleton(eventsClientMock.Object);
+    }
 }

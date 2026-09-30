@@ -18,10 +18,8 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationChannel? _notificationChannel;
     private CorrespondenceNotificationChannel? _reminderNotificationChannel;
     private string? _sendersReference;
-    private CorrespondenceNotificationRecipient? _recipientOverride;
-
-    [Obsolete]
-    private List<CorrespondenceNotificationRecipientWrapper>? _recipientToOverrideWrapper;
+    private List<CorrespondenceNotificationRecipient>? _recipientOverrides;
+    private bool _overrideRegisteredContactInformation;
 
     private CorrespondenceNotificationBuilder() { }
 
@@ -115,19 +113,11 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     }
 
     /// <inheritdoc/>
-    [Obsolete("RequestedSendTime is no longer supported by the Correspondence API.")]
-    public ICorrespondenceNotificationBuilder WithRequestedSendTime(DateTimeOffset? requestedSendTime)
-    {
-        // Intentional no-op: RequestedSendTime is no longer accepted by the Correspondence API.
-        return this;
-    }
-
-    /// <inheritdoc/>
     public ICorrespondenceNotificationBuilder WithRecipientOverride(
         ICorrespondenceNotificationOverrideBuilder recipientOverrideBuilder
     )
     {
-        return WithRecipientOverride(recipientOverrideBuilder.Build());
+        return WithRecipientOverrides([recipientOverrideBuilder.Build()]);
     }
 
     /// <inheritdoc/>
@@ -135,8 +125,7 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
         CorrespondenceNotificationRecipient recipientOverride
     )
     {
-        _recipientOverride = recipientOverride;
-        return this;
+        return WithRecipientOverrides([recipientOverride]);
     }
 
     /// <inheritdoc/>
@@ -146,20 +135,28 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     {
         if (recipientOverride is not null)
         {
-            return WithRecipientOverride(recipientOverride);
+            return WithRecipientOverrides([recipientOverride]);
         }
 
         return this;
     }
 
     /// <inheritdoc/>
-    [Obsolete("Use WithRecipientOverride(CorrespondenceNotificationRecipient recipientOverride) instead.")]
-    public ICorrespondenceNotificationBuilder WithRecipientOverride(
-        CorrespondenceNotificationRecipientWrapper recipientToOverrideWrapper
+    public ICorrespondenceNotificationBuilder WithRecipientOverrides(
+        IEnumerable<CorrespondenceNotificationRecipient> recipientOverrides
     )
     {
-        _recipientToOverrideWrapper ??= [];
-        _recipientToOverrideWrapper.Add(recipientToOverrideWrapper);
+        _recipientOverrides ??= [];
+        _recipientOverrides.AddRange(recipientOverrides);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ICorrespondenceNotificationBuilder WithOverrideRegisteredContactInformation(
+        bool overrideRegisteredContactInformation
+    )
+    {
+        _overrideRegisteredContactInformation = overrideRegisteredContactInformation;
         return this;
     }
 
@@ -181,7 +178,8 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
             NotificationChannel = _notificationChannel,
             ReminderNotificationChannel = _reminderNotificationChannel,
             SendersReference = _sendersReference,
-            CustomRecipient = _recipientOverride,
+            CustomRecipients = _recipientOverrides?.ToArray(),
+            OverrideRegisteredContactInformation = _overrideRegisteredContactInformation,
         };
     }
 }

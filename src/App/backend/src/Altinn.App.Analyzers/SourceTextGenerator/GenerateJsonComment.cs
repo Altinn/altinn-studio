@@ -6,17 +6,17 @@ public static class GenerateJsonComment
 {
     public static void Generate(StringBuilder sb, ModelPathNode rootNode)
     {
-        sb.Append("\r\n");
-        sb.Append("// --------------------------------------------------\r\n");
-        sb.Append("// ModelPathNode as json (for debugging)\r\n");
-        sb.Append("// --------------------------------------------------\r\n");
+        sb.Append("\n");
+        sb.Append("// --------------------------------------------------\n");
+        sb.Append("// ModelPathNode as json (for debugging)\n");
+        sb.Append("// --------------------------------------------------\n");
         sb.Append("//");
-        var indent = "\r\n// ";
+        var indent = "\n// ";
         sb.Append(indent);
         sb.Append('{');
         WriteAsJson(sb, rootNode, indent + "  ");
         sb.Append(indent);
-        sb.Append("}\r\n");
+        sb.Append("}\n");
     }
 
     private static void WriteAsJson(StringBuilder sb, ModelPathNode node, string linePrefix)

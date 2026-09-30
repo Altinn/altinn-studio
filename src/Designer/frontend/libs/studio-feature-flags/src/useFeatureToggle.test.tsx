@@ -7,7 +7,7 @@ import { FeatureFlagsContextProvider } from './FeatureFlagsContext';
 import { FeatureFlagMutationContextProvider } from './FeatureFlagMutationContext';
 
 // Test data:
-const enabledFlag = FeatureFlag.Admin;
+const enabledFlag = FeatureFlag.AiAssistant;
 const disabledFlag = FeatureFlag.NewCodeLists;
 const flags = [enabledFlag];
 const addFlag = jest.fn();

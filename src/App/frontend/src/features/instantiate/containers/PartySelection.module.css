@@ -1,3 +1,5 @@
+@value mediaScreenSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .title {
   font-size: 2.1875rem;
   font-weight: 200;
@@ -17,7 +19,7 @@
   width: 100%;
 }
 
-@media screen and (min-width: 768px) {
+@media mediaScreenSmUp {
   .searchFieldContainer {
     width: 50% !important;
   }

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
-/// Controller for text resources on organisation level
+/// Controller for text resources on organization level
 /// </summary>
 [ApiController]
 [Authorize]
@@ -33,7 +33,7 @@ public class OrgTextController : ControllerBase
     /// <summary>
     /// Returns a JSON resource file for the given language code
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="languageCode">The resource language id (for example <code>nb, en</code>)</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The JSON config</returns>
@@ -63,7 +63,7 @@ public class OrgTextController : ControllerBase
     /// </summary>
     /// <param name="jsonData">The JSON Data</param>
     /// <param name="languageCode">The resource language id (for example <code>nb, en</code> )</param>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The updated resource file</returns>
     [HttpPost]
@@ -95,7 +95,7 @@ public class OrgTextController : ControllerBase
     /// language in the text resource files.
     /// Non-existing keys will be added.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
+    /// <param name="org">Unique identifier of the organization.</param>
     /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
     /// <param name="languageCode">The languageCode for the text resource file that is being edited.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -129,9 +129,9 @@ public class OrgTextController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all languages available for the given organisation.
+    /// Gets all languages available for the given organization.
     /// </summary>
-    /// <param name="org">The organisation name</param>
+    /// <param name="org">The organization name</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>List of language codes</returns>
     [HttpGet]

@@ -16,7 +16,7 @@ public class SimpleInstance
     public required string Id { get; set; }
 
     /// <summary>
-    /// Application owner identifier, usually a abbreviation of organisation name. All in lower case.
+    /// Application owner identifier, usually a abbreviation of organization name. All in lower case.
     /// </summary>
     [JsonPropertyName("org")]
     public required string Org { get; set; }

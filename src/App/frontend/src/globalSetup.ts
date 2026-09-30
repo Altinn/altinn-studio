@@ -8,6 +8,7 @@
  *
  * Should work for Windows on node > 17.0.1
  */
-module.exports = async () => {
+// eslint-disable-next-line import/no-default-export
+export default async function globalSetup() {
   process.env.TZ = 'UTC';
-};
+}

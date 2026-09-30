@@ -12,7 +12,6 @@ import 'test/e2e/support/snapshot';
 
 import failOnConsoleError from 'cypress-fail-on-console-error';
 import installLogsCollector from 'cypress-terminal-report/src/installLogsCollector';
-import dotenv from 'dotenv';
 import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
@@ -29,6 +28,23 @@ before(() => {
 beforeEach(() => {
   cy.setEmulatedMedia();
   cy.setCacheDisabled(false);
+});
+
+Cypress.on('fail', (error) => {
+  const loader = Cypress.$('[data-testid="loader"][data-loading="true"]').get(0);
+  const loadingReason = loader?.getAttribute('data-reason');
+  const currentUrl = loader?.ownerDocument.defaultView?.location.href;
+
+  if (loadingReason) {
+    Cypress.log({
+      name: 'loading reason',
+      message: `${loadingReason} (${currentUrl ?? 'unknown URL'})`,
+      consoleProps: () => ({ loadingReason, currentUrl, loader }),
+    });
+    error.message += `\nLoading reason: ${loadingReason}\nURL: ${currentUrl ?? 'unknown'}`;
+  }
+
+  throw error;
 });
 
 afterEach(function () {
@@ -58,7 +74,6 @@ Cypress.Commands.add('ignoreConsoleMessages', (consoleMessages: ConsoleMessage[]
   });
 });
 
-const env = dotenv.config({ quiet: true }).parsed || {};
-if (env.CYPRESS_LOGS_COLLECTOR === 'true') {
+if (Cypress.expose('CYPRESS_LOGS_COLLECTOR') === 'true') {
   installLogsCollector();
 }

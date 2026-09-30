@@ -4,29 +4,28 @@ using Altinn.App.Api.Controllers.Attributes;
 using Altinn.App.Api.Controllers.Conventions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Helpers.Patch;
+using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
-using Altinn.App.Api.Infrastructure.Lifetime;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Features.Correspondence.Extensions;
-using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
-using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Internal.App;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
+using Altinn.Studio.Common;
 using AltinnCore.Authentication.JwtCookie;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -48,13 +47,10 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static void AddAltinnAppControllersWithViews(this IServiceCollection services)
     {
-        // We add this here because it uses a hosted service and we want it to run as early as possible
-        // so that consumers of the cache can rely on it being available.
-        services.AddAppConfigurationCache();
-
         // Add API controllers from Altinn.App.Api
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
         {
+            options.Filters.Add<InstanceStateConflictExceptionFilter>();
             options.Filters.Add<TelemetryEnrichingResultFilter>();
             options.Conventions.Add(new AltinnControllerConventions());
         });
@@ -78,7 +74,8 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds all services to run an Altinn application.
+    /// Adds all services to run an Altinn application. Loads the app resource files (config, models, options and ui folders)
+    /// into memory, so a broken app fails here instead of on the first request.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> being built.</param>
     /// <param name="config">A reference to the current <see cref="IConfiguration"/> object.</param>
@@ -91,7 +88,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddMemoryCache();
         services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
-        services.AddFeatureManagement();
 
         services.AddPlatformServices(config, env);
         services.AddAppServices(config, env);
@@ -109,8 +105,6 @@ public static class ServiceCollectionExtensions
             AddApplicationInsights(services, config, env);
         }
 
-        // AddMaskinportenClient adds a keyed service. This needs to happen after AddApplicationInsights,
-        // due to a bug in app insights: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2828
         services.AddMaskinportenClient();
         services.AddCorrespondenceClient();
 
@@ -137,46 +131,14 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerFilter();
 
         // Add swagger endpoint for end user system api documentation
-        var appId = StartupHelper.GetApplicationId();
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath);
         services.Configure<SwaggerUIOptions>(c =>
         {
             c.SwaggerEndpoint($"/{appId}/v1/customOpenapi.json", $"End user app API for {appId}");
         });
+
+        services.AddAppFiles(env);
     }
-
-    /// <summary>
-    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">
-    /// Action delegate that provides <see cref="MaskinportenSettings"/> configuration for the <see cref="MaskinportenClient"/> service
-    /// </param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        Action<MaskinportenSettings> configureOptions
-    ) =>
-        Altinn.App.Core.Features.Maskinporten.Extensions.ServiceCollectionExtensions.ConfigureMaskinportenClient(
-            services,
-            configureOptions
-        );
-
-    /// <summary>
-    /// <p>Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path.</p>
-    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configSectionPath">The configuration section path (Eg. "MaskinportenSettings")</param>
-    public static IServiceCollection ConfigureMaskinportenClient(
-        this IServiceCollection services,
-        string configSectionPath
-    ) =>
-        Altinn.App.Core.Features.Maskinporten.Extensions.ServiceCollectionExtensions.ConfigureMaskinportenClient(
-            services,
-            configSectionPath
-        );
 
     /// <summary>
     /// Adds Application Insights to the service collection.
@@ -218,7 +180,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
     {
-        var appId = StartupHelper.GetApplicationId().Split("/")[1];
+        var appId = StartupHelper.GetApplicationId(env.ContentRootPath).Split("/")[1];
         var appVersion = config.GetSection("AppSettings").GetValue<string>("AppVersion");
         var isTest = config.GetSection("GeneralSettings").GetValue<bool>("IsTest");
         if (string.IsNullOrWhiteSpace(appVersion))
@@ -228,13 +190,7 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<TelemetryInitialization>();
         services.AddSingleton<Telemetry>();
 
-        // This bit of code makes ASP.NET Core spans always root.
-        // Depending on infrastructure used and how the application is exposed/called,
-        // it might be a good idea to be in control of the root span (and therefore the size, baggage etch)
-        // Taken from: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1773
-        _ = Sdk.SuppressInstrumentation; // Just to trigger static constructor. The static constructor in Sdk initializes Propagators.DefaultTextMapPropagator which we depend on below
-        Sdk.SetDefaultTextMapPropagator(new OtelPropagator(Propagators.DefaultTextMapPropagator));
-        DistributedContextPropagator.Current = new AspNetCorePropagator();
+        ConfigureRootRequestPropagation(services);
 
         var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
         var useOpenTelemetryCollector = config.GetValue<bool?>("AppSettings:UseOpenTelemetryCollector");
@@ -379,6 +335,65 @@ public static class ServiceCollectionExtensions
     /// <returns></returns>
     private static bool IsPdfGeneratorRequest(IHeaderDictionary headers) => headers.ContainsKey("X-Altinn-IsPdf");
 
+    // This makes ASP.NET Core request spans start as root spans so callers cannot control app trace size.
+    // ASP.NET Core copies DistributedContextPropagator.Current into DI during WebApplication.CreateBuilder,
+    // so update both the static default and the already-registered service descriptor.
+    // Based on the workaround discussed in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1773.
+    private static void ConfigureRootRequestPropagation(IServiceCollection services)
+    {
+        _ = Sdk.SuppressInstrumentation; // Triggers Sdk static initialization before reading the default propagator.
+
+        if (Propagators.DefaultTextMapPropagator is not OtelPropagator)
+        {
+            Sdk.SetDefaultTextMapPropagator(new OtelPropagator(Propagators.DefaultTextMapPropagator));
+        }
+
+        if (DistributedContextPropagator.Current is not AspNetCorePropagator)
+        {
+            DistributedContextPropagator.Current = new AspNetCorePropagator(
+                DistributedContextPropagator.Current,
+                ownsInner: false
+            );
+        }
+
+        var existingDescriptor = services.LastOrDefault(service =>
+            service.ServiceType == typeof(DistributedContextPropagator)
+        );
+
+        services.RemoveAll<DistributedContextPropagator>();
+        services.AddSingleton(serviceProvider =>
+        {
+            var (inner, ownsInner) = ResolveDistributedContextPropagator(serviceProvider, existingDescriptor);
+            return inner is AspNetCorePropagator ? inner : new AspNetCorePropagator(inner, ownsInner);
+        });
+    }
+
+    private static (DistributedContextPropagator Propagator, bool OwnsInstance) ResolveDistributedContextPropagator(
+        IServiceProvider serviceProvider,
+        ServiceDescriptor? descriptor
+    )
+    {
+        if (descriptor is null)
+            return (DistributedContextPropagator.Current, false);
+
+        if (descriptor.ImplementationInstance is DistributedContextPropagator instance)
+            return (instance, false);
+
+        if (descriptor.ImplementationFactory is not null)
+            return ((DistributedContextPropagator)descriptor.ImplementationFactory(serviceProvider), true);
+
+        if (descriptor.ImplementationType is not null)
+        {
+            return (
+                (DistributedContextPropagator)
+                    ActivatorUtilities.CreateInstance(serviceProvider, descriptor.ImplementationType),
+                true
+            );
+        }
+
+        return (DistributedContextPropagator.Current, false);
+    }
+
     internal sealed class OtelPropagator : TextMapPropagator
     {
         private readonly TextMapPropagator _inner;
@@ -403,11 +418,17 @@ public static class ServiceCollectionExtensions
             _inner.Inject(context, carrier, setter);
     }
 
-    internal sealed class AspNetCorePropagator : DistributedContextPropagator
+    internal sealed class AspNetCorePropagator : DistributedContextPropagator, IDisposable, IAsyncDisposable
     {
         private readonly DistributedContextPropagator _inner;
+        private readonly bool _ownsInner;
+        private bool _disposed;
 
-        public AspNetCorePropagator() => _inner = CreateDefaultPropagator();
+        public AspNetCorePropagator(DistributedContextPropagator inner, bool ownsInner)
+        {
+            _inner = inner;
+            _ownsInner = ownsInner;
+        }
 
         public override IReadOnlyCollection<string> Fields => _inner.Fields;
 
@@ -441,6 +462,28 @@ public static class ServiceCollectionExtensions
 
         public override void Inject(Activity? activity, object? carrier, PropagatorSetterCallback? setter) =>
             _inner.Inject(activity, carrier, setter);
+
+        public void Dispose()
+        {
+            if (!_ownsInner || _disposed)
+                return;
+
+            _disposed = true;
+            if (_inner is IDisposable disposable)
+                disposable.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_ownsInner || _disposed)
+                return;
+
+            _disposed = true;
+            if (_inner is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (_inner is IDisposable disposable)
+                disposable.Dispose();
+        }
     }
 
     private static void AddAuthorizationPolicies(IServiceCollection services)
@@ -476,25 +519,47 @@ public static class ServiceCollectionExtensions
     )
     {
         services
-            .AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-            .AddJwtCookie(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            // The default scheme is a selector: it forwards authentication/challenge to the
+            // WorkflowEngineCallback scheme for workflow callback requests, and to the JwtCookie
+            // scheme for everything else. This lets workflow callbacks use a standard
+            // "Authorization: Bearer" header without the JwtCookie handler (which also reads bearer
+            // tokens) attempting to validate the app-minted callback token as a platform token during
+            // UseAuthentication()'s automatic authentication of the default scheme.
+            .AddAuthentication(options => options.DefaultScheme = WorkflowEngineCallbackDefaults.SelectorScheme)
+            .AddPolicyScheme(
+                WorkflowEngineCallbackDefaults.SelectorScheme,
+                WorkflowEngineCallbackDefaults.SelectorScheme,
+                options =>
+                    options.ForwardDefaultSelector = static context =>
+                        WorkflowEngineCallbackAuthenticationHandler.IsCallbackRequest(context.GetEndpoint())
+                            ? WorkflowEngineCallbackDefaults.AuthenticationScheme
+                            : JwtCookieDefaults.AuthenticationScheme
+            )
+            .AddJwtCookie(
+                JwtCookieDefaults.AuthenticationScheme,
+                options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero,
-                };
-                options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
-                options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
-                if (env.IsDevelopment())
-                {
-                    options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                    };
+                    options.JwtCookieName = Altinn.App.Core.Constants.General.RuntimeCookieName;
+                    options.MetadataAddress = config["AppSettings:OpenIdWellKnownEndpoint"];
+                    if (env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 }
-            });
+            )
+            .AddScheme<AuthenticationSchemeOptions, WorkflowEngineCallbackAuthenticationHandler>(
+                WorkflowEngineCallbackDefaults.AuthenticationScheme,
+                _ => { }
+            );
     }
 
     private static void AddAntiforgery(IServiceCollection services)
@@ -554,30 +619,10 @@ public static class ServiceCollectionExtensions
 
     private static void ConfigureGracefulShutdown(IServiceCollection services, IHostEnvironment env)
     {
-        if (env.IsDevelopment())
-            return;
-
-        // Need to coordinate graceful shutdown (let's assume k8s as the scheduler/runtime):
-        // - deployment is configured with a terminationGracePeriod of 30s (default timeout before SIGKILL)
-        // - k8s flow of information is eventually consistent.
-        //   it takes time for knowledge of SIGTERM on the worker node to propagate to e.g. networking layers
-        //   (k8s Service -> Endspoints rotation. It takes time to be taken out of Endpoint rotation)
-        // - we want to gracefully drain ASP.NET core for requests, leaving some time for active requests to complete
-        // This leaves us with the following sequence of events
-        // - container receives SIGTERM
-        // - `AppHostLifetime` intercepts SIGTERM and delays for `shutdownDelay`
-        // - `AppHostLifetime` calls `IHostApplicationLifetime.StopApplication`, to start ASP.NET Core shutdown process
-        // - ASP.NET Core will spend a maximum of `shutdownTimeout` trying to drain active requests
-        //   (cancelable requests can combine cancellation tokens with `IHostApplicationLifetime.ApplicationStopping`)
-        // - If ASP.NET Core completes shutdown within `shutdownTimeout`, everything is fine
-        // - If ASP.NET Core is stuck or in some way can't terminate, kubelet will eventually SIGKILL
-        var shutdownDelay = TimeSpan.FromSeconds(5);
-        var shutdownTimeout = TimeSpan.FromSeconds(20);
-
-        services.AddSingleton<IHostLifetime>(sp =>
-            ActivatorUtilities.CreateInstance<AppHostLifetime>(sp, shutdownDelay)
+        services.AddGracefulShutdown(
+            env,
+            endpointDrainDelay: TimeSpan.FromSeconds(5),
+            applicationShutdownTimeout: TimeSpan.FromSeconds(20)
         );
-
-        services.Configure<HostOptions>(options => options.ShutdownTimeout = shutdownTimeout);
     }
 }

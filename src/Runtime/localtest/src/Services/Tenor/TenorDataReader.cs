@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text.Json;
 using Authorization.Interface.Models;
 using LocalTest.Configuration;
@@ -213,7 +212,7 @@ public class TenorDataRepository
     }
 }
 
-public static class ListExtentions
+public static class ListExtensions
 {
     public static T? FirstErGjeldende<T>(this List<T> list)
     {

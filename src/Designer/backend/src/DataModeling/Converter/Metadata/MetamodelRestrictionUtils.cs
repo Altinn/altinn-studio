@@ -215,7 +215,7 @@ public static class MetamodelRestrictionUtils
         var valueString = keyword switch
         {
             MaxLengthKeyword kw => kw.Value.ToString(),
-            PatternKeyword kw => kw.Value.ToString(),
+            PatternKeyword kw => kw.Pattern.ToString(),
             MinLengthKeyword kw => kw.Value.ToString(),
             MaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             MinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),

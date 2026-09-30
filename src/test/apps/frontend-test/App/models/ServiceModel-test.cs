@@ -26,7 +26,7 @@ namespace Altinn.App.Models
 
         [XmlAttribute("blankettnummer")]
         [BindNever]
-        public string blankettnummer { get; set; } = "RF-1453";
+        public string? blankettnummer { get; set; } = "RF-1453";
 
         [XmlAttribute("tittel")] [BindNever] public string tittel { get; set; } = "Endring av navn";
 

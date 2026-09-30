@@ -11,6 +11,14 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
 
+/// <summary>
+/// Provides the data persisted before the unit of work's in-memory changes.
+/// </summary>
+/// <remarks>
+/// Unchanged elements are loaded lazily. For an updated binary element, the previous bytes are available only when
+/// that element was read before its first update; otherwise <see cref="GetBinaryData"/> throws
+/// <see cref="InvalidOperationException"/> instead of reading the updated content from storage.
+/// </remarks>
 internal class PreviousDataAccessor : IInstanceDataAccessor
 {
     private readonly IInstanceDataAccessor _dataAccessor;
@@ -19,6 +27,7 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
     private readonly FrontEndSettings _frontEndSettings;
     private readonly ITranslationService _translationService;
     private readonly Telemetry? _telemetry;
+    private readonly Lazy<LayoutEvaluatorState> _layoutEvaluatorState;
 
     private readonly ConcurrentDictionary<DataElementIdentifier, Task<IFormDataWrapper>> _previousDataCache = new();
 
@@ -37,6 +46,11 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         _modelSerializationService = modelSerializationService;
         _frontEndSettings = frontEndSettings;
         _telemetry = telemetry;
+        _layoutEvaluatorState = new(() =>
+        {
+            var originalState = _dataAccessor.GetLayoutEvaluatorState();
+            return originalState.WithDataAccessor(this);
+        });
     }
 
     public Instance Instance => _dataAccessor.Instance;
@@ -72,7 +86,9 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
                     var binaryData = await GetBinaryData(id).ConfigureAwait(false);
 
                     return FormDataWrapperFactory.Create(
-                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement)
+                        _modelSerializationService.DeserializeFromStorage(binaryData.Span, dataType, dataElement),
+                        dataType,
+                        dataElement
                     );
                 }
             )
@@ -98,18 +114,16 @@ internal class PreviousDataAccessor : IInstanceDataAccessor
         return this;
     }
 
-    public LayoutEvaluatorState? GetLayoutEvaluatorState()
+    public LayoutEvaluatorState GetLayoutEvaluatorState()
     {
-        throw new NotImplementedException(
-            "GetLayoutEvaluatorState is not implemented in PreviousDataAccessor, because LayoutEvaluatorState will be deprecated."
-        );
+        return _layoutEvaluatorState.Value;
     }
 
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
         if (_dataAccessor is InstanceDataUnitOfWork dataUnitOfWork)
         {
-            return await dataUnitOfWork.GetPersistedBinaryData(dataElementIdentifier).ConfigureAwait(false);
+            return await dataUnitOfWork.GetPreviousBinaryData(dataElementIdentifier).ConfigureAwait(false);
         }
 
         return await _dataAccessor.GetBinaryData(dataElementIdentifier).ConfigureAwait(false);

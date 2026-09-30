@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
@@ -6,7 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <inheritdoc/>
-public class ProcessTaskDataLocker : IProcessTaskDataLocker
+internal sealed class ProcessTaskDataLocker : IProcessTaskDataLocker
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
@@ -25,7 +26,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
     /// <inheritdoc/>
     public async Task Unlock(string taskId, Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)
@@ -36,7 +37,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
                 await _dataClient.UnlockDataElement(
                     instanceIdentifier,
                     Guid.Parse(dataElement.Id),
-                    authenticationMethod: null,
+                    StorageAuthenticationMethod.ServiceOwner(),
                     CancellationToken.None
                 );
             }
@@ -46,7 +47,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
     /// <inheritdoc/>
     public async Task Lock(string taskId, Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)
@@ -57,7 +58,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
                 await _dataClient.LockDataElement(
                     instanceIdentifier,
                     Guid.Parse(dataElement.Id),
-                    authenticationMethod: null,
+                    StorageAuthenticationMethod.ServiceOwner(),
                     CancellationToken.None
                 );
             }

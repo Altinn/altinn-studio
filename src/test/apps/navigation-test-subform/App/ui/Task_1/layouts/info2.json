@@ -11,7 +11,6 @@
       },
       {
         "id": "NavigationButtons-xerTYS",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

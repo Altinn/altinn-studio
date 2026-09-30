@@ -1,11 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
@@ -71,17 +74,21 @@ public class TestContextList
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
         var layout = new UiFolderComponent(test.Layouts, "layout", dataType);
+        var translationServiceMock = new Mock<ITranslationService>(MockBehavior.Strict);
 
         var componentModel = new LayoutModel([layout], null);
-        var state = new LayoutEvaluatorState(
-            DynamicClassBuilder.DataAccessorFromJsonDocument(
-                instance,
-                test.DataModel ?? JsonDocument.Parse("{}").RootElement
-            ),
+
+        var dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+            instance,
+            translationService: translationServiceMock.Object,
             componentModel,
-            null!,
-            new()
+            new FrontEndSettings(),
+            test.DataModel ?? JsonDocument.Parse("{}").RootElement,
+            gatewayAction: null,
+            language: null
         );
+        var state = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(state);
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
@@ -108,15 +115,7 @@ public class TestContextList
     {
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
-            .GetDirectories(
-                Path.Join(
-                    PathUtils.GetCoreTestsPath(),
-                    "LayoutExpressions",
-                    "CommonTests",
-                    "shared-tests",
-                    "context-lists"
-                )
-            )
+            .GetDirectories(Path.Join(TestAttributeHelper.CommonExpressionTestsPath("evaluation"), "context-lists"))
             .Select(d => Path.GetFileName(d))
             .ToArray();
         var testMethods = this.GetType()
@@ -136,5 +135,5 @@ public class TestContextList
 
 public class SharedTestContextListAttribute(string folder)
     : FileNamesInFolderDataAttribute(
-        Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "context-lists", folder)
+        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "context-lists", folder)
     ) { }

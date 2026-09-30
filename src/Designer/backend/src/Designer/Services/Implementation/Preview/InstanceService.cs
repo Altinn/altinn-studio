@@ -35,7 +35,7 @@ public class InstanceService(IDistributedCache distributedCache, IDataService da
                 instance.Data.Add(dataElement);
                 if (dataType.MaxCount != 1)
                 {
-                    // Add two elments when more than 1 element is supported
+                    // Add two elements when more than 1 element is supported
                     instance.Data.Add(dataService.CreateDataElement(partyId, instanceGuid, dataType.Id));
                 }
             }

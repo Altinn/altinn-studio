@@ -448,4 +448,15 @@ public class ProcessReaderTests
                 }
             );
     }
+
+    [Fact]
+    public void PdfConfiguration_ReadsAutoPdfTaskIds()
+    {
+        var bpmnfile = "pdf-service-task.bpmn";
+        ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
+
+        var taskExtension = pr.GetAltinnTaskExtension("Task_Pdf");
+
+        taskExtension!.PdfConfiguration!.AutoPdfTaskIds.Should().Equal("Task_1", "Task_2");
+    }
 }

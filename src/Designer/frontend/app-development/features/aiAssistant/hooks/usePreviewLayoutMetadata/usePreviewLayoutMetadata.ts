@@ -21,15 +21,14 @@ export const usePreviewLayoutMetadata = (
 ): UsePreviewLayoutMetadataResult => {
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
 
-  const firstLayoutSet = layoutSetsQuery.data?.sets?.[0];
+  const firstLayoutSet = layoutSetsQuery.data?.[0];
   const layoutSetName = firstLayoutSet?.id;
 
   const layoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
 
   const layoutOrder = layoutSettingsQuery.data?.pages?.order;
   const firstLayoutName = Array.isArray(layoutOrder) ? layoutOrder[0] : undefined;
-  const tasks = firstLayoutSet?.tasks;
-  const taskId = Array.isArray(tasks) ? tasks[0] : undefined;
+  const taskId = firstLayoutSet?.taskId;
 
   const isPending = layoutSetsQuery.isPending || layoutSettingsQuery.isPending;
   const errorMessage = layoutSetsQuery.error?.message ?? layoutSettingsQuery.error?.message;

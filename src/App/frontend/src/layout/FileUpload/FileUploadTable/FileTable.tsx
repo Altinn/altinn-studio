@@ -6,7 +6,8 @@ import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { FileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRow';
 import { FileTableRowProvider } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
-import { EditWindowComponent } from 'src/layout/FileUploadWithTag/EditWindowComponent';
+import { EditWindowComponent } from 'src/layout/FileUpload/Tag/EditWindowComponent';
+import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { atLeastOneTagExists } from 'src/utils/formComponentUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
@@ -30,11 +31,9 @@ export function FileTable({
   isSummary,
   isFetching,
 }: FileTableProps): React.JSX.Element | null {
-  const { textResourceBindings, type, readOnly } = useItemWhenType<'FileUpload' | 'FileUploadWithTag'>(
-    baseComponentId,
-    (t) => t === 'FileUpload' || t === 'FileUploadWithTag',
-  );
-  const hasTag = type === 'FileUploadWithTag';
+  const item = useItemWhenType(baseComponentId, 'FileUpload');
+  const { textResourceBindings, readOnly } = item;
+  const hasTag = fileUploadHasTag(item);
   const pdfModeActive = usePdfModeActive();
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   if (!attachments || attachments.length === 0) {
@@ -42,6 +41,12 @@ export function FileTable({
   }
   const tagTitle =
     (textResourceBindings && 'tagTitle' in textResourceBindings && textResourceBindings?.tagTitle) || undefined;
+  const actionColumnLabelKey = isSummary
+    ? 'general.edit'
+    : hasTag && !readOnly
+      ? 'general.edit_alt'
+      : 'form_filler.file_uploader_list_header_delete_sr';
+
   const label = (attachment: IAttachment) => {
     if (!isAttachmentUploaded(attachment)) {
       return undefined;
@@ -84,9 +89,9 @@ export function FileTable({
 
             {!pdfModeActive && (
               <th>
-                <p className='sr-only'>
-                  <Lang id='form_filler.file_uploader_list_header_delete_sr' />
-                </p>
+                <span className='sr-only'>
+                  <Lang id={actionColumnLabelKey} />
+                </span>
               </th>
             )}
           </tr>

@@ -1,0 +1,9 @@
+.vertical {
+  align-self: stretch;
+  width: auto;
+  margin-block: 0;
+  margin-inline: 0.5em;
+  border-block-start-width: 0;
+  border-inline-start-width: var(--dsc-divider-border-width);
+  border-inline-start-style: var(--dsc-divider-border-style);
+}

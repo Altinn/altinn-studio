@@ -42,47 +42,34 @@ describe('NavigationMenu', () => {
     const user = userEvent.setup();
     await render();
 
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
+    expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(menuButtons[0]);
 
-    const elementInMenuAfter = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
-    expect(elementInMenuAfter).toBeInTheDocument();
+    expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'true');
+    expect(getMenuItem(textMock('ux_editor.page_menu_up'))).toBeInTheDocument();
   });
 
-  it('should close the menu when clicking the menu icon twice', async () => {
+  it('should close the menu when clicking outside it', async () => {
     const user = userEvent.setup();
     await render();
 
-    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
-    expect(elementInMenu).not.toBeInTheDocument();
-
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
+    expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'true');
 
-    const elementInMenuAfter = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
-    expect(elementInMenuAfter).toBeInTheDocument();
+    await user.click(document.body);
 
-    await user.click(menuButtons[0]);
-
-    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
-    expect(elementInMenuAfterClose).not.toBeInTheDocument();
+    expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
     const user = userEvent.setup();
     await render();
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
-    await user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') }));
+    await user.click(getMenuItem(textMock('ux_editor.page_menu_edit')));
 
     const inputField = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
     expect(inputField).toHaveValue(mockPageName1);
@@ -109,9 +96,9 @@ describe('NavigationMenu', () => {
   it('should close the menu when clicking cancel in the edit name popover', async () => {
     const user = userEvent.setup();
     await render();
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
-    await user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') }));
+    await user.click(getMenuItem(textMock('ux_editor.page_menu_edit')));
 
     const cancelButton = screen.getByRole('button', {
       name: textMock('general.cancel'),
@@ -125,7 +112,7 @@ describe('NavigationMenu', () => {
   it('hides the up and down button when page is receipt', async () => {
     const user = userEvent.setup();
     await render({ pageIsReceipt: true });
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
 
     const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
@@ -140,13 +127,11 @@ describe('NavigationMenu', () => {
   it('shows the up and down button by default', async () => {
     const user = userEvent.setup();
     await render();
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
 
-    const upButton = screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
-    const downButton = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_down'),
-    });
+    const upButton = getMenuItem(textMock('ux_editor.page_menu_up'));
+    const downButton = getMenuItem(textMock('ux_editor.page_menu_down'));
 
     expect(upButton).toBeInTheDocument();
     expect(downButton).toBeInTheDocument();
@@ -155,11 +140,9 @@ describe('NavigationMenu', () => {
     const user = userEvent.setup();
     await render();
 
-    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    const menuButtons = getMenuButtons();
     await user.click(menuButtons[0]);
-    const menuItemDown = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_down'),
-    });
+    const menuItemDown = getMenuItem(textMock('ux_editor.page_menu_down'));
     await user.click(menuItemDown);
 
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
@@ -169,12 +152,10 @@ describe('NavigationMenu', () => {
       mockSelectedLayoutSet,
       { pages: { order: [layout2NameMock, layout1NameMock] }, receiptLayoutName: 'Kvittering' },
     );
-    expect(menuItemDown).not.toBeInTheDocument();
+    expect(menuButtons[0]).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(menuButtons[1]);
-    const menuItemUp = screen.getByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_up'),
-    });
+    const menuItemUp = getMenuItem(textMock('ux_editor.page_menu_up'), 1);
     await user.click(menuItemUp);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
     expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
@@ -185,6 +166,12 @@ describe('NavigationMenu', () => {
     );
   });
 });
+
+const getMenuButtons = (): HTMLElement[] =>
+  screen.getAllByRole('button', { name: textMock('general.options') });
+
+const getMenuItem = (name: string, index: number = 0): HTMLElement =>
+  screen.getAllByRole('menuitem', { name })[index];
 
 const waitForData = async () => {
   const getFormLayoutSettings = jest

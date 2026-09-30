@@ -1,7 +1,7 @@
 .tasksTable {
-  padding: var(--fds-spacing-2) 0;
+  padding: var(--ds-size-2) 0;
   border: 1px solid var(--ds-color-neutral-border-subtle);
-  margin-bottom: var(--fds-spacing-5);
+  margin-bottom: var(--ds-size-5);
 }
 
 .tasksTable th {
@@ -9,7 +9,7 @@
 }
 
 .hiddenTasksTable {
-  background-color: var(--fds-semantic-background-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .taskFooterContent {

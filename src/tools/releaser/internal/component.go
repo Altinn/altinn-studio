@@ -46,6 +46,18 @@ var components = map[string]*Component{
 		SourcePath:    "src/App/fileanalyzers",
 		Builder:       nil, // YAML handles dotnet pack/push
 	},
+	"codelists": {
+		Name:          "codelists",
+		ChangelogPath: "src/App/codelists/CHANGELOG.md",
+		SourcePath:    "src/App/codelists",
+		Builder:       nil, // YAML handles dotnet pack/push
+	},
+	"app": {
+		Name:          "app",
+		ChangelogPath: "src/App/backend/CHANGELOG.md",
+		SourcePath:    "src/App/backend",
+		Builder:       nil, // registered by the releaser CLI
+	},
 }
 
 // RegisterComponentBuilder registers a builder for an existing component.

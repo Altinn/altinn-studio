@@ -47,7 +47,6 @@
       },
       {
         "id": "NavigationButtons-cars",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

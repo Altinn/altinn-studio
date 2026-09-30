@@ -12,7 +12,7 @@ public static class NugetVersionHelper
 
     /// <summary>
     /// Method to get the mocked altinn nuget build from the version
-    /// We are returnning the minimum BUILD version of the nuget package that is required for app frontend to work
+    /// We are returning the minimum BUILD version of the nuget package that is required for app frontend to work
     /// from v4 and above.
     /// </summary>
     /// <param name="version">The version of the nuget package</param>

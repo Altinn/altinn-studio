@@ -39,6 +39,7 @@ const renderMenu = (
     heading: 'Test library',
     pages: mockPagesConfig,
     router: {
+      contactPagePath: '/contact/',
       location: PageName.CodeListsWithTextResources,
       navigate: navigateMock,
       renderLink: (_, props) => <a {...props} />,

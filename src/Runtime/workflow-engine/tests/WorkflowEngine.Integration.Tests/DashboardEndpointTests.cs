@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestApp;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -97,6 +98,18 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(totalCount.GetInt32() >= 1);
         Assert.True(doc.RootElement.TryGetProperty("workflows", out var workflows));
         Assert.True(workflows.GetArrayLength() >= 1);
+
+        // Timing is read from the database: the workflow and its step both carry when their attempt began,
+        // ordered enqueue → workflow start → step start → step write-back.
+        var workflow = workflows.EnumerateArray().Single(w => w.GetProperty("databaseId").GetGuid() == workflowId);
+        var workflowStartedAt = workflow.GetProperty("executionStartedAt").GetDateTimeOffset();
+        Assert.True(workflow.GetProperty("createdAt").GetDateTimeOffset() <= workflowStartedAt);
+        var step = Assert.Single(workflow.GetProperty("steps").EnumerateArray());
+        Assert.InRange(
+            step.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            workflowStartedAt,
+            step.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
 
     [Fact]
@@ -230,7 +243,102 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var id));
         Assert.Equal(stepId.ToString(), id.GetString());
         Assert.True(doc.RootElement.TryGetProperty("status", out _));
+
+        // The modal's "Execution Started" row and per-step duration hang off this field.
+        Assert.InRange(
+            doc.RootElement.GetProperty("executionStartedAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("createdAt").GetDateTimeOffset(),
+            doc.RootElement.GetProperty("updatedAt").GetDateTimeOffset()
+        );
     }
+
+    [Fact]
+    public async Task Step_WaitingWorkflow_ReturnsDeferFields()
+    {
+        // Arrange
+        var wfRequest = _testHelpers.CreateWorkflow(
+            "wf-waiting",
+            [CreateDeferStep("dashboard-step-waiting", deferDelayMs: 600_000)]
+        );
+        var enqueueResponse = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(wfRequest));
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(
+            workflowId,
+            PersistentItemStatus.Waiting,
+            TimeSpan.FromSeconds(30)
+        );
+
+        var stepId = status.Steps[0].DatabaseId;
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/step?wf={workflowId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}&step={stepId}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal("Waiting", doc.RootElement.GetProperty("status").GetString());
+        Assert.Equal(1, doc.RootElement.GetProperty("deferCount").GetInt32());
+        Assert.Equal("not ready yet", doc.RootElement.GetProperty("lastDeferReason").GetString());
+        Assert.True(doc.RootElement.TryGetProperty("firstDeferredAt", out _));
+        Assert.True(doc.RootElement.TryGetProperty("lastDeferredAt", out _));
+    }
+
+    [Fact]
+    public async Task Query_WaitingWorkflow_StepCarriesDeferReason()
+    {
+        // Arrange
+        var wfRequest = _testHelpers.CreateWorkflow(
+            "wf-waiting-query",
+            [CreateDeferStep("dashboard-query-waiting", deferDelayMs: 600_000)]
+        );
+        var enqueueResponse = await _client.Enqueue(_testHelpers.CreateEnqueueRequest(wfRequest));
+        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Waiting, TimeSpan.FromSeconds(30));
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            "/dashboard/query?status=Waiting",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        var workflow = Assert.Single(doc.RootElement.GetProperty("workflows").EnumerateArray());
+        var step = Assert.Single(workflow.GetProperty("steps").EnumerateArray());
+        Assert.Equal("Waiting", step.GetProperty("status").GetString());
+        Assert.Equal(1, step.GetProperty("deferCount").GetInt32());
+        Assert.Equal("not ready yet", step.GetProperty("lastDeferReason").GetString());
+        Assert.True(step.TryGetProperty("firstDeferredAt", out _));
+    }
+
+    /// <summary>
+    /// A step that defers on every execution — a stand-in for a long poll whose outcome never arrives
+    /// within the test. The delay keeps it parked in <c>Waiting</c> for the assertions.
+    /// </summary>
+    private static StepRequest CreateDeferStep(string key, int deferDelayMs) =>
+        new()
+        {
+            OperationId = $"defer-{key}",
+            Command = CommandDefinition.Create(
+                "test-defer",
+                new DeferringCommandData
+                {
+                    Key = key,
+                    SucceedOnAttempt = int.MaxValue,
+                    DeferDelayMs = deferDelayMs,
+                }
+            ),
+        };
 
     [Fact]
     public async Task Step_NotFound_Returns404()
@@ -285,6 +393,151 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         // Act
         using var response = await client.GetAsync(
             $"/dashboard/state?wf={Guid.Empty}&ns=nonexistent-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── /dashboard/relations ───────────────────────────────────────────
+
+    [Fact]
+    public async Task Relations_ReturnsDependenciesDependentsLinksAndIsHead()
+    {
+        // Arrange - main <- side (side depends on and links to main, and is an invisible side chain)
+        var mainWorkflow = _testHelpers.CreateWorkflow("wf-main", [_testHelpers.CreateWebhookStep("/hook")]);
+        var sideWorkflow = _testHelpers.CreateWorkflow(
+            "wf-side",
+            [_testHelpers.CreateWebhookStep("/hook-side")],
+            dependsOn: [(WorkflowRef)"wf-main"]
+        ) with
+        {
+            Links = [(WorkflowRef)"wf-main"],
+            IsHead = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest([mainWorkflow, sideWorkflow], includeContext: false);
+        var enqueueResponse = await _client.Enqueue(request);
+        var mainId = enqueueResponse.Workflows[0].DatabaseId;
+        var sideId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(
+            enqueueResponse.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var sideResponse = await client.GetAsync(
+            $"/dashboard/relations?wf={sideId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+        using var mainResponse = await client.GetAsync(
+            $"/dashboard/relations?wf={mainId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert - the side workflow reports its dependency, its link, and the head directive
+        Assert.Equal(HttpStatusCode.OK, sideResponse.StatusCode);
+        var sideJson = await sideResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var sideDoc = JsonDocument.Parse(sideJson);
+        Assert.False(sideDoc.RootElement.GetProperty("isHead").GetBoolean());
+        var dependsOn = Assert.Single(sideDoc.RootElement.GetProperty("dependsOn").EnumerateArray());
+        Assert.Equal(mainId, dependsOn.GetProperty("databaseId").GetGuid());
+        Assert.Equal("Completed", dependsOn.GetProperty("status").GetString());
+        var link = Assert.Single(sideDoc.RootElement.GetProperty("links").EnumerateArray());
+        Assert.Equal(mainId, link.GetProperty("databaseId").GetGuid());
+        Assert.Equal(0, sideDoc.RootElement.GetProperty("dependents").GetArrayLength());
+
+        // The main workflow reports the inverse edge
+        Assert.Equal(HttpStatusCode.OK, mainResponse.StatusCode);
+        var mainJson = await mainResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var mainDoc = JsonDocument.Parse(mainJson);
+        var dependent = Assert.Single(mainDoc.RootElement.GetProperty("dependents").EnumerateArray());
+        Assert.Equal(sideId, dependent.GetProperty("databaseId").GetGuid());
+        Assert.Equal(0, mainDoc.RootElement.GetProperty("dependsOn").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Relations_NotFound_Returns404()
+    {
+        // Arrange
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/relations?wf={Guid.Empty}&ns=nonexistent-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    // ── /dashboard/graph ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task Graph_ReturnsConnectedNodesAndTypedEdges()
+    {
+        // Arrange - main <- side (side depends on and links to main, and is an invisible side chain)
+        var mainWorkflow = _testHelpers.CreateWorkflow("wf-main", [_testHelpers.CreateWebhookStep("/hook")]);
+        var sideWorkflow = _testHelpers.CreateWorkflow(
+            "wf-side",
+            [_testHelpers.CreateWebhookStep("/hook-side")],
+            dependsOn: [(WorkflowRef)"wf-main"]
+        ) with
+        {
+            Links = [(WorkflowRef)"wf-main"],
+            IsHead = false,
+        };
+        var request = _testHelpers.CreateEnqueueRequest([mainWorkflow, sideWorkflow], includeContext: false);
+        var enqueueResponse = await _client.Enqueue(request);
+        var mainId = enqueueResponse.Workflows[0].DatabaseId;
+        var sideId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(
+            enqueueResponse.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act - querying from the main workflow must also reach the side chain (inverse edges)
+        using var response = await client.GetAsync(
+            $"/dashboard/graph?wf={mainId}&ns={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var doc = JsonDocument.Parse(json);
+        Assert.Equal(mainId, doc.RootElement.GetProperty("root").GetGuid());
+
+        var nodes = doc.RootElement.GetProperty("workflows").EnumerateArray().ToList();
+        Assert.Equal(2, nodes.Count);
+        var sideNode = Assert.Single(nodes, n => n.GetProperty("databaseId").GetGuid() == sideId);
+        Assert.False(sideNode.GetProperty("isHead").GetBoolean());
+        Assert.True(sideNode.GetProperty("steps").GetArrayLength() >= 1);
+        Assert.Single(nodes, n => n.GetProperty("databaseId").GetGuid() == mainId);
+
+        var edges = doc.RootElement.GetProperty("edges").EnumerateArray().ToList();
+        var dependencyEdge = Assert.Single(edges, e => e.GetProperty("kind").GetString() == "dependency");
+        Assert.Equal(mainId, dependencyEdge.GetProperty("from").GetGuid());
+        Assert.Equal(sideId, dependencyEdge.GetProperty("to").GetGuid());
+        var linkEdge = Assert.Single(edges, e => e.GetProperty("kind").GetString() == "link");
+        Assert.Equal(sideId, linkEdge.GetProperty("from").GetGuid());
+        Assert.Equal(mainId, linkEdge.GetProperty("to").GetGuid());
+    }
+
+    [Fact]
+    public async Task Graph_NotFound_Returns404()
+    {
+        // Arrange
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var response = await client.GetAsync(
+            $"/dashboard/graph?wf={Guid.Empty}&ns=nonexistent-ns",
             TestContext.Current.CancellationToken
         );
 

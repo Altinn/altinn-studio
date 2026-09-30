@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { StudioToggleableTextfieldSchema, type SchemaValidationError } from '@studio/components';
-import { Alert } from '@digdir/designsystemet-react';
+import {
+  StudioAlert,
+  StudioToggleableTextfieldSchema,
+  type SchemaValidationError,
+} from '@studio/components';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';
@@ -47,10 +50,7 @@ export const EditComponentIdRow = ({
   };
 
   const dataTypeWithNameExists = (id: string) => {
-    if (
-      component.type === ComponentType.FileUpload ||
-      component.type === ComponentType.FileUploadWithTag
-    ) {
+    if (component.type === ComponentType.FileUpload) {
       return appMetadata.dataTypes?.find(
         (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
       );
@@ -101,9 +101,9 @@ export const EditComponentIdRow = ({
       />
       {!isViewMode && (
         <div className={classes.alert}>
-          <Alert size='small'>
+          <StudioAlert data-size='sm'>
             {t('ux_editor.modal_properties_component_change_id_information')}
-          </Alert>
+          </StudioAlert>
         </div>
       )}
     </div>

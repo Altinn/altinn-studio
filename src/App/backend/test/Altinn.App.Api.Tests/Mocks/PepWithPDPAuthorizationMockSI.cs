@@ -31,6 +31,14 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
 
     public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
     {
+        return await GetDecisionForRequest(xacmlJsonRequest, CancellationToken.None);
+    }
+
+    public async Task<XacmlJsonResponse> GetDecisionForRequest(
+        XacmlJsonRequestRoot xacmlJsonRequest,
+        CancellationToken cancellationToken
+    )
+    {
         try
         {
             XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
@@ -50,6 +58,15 @@ public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     }
 
     public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+    {
+        return await GetDecisionForUnvalidateRequest(xacmlJsonRequest, user, CancellationToken.None);
+    }
+
+    public async Task<bool> GetDecisionForUnvalidateRequest(
+        XacmlJsonRequestRoot xacmlJsonRequest,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken
+    )
     {
         XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
         return DecisionHelper.ValidatePdpDecision(response.Response, user);

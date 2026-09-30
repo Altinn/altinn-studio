@@ -1,8 +1,12 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+
+import { queryOptions, replaceEqualDeep, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
-import { parseInstanceId } from 'src/core/queries/instance/utils';
+import { parseInstanceId } from 'src/core/queries/instance';
+import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
+import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
 
@@ -27,6 +31,30 @@ export const instanceQueryKeys = {
   active: (partyId: string) => [...instanceQueryKeys.all(), 'active', partyId] as const,
 };
 
+/**
+ * Refuses to let a stale instance response regress the cache. A read that raced a process
+ * mutation can be delivered after the mutation's result was written, resurrecting the
+ * pre-transition process state. `process.currentTask.flow` is a monotone counter and `ended` is
+ * terminal, so a write that regresses either is stale by definition and keeps the existing data.
+ * Applied as `structuralSharing`, which guards every write to the entry: fetch results, polls,
+ * and setQueryData alike.
+ */
+export function preferFreshestInstanceData(oldData: unknown, newData: unknown): unknown {
+  const oldInstance = oldData as IInstance | undefined;
+  const newInstance = newData as IInstance | undefined;
+
+  const oldFlow = oldInstance?.process?.currentTask?.flow;
+  const newFlow = newInstance?.process?.currentTask?.flow;
+  const regressesFlow = oldFlow !== undefined && newFlow !== undefined && newFlow < oldFlow;
+  const regressesEnded = !!oldInstance?.process?.ended && !!newInstance && !newInstance.process?.ended;
+
+  if (oldInstance && (regressesFlow || regressesEnded)) {
+    return oldInstance;
+  }
+
+  return replaceEqualDeep(oldData, newData);
+}
+
 export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi }: InstanceQueryParams) {
   return queryOptions({
     queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
@@ -37,6 +65,7 @@ export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instance
     // or invalidateQueries. Prevents the route loader from refetching on every URL change
     // and prevents transient cache-vs-URL mismatches in ProcessWrapper.
     staleTime: Infinity,
+    structuralSharing: preferFreshestInstanceData,
   });
 }
 
@@ -45,6 +74,17 @@ export function activeInstancesQuery({ partyId, instanceApi }: ActiveInstancesQu
     queryKey: instanceQueryKeys.active(partyId),
     queryFn: () => instanceApi.getActiveInstances({ partyId }),
   });
+}
+
+export function useGetCachedInstanceData() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined): IInstance | undefined =>
+      instanceOwnerPartyId && instanceGuid
+        ? queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }))
+        : undefined,
+    [queryClient],
+  );
 }
 
 export function useCreateInstance(language: string) {
@@ -57,8 +97,13 @@ export function useCreateInstance(language: string) {
       typeof args === 'number'
         ? instanceApi.create({ instanceOwnerPartyId: args, language })
         : instanceApi.createWithPrefill({ data: args, language }),
-    onError: (error) => {
+    onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
+
+      // If the instantiation failed because the user is authenticated with a too low security level, the backend
+      // responds with 403 and a RequiredAuthenticationLevel. We then redirect to step-up authentication instead of
+      // falling through to a generic "missing roles" error page. No-op for any other error.
+      await maybeAuthenticationRedirect(error);
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);

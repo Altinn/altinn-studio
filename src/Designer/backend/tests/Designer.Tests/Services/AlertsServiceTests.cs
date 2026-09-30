@@ -173,11 +173,32 @@ public class AlertsServiceTests
         );
     }
 
-    private static AlertApp BuildApp(string app, string status) =>
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_WhenFiringAlertsWithEmptyInstanceId_ShouldCallNotifyInternal()
+    {
+        var service = CreateService();
+        var environment = AltinnEnvironment.FromName("tt02");
+        var alert = BuildAlert([BuildApp("app1", "firing", instanceId: string.Empty)]);
+
+        await service.NotifyAlertsUpdatedAsync("ttd", environment, alert, CancellationToken.None);
+
+        _notificationService.Verify(
+            s =>
+                s.NotifyInternalAsync(
+                    "ttd",
+                    environment,
+                    It.IsAny<NotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    private static AlertApp BuildApp(string app, string status, string instanceId = null) =>
         new()
         {
             App = app,
-            Instances = [new AlertInstance { Status = status, InstanceId = Guid.NewGuid().ToString() }],
+            Instances = [new AlertInstance { Status = status, InstanceId = instanceId ?? Guid.NewGuid().ToString() }],
         };
 
     private static Alert BuildAlert(IEnumerable<AlertApp> apps) =>

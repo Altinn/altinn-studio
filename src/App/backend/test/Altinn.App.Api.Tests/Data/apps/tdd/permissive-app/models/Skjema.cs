@@ -96,10 +96,7 @@ public class SimpleKeyvalues
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-        return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]
@@ -125,10 +122,7 @@ public class Nested
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-        return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]

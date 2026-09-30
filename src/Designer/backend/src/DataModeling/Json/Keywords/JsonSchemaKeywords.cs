@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Json.Keywords;
@@ -14,7 +15,28 @@ public static class JsonSchemaKeywords
 {
     private static readonly object s_lock = new object();
 
+    private static readonly JsonSerializerOptions s_serializerOptions = new()
+    {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+    };
+
     private static volatile bool s_keywordsRegistered;
+
+    /// <summary>
+    /// Deserializes a JSON schema using reflection metadata so registered custom keywords are supported.
+    /// </summary>
+    /// <exception cref="InvalidJsonSchemaException">Thrown when the JSON is well formed but not a valid JSON schema.</exception>
+    public static JsonSchema FromText(string jsonText)
+    {
+        try
+        {
+            return JsonSchema.FromText(jsonText, s_serializerOptions);
+        }
+        catch (ArgumentException exception)
+        {
+            throw new InvalidJsonSchemaException("The JSON schema could not be read.", exception);
+        }
+    }
 
     /// <summary>
     /// Register custom keywords in
@@ -35,11 +57,14 @@ public static class JsonSchemaKeywords
                             && t.GetCustomAttribute<SchemaKeywordAttribute>() != null
                         );
 
-                    MethodInfo registerMethod = typeof(SchemaKeywordRegistry).GetMethod(
-                        "Register",
-                        BindingFlags.Static | BindingFlags.Public
-                    );
-                    Debug.Assert(registerMethod != null, nameof(registerMethod) + " != null");
+                    MethodInfo registerMethod = typeof(SchemaKeywordRegistry)
+                        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                        .Single(method =>
+                            method.Name == "Register"
+                            && method.IsGenericMethodDefinition
+                            && method.GetGenericArguments().Length == 1
+                            && method.GetParameters().Length == 0
+                        );
 
                     foreach (Type keywordType in keywordTypes)
                     {

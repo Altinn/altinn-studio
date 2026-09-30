@@ -53,21 +53,121 @@ internal sealed class ProjectFileRewriter
         await Save();
     }
 
-    /// <summary>
-    /// Removes a package reference from the project file
-    /// </summary>
-    /// <param name="packageName">The name of the package to remove</param>
-    public async Task RemovePackageReference(string packageName)
+    /// <summary>Removes every <c>PackageReference</c> to <paramref name="packageName"/>.</summary>
+    /// <returns>Whether the project referenced the package at all, so the caller can report accurately.</returns>
+    public async Task<bool> RemovePackageReference(string packageName)
     {
         var packageElements = GetPackageReferenceElement(packageName);
         packageElements?.ForEach(e => e.Remove());
         await Save();
+        return packageElements is { Count: > 0 };
     }
 
     public async Task SetTargetFramework()
     {
         GetTargetFrameworkElement()?.ForEach(t => t.SetValue(_targetFramework));
         await Save();
+    }
+
+    /// <summary>
+    /// Turns on the SDK's implicit global usings (<c>ImplicitUsings=enable</c>) and adds a global
+    /// <c>Using</c> item for each of <paramref name="namespaces"/>. Anything already in place is kept
+    /// as is, so running this again on an upgraded project changes nothing.
+    /// </summary>
+    /// <returns>What was added, so the caller can report accurately.</returns>
+    public async Task<ImplicitUsingsChange> EnableImplicitUsings(params string[] namespaces)
+    {
+        var enabledImplicitUsings = EnableImplicitUsingsProperty();
+        var addedNamespaces = namespaces.Where(AddGlobalUsing).ToArray();
+        await Save();
+        return new ImplicitUsingsChange(enabledImplicitUsings, addedNamespaces);
+    }
+
+    private bool EnableImplicitUsingsProperty()
+    {
+        var properties = _doc.Root?.Elements("PropertyGroup").Elements("ImplicitUsings").ToList() ?? [];
+        if (properties.Count == 0)
+        {
+            var propertyGroup = _doc.Root?.Elements("PropertyGroup").FirstOrDefault();
+            if (propertyGroup is null)
+            {
+                propertyGroup = new XElement("PropertyGroup");
+                _doc.Root?.AddFirst(propertyGroup);
+            }
+
+            propertyGroup.Add(new XElement("ImplicitUsings", "enable"));
+            return true;
+        }
+
+        var changed = false;
+        foreach (var property in properties)
+        {
+            if (string.Equals(property.Value.Trim(), "enable", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            property.SetValue("enable");
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private bool AddGlobalUsing(string ns)
+    {
+        var usings = _doc.Root?.Elements("ItemGroup").Elements("Using").ToList() ?? [];
+        // An aliased or static item does not bring the namespace into scope, so it does not count.
+        if (usings.Any(u => ProjectGlobalUsings.IsNamespaceImport(u) && IncludesNamespace(u, ns)))
+            return false;
+
+        // Keep global usings together: extend the item group that already declares one, otherwise
+        // open a new group right after the property group that switched implicit usings on.
+        var itemGroup = usings.Select(u => u.Parent).OfType<XElement>().FirstOrDefault();
+        if (itemGroup is null)
+        {
+            itemGroup = new XElement("ItemGroup");
+            var propertyGroup = _doc.Root?.Elements("PropertyGroup").Elements("ImplicitUsings").First().Parent;
+            propertyGroup?.AddAfterSelf(itemGroup);
+        }
+
+        itemGroup.Add(new XElement("Using", new XAttribute("Include", ns)));
+        return true;
+    }
+
+    // An Include attribute is an MSBuild item list, so "A;B" declares two global usings.
+    private static bool IncludesNamespace(XElement usingItem, string ns) =>
+        usingItem
+            .Attribute("Include")
+            ?.Value.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Contains(ns, StringComparer.Ordinal)
+        ?? false;
+
+    /// <summary>
+    /// Sets the <c>Version</c> attribute of existing <c>PackageReference</c> elements. Used to raise
+    /// explicit package versions to the floors a newer Altinn.App version requires (NU1605 downgrades).
+    /// Only packages already referenced explicitly are updated; the returned set is those that were
+    /// found and changed, so the caller can report packages that need a manual reference added.
+    /// </summary>
+    /// <param name="versionsByPackage">Package id → required version.</param>
+    /// <returns>The package ids that had an explicit reference and were updated.</returns>
+    public async Task<IReadOnlyCollection<string>> SetPackageReferenceVersions(
+        IReadOnlyDictionary<string, string> versionsByPackage
+    )
+    {
+        var updated = new List<string>();
+        foreach (var (packageName, version) in versionsByPackage)
+        {
+            var packageElements = GetPackageReferenceElement(packageName);
+            if (packageElements is null || packageElements.Count == 0)
+            {
+                continue;
+            }
+
+            packageElements.ForEach(e => e.SetAttributeValue("Version", version));
+            updated.Add(packageName);
+        }
+
+        await Save();
+        return updated;
     }
 
     /// <summary>
@@ -228,7 +328,7 @@ internal sealed class ProjectFileRewriter
         return _doc
             .Root?.Elements("ItemGroup")
             .Elements("PackageReference")
-            .Where(x => x.Attribute("Include")?.Value == packageName)
+            .Where(x => string.Equals(x.Attribute("Include")?.Value, packageName, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
@@ -250,4 +350,14 @@ internal sealed class ProjectFileRewriter
         await _doc.WriteToAsync(xw, CancellationToken.None);
         await xw.FlushAsync();
     }
+}
+
+/// <summary>
+/// What <see cref="ProjectFileRewriter.EnableImplicitUsings"/> added to the project file.
+/// </summary>
+/// <param name="EnabledImplicitUsings">Whether <c>ImplicitUsings</c> was switched on (it was missing or disabled).</param>
+/// <param name="AddedNamespaces">The namespaces that got a new global <c>Using</c> item.</param>
+internal sealed record ImplicitUsingsChange(bool EnabledImplicitUsings, IReadOnlyList<string> AddedNamespaces)
+{
+    public bool Any => EnabledImplicitUsings || AddedNamespaces.Count > 0;
 }

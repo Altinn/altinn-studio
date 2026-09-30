@@ -7,17 +7,16 @@ import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { app, org } from '@studio/testing/testids';
 
 const layoutSet1NameMock = 'test-layout-set';
-const layoutSets = {
-  sets: [
-    {
-      id: layoutSet1NameMock,
-      dataType: 'Task',
-    },
-  ],
-};
+const layoutSets = [
+  {
+    id: layoutSet1NameMock,
+    dataType: 'Task',
+  },
+];
 
 describe('ValidateCardContent', () => {
   it('renders page selector when scope is SelectedPages', () => {
@@ -77,6 +76,14 @@ const renderValidateCardContent = ({
 }: Partial<ValidateCardContentProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+  queryClient.setQueryData(
+    [QueryKey.ValidationOnNavigation, org, app, ValidationOnNavigationLevel.LayoutSets],
+    [],
+  );
+  queryClient.setQueryData(
+    [QueryKey.ValidationOnNavigation, org, app, ValidationOnNavigationLevel.Pages],
+    [],
+  );
 
   const mockConfig = {
     types: [],

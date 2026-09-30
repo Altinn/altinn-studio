@@ -4,12 +4,13 @@ import { useNavigate as useReactRouterNavigate, useParams, Link } from 'react-ro
 import type { HTMLAttributes } from 'react';
 
 export function useContentLibraryRouter(basePath: string): ContentLibraryRouter {
+  const contactPagePath = '/info/contact/';
   const location = useElementType();
   const navigate = useNavigate(basePath);
   const renderLink = (elementType: PageName, attributes: HTMLAttributes<HTMLAnchorElement>) => (
     <Link to={`${basePath}/${elementType}`} {...attributes} />
   );
-  return { location, navigate, renderLink };
+  return { contactPagePath, location, navigate, renderLink };
 }
 
 function useElementType(): PageName {

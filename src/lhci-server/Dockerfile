@@ -1,9 +1,4 @@
-FROM node:18-bullseye-slim@sha256:d69fb189fa7765636655db043a6a9e6be5ddf94bd1a8dc33fd0bcf4664606a9e
-
-RUN apt-get update --fix-missing && \
-    apt-get install -y python3 build-essential && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM node:24-bookworm-slim@sha256:2fe369e969550cde8e867afc3fe370b260140cab4a23d467074295b42163d553
 
 RUN corepack enable
 
@@ -13,7 +8,11 @@ COPY package.json yarn.lock ./
 COPY .yarnrc.yml ./
 COPY .yarn/releases ./.yarn/releases
 
-RUN yarn --immutable
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    yarn --immutable
 
 COPY server.js ./
 

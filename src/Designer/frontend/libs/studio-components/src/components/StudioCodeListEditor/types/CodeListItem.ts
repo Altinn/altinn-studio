@@ -1,6 +1,6 @@
 import type { MultiLanguageText } from '../../../types/MultiLanguageText';
 
-export type CodeListItem = {
+export type MultiLanguageCodeListItem = {
   readonly description?: MultiLanguageText;
   readonly helpText?: MultiLanguageText;
   readonly label?: MultiLanguageText;

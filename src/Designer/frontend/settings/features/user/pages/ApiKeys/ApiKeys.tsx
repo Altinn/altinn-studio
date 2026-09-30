@@ -9,13 +9,9 @@ import { AddApiKey } from '../../../../components/ApiKeys/AddApiKey';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import classes from './ApiKeys.module.css';
-import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { NotFound } from '../../../../components/NotFound/NotFound';
 
 export const ApiKeys = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { environment } = useEnvironmentConfig();
-  const studioOidc = environment?.featureFlags?.studioOidc;
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<number | undefined>(undefined);
 
@@ -31,10 +27,6 @@ export const ApiKeys = (): React.ReactElement => {
     isPending: pendingDeleteApiKey,
     variables: deletingApiKeyId,
   } = useDeleteUserApiKeyMutation();
-
-  if (!studioOidc) {
-    return <NotFound />;
-  }
 
   const isDuplicateName = (name: string): boolean =>
     apiKeys?.some((apiKey) => apiKey.name === name.trim()) ||

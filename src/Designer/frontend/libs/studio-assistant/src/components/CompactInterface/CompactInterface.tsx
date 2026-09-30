@@ -1,5 +1,5 @@
 import type { Message } from '../../types/ChatThread';
-import { ChatColumn } from '../ChatColumn/ChatColumn';
+import { MessageColumn } from '../MessageColumn/MessageColumn';
 import classes from './CompactInterface.module.css';
 import type { ReactElement } from 'react';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
@@ -28,7 +28,7 @@ export function CompactInterface({
   return (
     <div className={classes.compactInterface}>
       <HeadingBar texts={texts} />
-      <ChatColumn
+      <MessageColumn
         texts={texts}
         messages={[greetingMessage]}
         onSubmitMessage={onSubmitMessage}

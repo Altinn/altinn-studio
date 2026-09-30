@@ -2,13 +2,15 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
@@ -17,29 +19,40 @@ namespace Altinn.App.Core.Tests.Implementation;
 
 public class EventsClientTest
 {
-    private readonly IOptions<PlatformSettings> platformSettingsOptions;
-    private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
-    private readonly IOptions<GeneralSettings> generalSettingsOptions;
     private readonly Mock<HttpMessageHandler> handlerMock;
-    private readonly Mock<IHttpContextAccessor> contextAccessor;
+    private readonly Mock<IAuthenticationTokenResolver> authenticationTokenResolverMock;
     private readonly Mock<IAccessTokenGenerator> accessTokenGeneratorMock;
     private readonly Mock<IAppMetadata> _appMetadataMock;
+    private readonly IOptions<PlatformSettings> platformSettingsOptions;
+    private readonly IOptions<GeneralSettings> generalSettingsOptions;
 
     public EventsClientTest()
     {
         platformSettingsOptions = Microsoft.Extensions.Options.Options.Create<PlatformSettings>(new());
-        appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
         generalSettingsOptions = Microsoft.Extensions.Options.Options.Create<GeneralSettings>(
             new() { ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/" }
         );
         handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-        contextAccessor = new Mock<IHttpContextAccessor>();
+        authenticationTokenResolverMock = new Mock<IAuthenticationTokenResolver>();
         accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
         _appMetadataMock = new Mock<IAppMetadata>();
     }
 
+    private IServiceProvider BuildServiceProvider(Telemetry telemetry = null)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(platformSettingsOptions);
+        services.AddSingleton(generalSettingsOptions);
+        services.AddSingleton(authenticationTokenResolverMock.Object);
+        services.AddSingleton(accessTokenGeneratorMock.Object);
+        services.AddSingleton(_appMetadataMock.Object);
+        if (telemetry != null)
+            services.AddSingleton(telemetry);
+        return services.BuildServiceProvider();
+    }
+
     [Fact]
-    public async Task AddEvent_RegisterEventWithInstanceOwnerOrganisation_CloudEventInRequestContainOrganisationNumber()
+    public async Task AddEvent_RegisterEventWithInstanceOwnerOrganization_CloudEventInRequestContainOrganizationNumber()
     {
         TelemetrySink telemetrySink = new();
         // Arrange
@@ -67,17 +80,9 @@ public class EventsClientTest
         InitializeMocks(httpResponseMessage, SetRequest);
 
         HttpClient httpClient = new(handlerMock.Object);
+        var serviceProvider = BuildServiceProvider(telemetrySink.Object);
 
-        EventsClient target = new(
-            platformSettingsOptions,
-            contextAccessor.Object,
-            httpClient,
-            accessTokenGeneratorMock.Object,
-            _appMetadataMock.Object,
-            appSettingsOptions.Object,
-            generalSettingsOptions,
-            telemetrySink.Object
-        );
+        EventsClient target = new(httpClient, serviceProvider);
 
         // Act
         await target.AddEvent("created", instance);
@@ -125,16 +130,9 @@ public class EventsClientTest
         InitializeMocks(httpResponseMessage, SetRequest);
 
         HttpClient httpClient = new HttpClient(handlerMock.Object);
+        var serviceProvider = BuildServiceProvider();
 
-        EventsClient target = new EventsClient(
-            platformSettingsOptions,
-            contextAccessor.Object,
-            httpClient,
-            accessTokenGeneratorMock.Object,
-            _appMetadataMock.Object,
-            appSettingsOptions.Object,
-            generalSettingsOptions
-        );
+        EventsClient target = new EventsClient(httpClient, serviceProvider);
 
         // Act
         await target.AddEvent("created", instance);
@@ -148,6 +146,82 @@ public class EventsClientTest
         Assert.Equal("/party/321", actualEvent.Subject);
         Assert.Equal("/person/43234123", actualEvent.AlternativeSubject);
         Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+
+        handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task AddEvent_WithIdempotencyKey_SendsIdempotencyKeyHeader()
+    {
+        // Arrange
+        Instance instance = new()
+        {
+            AppId = "ttd/best-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() },
+        };
+
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(Guid.NewGuid().ToString()),
+        };
+
+        HttpRequestMessage actualRequest = null;
+        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        InitializeMocks(httpResponseMessage, SetRequest);
+
+        HttpClient httpClient = new(handlerMock.Object);
+        EventsClient target = new(httpClient, BuildServiceProvider());
+
+        Guid idempotencyKey = Guid.Parse("8b1f2c3d-4e5a-6b7c-8d9e-0f1a2b3c4d5e");
+
+        // Act
+        await target.AddEvent("created", instance, idempotencyKey: idempotencyKey);
+
+        // Assert
+        Assert.NotNull(actualRequest);
+        // Altinn Events reads this header as a GUID and stores and delivers one event per key, so the
+        // exact spelling is a wire contract: a renamed or reformatted header silently reverts the app
+        // to at-least-once publication rather than failing the request.
+        Assert.True(actualRequest.Headers.TryGetValues("Idempotency-Key", out var values));
+        Assert.Equal(idempotencyKey.ToString(), Assert.Single(values));
+
+        handlerMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task AddEvent_WithoutIdempotencyKey_SendsNoIdempotencyKeyHeader()
+    {
+        // Arrange
+        Instance instance = new()
+        {
+            AppId = "ttd/best-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() },
+        };
+
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(Guid.NewGuid().ToString()),
+        };
+
+        HttpRequestMessage actualRequest = null;
+        void SetRequest(HttpRequestMessage request) => actualRequest = request;
+        InitializeMocks(httpResponseMessage, SetRequest);
+
+        HttpClient httpClient = new(handlerMock.Object);
+        EventsClient target = new(httpClient, BuildServiceProvider());
+
+        // Act
+        await target.AddEvent("created", instance);
+
+        // Assert
+        Assert.NotNull(actualRequest);
+        // A caller with no key registers unconditionally, as before. Sending an empty or placeholder
+        // key instead would have Altinn Events treat unrelated events as duplicates of each other.
+        Assert.False(actualRequest.Headers.Contains("Idempotency-Key"));
 
         handlerMock.VerifyAll();
     }
@@ -174,16 +248,9 @@ public class EventsClientTest
         InitializeMocks(httpResponseMessage, SetRequest);
 
         HttpClient httpClient = new HttpClient(handlerMock.Object);
+        var serviceProvider = BuildServiceProvider();
 
-        EventsClient target = new EventsClient(
-            platformSettingsOptions,
-            contextAccessor.Object,
-            httpClient,
-            accessTokenGeneratorMock.Object,
-            _appMetadataMock.Object,
-            appSettingsOptions.Object,
-            generalSettingsOptions
-        );
+        EventsClient target = new EventsClient(httpClient, serviceProvider);
 
         PlatformHttpException actual = null;
 
@@ -213,17 +280,19 @@ public class EventsClientTest
 
         generalSettingsOptions.Value.HostName = "at22.altinn.cloud";
 
-        AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
-        appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
-
-        contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
+        // Valid JWT format (header.payload.signature) required by JwtToken.Parse
+        const string validJwtToken =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        authenticationTokenResolverMock
+            .Setup(a => a.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(validJwtToken));
 
         accessTokenGeneratorMock
             .Setup(at => at.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("dummy access token");
 
         ApplicationMetadata app = new ApplicationMetadata("ttd/best-app") { Id = "ttd/best-app", Org = "ttd" };
-        _appMetadataMock.Setup(ar => ar.GetApplicationMetadata()).ReturnsAsync(app);
+        _appMetadataMock.Setup(ar => ar.ApplicationMetadata).Returns(app);
 
         handlerMock
             .Protected()

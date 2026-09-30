@@ -101,7 +101,7 @@ public class WorkflowTests
         // Assert — Workflow fields
         Assert.Equal("next", workflow.OperationId);
         Assert.Equal("ns-1", workflow.Namespace);
-        Assert.Equal("ttd", workflow.Labels!["org"]);
+        Assert.Equal("ttd", workflow.Labels["org"]);
         Assert.Equal(createdAt, workflow.CreatedAt);
         Assert.Equal(startAt, workflow.StartAt);
         Assert.Equal(traceContext, workflow.DistributedTraceContext);

@@ -55,10 +55,7 @@ export function ThreadColumn({
         </StudioContentMenu>
       </div>
       <div className={classes.aboutSection}>
-        <AboutAssistantDialog
-          triggerText={texts.aboutAssistant}
-          texts={texts.aboutAssistantDialog}
-        />
+        <AboutAssistantDialog texts={texts.aboutAssistantDialog} />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ There are several configurations needed for a signing task. This includes which 
 the datatype id for the app internal state object, the implementation of the ISigneeProvider interface, the signing pdf data type, the correspondence resource
 and whether to use the default signing task validator or not.
 
-This ADR is written post-implementation, and aims to explain the different approaches that were considered and why the chosen alternative was preffered.
+This ADR is written post-implementation, and aims to explain the different approaches that were considered and why the chosen alternative was preferred.
 
 ## Decision drivers
 

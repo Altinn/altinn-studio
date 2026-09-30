@@ -380,7 +380,7 @@
       },
       {
         "id": "summaries-header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Oppsummeringer av utvalgte felt"
         },
@@ -413,7 +413,6 @@
           "back": "Tilbake",
           "next": "Neste"
         },
-        "showBackButton": true
       }
     ]
   }

@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;

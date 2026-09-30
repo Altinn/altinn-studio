@@ -1,4 +1,6 @@
-﻿namespace Altinn.Notifications.Core.Models;
+#nullable disable
+
+namespace Altinn.Notifications.Core.Models;
 
 /// <summary>
 /// A class representing a notification creator 

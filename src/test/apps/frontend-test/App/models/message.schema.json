@@ -1,48 +1,41 @@
-﻿{
-  "$schema": "http://json-schema.org/schema#",
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
+  "@xsdRootElement": "MessageV1",
   "type": "object",
   "properties": {
-    "Message": {
-      "$ref": "#/definitions/MessageV1"
+    "ProcessTask": {
+      "type": "string"
+    },
+    "Title": {
+      "type": "string"
+    },
+    "Body": {
+      "type": "string"
+    },
+    "Reference": {
+      "type": "string"
+    },
+    "Sender": {
+      "type": "string"
+    },
+    "IsSomeValue": {
+      "type": "boolean"
+    },
+    "SomeNumberValue": {
+      "@xsdType": "int",
+      "type": "integer"
+    },
+    "GwTargetTask": {
+      "type": "string",
+      "default": "Task_2"
     }
   },
-  "definitions": {
-    "MessageV1": {
-      "properties": {
-        "ProcessTask": {
-          "type": "string"
-        },
-        "Title": {
-          "type": "string"
-        },
-        "Body": {
-          "type": "string"
-        },
-        "Reference": {
-          "type": "string"
-        },
-        "Sender": {
-          "type": "string"
-        },
-        "IsSomeValue": {
-          "type": "boolean"
-        },
-        "SomeNumberValue": {
-          "type": "integer"
-        },
-        "GwTargetTask": {
-          "type": "string",
-          "default": "Task_2"
-        }
-      },
-      "required": [
-        "ProcessTask",
-        "Title",
-        "Body",
-        "Reference",
-        "Sender"
-      ]
-    }
-  }
+  "required": [
+    "ProcessTask",
+    "Title",
+    "Body",
+    "Reference",
+    "Sender"
+  ]
 }

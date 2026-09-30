@@ -1,0 +1,59 @@
+.userMessage {
+  max-width: 100ch;
+  background-color: var(--ds-color-accent-background-tinted);
+  border: none;
+  box-shadow: var(--ds-shadow-small);
+}
+
+.messageBody {
+  margin: 0;
+  color: var(--ds-color-text-primary);
+  line-height: 1.6;
+}
+
+.userAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  margin: var(--ds-size-2) 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.userAttachmentItem {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-2) var(--ds-size-3);
+  background: var(--ds-color-surface-subtle);
+  border-radius: var(--ds-border-radius-medium);
+  border: 1px solid var(--ds-color-border-subtle);
+  max-width: 12rem;
+  overflow: hidden;
+}
+
+.userAttachmentImage {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--ds-border-radius-small);
+  border: 1px solid var(--ds-color-border-subtle);
+  background: var(--ds-color-surface-default);
+}
+
+.userAttachmentIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ds-color-text-subtle);
+}
+
+.userAttachmentLabel {
+  font-size: var(--ds-font-size-small);
+  color: var(--ds-color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

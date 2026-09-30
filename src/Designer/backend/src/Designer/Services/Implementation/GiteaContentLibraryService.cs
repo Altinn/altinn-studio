@@ -154,8 +154,9 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         {
             return string.Empty;
         }
-        byte[] binaryData = Convert.FromBase64String(file.Content);
-        return Encoding.UTF8.GetString(binaryData);
+        using var stream = new MemoryStream(Convert.FromBase64String(file.Content));
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        return await reader.ReadToEndAsync();
     }
 
     private static string StaticContentTextResourceFilePath(string languageCode)

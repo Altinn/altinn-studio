@@ -8,7 +8,7 @@
       },
       {
         "id": "tittel1",
-        "type": "Header",
+        "type": "Heading",
         "size": "L",
         "textResourceBindings": {
           "title": "Skjul_felter.tittel.title"

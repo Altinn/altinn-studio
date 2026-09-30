@@ -1,0 +1,68 @@
+name: Runtime Workflow Engine - Docker build
+
+# Verifies both workflow-engine Docker images actually build on PRs.
+#
+# The existing *-tests workflows already cover source: they run
+# `dotnet build`/`dotnet test`, so compile/restore breakage fails there and
+# would fail an equivalent docker build too. What they DON'T cover is the
+# Dockerfiles themselves — COPY layout, publish flags, the ENTRYPOINT, and
+# the pinned base-image digests (they use actions/setup-dotnet, not the base
+# images). Nothing builds the standalone workflow-engine/Dockerfile at all
+# (only the app image is built, and only on push to main), so a Dockerfile
+# regression could otherwise stay dormant until someone builds it locally.
+#
+# This job is therefore scoped to the Dockerfiles and their .dockerignore
+# only — the parts no other workflow exercises. Source changes intentionally
+# do NOT trigger it, since the dotnet workflows already gate those.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/Runtime/workflow-engine/Dockerfile'
+      - 'src/Runtime/workflow-engine/Dockerfile.dockerignore'
+      - 'src/Runtime/workflow-engine-app/Dockerfile'
+      - 'src/Runtime/workflow-engine-app/Dockerfile.dockerignore'
+      - '.github/workflows/runtime-workflow-engine-docker-build.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build ${{ matrix.name }} image
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # No cache ref for the standalone workflow-engine image: nothing
+          # publishes a cache for it (only this workflow builds it).
+          - name: workflow-engine
+            dockerfile: Runtime/workflow-engine/Dockerfile
+            cache-from: ''
+          - name: workflow-engine-app
+            dockerfile: Runtime/workflow-engine-app/Dockerfile
+            # Written by deploy-runtime-workflow-engine-app.yaml on main;
+            # public package, so the read needs no auth.
+            cache-from: type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:buildcache
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: |
+          if [ -n "${{ matrix.cache-from }}" ]; then
+            docker build --cache-from "${{ matrix.cache-from }}" -f ${{ matrix.dockerfile }} .
+          else
+            docker build -f ${{ matrix.dockerfile }} .
+          fi

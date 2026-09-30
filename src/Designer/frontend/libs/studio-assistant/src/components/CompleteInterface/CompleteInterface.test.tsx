@@ -116,23 +116,27 @@ describe('CompleteInterface', () => {
     expect(previewPlaceholder).toBeInTheDocument();
   });
 
-  it('should render the assistant loading bubble when the active workflow belongs to the active thread', () => {
+  it('should render the assistant loading bubble for the active thread when its workflow is running', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
       messages: mockMessages,
       activeThreadId: '1',
-      workflowStatus: { isActive: true, sessionId: '1', message: loadingBubbleMessage },
+      workflowStatusByThread: {
+        '1': { isActive: true, sessionId: '1', message: loadingBubbleMessage },
+      },
     });
 
     expect(screen.getByText(loadingBubbleMessage)).toBeInTheDocument();
   });
 
-  it('should not render the assistant loading bubble when the active workflow belongs to another thread', () => {
+  it('should not render the assistant loading bubble when only another thread has a running workflow', () => {
     const loadingBubbleMessage = 'Working on it...';
     renderCompleteInterface({
       messages: mockMessages,
       activeThreadId: '1',
-      workflowStatus: { isActive: true, sessionId: '2', message: loadingBubbleMessage },
+      workflowStatusByThread: {
+        '2': { isActive: true, sessionId: '2', message: loadingBubbleMessage },
+      },
     });
 
     expect(screen.queryByText(loadingBubbleMessage)).not.toBeInTheDocument();
@@ -146,7 +150,7 @@ const defaultProps: CompleteInterfaceProps = {
   chatThreads: mockChatThreads,
   activeThreadId: '1',
   connectionStatus: 'connected',
-  workflowStatus: { isActive: true },
+  workflowStatusByThread: {},
   previewContent: <p>Preview placeholder</p>,
 };
 

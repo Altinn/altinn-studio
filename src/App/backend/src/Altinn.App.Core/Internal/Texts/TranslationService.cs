@@ -269,7 +269,7 @@ internal sealed class TranslationService : ITranslationService
 
             if (_appMetadata is not null)
             {
-                var appMetadata = await _appMetadata.GetApplicationMetadata();
+                var appMetadata = _appMetadata.ApplicationMetadata;
                 if (appMetadata?.Title?.Count > 0)
                 {
                     return appMetadata.Title.TryGetValue(language, out var title)
@@ -325,6 +325,26 @@ internal sealed class TranslationService : ITranslationService
                         LanguageConst.Nn => "Dokumentet er ein førehandsvisning",
                         _ => "Dokumentet er en forhåndsvisning",
                     },
+                };
+            case "backend.xsd_validation":
+                return new TextResourceElement()
+                {
+                    Id = "backend.xsd_validation",
+                    Value = language switch
+                    {
+                        LanguageConst.Nb => "Et felt bryter reglene satt av XSD. Melding: {0}",
+                        LanguageConst.Nn => "Eit felt bryt reglane sette av XSD. Melding: {0}",
+                        _ => "A field is in violation of the rules set by the XSD schema. Message: {0}",
+                    },
+                    Variables =
+                    [
+                        new TextResourceVariable()
+                        {
+                            DataSource = "customTextParameters",
+                            Key = "message",
+                            DefaultValue = "",
+                        },
+                    ],
                 };
         }
 

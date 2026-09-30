@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Models;
 
@@ -31,7 +30,17 @@ public sealed record StepStatusResponse
     /// </summary>
     [JsonPropertyName("updatedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedAt { get; internal set; }
+    public DateTimeOffset? UpdatedAt { get; init; }
+
+    /// <summary>
+    /// When the engine most recently began executing this step: the start of the current attempt while
+    /// <see cref="PersistentItemStatus.Processing"/>, otherwise of the last one. Against
+    /// <see cref="UpdatedAt"/> on a settled step it gives the last attempt's duration. Omitted until the
+    /// step has run once.
+    /// </summary>
+    [JsonPropertyName("executionStartedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ExecutionStartedAt { get; init; }
 
     /// <summary>
     /// Labels associated with the step.
@@ -58,6 +67,29 @@ public sealed record StepStatusResponse
     /// </summary>
     [JsonPropertyName("retryCount")]
     public required int RetryCount { get; init; }
+
+    /// <summary>
+    /// The number of times this step has deferred (parked in Waiting because the awaited outcome
+    /// was not available yet).
+    /// </summary>
+    [JsonPropertyName("deferCount")]
+    public int DeferCount { get; init; }
+
+    /// <summary>
+    /// When this step deferred for the first time — the anchor its wait budget is measured from.
+    /// Omitted when the step has never deferred.
+    /// </summary>
+    [JsonPropertyName("firstDeferredAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstDeferredAt { get; init; }
+
+    /// <summary>
+    /// The reason given by this step's most recent deferral — the command's own words for why it is
+    /// waiting. Omitted when the step has never deferred or gave no reason.
+    /// </summary>
+    [JsonPropertyName("lastDeferReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LastDeferReason { get; init; }
 
     /// <summary>
     /// The output state produced by this step, passed as input to the next step.
@@ -89,8 +121,12 @@ public sealed record StepStatusResponse
             ProcessingOrder = step.ProcessingOrder,
             Status = step.Status,
             UpdatedAt = step.UpdatedAt,
+            ExecutionStartedAt = step.ExecutionStartedAt,
             Labels = step.Labels,
             RetryCount = step.RequeueCount,
+            DeferCount = step.DeferCount,
+            FirstDeferredAt = step.FirstDeferredAt,
+            LastDeferReason = step.LastDeferReason,
             StateOut = step.StateOut,
             RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count > 0 ? step.ErrorHistory : null,

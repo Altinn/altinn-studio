@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to edit metadata in an app.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param app the app the user is in
  */
 export const useAppMetadataMutation = (org: string, app: string) => {

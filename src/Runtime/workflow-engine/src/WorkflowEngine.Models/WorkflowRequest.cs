@@ -79,4 +79,12 @@ public sealed record WorkflowRequest
     /// </summary>
     [JsonPropertyName("isHead")]
     public bool? IsHead { get; init; }
+
+    /// <summary>
+    /// Declares this a receive workflow: the first step consumes one message, every later step is ordinary.
+    /// Incompatible with <see cref="StartAt"/> — a held row has no schedule — and there is no per-receiver
+    /// timeout: the mailbox's deadline bounds the exchange.
+    /// </summary>
+    [JsonPropertyName("mailbox")]
+    public MailboxReference? Mailbox { get; init; }
 }

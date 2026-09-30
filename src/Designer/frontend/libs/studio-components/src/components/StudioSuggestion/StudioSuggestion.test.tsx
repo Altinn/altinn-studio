@@ -30,10 +30,23 @@ describe('StudioSuggestion', () => {
     expect(screen.getByText('required')).toBeInTheDocument();
   });
 
+  it('renders the placeholder on the input when given', () => {
+    const placeholder = 'Search…';
+    renderStudioSuggestion({ suggestionProps: { placeholder } });
+
+    expect(getInput()).toHaveAttribute('placeholder', placeholder);
+  });
+
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) =>
       renderStudioSuggestion({ suggestionProps: { className } }),
     );
+  });
+
+  it('Labels the clear button with the given clearButtonLabel', () => {
+    const clearButtonLabel = 'Clear selection';
+    renderStudioSuggestion({ suggestionProps: { clearButtonLabel } });
+    expect(getClearButton()).toHaveAttribute('aria-label', clearButtonLabel);
   });
 
   it('Forwards the ref to the button element if given', () => {
@@ -64,6 +77,10 @@ type RenderStudioSuggestionProps = {
   suggestionProps?: Partial<StudioSuggestionProps>;
   options?: StudioSuggestionOptionProps[];
 };
+
+function getClearButton(): HTMLElement {
+  return screen.getByRole('button', { hidden: true });
+}
 
 function getInput(label: string = defaultProps.label): HTMLInputElement {
   return screen.getByLabelText(label);

@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 public class PlatformBearerTokenHandler : DelegatingHandler
 {
     private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
-    private readonly IAccessTokenGenerator _accesTokenGenerator;
+    private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly GeneralSettings _generalSettings;
     private const string AccessTokenIssuerProd = "studio";
     private const string AccessTokenIssuerDev = "dev-studio";
@@ -32,7 +32,7 @@ public class PlatformBearerTokenHandler : DelegatingHandler
     )
     {
         _altinnAuthenticationClient = altinnAuthenticationClient;
-        _accesTokenGenerator = accessTokenGenerator;
+        _accessTokenGenerator = accessTokenGenerator;
         _generalSettings = generalSettings;
     }
 
@@ -62,7 +62,7 @@ public class PlatformBearerTokenHandler : DelegatingHandler
             issuer = AccessTokenIssuerProd;
         }
 
-        string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
+        string designerToken = _accessTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
         string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);

@@ -31,7 +31,11 @@ public sealed record WorkflowEnqueueRequest
 
     internal byte[] ComputeHash()
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this);
+        // Context is opaque passthrough that the engine never inspects, and callers may legitimately rebuild
+        // it per attempt (e.g. a freshly minted auth token with a new issued-at). Excluding it from the
+        // idempotency hash keeps the hash stable across rebuilds of the same logical request, so retries
+        // under a stable idempotency key dedupe instead of raising a spurious idempotency conflict.
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this with { Context = null });
         return SHA256.HashData(jsonBytes);
     }
 }

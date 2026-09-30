@@ -1,9 +1,9 @@
 .buttonWrapper {
   display: flex;
-  gap: var(--fds-spacing-2);
+  gap: var(--ds-size-2);
   align-items: center;
 }
 
-.validationButton {
-  lineheight: 'normal';
+.validationButton svg {
+  font-size: 20px;
 }

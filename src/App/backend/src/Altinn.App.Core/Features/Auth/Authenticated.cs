@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
@@ -99,6 +99,31 @@ public abstract class Authenticated
     }
 
     /// <summary>
+    /// The caller is the app itself — its own machinery (the workflow engine invoking a process callback via
+    /// the <c>WorkflowEngineCallback</c> scheme) authenticated by an app-minted token. Carries the app
+    /// identity and, when the callback targets a specific instance, the identifier for that instance.
+    /// </summary>
+    public sealed class App : Authenticated
+    {
+        /// <summary>
+        /// The app this callback is running as.
+        /// </summary>
+        public AppIdentifier AppId { get; }
+
+        /// <summary>
+        /// The instance the callback targets when it is instance-scoped; otherwise <c>null</c>.
+        /// </summary>
+        public InstanceIdentifier? InstanceId { get; }
+
+        internal App(AppIdentifier appId, InstanceIdentifier? instanceId, ref ParseContext context)
+            : base(ref context)
+        {
+            AppId = appId;
+            InstanceId = instanceId;
+        }
+    }
+
+    /// <summary>
     /// The logged in client is a user (e.g. Altinn portal/ID-porten)
     /// </summary>
     public sealed class User : Authenticated
@@ -186,7 +211,7 @@ public abstract class Authenticated
         /// <param name="UserParty">Party object for the user. This means that the user is currently representing themselves as a person</param>
         /// <param name="SelectedParty">
         ///     Party object for the selected party.
-        ///     Selected party and user party will differ when the user has chosed to represent a different entity during party selection (e.g. an organisation)
+        ///     Selected party and user party will differ when the user has chosen to represent a different entity during party selection (e.g. an organization)
         /// </param>
         /// <param name="Profile">Users profile</param>
         /// <param name="RepresentsSelf">True if the user represents itself (user party will equal selected party)</param>
@@ -340,13 +365,13 @@ public abstract class Authenticated
     }
 
     /// <summary>
-    /// The logged in client is an organisation (but they have not authenticated as an Altinn service owner).
+    /// The logged in client is an organization (but they have not authenticated as an Altinn service owner).
     /// Authentication has been done through Maskinporten.
     /// </summary>
     public sealed class Org : Authenticated
     {
         /// <summary>
-        /// Organisation number
+        /// Organization number
         /// </summary>
         public string OrgNo { get; }
 
@@ -374,14 +399,14 @@ public abstract class Authenticated
         }
 
         /// <summary>
-        /// Detailed information about an organisation
+        /// Detailed information about an organization
         /// </summary>
         /// <param name="Party">Party of the org</param>
         /// <param name="CanInstantiate">True if the org can instantiate applications</param>
         public sealed record Details(Party Party, bool CanInstantiate);
 
         /// <summary>
-        /// Load the details for the current organisation.
+        /// Load the details for the current organization.
         /// </summary>
         /// <returns>Details</returns>
         public async Task<Details> LoadDetails()
@@ -401,12 +426,12 @@ public abstract class Authenticated
     public sealed class ServiceOwner : Authenticated
     {
         /// <summary>
-        /// Organisation/service owner name
+        /// Organization/service owner name
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Organisation number
+        /// Organization number
         /// </summary>
         public string OrgNo { get; }
 
@@ -458,7 +483,7 @@ public abstract class Authenticated
     /// <summary>
     /// The logged in client is a system user.
     /// System users authenticate through Maskinporten.
-    /// The caller is the system, which impersonates the system user (which represents the organisation/owner of the user).
+    /// The caller is the system, which impersonates the system user (which represents the organization/owner of the user).
     /// </summary>
     public sealed class SystemUser : Authenticated
     {
@@ -468,14 +493,14 @@ public abstract class Authenticated
         public IReadOnlyList<Guid> SystemUserId { get; }
 
         /// <summary>
-        /// Organisation number of the system user
+        /// Organization number of the system user
         /// </summary>
-        public OrganisationNumber SystemUserOrgNr { get; }
+        public OrganizationNumber SystemUserOrgNr { get; }
 
         /// <summary>
-        /// Organisation number of the supplier system
+        /// Organization number of the supplier system
         /// </summary>
-        public OrganisationNumber SupplierOrgNr { get; }
+        public OrganizationNumber SupplierOrgNr { get; }
 
         /// <summary>
         /// System ID
@@ -497,8 +522,8 @@ public abstract class Authenticated
 
         internal SystemUser(
             IReadOnlyList<Guid> systemUserId,
-            OrganisationNumber systemUserOrgNr,
-            OrganisationNumber supplierOrgNr,
+            OrganizationNumber systemUserOrgNr,
+            OrganizationNumber supplierOrgNr,
             string systemId,
             int? authenticationLevel,
             string? authenticationMethod,
@@ -531,16 +556,13 @@ public abstract class Authenticated
         /// <returns>Details</returns>
         public async Task<Details> LoadDetails()
         {
-            var party = await _lookupParty(SystemUserOrgNr.Get(OrganisationNumberFormat.Local));
+            var party = await _lookupParty(SystemUserOrgNr.Get(OrganizationNumberFormat.Local));
 
             var canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(party, _appMetadata.PartyTypesAllowed);
 
             return new Details(party, canInstantiate);
         }
     }
-
-    // TODO: app token?
-    // public sealed record App(string Token) : Authenticated;
 
     internal delegate Authenticated Parser(
         string tokenStr,
@@ -620,7 +642,7 @@ public abstract class Authenticated
         {
             if (!context.OrgClaim.IsValidString(out var orgClaimValue))
                 throw new AuthenticationContextException(
-                    $"Invlaid org claim for service owner token: {context.OrgClaim.Value}"
+                    $"Invalid org claim for service owner token: {context.OrgClaim.Value}"
                 );
 
             // In this case the token should have a serviceowner scope,
@@ -809,6 +831,50 @@ public abstract class Authenticated
         }
     }
 
+    /// <summary>
+    /// Builds the authentication info for an app process callback (the workflow engine invoking the
+    /// <c>WorkflowEngineCallback</c> scheme). The principal carries no Altinn user/org identity, so it maps
+    /// directly to <see cref="App"/> instead of being run through the standard token classification.
+    /// <paramref name="appId"/> identifies the targeted app (resolved from the request route), and
+    /// <paramref name="instanceId"/> is the instance the callback targets, when instance-scoped.
+    /// </summary>
+    internal static Authenticated FromApp(
+        string tokenStr,
+        JwtSecurityToken? parsedToken,
+        AppIdentifier appId,
+        InstanceIdentifier? instanceId,
+        ApplicationMetadata appMetadata
+    )
+    {
+        // The callback principal has no user/party/profile dimension, so the lookup delegates are never invoked.
+        var context = new ParseContext(
+            tokenStr,
+            true,
+            appMetadata,
+            static () => null,
+            static _ => Task.FromResult<UserProfile?>(null),
+            static _ => Task.FromResult<Party?>(null),
+            static _ =>
+                throw new InvalidOperationException(
+                    "Org party lookup is not applicable for an app callback principal."
+                ),
+            static _ => Task.FromResult<List<Party>?>(null),
+            static (_, _) => Task.FromResult<bool?>(null)
+        );
+
+        if (!string.IsNullOrWhiteSpace(tokenStr))
+        {
+            JwtSecurityToken token = parsedToken ?? new JwtSecurityTokenHandler().ReadJwtToken(tokenStr);
+            context.ReadClaims(token);
+            context.Scopes = context.ScopeClaim.IsValidString(out var scopeClaimValue)
+                ? new Scopes(scopeClaimValue)
+                : new Scopes(null);
+            context.ResolveIssuer();
+        }
+
+        return new App(appId, instanceId, ref context);
+    }
+
     internal static Authenticated From(
         string tokenStr,
         JwtSecurityToken? parsedToken,
@@ -993,15 +1059,15 @@ public abstract class Authenticated
             throw new AuthenticationContextException("Missing system ID claim for systemuser token");
         if (systemUser.SystemUserOrg.Authority != "iso6523-actorid-upis")
             throw new AuthenticationContextException(
-                $"Unsupported organisation authority in systemuser token: {systemUser.SystemUserOrg.Authority}"
+                $"Unsupported organization authority in systemuser token: {systemUser.SystemUserOrg.Authority}"
             );
-        if (!OrganisationNumber.TryParse(systemUser.SystemUserOrg.Id, out var orgNr))
+        if (!OrganizationNumber.TryParse(systemUser.SystemUserOrg.Id, out var orgNr))
             throw new AuthenticationContextException(
-                $"Invalid system user organisation number in system user token: {systemUser.SystemUserOrg.Id}"
+                $"Invalid system user organization number in system user token: {systemUser.SystemUserOrg.Id}"
             );
-        if (!OrganisationNumber.TryParse(context.ConsumerClaimValue?.Id, out var supplierOrgNr))
+        if (!OrganizationNumber.TryParse(context.ConsumerClaimValue?.Id, out var supplierOrgNr))
             throw new AuthenticationContextException(
-                $"Invalid organisation number in supplier organisation number claim for system user token: {context.ConsumerClaimValue?.Id}"
+                $"Invalid organization number in supplier organization number claim for system user token: {context.ConsumerClaimValue?.Id}"
             );
 
         return new SystemUser(

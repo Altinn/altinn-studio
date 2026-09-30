@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Configuration;
+#nullable disable
+
+using Altinn.Notifications.Core.Configuration;
 using Altinn.Notifications.Core.Enums;
 using Altinn.Notifications.Core.Models;
 using Altinn.Notifications.Core.Models.NotificationTemplate;

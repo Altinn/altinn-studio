@@ -3,9 +3,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -18,14 +20,17 @@ public class ProcessModelingService : IProcessModelingService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
+    private readonly IAppVersionService _appVersionService;
 
     public ProcessModelingService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IAppDevelopmentService appDevelopmentService
+        IAppDevelopmentService appDevelopmentService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _appDevelopmentService = appDevelopmentService;
+        _appVersionService = appVersionService;
     }
 
     private string TemplatesFolderIdentifier(SemanticVersion version) =>
@@ -55,6 +60,57 @@ public class ProcessModelingService : IProcessModelingService
     }
 
     /// <inheritdoc/>
+    public async Task UpdateTaskId(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string oldId,
+        string newId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        XDocument processDefinition;
+        await using (Stream processDefinitionStream = altinnAppGitRepository.GetProcessDefinitionFile())
+        {
+            processDefinition = await XDocument.LoadAsync(
+                processDefinitionStream,
+                LoadOptions.PreserveWhitespace,
+                cancellationToken
+            );
+        }
+
+        // A task id is a unique token used both as the element id and in every reference to it
+        // (sequenceFlow sourceRef/targetRef, bpmndi bpmnElement, etc.), so every attribute whose
+        // value equals the old id must be updated.
+        bool hasChanged = false;
+        foreach (
+            XAttribute attribute in processDefinition
+                .Root!.DescendantsAndSelf()
+                .Attributes()
+                .Where(a => a.Value == oldId)
+        )
+        {
+            attribute.Value = newId;
+            hasChanged = true;
+        }
+
+        if (!hasChanged)
+        {
+            return;
+        }
+
+        await using MemoryStream outputStream = new();
+        await processDefinition.SaveAsync(outputStream, SaveOptions.DisableFormatting, cancellationToken);
+        outputStream.Position = 0;
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(outputStream, cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext)
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
@@ -70,6 +126,7 @@ public class ProcessModelingService : IProcessModelingService
         string dataTypeId,
         string taskId,
         List<string>? allowedContributors,
+        List<string>? allowedContentTypes = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -88,11 +145,19 @@ public class ProcessModelingService : IProcessModelingService
             var dataTypeToAdd = new DataType
             {
                 Id = dataTypeId,
-                AllowedContentTypes = new List<string> { "application/json" },
+                AllowedContentTypes =
+                    allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { "application/json" },
                 MaxCount = 1,
                 TaskId = taskId,
-                EnablePdfCreation = false,
             };
+
+            if (!_appVersionService.IsV9App(altinnRepoEditingContext))
+            {
+                // V8 enables legacy PDF generation when this property is omitted.
+#pragma warning disable CS0618 // Required by apps using the v8 runtime
+                dataTypeToAdd.EnablePdfCreation = false;
+#pragma warning restore CS0618
+            }
 
             if (allowedContributors?.Count > 0)
             {
@@ -137,9 +202,8 @@ public class ProcessModelingService : IProcessModelingService
                 altinnRepoEditingContext,
                 layoutSetId
             );
-            string? taskId = layoutSet.Tasks?.First();
-            ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
-            return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+            string? taskId = layoutSet.Tasks?.FirstOrDefault();
+            return taskId is null ? string.Empty : definitions?.Process.TaskTypeOf(taskId) ?? string.Empty;
         }
     }
 

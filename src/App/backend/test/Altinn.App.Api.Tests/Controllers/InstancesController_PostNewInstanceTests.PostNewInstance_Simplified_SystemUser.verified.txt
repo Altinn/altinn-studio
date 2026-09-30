@@ -1,11 +1,6 @@
 ﻿{
   Activities: [
     {
-      Name: ApplicationMetadata.Service.GetPrefillJson,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -23,10 +18,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.number: 310702641
+          organization.number: 310702641
         },
         {
-          organisation.systemuser.id: Guid_1
+          organization.systemuser.id: Guid_1
         },
         {
           server.address: localhost
@@ -80,10 +75,10 @@
           network.protocol.version: 1.1
         },
         {
-          organisation.number: 310702641
+          organization.number: 310702641
         },
         {
-          organisation.systemuser.id: Guid_1
+          organization.systemuser.id: Guid_1
         },
         {
           server.address: localhost
@@ -127,11 +122,109 @@
       HasParent: true
     },
     {
-      Name: Process.HandleEvents,
+      Name: Process.Callback,
       IdFormat: W3C,
+      Status: Ok,
       Tags: [
         {
           instance.guid: Guid_4
+        },
+        {
+          process.callback.command: AcquireProcessingStatus
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: UnlockTaskData
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: CleanupGeneratedFromTask
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: OnTaskStartingHook
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: CommonTaskInitialization
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: StartTask
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.Callback,
+      IdFormat: W3C,
+      Status: Ok,
+      Tags: [
+        {
+          instance.guid: Guid_4
+        },
+        {
+          process.callback.command: CommitProcessState
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: Process.GenerateChangeEvent,
+      IdFormat: W3C,
+      Tags: [
+        {
+          process.event.type: process_EndTask
         }
       ],
       HasParent: true
@@ -163,18 +256,13 @@
       HasParent: true
     },
     {
-      Name: Process.StoreEvents,
+      Name: ProcessNavigator.GetNextTask,
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_4
+          process.current.element: StartEvent_1
         }
       ],
-      HasParent: true
-    },
-    {
-      Name: ProcessClient.GetProcessDefinition,
-      IdFormat: W3C,
       HasParent: true
     },
     {
@@ -268,7 +356,107 @@
       HasParent: true
     },
     {
+      Name: SerializationService.DeserializeJson,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.DeserializeJson,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: SerializationService.DeserializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeJson,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeJson,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeJson,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
+      IdFormat: W3C,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema
+        }
+      ],
+      HasParent: true
+    },
+    {
+      Name: SerializationService.SerializeXml,
       IdFormat: W3C,
       Tags: [
         {

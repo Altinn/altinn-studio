@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,6 +73,221 @@ public class FormDataReaderTests
         Assert.Same(model, persistedModel);
     }
 
+    public static TheoryData<Instance> IdleInstances =>
+        new()
+        {
+            new Instance(),
+            new Instance { Process = new ProcessState { Status = null } },
+            new Instance { Process = new ProcessState { Status = ProcessStatus.Idle } },
+        };
+
+    [Theory]
+    [MemberData(nameof(IdleInstances))]
+    public async Task ReadFormData_WithRowIdsAndIdleStatus_InitializesOnceAndPersistsOnlyTheChange(Instance instance)
+    {
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Rows = [new TestRow()] };
+        int persistCount = 0;
+        Guid persistedRowId = Guid.Empty;
+
+        var service = CreateService();
+        for (int read = 0; read < 2; read++)
+        {
+            await service.ProcessLoadedFormData(
+                instance,
+                dataElement,
+                model,
+                includeRowId: true,
+                persistFormData: (updatedModel, _) =>
+                {
+                    persistCount++;
+                    persistedRowId = Assert.IsType<TestModel>(updatedModel).Rows.Single().AltinnRowId;
+                    return Task.CompletedTask;
+                }
+            );
+        }
+
+        Assert.NotEqual(Guid.Empty, model.Rows.Single().AltinnRowId);
+        Assert.Equal(model.Rows.Single().AltinnRowId, persistedRowId);
+        Assert.Equal(1, persistCount);
+    }
+
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_InitializesInMemoryWithoutPersisting(ProcessStatus status)
+    {
+        var instance = new Instance { Process = new ProcessState { Status = status } };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Name = "stored", Rows = [new TestRow()] };
+        _dataProcessor
+            .Setup(x => x.ProcessDataRead(instance, It.IsAny<Guid?>(), model, It.IsAny<string?>()))
+            .Callback(() =>
+            {
+                Assert.Equal(Guid.Empty, model.Rows.Single().AltinnRowId);
+                model.Name = "from-hook";
+            })
+            .Returns(Task.CompletedTask);
+        int persistCount = 0;
+
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            includeRowId: true,
+            persistFormData: (_, _) =>
+            {
+                persistCount++;
+                return Task.CompletedTask;
+            }
+        );
+
+        Assert.Equal("from-hook", model.Name);
+        Assert.NotEqual(Guid.Empty, model.Rows.Single().AltinnRowId);
+        Assert.Equal(0, persistCount);
+        _dataProcessor.Verify(x => x.ProcessDataRead(instance, Guid.Parse(dataElement.Id), model, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReadFormData_WithPreexistingRowIdsAndIdleStatus_DoesNotPersist()
+    {
+        var existingRowId = Guid.NewGuid();
+        var instance = new Instance { Process = new ProcessState { Status = ProcessStatus.Idle } };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Rows = [new TestRow { AltinnRowId = existingRowId }] };
+        int persistCount = 0;
+
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            includeRowId: true,
+            persistFormData: (_, _) =>
+            {
+                persistCount++;
+                return Task.CompletedTask;
+            }
+        );
+
+        Assert.Equal(existingRowId, model.Rows.Single().AltinnRowId);
+        Assert.Equal(0, persistCount);
+    }
+
+    [Fact]
+    public async Task ReadFormData_WithRowIdsAndNonIdleStatus_PreservesExistingRowIdsWithoutPersisting()
+    {
+        var existingRowId = Guid.NewGuid();
+        var instance = new Instance { Process = new ProcessState { Status = ProcessStatus.Processing } };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Rows = [new TestRow { AltinnRowId = existingRowId }] };
+        int persistCount = 0;
+
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            includeRowId: true,
+            persistFormData: (_, _) =>
+            {
+                persistCount++;
+                return Task.CompletedTask;
+            }
+        );
+
+        Assert.Equal(existingRowId, model.Rows.Single().AltinnRowId);
+        Assert.Equal(0, persistCount);
+    }
+
+    [Theory]
+    [InlineData(ProcessStatus.Processing)]
+    public async Task ReadFormData_WithoutRowIdsAndNonIdleStatus_RunsReadHookWithoutPersisting(ProcessStatus status)
+    {
+        var existingRowId = Guid.NewGuid();
+        var instance = new Instance { Process = new ProcessState { Status = status } };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Name = "stored", Rows = [new TestRow { AltinnRowId = existingRowId }] };
+        _dataProcessor
+            .Setup(x => x.ProcessDataRead(instance, It.IsAny<Guid?>(), model, It.IsAny<string?>()))
+            .Callback(() =>
+            {
+                Assert.Equal(existingRowId, model.Rows.Single().AltinnRowId);
+                model.Name = "from-hook";
+            })
+            .Returns(Task.CompletedTask);
+        int persistCount = 0;
+
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            includeRowId: false,
+            persistFormData: (updatedModel, _) =>
+            {
+                persistCount++;
+                return Task.CompletedTask;
+            }
+        );
+
+        Assert.Equal("from-hook", model.Name);
+        Assert.Equal(Guid.Empty, model.Rows.Single().AltinnRowId);
+        Assert.Equal(0, persistCount);
+        _dataProcessor.Verify(x => x.ProcessDataRead(instance, Guid.Parse(dataElement.Id), model, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task ReadFormData_WhenRowIdPersistenceIsForbidden_ReturnsInitializedModel()
+    {
+        var instance = new Instance { Process = new ProcessState { Status = ProcessStatus.Idle } };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = false,
+        };
+        var model = new TestModel { Rows = [new TestRow()] };
+        var exception = new PlatformHttpException(HttpStatusCode.Forbidden, "Write forbidden");
+
+        var service = CreateService();
+        object result = await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            includeRowId: true,
+            persistFormData: (_, _) => Task.FromException(exception)
+        );
+
+        Assert.Same(model, result);
+        Assert.NotEqual(Guid.Empty, model.Rows.Single().AltinnRowId);
+    }
+
     [Fact]
     public async Task ReadFormData_WhenFormDataIsMissing_ThrowsBadRequest()
     {
@@ -94,5 +310,12 @@ public class FormDataReaderTests
     private sealed class TestModel
     {
         public string? Name { get; set; }
+
+        public List<TestRow> Rows { get; set; } = [];
+    }
+
+    private sealed class TestRow
+    {
+        public Guid AltinnRowId { get; set; }
     }
 }

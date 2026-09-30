@@ -1,9 +1,10 @@
 import React from 'react';
 import { TileLayer, WMSTileLayer } from 'react-leaflet';
 
+import type { MapTileLayer, MapWMSLayer } from '@app/layout-contract/generated/components/Map/config.generated';
+
 import { DefaultMapLayers } from 'src/layout/Map/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import type { MapTileLayer, MapWMSLayer } from 'src/layout/Map/config.generated';
 
 function OurTileLayer({ layer }: { layer: MapTileLayer }) {
   return (

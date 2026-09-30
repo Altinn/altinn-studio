@@ -8,7 +8,7 @@ describe('GitHubIssuesContactProvider', () => {
     );
 
     expect(gitHubIssuesContactProvider.buildContactUrl('bugReport')).toBe(
-      'https://github.com/Altinn/altinn-studio/issues/new?labels=kind/bug,status/triage&template=bug_report.yml',
+      'https://github.com/Altinn/altinn-studio/issues/new?labels=status/triage&template=bug_report.yml',
     );
 
     expect(gitHubIssuesContactProvider.buildContactUrl('choose')).toBe(
@@ -24,7 +24,7 @@ describe('GitHubIssuesContactProvider', () => {
         'additional-information': 'cannot read property of undefined, reading id',
       }),
     ).toBe(
-      'https://github.com/Altinn/altinn-studio/issues/new?labels=kind/bug,status/triage&template=bug_report.yml&title=title%20of%20the%20issue&additional-information=cannot%20read%20property%20of%20undefined%2C%20reading%20id',
+      'https://github.com/Altinn/altinn-studio/issues/new?labels=status/triage&template=bug_report.yml&title=title%20of%20the%20issue&additional-information=cannot%20read%20property%20of%20undefined%2C%20reading%20id',
     );
   });
 });

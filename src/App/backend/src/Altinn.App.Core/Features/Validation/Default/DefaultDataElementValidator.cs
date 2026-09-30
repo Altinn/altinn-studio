@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Default validations that run on all data elements to validate metadata and file scan results.
 /// </summary>
-public class DefaultDataElementValidator : IDataElementValidator //TODO: This should implemnt IValidator
+internal sealed class DefaultDataElementValidator : IDataElementValidator //TODO: This should implement IValidator
 {
     /// <summary>
     /// Run validations on all data elements
@@ -42,8 +42,8 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
             if (
                 dataType.AllowedContentTypes != null
                 && dataType.AllowedContentTypes.Count > 0
-                && dataType.AllowedContentTypes.TrueForAll(ct =>
-                    !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)
+                && dataType.AllowedContentTypes.TrueForAll(cancellationToken =>
+                    !cancellationToken.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)
                 )
             )
             {

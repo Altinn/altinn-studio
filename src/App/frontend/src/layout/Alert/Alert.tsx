@@ -1,30 +1,28 @@
 import React from 'react';
 
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
-import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { Alert as AlertLayout } from '@app/form-component';
+
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Alert = ({ baseComponentId }: PropsFromGenericComponent<'Alert'>) => {
   const { severity, textResourceBindings } = useItemWhenType(baseComponentId, 'Alert');
-  const { langAsString } = useLanguage();
+  const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
 
   // If the 'hidden' property is an expression, we should alert screen readers whenever this becomes visible
   const component = useExternalItem(baseComponentId);
   const shouldAlertScreenReaders = Array.isArray(component?.hidden);
 
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <AlertBaseComponent
-        severity={severity}
-        useAsAlert={shouldAlertScreenReaders}
-        title={textResourceBindings?.title && langAsString(textResourceBindings.title)}
-      >
-        {textResourceBindings?.body && <Lang id={textResourceBindings.body} />}
-      </AlertBaseComponent>
-    </ComponentStructureWrapper>
+    <AlertLayout
+      componentId={componentId}
+      severity={severity}
+      title={textResourceBindings?.title}
+      body={textResourceBindings?.body}
+      useAsAlert={shouldAlertScreenReaders}
+      innerGrid={innerGrid}
+    />
   );
 };

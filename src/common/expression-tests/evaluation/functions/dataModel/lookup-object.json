@@ -1,0 +1,104 @@
+{
+  "name": "Lookup an object",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
+      },
+      "data": {
+        "simpleCity": {
+          "name": "Oslo",
+          "numberOfInhabitants": 724290,
+          "isCapital": true,
+          "largestVolcano": null
+        },
+        "complexCity": {
+          "name": "Oslo",
+          "trainStations": [
+            {
+              "name": "Oslo sentralstasjon",
+              "numberOfPlatforms": 19,
+              "isUnderground": false,
+              "expressTrains": ["F1", "F4", "F5", "F6"],
+              "connectedBusTerminal": "Oslo bussterminal"
+            },
+            {
+              "name": "Nationaltheatret",
+              "numberOfPlatforms": 4,
+              "isUnderground": true,
+              "expressTrains": ["F5"],
+              "connectedBusTerminal": null
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "testCases": [
+    {
+      "name": "Simple object lookup",
+      "expression": ["dataModel", "simpleCity"],
+      "expects": {
+        "name": "Oslo",
+        "numberOfInhabitants": 724290,
+        "isCapital": true,
+        "largestVolcano": null
+      }
+    },
+    {
+      "name": "Complex object lookup",
+      "expression": ["dataModel", "complexCity"],
+      "expects": {
+        "name": "Oslo",
+        "trainStations": [
+          {
+            "name": "Oslo sentralstasjon",
+            "numberOfPlatforms": 19,
+            "isUnderground": false,
+            "expressTrains": ["F1", "F4", "F5", "F6"],
+            "connectedBusTerminal": "Oslo bussterminal"
+          },
+          {
+            "name": "Nationaltheatret",
+            "numberOfPlatforms": 4,
+            "isUnderground": true,
+            "expressTrains": ["F5"],
+            "connectedBusTerminal": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "Query returning an object",
+      "expression": ["dataModel", "complexCity.trainStations[0]"],
+      "expects": {
+        "name": "Oslo sentralstasjon",
+        "numberOfPlatforms": 19,
+        "isUnderground": false,
+        "expressTrains": ["F1", "F4", "F5", "F6"],
+        "connectedBusTerminal": "Oslo bussterminal"
+      }
+    },
+    {
+      "name": "Query returning a list of objects",
+      "expression": ["dataModel", "complexCity.trainStations"],
+      "expects": [
+        {
+          "name": "Oslo sentralstasjon",
+          "numberOfPlatforms": 19,
+          "isUnderground": false,
+          "expressTrains": ["F1", "F4", "F5", "F6"],
+          "connectedBusTerminal": "Oslo bussterminal"
+        },
+        {
+          "name": "Nationaltheatret",
+          "numberOfPlatforms": 4,
+          "isUnderground": true,
+          "expressTrains": ["F5"],
+          "connectedBusTerminal": null
+        }
+      ]
+    }
+  ]
+}

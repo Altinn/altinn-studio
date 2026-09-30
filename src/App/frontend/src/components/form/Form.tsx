@@ -12,21 +12,19 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { useAllAttachments } from 'src/features/attachments/hooks';
-import { FileScanResults } from 'src/features/attachments/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
-import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { replaceAndPreventResetOptions } from 'src/features/navigation/navigationOptions';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
+import { usePageHasVisibleRequiredValidations } from 'src/features/validation/validationHooks';
 import { useQueryKey } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
+import { useCurrentView, useIsValidPageId, useNavigateToPage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { getComponentCapabilities } from 'src/layout';
+import { FocusComponentRequestFromUrl } from 'src/layout/focusComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
@@ -49,7 +47,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const [searchParams, setSearchParams] = useSearchParams();
   const shouldValidateFormPage = searchParams.get(SearchParams.Validate);
   const onFormSubmitValidation = useOnFormSubmitValidation();
-  const { isValidPageId } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
   const shouldNavigateToStart = !currentPageId || !isValidPageId(currentPageId);
 
   useEffect(() => {
@@ -67,18 +65,16 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
   const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = useFormState(currentPageId);
-  const requiredFieldsMissing = FormStore.nodes.usePageHasVisibleRequiredValidations(currentPageId);
-  const allAttachments = useAllAttachments();
+  const requiredFieldsMissing = usePageHasVisibleRequiredValidations(currentPageId);
   const textResources = useTextResources();
-
-  const hasInfectedFiles = Object.values(allAttachments || {}).some((attachments) =>
-    (attachments || []).some(
-      (attachment) => attachment.uploaded && attachment.data.fileScanResult === FileScanResults.Infected,
-    ),
+  const validationBoundaryActive = FormStore.raw.useSelector(
+    (state) =>
+      state.validation.formMask > 0 ||
+      state.validation.showAllUnboundValidations ||
+      Object.values(state.validation.pageMasks).some((mask) => mask > 0),
   );
 
   useRedirectToStoredPage();
-  useSetExpandedWidth();
 
   if (shouldNavigateToStart) {
     return <NavigateToStartUrl />;
@@ -125,7 +121,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           className={classes.errorReport}
         >
           <ErrorReport
-            show={formErrors.length > 0 || taskErrors.length > 0 || hasInfectedFiles}
+            show={validationBoundaryActive && (formErrors.length > 0 || taskErrors.length > 0)}
             errors={
               <ErrorReportList
                 formErrors={formErrors}
@@ -144,6 +140,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
       </Flex>
       <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
+      <FocusComponentRequestFromUrl />
     </>
   );
 }
@@ -155,7 +152,8 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
  */
 function useRedirectToStoredPage() {
   const pageKey = useCurrentView();
-  const { isValidPageId, navigateToPage } = useNavigatePage();
+  const isValidPageId = useIsValidPageId();
+  const navigateToPage = useNavigateToPage();
   const applicationMetadataId = getApplicationMetadata()?.id;
 
   const instanceId = useLaxInstanceId();
@@ -170,26 +168,6 @@ function useRedirectToStoredPage() {
       }
     }
   }, [pageKey, currentViewCacheKey, isValidPageId, navigateToPage]);
-}
-
-/**
- * Sets the expanded width for the current page if it is defined in the currently viewed layout-page
- */
-function useSetExpandedWidth() {
-  const currentPageId = useCurrentView();
-  const expandedPagesFromLayout = FormStore.bootstrap.useExpandedWidthLayouts();
-  const expandedWidthFromSettings = usePageSettings().expandedWidth;
-  const { setExpandedWidth } = useUiConfigContext();
-
-  useEffect(() => {
-    let defaultExpandedWidth = false;
-    if (currentPageId && expandedPagesFromLayout[currentPageId] !== undefined) {
-      defaultExpandedWidth = !!expandedPagesFromLayout[currentPageId];
-    } else if (expandedWidthFromSettings !== undefined) {
-      defaultExpandedWidth = expandedWidthFromSettings;
-    }
-    setExpandedWidth(defaultExpandedWidth);
-  }, [currentPageId, expandedPagesFromLayout, expandedWidthFromSettings, setExpandedWidth]);
 }
 
 const emptyArray = [];

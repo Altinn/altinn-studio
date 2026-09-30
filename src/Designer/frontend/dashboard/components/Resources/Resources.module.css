@@ -1,6 +1,6 @@
 .header {
   border-bottom: var(--studio-legacy-border-divider);
-  padding-bottom: var(--fds-spacing-3);
+  padding-bottom: var(--ds-size-3);
 }
 
 .wrapper {
@@ -12,6 +12,6 @@
 .resourcesContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--fds-spacing-5);
-  padding-block: var(--fds-spacing-5);
+  gap: var(--ds-size-5);
+  padding-block: var(--ds-size-5);
 }

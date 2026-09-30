@@ -3,10 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Models;
 
 // CA2000: Objects are transferred to the returned fixture record which handles disposal
 #pragma warning disable CA2000
@@ -26,6 +26,7 @@ internal sealed record WorkflowEngineTestFixture(
     ServiceProvider ServiceProvider,
     MockHttpHandler HttpHandler,
     Mock<IHttpClientFactory> HttpClientFactoryMock,
+    Mock<IEngineRepository> RepositoryMock,
     EngineSettings EngineSettings
 ) : IDisposable
 {
@@ -40,12 +41,14 @@ internal sealed record WorkflowEngineTestFixture(
     )
     {
         var handler = new MockHttpHandler();
+        var repositoryMock = new Mock<IEngineRepository>(MockBehavior.Strict);
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(handler));
 
         engineSettings ??= new EngineSettings
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
@@ -66,6 +69,7 @@ internal sealed record WorkflowEngineTestFixture(
 
         var services = new ServiceCollection();
         services.AddSingleton(httpClientFactoryMock.Object);
+        services.AddSingleton(repositoryMock.Object);
         services.AddSingleton(Options.Create(engineSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
@@ -78,6 +82,7 @@ internal sealed record WorkflowEngineTestFixture(
 
         services.AddSingleton<ICommand, WebhookCommand>();
         services.AddSingleton<ICommandRegistry, CommandRegistry>();
+        services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
         configureServices?.Invoke(services);
@@ -86,6 +91,7 @@ internal sealed record WorkflowEngineTestFixture(
             services.BuildServiceProvider(),
             handler,
             httpClientFactoryMock,
+            repositoryMock,
             engineSettings
         );
     }
@@ -141,18 +147,19 @@ internal sealed class TestDelegateCommand : ICommand
 
     public Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken cancellationToken)
     {
-        if (_action is null)
+        if (_action is not { } action)
             return Task.FromResult(ExecutionResult.CriticalError("No delegate action was set"));
 
-        return ExecuteInternalAsync(context, cancellationToken);
+        return ExecuteInternalAsync(action, context, cancellationToken);
     }
 
-    private async Task<ExecutionResult> ExecuteInternalAsync(
+    private static async Task<ExecutionResult> ExecuteInternalAsync(
+        Func<Workflow, Step, CancellationToken, Task> action,
         CommandExecutionContext context,
         CancellationToken cancellationToken
     )
     {
-        await _action!(context.Workflow, context.Step, cancellationToken);
+        await action(context.Workflow, context.Step, cancellationToken);
         return ExecutionResult.Success();
     }
 }

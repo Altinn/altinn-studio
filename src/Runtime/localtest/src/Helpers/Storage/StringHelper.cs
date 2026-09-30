@@ -1,4 +1,6 @@
-﻿using System;
+#nullable disable
+
+using System;
 
 namespace Altinn.Platform.Storage.Helpers;
 

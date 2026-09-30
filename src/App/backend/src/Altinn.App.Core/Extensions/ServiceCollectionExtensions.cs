@@ -7,7 +7,7 @@ using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
-using Altinn.App.Core.Features.FileAnalyzis;
+using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Notifications;
 using Altinn.App.Core.Features.Notifications.Cancellation;
 using Altinn.App.Core.Features.Notifications.Email;
@@ -21,6 +21,7 @@ using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Features.Validation;
@@ -45,24 +46,22 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Internal.InstanceLocking;
+using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Authorization;
-using Altinn.App.Core.Internal.Process.EventHandlers;
-using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
-using Altinn.App.Core.Models;
+using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Implementation;
@@ -74,10 +73,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
-using ProcessEngine = Altinn.App.Core.Internal.Process.ProcessEngine;
 using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
 
 namespace Altinn.App.Core.Extensions;
@@ -103,7 +100,9 @@ public static class ServiceCollectionExtensions
         services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
         services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
         services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-        services.Configure<AppCodesSettings>(configuration.GetSection("AppCodes"));
+        // The app's callback verification codes are provisioned by the platform, so they are read through the
+        // private channel and never from the app's own configuration. See ProvisionedSecrets.
+        services.BindProvisionedSecret<AppCodesSettings>(ProvisionedSecretFiles.AppCodes);
 
         AddApplicationIdentifier(services);
 
@@ -111,19 +110,24 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
         services.AddHttpClient<IAuthorizationClient, AuthorizationClient>();
         services.AddHttpClient<IDataClient, DataClient>();
+        services.AddTransient<IDataClientWithStorageMetadata>(sp =>
+            (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()
+        );
+        services.AddTransient<IInstanceMutationClient>(sp =>
+            (IInstanceMutationClient)sp.GetRequiredService<IDataClient>()
+        );
         services.AddHttpClient<IOrganizationClient, RegisterERClient>();
         services.AddHttpClient<IInstanceClient, InstanceClient>();
+        services.AddTransient<IInstanceClientWithStorageMetadata>(sp =>
+            (IInstanceClientWithStorageMetadata)sp.GetRequiredService<IInstanceClient>()
+        );
         services.AddHttpClient<IInstanceEventClient, InstanceEventClient>();
         services.AddHttpClient<IEventsClient, EventsClient>();
         services.AddProfileClient();
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
         services.AddAltinnCdnClient();
         services.AddRegisterClient();
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.AddHttpClient<IText, TextClient>();
-#pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
-        services.AddHttpClient<InstanceLockClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
 
@@ -139,26 +143,17 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationContext();
     }
 
-    private static void AddApplicationIdentifier(IServiceCollection services)
+    /// <summary>
+    /// Registers the app's <see cref="Models.AppIdentifier"/> from the loaded <c>config/applicationmetadata.json</c>. It is
+    /// read from the file rather than through <see cref="IAppMetadata"/>, whose application metadata is enriched with
+    /// the ids of the app's <c>IExternalApiClient</c> implementations: constructing those to ask for their ids would
+    /// resolve the <see cref="Models.AppIdentifier"/> they may inject, which is this registration, without end.
+    /// </summary>
+    internal static void AddApplicationIdentifier(IServiceCollection services)
     {
         services.AddSingleton(sp =>
-        {
-            string appIdentifier = GetApplicationId();
-            return new AppIdentifier(appIdentifier);
-        });
-    }
-
-    private static string GetApplicationId()
-    {
-        string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
-        JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-
-        var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
-
-        return id
-            ?? throw new KeyNotFoundException(
-                "Could not find id in applicationmetadata.json. Please ensure the file is well formed and contains a key for `id`"
-            );
+            ApplicationMetadataParser.Parse(sp.GetRequiredService<AppFilesAccessor>().Current).AppIdentifier
+        );
     }
 
     /// <summary>
@@ -179,8 +174,9 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IPDP, PDPAppSI>();
         services.TryAddTransient<IPrefill, PrefillSI>();
         services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
-        services.TryAddSingleton<IAppResources, AppResourcesSI>();
+        // AppFilesAccessor itself is loaded and registered by AddAltinnAppServices through AppFilesDI.AddAppFiles
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
+        services.TryAddSingleton<IAppResources, AppResourcesSI>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
@@ -190,6 +186,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
+        services.TryAddTransient<DataModelFieldCalculator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
         services.AddTransient<IFormDataReader, FormDataReader>();
         services.TryAddTransient<DataListsFactory>();
@@ -198,6 +195,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IDataListsService, DataListsService>();
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
+        services.AddTransient<IDataWriteProcessor, DataModelFieldCalculatorProcessor>();
         services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         services.AddTransient<IDataService, DataService>();
         services.AddSingleton<ModelSerializationService>();
@@ -207,6 +205,7 @@ public static class ServiceCollectionExtensions
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PlatformFrontendSettings>(configuration.GetSection(nameof(PlatformFrontendSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddTransient<IFileService, FileService>();
 
         services.AddRuntimeEnvironment();
         if (env.IsDevelopment())
@@ -219,10 +218,10 @@ public static class ServiceCollectionExtensions
         AddPdfServices(services);
         AddPaymentServices(services, configuration, env);
         AddSignatureServices(services);
-        AddEventServices(services);
         AddNotificationServices(services);
         AddProcessServices(services);
-        AddFileAnalyserServices(services);
+        services.AddWorkflowEngineIntegration();
+        AddFileAnalyzerServices(services);
         AddFileValidatorServices(services);
 
         if (!env.IsDevelopment())
@@ -256,6 +255,11 @@ public static class ServiceCollectionExtensions
         {
             services.AddTransient<IValidator, ExpressionValidator>();
         }
+
+        if (appSettings?.XsdValidation is true)
+        {
+            services.AddTransient<IValidator, XsdValidator>();
+        }
     }
 
     /// <summary>
@@ -265,24 +269,6 @@ public static class ServiceCollectionExtensions
     public static bool IsAdded(this IServiceCollection services, Type serviceType)
     {
         return services.Any(x => x.ServiceType == serviceType);
-    }
-
-    private static void AddEventServices(IServiceCollection services)
-    {
-        services.AddTransient<IEventHandler, SubscriptionValidationHandler>();
-        services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
-        services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
-
-        // TODO: Event subs could be handled by the new automatic Maskinporten auth, once implemented.
-        // The event subscription client depends upon a Maskinporten message handler being
-        // added to the client during setup. As of now this needs to be done in the apps
-        // if subscription is to be added. This registration is to prevent the DI container
-        // from failing for the apps not using event subscription. If you try to use
-        // event subscription with this client you will get a 401 Unauthorized.
-        if (!services.IsAdded(typeof(IEventsSubscription)))
-        {
-            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
-        }
     }
 
     private static void AddNotificationServices(IServiceCollection services)
@@ -299,7 +285,7 @@ public static class ServiceCollectionExtensions
 
     private static void AddPdfServices(IServiceCollection services)
     {
-        services.TryAddTransient<IPdfGeneratorClient, PdfGeneratorClient>();
+        services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
 #pragma warning disable CS0618 // Type or member is obsolete
         services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
@@ -370,25 +356,14 @@ public static class ServiceCollectionExtensions
     private static void AddProcessServices(IServiceCollection services)
     {
         services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
-        services.TryAddTransient<IProcessEngine, ProcessEngine>();
+        services.TryAddTransient<IProcessEngine, Internal.Process.ProcessEngine>();
         services.TryAddTransient<IProcessEngineAuthorizer, ProcessEngineAuthorizer>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
-        services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
-        services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
         services.AddTransient<ProcessStateEnricher>();
 
-        services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
-        services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();
         services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
-        services.AddTransient<IProcessTaskCleaner, ProcessTaskCleaner>();
-        services.AddTransient<IStartTaskEventHandler, StartTaskEventHandler>();
-        services.AddTransient<IEndTaskEventHandler, EndTaskEventHandler>();
-        services.AddTransient<IAbandonTaskEventHandler, AbandonTaskEventHandler>();
-        services.AddTransient<IEndEventEventHandler, EndEventEventHandler>();
-
-        services.AddScoped<IInstanceLocker, InstanceLocker>();
 
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
@@ -398,12 +373,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
         // Service tasks
-        services.AddTransient<IPdfServiceTaskLegacy, PdfServiceTaskLegacy>();
-        services.AddTransient<IEFormidlingServiceTaskLegacy, EformidlingServiceTaskLegacy>();
-
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
+
+        services.AddHostedService<Internal.Process.ProcessTaskConfigurationValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)
@@ -413,10 +387,10 @@ public static class ServiceCollectionExtensions
         services.AddTransientUserActionAuthorizerForActionInAllTasks<UniqueSignatureAuthorizer>("sign");
     }
 
-    private static void AddFileAnalyserServices(IServiceCollection services)
+    private static void AddFileAnalyzerServices(IServiceCollection services)
     {
         services.TryAddTransient<IFileAnalysisService, FileAnalysisService>();
-        services.TryAddTransient<IFileAnalyserFactory, FileAnalyserFactory>();
+        services.TryAddTransient<IFileAnalyzerFactory, FileAnalyzerFactory>();
     }
 
     private static void AddFileValidatorServices(IServiceCollection services)

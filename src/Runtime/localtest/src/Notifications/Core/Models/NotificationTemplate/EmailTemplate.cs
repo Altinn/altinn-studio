@@ -1,4 +1,6 @@
-﻿using Altinn.Notifications.Core.Enums;
+#nullable disable
+
+using Altinn.Notifications.Core.Enums;
 
 namespace Altinn.Notifications.Core.Models.NotificationTemplate;
 
@@ -11,7 +13,7 @@ public class EmailTemplate : INotificationTemplate
     public NotificationTemplateType Type { get; internal set; }
 
     /// <summary>
-    /// Gets the from adress of emails created by the template    
+    /// Gets the from address of emails created by the template    
     /// </summary>
     public string FromAddress { get; internal set; } = string.Empty;
 

@@ -1,10 +1,10 @@
-import { Spinner } from '@digdir/designsystemet-react';
-import { CogIcon } from '@studio/icons';
+import { StudioSaveIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useSchemaQuery } from '../../../../../hooks/queries';
+import { useDataModelGenerationStatusQuery, useSchemaQuery } from '../../../../../hooks/queries';
 import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
 import { toast } from 'react-toastify';
-import { StudioButton } from '@studio/components';
+import { StudioBadge, StudioButton, StudioSpinner } from '@studio/components';
+import classes from './GenerateModelsButton.module.css';
 
 export interface GenerateModelsButtonProps {
   modelPath: string;
@@ -16,6 +16,7 @@ export const GenerateModelsButton = ({
   onSetSchemaGenerationErrorMessages,
 }: GenerateModelsButtonProps) => {
   const { data } = useSchemaQuery(modelPath);
+  const { data: isOutOfDate } = useDataModelGenerationStatusQuery(modelPath);
   const { mutate, isPending } = useGenerateModelsMutation(modelPath, {
     hideDefaultError: (error) => error?.response?.data?.customErrorMessages ?? false,
   });
@@ -37,15 +38,24 @@ export const GenerateModelsButton = ({
   return (
     <>
       {isPending ? (
-        <Spinner title={t('general.saving')} />
+        <StudioSpinner aria-label={t('general.saving')} />
       ) : (
         <StudioButton
           id='save-model-button'
           onClick={handleGenerateButtonClick}
-          icon={<CogIcon />}
-          variant='tertiary'
+          icon={<StudioSaveIcon />}
+          variant='primary'
+          className={classes.button}
         >
           {t('schema_editor.generate_model_files')}
+          {isOutOfDate && (
+            <StudioBadge
+              role='status'
+              className={classes.badge}
+              data-color='danger'
+              aria-label={t('schema_editor.generate_model_files_pending')}
+            />
+          )}
         </StudioButton>
       )}
     </>

@@ -6,7 +6,7 @@
       {
         "size": "L",
         "id": "Header-error",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Noe gikk galt"
         }

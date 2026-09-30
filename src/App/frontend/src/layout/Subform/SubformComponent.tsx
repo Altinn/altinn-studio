@@ -16,7 +16,7 @@ import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subfor
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useEnterSubform } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
@@ -53,7 +53,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const addSubformEntryMutation = useAddEntryMutation(dataType);
   const subformEntries = useInstanceDataElements(dataType);
 
-  const { enterSubform } = useNavigatePage();
+  const enterSubform = useEnterSubform();
   const lock = FormStore.data.useLocking(id);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
@@ -98,11 +98,18 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           id={`subform-${id}-table`}
           className={classes.subformTable}
         >
-          <Caption
-            id={`subform-${id}-caption`}
-            title={<Lang id={textResourceBindings?.title} />}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-          />
+          {textResourceBindings?.title && (
+            <Caption
+              id={`subform-${id}-caption`}
+              title={<Lang id={textResourceBindings.title} />}
+              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+              helpText={
+                textResourceBindings.help
+                  ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+                  : undefined
+              }
+            />
+          )}
           {subformEntries.length > 0 && (
             <>
               <Table.Head id={`subform-${id}-table-body`}>
@@ -203,16 +210,11 @@ function SubformTableRow({
   const component = useExternalItem(baseComponentId, 'Subform');
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
 
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
-
-  const editButtonDataSource = useExpressionDataSourcesForSubform(
-    dataElement.dataType,
-    subformData,
-    component?.textResourceBindings?.tableEditButton,
-  );
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const editButtonDataSource = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const { langAsString } = useLanguage();
-  const { enterSubform } = useNavigatePage();
+  const enterSubform = useEnterSubform();
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');

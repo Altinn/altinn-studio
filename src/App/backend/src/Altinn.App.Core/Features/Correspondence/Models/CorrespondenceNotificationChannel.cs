@@ -27,4 +27,9 @@ public enum CorrespondenceNotificationChannel
     /// The selected channel for the notification is SMS preferred.
     /// </summary>
     SmsPreferred,
+
+    /// <summary>
+    /// The notification is sent on both email and SMS.
+    /// </summary>
+    EmailAndSms,
 }

@@ -13,11 +13,11 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('useDataModelBindings', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   function DummyComponent() {
@@ -134,7 +134,7 @@ describe('useDataModelBindings', () => {
       newValue: fooBar,
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fooBar.length);
-    (formDataMethods.setLeafValue as jest.Mock).mockClear();
+    (formDataMethods.setLeafValue as Mock).mockClear();
 
     // Now to slightly harder things. Let's try to set a negative decimal value. When first starting typing, the
     // value is invalid, but when the user has typed more than just the minus sign, it should be a valid decimal
@@ -149,7 +149,7 @@ describe('useDataModelBindings', () => {
     });
 
     // When we simulate a save to server, the invalid value should not be saved
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
     expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
       expect.stringMatching('local.altinn.cloud'),
@@ -182,7 +182,7 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fullDecimal.length);
 
-    (formDataMethods.setLeafValue as jest.Mock).mockClear();
+    (formDataMethods.setLeafValue as Mock).mockClear();
 
     // Now to slightly harder things. Let's try to set a negative integer value. When first starting typing, the
     // value is invalid, but when the user has typed more than just the minus sign, it should be a valid integer
@@ -197,7 +197,7 @@ describe('useDataModelBindings', () => {
     });
 
     // When we simulate a save to server, the invalid value should not be saved
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
     expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
       expect.stringMatching('local.altinn.cloud'),
@@ -234,7 +234,7 @@ describe('useDataModelBindings', () => {
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(fullInteger.length);
 
-    (formDataMethods.setLeafValue as jest.Mock).mockClear();
+    (formDataMethods.setLeafValue as Mock).mockClear();
 
     // At last, type in a boolean value
     await user.type(screen.getByTestId('input-boolean'), 'tr');
@@ -275,3 +275,4 @@ describe('useDataModelBindings', () => {
     expect(screen.getByTestId('value-boolean')).toHaveTextContent('"true"');
   });
 });
+import type { Mock } from 'vitest';

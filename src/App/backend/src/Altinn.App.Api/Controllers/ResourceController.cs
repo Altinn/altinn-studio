@@ -35,10 +35,27 @@ public class ResourceController : ControllerBase
     }
 
     /// <summary>
+    /// Get the xsd schema for the model
+    /// </summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/xml")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Route("{org}/{app}/api/xsdschema/{id}")]
+    public ActionResult GetModelXsdSchema([FromRoute] string id)
+    {
+        string? schema = _appResourceService.GetXsdSchema(id);
+        if (schema == null)
+        {
+            return NotFound();
+        }
+        return Content(schema, "application/xml", System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
     /// Get the form layout
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="id">The name of the subfolder in ui to get layouts from (a taskId, stateless name, subform, etc)</param>
     /// <returns>A collection of FormLayout objects in JSON format.</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]

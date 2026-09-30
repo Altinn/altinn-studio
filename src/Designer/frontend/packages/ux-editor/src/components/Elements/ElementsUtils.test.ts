@@ -1,4 +1,9 @@
 import { ElementsUtils } from './ElementsUtils';
+import {
+  confOnScreenComponents,
+  paymentLayoutComponents,
+  subformLayoutComponents,
+} from '../../data/formItemConfig';
 
 const defaultConfigurationMock = {
   selectedLayoutIsCustomReceipt: false,
@@ -37,6 +42,31 @@ describe('ElementsUtils', () => {
         ...defaultConfigurationMock,
       });
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getAvailableComponentList', () => {
+    it.each([
+      ['receipt', confOnScreenComponents],
+      ['payment', paymentLayoutComponents],
+      ['subform', subformLayoutComponents],
+    ] as const)(
+      'should return the component list for confPageType "%s"',
+      (confPageType, expected) => {
+        expect(ElementsUtils.getAvailableComponentList(confPageType)).toEqual(expected);
+      },
+    );
+  });
+
+  describe('getAllowedComponentTypes', () => {
+    it('should return undefined when confPageType is undefined', () => {
+      expect(ElementsUtils.getAllowedComponentTypes(undefined)).toBeUndefined();
+    });
+
+    it('should return the allowed component types for the given confPageType', () => {
+      expect(ElementsUtils.getAllowedComponentTypes('receipt')).toEqual(
+        confOnScreenComponents.map((component) => component.name),
+      );
     });
   });
 });

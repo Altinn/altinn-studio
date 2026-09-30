@@ -6,58 +6,6 @@ namespace Altinn.App.Core.Configuration;
 // TODO: IOptions validation so that we know which of these properties are required
 public class AppSettings
 {
-#pragma warning disable CA1707 // Identifiers should not contain underscores
-    /// <summary>
-    /// Constant for the location of json schema file
-    /// </summary>
-    public const string JSON_SCHEMA_FILENAME = "schema.json";
-
-    /// <summary>
-    /// Constant for the location of validation configuration file
-    /// </summary>
-    public const string VALIDATION_CONFIG_FILENAME = "validation.json";
-#pragma warning restore CA1707 // Identifiers should not contain underscores
-
-    /// <summary>
-    /// The app configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string AppBasePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The app configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string ConfigurationFolder { get; set; } = "config/";
-
-    /// <summary>
-    /// The app options base folder where files are stored in the container
-    /// </summary>
-    public string OptionsFolder { get; set; } = "options/";
-
-    /// <summary>
-    /// The ui configuration baseUrl where files are stored in the container
-    /// </summary>
-    public string UiFolder { get; set; } = "ui/";
-
-    /// <summary>
-    /// The models folder
-    /// </summary>
-    public string ModelsFolder { get; set; } = "models/";
-
-    /// <summary>
-    /// The text folder
-    /// </summary>
-    public string TextFolder { get; set; } = "texts/";
-
-    /// <summary>
-    /// The process folder
-    /// </summary>
-    public string ProcessFolder { get; set; } = "process/";
-
-    /// <summary>
-    /// The authorization folder
-    /// </summary>
-    public string AuthorizationFolder { get; set; } = "authorization/";
-
     /// <summary>
     /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
     /// </summary>
@@ -73,41 +21,6 @@ public class AppSettings
     /// Gets or sets The name of the FormLayout json file Name
     /// </summary>
     public string FormLayoutJSONFileName { get; set; } = "FormLayout.json";
-
-    /// <summary>
-    /// Gets or sets the name of the layout setting file name
-    /// </summary>
-    public string FormLayoutSettingsFileName { get; set; } = "Settings.json";
-
-    /// <summary>
-    /// Gets or sets the name of the layout setting file name
-    /// </summary>
-    public string FooterFileName { get; set; } = "footer.json";
-
-    /// <summary>
-    /// Gets or sets The JSON schema file name
-    /// </summary>
-    public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
-
-    /// <summary>
-    /// Gets or sets The JSON schema file name
-    /// </summary>
-    public string ValidationConfigurationFileName { get; set; } = VALIDATION_CONFIG_FILENAME;
-
-    /// <summary>
-    /// Gets or sets the filename for application meta data
-    /// </summary>
-    public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
-
-    /// <summary>
-    /// Gets the location for the XACML Policy file
-    /// </summary>
-    public string ApplicationXACMLPolicyFileName { get; init; } = "policy.xml";
-
-    /// <summary>
-    /// Gets or sets the filename for process file
-    /// </summary>
-    public string ProcessFileName { get; set; } = "process.bpmn";
 
     /// <summary>
     /// Gets or sets React file name
@@ -173,16 +86,11 @@ public class AppSettings
     public bool RegisterEventsWithEventsComponent { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the eFormidlingIntegration should be enabled.
-    /// </summary>
-    public bool EnableEFormidling { get; set; }
-
-    /// <summary>
     /// Gets or sets the sender of the eFormidling shipment.
     /// </summary>
     /// <remarks>
     /// If overriding for testing purposes, ensure to only update appsettings.Development.
-    /// Integration will not work if value is overrided in staging or prodution.
+    /// Integration will not work if value is overridden in staging or production.
     /// </remarks>
     public string EFormidlingSender { get; set; } = "910075918";
 
@@ -210,6 +118,11 @@ public class AppSettings
     public bool ExpressionValidation { get; set; }
 
     /// <summary>
+    /// Enable the functionality to validate form data against corresponding XSD if present
+    /// </summary>
+    public bool XsdValidation { get; set; }
+
+    /// <summary>
     /// Enables OpenTelemetry as a substitute for Application Insights SDK
     /// Improves instrumentation throughout the Altinn app libraries.
     /// </summary>
@@ -220,16 +133,9 @@ public class AppSettings
     /// </summary>
     public bool UseOpenTelemetryCollector { get; set; }
 
-    internal const string DefaultRuntimeSecretsDirectory = "/mnt/app-secrets";
-
     /// <summary>
-    /// Directory containing runtime secrets JSON files.
+    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutable (using app apis) when the instance is in this task.
+    /// Enabled by default. Enforces that elements of data types with a TaskId can only be mutated when the instance is in that task.
     /// </summary>
-    public string RuntimeSecretsDirectory { get; set; } = DefaultRuntimeSecretsDirectory;
-
-    /// <summary>
-    /// Enforce that a DataType (applicationmetadata.json) that specifies a taskId is only externally mutatable (using app apis) when the instance is in this task.
-    /// This is a temporary setting to help identify components with incorrect data bindings, and will be removed in the next major version.
-    /// </summary>
-    public bool EnforceDataTypeTaskId { get; set; } = false;
+    public bool EnforceDataTypeTaskId { get; set; } = true;
 }

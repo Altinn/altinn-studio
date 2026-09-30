@@ -1,5 +1,5 @@
 import { TaskCard } from './TaskCard';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { app, org } from '@studio/testing/testids';
@@ -30,6 +30,13 @@ describe('taskCard', () => {
   it('should display datatype id', async () => {
     render();
     expect(screen.getByText(/ux_editor.task_card.datamodel.*datamodell123/)).toBeInTheDocument();
+  });
+
+  it('should display "not selected" text when no datamodel is selected', async () => {
+    render({ dataType: '' });
+    expect(
+      screen.getByText(/ux_editor.task_card.datamodel.*ux_editor.task_card.datamodel_not_selected/),
+    ).toBeInTheDocument();
   });
 
   it('should display task type', async () => {
@@ -94,12 +101,16 @@ describe('taskCard', () => {
   });
 });
 
-const render = (extendedRenderOptions?: Partial<ExtendedRenderOptions>) => {
-  const layoutSet: LayoutSetModel = {
+const render = (
+  layoutSetModel?: Partial<UiFolderLayoutSetModel>,
+  extendedRenderOptions?: Partial<ExtendedRenderOptions>,
+) => {
+  const layoutSet: UiFolderLayoutSetModel = {
     id: 'test',
     dataType: 'datamodell123',
     type: 'subform',
-    task: { id: null, type: null },
+    taskType: null,
+    ...layoutSetModel,
   };
   renderWithProviders(<TaskCard layoutSetModel={layoutSet} />, extendedRenderOptions);
 };

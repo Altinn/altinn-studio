@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -23,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/grafanaapi"
 	"altinn.studio/operator/internal/operatorcontext"
 	rt "altinn.studio/operator/internal/runtime"
 )
@@ -222,16 +222,20 @@ func (r *Reconciler) getGrafanaCredentials(ctx context.Context) (string, string,
 		return "", "", fmt.Errorf("%w %q", errTokenSecretKeyMissing, tokenSecretKey)
 	}
 
-	grafana := &grafanav1beta1.Grafana{}
+	grafana := grafanaapi.NewGrafana(grafanaNamespace, grafanaName)
 	grafanaKey := client.ObjectKey{Name: grafanaName, Namespace: grafanaNamespace}
 	if err := r.k8sClient.Get(ctx, grafanaKey, grafana); err != nil {
 		return "", "", fmt.Errorf("get grafana CR: %w", err)
 	}
-	if grafana.Spec.External == nil || strings.TrimSpace(grafana.Spec.External.URL) == "" {
+	grafanaURL, hasExternal, err := grafanaapi.ExternalURL(grafana)
+	if err != nil {
+		return "", "", fmt.Errorf("read grafana external URL: %w", err)
+	}
+	if !hasExternal || strings.TrimSpace(grafanaURL) == "" {
 		return "", "", errGrafanaExternalURLUnset
 	}
 
-	return strings.TrimRight(grafana.Spec.External.URL, "/"), string(tokenBytes), nil
+	return strings.TrimRight(grafanaURL, "/"), string(tokenBytes), nil
 }
 
 func (r *Reconciler) getPolicyTree(ctx context.Context, grafanaURL, token string) (json.RawMessage, error) {

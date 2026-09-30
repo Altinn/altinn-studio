@@ -1,0 +1,59 @@
+{
+  "name": "Object tests",
+  "testCases": [
+    {
+      "name": "Creates an object from its arguments",
+      "expression": [
+        "object",
+        "name",
+        "Oslo",
+        "numberOfInhabitants",
+        724290,
+        "isCapital",
+        true,
+        "largestVolcano",
+        null
+      ],
+      "expects": {
+        "name": "Oslo",
+        "numberOfInhabitants": 724290,
+        "isCapital": true,
+        "largestVolcano": null
+      }
+    },
+    {
+      "name": "Supports empty objects",
+      "expression": ["object"],
+      "expects": {}
+    },
+    {
+      "name": "Supports nested objects",
+      "expression": ["object", "city", ["object", "name", "Oslo"]],
+      "expects": {
+        "city": { "name": "Oslo" }
+      }
+    },
+    {
+      "name": "Supports lists",
+      "expression": ["object", "cities", ["list", "Oslo", "Leikanger", "Brønnøysund"]],
+      "expects": {
+        "cities": ["Oslo", "Leikanger", "Brønnøysund"]
+      }
+    },
+    {
+      "name": "Fails when an odd number of arguments is passed",
+      "expression": ["object", "name", "Oslo", "numberOfInhabitants"],
+      "expectsFailure": "The object function must have an even number of arguments"
+    },
+    {
+      "name": "Fails when a value that is not a string is used as key",
+      "expression": ["object", 1, "a"],
+      "expectsFailure": "Object keys must be strings"
+    },
+    {
+      "name": "Fails when there are duplicate keys",
+      "expression": ["object", "name", "Oslo", "numberOfInhabitants", 724290, "name", "Christiania"],
+      "expectsFailure": "Object keys must be unique"
+    }
+  ]
+}

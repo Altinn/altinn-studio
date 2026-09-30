@@ -1,3 +1,5 @@
+#nullable disable
+
 namespace LocalTest.Models.Authentication;
 
 public enum AuthenticationTypes

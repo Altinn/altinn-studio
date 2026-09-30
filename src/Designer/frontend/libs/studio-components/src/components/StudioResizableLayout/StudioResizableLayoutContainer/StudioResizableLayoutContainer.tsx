@@ -43,10 +43,10 @@ const StudioResizableLayoutContainer = ({
 
   const renderChildren = (): React.ReactNode => {
     return Children.map(getValidChildren(children), (child, index) => {
-      const hasNeighbour = index < getValidChildren(children).length - 1;
+      const hasNeighbor = index < getValidChildren(children).length - 1;
       return React.cloneElement<StudioResizableLayoutElementPropsWithRef>(child, {
         index,
-        hasNeighbour,
+        hasNeighbor,
         ref: (element: HTMLDivElement | null) => {
           elementRefs.current[index] = element;
         },

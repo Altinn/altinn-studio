@@ -1,13 +1,13 @@
 import escapeRegex from 'escape-string-regexp';
 
 import { cyUserLogin, tenorUserLogin } from 'test/e2e/support/auth';
+import { Tenor } from 'test/e2e/support/users';
 import type { AppResponseRef } from 'test/e2e/support/auth';
 
 Cypress.Commands.add('startAppInstance', function (appName, options) {
   const {
     cyUser = 'default',
-    tenorUser = null,
-    evaluateBefore,
+    tenorUser = Tenor.users.saligBlomsterplante,
     urlSuffix = '',
     authenticationLevel = '1',
   } = options || {};
@@ -45,15 +45,16 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     },
   };
 
-  // Run this using --env environment=<localtest|tt02>,responseFuzzing=on to simulate an unreliable network. This might
-  // help us find bugs (usually race conditions) that only occur requests/responses arrive out of order.
-  if (Cypress.env('responseFuzzing') === 'on') {
+  // Run this using --env environment=<localtest|tt02> --expose responseFuzzing=on to simulate an unreliable
+  // network. This might help us find bugs (usually race conditions) that only occur requests/responses arrive
+  // out of order.
+  if (Cypress.expose('responseFuzzing') === 'on') {
     const [min, max] = [10, 1000];
     cy.log(`Response fuzzing on, will delay responses randomly between ${min}ms and ${max}ms`);
     cy.enableResponseFuzzing({ min, max, matchingRoutes: '**/api/**' });
     cy.enableResponseFuzzing({ min, max, matchingRoutes: '**/instances/**' });
   } else {
-    cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
+    cy.log(`Response fuzzing off, enable with --expose responseFuzzing=on`);
   }
 
   const targetUrlRaw = getTargetUrl(appName) + urlSuffix;
@@ -70,24 +71,16 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
 
     cy.get<AppResponseRef>('@appResponse').then((ref) => {
       cy.intercept({ url: targetUrl }, (req) => {
-        const cookies = req.headers['cookie'] || '';
         req.on('response', (res) => {
-          if (typeof res.body === 'string' || res.statusCode === 200) {
-            if (ref.current) {
-              ref.current(res);
-              return;
-            }
-
-            if (evaluateBefore && !cookies.includes('cy-evaluated-js=true')) {
-              res.body = generateHtmlToEval(evaluateBefore);
-            }
+          if ((typeof res.body === 'string' || res.statusCode === 200) && ref.current) {
+            ref.current(res);
           }
         });
       }).as('app');
     });
   }
 
-  if (Cypress.env('type') === 'localtest') {
+  if (Cypress.expose('type') === 'localtest') {
     cy.clearCookies({ domain: 'local.altinn.cloud' });
   } else {
     cy.clearCookies({ domain: 'tt02.altinn.no' });
@@ -96,10 +89,12 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
     cy.clearCookies({ domain: 'platform.tt02.altinn.no' });
   }
 
-  if (tenorUser) {
+  if (tenorUser && cyUser && Cypress.expose('type') === 'localtest') {
+    cyUserLogin({ cyUser, authenticationLevel });
+  } else if (tenorUser) {
     tenorUserLogin({ appName, tenorUser, authenticationLevel });
   } else if (cyUser) {
-    cyUserLogin({ cyUser, authenticationLevel, appName });
+    cyUserLogin({ cyUser, authenticationLevel });
   }
 
   cy.visit(targetUrlRaw, visitOptions);
@@ -110,35 +105,7 @@ Cypress.Commands.add('startAppInstance', function (appName, options) {
 });
 
 export function getTargetUrl(appName: string) {
-  return Cypress.env('type') === 'localtest'
+  return Cypress.expose('type') === 'localtest'
     ? `${Cypress.config('baseUrl')}/ttd/${appName}`
     : `https://ttd.apps.${Cypress.config('baseUrl')?.slice(8)}/ttd/${appName}`;
-}
-
-function generateHtmlToEval(javascript: string) {
-  return `
-    <html lang="en">
-    <head>
-      <title>Evaluating JavaScript before starting app</title>
-      <script>
-        async function toEvaluate() {
-          ${javascript}
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-          const maybeReturnUrl = await toEvaluate();
-          document.cookie = 'cy-evaluated-js=true';
-          if (maybeReturnUrl && typeof maybeReturnUrl === 'string') {
-            window.location.href = maybeReturnUrl;
-          } else {
-            window.location.reload();
-          }
-        });
-      </script>
-    </head>
-    <body>
-      <div id="cy-evaluating-js"></div>
-    </body>
-  </html>
-  `.trim();
 }

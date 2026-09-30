@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Models.Dto;
@@ -36,7 +37,8 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var created = await service.AddContactPointAsync(MapToDomain(request, org), cancellationToken);
+        string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var created = await service.AddContactPointAsync(MapToDomain(request, org), username, cancellationToken);
         return CreatedAtAction(nameof(GetContactPoints), new { org }, MapToResponse(created));
     }
 
@@ -49,7 +51,8 @@ public class ContactPointsController(IContactPointsService service) : Controller
         CancellationToken cancellationToken
     )
     {
-        var updated = await service.UpdateContactPointAsync(MapToDomain(request, org, id), cancellationToken);
+        string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var updated = await service.UpdateContactPointAsync(MapToDomain(request, org, id), username, cancellationToken);
         return Ok(MapToResponse(updated));
     }
 
@@ -94,6 +97,10 @@ public class ContactPointsController(IContactPointsService service) : Controller
             Name = contactPoint.Name,
             IsActive = contactPoint.IsActive,
             Environments = contactPoint.Environments,
+            CreatedByUsername = contactPoint.CreatedByUsername,
+            CreatedAt = contactPoint.CreatedAt,
+            UpdatedByUsername = contactPoint.UpdatedByUsername,
+            UpdatedAt = contactPoint.UpdatedAt,
             Methods = contactPoint
                 .Methods.Select(m => new ContactMethodResponse
                 {

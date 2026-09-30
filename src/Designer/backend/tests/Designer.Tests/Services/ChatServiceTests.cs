@@ -250,6 +250,32 @@ public class ChatServiceTests
         );
     }
 
+    [Fact]
+    public async Task ThreadBelongsToDeveloperAsync_ReturnsTrue_WhenScopedLookupFindsThread()
+    {
+        var thread = CreateThreadEntity();
+        _repositoryMock
+            .Setup(r => r.GetThreadAsync(thread.Id, _context, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(thread);
+
+        var result = await _chatService.ThreadBelongsToDeveloperAsync(thread.Id, _context);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task ThreadBelongsToDeveloperAsync_ReturnsFalse_WhenScopedLookupReturnsNull()
+    {
+        var threadId = Guid.NewGuid();
+        _repositoryMock
+            .Setup(r => r.GetThreadAsync(threadId, _context, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(default(ChatThreadEntity));
+
+        var result = await _chatService.ThreadBelongsToDeveloperAsync(threadId, _context);
+
+        Assert.False(result);
+    }
+
     private static ChatThreadEntity CreateThreadEntity(string title = "Test thread") =>
         new()
         {

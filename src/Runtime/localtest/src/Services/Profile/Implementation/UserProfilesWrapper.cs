@@ -1,4 +1,3 @@
-#nullable enable
 using Altinn.Platform.Profile.Models;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.TestData;

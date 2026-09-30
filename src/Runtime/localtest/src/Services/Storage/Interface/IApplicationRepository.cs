@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Repository;
@@ -48,7 +50,7 @@ public interface IApplicationRepository
     Task<Application> Update(Application item);
 
     /// <summary>
-    /// Delets an instance.
+    /// Deletes an instance.
     /// </summary>
     /// <param name="appId">The id of the application to delete</param>
     /// <param name="org">The application owner id</param>
@@ -60,7 +62,7 @@ public interface IApplicationRepository
     /// </summary>
     /// <returns>A dictionary of application titles.</returns>
     /// <remarks>
-    /// Key is application id formated as [org]/[app]
+    /// Key is application id formatted as [org]/[app]
     /// The value holds the titles, each language by ';'.
     /// </remarks>
     Task<Dictionary<string, string>> GetAllAppTitles();

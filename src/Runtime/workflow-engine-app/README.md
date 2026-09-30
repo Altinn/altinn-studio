@@ -50,6 +50,27 @@ dotnet test
 
 No Docker Compose setup needed — tests use Testcontainers for PostgreSQL and WireMock.
 
+## The image studioctl runs
+
+`studioctl env up` runs this service from the `tt02` tag of its GHCR image, moved whenever a build is
+deployed to the ring tt02 serves. Local environments therefore run the build tt02 runs, and nothing
+needs updating in studioctl when this service changes. `--dev-workflow-engine` routes the binding to
+a local host process instead and pulls no image.
+
+Since that tag moves, `studioctl env status` and `studioctl doctor` name the build a container is
+running rather than only the tag — that is what a report about local behavior should quote, and the
+commit it was built from is stamped on the image as `org.opencontainers.image.revision`. To reproduce
+a report against a specific build, set `STUDIOCTL_IMAGE_WORKFLOW_ENGINE` to its immutable tag, the
+first 10 characters of that commit.
+
+### Keeping the local environment working
+
+In a cluster this service's configuration ships with the image. Locally studioctl supplies it, and
+the studioctl a developer has installed is older than the image it pulls. So a change that is atomic
+in a cluster is not atomic locally: renaming a setting, moving the readiness route or requiring a new
+variable breaks `env up` for everyone who has not updated. Keep the previous spelling working for at
+least one studioctl release, and change studioctl in the same pull request.
+
 ## Further reading
 
 - [Workflow Engine README](../workflow-engine/README.md) — core engine documentation

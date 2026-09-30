@@ -10,16 +10,17 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
+	"altinn.studio/operator/internal/grafanaapi"
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
@@ -45,7 +46,7 @@ func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
 	for _, add := range []func(*k8sruntime.Scheme) error{
 		corev1.AddToScheme,
-		grafanav1beta1.AddToScheme,
+		grafanaapi.AddToScheme,
 	} {
 		if err := add(scheme); err != nil {
 			panic(err)
@@ -94,18 +95,8 @@ func newGrafanaSecret() *corev1.Secret {
 	}
 }
 
-func newGrafanaCR(url string) *grafanav1beta1.Grafana {
-	return &grafanav1beta1.Grafana{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      grafanaName,
-			Namespace: grafanaNamespace,
-		},
-		Spec: grafanav1beta1.GrafanaSpec{
-			External: &grafanav1beta1.External{
-				URL: url,
-			},
-		},
-	}
+func newGrafanaCR(url string) *unstructured.Unstructured {
+	return grafanaapi.NewGrafanaWithExternalURL(grafanaNamespace, grafanaName, url)
 }
 
 func matchPayloadSnapshot(t *testing.T, payload map[string]any) {

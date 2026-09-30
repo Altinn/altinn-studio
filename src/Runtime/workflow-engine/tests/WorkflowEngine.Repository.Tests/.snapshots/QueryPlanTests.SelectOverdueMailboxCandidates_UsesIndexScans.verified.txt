@@ -1,0 +1,32 @@
+﻿[
+  {
+    Plan: {
+      Node Type: Limit,
+      Parallel Aware: {Scrubbed},
+      Async Capable: {Scrubbed},
+      Startup Cost: {Scrubbed},
+      Total Cost: {Scrubbed},
+      Plan Rows: {Scrubbed},
+      Plan Width: {Scrubbed},
+      Disabled: false,
+      Plans: [
+        {
+          Node Type: Index Scan,
+          Parent Relationship: Outer,
+          Parallel Aware: {Scrubbed},
+          Async Capable: {Scrubbed},
+          Scan Direction: Forward,
+          Index Name: ix_mailboxes_deadline_open,
+          Relation Name: mailboxes,
+          Alias: m,
+          Startup Cost: {Scrubbed},
+          Total Cost: {Scrubbed},
+          Plan Rows: {Scrubbed},
+          Plan Width: {Scrubbed},
+          Disabled: false,
+          Index Cond: (deadline <= '2026-03-19 12:00:00+00'::timestamp with time zone)
+        }
+      ]
+    }
+  }
+]

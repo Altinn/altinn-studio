@@ -76,7 +76,6 @@
       {
         "id": "nav-buttons-from-summary",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

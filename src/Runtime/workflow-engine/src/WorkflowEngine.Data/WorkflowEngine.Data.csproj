@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
@@ -15,6 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Resilience/WorkflowEngine.Resilience.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
   </ItemGroup>
 
 <ItemGroup>

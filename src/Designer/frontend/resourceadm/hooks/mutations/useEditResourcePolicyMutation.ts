@@ -6,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 /**
  * Mutation to edit an existing policy in a resource.
  *
- * @param org the organisation of the user
+ * @param org the organization of the user
  * @param repo the repo the user is in
  * @param id the id of the resource
  */

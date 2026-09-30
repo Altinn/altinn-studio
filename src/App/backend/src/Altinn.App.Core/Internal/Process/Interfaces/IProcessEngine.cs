@@ -1,4 +1,7 @@
-using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -7,32 +10,62 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Process engine interface that defines the Altinn App process engine
 /// </summary>
-public interface IProcessEngine
+internal interface IProcessEngine
 {
     /// <summary>
-    /// Method to start a new process
+    /// Generates process start events and updates the instance's process state in memory.
+    /// Does not persist anything - use <see cref="SubmitInitialProcessState"/> to dispatch to the async engine.
     /// </summary>
-    Task<ProcessChangeResult> GenerateProcessStartEvents(ProcessStartRequest processStartRequest);
+    Task<ProcessChangeResult> CreateInitialProcessState(ProcessStartRequest request);
+
+    /// <summary>
+    /// Dispatches a process state change to the async process engine and waits for completion.
+    /// </summary>
+    Task<Instance> SubmitInitialProcessState(
+        Instance instance,
+        StorageVersionMetadata versions,
+        ProcessStateChange processStateChange,
+        bool isInstantiation = false,
+        Dictionary<string, string>? prefill = null,
+        InstantiationNotification? notification = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Method to move process to next task/event
     /// </summary>
-    Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default);
+    Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Check if the Altinn task type is a service task
+    /// Attempts to resume the workflow that established the instance's current task.
     /// </summary>
-    IServiceTask? CheckIfServiceTask(string? altinnTaskType);
+    Task<ProcessChangeResult> ResumeCurrentTask(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
-    /// Handle process events and update storage
+    /// Enqueues a process-next workflow that transitions the process from the current task to the next element.
+    /// The workflow has a dependency on <paramref name="dependsOnWorkflowId"/> so it won't start
+    /// until that workflow completes.
+    /// Does not mutate the instance the <paramref name="dataAccessor"/> exposes.
     /// </summary>
-    /// <param name="instance"></param>
-    /// <param name="prefill"></param>
-    /// <param name="events"></param>
-    Task<Instance> HandleEventsAndUpdateStorage(
-        Instance instance,
-        Dictionary<string, string>? prefill,
-        List<InstanceEvent>? events
+    /// <remarks>
+    /// <c>idempotencyKey</c> defaults to one derived from <c>dependsOnWorkflowId</c>; the mailbox
+    /// relay passes its own, derived from the step that concluded the exchange, so every call it
+    /// makes from inside one callback keys off the same executing step.
+    /// The callback's <c>executionReferenceTime</c> supplies event and process timestamps so retries
+    /// reconstruct the same logical transition.
+    /// </remarks>
+    Task EnqueueProcessNext(
+        IInstanceDataAccessor dataAccessor,
+        Actor actor,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        DateTimeOffset executionReferenceTime,
+        string? action = null,
+        string? idempotencyKey = null,
+        CancellationToken cancellationToken = default
     );
 }

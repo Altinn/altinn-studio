@@ -35,6 +35,8 @@ const (
 	baseIssueLifetime    = 31 * 24 * time.Hour
 	baseAcceptLifetime   = 62 * 24 * time.Hour
 	baseRotationLeadTime = 7 * 24 * time.Hour
+
+	workflowEngineCallbackAcceptLifetime = 365 * 24 * time.Hour
 )
 
 type AppCodesSyncReconciler struct {
@@ -103,11 +105,16 @@ var codeTypeSpecs = []codeTypeSpec{
 		RotationLeadTime: baseRotationLeadTime,
 	},
 	{
+		// Workflow-engine callback tokens are minted once at enqueue, bound to the signing code's
+		// expiry, and never refresh, so a code stays accepted for a year: a policy window, not a
+		// derived one, that the engine's limits must fit inside. Rotation keeps the base cadence, so
+		// a token holds >=341d of validity at enqueue; the engine's
+		// CallbackTokenLifetimeInvariantTests pin the other side of this invariant.
 		PropertyName:     "WorkflowEngineCallback",
 		CodeLength:       defaultCodeLength,
-		IssueLifetime:    baseIssueLifetime * 3,
-		AcceptLifetime:   baseAcceptLifetime * 3,
-		RotationLeadTime: baseRotationLeadTime * 3,
+		IssueLifetime:    baseIssueLifetime,
+		AcceptLifetime:   workflowEngineCallbackAcceptLifetime,
+		RotationLeadTime: baseRotationLeadTime,
 	},
 }
 

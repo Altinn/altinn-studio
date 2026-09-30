@@ -6,7 +6,6 @@ using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 
@@ -17,6 +16,7 @@ public class WorkflowUpdateBufferTests
         new()
         {
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+            MaxStepCommandTimeout = TimeSpan.FromHours(2),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),

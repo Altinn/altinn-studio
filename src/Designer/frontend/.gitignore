@@ -16,3 +16,9 @@ script.js
 
 *storybook.log
 /libs/studio-components/storybook-static/*
+
+# Vite build output
+dist/
+
+# Written by stats.js
+stats.csv

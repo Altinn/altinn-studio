@@ -28,6 +28,7 @@ public class CopyAppStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<CopyAp
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestOrgUsername)]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.TestUser)]
+    [InlineData(GiteaConstants.TestOrgUsername, "TESTUSER")]
     [InlineData(GiteaConstants.TestOrgUsername, GiteaConstants.SecondaryTestOrgUsername)]
     public async Task Copy_Repo_Should_Return_Created(string org, string targetOrg)
     {
@@ -49,11 +50,11 @@ public class CopyAppStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<CopyAp
 
         CopyRepoName = TestDataHelper.GenerateTestRepoName("-oidc-copy");
 
-        using HttpResponseMessage copyReponse = await HttpClient.PostAsync(
+        using HttpResponseMessage copyResponse = await HttpClient.PostAsync(
             $"designer/api/repos/repo/{org}/copy-app?sourceRepository={targetRepo}&targetRepository={CopyRepoName}&targetOrg={TargetCopyOrg}",
             null
         );
-        Assert.Equal(HttpStatusCode.Created, copyReponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, copyResponse.StatusCode);
 
         using HttpResponseMessage response = await GiteaFixture.GiteaClient.Value.GetAsync(
             $"repos/{TargetCopyOrg}/{CopyRepoName}"

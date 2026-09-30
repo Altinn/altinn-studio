@@ -52,12 +52,13 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Get updated payment information for the instance. Will contact the payment processor to check the status of the payment. Current task must be a payment task, or a payment task ID must be supplied via the <c>taskId</c> query parameter. See payment related documentation.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="taskId">If payment information should be loaded for a different task than the current one. Useful for retrieving payment information for a completed payment task. Updates from the processor are not persisted when this is set.</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>An object containing updated payment information</returns>
     [HttpGet]
     [ProducesResponseType(typeof(PaymentInformation), StatusCodes.Status200OK)]
@@ -67,11 +68,19 @@ public class PaymentController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null,
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+        Instance instance = await _instanceClient.GetInstance(
+            app,
+            org,
+            instanceOwnerPartyId,
+            instanceGuid,
+            authenticationMethod: null,
+            cancellationToken
+        );
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         AltinnPaymentConfiguration? paymentConfiguration = finalTaskId is null
@@ -91,35 +100,61 @@ public class PaymentController : ControllerBase
         bool isCurrentTask = finalTaskId == instance.Process?.CurrentTask?.ElementId;
 
         PaymentInformation paymentInformation;
-        if (isCurrentTask)
+        if (isCurrentTask && ProcessStatusHelper.IsIdle(instance))
         {
             try
             {
                 paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
                     instance,
                     validPaymentConfiguration,
-                    language
+                    language,
+                    cancellationToken
                 );
             }
-            catch (Exception ex)
+            catch (PlatformHttpException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                // The persisting path can race with a concurrent webhook callback that advances the process past
-                // finalTaskId after our GetInstance above. Re-fetch to confirm; if the task has moved, fall back to
-                // a read-only result rather than surface a 5xx — the next poll will reconcile.
-                if (!await CurrentTaskMovedAwayFrom(app, org, instanceOwnerPartyId, instanceGuid, finalTaskId))
+                // The legacy per-data-element Storage endpoint uses an untyped 409 for both process-status
+                // conflicts and unrelated failures. Re-read the instance once and classify only from the
+                // authoritative snapshot instead of interpreting the response body.
+                Instance refreshed = await _instanceClient.GetInstance(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    authenticationMethod: null,
+                    cancellationToken
+                );
+                bool currentTaskMoved = !string.Equals(
+                    refreshed.Process?.CurrentTask?.ElementId,
+                    finalTaskId,
+                    StringComparison.Ordinal
+                );
+                DataElement? paymentDataElement = refreshed.Data?.SingleOrDefault(dataElement =>
+                    string.Equals(
+                        dataElement.DataType,
+                        validPaymentConfiguration.PaymentDataType,
+                        StringComparison.Ordinal
+                    )
+                );
+                bool paymentDataElementLocked = paymentDataElement?.Locked is true;
+                if (ProcessStatusHelper.IsIdle(refreshed) && !currentTaskMoved && !paymentDataElementLocked)
                 {
+                    // An idle instance with the same current task and no locked target does not prove the
+                    // known webhook race. Preserve unrelated blob/version/idempotency conflicts exactly.
                     throw;
                 }
+
                 _logger.LogInformation(
                     ex,
-                    "Storing payment status failed because the process advanced past task {TaskId} during the request. Returning read-only status.",
+                    "Storing payment status failed for task {TaskId} (the process likely advanced and locked the data concurrently). Returning read-only status.",
                     LogSanitizer.Sanitize(finalTaskId)
                 );
                 paymentInformation = await _paymentService.CheckPaymentStatus(
-                    instance,
+                    refreshed,
                     validPaymentConfiguration,
                     finalTaskId,
-                    language
+                    language,
+                    cancellationToken
                 );
             }
         }
@@ -129,31 +164,12 @@ public class PaymentController : ControllerBase
                 instance,
                 validPaymentConfiguration,
                 finalTaskId,
-                language
+                language,
+                cancellationToken
             );
         }
 
         return Ok(paymentInformation);
-    }
-
-    private async Task<bool> CurrentTaskMovedAwayFrom(
-        string app,
-        string org,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        string expectedTaskId
-    )
-    {
-        try
-        {
-            Instance refreshed = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            return refreshed.Process?.CurrentTask?.ElementId != expectedTaskId;
-        }
-        catch (Exception)
-        {
-            // Can't verify — assume the original failure was unrelated and let it surface.
-            return false;
-        }
     }
 
     private static BadRequestObjectResult NotPaymentTask()
@@ -172,11 +188,12 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Run order details calculations and return the result. Does not require the current task to be a payment task.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>An object containing updated payment information</returns>
     [HttpGet("order-details")]
     [ProducesResponseType(typeof(OrderDetails), StatusCodes.Status200OK)]
@@ -186,6 +203,7 @@ public class PaymentController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null
     )
     {
@@ -203,9 +221,13 @@ public class PaymentController : ControllerBase
             instanceOwnerPartyId,
             instanceGuid,
             authenticationMethod: null,
-            CancellationToken.None
+            cancellationToken
         );
-        OrderDetails orderDetails = await orderDetailsCalculator.CalculateOrderDetails(instance, language);
+        OrderDetails orderDetails = await orderDetailsCalculator.CalculateOrderDetails(
+            instance,
+            language,
+            cancellationToken
+        );
 
         return Ok(orderDetails);
     }
@@ -213,12 +235,13 @@ public class PaymentController : ControllerBase
     /// <summary>
     /// Endpoint to receive payment webhooks from the payment processor.
     /// </summary>
-    /// <param name="org">unique identifier of the organisation responsible for the app</param>
-    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="org">unique identifier of the organization responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
     /// <param name="webhookPayload">The webhook payload from nets</param>
     /// <param name="authorizationHeader"></param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Acknowledgement of the webhook</returns>
     [HttpPost("nets-webhook-listener")]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -229,7 +252,8 @@ public class PaymentController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromBody] NetsCompleteWebhookPayload webhookPayload,
-        [FromHeader(Name = "Authorization")] string authorizationHeader
+        [FromHeader(Name = "Authorization")] string authorizationHeader,
+        CancellationToken cancellationToken
     )
     {
         if (_netsWebhookSecretProvider is null)
@@ -258,7 +282,8 @@ public class PaymentController : ControllerBase
             org,
             instanceOwnerPartyId,
             instanceGuid,
-            StorageAuthenticationMethod.ServiceOwner()
+            StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken
         );
 
         if (instance.Process?.CurrentTask?.ElementId == null)
@@ -294,12 +319,13 @@ public class PaymentController : ControllerBase
         var validPaymentConfiguration = paymentConfiguration.Validate();
 
         // Update payment status using ServiceOwner authentication
-        var responsText = await _paymentService.HandlePaymentCompletedWebhook(
+        var responseText = await _paymentService.HandlePaymentCompletedWebhook(
             instance,
             validPaymentConfiguration,
-            StorageAuthenticationMethod.ServiceOwner()
+            StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken
         );
 
-        return Ok(responsText);
+        return Ok(responseText);
     }
 }

@@ -40,7 +40,7 @@ internal class NetsCheckout
     public string? CancelUrl { get; set; }
 
     /// <summary>
-    /// Contains information about the customer. If provided, this information will be used for initating the consumer data of the payment object.
+    /// Contains information about the customer. If provided, this information will be used for initiating the consumer data of the payment object.
     /// See also the property merchantHandlesConsumerData which controls what fields to show on the checkout page.
     /// </summary>
     public NetsCheckoutConsumerDetails? Consumer { get; set; }
@@ -94,7 +94,7 @@ internal class NetsCheckout
     /// <summary>
     /// Defines the appearance of the checkout page.
     /// </summary>
-    public NetsApparence? Appearance { get; set; }
+    public NetsAppearance? Appearance { get; set; }
 
     /// <summary>
     /// Merchant's three-letter checkout country code (ISO 3166-1), for example GBR. See also the list of supported languages.
@@ -109,7 +109,7 @@ internal class NetsCheckout
 /// <summary>
 /// Defines the appearance of the checkout page.
 /// </summary>
-internal class NetsApparence
+internal class NetsAppearance
 {
     /// <summary>
     /// Controls what is displayed on the checkout page.

@@ -1,0 +1,54 @@
+.filesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin-top: var(--ds-size-4);
+}
+
+.filesSectionTitle {
+  font-size: var(--ds-font-size-small);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fileCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.fileCard {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-2) var(--ds-size-3);
+  background-color: var(--ds-color-surface-subtle);
+  border: 1px solid var(--ds-color-border-subtle);
+  border-radius: var(--ds-border-radius-medium);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  color: inherit;
+}
+
+.fileCard:hover,
+.fileCard:focus {
+  background-color: var(--ds-color-accent-background-tinted);
+  border-color: var(--ds-color-accent-subtle);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.fileCardDirectory {
+  font-size: var(--ds-font-size-small);
+  color: var(--ds-color-text-subtle);
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

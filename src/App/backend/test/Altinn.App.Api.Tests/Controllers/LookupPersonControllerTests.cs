@@ -216,8 +216,7 @@ public class LookupPersonControllerTests : ApiTestBase, IClassFixture<WebApplica
             message.RequestUri!.PathAndQuery.Should().Be($"/register/api/v1/persons");
             sendAsyncCalled = true;
 
-            var response = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            throw new PlatformHttpException(response, "Error");
+            throw new PlatformHttpException(HttpStatusCode.InternalServerError, "Error");
         };
 
         using var requestContent = new StringContent(

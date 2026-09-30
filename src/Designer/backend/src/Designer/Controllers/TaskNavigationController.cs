@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -26,8 +27,8 @@ public class TaskNavigationController(ITaskNavigationService taskNavigationServi
     /// <summary>
     /// Get task navigation
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The list of task navigation groups.</returns>
     [HttpGet]
@@ -50,11 +51,7 @@ public class TaskNavigationController(ITaskNavigationService taskNavigationServi
             cancellationToken
         );
         IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(
-            taskNavigationGroup =>
-                taskNavigationGroup.ToDto(
-                    (taskId) =>
-                        tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType
-                )
+            taskNavigationGroup => taskNavigationGroup.ToDto(taskId => tasks.TaskTypeOf(taskId))
         );
 
         return Ok(taskNavigationGroupDto);
@@ -63,8 +60,8 @@ public class TaskNavigationController(ITaskNavigationService taskNavigationServi
     /// <summary>
     /// Update task navigation
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="taskNavigationGroupDtoList">The list of task navigation groups.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]

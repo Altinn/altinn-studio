@@ -14,6 +14,8 @@ export function MarkerLocationText({ baseComponentId }: { baseComponentId: strin
     <Paragraph
       data-size='sm'
       className={classes.footer}
+      role='status'
+      aria-live='polite'
     >
       {isLocationValid(location) ? (
         <Lang

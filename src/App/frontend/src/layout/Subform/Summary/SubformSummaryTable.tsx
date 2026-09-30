@@ -47,7 +47,7 @@ function SubformTableRow({
   const { instanceOwnerPartyId, instanceGuid, taskId } = useAllNavigationParams();
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
-  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, tableColumns);
+  const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
 
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
@@ -169,11 +169,13 @@ export function SubformSummaryTable({
           id={`subform-${id}-table`}
           className={classes1.subformTable}
         >
-          <Caption
-            id={`subform-${id}-caption`}
-            title={<Lang id={textResourceBindings?.title} />}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-          />
+          {textResourceBindings?.title && (
+            <Caption
+              id={`subform-${id}-caption`}
+              title={<Lang id={textResourceBindings.title} />}
+              description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+            />
+          )}
           <Table.Head id={`subform-${id}-table-body`}>
             <Table.Row>
               {tableColumns.length ? (

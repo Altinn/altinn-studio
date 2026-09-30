@@ -1,6 +1,6 @@
 import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
-import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
 import { ObjectUtils } from '@studio/pure-functions';
 
@@ -66,7 +66,7 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
 };
 
 export const getAvailableTasks = (
-  tasks: LayoutSet[],
+  tasks: LayoutSetConfig[],
   tasksWithRules?: string[],
   initialSelectedTasks?: string[],
 ): string[] => {

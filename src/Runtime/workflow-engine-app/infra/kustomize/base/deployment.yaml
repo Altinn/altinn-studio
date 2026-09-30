@@ -3,6 +3,7 @@ kind: PodDisruptionBudget
 metadata:
   name: workflow-engine-app-pdb
 spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
   maxUnavailable: 1
   selector:
     matchLabels:
@@ -32,8 +33,13 @@ spec:
     metadata:
       labels:
         app: workflow-engine-app
+        azure.workload.identity/use: "true"
       annotations:
         linkerd.io/inject: enabled
+        # Graceful shutdown relies on Kubernetes stopping the proxy only after the application has
+        # exited, so it runs as a native sidecar, with no wait before exit, and gets 5s to drain.
+        config.beta.linkerd.io/proxy-enable-native-sidecar: "true"
+        config.linkerd.io/shutdown-grace-period: "5s"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       topologySpreadConstraints:
@@ -50,7 +56,7 @@ spec:
             matchLabels:
               app: workflow-engine-app
       serviceAccountName: workflow-engine-app
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 45
       securityContext:
         runAsUser: 1654
         runAsGroup: 1654
@@ -96,9 +102,13 @@ spec:
             - name: secrets
               mountPath: /app/secrets
               readOnly: true
+            # readOnlyRootFilesystem is true, so give the runtime a writable /tmp. Without it .NET
+            # cannot create its diagnostic IPC socket, which makes dotnet-counters/gcdump impossible.
+            - name: tmp
+              mountPath: /tmp
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /api/v1/health/live
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 10
@@ -106,7 +116,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /api/v1/health/ready
               port: 9090
             initialDelaySeconds: 2
             periodSeconds: 5
@@ -115,7 +125,9 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 64Mi
+              memory: 512Mi
+            limits:
+              memory: 3Gi
       volumes:
         - name: secrets
           projected:
@@ -125,3 +137,6 @@ spec:
                   items:
                     - key: secrets.json
                       path: secrets.json
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi

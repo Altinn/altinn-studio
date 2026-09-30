@@ -61,7 +61,7 @@
       Org: ttd,
       App: basic
     },
-    AltinnNugetVersion: 9.0.0.0,
+    AltinnNugetVersion: 9,
     ExternalApiIds: [
       tracing-external-api
     ],
@@ -77,7 +77,6 @@
         ],
         MaxCount: 0,
         MinCount: 0,
-        EnablePdfCreation: true,
         EnableFileScan: false,
         ValidationErrorOnPendingFileScan: false
       },
@@ -95,7 +94,6 @@
           DisallowUserDelete: false
         },
         TaskId: Task_1,
-        EnablePdfCreation: true,
         EnableFileScan: false,
         ValidationErrorOnPendingFileScan: false
       }

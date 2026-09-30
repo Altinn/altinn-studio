@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,7 +27,7 @@ namespace Altinn.Platform.Authorization.Controllers
 {
     /// <summary>
     /// This is the controller responsible for Policy Enformcent Point endpoint.
-    /// It returns a Xacml Context Reponse based on a Context Request
+    /// It returns a Xacml Context Response based on a Context Request
     /// </summary>
     [Route("authorization/api/v1/[controller]")]
     [ApiController]
@@ -83,7 +85,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occured in DecisionController");
+                _logger.LogError(ex, "Error occurred in DecisionController");
 
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
@@ -261,7 +263,7 @@ namespace Altinn.Platform.Authorization.Controllers
             var systemUserAttrValue = systemUserAttr.AttributeValues.Single();
             var testData = await _testDataService.GetTestData();
             // Generate XACML policy in memory where the system user has access to the party associated 
-            // with the organisation number of the systemuser
+            // with the organization number of the systemuser
             if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
                 return appPolicyResponse;
 

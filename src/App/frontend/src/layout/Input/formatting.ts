@@ -1,5 +1,6 @@
+import type { IFormatting, PatternFormatProps } from '@app/layout-contract/generated/common.generated';
+
 import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
-import type { IFormatting, PatternFormatProps } from 'src/layout/common.generated';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export function evalFormatting(props: ExprResolver<'Input' | 'Number'>) {
@@ -19,9 +20,7 @@ export function evalFormatting(props: ExprResolver<'Input' | 'Number'>) {
 
     if (out.number!.thousandSeparator) {
       out.number.thousandSeparator = evalAny(out.number.thousandSeparator as ExprVal.Any, false) as
-        | string
-        | boolean
-        | undefined;
+        string | boolean | undefined;
     }
     if (out.number.decimalSeparator) {
       out.number.decimalSeparator = evalStr(out.number.decimalSeparator, '.');

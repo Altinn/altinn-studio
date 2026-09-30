@@ -43,7 +43,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     const select = targetTaskIdSelect();
     expect(select).toHaveValue('');
-    expect(select).toHaveTextContent(layoutSetsMock.sets[0].id);
+    expect(select).toHaveTextContent(layoutSetsMock[0].id);
   });
 
   it('should select the task id from the target when the task id of the target is defined', async () => {
@@ -52,7 +52,7 @@ describe('Summary2ComponentTargetSelector', () => {
     });
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+    expect(select).toHaveValue(layoutSetsMock[1].taskId);
   });
 
   it('should allow selecting a layout set', async () => {
@@ -92,12 +92,7 @@ describe('Summary2ComponentTargetSelector', () => {
     const select = await componentTargetSelect();
     expect(select).toBeInTheDocument();
 
-    await waitFor(() => {
-      const selectedChip = screen.getByRole('option', {
-        name: (name) => name.includes(component1IdMock),
-      });
-      expect(selectedChip).toBeInTheDocument();
-    });
+    await waitFor(() => expect(select).toHaveValue(component1IdMock));
   });
 
   it('should allow selecting page target', async () => {
@@ -107,12 +102,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     const select = await pageTargetSelect();
     expect(select).toBeInTheDocument();
-    await waitFor(() => {
-      const selectedChip = screen.getByRole('option', {
-        name: (name) => name.includes(layout1NameMock),
-      });
-      expect(selectedChip).toBeInTheDocument();
-    });
+    await waitFor(() => expect(select).toHaveValue(layout1NameMock));
   });
 
   it('should show error if page target is invalid', async () => {

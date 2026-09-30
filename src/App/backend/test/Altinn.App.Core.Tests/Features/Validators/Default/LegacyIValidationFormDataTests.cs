@@ -54,7 +54,17 @@ public class LegacyIValidationFormDataTests
             InstanceOwner = new InstanceOwner() { PartyId = "1" },
             Data = [_dataElement],
         };
-        _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _applicationMetadata, "Task_1", "test");
+        _instanceDataAccessor = new InstanceDataAccessorFake(
+            _instance,
+            _applicationMetadata,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "Task_1",
+            "test"
+        );
     }
 
     [Fact]

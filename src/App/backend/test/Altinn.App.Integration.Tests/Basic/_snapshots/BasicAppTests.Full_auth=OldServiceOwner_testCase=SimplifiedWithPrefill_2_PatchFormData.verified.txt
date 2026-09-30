@@ -46,7 +46,7 @@
             application/json
           ],
           Content-Length: [
-            249
+            284
           ]
         }
       },
@@ -71,10 +71,10 @@
         Source: TestApp.Shared.Validator-Task_1
       },
       {
-        Source: TestApp.Shared.FormDataValidator-*
+        Source: DataAnnotations
       },
       {
-        Source: DataAnnotations
+        Source: TestApp.Shared.FormDataValidator-*
       }
     ],
     NewDataModels: [
@@ -98,6 +98,7 @@
       },
       VisibleAfter: DateTime_1,
       Process: {
+        Status: idle,
         Started: DateTime_2,
         StartEvent: StartEvent_1,
         CurrentTask: {
@@ -120,16 +121,17 @@
           InstanceGuid: <instanceGuid>,
           DataType: model,
           ContentType: application/xml,
-          BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[0]>,
+          BlobStoragePath: ttd/basic/<instanceGuid>/data-elements/<blobVersionId[0]>,
           SelfLinks: {
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
           Size: 200,
+          BlobVersionId: <blobVersionId[0]>,
           Locked: false,
           IsRead: false,
           Created: DateTime_4,
-          CreatedBy: 405003309,
-          LastChanged: DateTime_4,
+          CreatedBy: 991825827,
+          LastChanged: DateTime_5,
           LastChangedBy: 405003309
         }
       ],

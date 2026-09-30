@@ -6,7 +6,7 @@ This file provides guidance to AI agents when working with code for this project
 
 ### Common Commands
 
-All orchestration commands use the Makefile, which internally calls `go run ./cmd/tester`:
+All orchestration commands use the Makefile, which internally calls `go run ./cmd/tester` from the nested `test` module:
 
 ```bash
 # Development workflow

@@ -1,15 +1,18 @@
 import React, { useMemo } from 'react';
 
+import { useIsMobileOrTablet } from '@app/form-component';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
+import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { evalExpr } from 'src/features/expressions';
+import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
-import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
 import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
@@ -30,11 +33,8 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useExternalItem } from 'src/utils/layout/hooks';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { GridCell, ITableColumnFormatting } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { IGroupColumnFormatting } from 'src/layout/RepeatingGroup/config.generated';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export function RepeatingGroupTable(): React.JSX.Element | null {
@@ -123,6 +123,11 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
             className={cn({ [classes.fullWidthCaption]: !isEmpty && !isNested })}
             title={<Lang id={textResourceBindings.title} />}
             description={textResourceBindings.description && <Lang id={textResourceBindings.description} />}
+            helpText={
+              textResourceBindings.help
+                ? { text: <Lang id={textResourceBindings.help} />, accessibleTitle: textResourceBindings.title }
+                : undefined
+            }
             labelSettings={labelSettings}
             required={required}
           />
@@ -354,6 +359,7 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
       isNested={isNested}
       mutableColumnSettings={columnSettings}
       hiddenColumnIndices={mergedHiddenColumnIndices}
+      bodyClassName={where === 'Before' ? classes.rowsBeforeInTableHeaderGroup : undefined}
     />
   );
 }

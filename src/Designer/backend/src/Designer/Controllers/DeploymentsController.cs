@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -18,7 +17,6 @@ using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -35,29 +33,30 @@ public class DeploymentsController : ControllerBase
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
     private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
-    private readonly IFeatureManager _featureManager;
+
+    // TODO(#18666): DeveloperAppToken is unused with OIDC auth; placeholder satisfies
+    // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
+    private const string OidcAuthTokenPlaceholder = "studio-oidc-auth";
 
     public DeploymentsController(
         IDeploymentService deploymentService,
         IGiteaClient giteaClient,
-        IKubernetesDeploymentsService kubernetesDeploymentsService,
-        IFeatureManager featureManager
+        IKubernetesDeploymentsService kubernetesDeploymentsService
     )
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
         _kubernetesDeploymentsService = kubernetesDeploymentsService;
-        _featureManager = featureManager;
     }
 
     /// <summary>
     /// Gets deployments based on a query
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and Kubernete deployments</returns>
+    /// <returns>List of Pipeline deployments and Kubernetes deployments</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -112,7 +111,7 @@ public class DeploymentsController : ControllerBase
     /// <summary>
     /// Creates a deployment
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="createDeployment">Release model</param>
     /// <returns>Created deployment</returns>
@@ -130,11 +129,7 @@ public class DeploymentsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // TODO(#18666): DeveloperAppToken is unused when StudioOidc is enabled; placeholder satisfies
-        // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
-        string token = await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc)
-            ? "studio-oidc-auth"
-            : await HttpContext.GetDeveloperAppTokenAsync();
+        string token = OidcAuthTokenPlaceholder;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
@@ -146,7 +141,7 @@ public class DeploymentsController : ControllerBase
     /// <summary>
     /// Initiates the undeployment of an application from a specific environment
     /// </summary>
-    /// <param name="org">Organisation name</param>
+    /// <param name="org">Organization name</param>
     /// <param name="app">Application name</param>
     /// <param name="undeployRequest">Undeployment request containing the target environment</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -161,7 +156,7 @@ public class DeploymentsController : ControllerBase
     )
     {
         Guard.AssertValidEnvironmentName(undeployRequest.Environment);
-        string token = await HttpContext.GetDeveloperAppTokenAsync();
+        string token = OidcAuthTokenPlaceholder;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);

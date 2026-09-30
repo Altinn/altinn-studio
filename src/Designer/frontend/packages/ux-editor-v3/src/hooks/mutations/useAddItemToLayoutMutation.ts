@@ -33,7 +33,7 @@ export const useAddItemToLayoutMutation = (org: string, app: string, layoutSetNa
           componentType === ComponentTypeV3.FileUploadWithTag
         ) {
           const taskId = layoutSets
-            ? layoutSets?.sets.find((set) => set.id === layoutSetName)?.tasks[0]
+            ? layoutSets?.find((set) => set.id === layoutSetName)?.taskId
             : TASKID_FOR_STATELESS_APPS;
           const fileUploadComponent = updatedLayout.components[newId];
           // Todo: Consider to handle this in the backend. It should not be necessary to make two calls.

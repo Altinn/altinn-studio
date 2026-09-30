@@ -9,7 +9,7 @@
       {
         "size": "h2",
         "id": "TablePage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Table Examples"
         }
@@ -50,7 +50,7 @@
       {
         "size": "h2",
         "id": "TablePage-SummaryHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Summary"
         }
@@ -66,7 +66,6 @@
       {
         "id": "Table-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

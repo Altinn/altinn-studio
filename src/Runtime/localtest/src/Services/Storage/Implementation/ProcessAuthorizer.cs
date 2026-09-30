@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,15 +13,18 @@ namespace Altinn.Platform.Storage.Authorization;
 public class ProcessAuthorizer : IProcessAuthorizer
 {
     private readonly IAuthorization _authorizationService;
-    private readonly GeneralSettings _settings;
+    private readonly GeneralSettings _generalSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessAuthorizer"/> class.
     /// </summary>
-    public ProcessAuthorizer(IAuthorization authorizationService, IOptions<GeneralSettings> settings)
+    public ProcessAuthorizer(
+        IAuthorization authorizationService,
+        IOptions<GeneralSettings> settings
+    )
     {
         _authorizationService = authorizationService;
-        _settings = settings.Value;
+        _generalSettings = settings.Value;
     }
 
     /// <inheritdoc/>
@@ -65,38 +67,27 @@ public class ProcessAuthorizer : IProcessAuthorizer
         };
     }
 
-    private async Task<bool> Authorize(Instance instance, ProcessState? nextProcessState = null)
+    private Task<bool> AuthorizeWithSyncAdapterBypass(Instance instance)
     {
-        if (instance.Process?.CurrentTask is null)
+        if (_authorizationService.UserHasRequiredScope(_generalSettings.InstanceSyncAdapterScope))
         {
-            return false;
+            return Task.FromResult(true);
         }
 
-        string? taskId = instance.Process.CurrentTask.ElementId;
-        string? altinnTaskType = instance.Process.CurrentTask.AltinnTaskType;
+        return Authorize(instance);
+    }
 
-        if (nextProcessState?.CurrentTask?.FlowType == "AbandonCurrentMoveToNext")
-        {
-            return await _authorizationService.AuthorizeInstanceAction(instance, "reject", taskId);
-        }
+    private async Task<bool> Authorize(Instance instance)
+    {
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+        string? altinnTaskType = instance.Process?.CurrentTask?.AltinnTaskType;
 
-        // Think this IF is related to gateways, but not sure.
-        if (
-            nextProcessState?.CurrentTask?.FlowType is not null
-            && nextProcessState.CurrentTask.FlowType != "CompleteCurrentMoveToNext"
-        )
-        {
-            altinnTaskType = nextProcessState.CurrentTask.AltinnTaskType;
-            taskId = nextProcessState.CurrentTask.ElementId;
-        }
+        List<string> actions = instance.Process?.CurrentTask is null
+            ? ["write"]
+            : GetActionsThatAllowProcessNextForTaskType(altinnTaskType);
 
-        // When no nextProcessState is provided (e.g. locking), we don't know if this is an
-        // abandon flow, so we include "reject" as a fallback.
-        List<string> actions = GetActionsThatAllowProcessNextForTaskType(altinnTaskType);
-        if (nextProcessState is null)
-        {
-            actions.Add("reject");
-        }
+        // we don't know if this is an abandon flow, so we include "reject" as a fallback.
+        actions.Add("reject");
 
         foreach (string action in actions)
         {
@@ -109,13 +100,40 @@ public class ProcessAuthorizer : IProcessAuthorizer
         return false;
     }
 
-    private Task<bool> AuthorizeWithSyncAdapterBypass(Instance instance)
+    private async Task<bool> Authorize(Instance instance, ProcessState nextProcessState)
     {
-        if (_authorizationService.UserHasRequiredScope(_settings.InstanceSyncAdapterScope))
+        if (instance.Process?.CurrentTask is null)
         {
-            return Task.FromResult(true);
+            return false;
         }
 
-        return Authorize(instance);
+        string? taskId = instance.Process.CurrentTask.ElementId;
+        string? altinnTaskType = instance.Process.CurrentTask.AltinnTaskType;
+
+        if (nextProcessState.CurrentTask?.FlowType == "AbandonCurrentMoveToNext")
+        {
+            return await _authorizationService.AuthorizeInstanceAction(instance, "reject", taskId);
+        }
+
+        if (
+            nextProcessState.CurrentTask?.FlowType is not null
+            && nextProcessState.CurrentTask.FlowType != "CompleteCurrentMoveToNext"
+        )
+        {
+            altinnTaskType = nextProcessState.CurrentTask.AltinnTaskType;
+            taskId = nextProcessState.CurrentTask.ElementId;
+        }
+
+        List<string> actions = GetActionsThatAllowProcessNextForTaskType(altinnTaskType);
+
+        foreach (string action in actions)
+        {
+            if (await _authorizationService.AuthorizeInstanceAction(instance, action, taskId))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

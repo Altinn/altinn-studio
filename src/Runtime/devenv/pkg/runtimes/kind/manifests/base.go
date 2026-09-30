@@ -23,7 +23,7 @@ const (
 // BuildBaseInfrastructure creates all base infrastructure resources.
 func BuildBaseInfrastructure(caCrt, issuerCrt, issuerKey []byte, includeLinkerd bool) []runtime.Object {
 	// TODO: take this one step further and have abstractions to represent resources and have better support
-	// for modelling references/dependencies without a ton of magic strings.
+	// for modeling references/dependencies without a ton of magic strings.
 	objs := []runtime.Object{
 		// Namespaces
 		buildNamespace("traefik"),
@@ -158,7 +158,7 @@ func buildTraefikCRDsRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "traefik-crds",
-					Version: "1.11.0",
+					Version: "1.13.1",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "traefik-crds",
@@ -170,7 +170,17 @@ func buildTraefikCRDsRelease() *helmv2.HelmRelease {
 	}
 }
 
+// linkerdChartVersion is the linkerd-crds and linkerd-control-plane chart version. Keep it, and
+// the control-plane values below that change behavior, in step with the runtime clusters' Linkerd
+// (dis-way/gitops-manifests, oci/linkerd). From 2026.7.2 the chart injects the proxy as a native
+// sidecar by default.
+const linkerdChartVersion = "2026.7.2"
+
 func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
+	values := map[string]any{
+		"installGatewayAPI": true,
+	}
+
 	return &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "helm.toolkit.fluxcd.io/v2",
@@ -185,7 +195,7 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-crds",
-					Version: "2025.7.6",
+					Version: linkerdChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",
@@ -193,6 +203,7 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 					},
 				},
 			},
+			Values: mustMarshalJSON(values),
 		},
 	}
 }
@@ -208,7 +219,12 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy",
 			},
+			"livenessProbe":  map[string]any{"timeoutSeconds": 10},
+			"readinessProbe": map[string]any{"timeoutSeconds": 10},
 		},
+		// A failing injector blocks pod creation, as in the runtime clusters, rather than
+		// letting a pod start without its proxy.
+		"webhookFailurePolicy": "Fail",
 		"proxyInit": map[string]any{
 			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy-init",
@@ -244,7 +260,7 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-control-plane",
-					Version: "2025.7.6",
+					Version: linkerdChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",
@@ -361,7 +377,7 @@ func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "traefik",
-					Version: "37.1.1",
+					Version: "39.0.8",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "traefik",

@@ -57,9 +57,180 @@ public class AppCommandExecutionTests
         var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body);
         Assert.NotNull(payload);
         Assert.Equal("test-command", payload.CommandKey);
-        Assert.Equal("test-user-123", payload.Actor.UserIdOrOrgNumber);
-        Assert.Equal("test-lock-key", payload.LockToken);
+        Assert.Equal("test-user-123", payload.Actor.OrgId);
         Assert.Equal("test-payload-data", payload.Payload);
+        using JsonDocument document = JsonDocument.Parse(captured.Body);
+        Assert.False(document.RootElement.TryGetProperty("lockToken", out _));
+    }
+
+    [Fact]
+    public async Task Execute_SendsStepIdentityAndScheduledExecutionReferenceTime()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var stepId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var startAt = new DateTimeOffset(2026, 7, 21, 10, 30, 0, TimeSpan.FromHours(2));
+        var step = AppCommandTestFixture.CreateStep(
+            CreateCommand("test-command"),
+            databaseId: stepId,
+            createdAt: createdAt
+        );
+        var workflow = AppCommandTestFixture.CreateWorkflow(step, startAt);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = Assert.Single(fixture.HttpHandler.Requests);
+        Assert.Equal(
+            stepId.ToString(),
+            Assert.Single(captured.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey])
+        );
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+        Assert.NotNull(payload);
+        Assert.Equal(startAt, payload.ExecutionReferenceTime);
+        Assert.NotEqual(createdAt, payload.ExecutionReferenceTime);
+    }
+
+    [Fact]
+    public async Task Execute_ImmediateWorkflowUsesPersistedStepCreatedAt()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"), createdAt: createdAt);
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = Assert.Single(fixture.HttpHandler.Requests);
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+        Assert.NotNull(payload);
+        Assert.Equal(createdAt, payload.ExecutionReferenceTime);
+    }
+
+    [Fact]
+    public async Task Execute_RetryOfSamePersistedStepKeepsIdentityAndExecutionReferenceTime()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var stepId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var createdAt = new DateTimeOffset(2026, 7, 20, 8, 15, 0, TimeSpan.Zero);
+        var step = AppCommandTestFixture.CreateStep(
+            CreateCommand("test-command"),
+            databaseId: stepId,
+            createdAt: createdAt
+        );
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var firstResult = await command.Execute(context, TestContext.Current.CancellationToken);
+        var retryResult = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, firstResult.Status);
+        Assert.Equal(ExecutionStatus.Success, retryResult.Status);
+        Assert.Equal(2, fixture.HttpHandler.Requests.Count);
+        foreach (var captured in fixture.HttpHandler.Requests)
+        {
+            Assert.Equal(
+                stepId.ToString(),
+                Assert.Single(captured.Headers[WorkflowMetadataConstants.Headers.IdempotencyKey])
+            );
+            var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+            Assert.NotNull(payload);
+            Assert.Equal(createdAt, payload.ExecutionReferenceTime);
+        }
+    }
+
+    [Fact]
+    public async Task Execute_ReplaysCallbackTokenAsBearerToken()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = fixture.HttpHandler.Requests[0];
+        Assert.True(captured.Headers.TryGetValue("Authorization", out var authValues));
+        Assert.Equal("Bearer test-callback-token", Assert.Single(authValues));
+        Assert.False(captured.Headers.ContainsKey("Altinn-Workflow-Callback-Token"));
+    }
+
+    [Fact]
+    public async Task Execute_PreservesFullActorIdentity_AcrossContextRoundTrip()
+    {
+        // Regression guard for the "preserve actor identity across handoff" path.
+        // The engine must round-trip ALL actor identity fields, not just a single identity + language.
+        // App.Core relies on the full actor (ProcessEngine.CreatePlatformUser) to attribute instance
+        // events to the originating user/system user in dependent process continuations.
+        using var fixture = AppCommandTestFixture.Create();
+        var command = GetAppCommand(fixture);
+
+        var richActor = new Actor
+        {
+            UserId = 1337,
+            OrgId = "ttd",
+            AuthenticationLevel = 3,
+            NationalIdentityNumber = "01017012345",
+            SystemUserId = Guid.Parse("11111111-2222-3333-4444-555555555555"),
+            SystemUserOwnerOrgNo = "310702641",
+            SystemUserName = "Test system user",
+            Language = "nb",
+        };
+
+        // Simulate the real handoff: App.Core serializes the context, the engine stores it as an
+        // opaque JsonElement and deserializes it back into its own typed AppWorkflowContext.
+        var contextElement = JsonSerializer.SerializeToElement(
+            new AppWorkflowContext
+            {
+                Actor = richActor,
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 12345,
+                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+                CallbackToken = "test-callback-token",
+            }
+        );
+        var roundTrippedContext = contextElement.Deserialize<AppWorkflowContext>();
+        Assert.NotNull(roundTrippedContext);
+
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(
+            workflow,
+            step,
+            data,
+            workflowContext: roundTrippedContext
+        );
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = fixture.HttpHandler.Requests[0];
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+
+        Assert.NotNull(payload);
+        Assert.NotNull(payload.Actor);
+        Assert.Equal(1337, payload.Actor.UserId);
+        Assert.Equal("ttd", payload.Actor.OrgId);
+        Assert.Equal(3, payload.Actor.AuthenticationLevel);
+        Assert.Equal("01017012345", payload.Actor.NationalIdentityNumber);
+        Assert.Equal(Guid.Parse("11111111-2222-3333-4444-555555555555"), payload.Actor.SystemUserId);
+        Assert.Equal("310702641", payload.Actor.SystemUserOwnerOrgNo);
+        Assert.Equal("Test system user", payload.Actor.SystemUserName);
+        Assert.Equal("nb", payload.Actor.Language);
     }
 
     [Fact]
@@ -117,6 +288,7 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
         Assert.Contains("InternalServerError", result.Message, StringComparison.Ordinal);
+        Assert.Equal(500, result.HttpStatusCode);
     }
 
     [Theory]
@@ -139,6 +311,7 @@ public class AppCommandExecutionTests
         var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
+        Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 
     [Theory]
@@ -164,12 +337,13 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("client error", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 
     // --- StateOut handling ---
 
     [Fact]
-    public async Task Execute_SuccessWithStateInResponse_SetsStateOut()
+    public async Task Execute_SuccessWithStateInResponse_ReturnsState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = """{"state": "next-step-state"}""";
@@ -179,13 +353,37 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Equal("next-step-state", step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Equal("next-step-state", result.StateOut);
+        Assert.Null(step.StateOut);
     }
 
     [Fact]
-    public async Task Execute_SuccessWithEmptyBody_DoesNotSetStateOut()
+    public async Task Execute_DeferWithStateInResponse_ReturnsDeferralWithState()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        fixture.HttpHandler.ResponseContent = """
+            {"state": "carried-state", "defer": {"delay": "00:00:30", "reason": "waiting for receipt"}}
+            """;
+        var command = GetAppCommand(fixture);
+        var data = CreateCommandData("test-command");
+        var step = AppCommandTestFixture.CreateStep(CreateCommand("test-command"));
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+        var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
+
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ExecutionStatus.Deferred, result.Status);
+        Assert.Equal(TimeSpan.FromSeconds(30), result.DeferDelay);
+        Assert.Equal("waiting for receipt", result.Message);
+        Assert.Equal("carried-state", result.StateOut);
+        Assert.Null(step.StateOut);
+    }
+
+    [Fact]
+    public async Task Execute_SuccessWithEmptyBody_ReturnsNoState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = "";
@@ -195,13 +393,14 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Null(step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.StateOut);
     }
 
     [Fact]
-    public async Task Execute_SuccessWithNullStateInResponse_DoesNotSetStateOut()
+    public async Task Execute_SuccessWithNullStateInResponse_ReturnsNoState()
     {
         using var fixture = AppCommandTestFixture.Create();
         fixture.HttpHandler.ResponseContent = """{"state": null}""";
@@ -211,9 +410,10 @@ public class AppCommandExecutionTests
         var workflow = AppCommandTestFixture.CreateWorkflow(step);
         var context = AppCommandTestFixture.CreateExecutionContext(workflow, step, data);
 
-        await command.Execute(context, TestContext.Current.CancellationToken);
+        var result = await command.Execute(context, TestContext.Current.CancellationToken);
 
-        Assert.Null(step.StateOut);
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Null(result.StateOut);
     }
 
     [Fact]
@@ -231,6 +431,9 @@ public class AppCommandExecutionTests
 
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
         Assert.Contains("invalid response body", result.Message, StringComparison.OrdinalIgnoreCase);
+        // Only failure-classifying HTTP branches carry a status code; this is a 2xx response with a
+        // bad body, so the error is not an HTTP transport failure and the code stays null.
+        Assert.Null(result.HttpStatusCode);
     }
 
     // --- StateIn / payload completeness ---
@@ -277,30 +480,6 @@ public class AppCommandExecutionTests
         Assert.NotNull(payload);
         Assert.Equal(workflow.DatabaseId, payload.WorkflowId);
         Assert.Null(payload.State); // First step with no StateIn → null
-    }
-
-    // --- Validation through command ---
-
-    [Fact]
-    public async Task Execute_MissingLockToken_ReturnsCriticalError()
-    {
-        using var fixture = AppCommandTestFixture.Create();
-        var command = GetAppCommand(fixture);
-        var data = CreateCommandData("test-command");
-
-        var contextWithoutLock = new AppWorkflowContext
-        {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
-            LockToken = "", // empty lock token
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-        };
-        // Validate should catch the missing lock token before execution
-        var validationResult = command.Validate(data, contextWithoutLock);
-        Assert.IsType<CommandValidationResult.Invalid>(validationResult);
-        Assert.Empty(fixture.HttpHandler.Requests);
     }
 
     private static ICommand GetAppCommand(AppCommandTestFixture fixture) => fixture.GetAppCommand();

@@ -21,14 +21,12 @@ const layouts = {
   Side2: {},
 };
 
-const layoutSets = {
-  sets: [
-    {
-      id: layoutSet1NameMock,
-      dataType: 'Task',
-    },
-  ],
-};
+const layoutSets = [
+  {
+    id: layoutSet1NameMock,
+    dataType: 'Task',
+  },
+];
 
 describe('TasksSelector and TaskSelector', () => {
   it('should render correct label and call onChange when a task is selected in multiple mode', async () => {

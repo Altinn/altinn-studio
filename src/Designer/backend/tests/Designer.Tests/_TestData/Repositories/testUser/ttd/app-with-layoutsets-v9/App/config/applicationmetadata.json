@@ -1,0 +1,45 @@
+{
+    "id": "ttd/app-with-layoutsets-v9",
+    "org": "ttd",
+    "title": {
+        "nb": "app-with-layoutsets-v9"
+    },
+    "dataTypes": [
+        {
+            "id": "model",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.model"
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1
+        },
+        {
+            "id": "subform-model",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.subformModel"
+            },
+            "maxCount": 1,
+            "minCount": 1
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": true,
+        "organisation": true,
+        "person": true,
+        "subUnit": true
+    },
+    "autoDeleteOnProcessEnd": false,
+    "created": "2021-02-06T15:18:12.2060944Z",
+    "createdBy": "test",
+    "lastChanged": "2021-02-06T15:18:12.2062288Z",
+    "lastChangedBy": "test"
+}

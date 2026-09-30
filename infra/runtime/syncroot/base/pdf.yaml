@@ -30,7 +30,7 @@ spec:
 #   2.2. Copy the namespace and Service manifest used as parentRef (pdf/pdf-generator svc) to pdf3.yaml
 #   2.3. Remove this manifest (pdf.yaml, the helmrelease will be pruned, but we will have kept the namespace and the svc)
 # That way all the apps can keep targeting `PlatformSettings__ApiPdf2Endpoint=http://pdf-generator.pdf.svc.cluster.local/pdf`
-# and at some point we can inject/update configuration so that we can remove the old namepace (?)
+# and at some point we can inject/update configuration so that we can remove the old namespace (?)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

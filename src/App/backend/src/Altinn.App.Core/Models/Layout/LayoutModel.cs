@@ -1,4 +1,4 @@
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components.Base;
 using Altinn.Platform.Storage.Interface.Models;
@@ -38,9 +38,9 @@ public sealed class LayoutModel
     /// Generate a list of <see cref="ComponentContext"/> for all components in the layout model
     /// taking repeating groups into account.
     /// </summary>
-    public async Task<List<ComponentContext>> GenerateComponentContexts(LayoutEvaluatorState state)
+    public async Task<List<ComponentContext>> GenerateComponentContexts(IInstanceDataAccessor dataAccessor)
     {
-        var defaultElementId = _defaultFolder.GetDefaultDataElementId(state.Instance);
+        var defaultElementId = _defaultFolder.GetDefaultDataElementId(dataAccessor.Instance);
         if (defaultElementId is null)
         {
             return [];
@@ -49,7 +49,7 @@ public sealed class LayoutModel
         var pageContexts = new List<ComponentContext>();
         foreach (var page in _defaultFolder.Pages)
         {
-            pageContexts.Add(await page.GetContextForPage(state, defaultElementId.Value, null, _layoutsLookup));
+            pageContexts.Add(await page.GetContextForPage(dataAccessor, defaultElementId.Value, null, _layoutsLookup));
         }
 
         return pageContexts;

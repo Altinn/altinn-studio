@@ -5,6 +5,7 @@ export type StudioTest = typeof jest & {
   restoreTimers(): void;
   runWithFakeTimers<T>(fun: () => T): T;
   mockNextConfirmDialog(returnValue: boolean): void;
+  waitForAnimationFrame(): Promise<void>;
 };
 
 export const studioTest: StudioTest = {
@@ -25,5 +26,8 @@ export const studioTest: StudioTest = {
   },
   mockNextConfirmDialog(returnValue: boolean) {
     this.spyOn(window, 'confirm').mockReturnValueOnce(returnValue);
+  },
+  async waitForAnimationFrame(): Promise<void> {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
   },
 };

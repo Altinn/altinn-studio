@@ -45,7 +45,7 @@ describe('DesignView', () => {
     await render();
 
     formLayoutSettingsMock.pages.order.forEach((page) => {
-      const accordionButton = screen.getByRole('button', { name: page });
+      const accordionButton = screen.getByText(page);
       expect(accordionButton).toBeInTheDocument();
     });
   });
@@ -54,7 +54,7 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     await render();
 
-    const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
+    const accordionButton1 = screen.getByText(mockPageName1);
     await user.click(accordionButton1);
 
     expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
@@ -65,7 +65,7 @@ describe('DesignView', () => {
     const user = userEvent.setup();
     await render();
 
-    const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
+    const accordionButton2 = screen.getByText(mockPageName2);
     await user.click(accordionButton2);
 
     expect(mockSetSearchParams).toHaveBeenCalledTimes(1);

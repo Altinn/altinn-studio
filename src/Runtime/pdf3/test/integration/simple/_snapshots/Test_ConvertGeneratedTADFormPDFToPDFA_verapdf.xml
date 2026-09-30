@@ -7,7 +7,7 @@
   </buildInformation>
   <jobs>
     <job>
-      <item size="88073">
+      <item size="88063">
         <name>/data/input.pdf</name>
       </item>
       <validationReport jobEndStatus="normal" profileName="PDF/A-2B validation profile" statement="PDF file is compliant with Validation Profile requirements." isCompliant="true">

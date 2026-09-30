@@ -1,0 +1,500 @@
+using System.Diagnostics;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands;
+using Altinn.App.Core.Internal.WorkflowEngine.Models;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Altinn.App.Api.Controllers;
+
+/// <summary>
+/// Controller for handling process engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
+/// the engine replays the app-minted JWT (bound to this instance) in the Authorization: Bearer header.
+/// </summary>
+[ApiController]
+[Authorize(AuthenticationSchemes = WorkflowEngineCallbackDefaults.AuthenticationScheme)]
+[Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/workflow-engine-callbacks")]
+public class WorkflowEngineCallbackController : ControllerBase
+{
+    private const string CollectionKeyHeader = "Collection-Key";
+
+    private readonly IServiceProvider _serviceProvider;
+    private readonly WorkflowCallbackStateService _workflowCallbackStateService;
+    private readonly ILogger<WorkflowEngineCallbackController> _logger;
+    private readonly Telemetry? _telemetry;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WorkflowEngineCallbackController"/> class.
+    /// </summary>
+    public WorkflowEngineCallbackController(
+        IServiceProvider serviceProvider,
+        ILogger<WorkflowEngineCallbackController> logger,
+        Telemetry? telemetry = null
+    )
+    {
+        _serviceProvider = serviceProvider;
+        _workflowCallbackStateService = serviceProvider.GetRequiredService<WorkflowCallbackStateService>();
+        _logger = logger;
+        _telemetry = telemetry;
+    }
+
+    /// <summary>
+    /// Executes a command based on the provided command key.
+    /// </summary>
+    [HttpPost("{commandKey}")]
+    [ProducesResponseType(typeof(AppCallbackResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExecuteCommand(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        [FromRoute] string commandKey,
+        [FromBody] AppCallbackPayload payload,
+        CancellationToken cancellationToken
+    )
+    {
+        using Activity? activity = _telemetry?.StartProcessEngineCallbackActivity(instanceGuid, commandKey);
+
+        var appId = new AppIdentifier(org, app);
+        var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+
+        // The engine echoes the actor from its stored context; the token binds the one it was minted for.
+        if (
+            payload.Actor is not { } actor
+            || User.FindFirst(JwtClaimTypes.WorkflowCallback.ActorHash)?.Value
+                != WorkflowCallbackTokenGenerator.ActorHash(actor)
+        )
+        {
+            _logger.LogError(
+                "Callback actor does not match the actor the callback token was minted for. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Actor mismatch");
+            return NonRetryableProblem(
+                "Actor Mismatch",
+                "The callback actor does not match the callback token.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        IWorkflowEngineCommand? command = _serviceProvider
+            .GetServices<IWorkflowEngineCommand>()
+            .FirstOrDefault(x => x.GetKey() == commandKey);
+
+        if (command is null)
+        {
+            _logger.LogError(
+                "Workflow app command '{CommandKey}' not found. Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Command not found");
+            return NonRetryableProblem(
+                "Command Not Found",
+                "Workflow app command not found.",
+                StatusCodes.Status404NotFound
+            );
+        }
+
+        // Restore instance and form data from the opaque state blob.
+        // State must always be provided — every workflow is enqueued with a captured state blob.
+        if (payload.State is null)
+        {
+            _logger.LogError(
+                "State blob is missing from callback payload. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Missing state blob");
+            return NonRetryableProblem(
+                "Missing State",
+                "State blob is missing from callback payload.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        InstanceDataUnitOfWork instanceDataUnitOfWork;
+        WorkflowCallbackStateCarry stateCarry;
+        try
+        {
+            (instanceDataUnitOfWork, stateCarry) = await _workflowCallbackStateService.RestoreState(
+                instanceId,
+                payload.State,
+                payload.Actor.Language
+            );
+        }
+        catch (WorkflowCallbackStateException e)
+        {
+            _logger.LogError(
+                e,
+                "Failed to restore workflow callback state. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                commandKey,
+                instanceId
+            );
+            activity?.SetStatus(ActivityStatusCode.Error, "Invalid callback state");
+            return NonRetryableProblem(
+                "Invalid State",
+                "Workflow callback state could not be restored for this instance.",
+                StatusCodes.Status422UnprocessableEntity
+            );
+        }
+
+        string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
+        ProcessEngineCommandResult result = await command.Execute(
+            new ProcessEngineCommandContext
+            {
+                AppId = appId,
+                InstanceId = instanceId,
+                InstanceDataMutator = instanceDataUnitOfWork,
+                CancellationToken = cancellationToken,
+                Payload = payload,
+                StateCarry = stateCarry,
+            }
+        );
+
+        switch (result)
+        {
+            case SuccessfulProcessEngineCommandResult success:
+            {
+                //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the process engine is the caller.
+                if (instanceDataUnitOfWork.HasAbandonIssues)
+                {
+                    _logger.LogError(
+                        "Data abandonment detected during callback. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
+
+                    activity?.SetStatus(ActivityStatusCode.Error, "Data abandonment detected");
+
+                    return NonRetryableProblem(
+                        "Data Abandonment",
+                        "Data abandonment detected during callback.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                try
+                {
+                    DataElementChanges changes = instanceDataUnitOfWork.GetDataElementChanges(false);
+                    // The engine's step id is stable across every attempt of this step, so a retried
+                    // callback presents Storage the same key and cannot apply the mutation twice.
+                    WorkflowAggregateSaveOutcome saveOutcome = await instanceDataUnitOfWork.SaveWorkflowOwnedAggregate(
+                        changes,
+                        payload.StepId.ToString(),
+                        cancellationToken
+                    );
+                    if (saveOutcome == WorkflowAggregateSaveOutcome.NothingToSave)
+                    {
+                        _logger.LogDebug(
+                            "Workflow callback had no Storage mutation to save. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                            commandKey,
+                            instanceId,
+                            currentTaskId
+                        );
+                    }
+                }
+                catch (InstanceMutationReplayedException ex)
+                {
+                    _logger.LogInformation(
+                        ex,
+                        "Storage replayed workflow callback mutation. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
+                }
+                catch (Exception ex)
+                    when (commandKey == AcquireProcessingStatus.Key
+                        && ex is StorageProcessStatusConflictException or InstanceDataStaleException
+                    )
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Storage rejected workflow process-status acquisition. Instance: {InstanceId}, Task: {TaskId}.",
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Workflow acquire conflict");
+                    return NonRetryableProblem(
+                        "WorkflowAcquireConflict",
+                        "The instance changed before the process transition could start. Refresh the instance and try again.",
+                        StatusCodes.Status409Conflict,
+                        AcquireProcessingStatus.ConcurrencyFailureCode
+                    );
+                }
+                catch (InstanceDataStaleException ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Storage rejected workflow callback save with 412 Precondition Failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        commandKey,
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Stale callback state");
+                    return NonRetryableProblem(
+                        "StoragePreconditionFailedException",
+                        "Storage rejected workflow callback save with 412 Precondition Failed. The workflow callback state is stale.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                string updatedState = await _workflowCallbackStateService.CaptureState(
+                    instanceDataUnitOfWork,
+                    stateCarry
+                );
+
+                // The relay runs here, not in the command: whatever it starts must begin on the state the
+                // handler *published* — saved, re-captured, re-signed above.
+                if (success.MailboxContinuation is { } continuation)
+                {
+                    await RunMailboxRelay(
+                        continuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork,
+                        updatedState,
+                        success.ProcessNextContinuation is not null,
+                        success.ProcessNextContinuation?.Action,
+                        cancellationToken
+                    );
+
+                    activity?.SetStatus(ActivityStatusCode.Ok);
+                    return Ok(new AppCallbackResponse { State = updatedState });
+                }
+
+                // Process-next continuation runs AFTER save so its state includes Storage-assigned IDs; the enqueue is
+                // idempotency-keyed, so a retried callback is safe.
+                if (success.ProcessNextContinuation is { } processNextContinuation)
+                {
+                    string collectionKey = Request.Headers[CollectionKeyHeader].ToString();
+                    if (string.IsNullOrWhiteSpace(collectionKey))
+                    {
+                        _logger.LogError(
+                            "Workflow callback is missing the '{Header}' header required for process-next continuation. CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                            CollectionKeyHeader,
+                            commandKey,
+                            instanceId
+                        );
+                        activity?.SetStatus(ActivityStatusCode.Error, "Missing Collection-Key header");
+                        return NonRetryableProblem(
+                            "Missing Collection-Key",
+                            "Workflow callback is missing the Collection-Key header required for process-next continuation.",
+                            StatusCodes.Status422UnprocessableEntity
+                        );
+                    }
+
+                    var processEngine = _serviceProvider.GetRequiredService<IProcessEngine>();
+                    await processEngine.EnqueueProcessNext(
+                        instanceDataUnitOfWork,
+                        payload.Actor,
+                        payload.WorkflowId,
+                        collectionKey,
+                        updatedState,
+                        payload.ExecutionReferenceTime,
+                        processNextContinuation.Action,
+                        cancellationToken: cancellationToken
+                    );
+                }
+
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                return Ok(new AppCallbackResponse { State = updatedState });
+            }
+
+            case DeferredProcessEngineCommandResult deferred:
+                // A deferral is stateless by contract: nothing is saved and the incoming state is echoed back
+                // unchanged. Enforced rather than silently discarded — dropping a deferring handler's writes
+                // quietly would be the one worse outcome.
+                DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
+                if (deferredChanges.AllChanges.Count > 0)
+                {
+                    _logger.LogError(
+                        "Callback handler deferred after modifying instance data ({ChangeCount} change(s)). "
+                            + "A deferral is stateless: move the work that records data into its own step. "
+                            + "CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
+                        deferredChanges.AllChanges.Count,
+                        command.GetKey(),
+                        instanceId,
+                        currentTaskId
+                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Deferring handler modified instance data");
+                    return NonRetryableProblem(
+                        "Deferral With Data Changes",
+                        "A deferring handler must not modify instance data — a deferral is stateless. "
+                            + "Move the work that records data into its own pipeline step.",
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                // The resolved command's own key, so nothing route-derived reaches the log.
+                _logger.LogInformation(
+                    "Callback handler deferred. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Delay: {Delay}",
+                    command.GetKey(),
+                    instanceId,
+                    currentTaskId,
+                    deferred.Delay
+                );
+                activity?.SetStatus(ActivityStatusCode.Ok);
+
+                return Ok(
+                    new AppCallbackResponse
+                    {
+                        State = payload.State,
+                        Defer = new AppCallbackDeferral { Delay = deferred.Delay, Reason = deferred.Reason },
+                    }
+                );
+
+            case FailedProcessEngineCommandResult failed:
+                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages.
+                // Before the response, so a retried step repeats it.
+                if (failed.MailboxContinuation is { } failedContinuation)
+                {
+                    await RunMailboxRelay(
+                        failedContinuation,
+                        appId,
+                        instanceId,
+                        payload,
+                        instanceDataUnitOfWork,
+                        state: null,
+                        autoAdvanceProcess: false,
+                        autoAdvanceAction: null,
+                        cancellationToken
+                    );
+                }
+
+                if (failed.Exception is DataElementContentConflictException contentConflict)
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Data element content conflict");
+                    return Conflict(InstanceStateConflictResult.Create(contentConflict));
+                }
+
+                // The resolved command's own key, as in the deferral branch above.
+                _logger.LogError(
+                    "Callback handler failed. CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}, Error: {ErrorMessage}, ExceptionType: {ExceptionType}",
+                    command.GetKey(),
+                    instanceId,
+                    currentTaskId,
+                    failed.ErrorMessage,
+                    failed.ExceptionType
+                );
+
+                // A service-owner 403 reads as a platform failure but is a policy gap; logged and tagged
+                // separately so ops can tell a policy change from a redrive. The app's own metadata names the
+                // app — route values are caller-supplied.
+                if (failed.ServiceOwnerAuthorizationDenied)
+                {
+                    activity?.SetTag(Telemetry.InternalLabels.ServiceOwnerAuthorizationDenied, true);
+
+                    ApplicationMetadata appMetadata = _serviceProvider
+                        .GetRequiredService<IAppMetadata>()
+                        .ApplicationMetadata;
+
+                    _logger.LogError(
+                        "{ServiceOwnerAuthorizationDiagnosis} CommandKey: {CommandKey}, Instance: {InstanceId}.",
+                        ServiceOwnerAuthorizationDiagnostics.Describe(
+                            appMetadata,
+                            currentTaskId,
+                            instanceDataUnitOfWork.Instance.Process?.CurrentTask?.AltinnTaskType
+                        ),
+                        command.GetKey(),
+                        instanceId
+                    );
+                }
+
+                activity?.SetStatus(ActivityStatusCode.Error, failed.ErrorMessage);
+
+                if (failed.NonRetryable)
+                {
+                    return NonRetryableProblem(
+                        failed.ExceptionType,
+                        failed.ErrorMessage,
+                        StatusCodes.Status422UnprocessableEntity
+                    );
+                }
+
+                return Problem(
+                    title: failed.ExceptionType,
+                    detail: failed.ErrorMessage,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+
+            default:
+                _logger.LogError(
+                    "Unexpected callback result type: {ResultType}. CommandKey: {CommandKey}, Instance: {InstanceId}",
+                    result.GetType().Name,
+                    commandKey,
+                    instanceId
+                );
+                throw new InvalidOperationException($"Unexpected result type: {result.GetType().Name}");
+        }
+    }
+
+    /// <summary>Hands one verdict to the relay. The controller decides only <em>when</em> it runs.</summary>
+    private Task RunMailboxRelay(
+        MailboxContinuation continuation,
+        AppIdentifier appId,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        InstanceDataUnitOfWork unitOfWork,
+        string? state,
+        bool autoAdvanceProcess,
+        string? autoAdvanceAction,
+        CancellationToken cancellationToken
+    )
+    {
+        var relay = _serviceProvider.GetRequiredService<MailboxRelay>();
+        return relay.Continue(
+            continuation,
+            new MailboxRelayRequest
+            {
+                AppId = appId,
+                InstanceId = instanceId,
+                Payload = payload,
+                DataAccessor = unitOfWork,
+                State = state,
+                AutoAdvanceProcess = autoAdvanceProcess,
+                AutoAdvanceAction = autoAdvanceAction,
+            },
+            cancellationToken
+        );
+    }
+
+    private static ObjectResult NonRetryableProblem(
+        string title,
+        string detail,
+        int statusCode,
+        string? workflowFailureCode = null
+    )
+    {
+        var problemDetails = new ProblemDetails
+        {
+            Title = title,
+            Detail = detail,
+            Status = statusCode,
+        };
+        problemDetails.Extensions["nonRetryable"] = true;
+        if (workflowFailureCode is not null)
+        {
+            problemDetails.Extensions["workflowFailureCode"] = workflowFailureCode;
+        }
+        return new ObjectResult(problemDetails) { StatusCode = statusCode };
+    }
+}

@@ -23,6 +23,7 @@ Content-Type: application/json; charset=utf-8
           "command": {
             "type": "webhook",
             "maxExecutionTime": null,
+            "waitBudget": null,
             "data": {
               "uri": "http://localhost:{PORT}/ping-full",
               "payload": "{\u0022hello\u0022:\u0022world\u0022}",
@@ -48,7 +49,8 @@ Content-Type: application/json; charset=utf-8
       "dependsOn": null,
       "links": null,
       "dependsOnHeads": true,
-      "isHead": null
+      "isHead": null,
+      "mailbox": null
     }
   ]
 }

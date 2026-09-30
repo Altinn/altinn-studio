@@ -20,6 +20,7 @@
       "ImageUploadPage",
       "GridPage",
       "DividerPage",
+      "ParagraphPage",
       "CardsPage",
       "RepeatingGroupPage",
       "TabsPage",

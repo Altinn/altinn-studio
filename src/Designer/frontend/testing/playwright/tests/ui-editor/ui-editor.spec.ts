@@ -13,13 +13,14 @@ test.describe.configure({ mode: 'serial' });
 
 // Variables that are shared between tests
 const PAGE_1: string = 'Side1';
-const LAYOUT_SET: string = 'form';
 
 // Before the tests starts, we need to create the data model app
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 
@@ -45,10 +46,11 @@ const setupAndVerifyUiEditorPage = async (
 test('That it is possible to add and delete form components', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1, defaultLayoutSet);
 
   await uiEditorPage.verifyThatPageIsEmpty();
 
@@ -60,54 +62,59 @@ test('That it is possible to add and delete form components', async ({
 test('That when adding more than one page, navigation buttons are added to the pages', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const page2: string = 'Side2';
 
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1, defaultLayoutSet);
 
   await uiEditorPage.verifyThatPageIsEmpty();
 
   await uiEditorPage.clickOnAddNewPage();
   await uiEditorPage.verifyThatNewPageIsVisible(page2);
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, page2);
+  await uiEditorPage.verifyUiEditorPage(defaultLayoutSet, page2);
 
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 
   await uiEditorPage.clickOnPageAccordion(PAGE_1);
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
+  await uiEditorPage.verifyUiEditorPage(defaultLayoutSet, PAGE_1);
   await uiEditorPage.verifyThatPageEmptyMessageIsHidden();
   await uiEditorPage.verifyThatNavigationButtonsAreAddedToPage();
 });
 
-test('That it is possible to add a Header component to the page when there is already a component on the page and edit the name of the component', async ({
+test('That it is possible to add a Heading component to the page when there is already a component on the page and edit the name of the component', async ({
   page,
   testAppName,
+  defaultLayoutSet,
 }): Promise<void> => {
   const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
 
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1);
+  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, PAGE_1, defaultLayoutSet);
 
   await uiEditorPage.openTextComponentSection();
-  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Header);
+  await uiEditorPage.waitForDraggableToolbarItemToBeVisible(ComponentType.Heading);
 
   await uiEditorPage.dragComponentIntoDroppableListItem({
-    componentToDrag: ComponentType.Header,
+    componentToDrag: ComponentType.Heading,
     componentToDropOn: ComponentType.Input,
   });
-  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Header);
+  await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Heading);
 
-  const newHeaderName: string = 'New Header';
-  await addNewLabelToTreeItemComponent(uiEditorPage, newHeaderName);
+  const newHeadingName: string = 'New Heading';
+  await addNewLabelToTreeItemComponent(uiEditorPage, newHeadingName);
 });
 
 const openPageAccordionAndVerifyUpdatedUrl = async (
   uiEditorPage: UiEditorPage,
   pageName: string,
+  layoutSet: string,
 ): Promise<void> => {
+  const currentUrl = new URL(uiEditorPage.getCurrentUrl());
+  if (currentUrl.searchParams.get('layout') === pageName) return;
   await uiEditorPage.clickOnPageAccordion(pageName);
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, pageName); // When clicking the page, the url is updated to include the layout
+  await uiEditorPage.verifyUiEditorPage(layoutSet, pageName); // When clicking the page, the url is updated to include the layout
 };
 
 const addNewLabelToTreeItemComponent = async (

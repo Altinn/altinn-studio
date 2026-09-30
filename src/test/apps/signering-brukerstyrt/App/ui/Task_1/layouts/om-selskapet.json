@@ -26,7 +26,6 @@
       },
       {
         "id": "NavigationButtons-vtFdoQ",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

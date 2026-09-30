@@ -2,12 +2,11 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
-import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
+import { PlusCircleIcon, TasklistIcon } from '@studio/icons';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
 import { NewResourceModal } from '../../components/NewResourceModal';
-import { ImportResourceModal } from '../../components/ImportResourceModal';
 import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
@@ -18,7 +17,6 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
-import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/utils/userUtils';
 
 /**
  * @component
@@ -28,7 +26,6 @@ import { isProdSBLBridgeEnabled, isTT02SBLBridgeEnabled } from 'resourceadm/util
  */
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
-  const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
@@ -137,19 +134,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
             <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
           </StudioButton>
           <div className={classes.verticalDivider} data-color='neutral' />
-          {(isTT02SBLBridgeEnabled() || isProdSBLBridgeEnabled()) && (
-            <>
-              <StudioButton
-                variant='tertiary'
-                onClick={() => importAltinn2ServiceModalRef.current.showModal()}
-                data-size='md'
-                icon={<MigrationIcon />}
-              >
-                <strong>{t('resourceadm.dashboard_import_resource')}</strong>
-              </StudioButton>
-              <div className={classes.verticalDivider} data-color='neutral' />
-            </>
-          )}
           <StudioButton
             variant='tertiary'
             onClick={() => createResourceModalRef.current?.showModal()}
@@ -165,10 +149,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       <NewResourceModal
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}
-      />
-      <ImportResourceModal
-        ref={importAltinn2ServiceModalRef}
-        onClose={() => importAltinn2ServiceModalRef.current.close()}
       />
       <ImportAltinn3ResourceModal
         ref={importAltinn3ResourceModalRef}

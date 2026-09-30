@@ -41,7 +41,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 1',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType1' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -50,7 +56,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 2',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType2' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -59,7 +71,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 3',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType3' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType3' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -69,7 +87,7 @@ jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
     StudioModeler: jest.fn().mockImplementation(() => {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -91,12 +109,10 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
 
     await user.click(link);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
-    });
+    const suggestionInput = screen.getByRole('combobox');
 
-    await user.click(combobox);
-    expect(combobox).not.toHaveValue();
+    await user.click(suggestionInput);
+    expect(suggestionInput).not.toHaveValue();
   });
 
   it('should display the existing data type in preview when clicking the close button after edit mode', async () => {
@@ -130,19 +146,17 @@ describe('EditUniqueFromSignaturesInDataTypes', () => {
     });
     await user.click(updateDataTypeButton);
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_unique_from_signatures_in_data_types'),
-    });
-    await user.click(combobox);
+    const suggestionInput = screen.getByRole('combobox');
+    await user.click(suggestionInput);
 
     existingDataTypes.forEach((existingDataType) => {
-      expect(screen.getByRole('option', { name: existingDataType.name })).toBeInTheDocument();
+      expect(
+        screen.getByRole('option', { name: existingDataType.name, hidden: true }),
+      ).toBeInTheDocument();
     });
     signingTasks.forEach((signingTask) =>
       expect(
-        screen.getByRole('option', {
-          name: signingTask.businessObject.name,
-        }),
+        screen.getByRole('option', { name: signingTask.businessObject.name, hidden: true }),
       ).toBeInTheDocument(),
     );
   });

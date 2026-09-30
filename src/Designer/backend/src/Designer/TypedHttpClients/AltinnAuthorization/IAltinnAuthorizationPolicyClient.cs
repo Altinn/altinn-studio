@@ -11,7 +11,7 @@ public interface IAltinnAuthorizationPolicyClient
     /// <summary>
     /// Saves an authorization policy in Platform.Authorization
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="policyFile">PolicyFile</param>
     /// <param name="envName">Environment Name</param>

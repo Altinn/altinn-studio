@@ -10,3 +10,7 @@
   font-family: var(--studio-font-family);
   font-size: var(--ds--body-xs-font-size);
 }
+
+.badge {
+  --dsc-badge-size: 20px;
+}

@@ -12,7 +12,7 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     private string? _emailAddress;
     private string? _mobileNumber;
     private NationalIdentityNumber? _nationalIdentityNumber;
-    private OrganisationNumber? _organizationNumber;
+    private OrganizationNumber? _organizationNumber;
 
     private CorrespondenceNotificationOverrideBuilder() { }
 
@@ -46,113 +46,25 @@ public class CorrespondenceNotificationOverrideBuilder : ICorrespondenceNotifica
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganisationNumber? organizationNumber)
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationNumber(OrganizationNumber? organizationNumber)
     {
         _organizationNumber = organizationNumber;
         return this;
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceNotificationOverrideBuilder WithOrganisationOrPersonIdentifier(
-        OrganisationOrPersonIdentifier? organisationOrPersonIdentifier
+    public ICorrespondenceNotificationOverrideBuilder WithOrganizationOrPersonIdentifier(
+        OrganizationOrPersonIdentifier? organizationOrPersonIdentifier
     )
     {
-        if (organisationOrPersonIdentifier is OrganisationOrPersonIdentifier.Organisation org)
+        if (organizationOrPersonIdentifier is OrganizationOrPersonIdentifier.Organization org)
         {
             _organizationNumber = org.Value;
         }
-        else if (organisationOrPersonIdentifier is OrganisationOrPersonIdentifier.Person person)
+        else if (organizationOrPersonIdentifier is OrganizationOrPersonIdentifier.Person person)
         {
             _nationalIdentityNumber = person.Value;
         }
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(string identifierAsString)
-    {
-        OrganisationOrPersonIdentifier identifier;
-
-        try
-        {
-            identifier = OrganisationOrPersonIdentifier.Parse(identifierAsString);
-        }
-        catch (FormatException ex)
-        {
-            throw new CorrespondenceArgumentException("Failed to parse identifier, invalid format.", ex);
-        }
-        catch (ArgumentException ex)
-        {
-            throw new CorrespondenceArgumentException("Failed to parse identifier, null or empty value.", ex);
-        }
-
-        return identifier switch
-        {
-            OrganisationOrPersonIdentifier.Organisation organizationNumber => WithOrganizationNumber(
-                organizationNumber
-            ),
-            OrganisationOrPersonIdentifier.Person nathionalIdentityNumber => WithNationalIdentityNumber(
-                nathionalIdentityNumber
-            ),
-            _ => throw new CorrespondenceArgumentException(
-                "Parse succeeded, but identifier is neither an organization nor a person."
-            ),
-        };
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationNumber organizationNumber)
-    {
-        return WithOrganizationNumber(organizationNumber);
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(NationalIdentityNumber nin)
-    {
-        return WithNationalIdentityNumber(nin);
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
-    public ICorrespondenceNotificationOverrideBuilder WithRecipientToOverride(OrganisationOrPersonIdentifier identifier)
-    {
-        return identifier switch
-        {
-            OrganisationOrPersonIdentifier.Organisation org => WithOrganizationNumber(org),
-            OrganisationOrPersonIdentifier.Person person => WithNationalIdentityNumber(person),
-            _ => throw new CorrespondenceArgumentException(
-                "Recipient identifier must be either an organization or a person."
-            ),
-        };
-    }
-
-    /// <inheritdoc/>
-    [Obsolete(
-        "This method is deprecated and will be removed in a future version. Use WithOrganizationNumber/WithNationalIdentityNumber/WithEmailAddress/WithMobileNumber instead."
-    )]
-    public ICorrespondenceNotificationOverrideBuilder WithCorrespondenceNotificationRecipients(
-        List<CorrespondenceNotificationRecipient> correspondenceNotificationRecipients
-    )
-    {
-        var firstRecipient =
-            correspondenceNotificationRecipients.FirstOrDefault()
-            ?? throw new CorrespondenceArgumentException("At least one recipient must be provided.");
-
-        _emailAddress = firstRecipient.EmailAddress;
-        _mobileNumber = firstRecipient.MobileNumber;
-        _nationalIdentityNumber = firstRecipient.NationalIdentityNumber;
-        _organizationNumber = firstRecipient.OrganizationNumber;
         return this;
     }
 

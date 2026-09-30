@@ -7,7 +7,7 @@ import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { useSearchReposQuery } from 'dashboard/hooks/queries/useSearchReposQuery';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { Heading } from '@digdir/designsystemet-react';
+import { StudioHeading } from '@studio/components';
 import { useStarredReposQuery } from 'dashboard/hooks/queries';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
@@ -43,9 +43,9 @@ export const DataModelsReposList = ({ user, organizations }: DataModelsReposList
 
   return (
     <div>
-      <Heading level={2} size='small' spacing>
+      <StudioHeading level={2} data-size='md' spacing>
         {getReposLabel({ selectedContext, orgs: organizations, t, isDataModelsRepo: true })}
-      </Heading>
+      </StudioHeading>
       <RepoList
         repos={dataModelsIncludingStarredData}
         isLoading={hasPendingDataModels || hasPendingStarredRepos}

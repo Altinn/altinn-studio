@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
@@ -9,12 +10,21 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AuthorizationMock : IAuthorizationClient
 {
-    public Task<List<Party>?> GetPartyList(int userId)
+    public Task<List<Party>?> GetPartyList(
+        int userId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         return Task.FromResult<List<Party>?>([]);
     }
 
-    public Task<bool?> ValidateSelectedParty(int userId, int partyId)
+    public Task<bool?> ValidateSelectedParty(
+        int userId,
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         bool? isvalid = userId != 1;
 
@@ -36,7 +46,8 @@ public class AuthorizationMock : IAuthorizationClient
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         await Task.CompletedTask;
@@ -51,7 +62,8 @@ public class AuthorizationMock : IAuthorizationClient
     public async Task<Dictionary<string, bool>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<string> actions
+        List<string> actions,
+        CancellationToken cancellationToken = default
     )
     {
         await Task.CompletedTask;
@@ -86,7 +98,11 @@ public class AuthorizationMock : IAuthorizationClient
         );
     }
 
-    public Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers)
+    public Task<List<string>> GetKeyRoleOrganizationParties(
+        int userId,
+        List<string> orgNumbers,
+        CancellationToken cancellationToken = default
+    )
     {
         throw new NotImplementedException();
     }

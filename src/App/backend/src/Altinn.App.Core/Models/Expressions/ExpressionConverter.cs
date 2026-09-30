@@ -35,7 +35,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         };
 
     /// <summary>
-    /// Same as <see cref="Read" />, but without the nullable return type required by the interface. Throw an exeption instead.
+    /// Same as <see cref="Read" />, but without the nullable return type required by the interface. Throw an exception instead.
     /// </summary>
     public static Expression ReadStatic(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
@@ -132,7 +132,7 @@ public class ExpressionConverter : JsonConverter<Expression>
         if (value.IsLiteralValue)
         {
             // Just serialize the literal value
-            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
+            JsonSerializer.Serialize(writer, value.ValueUnion, options);
         }
         else
         {

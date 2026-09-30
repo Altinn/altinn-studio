@@ -129,9 +129,7 @@ describe('Preview', () => {
       queries: {
         getLayoutSets: jest
           .fn()
-          .mockImplementation(() =>
-            Promise.resolve({ sets: [{ id: layoutSet, type: 'subform' }] }),
-          ),
+          .mockImplementation(() => Promise.resolve([{ id: layoutSet, type: 'subform' }])),
         createPreviewInstance: jest
           .fn()
           .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),

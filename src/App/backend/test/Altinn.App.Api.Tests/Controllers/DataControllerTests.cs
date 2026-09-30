@@ -4,11 +4,16 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
@@ -81,7 +86,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -114,7 +119,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserSuccessStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerSuccessStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -149,7 +154,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     {
         OverrideServicesForThisTest = (services) =>
         {
-            services.AddTransient<IFileAnalyser, MimeTypeAnalyserFailureStub>();
+            services.AddTransient<IFileAnalyzer, MimeTypeAnalyzerFailureStub>();
             services.AddTransient<IFileValidator, MimeTypeValidatorStub>();
         };
 
@@ -178,6 +183,181 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task GetBinaryData_DisposesTheStream_WhenTheReadStatusUpdateFails()
+    {
+        // The stream IDataClient.GetBinaryData returns owns the HTTP response behind it. The controller
+        // updates the instance's read status between obtaining the stream and handing it to the result
+        // pipeline — when that update throws, the controller must dispose the stream itself.
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 500600; // user 1337 has roles for this party in the authorization test data
+        Guid instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
+        Guid dataGuid = new("cd9204e7-9b83-41b4-b2f2-9b196b4fafcc");
+
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{org}/{app}",
+            Org = org,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = dataGuid.ToString(),
+                    DataType = "specificFileType",
+                    ContentType = "application/pdf",
+                    Filename = "test.pdf",
+                },
+            ],
+        };
+
+        MemoryStream dataStream = new([1, 2, 3]);
+        Mock<IDataClient> dataClient = new();
+        // The app resolves the metadata and mutation clients by casting the registered IDataClient.
+        dataClient.As<IDataClientWithStorageMetadata>();
+        dataClient.As<IInstanceMutationClient>();
+        dataClient
+            .Setup(d =>
+                d.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(dataStream);
+
+        Mock<IInstanceClient> instanceClient = new();
+        // The controller reads the instance through the storage-metadata client, which the app resolves by
+        // casting the registered IInstanceClient.
+        Mock<IInstanceClientWithStorageMetadata> metadataInstanceClient =
+            instanceClient.As<IInstanceClientWithStorageMetadata>();
+        metadataInstanceClient
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, new StorageVersionMetadata()));
+        instanceClient
+            .Setup(i =>
+                i.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+        instanceClient
+            .Setup(i =>
+                i.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read", null, It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.ServiceUnavailable, "storage exploded"));
+
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient(_ => dataClient.Object);
+            services.AddTransient(_ => instanceClient.Object);
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        // A user token (no org claim) so the controller takes the read-status update path. The
+        // authorization mock enriches its decision request through IInstanceClient — the mock above —
+        // so no instance needs to exist on disk.
+        string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using HttpResponseMessage response = await client.GetAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
+        );
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.False(dataStream.CanRead, "the stream was not disposed when the read-status update failed");
+        instanceClient.Verify(
+            i => i.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read", null, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetBinaryData_ReturnsNotFound_WhenTheDataElementIsMissingInStorage()
+    {
+        // IDataClient.GetBinaryData throws PlatformHttpException when the data element does not exist,
+        // and the controller maps that status through to the response.
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 500600; // user 1337 has roles for this party in the authorization test data
+        Guid instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
+        Guid dataGuid = new("cd9204e7-9b83-41b4-b2f2-9b196b4fafcc");
+
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{org}/{app}",
+            Org = org,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = dataGuid.ToString(),
+                    DataType = "specificFileType",
+                    ContentType = "application/pdf",
+                    Filename = "test.pdf",
+                },
+            ],
+        };
+
+        Mock<IDataClient> dataClient = new();
+        // The app resolves the metadata and mutation clients by casting the registered IDataClient.
+        dataClient.As<IDataClientWithStorageMetadata>();
+        dataClient.As<IInstanceMutationClient>();
+        dataClient
+            .Setup(d =>
+                d.GetBinaryData(instanceOwnerPartyId, instanceGuid, dataGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.NotFound, "data element not found"));
+
+        Mock<IInstanceClient> instanceClient = new();
+        // The controller reads the instance through the storage-metadata client, which the app resolves by
+        // casting the registered IInstanceClient.
+        Mock<IInstanceClientWithStorageMetadata> metadataInstanceClient =
+            instanceClient.As<IInstanceClientWithStorageMetadata>();
+        metadataInstanceClient
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, new StorageVersionMetadata()));
+        instanceClient
+            .Setup(i =>
+                i.GetInstance(app, org, instanceOwnerPartyId, instanceGuid, null, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(instance);
+
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient(_ => dataClient.Object);
+            services.AddTransient(_ => instanceClient.Object);
+        };
+
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using HttpResponseMessage response = await client.GetAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}"
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private static async Task<ByteArrayContent> CreateBinaryContent(
         string org,
         string app,
@@ -196,16 +376,16 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 }
 
-public class MimeTypeAnalyserSuccessStub : IFileAnalyser
+public class MimeTypeAnalyzerSuccessStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)
@@ -218,16 +398,16 @@ public class MimeTypeAnalyserSuccessStub : IFileAnalyser
     }
 }
 
-public class MimeTypeAnalyserFailureStub : IFileAnalyser
+public class MimeTypeAnalyzerFailureStub : IFileAnalyzer
 {
     public string Id { get; private set; } = "mimeTypeAnalyser";
 
-    public Task<IEnumerable<FileAnalysisResult>> Analyse(IEnumerable<HttpContent> httpContents)
+    public Task<IEnumerable<FileAnalysisResult>> Analyze(IEnumerable<HttpContent> httpContents)
     {
         throw new NotImplementedException();
     }
 
-    public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null)
+    public Task<FileAnalysisResult> Analyze(Stream stream, string? filename = null)
     {
         return Task.FromResult(
             new FileAnalysisResult(Id)

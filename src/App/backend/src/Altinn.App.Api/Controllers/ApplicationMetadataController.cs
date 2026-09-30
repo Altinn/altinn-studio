@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// Hanldes application metadata
+/// Handles application metadata
 /// AllowAnonymous, because this is static known information and used from LocalTest
 /// </summary>
 [AllowAnonymous]
@@ -32,8 +32,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="checkOrgApp">Boolean get parameter to skip verification of correct org/app</param>
     /// <returns>Application metadata</returns>
     [ProducesResponseType(typeof(ApplicationMetadata), StatusCodes.Status200OK)]
@@ -46,7 +46,7 @@ public class ApplicationMetadataController : ControllerBase
         [FromQuery] bool checkOrgApp = true
     )
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
         string wantedAppId = $"{org}/{app}";
 
@@ -63,8 +63,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>XACML policy file</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/xml")]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
@@ -72,10 +72,10 @@ public class ApplicationMetadataController : ControllerBase
     [HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
     public async Task<ActionResult<string>> GetPolicy(string org, string app)
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         try
         {
-            string policy = await _appMetadata.GetApplicationXACMLPolicy();
+            string policy = _appMetadata.XacmlPolicy;
             string wantedAppId = $"{org}/{app}";
 
             if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
@@ -96,8 +96,8 @@ public class ApplicationMetadataController : ControllerBase
     ///
     /// If org and app does not match, this returns a 409 Conflict response
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>BPMN process file</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "text/xml")]
     [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict, "text/plain")]
@@ -105,13 +105,13 @@ public class ApplicationMetadataController : ControllerBase
     [HttpGet("{org}/{app}/api/v1/meta/process")]
     public async Task<ActionResult<string>> GetProcess(string org, string app)
     {
-        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = _appMetadata.ApplicationMetadata;
         string wantedAppId = $"{org}/{app}";
         try
         {
             if (application.Id.Equals(wantedAppId, StringComparison.Ordinal))
             {
-                string process = await _appMetadata.GetApplicationBPMNProcess();
+                string process = _appMetadata.ProcessDefinition;
                 return Content(process, "text/xml", System.Text.Encoding.UTF8);
             }
 

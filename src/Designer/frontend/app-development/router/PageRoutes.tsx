@@ -16,7 +16,7 @@ import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
-} from './PageRouterErrorBoundry';
+} from './PageRouterErrorBoundary';
 import { GiteaRoutePaths } from '../enums/GiteaRoutePaths';
 import { NavigateToLatestCommitInGitea } from '../features/navigateToLatestCommitInGitea';
 import { StudioPageSpinner } from '@studio/components';
@@ -38,7 +38,7 @@ const router = createBrowserRouter(
             key={route.path}
             path={route.path}
             element={
-              <Suspense fallback={<StudioPageSpinner spinnerTitle='' />}>
+              <Suspense key={route.path} fallback={<StudioPageSpinner spinnerTitle='' />}>
                 <route.subapp />
               </Suspense>
             }

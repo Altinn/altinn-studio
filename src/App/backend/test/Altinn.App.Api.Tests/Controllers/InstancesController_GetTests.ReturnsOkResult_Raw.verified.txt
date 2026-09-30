@@ -27,6 +27,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {
@@ -65,8 +66,9 @@
           apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
           platform: null
         },
-        size: 0,
+        size: 147,
         contentHash: null,
+        blobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         locked: false,
         refs: null,
         isRead: true,
@@ -77,13 +79,15 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: null,
+    lastChanged: DateTimeOffset_4,
     lastChangedBy: null
   },
   readResponse: {
@@ -114,6 +118,7 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
+      status: idle,
       started: DateTimeOffset_1,
       startEvent: StartEvent_1,
       currentTask: {
@@ -152,8 +157,9 @@
           apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>,
           platform: null
         },
-        size: 0,
+        size: 147,
         contentHash: null,
+        blobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         locked: false,
         refs: null,
         isRead: true,
@@ -164,13 +170,15 @@
         references: null,
         created: null,
         createdBy: null,
-        lastChanged: null,
+        lastChanged: DateTimeOffset_3,
         lastChangedBy: null
       }
     ],
+    presentationTexts: null,
+    dataValues: null,
     created: null,
     createdBy: null,
-    lastChanged: DateTimeOffset_3,
-    lastChangedBy: 
+    lastChanged: DateTimeOffset_4,
+    lastChangedBy: null
   }
 }

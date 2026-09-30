@@ -3,6 +3,7 @@ package kubernetes
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -37,6 +38,7 @@ import (
 	"sigs.k8s.io/kustomize/api/krusty"
 	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/kustomize/kyaml/filesys"
+	"sigs.k8s.io/yaml"
 )
 
 // Common GVRs for core Kubernetes resources.
@@ -48,6 +50,7 @@ var (
 	errConditionTimeout     = errors.New("timeout waiting for resource condition")
 	errConditionWatchClosed = errors.New("resource watch channel closed")
 	errSourceRefNotFound    = errors.New("sourceRef not found")
+	errObjectRequired       = errors.New("object is nil")
 )
 
 const (
@@ -157,8 +160,7 @@ func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructu
 
 // ApplyManifest applies Kubernetes manifest YAML content using Server-Side Apply.
 // This function is idempotent - it can be called multiple times safely.
-func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
-	ctx := context.Background()
+func (c *KubernetesClient) ApplyManifest(ctx context.Context, yamlContent string) (string, error) {
 	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), yamlDecoderBufferSize)
 	var results []string
 
@@ -190,16 +192,9 @@ func (c *KubernetesClient) ApplyObjects(ctx context.Context, objs ...runtime.Obj
 	var results []string
 
 	for _, obj := range objs {
-		var u *unstructured.Unstructured
-
-		if existing, ok := obj.(*unstructured.Unstructured); ok {
-			u = existing
-		} else {
-			content, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
-			if err != nil {
-				return "", fmt.Errorf("failed to convert object to unstructured: %w", err)
-			}
-			u = &unstructured.Unstructured{Object: content}
+		u, err := ObjectToUnstructured(obj)
+		if err != nil {
+			return "", err
 		}
 
 		result, err := c.applyUnstructured(ctx, u)
@@ -211,11 +206,55 @@ func (c *KubernetesClient) ApplyObjects(ctx context.Context, objs ...runtime.Obj
 	return strings.Join(results, "\n"), nil
 }
 
-// Get checks if a Kubernetes resource exists.
-// Returns nil if the resource exists, error otherwise.
-func (c *KubernetesClient) Get(gvr schema.GroupVersionResource, name, namespace string) error {
-	ctx := context.Background()
+// ObjectsManifest renders typed Kubernetes objects as a multi-document YAML manifest.
+func ObjectsManifest(objs []runtime.Object) (string, error) {
+	var buf bytes.Buffer
+	for _, obj := range objs {
+		if obj == nil {
+			continue
+		}
+		u, err := ObjectToUnstructured(obj)
+		if err != nil {
+			return "", err
+		}
+		data, err := yaml.Marshal(u.Object)
+		if err != nil {
+			return "", fmt.Errorf("marshal %s/%s: %w", u.GetKind(), u.GetName(), err)
+		}
+		if buf.Len() > 0 {
+			buf.WriteString("---\n")
+		}
+		buf.Write(data)
+		if !bytes.HasSuffix(data, []byte("\n")) {
+			buf.WriteByte('\n')
+		}
+	}
+	return buf.String(), nil
+}
 
+// ObjectToUnstructured converts a typed Kubernetes object to an unstructured object.
+func ObjectToUnstructured(obj runtime.Object) (*unstructured.Unstructured, error) {
+	if obj == nil {
+		return nil, errObjectRequired
+	}
+	if existing, ok := obj.(*unstructured.Unstructured); ok {
+		return existing, nil
+	}
+	content, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert object to unstructured: %w", err)
+	}
+	return &unstructured.Unstructured{Object: content}, nil
+}
+
+// Get checks if a Kubernetes resource exists using ctx.
+// Returns nil if the resource exists, error otherwise.
+func (c *KubernetesClient) Get(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name,
+	namespace string,
+) error {
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
@@ -244,10 +283,14 @@ func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 	return true, nil
 }
 
-// RolloutStatus waits for a deployment rollout to complete using a watch.
+// RolloutStatus waits for a deployment rollout to complete using a watch and ctx.
 // Returns an error if the rollout fails or times out.
-func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout time.Duration) error {
-	ctx := context.Background()
+func (c *KubernetesClient) RolloutStatus(
+	ctx context.Context,
+	deployment,
+	namespace string,
+	timeout time.Duration,
+) error {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -539,9 +582,14 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 }
 
 // Annotate sets or updates an annotation on a Kubernetes resource.
-func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, namespace, key, value string) error {
-	ctx := context.Background()
-
+func (c *KubernetesClient) Annotate(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name,
+	namespace,
+	key,
+	value string,
+) error {
 	patch := map[string]any{
 		"metadata": map[string]any{
 			"annotations": map[string]string{
@@ -614,12 +662,11 @@ func (c *KubernetesClient) GetConditionStatus(
 
 // GetFieldString returns a string field value from a resource at the given path.
 func (c *KubernetesClient) GetFieldString(
+	ctx context.Context,
 	gvr schema.GroupVersionResource,
 	name, namespace string,
 	fields ...string,
 ) (string, error) {
-	ctx := context.Background()
-
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
@@ -651,9 +698,12 @@ type SourceRef struct {
 }
 
 // GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource.
-func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, namespace string) (*SourceRef, error) {
-	ctx := context.Background()
-
+func (c *KubernetesClient) GetSourceRef(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name,
+	namespace string,
+) (*SourceRef, error) {
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)

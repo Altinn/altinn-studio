@@ -63,10 +63,10 @@ func TestCLIArgValidation(t *testing.T) {
 		}
 	})
 
-	t.Run("backport requires commit and branch", func(t *testing.T) {
+	t.Run("backport requires commit and line", func(t *testing.T) {
 		err := runBackport([]string{"-component", "studioctl"})
-		if !errors.Is(err, errReleaseCommitBranchRequired) {
-			t.Fatalf("runBackport() error = %v, want %v", err, errReleaseCommitBranchRequired)
+		if !errors.Is(err, errReleaseCommitLineRequired) {
+			t.Fatalf("runBackport() error = %v, want %v", err, errReleaseCommitLineRequired)
 		}
 	})
 
@@ -74,6 +74,20 @@ func TestCLIArgValidation(t *testing.T) {
 		err := runValidateChangelog([]string{"-component", "studioctl"})
 		if !errors.Is(err, errBaseHeadRequired) {
 			t.Fatalf("runValidateChangelog() error = %v, want %v", err, errBaseHeadRequired)
+		}
+	})
+
+	t.Run("resolve version requires component", func(t *testing.T) {
+		err := runResolveVersion([]string{"-base-branch", "main"})
+		if !errors.Is(err, errComponentRequired) {
+			t.Fatalf("runResolveVersion() error = %v, want %v", err, errComponentRequired)
+		}
+	})
+
+	t.Run("resolve version requires base branch", func(t *testing.T) {
+		err := runResolveVersion([]string{"-component", "studioctl"})
+		if !errors.Is(err, errBaseBranchRequired) {
+			t.Fatalf("runResolveVersion() error = %v, want %v", err, errBaseBranchRequired)
 		}
 	})
 }

@@ -1,13 +1,13 @@
-import { useId, useState } from 'react';
-import { Combobox, Label } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataTypesToSign.module.css';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../../utils/taskUtils';
 import { useGetDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
 import { useUpdateDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useUpdateDataTypesToSign';
+import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;
@@ -16,25 +16,20 @@ export interface SelectDataTypesToSignProps {
 export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) => {
   const { availableDataTypeIds } = useBpmnApiContext();
   const updateDataTypesToSign = useUpdateDataTypesToSign();
-  const selectedDataTypes = useGetDataTypesToSign();
-  const [value, setValue] = useState<string[]>(() => selectedDataTypes);
+  const value = useGetDataTypesToSign();
 
   const { t } = useTranslation();
-  const labelId = useId();
 
-  const handleValueChange = (dataTypes: string[]) => {
-    setValue(dataTypes);
+  const handleSelectedChange = (items: StudioSuggestionItem[]) => {
+    const dataTypes = items.map((item) => item.value);
     updateDataTypesToSign(dataTypes);
   };
 
   const studioModeler = new StudioModeler();
-  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingDataTypeIds = tasks
-    .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
-    .map(
-      (item) =>
-        item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
-    );
+    .filter((task) => TaskUtils.getTaskExtension(task)?.taskType === 'signing')
+    .map((task) => TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType);
 
   const filteredDataTypeIds = availableDataTypeIds.filter(
     (dataTypeId) => !signingDataTypeIds.includes(dataTypeId),
@@ -42,32 +37,25 @@ export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) =
 
   return (
     <div className={classes.container}>
-      <Label size='small' htmlFor={labelId}>
-        {t('process_editor.configuration_panel_set_data_types_to_sign')}
-      </Label>
-      <div className={classes.dataTypeSelectAndButtons}>
-        <Combobox
-          id={labelId}
-          value={value}
-          size='small'
-          className={classes.dataTypeSelect}
+      <div className={classes.dataTypeSelectAndButton}>
+        <StudioSuggestion
+          clearButtonLabel={t('general.clear_selection')}
           multiple
-          onValueChange={handleValueChange}
+          label={t('process_editor.configuration_panel_set_data_types_to_sign')}
+          selected={value}
+          emptyText={t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
+          className={classes.dataTypeSelect}
+          onSelectedChange={handleSelectedChange}
           error={
             !value.length && t('process_editor.configuration_panel_data_types_to_sign_required')
           }
         >
-          <Combobox.Empty>
-            {t('process_editor.configuration_panel_no_data_types_to_sign_to_select')}
-          </Combobox.Empty>
-          {filteredDataTypeIds?.map((dataTypeId) => {
-            return (
-              <Combobox.Option key={dataTypeId} value={dataTypeId}>
-                {dataTypeId}
-              </Combobox.Option>
-            );
-          })}
-        </Combobox>
+          {filteredDataTypeIds?.map((dataTypeId) => (
+            <StudioSuggestion.Option key={dataTypeId} value={dataTypeId} label={dataTypeId}>
+              {dataTypeId}
+            </StudioSuggestion.Option>
+          ))}
+        </StudioSuggestion>
         <StudioButton
           icon={<XMarkIcon />}
           onClick={onClose}

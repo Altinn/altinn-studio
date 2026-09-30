@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CodeListIdSource } from '../../../types/CodeListReference';
-import { Table } from '@digdir/designsystemet-react';
+import { StudioTable } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CodeListUsages.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
@@ -14,37 +14,37 @@ export function CodeListUsages({ codeListSources }: CodeListUsagesProps): React.
   const { t } = useTranslation();
 
   return (
-    <Table zebra className={classes.table}>
-      <Table.Head>
-        <Table.Row>
-          <Table.HeaderCell>
+    <StudioTable zebra className={classes.table}>
+      <StudioTable.Head>
+        <StudioTable.Row>
+          <StudioTable.HeaderCell>
             {t(
               'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_type',
             )}
-          </Table.HeaderCell>
-          <Table.HeaderCell>
+          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>
             {t(
               'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_task_name',
             )}
-          </Table.HeaderCell>
-          <Table.HeaderCell>
+          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>
             {t(
               'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_layout',
             )}
-          </Table.HeaderCell>
-          <Table.HeaderCell>
+          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>
             {t(
               'app_content_library.code_lists_with_text_resources.code_list_usage_table_column_header_components',
             )}
-          </Table.HeaderCell>
-        </Table.Row>
-      </Table.Head>
-      <Table.Body>
+          </StudioTable.HeaderCell>
+        </StudioTable.Row>
+      </StudioTable.Head>
+      <StudioTable.Body>
         {codeListSources.map((codeListSource, index) => (
           <CodeListUsageSourceRow key={index} codeListSource={codeListSource} />
         ))}
-      </Table.Body>
-    </Table>
+      </StudioTable.Body>
+    </StudioTable>
   );
 }
 
@@ -60,11 +60,11 @@ function CodeListUsageSourceRow({
   const taskTypeTextKey = getUsageTaskTypeTextKey(taskType);
 
   return (
-    <Table.Row>
-      <Table.Cell>{t(taskTypeTextKey)}</Table.Cell>
-      <Table.Cell>{taskId}</Table.Cell>
-      <Table.Cell>{FileNameUtils.removeExtension(layoutName)}</Table.Cell>
-      <Table.Cell>{ArrayUtils.toString(componentIds, ', ')}</Table.Cell>
-    </Table.Row>
+    <StudioTable.Row>
+      <StudioTable.Cell>{t(taskTypeTextKey)}</StudioTable.Cell>
+      <StudioTable.Cell>{taskId}</StudioTable.Cell>
+      <StudioTable.Cell>{FileNameUtils.removeExtension(layoutName)}</StudioTable.Cell>
+      <StudioTable.Cell>{ArrayUtils.toString(componentIds, ', ')}</StudioTable.Cell>
+    </StudioTable.Row>
   );
 }

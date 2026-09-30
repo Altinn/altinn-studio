@@ -25,6 +25,19 @@ describe('configPanelUtils', () => {
       const key = getConfigTitleKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_signing_task');
     });
+
+    it.each(['myServiceTask', ''])(
+      'falls back to one generic key for the custom type "%s", which has no key of its own',
+      (taskType) => {
+        expect(getConfigTitleKey(taskType)).toEqual(
+          'process_editor.configuration_panel_custom_service_task',
+        );
+      },
+    );
+
+    it('returns the missing task key when no task type is set', () => {
+      expect(getConfigTitleKey(null)).toEqual('process_editor.configuration_panel_missing_task');
+    });
   });
 
   describe('getConfigTitleHelpTextKey', () => {
@@ -47,6 +60,21 @@ describe('configPanelUtils', () => {
       const key = getConfigTitleHelpTextKey('signing');
       expect(key).toEqual('process_editor.configuration_panel_header_help_text_signing');
     });
+
+    it.each(['myServiceTask', ''])(
+      'falls back to one generic helptext key for the custom type "%s"',
+      (taskType) => {
+        expect(getConfigTitleHelpTextKey(taskType)).toEqual(
+          'process_editor.configuration_panel_header_help_text_custom_service_task',
+        );
+      },
+    );
+
+    it('returns the missing help text key when no task type is set', () => {
+      expect(getConfigTitleHelpTextKey(null)).toEqual(
+        'process_editor.configuration_panel_header_help_text_missing',
+      );
+    });
   });
 
   describe('getDataTypeFromLayoutSetsWithExistingId', () => {
@@ -55,12 +83,10 @@ describe('configPanelUtils', () => {
     const layoutSetDataType1: string = 'dataType1';
     const layoutSetDataType2: string = 'dataType2';
 
-    const layoutSets = {
-      sets: [
-        { id: layoutSetId1, dataType: layoutSetDataType1, tasks: [] },
-        { id: layoutSetId2, dataType: layoutSetDataType2, tasks: [] },
-      ],
-    };
+    const layoutSets = [
+      { id: layoutSetId1, dataType: layoutSetDataType1 },
+      { id: layoutSetId2, dataType: layoutSetDataType2 },
+    ];
 
     it('returns existing data model id when layout set id matches', () => {
       const existingDataModelId = getDataTypeFromLayoutSetsWithExistingId(layoutSets, layoutSetId1);

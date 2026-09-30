@@ -2,11 +2,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
@@ -99,7 +101,7 @@ func run(action, variant, cacheDir string, verbose bool) (runErr error) {
 	// Execute the action
 	switch action {
 	case "run":
-		if err := runtime.Run(); err != nil {
+		if err := applyRuntimeGraph(runtime); err != nil {
 			return fmt.Errorf("failed to run container runtime: %w", err)
 		}
 	case "stop":
@@ -108,6 +110,30 @@ func run(action, variant, cacheDir string, verbose bool) (runErr error) {
 		}
 	}
 
+	return nil
+}
+
+func applyRuntimeGraph(runtime *kind.KindContainerRuntime) error {
+	writeStdoutln("=== Starting Kind Container Runtime ===")
+	start := time.Now()
+	graph, err := runtime.Graph()
+	if err != nil {
+		return fmt.Errorf("build kind runtime graph: %w", err)
+	}
+	exec, err := runtime.Executor()
+	if err != nil {
+		return fmt.Errorf("create kind runtime executor: %w", err)
+	}
+	if _, err := exec.Apply(context.Background(), graph); err != nil {
+		return fmt.Errorf("apply kind runtime graph: %w", err)
+	}
+	if runtime.KubernetesClient == nil {
+		if err := runtime.InitializeClients(); err != nil {
+			return fmt.Errorf("initialize runtime clients: %w", err)
+		}
+	}
+	writeStdoutf("  [Apply kind runtime graph took %s]\n", time.Since(start))
+	writeStdoutln("\n=== Kind Container Runtime Ready ===")
 	return nil
 }
 

@@ -6,9 +6,8 @@ import {
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioPopover, StudioLabelAsParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/designsystemet-react';
 
 export type InformationPanelProvidedProps = {
   isOpen: boolean;
@@ -34,9 +33,9 @@ export const InformationPanelComponent = ({
           </StudioLabelAsParagraph>
         </div>
         <div className={classNames(classes.informationPanelText)}>
-          <Paragraph size='small'>
+          <StudioParagraph data-size='sm'>
             {getComponentHelperTextByComponentType(selectedComponent, t)}
-          </Paragraph>
+          </StudioParagraph>
         </div>
       </StudioPopover>
     </StudioPopover.TriggerContext>

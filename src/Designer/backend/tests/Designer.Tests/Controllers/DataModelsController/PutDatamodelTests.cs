@@ -18,7 +18,11 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.DataModeling.Validator.Json;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.DataModeling;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.DataModelsController.Utils;
 using Designer.Tests.Utils;
@@ -42,6 +46,9 @@ public class PutDatamodelTests
 
     private const string MinimumValidJsonSchema =
         "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
+
+    private const string JsonSchemaWithCombinationWithoutSubschemas =
+        "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"rootType\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"},\"combination\":{\"anyOf\":[]}}}}}";
 
     private const string JsonSchemaThatWillNotCompile =
         "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"schema.json\",\"type\":\"object\",\"properties\":{\"root\":{\"$ref\":\"#/$defs/rootType\"}},\"$defs\":{\"rootType\":{\"properties\":{\"keyword\":{\"type\":\"string\"}}}}}";
@@ -178,7 +185,7 @@ public class PutDatamodelTests
         {
             var pointerObject = JsonPointer.Parse(pointer);
             Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
-            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)]);
+            Assert.Contains(errorCode, errorResponse.Errors[pointerObject.ToUriEncodedString()]);
         }
     }
 
@@ -227,6 +234,43 @@ public class PutDatamodelTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("testModel.schema.json", "ttd", "hvem-er-hvem", "testUser")]
+    public async Task InvalidJsonSchema_ShouldReturn_BadRequest_And_CustomErrorMessages(
+        string modelPath,
+        string org,
+        string repo,
+        string user
+    )
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel?modelPath={modelPath}";
+
+        await CopyRepositoryForTest(org, repo, user, TargetTestRepository);
+
+        // Models saved before the frontend stopped sending empty combinations still contain them.
+        using var request = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(
+                JsonSchemaWithCombinationWithoutSubschemas,
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        var response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(DataModelingErrorCodes.InvalidJsonSchemaError, errorCode.ToString());
+
+        var customErrorMessages = (JsonElement)problemDetails.Extensions["customErrorMessages"];
+        Assert.Contains("anyOf", customErrorMessages.EnumerateArray().Single().GetString());
+    }
+
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
         var location = Path.GetFullPath(Path.Combine(TestRepoPath, "App", "models"));
@@ -250,7 +294,7 @@ public class PutDatamodelTests
             return sw.ToString();
         }
 
-        var jsonSchema = JsonSchema.FromText(MinimumValidJsonSchema);
+        var jsonSchema = JsonSchemaKeywords.FromText(MinimumValidJsonSchema);
         var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
         var xsd = converter.Convert(jsonSchema);
         var xsdContent = await SerializeXml(xsd);
@@ -260,7 +304,7 @@ public class PutDatamodelTests
     private static void VerifyMetadataContent(string path)
     {
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(
-            JsonSchema.FromText(MinimumValidJsonSchema)
+            JsonSchemaKeywords.FromText(MinimumValidJsonSchema)
         );
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(MinimumValidJsonSchema);

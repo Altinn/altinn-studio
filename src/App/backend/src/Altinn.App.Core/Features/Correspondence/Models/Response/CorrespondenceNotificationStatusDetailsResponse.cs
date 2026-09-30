@@ -11,7 +11,7 @@ public sealed record CorrespondenceNotificationStatusDetailsResponse
     /// The notification id.
     /// </summary>
     [JsonPropertyName("id")]
-    public Guid Id { get; init; }
+    public Guid? Id { get; init; }
 
     /// <summary>
     /// Indicates if the sending of the notification was successful.
@@ -20,7 +20,7 @@ public sealed record CorrespondenceNotificationStatusDetailsResponse
     public bool Succeeded { get; init; }
 
     /// <summary>
-    /// The recipient of the notification. Either an organisation number or identity number.
+    /// The recipient of the notification. Either an organization number or identity number.
     /// </summary>
     [JsonPropertyName("recipient")]
     public CorrespondenceNotificationRecipientResponse? Recipient { get; init; }

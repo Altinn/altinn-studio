@@ -10,4 +10,8 @@ public class ContactPointResponse
     public bool IsActive { get; set; }
     public List<string> Environments { get; set; } = [];
     public required List<ContactMethodResponse> Methods { get; set; }
+    public string? CreatedByUsername { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public string? UpdatedByUsername { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

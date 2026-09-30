@@ -1,14 +1,14 @@
 import React from 'react';
 
 import dot from 'dot-object';
+import type { ISubformCellContent } from '@app/layout-contract/generated/components/Subform/config.generated';
 
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { Lang } from 'src/features/language/Lang';
+import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { ISubformCellContent } from 'src/layout/Subform/config.generated';
-import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 interface DataQueryParams {
   data: unknown;

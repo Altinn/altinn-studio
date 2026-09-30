@@ -26,7 +26,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
     protected JsonSchema JsonSchema { get; set; }
 
     /// <summary>
-    /// The results av the analyzis process.
+    /// The results av the analysis process.
     /// </summary>
     protected JsonSchemaXsdMetadata Metadata { get; set; }
 
@@ -230,7 +230,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
 
     /// <summary>
     /// Tries to parse a schema to verify if it an array and returns the item schema if it is.
-    /// For furter reference see https://json-schema.org/understanding-json-schema/reference/array.html
+    /// For further reference see https://json-schema.org/understanding-json-schema/reference/array.html
     /// </summary>
     /// <param name="schema">The Json Schema to analyze.</param>
     /// <param name="itemsSchema">If the schema is an array this will return schema for the items in the array; otherwise, null.</param>
@@ -781,7 +781,7 @@ public abstract class JsonSchemaAnalyzer : IJsonSchemaAnalyzer
     /// Determines if the schema should be represented as a unhandled
     /// attributes on the enum values them selves. Json Schema does not have a sub-schema
     /// on enum values, so this custom keyword, @xsdUnhandledEnumAttribute is placed on the paren element as a collection
-    /// specifiying which enum value the key/value pairs belong to.
+    /// specifying which enum value the key/value pairs belong to.
     /// </summary>
     /// <param name="schema">The Json Schema to analyze.</param>
     /// <returns>True if it should be represented as a collection of UnhandledAttributes; otherwise, false.</returns>

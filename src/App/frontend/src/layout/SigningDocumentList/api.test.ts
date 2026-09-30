@@ -1,21 +1,21 @@
-import { jest } from '@jest/globals';
 import { useQuery } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 
-jest.mock('@tanstack/react-query', () => ({
-  useQuery: jest.fn(),
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(),
 }));
 
-jest.mock('src/utils/network/sharedNetworking', () => ({
-  httpGet: jest.fn(),
+vi.mock('src/utils/network/sharedNetworking', () => ({
+  httpGet: vi.fn(),
 }));
 
 describe('useDocumentList', () => {
-  const mockedUseQuery = jest.mocked(useQuery);
-  const mockedHttpGet = jest.mocked(httpGet);
+  const mockedUseQuery = vi.mocked(useQuery);
+  const mockedHttpGet = vi.mocked(httpGet);
 
   const response = {
     dataElements: [
@@ -45,7 +45,7 @@ describe('useDocumentList', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockedHttpGet.mockResolvedValue(response);
   });
 

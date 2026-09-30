@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/devenv/pkg/resource/executor"
 	"altinn.studio/studioctl/internal/ui"
 )
 
@@ -18,9 +19,9 @@ func NewCompact(out *ui.Output, resources []resource.Resource, operation Operati
 // NewCompactWithPlan creates the narrow interactive row renderer from planned resources.
 func NewCompactWithPlan(
 	out *ui.Output,
-	resources []resource.PlannedResource,
+	resources []executor.PlannedResource,
 	operation Operation,
-	statuses map[resource.ResourceID]resource.Status,
+	statuses map[resource.ResourceID]executor.Status,
 ) *CompactRenderer {
 	return &CompactRenderer{
 		screenRenderer: newScreenRendererPlanned(out, resources, operation, statuses, compactLayout{}),

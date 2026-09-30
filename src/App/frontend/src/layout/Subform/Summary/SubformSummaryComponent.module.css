@@ -1,3 +1,5 @@
+@value mediaScreenSmDown from '@app/form-component/styles/breakpoints.module.css';
+
 .container {
   display: grid;
   grid-template-columns: 1fr;
@@ -14,7 +16,7 @@
 }
 
 /* Mobile layout */
-@media screen and (max-width: 768px) {
+@media mediaScreenSmDown {
   .tag {
     text-align: left;
   }

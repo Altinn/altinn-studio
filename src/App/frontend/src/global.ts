@@ -67,8 +67,8 @@ declare global {
     // Used to indicate that we are running in a unit test. Do not check this unless you really need to.
     inUnitTest?: boolean;
 
-    // Allows forcing node properties validation always-on or always-off (defaults to auto-detection)
-    forceNodePropertiesValidation: undefined | 'on' | 'off';
+    // Allows forcing layout properties validation always-on or always-off (defaults to auto-detection)
+    forceLayoutPropertiesValidation: undefined | 'on' | 'off';
 
     /**
      * In React components, hierarchy generators, or other places that are run continuously, use window.logErrorOnce() instead

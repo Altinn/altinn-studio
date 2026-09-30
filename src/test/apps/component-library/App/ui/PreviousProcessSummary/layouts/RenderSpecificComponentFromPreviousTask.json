@@ -9,7 +9,7 @@
       {
         "size": "M",
         "id": "page3Task2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Her skal vi rendre hele en enkelt komponent fra Task_1:"
         }

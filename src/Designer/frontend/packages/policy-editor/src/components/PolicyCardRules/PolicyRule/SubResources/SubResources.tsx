@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './SubResources.module.css';
-import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph, StudioValidationMessage } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,6 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import type { PolicyRuleResource } from '../../../../types';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 
 export const SubResources = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -65,7 +64,9 @@ export const SubResources = (): React.ReactElement => {
         </StudioButton>
       </div>
       {showAllErrors && policyError.resourceError && (
-        <ErrorMessage size='small'>{t('policy_editor.rule_card_sub_resource_error')}</ErrorMessage>
+        <StudioValidationMessage data-size='sm'>
+          {t('policy_editor.rule_card_sub_resource_error')}
+        </StudioValidationMessage>
       )}
     </>
   );

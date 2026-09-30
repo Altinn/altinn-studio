@@ -1,5 +1,0 @@
-{
-  "name": "Should work with integers (false)",
-  "expression": ["notEquals", 2, 2],
-  "expects": false
-}

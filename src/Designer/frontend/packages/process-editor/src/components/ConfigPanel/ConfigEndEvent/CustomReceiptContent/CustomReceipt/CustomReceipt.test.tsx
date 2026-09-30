@@ -9,36 +9,23 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const invalidFormatLayoutSetName: string = 'Receipt/';
-const emptyLayoutSetName: string = '';
-const existingLayoutSetName: string = 'layoutSetName1';
-
-const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets.sets[0].id;
-const layoutSetWithCustomReceipt: LayoutSetConfig = {
-  id: existingCustomReceiptLayoutSetId,
-  tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-};
-const layoutSetWithDataTask: LayoutSetConfig = {
-  id: existingLayoutSetName,
-  tasks: ['Task_1'],
-};
-
-const layoutSetIdTextKeys: Record<string, string> = {
-  [emptyLayoutSetName]: 'validation_errors.required',
-  [invalidFormatLayoutSetName]: 'validation_errors.name_invalid',
-  [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
-};
-
+const existingCustomReceiptLayoutSetId: string = mockBpmnApiContextValue.layoutSets[0].id;
 const mockAllDataModelIds: string[] = [
-  mockBpmnApiContextValue.layoutSets.sets[0].dataType,
-  mockBpmnApiContextValue.layoutSets.sets[1].dataType,
+  mockBpmnApiContextValue.layoutSets[0].dataType,
+  mockBpmnApiContextValue.layoutSets[1].dataType,
 ];
 
-const defaultBpmnContextProps: BpmnApiContextProps = {
+const nameFieldLabel = textMock(
+  'process_editor.configuration_panel_custom_receipt_textfield_label',
+);
+
+const defaultBpmnApiContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
   existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
   allDataModelIds: mockAllDataModelIds,
@@ -47,49 +34,25 @@ const defaultBpmnContextProps: BpmnApiContextProps = {
 describe('CustomReceipt', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('calls "mutateLayoutSetId" when the layoutSet id is changed', async () => {
-    const user = userEvent.setup();
+  it('hides the receipt name field', () => {
     renderCustomReceipt();
-
-    const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    });
-
-    await user.click(toggleableTextfieldButton);
-
-    const textfield = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    );
-    const newLayoutSetId: string = 'Test2';
-    await user.clear(textfield);
-    await user.type(textfield, newLayoutSetId);
-    await user.tab();
-
-    expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledTimes(1);
-    expect(mockBpmnApiContextValue.mutateLayoutSetId).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-      newLayoutSetId,
-    });
+    expect(screen.queryByRole('button', { name: nameFieldLabel })).not.toBeInTheDocument();
   });
 
-  it('does not call "mutateLayoutSetId" when the layoutSet id is changed to the original id', async () => {
+  it('calls "deleteLayoutSet" when clicking the delete button', async () => {
     const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt();
 
-    const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
     });
+    await user.click(deleteButton);
 
-    await user.click(toggleableTextfieldButton);
-
-    const textfield = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    );
-    await user.clear(textfield);
-    await user.type(textfield, existingCustomReceiptLayoutSetId);
-    await user.tab();
-
-    expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
+    expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledTimes(1);
+    expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
+    });
   });
 
   it('calls "mutateDataTypes" when the data model id is changed', async () => {
@@ -98,7 +61,7 @@ describe('CustomReceipt', () => {
 
     const propertyButton = screen.getByRole('button', {
       name: textMock('process_editor.configuration_panel_set_data_model', {
-        dataModelName: mockBpmnApiContextValue.layoutSets.sets[0].dataType,
+        dataModelName: mockBpmnApiContextValue.layoutSets[0].dataType,
       }),
     });
     await user.click(propertyButton);
@@ -117,68 +80,25 @@ describe('CustomReceipt', () => {
       newDataTypes: [newOption],
     });
   });
-
-  it.each([
-    invalidFormatLayoutSetName,
-    emptyLayoutSetName,
-    existingLayoutSetName,
-    existingCustomReceiptLayoutSetId,
-  ])('shows correct errormessage when layoutSetId is %s', async (invalidLayoutSetId: string) => {
-    const user = userEvent.setup();
-    renderCustomReceipt({
-      layoutSets: { sets: [layoutSetWithCustomReceipt, layoutSetWithDataTask] },
-    });
-
-    const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    });
-
-    await user.click(toggleableTextfieldButton);
-
-    const inputField = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
-    );
-
-    await user.clear(inputField);
-    if (invalidLayoutSetId !== emptyLayoutSetName) await user.type(inputField, invalidLayoutSetId);
-    await user.tab();
-
-    const errorTextKey = layoutSetIdTextKeys[invalidLayoutSetId];
-
-    if (errorTextKey) {
-      const error = screen.getByText(textMock(errorTextKey));
-      expect(error).toBeInTheDocument();
-    }
-
-    expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
-  });
-
-  it('calls "deleteLayoutSet" when clicking delete layoutSet', async () => {
-    const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    renderCustomReceipt();
-
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
-    });
-    await user.click(deleteButton);
-    expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledTimes(1);
-    expect(mockBpmnApiContextValue.deleteLayoutSet).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
-    });
-  });
 });
 
-const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
+type RenderProps = {
+  bpmnApiContextProps: Partial<BpmnApiContextProps>;
+};
+
+const renderCustomReceipt = ({ bpmnApiContextProps }: Partial<RenderProps> = {}) => {
+  const queryClient = createQueryClientMock();
   return render(
     <TestAppRouter>
-      <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-        <BpmnContext.Provider value={mockBpmnContextValue}>
-          <BpmnConfigPanelFormContextProvider>
-            <CustomReceipt />
-          </BpmnConfigPanelFormContextProvider>
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <BpmnApiContext.Provider value={{ ...defaultBpmnApiContextProps, ...bpmnApiContextProps }}>
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <CustomReceipt />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      </ServicesContextProvider>
     </TestAppRouter>,
   );
 };

@@ -12,12 +12,10 @@ using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
 public class AppScopesController(
     IMaskinPortenHttpClient maskinPortenHttpClient,
@@ -87,7 +85,7 @@ public class AppScopesController(
             cancellationToken
         );
 
-        var reponse = new AppScopesResponse()
+        var response = new AppScopesResponse()
         {
             Scopes =
                 appScopes
@@ -96,7 +94,7 @@ public class AppScopesController(
                 ?? [],
         };
 
-        return Ok(reponse);
+        return Ok(response);
     }
 
     private static ProblemDetails CreateAppScopesNotSupportedProblemDetails(string org) =>

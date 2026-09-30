@@ -10,8 +10,6 @@ import (
 	"altinn.studio/releaser/internal/changelog"
 )
 
-const testChangelogPath = "src/cli/CHANGELOG.md"
-
 const sampleChangelog = `# Changelog
 
 All notable changes to this project will be documented in this file.
@@ -210,6 +208,48 @@ func TestParse_CompactCategorySpacing(t *testing.T) {
 	}
 	if !strings.Contains(cl.String(), "### Added\n\n- Compact spacing entry") {
 		t.Fatalf("String() did not normalize compact spacing:\n%s", cl.String())
+	}
+}
+
+func TestParse_ContinuationLines(t *testing.T) {
+	content := `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Wrapped entry that
+  continues here
+- Entry with a nested list:
+  - first
+  - second
+- Single line
+
+## [1.0.0] - 2024-01-01
+
+### Fixed
+
+- Released entry
+    continued
+`
+
+	cl, err := changelog.Parse(content)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	want := []string{
+		"Wrapped entry that\n  continues here",
+		"Entry with a nested list:\n  - first\n  - second",
+		"Single line",
+	}
+	if got := cl.Unreleased.Categories[0].Entries; !slices.Equal(got, want) {
+		t.Fatalf("Parse() unreleased entries = %q, want %q", got, want)
+	}
+	if got := cl.Versions[0].Categories[0].Entries; !slices.Equal(got, []string{"Released entry\n    continued"}) {
+		t.Fatalf("Parse() released entries = %q", got)
+	}
+	if got := cl.String(); got != content {
+		t.Fatalf("String() does not round-trip continuation lines:\n%s", got)
 	}
 }
 
@@ -590,155 +630,59 @@ func TestValidateUnreleased(t *testing.T) {
 	}
 }
 
-// Sample git diffs for testing entry extraction.
-const sampleDiff = `diff --git a/src/cli/CHANGELOG.md b/src/cli/CHANGELOG.md
-index abc123..def456 100644
---- a/src/cli/CHANGELOG.md
-+++ b/src/cli/CHANGELOG.md
-@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
+// Edited entries, and another copy of an entry already in base, count as new.
+func TestNewEntries(t *testing.T) {
+	base, err := changelog.Parse(`# Changelog
 
- ## [Unreleased]
+## [Unreleased]
 
-+### Fixed
-+
-+- Fix memory leak in connection pool
-+
- ### Added
- 
- - Existing feature
+### Added
 
-`
+- Kept entry
+- Entry that is edited
 
-const sampleDiffMultipleEntries = `diff --git a/src/cli/CHANGELOG.md b/src/cli/CHANGELOG.md
-index abc123..def456 100644
---- a/src/cli/CHANGELOG.md
-+++ b/src/cli/CHANGELOG.md
-@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
+## [1.0.0] - 2024-01-01
 
- ## [Unreleased]
+### Fixed
 
-+### Added
-+
-+- New command for backporting
-+
-+### Fixed
-+
-+- Fix memory leak in connection pool
-+- Fix race condition in scheduler
-+
- ## [1.0.0] - 2024-01-15
-
- ### Added
-`
-
-const sampleDiffNoChangelog = `diff --git a/main.go b/main.go
-index abc123..def456 100644
---- a/main.go
-+++ b/main.go
-@@ -1,5 +1,5 @@
- package main
-
--func old() {}
-+func new() {}
-`
-
-const sampleDiffNoEntries = `diff --git a/src/cli/CHANGELOG.md b/src/cli/CHANGELOG.md
-index abc123..def456 100644
---- a/src/cli/CHANGELOG.md
-+++ b/src/cli/CHANGELOG.md
-@@ -1,3 +1,4 @@
- # Changelog
-
-+Some random text that is not an entry.
- ## [Unreleased]
-`
-
-const sampleDiffBackport = `diff --git a/src/cli/CHANGELOG.md b/src/cli/CHANGELOG.md
-index 1111111..2222222 100644
---- a/src/cli/CHANGELOG.md
-+++ b/src/cli/CHANGELOG.md
-@@ -3,6 +3,7 @@
- ## [Unreleased]
-
- ### Added
-+
-+- Backport entry
- ### Fixed
- 
- - Existing fix
-diff --git a/other.go b/other.go
-index aaa..bbb 100644
---- a/other.go
-+++ b/other.go
-@@ -1 +1 @@
--old
-+new
-`
-
-func TestParseWithDiff(t *testing.T) {
-	tests := []struct {
-		wantFirst  changelog.Entry
-		name       string
-		diff       string
-		wantCount  int
-		checkFirst bool
-	}{
-		{
-			name:       "single entry",
-			diff:       sampleDiff,
-			wantCount:  1,
-			checkFirst: true,
-			wantFirst: changelog.Entry{
-				Category: "Fixed",
-				Text:     "Fix memory leak in connection pool",
-			},
-		},
-		{
-			name:      "multiple entries",
-			diff:      sampleDiffMultipleEntries,
-			wantCount: 3,
-		},
-		{
-			name:      "no changelog in diff",
-			diff:      sampleDiffNoChangelog,
-			wantCount: 0,
-		},
-		{
-			name:      "no entries in diff",
-			diff:      sampleDiffNoEntries,
-			wantCount: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cl, err := changelog.ParseWithDiff("", tt.diff, testChangelogPath)
-			if err != nil {
-				t.Fatalf("ParseWithDiff() error = %v", err)
-			}
-
-			if len(cl.AddedEntries) != tt.wantCount {
-				t.Errorf("AddedEntries count = %d, want %d", len(cl.AddedEntries), tt.wantCount)
-			}
-			if tt.checkFirst && len(cl.AddedEntries) > 0 {
-				if cl.AddedEntries[0] != tt.wantFirst {
-					t.Errorf("AddedEntries[0] = %+v, want %+v", cl.AddedEntries[0], tt.wantFirst)
-				}
-			}
-		})
-	}
-}
-
-func TestParseWithDiff_BackportStyle(t *testing.T) {
-	cl, err := changelog.ParseWithDiff("", sampleDiffBackport, testChangelogPath)
+- Released fix
+`)
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("Parse(base) error = %v", err)
 	}
-	if len(cl.AddedEntries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(cl.AddedEntries))
+	head, err := changelog.Parse(`# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Kept entry
+- Entry that is edited, now longer
+- Entry with parts:
+  - first part
+
+### Fixed
+
+- Released fix
+
+## [1.0.0] - 2024-01-01
+
+### Fixed
+
+- Released fix
+`)
+	if err != nil {
+		t.Fatalf("Parse(head) error = %v", err)
 	}
-	if cl.AddedEntries[0].Category != "Added" || cl.AddedEntries[0].Text != "Backport entry" {
-		t.Fatalf("unexpected entry: %+v", cl.AddedEntries[0])
+
+	got := changelog.NewEntries(base.Entries(), head.Entries())
+	want := []changelog.Entry{
+		{Category: "Added", Text: "Entry that is edited, now longer"},
+		{Category: "Added", Text: "Entry with parts:\n  - first part"},
+		{Category: "Fixed", Text: "Released fix"},
+	}
+	if !slices.Equal(got, want) {
+		t.Fatalf("NewEntries() = %q, want %q", got, want)
 	}
 }
 
@@ -1230,7 +1174,7 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 			wantErrType: changelog.ErrVersionOrder,
 		},
 		{
-			name: "multiple active prerelease release-lines are not allowed",
+			name: "historical prerelease line without stable section is allowed",
 			content: `# Changelog
 
 ## [Unreleased]
@@ -1256,8 +1200,6 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ### Added
 
 - Stable release`,
-			wantErr:     true,
-			wantErrType: changelog.ErrPrereleaseConflict,
 		},
 	}
 

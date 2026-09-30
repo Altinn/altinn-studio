@@ -23,6 +23,7 @@ public class AppProcessState : ProcessState
         {
             return;
         }
+        Status = processState.Status;
         Started = processState.Started;
         StartEvent = processState.StartEvent;
         if (processState.CurrentTask != null)
@@ -43,4 +44,13 @@ public class AppProcessState : ProcessState
     /// and the task  type.
     /// </summary>
     public List<AppProcessTaskTypeInfo>? ProcessTasks { get; set; }
+
+    /// <summary>
+    /// Live workflow-engine status for the current task (idle / processing / failed), layered on
+    /// top of the committed process state so consumers can tell a settled task apart from one with
+    /// a transition still executing or failed. Null only when the consumer opted out of live
+    /// status resolution (<c>includeWorkflowStatus=false</c>) - "not resolved" is deliberately
+    /// distinguishable from idle.
+    /// </summary>
+    public AppProcessWorkflowStatus? Workflow { get; set; }
 }

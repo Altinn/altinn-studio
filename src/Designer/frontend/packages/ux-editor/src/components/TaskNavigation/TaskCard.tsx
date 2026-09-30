@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import { useState } from 'react';
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import { PencilIcon } from '@studio/icons';
 import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
 import { useTranslation } from 'react-i18next';
@@ -18,10 +18,10 @@ import { TaskCardEditing } from './TaskCardEditing';
 import classes from './TaskCard.module.css';
 import { ExportForm } from '../Elements/ExportForm';
 import { useNavigate } from 'react-router-dom';
-import getLayoutSetPath from '@altinn/ux-editor/utils/routeUtils';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 type TaskCardProps = {
-  layoutSetModel: LayoutSetModel;
+  layoutSetModel: UiFolderLayoutSetModel;
 };
 
 export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
@@ -31,6 +31,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   const taskName = getLayoutSetTypeTranslationKey(layoutSetModel);
   const taskIcon = getLayoutSetIcon(layoutSetModel);
   const navigate = useNavigate();
+  const layoutSetPath = useLayoutSetPath(org, app, layoutSetModel.id);
 
   const [editing, setEditing] = useState(false);
 
@@ -64,8 +65,11 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
   }
 
   const goToFormEditor = () => {
-    navigate(getLayoutSetPath(org, app, layoutSetModel.id));
+    navigate(layoutSetPath);
   };
+
+  const dataModelContent =
+    layoutSetModel.dataType || t('ux_editor.task_card.datamodel_not_selected');
 
   return (
     <StudioIconCard
@@ -81,7 +85,7 @@ export const TaskCard = ({ layoutSetModel }: TaskCardProps) => {
         </div>
         <StudioParagraph title={layoutSetModel.dataType}>
           {t('ux_editor.task_card.datamodel')}
-          {layoutSetModel.dataType && ' ' + layoutSetModel.dataType}
+          {dataModelContent}
         </StudioParagraph>
       </div>
       <StudioButton onClick={goToFormEditor} variant='primary'>

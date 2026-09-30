@@ -5,7 +5,6 @@ import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Accordion } from '@digdir/designsystemet-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
@@ -146,9 +145,7 @@ export const DesignView = (): ReactNode => {
     <div className={classes.root}>
       <div>
         <div className={classes.wrapper}>
-          <div className={classes.accordionWrapper}>
-            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
-          </div>
+          <div className={classes.accordionWrapper}>{displayPageAccordions}</div>
         </div>
         <ReceiptContent
           receiptName={receiptName}

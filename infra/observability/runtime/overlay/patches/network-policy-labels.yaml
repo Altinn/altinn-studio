@@ -9,6 +9,9 @@ spec:
             matchLabels:
               altinn.studio/runtime: "true"
       ports:
+        # Linkerd rewrites meshed ingress to the proxy's inbound port.
+        - protocol: TCP
+          port: 4143
         - protocol: TCP
           port: 4317
         - protocol: TCP

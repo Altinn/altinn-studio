@@ -39,7 +39,7 @@ public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatab
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -100,7 +100,7 @@ public sealed class FormatExclusiveMinimumKeyword : IJsonSchemaKeyword, IEquatab
             JsonSerializerOptions options
         )
         {
-            writer.WriteString(Name, value.Value);
+            writer.WriteStringValue(value.Value);
         }
     }
 }

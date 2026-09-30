@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Altinn.Studio.Gateway.Api.Tests.Models;
 using k8s;
@@ -14,6 +15,8 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 {
     private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
+    private static readonly TimeSpan FluxEventTimeout = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan FluxEventPollInterval = TimeSpan.FromSeconds(1);
 
     private readonly IKubernetes _client;
     private readonly List<string> _helmReleasesToCleanup = [];
@@ -113,22 +116,68 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
             cancellationToken: ct
         );
 
-        // Wait for the HelmRelease install to timeout (10s) plus buffer for notification
-        await Task.Delay(TimeSpan.FromSeconds(15), ct);
+        await WaitForHelmReleaseReasonAsync(helmReleaseName, "InstallFailed", ct);
 
-        // Verify the HelmRelease was created and has a status
-        var result = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
-            group: FluxApi.HelmReleaseGroup,
-            version: FluxApi.V2,
-            namespaceParameter: TestNamespace,
-            plural: FluxApi.HelmReleasePlural,
-            name: helmReleaseName,
-            cancellationToken: ct
+        // The webhook should log the InstallFailed event after Flux notification-controller delivers it.
+        await WaitForGatewayLogAsync($"Received Flux event: InstallFailed for HelmRelease/{helmReleaseName}", ct);
+    }
+
+    private async Task WaitForHelmReleaseReasonAsync(string helmReleaseName, string reason, CancellationToken ct)
+    {
+        var deadline = TimeProvider.System.GetUtcNow() + FluxEventTimeout;
+        string? lastStatus = null;
+
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            var result = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
+                group: FluxApi.HelmReleaseGroup,
+                version: FluxApi.V2,
+                namespaceParameter: TestNamespace,
+                plural: FluxApi.HelmReleasePlural,
+                name: helmReleaseName,
+                cancellationToken: ct
+            );
+
+            if (result is JsonElement element)
+            {
+                lastStatus = DescribeHelmReleaseStatus(element);
+                if (HelmReleaseHasReason(element, reason))
+                {
+                    return;
+                }
+            }
+
+            await Task.Delay(FluxEventPollInterval, ct);
+        }
+
+        throw new TimeoutException(
+            $"Timed out waiting for HelmRelease/{helmReleaseName} reason {reason}. Last status: {lastStatus ?? "<none>"}"
         );
+    }
 
-        Assert.NotNull(result);
+    private async Task WaitForGatewayLogAsync(string expectedLogEntry, CancellationToken ct)
+    {
+        var deadline = TimeProvider.System.GetUtcNow() + FluxEventTimeout;
+        string? lastLogs = null;
 
-        // Check gateway pod logs for the received event
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            lastLogs = await ReadGatewayLogsAsync(ct);
+            if (lastLogs.Contains(expectedLogEntry, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            await Task.Delay(FluxEventPollInterval, ct);
+        }
+
+        throw new TimeoutException(
+            $"Timed out waiting for gateway log entry '{expectedLogEntry}'. Last logs: {lastLogs ?? "<none>"}"
+        );
+    }
+
+    private async Task<string> ReadGatewayLogsAsync(CancellationToken ct)
+    {
         var pods = await _client.CoreV1.ListNamespacedPodAsync(
             namespaceParameter: "runtime-gateway",
             labelSelector: "app=gateway",
@@ -143,19 +192,39 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
             name: gatewayPod.Metadata.Name,
             namespaceParameter: "runtime-gateway",
             container: "gateway",
-            sinceSeconds: 30,
+            sinceSeconds: 120,
             cancellationToken: ct
         );
 
         using var reader = new StreamReader(logStream);
-        var logs = await reader.ReadToEndAsync(ct);
+        return await reader.ReadToEndAsync(ct);
+    }
 
-        // The webhook should have logged the InstallFailed event (install times out after 10s)
-        Assert.Contains(
-            $"Received Flux event: InstallFailed for HelmRelease/{helmReleaseName}",
-            logs,
-            StringComparison.Ordinal
-        );
+    private static bool HelmReleaseHasReason(JsonElement element, string reason)
+    {
+        if (
+            !element.TryGetProperty("status", out var status)
+            || !status.TryGetProperty("conditions", out var conditions)
+            || conditions.ValueKind != JsonValueKind.Array
+        )
+        {
+            return false;
+        }
+
+        foreach (var condition in conditions.EnumerateArray())
+        {
+            if (condition.TryGetProperty("reason", out var conditionReason) && conditionReason.GetString() == reason)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string? DescribeHelmReleaseStatus(JsonElement element)
+    {
+        return element.TryGetProperty("status", out var status) ? status.GetRawText() : null;
     }
 
     [Fact]

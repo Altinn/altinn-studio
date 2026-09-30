@@ -145,7 +145,7 @@ internal sealed class RuleHandlerParser
                 IFunction? function = prop.Value switch
                 {
                     FunctionExpression fe => fe,
-                    ArrowFunctionExpression afe => afe,
+                    ArrowFunctionExpression arrowFn => arrowFn,
                     _ => null,
                 };
 

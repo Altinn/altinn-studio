@@ -7,7 +7,13 @@ import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
 import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { StudioPopover, StudioParagraph, StudioSpinner, StudioError } from '@studio/components';
+import {
+  StudioPopover,
+  StudioParagraph,
+  StudioSpinner,
+  StudioError,
+  StudioLink,
+} from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { useGetSelectedScopesQuery } from '../../../hooks/queries/useGetSelectedScopesQuery';
 import { useOrgListQuery } from 'app-development/hooks/queries/useOrgListQuery';
@@ -17,7 +23,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { Link } from '@digdir/designsystemet-react';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
@@ -96,7 +101,7 @@ export function ReleaseContainer() {
             <Trans
               i18nKey={'app_create_release_errors.fetch_release_failed'}
               components={{
-                a: <Link href='/info/contact'> </Link>,
+                a: <StudioLink href='/info/contact'> </StudioLink>,
               }}
             ></Trans>
           </StudioParagraph>

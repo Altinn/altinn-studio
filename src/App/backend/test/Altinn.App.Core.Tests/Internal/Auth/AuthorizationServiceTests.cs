@@ -110,7 +110,10 @@ public class AuthorizationServiceTests
         // Arrange
         Mock<IAuthorizationClient> authorizationClientMock = new Mock<IAuthorizationClient>();
         List<Party> partyList = new List<Party>();
-        fixture.Mock<IAuthorizationClient>().Setup(a => a.GetPartyList(userId)).ReturnsAsync(partyList);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(partyList);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
@@ -118,7 +121,12 @@ public class AuthorizationServiceTests
 
         // Assert
         result.Should().BeSameAs(partyList);
-        fixture.Mock<IAuthorizationClient>().Verify(a => a.GetPartyList(userId), Times.Once);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Verify(
+                a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
 
         await Verify(fixture.TelemetrySink.GetSnapshot());
     }
@@ -132,7 +140,17 @@ public class AuthorizationServiceTests
 
         // Arrange
         Mock<IAuthorizationClient> authorizationClientMock = new Mock<IAuthorizationClient>();
-        fixture.Mock<IAuthorizationClient>().Setup(a => a.ValidateSelectedParty(userId, partyId)).ReturnsAsync(true);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Setup(a =>
+                a.ValidateSelectedParty(
+                    userId,
+                    partyId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(true);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
@@ -140,7 +158,18 @@ public class AuthorizationServiceTests
 
         // Assert
         result.Should().BeTrue();
-        fixture.Mock<IAuthorizationClient>().Verify(a => a.ValidateSelectedParty(userId, partyId), Times.Once);
+        fixture
+            .Mock<IAuthorizationClient>()
+            .Verify(
+                a =>
+                    a.ValidateSelectedParty(
+                        userId,
+                        partyId,
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
     }
 
     [Fact]
@@ -165,7 +194,16 @@ public class AuthorizationServiceTests
         // Arrange
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
@@ -182,7 +220,18 @@ public class AuthorizationServiceTests
         result.Should().BeTrue();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
     }
 
     [Fact]
@@ -203,7 +252,16 @@ public class AuthorizationServiceTests
         // Arrange
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
@@ -220,7 +278,18 @@ public class AuthorizationServiceTests
         result.Should().BeFalse();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
     }
 
     [Fact]
@@ -241,7 +310,16 @@ public class AuthorizationServiceTests
         // Arrange
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
         fixture
             .TestAuthorizer1.Mock.Setup(a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()))
@@ -261,7 +339,18 @@ public class AuthorizationServiceTests
         result.Should().BeFalse();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture.TestAuthorizer1.Mock.Verify(
             a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()),
             Times.Once
@@ -286,7 +375,16 @@ public class AuthorizationServiceTests
         // Arrange
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(false);
 
         fixture
@@ -308,7 +406,18 @@ public class AuthorizationServiceTests
         result.Should().BeFalse();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture.TestAuthorizer1.Mock.Verify(
             a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()),
             Times.Never
@@ -348,7 +457,16 @@ public class AuthorizationServiceTests
         );
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         fixture
@@ -373,7 +491,18 @@ public class AuthorizationServiceTests
         result.Should().BeTrue();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture.TestAuthorizer1.Mock.Verify(
             a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()),
             Times.Once
@@ -422,7 +551,16 @@ public class AuthorizationServiceTests
         );
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         fixture
@@ -450,7 +588,18 @@ public class AuthorizationServiceTests
         result.Should().BeTrue();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture.TestAuthorizer1.Mock.Verify(
             a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()),
             Times.Never
@@ -503,7 +652,16 @@ public class AuthorizationServiceTests
         );
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId))
+            .Setup(a =>
+                a.AuthorizeAction(
+                    appIdentifier,
+                    instanceIdentifier,
+                    user,
+                    action,
+                    taskId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(true);
 
         fixture
@@ -533,7 +691,18 @@ public class AuthorizationServiceTests
         result.Should().BeTrue();
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeAction(appIdentifier, instanceIdentifier, user, action, taskId), Times.Once);
+            .Verify(
+                a =>
+                    a.AuthorizeAction(
+                        appIdentifier,
+                        instanceIdentifier,
+                        user,
+                        action,
+                        taskId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture.TestAuthorizer1.Mock.Verify(
             a => a.AuthorizeAction(It.IsAny<UserActionAuthorizerContext>()),
             Times.Once
@@ -567,7 +736,7 @@ public class AuthorizationServiceTests
         using var fixture = Fixture.Create(withTelemetry: true);
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.AuthorizeActions(instance, user, actionsStrings))
+            .Setup(a => a.AuthorizeActions(instance, user, actionsStrings, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new Dictionary<string, bool>()
                 {
@@ -615,7 +784,7 @@ public class AuthorizationServiceTests
         result.Should().BeEquivalentTo(expected);
         fixture
             .Mock<IAuthorizationClient>()
-            .Verify(a => a.AuthorizeActions(instance, user, actionsStrings), Times.Once);
+            .Verify(a => a.AuthorizeActions(instance, user, actionsStrings, It.IsAny<CancellationToken>()), Times.Once);
         fixture.Mock<IAuthorizationClient>().VerifyNoOtherCalls();
     }
 }

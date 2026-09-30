@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	nodeImage = "kindest/node:v1.33.4@sha256:25a6018e48dfcaee478f4a59af81157a437f15e6e140bf103f85a2e7cd0cbbf2"
+	nodeImage = "kindest/node:v1.35.0@sha256:4613778f3cfcd10e615029370f5786704559103cf27bef934597ba562b269661"
 
 	// containerdConfigPatch configures containerd to use the local registry.
 	containerdConfigPatch = `[plugins."io.containerd.grpc.v1.cri".registry]

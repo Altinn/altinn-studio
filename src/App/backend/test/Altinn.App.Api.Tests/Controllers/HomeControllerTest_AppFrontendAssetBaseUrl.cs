@@ -46,14 +46,16 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
     }
 
     [Fact]
-    public async Task Index_FailsByDefault()
+    public async Task Index_UsesBundledAppFrontendByDefault()
     {
         using var client = GetRootedClient(Org, App, configureServices: ConfigureStatelessAnonymousApp);
         using var response = await client.GetAsync($"{Org}/{App}/");
         var html = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("loading our built-in frontend is not yet supported", html);
+        Assert.Contains($"href=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.css\"", html);
+        Assert.Contains($"src=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.DoesNotContain("loading our built-in frontend is not yet supported", html);
     }
 
     private static void ConfigureStatelessAnonymousApp(IServiceCollection services)
@@ -70,7 +72,7 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFix
         services.Replace(ServiceDescriptor.Singleton(webHostEnvironmentMock.Object));
 
         services.AddSingleton(
-            new AppMetadataMutationHook(appMetadata =>
+            AppFilesMutationHook.ApplicationMetadata(appMetadata =>
             {
                 appMetadata.OnEntry = new OnEntry { Show = "Task_1" };
                 appMetadata.DataTypes.Find(d => d.Id == "default")!.AppLogic!.AllowAnonymousOnStateless = true;

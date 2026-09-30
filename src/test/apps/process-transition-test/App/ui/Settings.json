@@ -1,0 +1,15 @@
+{
+  "taskNavigation": [
+    {
+      "taskId": "Task_1",
+      "name": "Task 1"
+    },
+    {
+      "taskId": "Task_2",
+      "name": "Task 2"
+    },
+    {
+      "type": "receipt"
+    }
+  ]
+}

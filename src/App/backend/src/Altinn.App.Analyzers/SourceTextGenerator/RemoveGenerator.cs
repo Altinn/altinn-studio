@@ -75,7 +75,7 @@ internal static class RemoveGenerator
                         {
                 """
             );
-            builder.Append("\r\n");
+            builder.Append("\n");
             if (modelPathNode.IsIndexableList)
             {
                 builder.Append(

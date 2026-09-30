@@ -21,9 +21,11 @@ spec:
   interval: 5m
   retryInterval: 5m
   timeout: 1m
-  prune: false
+  prune: true
   force: false
   wait: true
+  dependsOn:
+    - name: studio-keyvault-secret-store
   path: ./
   sourceRef:
     kind: OCIRepository

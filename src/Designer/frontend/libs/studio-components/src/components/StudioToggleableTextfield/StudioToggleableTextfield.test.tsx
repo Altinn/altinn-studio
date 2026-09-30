@@ -30,6 +30,13 @@ describe('StudioToggleableTextfield', () => {
     expect(screen.getByRole('textbox', { name: label })).toHaveValue(value);
   });
 
+  it('focuses the text field when toggled to edit mode', async () => {
+    const user = userEvent.setup();
+    renderStudioToggleableTextfield();
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('textbox', { name: label })).toHaveFocus();
+  });
+
   it('should run custom validation when value changes', async () => {
     const user = userEvent.setup();
     renderStudioToggleableTextfield({ customValidation });
@@ -73,7 +80,7 @@ describe('StudioToggleableTextfield', () => {
     expect(onChange).toHaveBeenCalledTimes(inputValue.length);
   });
 
-  it('should render error message if customValidation occured', async () => {
+  it('should render error message if customValidation occurred', async () => {
     const user = userEvent.setup();
     const customError = 'Your name cannot include the letter "t"';
     const customValidationSpy = jest.fn((valueToValidate: string) =>

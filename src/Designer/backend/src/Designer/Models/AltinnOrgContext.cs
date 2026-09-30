@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.Models;
 public record AltinnOrgContext
 {
     /// <summary>
-    ///  The organization owning the repository identfied by it's short name.
+    ///  The organization owning the repository identified by it's short name.
     /// </summary>
     public string Org { get; }
 

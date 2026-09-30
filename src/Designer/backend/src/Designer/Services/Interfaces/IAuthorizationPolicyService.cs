@@ -12,7 +12,7 @@ public interface IAuthorizationPolicyService
     /// <summary>
     /// Updates the Authorization policy for an app
     /// </summary>
-    /// <param name="org">Organisation</param>
+    /// <param name="org">Organization</param>
     /// <param name="app">Application</param>
     /// <param name="fullCommitId">The full commit SHA</param>
     /// <param name="envName">Environment name</param>

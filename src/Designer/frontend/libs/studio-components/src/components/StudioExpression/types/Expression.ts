@@ -6,22 +6,14 @@ import type { KeyLookupFuncName } from '../enums/KeyLookupFuncName';
 import type { InstanceContext } from '../enums/InstanceContext';
 
 export type Expression =
-  | null
-  | StrictStringExpression
-  | StrictBooleanExpression
-  | StrictNumberExpression
-  | FuncIf;
+  null | StrictStringExpression | StrictBooleanExpression | StrictNumberExpression | FuncIf;
 
 type FuncIf = FuncIfWithElse | FuncIfWithoutElse;
 type FuncIfWithElse = ['if', BooleanExpression, Expression, 'else', Expression];
 type FuncIfWithoutElse = ['if', BooleanExpression, Expression];
 
 export type BooleanExpression =
-  | null
-  | StrictBooleanExpression
-  | FuncIf
-  | StrictStringExpression
-  | StrictNumberExpression;
+  null | StrictBooleanExpression | FuncIf | StrictStringExpression | StrictNumberExpression;
 
 export type StrictBooleanExpression =
   | boolean
@@ -42,11 +34,7 @@ export type StrictBooleanExpression =
   | FuncCommaContains;
 
 export type StringExpression =
-  | null
-  | StrictStringExpression
-  | FuncIf
-  | StrictNumberExpression
-  | StrictBooleanExpression;
+  null | StrictStringExpression | FuncIf | StrictNumberExpression | StrictBooleanExpression;
 
 type StrictStringExpression =
   | string
@@ -70,8 +58,7 @@ export type NumberExpression = null | StrictNumberExpression | FuncIf | StrictSt
 type StrictNumberExpression = number | FuncStringLength;
 
 type GenericDataLookupFunc<N extends DataLookupFuncName> =
-  | [N, StringExpression]
-  | [N, StringExpression, StringExpression];
+  [N, StringExpression] | [N, StringExpression, StringExpression];
 export type DataLookupFunc<N extends DataLookupFuncName = DataLookupFuncName> = {
   [K in N]: GenericDataLookupFunc<K>;
 }[N];

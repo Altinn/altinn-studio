@@ -43,7 +43,7 @@ public class Json2XmlTestData : IEnumerable<object[]>
         // yield return new object[] { "Model/JsonSchema/General/SimpleAll.json", "Model/XmlSchema/General/SimpleAll.xsd" }; // "XsdStructureKeyword not supported. We default to sequence, and currently dont' support all. #6888"
         // yield return new object[] { "Model/JsonSchema/General/Any.json", "Model/XmlSchema/General/Any.xsd" }; // "Missing support for Any (element). AnyAttribute is implemented. #6885"
         // yield return new object[] { "Model/JsonSchema/General/Attributes.json", "Model/XmlSchema/General/Attributes.xsd" }; // "Unhandled attributes ends up on schema, not on the root element. #6890"
-        // yield return new object[] { "Model/JsonSchema/SimpleChoice.json", "Model/XmlSchema/SimpleChoice.xsd" }; // "Choice not supported for now, and probably won't be because of unecessary complexity."
+        // yield return new object[] { "Model/JsonSchema/SimpleChoice.json", "Model/XmlSchema/SimpleChoice.xsd" }; // "Choice not supported for now, and probably won't be because of unnecessary complexity."
         // yield return new object[] { "Model/JsonSchema/NestedChoice.json", "Model/XmlSchema/NestedChoice.xsd" }; // "Needs analyzing"
         // yield return new object[] { "Model/JsonSchema/NestedArrays.json", "Model/XmlSchema/NestedArrays.xsd" }; // "Needs analyzing"
         // yield return new object[] { "Model/JsonSchema/NestedWithOptionalChoice.json", "Model/XmlSchema/NestedWithOptionalChoice.xsd" }; // "Needs analyzing"

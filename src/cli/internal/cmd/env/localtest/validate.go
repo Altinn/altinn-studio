@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"altinn.studio/devenv/pkg/container"
-	"altinn.studio/devenv/pkg/resource"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 )
 
 const localtestContainerName = "localtest"
@@ -25,7 +25,7 @@ func CheckForLegacyLocaltest(
 		return fmt.Errorf("inspect container %s: %w", localtestContainerName, err)
 	}
 
-	if !info.State.Running || info.Labels[resource.GraphIDLabel] == graphID {
+	if !info.State.Running || info.Labels[containerbackend.GraphIDLabel] == graphID {
 		return nil
 	}
 	return fmt.Errorf("%w: %s", ErrLegacyLocaltestRunning, localtestContainerName)

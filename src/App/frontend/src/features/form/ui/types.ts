@@ -1,6 +1,7 @@
 // These types should ultimately be generated from the backend DTOs, but for now we define them manually here.
+import type { ILayoutSettings, PageValidation } from '@app/layout-contract/generated/common.generated';
+
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { ILayoutSettings, PageValidation } from 'src/layout/common.generated';
 
 export type GlobalPageSettings = {
   hideCloseButton: boolean;
@@ -12,6 +13,7 @@ export type GlobalPageSettings = {
   navigationTitle: ExprValToActualOrExpr<ExprVal.String> | undefined;
   taskNavigation: (NavigationTask | NavigationReceipt)[];
   validationOnNavigation: PageValidation | undefined;
+  hideAppNameInPdf: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
 };
 
 export type NavigationReceipt = {

@@ -7,13 +7,13 @@ import (
 
 	opclock "altinn.studio/operator/internal/clock"
 
-	"altinn.studio/operator/test/utils"
+	"altinn.studio/operator/internal/testutils"
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {
 	b.Helper()
 	clock := opclock.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
-	random := utils.NewDeterministicRand()
+	random := testutils.NewDeterministicRand()
 	service := NewService(clock, random, algo, keySize)
 	subject := CertSubject{CommonName: "benchmark"}
 	notAfter := clock.Now().UTC().Add(30 * 24 * time.Hour)

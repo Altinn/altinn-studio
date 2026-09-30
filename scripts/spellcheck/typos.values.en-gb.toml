@@ -1,0 +1,12 @@
+# British English, for the one place it applies: the text a user reads in the
+# product. run.mjs extracts those values out of the language files (see
+# registry.mjs) into a derived copy and points typos here — the real files
+# are never checked or rewritten by offset.
+#
+# typos is used because it is the only evaluated tool that ENFORCES a
+# dialect: cspell's dictionaries are additive (British becomes valid, American
+# does not become invalid), typos' varcon tables actually flag `color` under
+# en-gb.
+
+[default]
+locale = "en-gb"

@@ -12,7 +12,7 @@ public class CommitInfo
     public string Message { get; set; }
 
     /// <summary>
-    /// Gets or sets organisation for the commit
+    /// Gets or sets organization for the commit
     /// </summary>
     public string Org { get; set; }
 

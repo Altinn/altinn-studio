@@ -107,7 +107,7 @@ describe('deep equality state functions', () => {
       expect(result.current.memoResult === newState).toBeTruthy();
     });
     it('memo function should only be called when dependencies change', () => {
-      const memoFn = jest.fn(() => initialState);
+      const memoFn = vi.fn(() => initialState);
       const { result } = renderHook(() => {
         const [depState, setDepState] = useState('foo');
         useMemoDeepEqual(memoFn, [depState]);

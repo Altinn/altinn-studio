@@ -3,7 +3,6 @@
     "outDir": "dist",
     "module": "preserve",
     "target": "es6",
-    "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
@@ -12,13 +11,16 @@
     "rootDir": "./",
     "resolveJsonModule": true,
     "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictFunctionTypes": false,
+    "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
       "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],
       "@altinn/process-editor/*": ["./packages/process-editor/src/*"],
+      "@altinn/process-editor-v8/*": ["./packages/process-editor-v8/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
       "@altinn/schema-model/*": ["./packages/schema-model/src/*"],
       "app-shared/*": ["./packages/shared/src/*"],
@@ -26,6 +28,8 @@
       "@altinn/ux-editor/*": ["./packages/ux-editor/src/*"],
       "@altinn/ux-editor-v4/*": ["./packages/ux-editor-v4/src/*"],
       "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
+      "language/*": ["./language/*"],
+      "packages/*": ["./packages/*"],
       "@studio/testing/*": ["./testing/*"]
     },
     "plugins": [
@@ -41,7 +45,7 @@
     "tmp",
     "./testing/cypress/**",
     "./testing/playwright/**",
-    "dist",
+    "**/dist",
     "**/prettier.config.js",
     "./scripts/**"
   ]

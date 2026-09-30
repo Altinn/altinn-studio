@@ -13,7 +13,7 @@ import {
 import { useTaskNavigationGroupName } from '../../hooks/useTaskNavigationGroupName';
 import { TaskAction } from './TaskAction';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { useLayoutSetsExtendedQuery } from '../../hooks/queries/useLayoutSetsExtendedQuery';
 
 export type TasksTableBodyProps = {
   tasks: TaskNavigationGroup[];

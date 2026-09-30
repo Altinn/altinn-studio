@@ -118,6 +118,26 @@ describe('BranchNameValidator', () => {
       });
     });
 
+    describe('existing branch names', () => {
+      it('should reject a name that already exists', () => {
+        const result = BranchNameValidator.validate('feature/test', ['feature/test']);
+        expect(result.isValid).toBe(false);
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_already_exists');
+      });
+
+      it('should reject a name that already exists regardless of casing', () => {
+        const result = BranchNameValidator.validate('Feature/Test', ['feature/test']);
+        expect(result.isValid).toBe(false);
+        expect(result.errorKey).toBe('branching.new_branch_dialog.error_already_exists');
+      });
+
+      it('should accept a name that is not among the existing branches', () => {
+        const result = BranchNameValidator.validate('feature/new', ['feature/test']);
+        expect(result.isValid).toBe(true);
+        expect(result.errorKey).toBe('');
+      });
+    });
+
     describe('valid branch names', () => {
       it('should accept simple branch name', () => {
         const result = BranchNameValidator.validate('main');
@@ -178,20 +198,6 @@ describe('BranchNameValidator', () => {
           expect(result.errorKey).toBe('');
         });
       });
-    });
-  });
-
-  describe('isValid', () => {
-    it('should return true for valid branch name', () => {
-      expect(BranchNameValidator.isValid('feature/test')).toBe(true);
-    });
-
-    it('should return false for invalid branch name', () => {
-      expect(BranchNameValidator.isValid('feature:test')).toBe(false);
-    });
-
-    it('should return false for empty branch name', () => {
-      expect(BranchNameValidator.isValid('')).toBe(false);
     });
   });
 });

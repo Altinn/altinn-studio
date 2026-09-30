@@ -1,5 +1,6 @@
 import React from 'react';
 
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Chip, EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
@@ -7,8 +8,7 @@ import classes from 'src/features/devtools/components/DevNavigationButtons/DevNa
 import { FormStore } from 'src/features/form/FormContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
-import comboboxClasses from 'src/styles/combobox.module.css';
+import { useNavigateToPage } from 'src/hooks/useNavigatePage';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import { optionFilter } from 'src/utils/options';
 
@@ -23,7 +23,7 @@ export function DevNavigationButtons() {
 
 const InnerDevNavigationButtons = () => {
   const pageKey = useNavigationParam('pageKey');
-  const { navigateToPage } = useNavigatePage();
+  const navigateToPage = useNavigateToPage();
   const hiddenPages = useHiddenPages();
   const rawOrder = useRawPageOrder();
   const allPages = Object.keys(FormStore.bootstrap.useLayouts() ?? {});

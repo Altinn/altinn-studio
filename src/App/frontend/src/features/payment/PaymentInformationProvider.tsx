@@ -26,6 +26,8 @@ export function usePaymentInformationQueryDef(
     queryKey: ['fetchPaymentInfoForTask', instanceId, selectedLanguage],
     queryFn: instanceId ? () => fetchPaymentInformationForTask(instanceId, selectedLanguage, taskId) : skipToken,
     enabled: enabled && !!instanceId,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   };
 }
 

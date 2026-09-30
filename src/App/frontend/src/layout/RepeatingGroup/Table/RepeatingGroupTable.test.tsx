@@ -4,6 +4,9 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import ResizeObserverModule from 'resize-observer-polyfill';
 import { v4 as uuidv4 } from 'uuid';
+import type { GridRow, IRawOption } from '@app/layout-contract/generated/common.generated';
+import type { CompCheckboxesExternal } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
@@ -18,10 +21,7 @@ import {
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
-import type { GridRow, IRawOption } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
-import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 global.ResizeObserver = ResizeObserverModule;
 
@@ -267,6 +267,27 @@ describe('RepeatingGroupTable', () => {
     ])('hides column from %s when header cell has columnOptions.hidden', async (_label, extraRowsProp) => {
       await renderExtraRowsWithHiddenSecondColumn(extraRowsProp);
     });
+
+    it('should render rowsBefore before column headers when header is false', async () => {
+      const groupWithRowsBefore = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableHeaders: ['field1', 'field2', 'field3'],
+        rowsBefore: [
+          {
+            header: false,
+            cells: [{ text: 'extra.before.row' }],
+          },
+        ],
+      });
+      await render(getLayout(groupWithRowsBefore, components), undefined, [
+        { id: 'extra.before.row', value: 'Row before text' },
+      ]);
+
+      const rowsBeforeText = screen.getByText('Row before text');
+      const columnHeader = screen.getByRole('columnheader', { name: 'Title1' });
+
+      expect(rowsBeforeText.compareDocumentPosition(columnHeader) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
   });
 
   describe('mobile view', () => {
@@ -369,6 +390,19 @@ describe('RepeatingGroupTable', () => {
       deleteButtons.forEach((button) => {
         expect(button).not.toHaveTextContent('Slett');
       });
+    });
+  });
+
+  describe('help text', () => {
+    it('should render the title and a help text button in the table caption when a help text is set', async () => {
+      const groupWithHelpText = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        textResourceBindings: { title: 'Group title', help: 'Group help text' },
+      });
+      await render(getLayout(groupWithHelpText, components));
+
+      expect(screen.getByText('Group title')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Hjelp/i })).toBeInTheDocument();
     });
   });
 

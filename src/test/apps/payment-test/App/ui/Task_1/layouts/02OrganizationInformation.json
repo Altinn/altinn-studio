@@ -8,7 +8,7 @@
       },
       {
         "id": "CompanyHeader",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "CompanyHeader"
         },
@@ -179,7 +179,6 @@
         "textResourceBindings": {
           "next": "next"
         },
-        "showBackButton": true
       }
     ]
   }

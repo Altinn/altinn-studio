@@ -10,21 +10,23 @@ The dashboard has two tabs: **Live** and **Query**.
 
 ### Live Tab (default)
 
-Three collapsible sections, top to bottom:
+Three collapsible sections, top to bottom (plus a conditional **Throttled Namespaces** panel above them, see below):
+
+0. **Throttled Namespaces** — Failure-storm circuit breakers (see the failure-throttling ADR). Hidden entirely while no breaker state exists — the common case. Polls `GET /api/v1/throttles` every 10 s (no SSE stream; breakers change on sweep cadence). One row per namespace breaker: state pill (Tripped red / Recovering orange / Clear green), namespace, tripped-at (relative), current window, canary count, last observed requeued/active counts. Row actions call the manual override endpoints with a **two-click confirm** (first click arms the button as "Confirm?", reverting after 3 s): **Force trip** (`POST /api/v1/{ns}/throttle/trip`, shown unless already Tripped) and **Force clear** (`POST /api/v1/{ns}/throttle/clear`, shown unless already Clear). Overrides are one-shot: a force-clear does not stop the next sweep from re-tripping, and a force-trip does not stop canary-driven recovery. A 409 (throttling disabled) renders as the standard "Failed" button feedback.
 
 1. **Scheduled** — Workflows with a future `startAt`. Collapsed by default, fetched lazily on expand via `GET /dashboard/scheduled`. Badge in section header shows count from SSE. Cards are categorized by time-to-start: ≤10s, ≤1m, ≤5m, later.
 
 2. **Inbox** — Active workflows currently processing. Driven by SSE (`/dashboard/stream/live`). Cards appear with enter animation, update in-place when fingerprint changes, and exit with animation when completed/failed (unless moving to Recent, which skips animation). Elapsed timers tick via `requestAnimationFrame`.
 
-3. **Recent** — Last 100 finished workflows. Also driven by SSE. New arrivals glow briefly. Cards are static (no timers). Backend controls ordering and the 100-item window.
+3. **Recent** — Based on the last 100 finished workflows (backend controls ordering and the window). Also driven by SSE. Three view modes (segmented control in the section header, persisted in localStorage as `recentView`, synced to the URL as `rv`): **Chains** (default) groups the window by `collectionKey` and renders each collection as a dependency-ordered spine, additionally merging in-flight members of rendered collections from the active section's SSE state (see [Chains View](#chains-view)); **Compact** and **Full** are the flat reverse-chronological card modes over the finished window only (new arrivals glow briefly; cards are static, no timers).
 
 ### Query Tab
 
-On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval.
+On-demand paginated search against the database. Not SSE-driven — user clicks "Load" or sets an auto-refresh interval. Same three view modes as Recent (**Chains | Compact | Full**, default Compact; localStorage `queryView`, URL `qv`) — see [Chains View](#chains-view) for the query-mode differences.
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Completed, Failed, Canceled
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
 - Text search (triggers on Enter)
@@ -78,12 +80,8 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ```json
 {
-    "active": [
-        /* Workflow[] or null */
-    ],
-    "recent": [
-        /* Workflow[] or null */
-    ]
+    "active": [/* Workflow[] or null */],
+    "recent": [/* Workflow[] or null */]
 }
 ```
 
@@ -108,7 +106,9 @@ Paginated workflow search.
 
 Response: `{ totalCount: int, workflows: Workflow[] }`
 
-**Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`.
+**Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`. `Waiting` is
+recognized but not on by default — parked pollers would otherwise crowd out the terminal outcomes the
+Query view exists to surface.
 
 ### `GET /dashboard/step`
 
@@ -128,6 +128,10 @@ Response:
     "status": "Completed",
     "processingOrder": 3,
     "retryCount": 0,
+    "deferCount": 0,
+    "firstDeferredAt": "ISO | null",
+    "lastDeferredAt": "ISO | null",
+    "lastDeferReason": "string | null",
     "errorHistory": [
         { "timestamp": "ISO", "message": "string", "httpStatusCode": 500, "wasRetryable": true }
     ],
@@ -167,6 +171,135 @@ Response:
 }
 ```
 
+### `GET /dashboard/relations`
+
+On-demand relations for cards whose source query does not eager-load them (the recent section and
+the query tab; active/scheduled cards get relations inline).
+
+| Parameter | Type   | Description          |
+| --------- | ------ | -------------------- |
+| `wf`      | guid   | Workflow database ID |
+| `ns`      | string | Workflow namespace   |
+
+Response:
+
+```json
+{
+    "isHead": false,
+    "dependsOn": [{ "databaseId": "guid", "operationId": "string", "status": "Completed" }],
+    "dependents": [],
+    "links": []
+}
+```
+
+### `GET /dashboard/graph`
+
+Connected dependency graph for the chain views: every workflow reachable from the given one through
+dependency/link relations in either direction (recursive CTE, namespace-scoped). Nodes are full card
+DTOs (same shape as the SSE workflow payload, relations included); edges are typed so the frontend
+can lay out the spine without re-deriving relations. 404 when the workflow does not exist in the
+namespace. Capped at the 200 most recently created nodes (the cap is applied before hydration);
+`truncated: true` signals an older, unshown tail, rendered as an "earlier workflows not shown"
+divider at the top of the spine.
+
+| Parameter | Type   | Description               |
+| --------- | ------ | ------------------------- |
+| `wf`      | guid   | Root workflow database ID |
+| `ns`      | string | Workflow namespace        |
+
+Response:
+
+```json
+{
+    "root": "guid",
+    "truncated": false,
+    "workflows": ["Workflow, same shape as the SSE payload"],
+    "edges": [{ "from": "guid", "to": "guid", "kind": "dependency | link" }]
+}
+```
+
+### `GET /dashboard/mailboxes`
+
+The mailboxes grouped under the named collections, each with its log laid out position by position.
+The first non-workflow noun the dashboard reads, and a fetch rather than a field on the live stream:
+mailboxes are not workflows, so nothing in that payload's shape or its fingerprint loop accommodates
+them, and a three-table read on a two-second loop would charge every engine for a feature most of them
+do not use.
+
+Open and closed mailboxes alike — under a finished collection a concluded exchange is the ordinary
+case. The read is bounded on every axis before it runs: at most 100 collection keys are honored per
+call, at most **10 mailboxes per collection** (most recently minted first), and each mailbox's log is
+capped by the engine's `MaxMailboxLogLength`. Naming no collections returns an empty array without
+querying.
+
+**The mailbox bound is per collection, not global**, and that is load-bearing rather than incidental. A
+single global limit ordered newest-first drops its casualties at the older end across every requested
+key at once, so one busy collection starves the rest and whole groups come back with no mailbox — which
+on a card is indistinguishable from an exchange that never had one. Per key, one collection's history
+can only ever cost that collection.
+
+`truncatedCollections` names the keys whose window was full, so a group with an unshown tail can say so
+and no other group has to. It is the per-collection form of the `truncated` flag `/dashboard/graph`
+returns for its node cap, for the sharper version of the same reason.
+
+| Parameter        | Type   | Description                                              |
+| ---------------- | ------ | -------------------------------------------------------- |
+| `collectionKeys` | string | Comma-separated collection keys; max 100, extras ignored |
+| `namespace`      | string | Optional namespace filter; omitted reads every namespace |
+
+Response:
+
+```json
+{
+    "truncatedCollections": ["collection keys with older mailboxes not shown"],
+    "mailboxes": [
+        {
+            "id": "guid",
+            "namespace": "ttd/app",
+            "idempotencyKey": "Task_1:SendToArchive",
+            "collectionKey": "instance-42",
+            "status": "Open | Disposed",
+            "disposedReason": "Request | Deadline",
+            "deadline": "2026-08-19T14:00:00Z",
+            "createdAt": "2026-08-19T12:00:00Z",
+            "disposedAt": "2026-08-19T14:00:00Z",
+            "nextIdx": 2,
+            "nextSeq": 2,
+            "unpairedDeliveries": 0,
+            "positions": [
+                {
+                    "position": 0,
+                    "state": "delivered | paired | waiting | closed",
+                    "deliveryKey": "the forwarding source's own message id",
+                    "acceptedAt": "2026-08-19T12:30:00Z",
+                    "receiverWorkflowId": "guid",
+                    "heldAt": "2026-08-19T12:00:01Z",
+                    "releasedAt": "2026-08-19T12:30:00Z",
+                    "claimedAt": "2026-08-19T12:30:00Z",
+                    "parkedForSeconds": 1799
+                }
+            ]
+        }
+    ]
+}
+```
+
+`positions` is empty for a mailbox minted but not yet delivered into or received from — a real and
+often long-lived state, since the mailbox exists from the moment its id goes out as a reply address.
+The four `state` values:
+
+| State       | Meaning                                                                               |
+| ----------- | ------------------------------------------------------------------------------------- |
+| `delivered` | A message stands here and no receiver has been enqueued for it — an unpaired delivery |
+| `paired`    | A receiver holds this position and its message is standing at it                      |
+| `waiting`   | A receiver is parked here and its message has not arrived                             |
+| `closed`    | A receiver holds this position, no message ever came, and the mailbox closed          |
+
+`heldAt` is what separates a receiver that parked from one that ran straight away, which the workflow
+status alone cannot say once the receiver has settled — and it is what makes `parkedForSeconds` a park
+duration rather than a meaningless subtraction. `parkedForSeconds` is absent while a receiver is still
+parked (count up from `heldAt` instead) and absent for one that never parked.
+
 ### `GET /dashboard/scheduled`
 
 All workflows with future `startAt`. Response: `Workflow[]`
@@ -175,17 +308,36 @@ All workflows with future `startAt`. Response: `Workflow[]`
 
 Distinct values for a label key. Response: `string[]`
 
-### `POST /dashboard/retry`
+### Workflow actions
 
-Reset a failed workflow back to Enqueued.
+The dashboard has no mutation endpoints of its own. The Retry, Retry now / Check now and Fail buttons call the
+engine's public API directly, so the same contract that external callers use is what the UI exercises:
 
-Body: `{ "workflowId": "<guid>" }`
+| Button                        | Request                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| **Retry** (Failed step)       | `POST /api/v1/{namespace}/workflows/{id}/resume`                                          |
+| **Retry now** / **Check now** | `POST /api/v1/{namespace}/workflows/{id}/nudge`                                           |
+| **Fail** (parked step)        | `POST /api/v1/{namespace}/workflows/{id}/fail` with a fixed `reason` naming the dashboard |
 
-### `POST /dashboard/skip-backoff`
+The namespace and workflow id are URL-encoded route segments. Both 200 and 202 count as success; a refusal
+(409 for the wrong state, 400 for a bad request) carries problem details, whose `detail` becomes the button's
+tooltip. The contracts are documented in the technical guide's [API reference](../../../docs/technical-guide.md#api-reference).
 
-Clear backoff wait on a requeued workflow, making it immediately eligible for processing.
+**Retry now** / **Check now** also clears the workflow's `throttled_until` stamp: an explicit poke wins over
+the namespace circuit breaker, so the workflow gets its re-check even while its namespace is throttled.
 
-Body: `{ "workflowId": "<guid>" }`
+### Throttle endpoints (shared with the public API)
+
+The Throttled Namespaces panel uses the engine's public throttle endpoints directly rather than
+dashboard-prefixed wrappers:
+
+| Endpoint                      | Method | Used for                                                         |
+| ----------------------------- | ------ | ---------------------------------------------------------------- |
+| `/api/v1/throttles`           | GET    | Breaker list (200 array / 204 when none — panel hides)           |
+| `/api/v1/{ns}/throttle/trip`  | POST   | Force-trip override (202; 409 when throttling disabled)          |
+| `/api/v1/{ns}/throttle/clear` | POST   | Force-clear override (202; 200 already clear; 404; 409 disabled) |
+
+Breaker shape: `{ namespace, state: "Tripped"|"Recovering"|"Clear", trippedAt, currentWindow, canaryCount, lastEvaluatedAt?, lastRequeuedCount, lastActiveCount, updatedAt? }`
 
 ---
 
@@ -198,12 +350,15 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 Left to right:
 
 1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
-2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`.
+2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a head and its side-effects sibling display the same name) — the side-chain badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
-5. **Status pill** — Workflow-level status with color-coded CSS class.
-6. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
-7. **Action buttons** — Copy idempotency key, open state modal, Grafana trace link.
+5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
+6. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
+7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
+8. **Copy idempotency key button**
+9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
+10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link.
 
 ### Pipeline
 
@@ -215,13 +370,14 @@ Horizontal row of step circles connected by SVG lines.
 - Processing: ◯ animated (blue pulse)
 - Failed: ✗ (red)
 - Requeued: ↻ (orange)
+- Waiting: ⌛ (cyan, slow pulse) — deferred, awaiting an external outcome
 - Canceled: — (gray)
 - Enqueued: ◯ outline (gray)
 
 **Below each circle:**
 
 - Command detail label (e.g. "StartTask", "WebhookCall")
-- Sub-label (if applicable)
+- Sub-label — for a Waiting step, the reason its command gave for deferring (`lastDeferReason`), ellipsised to the node's width with the full text in the tooltip
 - Command type badge (`app`, `webhook`, etc.)
 - Retry count (if > 0)
 - Backoff countdown (if requeued with future backoffUntil)
@@ -233,7 +389,13 @@ Horizontal row of step circles connected by SVG lines.
 - Animated: processing in progress
 - Gray/empty: not yet reached
 
-**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing or Requeued step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found.
+**Vertical density:** Live pipelines reserve meta-row height (`.step-meta` min-height) so cards
+don't jump as retry/backoff/timing rows appear mid-processing; static pipelines
+(`.pipeline-static` — recent/query/scheduled and expanded chain rows) render final content and
+drop the reservation. The phase-bracket headroom (`.pipeline-grouped`) applies only when at least
+one step maps to a phase.
+
+**Scroll-to-active:** When a card renders or updates, the pipeline scrolls horizontally to center the currently Processing, Requeued or Waiting step. Only triggers when the active step index actually changes (tracked per workflow via `_processingIdx`), preventing redundant scrolls on fingerprint-only updates. Fallback: scrolls to the end if no active step found. A rebuild that does not move the active step (a retry or deferral write-back of the same step, a relation landing) keeps the pipeline where the operator scrolled it: the card's HTML is swapped through `setCardHTMLKeepingPipelineScroll`, which carries the old `.pipeline` element's `scrollLeft` over to the new one.
 
 **BPMN grouping:** Steps are grouped by task phase using `stepPhase()` which maps command detail names to `start`/`end`/`process-end` phases. Groups show bracket lines and task labels from `parseTransition()`. The transition is parsed from `operationId` (format: `"Process next: TaskA → TaskB"`).
 
@@ -256,7 +418,7 @@ Cards carry `data-*` attributes for client-side filtering without re-parsing:
 
 ```
 data-wfkey="{databaseId}"
-data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands}"
+data-filter="{searchable text: namespace, operationId, idempotencyKey, labels, step commands, related workflow ids/names}"
 data-status="{space-separated status tags}"
 data-namespace="{namespace lowercase}"
 data-collectionKey="{collectionKey lowercase}"
@@ -290,12 +452,14 @@ The modal has four distinct DOM zones:
 ### Tabs
 
 1. **Details** (default) — Rows top to bottom:
-    - **Status row**: Status pill + backoff countdown (if Requeued) or elapsed time (if Processing) + retry count badge (if > 0) + action button (Retry for Failed, Retry now for Requeued with >5s backoff remaining). All elements flex-aligned in a single row.
+    - **Status row**: Status pill + backoff countdown (if Requeued or Waiting) or elapsed time (if Processing) + retry count badge (if > 0) + action buttons (Retry for Failed; Retry now for Requeued / Check now for Waiting, with >5s backoff remaining; Fail for Requeued or Waiting, always). All elements flex-aligned in a single row.
     - Idempotency Key
     - Created (formatted time + relative age)
     - Execution Started (if set)
     - Last Updated (if set)
     - Backoff Until (if set)
+    - Deferrals (if > 0), First Deferred and Last Deferred (formatted time + relative age, if set)
+    - Defer Reason — the step's `lastDeferReason`, the command's own words for what it is waiting for (if set)
     - Retry strategy block: Backoff Type, Base Interval (formatted duration), Max Retries, Max Delay (formatted duration), Max Duration (formatted duration)
     - Command Type
     - Max Execution Time (formatted duration, if set)
@@ -314,10 +478,12 @@ The modal has four distinct DOM zones:
 
 ### Action Buttons
 
-- **Retry** — Shown for Failed steps in the status row. Calls `POST /dashboard/retry`.
-- **Retry now** (skip backoff) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls `POST /dashboard/skip-backoff`.
+- **Retry** — Shown for Failed steps in the status row. Calls the public `resume` endpoint.
+- **Retry now** (nudge) — Shown for Requeued steps with future backoffUntil (>5s remaining). Calls the public `nudge` endpoint.
+- **Check now** (nudge) — The same control on a Waiting step, relabelled: the step is polling, not retrying. Same endpoint; only the wording changes, because "retry" misdescribes a step that never failed.
+- **Fail** — Shown for Requeued and Waiting steps in the status row (and as a `fail` button on parked pipeline steps, next to the nudge button when one is shown). Calls the public `fail` endpoint with a fixed reason naming the dashboard: the step is marked Failed with that reason as its final error entry, after which the Retry button applies. Red, to mark it as the give-up action.
 
-**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped" with success CSS class (stays disabled). On failure, text changes to "Failed" with error CSS class, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
+**UI feedback pattern**: Button shows "..." while loading. On success, text changes to "Retried"/"Skipped"/"Marked failed" with success CSS class (stays disabled). On failure, text changes to "Failed" ("Rejected" for the Fail action, whose success outcome _is_ a failed step) with error CSS class and the response's problem-details `detail` as the tooltip, then resets to original state after 3 seconds. Same pattern for network errors ("Error" text). No explicit query reload — relies on SSE to update.
 
 ### SSE-Driven Refresh
 
@@ -360,6 +526,142 @@ Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings(
 
 ---
 
+## Chain Rows (shared renderer)
+
+`modules/shared/chain.js` renders a set of workflows as a dependency-ordered vertical spine — the
+"story of the collection" — rather than a general graph layout (process-next graphs are a
+near-linear spine of heads with side-chain leaves). It is shared by the chain modal and the Recent
+section's Chains view.
+
+**Spine layout — two builders:**
+
+1. `buildSpineFromEdges(nodes, edges)` — heads (`isHead !== false`) topologically sorted over
+   `dependency` edges (Kahn), `createdAt` as tiebreak; a cycle guard appends anything the sort
+   missed in creation order. Each `isHead === false` node attaches under the head it shares an
+   edge with, **preferring `link` edges** (side-effects workflows carry a link to their producer
+   Main) and falling back to any edge; unattached side nodes render at the bottom.
+2. `buildSpineByCreation(nodes)` — no edges needed: plain `createdAt` order with `isHead === false`
+   nodes marked as side rows. Correct for process-next collections because side chains are always
+   enqueued while their producer Main executes — after the Main's `createdAt` and before the next
+   head can exist (heads gate the following transition).
+
+**Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
+tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
+step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
+the shared `[data-timer]` loop while the live section still holds the workflow. Side rows indent under
+their head with the violet side-chain card chrome and an elbow connector to the spine line. The
+root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
+
+**Row expansion:** clicking a row (outside interactive elements) swaps it in place for the full
+pipeline card (`chainRowToggle`), fetching relations on first expand like compact-card expansion
+does; clicking the expanded card collapses it back. The expanded set survives re-renders.
+
+**Gap dividers:** wall-clock gaps > 1s between consecutive heads render as a dim `+ 4.2s` divider
+before the later head — that is where the time went between the engine's transitions (e.g. the
+user working in the task). Suppressed while the preceding head is still running.
+
+## Chain Modal
+
+Opened by clicking the tree button on a card. Fetches `/dashboard/graph?wf=<id>&ns=<namespace>` and
+renders it with the shared chain renderer (`buildSpineFromEdges`).
+
+Title: "Chain — {collectionKey}" when the opening card has a collection key, else "Workflow Chain".
+Same stale-guard pattern as the other modals (checks `_openWfId` before/after fetch).
+
+**Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce. Triggers when a rendered
+workflow's fingerprint changes **or when a new live workflow joins the open root's collection** — a
+fresh transition's Main + side chains are new ids, so nothing already rendered changes when they
+land. **Keyboard:** Escape closes the modal.
+
+## Chains View
+
+Available in the Recent section (default mode) and the Query tab: the current window/page grouped
+by `collectionKey`, each collection rendered as a bordered group — newest collection first (by the
+source's own ordering), story inside oldest-first. Workflows without a collection render as plain
+compact cards in their original position. Group chrome and the history control live in
+`shared/chain-groups.js`; the history cache is shared across surfaces.
+
+**Group anatomy:** a header row (label segments from the newest head member, workflow count,
+wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
+history control) above the shared chain rows. Aggregate status: an in-flight member wins
+(Processing/Requeued/Waiting/Held/Enqueued), then the worst terminal outcome, then Completed.
+
+**Spine source:** groups use `buildSpineByCreation` over the members in the recent window — no
+fetches needed (`isHead` is already on the card DTOs). The **history** control fetches
+`/dashboard/graph` for the collection's full connected graph (beyond the 100-item window) and
+re-renders the group with the exact edge-based spine; the graph is cached per collection, and when
+new members appear that the cache doesn't know, it refetches in the background.
+
+**Live members:** in-flight workflows (from the active section's SSE state) that belong to a
+rendered collection are merged into their group, so the story includes the running transition —
+its row ticks via the shared timer loop. `notifyRecentChainsChanged()` re-renders the view
+(300 ms debounce) when a live workflow that belongs to a rendered group appears, changes, or
+finishes.
+
+**Filtering:** groups filter as one unit — `data-filter`/`data-status`/`data-labels` are unions
+over the members, so a group matches when any member matches (status chips count groups, not
+workflows). The expanded cards inside a group are not matched individually (`:scope >` selectors
+in `applyFilter`).
+
+**Mailbox blocks:** a group that has mailboxes closes with one block per mailbox, oldest-minted first
+so the exchanges read in the same direction as the spine above them. A group with no mailbox — nearly
+every group — renders nothing at all, and a collection with an unshown older tail (the endpoint's
+per-collection window was full) carries a `⋯ older mailboxes not shown` line above its blocks, over
+that group and no other.
+
+Each block is a header and a row of position chips:
+
+- **Header** — the mailbox id abbreviated (full id in the tooltip, alongside the mint instant), the
+  mint idempotency key, an `open` / `closed · request` / `closed · deadline` pill, both log counters
+  as `idx N · seq N`, an amber `N unpaired` badge when accepted messages were never enqueued for,
+  and the deadline. An open mailbox counts down to its deadline live (`closes in 20d 4h`, turning red
+  and counting up as `overdue …` past it); a closed one says when it closed instead. The absolute
+  deadline follows either way, as an ordinary timestamp honoring the UTC and show-timestamps
+  settings — whether a closed mailbox was closed _at_ its deadline or long before it is the difference
+  between an exchange that timed out and one that concluded.
+- **Position chips** — one per position, numbered, colored by state: `delivered` amber (a message
+  standing unpaired), `paired` green, `waiting` dashed cyan (borrowing the `Held` pill's chrome,
+  since that is the workflow status on the other side of the same rendezvous), `closed` dashed gray.
+  Everything else about the position — the source's message id, the accept/park/release/claim
+  instants, the park duration — is in the chip's tooltip. A `waiting` chip carries a live count-up
+  from `heldAt`, because the server deliberately sends no `parkedForSeconds` while the wait is still
+  running; a settled receiver that did park shows the duration it was sent. A mailbox with no
+  positions says `no messages and no receivers yet`.
+- **The link into the spine** — a chip whose receive workflow is one of the rows this group actually
+  rendered is clickable and reveals that row (scroll + `rel-flash`, the relation chips' behavior). A
+  chip whose receiver exists but is outside the window says so in its tooltip rather than pretending
+  to be a link, and a `delivered` position — which by definition has no receiver — says that instead.
+
+**Freshness:** the blocks are fetched, not streamed. Each render pass records the collections it
+drew and asks for their mailboxes as one batch per namespace, chunked so the key list always fits
+inside the server's request line, and re-renders only when the answer actually differs — which is
+what keeps the re-render it can trigger from feeding itself. How often a collection is re-asked
+depends on what is known about it: **3s** for one holding mailboxes, one whose members include a
+receive workflow (`mailboxId` on the card), or one never read successfully; **60s** for one that
+answered "no mailboxes", which is nearly every collection and would otherwise put the endpoint's
+three-table read back on a loop. A failed request is never remembered as an empty answer.
+
+Once the dashboard has any evidence of mailboxes at all, the collections on screen are additionally
+re-read on a **5s** timer under the same TTLs, because an exchange advances without any workflow
+changing: a message that arrives before its receiver is enqueued is a row, not a workflow, so no
+SSE-driven pass would ever come. The timer walks the last render pass's collections rather than the
+mailbox blocks in the DOM — a collection whose blocks are missing is exactly the one that has to be
+asked again — and never starts at all on a deployment that has never minted a mailbox.
+
+Mailboxes are cached per namespace **and** collection key. Both chains surfaces group by collection
+key alone, so a group can hold two namespaces' workflows; each namespace present is asked for its own
+mailboxes and its blocks are drawn under the same group, rather than one member's namespace standing
+in for all of them.
+
+**Query-mode differences:** query results are a filtered subset of each collection
+(status/time/search + page boundaries), so group counts read "N matching" instead of
+"N workflows" — with "N matching of M" once the history graph is loaded — and there is no live
+member merge (the tab is not SSE-driven). The killer flow: click a collection funnel → the query
+tab filtered to that collection in chains mode is the complete instance timeline over the
+database, unlimited by the recent window.
+
+---
+
 ## Filtering System
 
 ### Label Filters
@@ -390,8 +692,8 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
-- **Recent**: All, Completed, Failed
-- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Completed, Failed, Canceled
+- **Recent**: All, Completed, Failed, Abandoned
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
 
 ### Text Filter
 
@@ -434,7 +736,8 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 TypeDefs in `state.js`:
 
 ```typescript
-type StepStatus = 'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Canceled';
+type StepStatus =
+    'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled';
 type CommandType = 'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate';
 
 interface Step {
@@ -445,11 +748,20 @@ interface Step {
     status: StepStatus;
     processingOrder: number;
     retryCount: number;
+    deferCount: number;
+    firstDeferredAt: string | null;
+    lastDeferReason: string | null;
     backoffUntil: string | null;
     createdAt: string;
     executionStartedAt: string | null;
     updatedAt: string | null;
     stateChanged: boolean;
+}
+
+interface WorkflowRelation {
+    databaseId: string;
+    operationId: string;
+    status: string;
 }
 
 interface Workflow {
@@ -460,6 +772,14 @@ interface Workflow {
     traceId: string | null;
     namespace: string;
     collectionKey: string | null;
+    // Present only on a receive workflow — the mailbox its first step reads from, and what matches
+    // a card to the mailbox block under its collection. Omitted on every ordinary workflow.
+    // NOT dashboard-only any more: this projection is the only surface exposing the
+    // receive-workflow marker (the public workflow read omits it), so an app-lib integration test
+    // reads it to assert that a mailbox continuation is *not* a receiver
+    // (Altinn.App.Integration.Tests/WorkflowEngine/WorkflowEngineMailboxMultiExchangeTests). Renaming
+    // or dropping the field breaks that test, in another tree, not just a dashboard card.
+    mailboxId: string | undefined;
     labels: Record<string, string> | null;
     backoffUntil: string | null;
     createdAt: string;
@@ -468,6 +788,13 @@ interface Workflow {
     removedAt: string | null;
     startAt: string | null;
     hasState: boolean;
+    // isHead === false marks workflows deliberately invisible to collection head tracking.
+    isHead: boolean | undefined;
+    // Tri-state: undefined = not loaded by the source query (fetch via /dashboard/relations),
+    // [] = loaded and none exist.
+    dependsOn: WorkflowRelation[] | undefined;
+    dependents: WorkflowRelation[] | undefined;
+    links: WorkflowRelation[] | undefined;
     steps: Step[];
 }
 ```
@@ -480,21 +807,31 @@ interface Workflow {
 
 Workflows are fingerprinted to avoid unnecessary DOM updates. Cards only re-render when their fingerprint changes. Stored in `state.workflowFingerprints[databaseId]`.
 
-Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.backoffUntil},...`
-Example: `"Processing|Completed:0:,Processing:0:,Enqueued:1:2024-01-15T10:30:45Z"`
+Formula: `{workflow.status}|{step1.status}:{step1.retryCount}:{step1.deferCount}:{step1.backoffUntil},...|{dependsOn statuses}|{dependents statuses}|{links statuses}`
+Example: `"Processing|Completed:0:0:,Processing:0:0:,Enqueued:1:0:2024-01-15T10:30:45Z|Completed||"`
+`deferCount` is in the formula so a Waiting step's card re-renders on every deferral, refreshing its
+reason sub-label and its backoff countdown.
+The trailing relation-status segments keep relation chip dot colors fresh when only a related
+workflow's status changed.
+
+Timestamps are deliberately absent from both this formula and the server's own change detection for
+the `active` array (`{databaseId}|{status}|{backoffUntil}|{step status}:{retryCount}`), so a new
+`executionStartedAt` is pushed and drawn only because the status change that accompanies it is. That
+costs nothing today — the elapsed counter reads the anchor out of `state.previousWorkflows` on every
+frame rather than from the rendered HTML — but anything new that renders a timestamp _into_ card
+markup would sit stale until some other field moved, and belongs in the formula.
 
 ### Animations
 
 - **Enter**: New inbox cards slide in from top
 - **Exit**: Removed cards fade out with `complete-exit` animation (0.5s)
-- **Exit-fail**: Failed workflows use a red-tinted exit animation
 - **Recent-enter**: New recent cards slide in with a brief glow highlight (`recent-glow` / `recent-glow-fail`)
-- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by matching idempotency keys in the SSE `recentKeys` set), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations.
+- **Recent transition skip**: When a workflow moves from Inbox to Recent (detected by its `databaseId` being in the `recentKeys` set built from the same SSE payload's `recent` array), the exit animation is skipped — the card is removed instantly from Inbox to avoid the jarring overlap of exit + enter animations. Keyed by `databaseId` and not by idempotency key, which is batch-level: a sibling workflow from the same batch reaching Recent must not suppress a still-active one's animation.
 - **Pulse sync**: When a card is re-rendered, the CSS processing pulse animation phase is synchronized to `performance.now() % 2000` to avoid flicker.
 
 ### Timers
 
-Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Timer state stored in `state.workflowTimers[databaseId]`. Timers freeze (`frozenAt`) when a workflow leaves active state but the card hasn't been removed yet (during exit animation).
+Active workflow cards have elapsed timers that tick via `requestAnimationFrame`. Each frame re-reads the anchor from the live section's own copy of the workflow (`state.previousWorkflows[databaseId]`), so a card re-anchors on `executionStartedAt` as soon as a new attempt stamps it and its number stays continuous with the settled duration the same workflow shows once it lands in Recent. A workflow that leaves the active set loses that copy, so nothing ticks its card any more: the live section stamps the card's counter with its final elapsed on the way out, and that frozen number is what the card shows for the length of its exit animation. Re-renders skip a card already marked exiting, so the frozen value survives until the card is removed.
 
 ### Late-Bound Callbacks
 
@@ -527,10 +864,12 @@ Extracts the BPMN transition from `workflow.operationId`. Expected format: `"Pro
 
 Maps step command names to phases:
 
-- **`end`**: EndTask, CommonTaskFinalization, EndTaskLegacyHook, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook, AbandonTaskLegacyHook
-- **`start`**: UnlockTaskData, StartTask, StartTaskLegacyHook, OnTaskStartingHook, CommonTaskInitialization
-- **`process-end`**: OnProcessEndingHook
+- **`end`**: EndTask, CommonTaskFinalization, OnTaskEndingHook, LockTaskData, AbandonTask, OnTaskAbandonHook
+- **`start`**: UnlockTaskData, CleanupGeneratedFromTask, StartTask, OnTaskStartingHook, CommonTaskInitialization
+- **`process-end`**: OnProcessEndingHook, EndProcessLegacyHook
 - **`null`**: Everything else (service tasks, webhooks)
+
+The sets mirror the app library's `WorkflowCommandSet` (the app's `Internal/WorkflowEngine/AGENTS.md`, "How to Add a New Command"). A task-phase command missing here maps to `null`, which ends the bracket before it and starts a new one after it — the task name is then drawn twice around an untagged step.
 
 Phases drive the bracket lines and task name labels shown on the pipeline. The `pipeline.js` renderer groups consecutive steps with the same phase and renders labels at the center of each group.
 
@@ -541,6 +880,8 @@ Phases drive the bracket lines and task name labels shown on the pipeline. The `
 The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappings:
 
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
+- **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
+- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

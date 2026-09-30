@@ -7,10 +7,9 @@
   "FaxNumber": "92110000",
   "EMailAddress": "lofoten@eashealt.no",
   "InternetAddress": "http://eashealt.no",
-  "MailingAddress": "Feskslogveien 12",
+  "MailingAddress": "Feskslogveien 12 8400 Svolvær",
   "MailingPostalCode": "8400",
   "MailingPostalCity": "Svolvær",
-  "BusinessAddress": "Feskslogveien 12",
-  "BusinessPostalCode": "8300",
-  "BusinessPostalCity": "By"
+  "BusinessAddress": "Feskslogveien 12 8300 Svolvær",
+  "BusinessPostalCity": "Svolvær"
 }

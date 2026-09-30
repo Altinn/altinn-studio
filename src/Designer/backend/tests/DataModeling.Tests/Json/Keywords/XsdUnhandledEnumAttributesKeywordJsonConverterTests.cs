@@ -63,6 +63,7 @@ public class XsdUnhandledEnumAttributesKeywordJsonConverterTests
         var jsonStream = new MemoryStream();
         var jsonWriter = new Utf8JsonWriter(jsonStream);
         jsonWriter.WriteStartObject();
+        jsonWriter.WritePropertyName("@xsdUnhandledEnumAttributes");
         keywordConverter.Write(jsonWriter, keyword, new JsonSerializerOptions());
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();

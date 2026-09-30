@@ -1,0 +1,2738 @@
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Studioctl.Tests.Upgrade.v8Tov9;
+
+public sealed class CSharpApiMigrationTests : IDisposable
+{
+    private readonly TempAppFolder _app = new();
+
+    public void Dispose() => _app.Dispose();
+
+    private CSharpSourceScanner Scanner() => new(Path.Combine(_app.Root, "App"));
+
+    /// <summary>
+    /// The reported <c>path:line: symbol</c> lines only, excluding the leading guidance summary. Negative
+    /// assertions must use these: a summary legitimately names the surviving APIs to migrate towards, so
+    /// searching the whole warning set for an API name that must not be flagged matches the summary.
+    /// </summary>
+    private static IEnumerable<string> Locations(MigrationResult result) =>
+        result.Warnings.Where(static w => w.Contains(".cs:", StringComparison.Ordinal));
+
+    /// <summary>
+    /// The guidance summaries only, excluding the <c>path:line: symbol</c> location lines. Assertions that
+    /// a summary does or does not pair two ideas must use these: a summary and its locations are separate
+    /// elements, so searching all warnings for two substrings at once can never match.
+    /// </summary>
+    private static IEnumerable<string> Summaries(MigrationResult result) =>
+        result
+            .Messages.Select(static message => message.Text)
+            .Where(static t => !t.Contains(".cs:", StringComparison.Ordinal));
+
+    // --- RemovedTaskEventInterfaceDetector -------------------------------------------------------
+
+    [Fact]
+    public void TaskEventDetector_FlagsImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyTaskEnd.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyTaskEnd : IProcessTaskEnd
+            {
+                public Task End(string taskId, Instance instance) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IProcessTaskEnd, MyTaskEnd>();
+            """
+        );
+
+        var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("MyTaskEnd.cs") && w.Contains("MyTaskEnd : IProcessTaskEnd"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IProcessTaskEnd"));
+    }
+
+    [Fact]
+    public void TaskEventDetector_FlagsBaseListGenericTypeArgument()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            public class Wrapper : List<IProcessTaskEnd>
+            {
+            }
+            """
+        );
+
+        var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Wrapper.cs") && w.Contains("IProcessTaskEnd"));
+    }
+
+    [Fact]
+    public void TaskEventDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedTaskEventInterfaceDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- ServiceTaskResultApiDetector ------------------------------------------------------------
+
+    [Fact]
+    public void ServiceTaskResultDetector_FlagsRemovedTypesAndFactories()
+    {
+        _app.Write(
+            "logic/MyServiceTask.cs",
+            """
+            public class MyServiceTask
+            {
+                public ServiceTaskResult Run()
+                {
+                    var handling = new ServiceTaskErrorHandling(ServiceTaskErrorStrategy.Abort);
+                    return ServiceTaskResult.FailedContinueProcessNext("reject");
+                }
+            }
+            """
+        );
+
+        var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("ServiceTaskErrorHandling"));
+        Assert.Contains(result.Warnings, w => w.Contains("FailedContinueProcessNext"));
+    }
+
+    [Fact]
+    public void ServiceTaskResultDetector_FlagsQualifiedFailedFactory_NotUnrelatedFailed()
+    {
+        _app.Write(
+            "logic/MyServiceTask.cs",
+            """
+            public class MyServiceTask
+            {
+                public ServiceTaskResult Run() => ServiceTaskResult.Failed(_handling);
+
+                public void Unrelated() => _telemetry.Failed("other");
+            }
+            """
+        );
+
+        var result = new ServiceTaskResultApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyServiceTask.cs:3") && w.Contains("ServiceTaskResult.Failed")
+        );
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("MyServiceTask.cs:5"));
+    }
+
+    // --- RemovedEventsReceiveStackDetector -------------------------------------------------------
+
+    [Fact]
+    public void EventsReceiveStackDetector_FlagsHandlerImplementationsAndDiRegistrations()
+    {
+        _app.Write(
+            "logic/MyEventHandler.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class MyEventHandler : IEventHandler
+            {
+                public string EventType => "app.my-org.something-happened";
+                public Task<bool> ProcessEvent(CloudEvent cloudEvent) => Task.FromResult(true);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient<IEventHandler, MyEventHandler>();
+            builder.Services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+            builder.Services.AddSingleton<IEventSecretCodeProvider, MySecretCodeProvider>();
+            """
+        );
+        _app.Write(
+            "logic/MyReceiver.cs",
+            """
+            using Altinn.App.Api.Controllers;
+            public class MyReceiver : EventsReceiverController
+            {
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyEventHandler.cs") && w.Contains("MyEventHandler : IEventHandler")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventsSubscription"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("IEventSecretCodeProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("MyReceiver.cs") && w.Contains("MyReceiver : EventsReceiverController")
+        );
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_DoesNotFlagEventPublishing()
+    {
+        _app.Write(
+            "logic/MyPublisher.cs",
+            """
+            using Altinn.App.Core.Internal.Events;
+            public class MyPublisher
+            {
+                private readonly IEventsClient _eventsClient;
+                public MyPublisher(IEventsClient eventsClient) => _eventsClient = eventsClient;
+                public Task Publish() => _eventsClient.AddEvent("app.my-org.something-happened", new Instance());
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EventsReceiveStackDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedEventsReceiveStackDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- LegacyEFormidlingCodeDetector -----------------------------------------------------------
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsRemovedProviderAndAppSetting()
+    {
+        _app.Write(
+            "logic/LegacyProvider.cs",
+            """
+            public class LegacyProvider : IEFormidlingLegacyConfigurationProvider
+            {
+                public bool Enabled(AppSettings settings) => settings.EnableEFormidling;
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("LegacyProvider : IEFormidlingLegacyConfigurationProvider"));
+        Assert.Contains(result.Warnings, w => w.Contains("EnableEFormidling"));
+    }
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacySingleArgShipment_NotMigratedUsage()
+    {
+        _app.Write(
+            "logic/LegacySender.cs",
+            """
+            public class LegacySender : IEFormidlingService
+            {
+                public Task SendEFormidlingShipment(Instance instance) => Task.CompletedTask;
+            }
+            """
+        );
+        _app.Write(
+            "logic/MigratedSender.cs",
+            """
+            public class MigratedSender
+            {
+                private readonly IEFormidlingService _service;
+
+                public Task Send(Instance instance, ValidAltinnEFormidlingConfiguration config) =>
+                    _service.SendEFormidlingShipment(instance, config);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("LegacySender.cs") && w.Contains("SendEFormidlingShipment"));
+        Assert.DoesNotContain(result.Warnings, w => w.Contains("MigratedSender.cs"));
+    }
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacySingleArgInvocation()
+    {
+        _app.Write(
+            "logic/Caller.cs",
+            """
+            public class Caller
+            {
+                private readonly IEFormidlingService _service;
+
+                public Task Send(Instance instance) => _service.SendEFormidlingShipment(instance);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
+    }
+
+    [Fact]
+    public void EFormidlingCodeDetector_FlagsLegacyNullConditionalInvocation()
+    {
+        _app.Write(
+            "logic/Caller.cs",
+            """
+            public class Caller
+            {
+                private readonly IEFormidlingService? _service;
+
+                public Task? Send(Instance instance) => _service?.SendEFormidlingShipment(instance);
+            }
+            """
+        );
+
+        var result = new LegacyEFormidlingCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Caller.cs:5") && w.Contains("SendEFormidlingShipment"));
+    }
+
+    // --- RemovedInternalProcessTypeDetector ------------------------------------------------------
+
+    [Fact]
+    public void InternalProcessTypeDetector_FlagsRemovedHandlerReference()
+    {
+        _app.Write(
+            "logic/Custom.cs",
+            """
+            public class Custom
+            {
+                private readonly EndTaskEventHandler _handler;
+            }
+            """
+        );
+
+        var result = new RemovedInternalProcessTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
+    }
+
+    // --- EFormidlingReceiversSignatureMigration --------------------------------------------------
+
+    [Fact]
+    public void ReceiversMigration_AddsParameterToImplementation()
+    {
+        var path = _app.Write(
+            "logic/Receivers.cs",
+            """
+            public class Receivers : IEFormidlingReceivers
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
+            }
+            """
+        );
+
+        var result = new EFormidlingReceiversSignatureMigration(
+            Scanner(),
+            projectNullableAnnotationsEnabled: true
+        ).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.NotEmpty(result.Warnings);
+        var migrated = File.ReadAllText(path);
+        Assert.Contains("GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)", migrated);
+    }
+
+    [Fact]
+    public void ReceiversMigration_IsIdempotent()
+    {
+        var path = _app.Write(
+            "logic/Receivers.cs",
+            """
+            public class Receivers : IEFormidlingReceivers
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig) => throw new NotImplementedException();
+            }
+            """
+        );
+        var before = File.ReadAllText(path);
+
+        var result = new EFormidlingReceiversSignatureMigration(
+            Scanner(),
+            projectNullableAnnotationsEnabled: true
+        ).Migrate();
+
+        Assert.Empty(result.Warnings);
+        Assert.Equal(before, File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void ReceiversMigration_IgnoresUnrelatedMethod()
+    {
+        var path = _app.Write(
+            "logic/NotAReceiver.cs",
+            """
+            public class NotAReceiver
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
+            }
+            """
+        );
+        var before = File.ReadAllText(path);
+
+        var result = new EFormidlingReceiversSignatureMigration(
+            Scanner(),
+            projectNullableAnnotationsEnabled: true
+        ).Migrate();
+
+        Assert.Empty(result.Warnings);
+        Assert.Equal(before, File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void ReceiversMigration_WithoutNullableContext_AddsUnannotatedParameter()
+    {
+        var path = _app.Write(
+            "logic/Receivers.cs",
+            """
+            public class Receivers : IEFormidlingReceivers
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
+            }
+            """
+        );
+
+        var result = new EFormidlingReceiversSignatureMigration(
+            Scanner(),
+            projectNullableAnnotationsEnabled: false
+        ).Migrate();
+
+        Assert.NotEmpty(result.Warnings);
+        var migrated = File.ReadAllText(path);
+        Assert.Contains("GetEFormidlingReceivers(Instance instance, string receiverFromConfig)", migrated);
+    }
+
+    [Fact]
+    public void ReceiversMigration_FileLevelNullableDirective_OverridesProjectDefault()
+    {
+        var enabledByDirective = _app.Write(
+            "logic/EnabledByDirective.cs",
+            """
+            #nullable enable
+            public class EnabledByDirective : IEFormidlingReceivers
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
+            }
+            """
+        );
+        var disabledByDirective = _app.Write(
+            "logic/DisabledByDirective.cs",
+            """
+            #nullable disable
+            public class DisabledByDirective : IEFormidlingReceivers
+            {
+                public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance) => throw new NotImplementedException();
+            }
+            """
+        );
+
+        new EFormidlingReceiversSignatureMigration(Scanner(), projectNullableAnnotationsEnabled: false).Migrate();
+
+        Assert.Contains("string? receiverFromConfig", File.ReadAllText(enabledByDirective));
+        Assert.Contains("string receiverFromConfig", File.ReadAllText(disabledByDirective));
+        Assert.DoesNotContain("string? receiverFromConfig", File.ReadAllText(disabledByDirective));
+    }
+
+    [Theory]
+    [InlineData("<Nullable>enable</Nullable>", true)]
+    [InlineData("<Nullable>annotations</Nullable>", true)]
+    [InlineData("<Nullable>warnings</Nullable>", false)]
+    [InlineData("<Nullable>disable</Nullable>", false)]
+    [InlineData("", false)]
+    public void ProjectEnablesNullableAnnotations_ReadsCsprojNullableProperty(string property, bool expected)
+    {
+        var projectFile = _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <TargetFramework>net8.0</TargetFramework>
+                {property}
+              </PropertyGroup>
+            </Project>
+            """
+        );
+
+        Assert.Equal(expected, EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
+    }
+
+    [Fact]
+    public void ProjectEnablesNullableAnnotations_FallsBackToNearestDirectoryBuildProps()
+    {
+        var projectFile = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <TargetFramework>net8.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+        _app.Write(
+            "Directory.Build.props",
+            """
+            <Project>
+              <PropertyGroup>
+                <Nullable>enable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+
+        Assert.True(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
+    }
+
+    [Fact]
+    public void ProjectEnablesNullableAnnotations_ProjectFileWinsOverDirectoryBuildProps()
+    {
+        var projectFile = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <PropertyGroup>
+                <Nullable>disable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+        _app.Write(
+            "Directory.Build.props",
+            """
+            <Project>
+              <PropertyGroup>
+                <Nullable>enable</Nullable>
+              </PropertyGroup>
+            </Project>
+            """
+        );
+
+        Assert.False(EFormidlingReceiversSignatureMigration.ProjectEnablesNullableAnnotations(projectFile));
+    }
+
+    // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsLegacyAuthorisationEnumAndTokenFactoryPayload()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            using Altinn.App.Core.Features.Correspondence.Models;
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Legacy(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
+
+                public GetCorrespondenceStatusPayload LegacyFactory(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, () => _client.GetAltinnExchangedToken(_scopes));
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:5") && w.Contains("CorrespondenceAuthorisation")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:8") && w.Contains("new GetCorrespondenceStatusPayload(.., lambda)")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("CorrespondenceAuthenticationMethod"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagMigratedPayloadConstruction()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Default(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
+
+                public SendCorrespondencePayload Custom(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(
+                        request,
+                        CorrespondenceAuthenticationMethod.Custom(() => _client.GetToken())
+                    );
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsNoOpBuilderMethodsIncludingNullConditional()
+    {
+        _app.Write(
+            "logic/BuildLetter.cs",
+            """
+            public class BuildLetter
+            {
+                public CorrespondenceRequest Build() =>
+                    CorrespondenceRequestBuilder
+                        .Create()
+                        .WithResourceId("resource")
+                        .WithSender(_org)
+                        .WithSendersReference("ref")
+                        .WithAllowSystemDeleteAfter(_deleteAfter)
+                        .Build();
+
+                public void Notify() => _notificationBuilder?.WithRequestedSendTime(_sendTime);
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:7") && w.Contains("WithSender"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("BuildLetter.cs:9") && w.Contains("WithAllowSystemDeleteAfter")
+        );
+        Assert.Contains(result.Warnings, w => w.Contains("BuildLetter.cs:12") && w.Contains("WithRequestedSendTime"));
+        // WithSendersReference survives v9 and must not be confused with WithSender.
+        Assert.DoesNotContain(Locations(result), w => w.Contains("WithSendersReference"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsDroppedFieldsInObjectInitialisers()
+    {
+        _app.Write(
+            "logic/Letter.cs",
+            """
+            public class Letter
+            {
+                public CorrespondenceRequest Request() =>
+                    new CorrespondenceRequest
+                    {
+                        Sender = _org,
+                        AllowSystemDeleteAfter = _deleteAfter,
+                        SendersReference = "ref",
+                    };
+
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification { RequestedSendTime = _sendTime };
+
+                public CorrespondenceAttachment Attachment() =>
+                    new CorrespondenceAttachment { DataLocationType = _location };
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Letter.cs:6") && w.Contains("CorrespondenceRequest.Sender"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:7") && w.Contains("CorrespondenceRequest.AllowSystemDeleteAfter")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:12") && w.Contains("CorrespondenceNotification.RequestedSendTime")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Letter.cs:15") && w.Contains("CorrespondenceAttachment.DataLocationType")
+        );
+        Assert.DoesNotContain(Locations(result), w => w.Contains("SendersReference"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagSurvivingSenderAndIsReservedOnResponses()
+    {
+        _app.Write(
+            "logic/ReadStatus.cs",
+            """
+            public class ReadStatus
+            {
+                public void Read(GetCorrespondenceStatusResponse status)
+                {
+                    var sender = status.Sender;
+                    var reserved = status.Notifications[0].Recipient.IsReserved;
+                    var location = status.Content.Attachments[0].DataLocationType;
+                    var sendTime = _notificationOrder.RequestedSendTime;
+                }
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRecipientOverrideSurface()
+    {
+        _app.Write(
+            "logic/Override.cs",
+            """
+            public class Override
+            {
+                public ICorrespondenceNotificationOverrideBuilder Legacy() =>
+                    CorrespondenceNotificationOverrideBuilder
+                        .Create()
+                        .WithRecipientToOverride(_org)
+                        .WithCorrespondenceNotificationRecipients(_recipients);
+
+                public CorrespondenceNotification Wrapped() =>
+                    new CorrespondenceNotification
+                    {
+                        CustomNotificationRecipients = [new CorrespondenceNotificationRecipientWrapper()],
+                    };
+
+                public CorrespondenceNotificationRecipient Reserved() =>
+                    new CorrespondenceNotificationRecipient { IsReserved = true };
+
+                public CorrespondenceNotification Singular() =>
+                    new CorrespondenceNotification { CustomRecipient = _recipient };
+
+                public CorrespondenceNotification Plural() =>
+                    new CorrespondenceNotification { CustomRecipients = [_recipient] };
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Override.cs:6") && w.Contains("WithRecipientToOverride"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:7") && w.Contains("WithCorrespondenceNotificationRecipients")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:12") && w.Contains("CorrespondenceNotification.CustomNotificationRecipients")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:12") && w.Contains("CorrespondenceNotificationRecipientWrapper")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:16") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Override.cs:19") && w.Contains("CorrespondenceNotification.CustomRecipient")
+        );
+        // `CustomRecipients` (plural) is the v9 replacement and must not be reported.
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Override.cs:22"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_DoesNotFlagSurvivingRecipientOverrideApi()
+    {
+        _app.Write(
+            "logic/Override.cs",
+            """
+            public class Override
+            {
+                public CorrespondenceNotification Build() =>
+                    CorrespondenceNotificationBuilder
+                        .Create()
+                        .WithNotificationTemplate(_template)
+                        .WithRecipientOverride(
+                            CorrespondenceNotificationOverrideBuilder
+                                .Create()
+                                .WithOrganizationNumber(_org)
+                                .WithEmailAddress("nobody@example.com")
+                                .Build()
+                        )
+                        .Build();
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRemovedDataLocationTypeEnum()
+    {
+        _app.Write(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                private CorrespondenceDataLocationType _location =
+                    CorrespondenceDataLocationType.ExistingCorrespondenceAttachment;
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Attach.cs:3") && w.Contains("CorrespondenceDataLocationType")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsFullyQualifiedLegacyAuthorisationEnum()
+    {
+        _app.Write(
+            "logic/SendLetter.cs",
+            """
+            public class SendLetter
+            {
+                public SendCorrespondencePayload Legacy(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(
+                        request,
+                        Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAuthorisation.Maskinporten
+                    );
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("SendLetter.cs:6") && w.Contains("CorrespondenceAuthorisation")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsRemovedBuilderStepInterface()
+    {
+        _app.Write(
+            "logic/Steps.cs",
+            """
+            public class Steps
+            {
+                public ICorrespondenceRequestBuilderSender Start() =>
+                    CorrespondenceRequestBuilder.Create().WithResourceId("resource");
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Steps.cs:3") && w.Contains("ICorrespondenceRequestBuilderSender")
+        );
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/MyService.cs",
+            """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- CorrespondenceApiMigration --------------------------------------------------------------
+
+    private IReadOnlyList<string> _lastMigrationWarnings = [];
+    private IReadOnlyList<string> _lastMigrationTodos = [];
+
+    private async Task<string> MigrateCorrespondence(string relativePath, string source)
+    {
+        var path = _app.Write(relativePath, source);
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
+        _lastMigrationWarnings = result.Warnings;
+        _lastMigrationTodos = result.Todos;
+
+        var migrated = (await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)).ReplaceLineEndings(
+            "\n"
+        );
+
+        // A rewriter that emits code the parser rejects would hand the developer an app that no longer
+        // builds, which is worse than the warning it replaced. Asserted for every case, not per-test.
+        var syntaxErrors = CSharpSyntaxTree
+            .ParseText(migrated)
+            .GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.ToString())
+            .ToList();
+        Assert.Empty(syntaxErrors);
+
+        return migrated;
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_RemovesNoOpCallsFromFluentChain()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public CorrespondenceRequest Build() =>
+                    CorrespondenceRequestBuilder
+                        .Create()
+                        .WithResourceId("resource")
+                        .WithSender(_org)
+                        .WithSendersReference("ref")
+                        .WithAllowSystemDeleteAfter(_deleteAfter)
+                        .Build();
+            }
+            """
+        );
+
+        Assert.DoesNotContain("WithSender(", migrated);
+        Assert.DoesNotContain("WithAllowSystemDeleteAfter", migrated);
+        // Surviving chain and its formatting must be intact.
+        Assert.Contains(
+            "            .WithResourceId(\"resource\")\n            .WithSendersReference(\"ref\")\n",
+            migrated
+        );
+        Assert.Contains(".Build();", migrated);
+        Assert.Equal(3, _lastMigrationWarnings.Count); // summary + two rewrites
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_RemovesNoOpStatementEntirely()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(_org);
+                    builder.WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("WithSender(", migrated);
+        Assert.Contains("builder.WithSendersReference(\"ref\");", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_UnlinksNoOpButKeepsRestOfStatementChain()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(_org).WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.Contains("builder.WithSendersReference(\"ref\");", migrated);
+        Assert.DoesNotContain("WithSender(", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_KeepsSurvivingCallsWhenTheNoOpEndsTheStatement()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithResourceId("resource").WithSender(_org);
+                }
+            }
+            """
+        );
+
+        // Deleting the whole statement here would take WithResourceId with it.
+        Assert.Contains("builder.WithResourceId(\"resource\");", migrated);
+        Assert.DoesNotContain("WithSender(", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_DoesNotRewriteWithDataWhenTheNameIsAmbiguousAcrossFiles()
+    {
+        // `payload` is a byte array in one file and a Stream in the other. Letting the first match win
+        // would emit `new MemoryStream(stream)`, which does not compile - and the syntax check cannot
+        // catch it, because the result still parses.
+        _app.Write(
+            "logic/A.cs",
+            """
+            public class A
+            {
+                public void Send(byte[] payload) => Builder.Create().WithData(payload);
+            }
+            """
+        );
+        var pathB = _app.Write(
+            "logic/B.cs",
+            """
+            public class B
+            {
+                public void Send(Stream payload) => Builder.Create().WithData(payload);
+            }
+            """
+        );
+
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
+
+        // Each is resolved from its own scope, so both are handled correctly rather than conflated.
+        Assert.Contains("WithData(payload)", await File.ReadAllTextAsync(pathB, TestContext.Current.CancellationToken));
+        Assert.DoesNotContain(
+            "new MemoryStream(payload)",
+            await File.ReadAllTextAsync(pathB, TestContext.Current.CancellationToken)
+        );
+        Assert.Contains(
+            "new MemoryStream(payload)",
+            await File.ReadAllTextAsync(
+                Path.Combine(_app.Root, "App", "logic", "A.cs"),
+                TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_ReportsWithDataWhenAnOutOfScopeNameIsAmbiguous()
+    {
+        // Nothing in the calling scope declares `Innhold`, and the app-wide fallback finds it declared
+        // as both a byte array and a Stream. Picking either would risk emitting code that does not
+        // compile, so it is reported instead.
+        _app.Write("models/A.cs", "public record VedleggA(byte[] Innhold);");
+        _app.Write("models/B.cs", "public record VedleggB(Stream Innhold);");
+        var path = _app.Write(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Attach(dynamic vedlegg) => Builder.Create().WithData(vedlegg.Innhold);
+            }
+            """
+        );
+
+        var result = new CorrespondenceApiMigration(Scanner()).Migrate(TestContext.Current.CancellationToken);
+
+        Assert.Contains(
+            "WithData(vedlegg.Innhold)",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
+        Assert.DoesNotContain(
+            "new MemoryStream(",
+            await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken)
+        );
+        Assert.Contains(result.Todos, t => t.Contains("could not be rewritten automatically"));
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_WarnsAboutDiscardedArgumentContainingACall()
+    {
+        await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public void Configure()
+                {
+                    builder.WithSender(ComputeSender()).WithSendersReference("ref");
+                }
+            }
+            """
+        );
+
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("no longer evaluated"));
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_LeavesShapesItCannotRewriteForTheDetector()
+    {
+        var source = """
+            public class Send
+            {
+                public void Arrow() => builder.WithSender(_org);
+
+                public void NullConditional() => builder?.WithRequestedSendTime(_time);
+            }
+            """;
+        var migrated = await MigrateCorrespondence("logic/Send.cs", source);
+
+        // Unchanged: `=> builder;` would not compile, and `?.` binds via a member binding.
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+
+        // The detector is the fallback for exactly these.
+        var detected = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+        Assert.NotEmpty(detected.Todos);
+        Assert.Contains(Locations(detected), w => w.Contains("WithSender"));
+        Assert.Contains(Locations(detected), w => w.Contains("WithRequestedSendTime"));
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_RemovesNoOpInitializersAndRenamesRecipient()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public CorrespondenceRequest Request() =>
+                    new CorrespondenceRequest
+                    {
+                        Sender = _org,
+                        SendersReference = "ref",
+                        AllowSystemDeleteAfter = _deleteAfter,
+                    };
+
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification { CustomRecipient = _recipient, RequestedSendTime = _time };
+            }
+            """
+        );
+
+        Assert.DoesNotContain("Sender = _org", migrated);
+        Assert.DoesNotContain("AllowSystemDeleteAfter", migrated);
+        Assert.DoesNotContain("RequestedSendTime", migrated);
+        Assert.Contains("SendersReference = \"ref\"", migrated);
+        Assert.Contains("CustomRecipients = [_recipient]", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_DoesNotTouchSameNamedPropertiesOnOtherTypes()
+    {
+        var source = """
+            public class Read
+            {
+                public object Response() =>
+                    new GetCorrespondenceStatusResponse { Sender = _org, AllowSystemDeleteAfter = _x };
+
+                public object Unrelated() => new MyOwnModel { Sender = _org, RequestedSendTime = _t };
+            }
+            """;
+        var migrated = await MigrateCorrespondence("logic/Read.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_ReplacesLegacyPayloadConstructors()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            public class Send
+            {
+                public SendCorrespondencePayload Enum(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthorisation.Maskinporten);
+
+                public GetCorrespondenceStatusPayload Factory(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, () => _client.GetAltinnExchangedToken(_scopes));
+            }
+            """
+        );
+
+        Assert.Contains(
+            "new SendCorrespondencePayload(request, global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Default())",
+            migrated
+        );
+        Assert.Contains(
+            "global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))",
+            migrated
+        );
+        Assert.DoesNotContain("CorrespondenceAuthorisation", migrated);
+        // Importing and simplification happen later, against the upgraded project's references.
+        Assert.DoesNotContain("using Altinn.App.Core.Features;", migrated);
+        // The scope widening must be surfaced, not applied silently.
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("instances.read"));
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_LeavesMigratedPayloadConstructionAlone()
+    {
+        var source = """
+            public class Send
+            {
+                public SendCorrespondencePayload Default(CorrespondenceRequest request) =>
+                    new SendCorrespondencePayload(request, CorrespondenceAuthenticationMethod.Default());
+            }
+            """;
+        var migrated = await MigrateCorrespondence("logic/Send.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_RenamesRemovedBuilderStepInterface()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Steps.cs",
+            """
+            public class Steps
+            {
+                private ICorrespondenceRequestBuilderSender? _step;
+
+                public ICorrespondenceRequestBuilderSender Start() =>
+                    CorrespondenceRequestBuilder.Create().WithResourceId("resource");
+            }
+            """
+        );
+
+        Assert.Contains("ICorrespondenceRequestBuilderSendersReference? _step", migrated);
+        Assert.Contains("ICorrespondenceRequestBuilderSendersReference Start()", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_PreservesSurroundingFormatting()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Send.cs",
+            """
+            using Microsoft.Extensions.Logging;
+
+            public class Send
+            {
+                public CorrespondenceNotification Notification() =>
+                    new CorrespondenceNotification
+                    {
+                        NotificationTemplate = _template,
+                        EmailSubject = "subject",
+                        RequestedSendTime = _time,
+                        CustomRecipient = _recipient,
+                        SmsBody = "sms",
+                    };
+
+                public GetCorrespondenceStatusPayload Status(Guid id) =>
+                    new GetCorrespondenceStatusPayload(
+                        id,
+                        () => _client.GetAltinnExchangedToken(_scopes)
+                    );
+            }
+            """
+        );
+
+        // A rewrite that reflows the surrounding code produces an unreviewable diff and fails a
+        // formatter gate, so the entries that survive must keep their own lines and indentation.
+        Assert.Contains(
+            """
+                    {
+                        NotificationTemplate = _template,
+                        EmailSubject = "subject",
+                        CustomRecipients = [_recipient],
+                        SmsBody = "sms",
+                    };
+            """.ReplaceLineEndings("\n"),
+            migrated
+        );
+
+        // The inserted call must sit where the expression it replaced sat, not at column 0.
+        Assert.Contains(
+            "            global::Altinn.App.Core.Features.CorrespondenceAuthenticationMethod.Custom(() => _client.GetAltinnExchangedToken(_scopes))\n",
+            migrated
+        );
+
+        Assert.StartsWith("using Microsoft.Extensions.Logging;", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_WrapsProvableByteDataAndLeavesStreamsAlone()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public record Vedlegg(string Navn, ReadOnlyMemory<byte> Innhold);
+
+            public class Attach
+            {
+                public void Provable(Vedlegg vedlegg, byte[] raw)
+                {
+                    Builder.Create().WithData(raw);
+                    Builder.Create().WithData(vedlegg.Innhold);
+                    Builder.Create().WithData(Encoding.UTF8.GetBytes(_text));
+                    Builder.Create().WithData("literal"u8.ToArray());
+                }
+
+                public void AlreadyStreams(Stream open)
+                {
+                    Builder.Create().WithData(new MemoryStream(_bytes));
+                    Builder.Create().WithData(open);
+                }
+            }
+            """
+        );
+
+        // Provably bytes - wrapped.
+        Assert.Contains("WithData(new MemoryStream(raw))", migrated);
+        Assert.Contains("WithData(new MemoryStream(Encoding.UTF8.GetBytes(_text)))", migrated);
+        Assert.Contains("WithData(new MemoryStream(\"literal\"u8.ToArray()))", migrated);
+
+        // Provably ReadOnlyMemory<byte> (declared in the app) - reported, never wrapped: the
+        // MemoryStream constructor takes an array, so the wrap would not compile.
+        Assert.Contains("WithData(vedlegg.Innhold);", migrated);
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("cannot be wrapped in a MemoryStream directly"));
+
+        // Provably a stream - untouched. Wrapping either of these would not compile.
+        Assert.Contains("WithData(new MemoryStream(_bytes));", migrated);
+        Assert.DoesNotContain("new MemoryStream(new MemoryStream", migrated);
+        Assert.Contains("WithData(open);", migrated);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_FollowsVarToItsInitializerToClassifyByteData()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                public async Task Send()
+                {
+                    var bytes = await _dataClient.GetDataBytes(_party, _instance, _element);
+                    Builder.Create().WithData(bytes);
+                }
+            }
+            """
+        );
+
+        // `var` writes out no type, but its initializer settles it - the common shape for a payload
+        // fetched from a client, and the one real-world case that would otherwise need a hand edit.
+        Assert.Contains("WithData(new MemoryStream(bytes))", migrated);
+        Assert.Empty(_lastMigrationTodos);
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_ReportsWithDataItCannotClassify()
+    {
+        await MigrateCorrespondence(
+            "logic/Attach.cs",
+            """
+            public class Attach
+            {
+                public void Ambiguous()
+                {
+                    var payload = await _client.GetSomething();
+                    Builder.Create().WithData(payload);
+                }
+            }
+            """
+        );
+
+        // `var` with an unrecognizable initializer stays unknown, so guessing would risk wrapping a Stream.
+        Assert.Contains(_lastMigrationTodos, t => t.Contains("could not be rewritten automatically"));
+        Assert.Contains(_lastMigrationWarnings, w => w.Contains("Attach.cs:6") && w.Contains("WithData(payload)"));
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_CleanApp_ChangesNothing()
+    {
+        var source = """
+            public class MyService
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """;
+        var migrated = await MigrateCorrespondence("logic/MyService.cs", source);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.Empty(_lastMigrationWarnings);
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsTokenFactoryHeldInAVariable()
+    {
+        // A `Func<Task<JwtToken>>` in a field cannot be typed without binding, so it is reported rather
+        // than missed - staying silent here hid the whole authorisation break from an app that never
+        // wrote the enum inline.
+        _app.Write(
+            "logic/Purring.cs",
+            """
+            public class Purring
+            {
+                private Func<Task<JwtToken>> Tokenkilde => () => _client.GetAltinnExchangedToken(_scopes);
+
+                public GetCorrespondenceStatusPayload Status(Guid id) =>
+                    new GetCorrespondenceStatusPayload(id, Tokenkilde);
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Locations(result), w => w.Contains("Purring.cs:6") && w.Contains("Tokenkilde"));
+        Assert.Contains(Summaries(result), s => s.Contains("held in a variable"));
+    }
+
+    [Fact]
+    public void CorrespondenceDetector_FlagsTargetTypedNewViaTheDeclaredType()
+    {
+        // `T x = new() { .. }` is ordinary modern C#. The creation node carries no type, so without
+        // resolving it from the declaration this is missed entirely - and the app then hits a bare
+        // compiler error with no guidance.
+        _app.Write(
+            "logic/Varsel.cs",
+            """
+            public class Varsel
+            {
+                public CorrespondenceNotificationRecipient Mottaker(string fnr)
+                {
+                    CorrespondenceNotificationRecipient mottaker = new()
+                    {
+                        NationalIdentityNumber = fnr,
+                        IsReserved = true,
+                    };
+                    return mottaker;
+                }
+            }
+            """
+        );
+
+        var result = new LegacyCorrespondenceCodeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Varsel.cs:8") && w.Contains("CorrespondenceNotificationRecipient.IsReserved")
+        );
+    }
+
+    [Fact]
+    public async Task CorrespondenceMigration_RewritesTargetTypedNewViaTheDeclaredType()
+    {
+        var migrated = await MigrateCorrespondence(
+            "logic/Varsel.cs",
+            """
+            public class Varsel
+            {
+                public CorrespondenceNotification Notification()
+                {
+                    CorrespondenceNotification varsel = new()
+                    {
+                        NotificationTemplate = _template,
+                        RequestedSendTime = _time,
+                        CustomRecipient = _recipient,
+                    };
+                    return varsel;
+                }
+            }
+            """
+        );
+
+        Assert.DoesNotContain("RequestedSendTime", migrated);
+        Assert.Contains("CustomRecipients = [_recipient]", migrated);
+    }
+
+    // --- RemovedMaskinportenShimDetector ---------------------------------------------------------
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsRemovedProviderAndRegistration()
+    {
+        _app.Write(
+            "logic/TokenLookup.cs",
+            """
+            using Altinn.App.Core.Internal.Maskinporten;
+            public class TokenLookup
+            {
+                private readonly IMaskinportenTokenProvider _provider;
+                public Task<string> Fetch() => _provider.GetToken("some:scope");
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddMaskinportenJwkTokenProvider("my-secret");
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("TokenLookup.cs") && w.Contains("IMaskinportenTokenProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("AddMaskinportenJwkTokenProvider")
+        );
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_FlagsCertificateProviderAndLegacyEformidlingHandler()
+    {
+        _app.Write(
+            "logic/Certs.cs",
+            """
+            public class Certs : IX509CertificateProvider
+            {
+                public Task<X509Certificate2> GetCertificate() => Task.FromResult(_cert);
+            }
+            """
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Certs.cs") && w.Contains("Certs : IX509CertificateProvider"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler")
+        );
+
+        // The eFormidling handler is not replaced by the Maskinporten client, so it must carry its own
+        // guidance. Warnings are emitted as a summary line followed by separate location lines, so this
+        // asserts on the two summaries rather than looking for both strings in one element.
+        var summaries = Summaries(result).ToList();
+        Assert.Contains(
+            summaries,
+            s =>
+                s.Contains("EformidlingStatusCheckEventHandler")
+                && s.Contains("services.AddEFormidling().WithMetadata<T>()")
+        );
+        // The v8 registration methods are gone in v9, so the guidance must never name one.
+        Assert.DoesNotContain(summaries, s => s.Contains("AddEFormidlingServices"));
+        Assert.DoesNotContain(
+            summaries,
+            s => s.Contains("EformidlingStatusCheckEventHandler") && s.Contains("IMaskinportenClient")
+        );
+    }
+
+    /// <summary>
+    /// <c>EformidlingStatusCheckEventHandler2</c> was public in v8 and is deleted in v9, so an app naming it
+    /// fails to compile and must be told - it is not a surviving public API.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_FlagsTheRemovedSecondStatusCheckHandler()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddTransient<IEventHandler, EformidlingStatusCheckEventHandler2>();
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("EformidlingStatusCheckEventHandler2")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("services.AddEFormidling().WithMetadata<T>()"));
+    }
+
+    /// <summary>
+    /// The replacement client shares the <c>GetAltinnExchangedToken</c> method name with the removed
+    /// provider, and must not be flagged: it is the API apps are being migrated towards.
+    /// </summary>
+    [Fact]
+    public void MaskinportenShimDetector_IgnoresTheReplacementClient()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+                public Task<JwtToken> Fetch() => _client.GetAltinnExchangedToken(["some:scope"]);
+            }
+            """
+        );
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(Locations(result));
+    }
+
+    [Fact]
+    public void MaskinportenShimDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write("logic/MyService.cs", "public class MyService { }");
+
+        var result = new RemovedMaskinportenShimDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- ExternalMaskinportenPackageDetector -----------------------------------------------------
+
+    private string WriteProject(string packageReferences) =>
+        _app.Write(
+            "App.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="Altinn.App.Api" Version="8.0.0" />
+                {packageReferences}
+              </ItemGroup>
+            </Project>
+            """
+        );
+
+    [Fact]
+    public void ExternalPackageDetector_WithoutOwnReference_ReportsBrokenBuild()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Client.cs") && w.Contains("using Altinn.ApiClients.Maskinporten.Interfaces")
+        );
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_WithOwnReference_AdvisesWithoutBlocking()
+    {
+        var project = WriteProject(
+            """<PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />"""
+        );
+        _app.Write(
+            "Program.cs",
+            """
+            services.AddMaskinportenHttpClient<SettingsJwkClientDefinition>("my-client", settings);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("AddMaskinportenHttpClient"));
+    }
+
+    /// <summary>
+    /// <c>MaskinportenService</c> is the obvious name for an app's own wrapper around the v9 built-in
+    /// client. Flagging it would tell an app whose build is fine to install a package it never used.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresAnAppsOwnWrapperNamedLikeTheExternalService()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/MaskinportenService.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class MaskinportenService
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+        _app.Write("Program.cs", "services.AddScoped<MaskinportenService>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// The same ambiguous name does count once the file imports the package's namespace.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FlagsAmbiguousNamesAlongsideThePackageImport()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "logic/Client.cs",
+            """
+            using Altinn.ApiClients.Maskinporten.Interfaces;
+            public class Client
+            {
+                private readonly IMaskinportenService _service;
+            }
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Client.cs") && w.Contains("IMaskinportenService"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FlagsDistinctiveClientDefinitionsWithoutAnImport()
+    {
+        var project = WriteProject("");
+        _app.Write("Program.cs", "services.AddSingleton<Pkcs12ClientDefinition>();");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Pkcs12ClientDefinition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_FindsAReferenceInANamespacedProjectFile()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+              <ItemGroup>
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// The built-in client exposes an <c>AddMaskinportenHttpMessageHandler</c> of its own, so correct v9
+    /// code must not be mistaken for external-package usage.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_IgnoresBuiltInClientUsage()
+    {
+        var project = WriteProject("");
+        _app.Write(
+            "Program.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            services.AddHttpClient<MyClient>().AddMaskinportenHttpMessageHandler(["some:scope"]);
+            services.AddHttpClient<Other>().UseMaskinportenAuthorization(["some:scope"]);
+            """
+        );
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    /// <summary>
+    /// A reference nested below the top-level ItemGroup is still a declaration, so it must be found - but
+    /// being gated by a condition does not make the app safe, because the code using it compiles in every
+    /// configuration. Both halves matter, so they are asserted together.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalReferenceAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When Condition="'$(Configuration)' == 'Release'">
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
+    }
+
+    /// <summary>
+    /// The same nesting, unconditional this time: found, and genuinely sufficient.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_FindsAnUnconditionalReferenceNestedBelowTheTopLevelItemGroup()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <Choose>
+                <When>
+                  <ItemGroup>
+                    <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+                  </ItemGroup>
+                </When>
+              </Choose>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("no action is required"));
+    }
+
+    /// <summary>
+    /// A conditional ItemGroup at the top level is the same hazard as a nested one.
+    /// </summary>
+    [Fact]
+    public void ExternalPackageDetector_TreatsAConditionalItemGroupAsInsufficient()
+    {
+        var project = _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+                <PackageReference Include="Altinn.ApiClients.Maskinporten" Version="10.0.1" />
+              </ItemGroup>
+            </Project>
+            """
+        );
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("behind an MSBuild condition"));
+    }
+
+    [Fact]
+    public void ExternalPackageDetector_UnreadableProject_PrefersTheLouderMessage()
+    {
+        var project = _app.Write("App.csproj", "<Project><not-closed>");
+        _app.Write("logic/Client.cs", "using Altinn.ApiClients.Maskinporten;");
+
+        var result = new ExternalMaskinportenPackageDetector(Scanner(), project).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+    }
+
+    // --- MaskinportenClientOverrideDetector ------------------------------------------------------
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsACustomSectionPath()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
+            {
+                services.ConfigureMaskinportenClient("MyOwnMaskinporten");
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        // The section name is what the studioctl command needs, so the call site is reported with it.
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Program.cs") && w.Contains("ConfigureMaskinportenClient(\"MyOwnMaskinporten\")")
+        );
+        Assert.Contains(Summaries(result), s => s.Contains("will not compile"));
+        Assert.Contains(Summaries(result), s => s.Contains("studioctl app maskinporten set"));
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_FlagsAConfigurationLambda()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services.ConfigureMaskinportenClient(config =>
+            {
+                config.ClientId = "my-client";
+                config.Authority = "https://maskinporten.no/";
+            });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// Naming the provisioned section was a no-op in v8 and was therefore exempt. In v9 the method itself
+    /// is gone, so the call no longer compiles whatever it names.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_FlagsRebindingTheProvisionedSection()
+    {
+        _app.Write("Program.cs", """services.ConfigureMaskinportenClient("MaskinportenSettings");""");
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("ConfigureMaskinportenClient"));
+    }
+
+    /// <summary>
+    /// The Fiks builder forwarded to the same removed API - the blind spot the old call-name-only check had.
+    /// </summary>
+    [Fact]
+    public void ClientOverrideDetector_FlagsTheFiksBuilderForwarder()
+    {
+        _app.Write(
+            "Program.cs",
+            """
+            services
+                .AddFiksArkiv()
+                .WithMaskinportenConfig(config =>
+                {
+                    config.ClientId = "my-client";
+                });
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Program.cs") && w.Contains("WithMaskinportenConfig"));
+    }
+
+    [Fact]
+    public void ClientOverrideDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Tokens.cs",
+            """
+            using Altinn.App.Core.Features.Maskinporten;
+            public class Tokens
+            {
+                private readonly IMaskinportenClient _client;
+            }
+            """
+        );
+
+        var result = new MaskinportenClientOverrideDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- TextServiceMigration ---------------------------------------------------------------------
+
+    private string MigrateTextService(string relativePath, string source, out MigrationResult result)
+    {
+        var path = _app.Write(relativePath, source);
+        result = new TextServiceMigration(Scanner()).Migrate();
+
+        var migrated = File.ReadAllText(path).ReplaceLineEndings("\n");
+
+        var syntaxErrors = CSharpSyntaxTree
+            .ParseText(migrated)
+            .GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .Select(d => d.ToString())
+            .ToList();
+        Assert.Empty(syntaxErrors);
+
+        return migrated;
+    }
+
+    [Fact]
+    public void TextServiceMigration_RetypesFieldAndRenamesCall()
+    {
+        var migrated = MigrateTextService(
+            "logic/Greeter.cs",
+            """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class Greeter
+            {
+                private readonly IText _textService;
+
+                public Greeter(IText textService)
+                {
+                    _textService = textService;
+                }
+
+                public async Task<TextResource?> Greet(string org, string app, string language) =>
+                    await _textService.GetText(org, app, language);
+            }
+            """,
+            out var result
+        );
+
+        Assert.DoesNotContain("IText", migrated);
+        Assert.Contains("IAppResources _textService", migrated);
+        Assert.Contains("IAppResources textService", migrated);
+        Assert.Contains("await _textService.GetTexts(org, app, language)", migrated);
+        Assert.DoesNotContain(".GetText(", migrated);
+        Assert.Empty(result.Todos);
+        Assert.NotEmpty(result.Warnings);
+    }
+
+    [Fact]
+    public void TextServiceMigration_DoesNotRenameUnrelatedAppResourcesGetText()
+    {
+        // IAppResources already declares its own GetText(org, app, textResource) - a byte[] file read,
+        // unrelated to the removed IText.GetText. A receiver never retyped from IText must be left alone.
+        var migrated = MigrateTextService(
+            "logic/Resources.cs",
+            """
+            using Altinn.App.Core.Internal.App;
+
+            public class Resources
+            {
+                private readonly IAppResources _appResources;
+
+                public Resources(IAppResources appResources)
+                {
+                    _appResources = appResources;
+                }
+
+                public byte[] Read(string org, string app, string name) => _appResources.GetText(org, app, name);
+            }
+            """,
+            out var result
+        );
+
+        Assert.Contains("_appResources.GetText(org, app, name)", migrated);
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectImplementer_LeavesFileUntouched()
+    {
+        const string source = """
+            using Altinn.App.Core.Internal.Texts;
+
+            public class FakeText : IText
+            {
+                public Task<TextResource?> GetText(string org, string app, string language) => Task.FromResult<TextResource?>(null);
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/FakeText.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("FakeText.cs") && w.Contains("implements IText directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_FlagsDirectTextClientReference()
+    {
+        const string source = """
+            using Altinn.App.Core.Infrastructure.Clients.Storage;
+
+            public class Factory
+            {
+                public TextClient Create() => null!;
+            }
+            """;
+
+        var migrated = MigrateTextService("logic/Factory.cs", source, out var result);
+
+        Assert.Equal(source.ReplaceLineEndings("\n"), migrated);
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Factory.cs") && w.Contains("TextClient referenced directly"));
+    }
+
+    [Fact]
+    public void TextServiceMigration_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new TextServiceMigration(Scanner()).Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedAppResourcesApiDetector -------------------------------------------------------------
+
+    [Fact]
+    public void AppResourcesDetector_FlagsBareGetApplicationCall()
+    {
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppResources resources) => resources.GetApplication();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Reader.cs") && w.Contains("GetApplication"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_SyntaxOnly_DoesNotFlagAmbiguousXacmlOrBpmnNames()
+    {
+        // Without a semantic model these share their exact name and arity with the still-current
+        // IAppMetadata replacement, so the syntax-only path deliberately does not guess.
+        _app.Write(
+            "logic/Reader.cs",
+            """
+            public class Reader
+            {
+                public object Read(IAppMetadata metadata) => metadata.GetApplicationXACMLPolicy();
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void AppResourcesDetector_FlagsUpdateBinaryDataWithRequestArgument()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader : ControllerBase
+            {
+                public Task Upload(IDataClient client, string org, string app, int instanceOwnerPartyId, System.Guid instanceGuid, System.Guid dataGuid) =>
+                    client.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(result.Warnings, w => w.Contains("Uploader.cs") && w.Contains("UpdateBinaryData"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_DoesNotFlagStreamBasedUpdateBinaryData()
+    {
+        _app.Write(
+            "logic/Uploader.cs",
+            """
+            public class Uploader
+            {
+                public Task Upload(IDataClient client, InstanceIdentifier id, System.Guid dataGuid, System.IO.Stream stream) =>
+                    client.UpdateBinaryData(id, "application/pdf", "file.pdf", dataGuid, stream);
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void InternalizedServiceTypeDetector_FlagsAnImportedInternalClassWithItsInterface()
+    {
+        _app.Write(
+            "logic/Wrapper.cs",
+            """
+            using Altinn.App.Core.Implementation;
+            public class Wrapper
+            {
+                private readonly AppResourcesSI _inner;
+                public Wrapper(AppResourcesSI inner) => _inner = inner;
+                public string Schema() => _inner.GetModelJsonSchema("model");
+            }
+            """
+        );
+
+        var result = new InternalizedServiceTypeDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Equal(
+            [
+                "logic/Wrapper.cs:4: AppResourcesSI (implements IAppResources)",
+                "logic/Wrapper.cs:5: AppResourcesSI (implements IAppResources)",
+            ],
+            result.Warnings.Where(w => w.Contains("Wrapper.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
+    public void InternalizedServiceTypeDetector_WithoutSemanticModel_SeesGlobalAndProjectImports()
+    {
+        // The importing directive lives in another file (a `global using`) or in the project file, so the
+        // usage file itself has no `using` at all - the fallback still has to treat the names as imported.
+        _app.Write("GlobalUsings.cs", "global using Altinn.App.Core.Implementation;");
+        _app.Write(
+            "logic/Consumer.cs",
+            """
+            public class Consumer
+            {
+                public Consumer(AppResourcesSI resources, AppOptionsService options) { }
+            }
+            """
+        );
+        var projectNamespaces = new HashSet<string>(StringComparer.Ordinal) { "Altinn.App.Core.Features.Options" };
+
+        var result = new InternalizedServiceTypeDetector(Scanner(), projectNamespaces).Detect();
+
+        Assert.Equal(
+            [
+                "logic/Consumer.cs:3: AppOptionsService (implements IAppOptionsService)",
+                "logic/Consumer.cs:3: AppResourcesSI (implements IAppResources)",
+            ],
+            result.Warnings.Where(w => w.Contains("Consumer.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
+    public void InternalizedServiceTypeDetector_WithoutSemanticModel_FlagsAnInternalClassUsedAsBaseType()
+    {
+        _app.Write(
+            "logic/CustomOptions.cs",
+            """
+            using Altinn.App.Core.Features.Options;
+            public class CustomOptions : AppOptionsService
+            {
+            }
+            """
+        );
+
+        var result = new InternalizedServiceTypeDetector(Scanner()).Detect();
+
+        Assert.Equal(
+            ["logic/CustomOptions.cs:2: CustomOptions : AppOptionsService (implements IAppOptionsService)"],
+            result.Warnings.Where(w => w.Contains("CustomOptions.cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
+    public void InternalizedServiceTypeDetector_WithoutSemanticModel_NeedsTheNamespaceImportedOrSpelledOut()
+    {
+        // Without a semantic model, a bare `DataClient` in a file that never imports the class's namespace
+        // is most likely the app's own type and is left alone; a fully qualified reference is unambiguous.
+        _app.Write(
+            "logic/Own.cs",
+            """
+            using Altinn.App.Core.Features;
+            public class DataClient { }
+            public class Own
+            {
+                public Own(DataClient client) { }
+            }
+            """
+        );
+        _app.Write(
+            "logic/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Qualified(Altinn.App.Core.Infrastructure.Clients.Storage.DataClient client) { }
+            }
+            """
+        );
+
+        var result = new InternalizedServiceTypeDetector(Scanner()).Detect();
+
+        Assert.Equal(
+            ["logic/Qualified.cs:3: DataClient (implements IDataClient)"],
+            result.Warnings.Where(w => w.Contains(".cs:")).Select(w => w.Replace('\\', '/'))
+        );
+    }
+
+    [Fact]
+    public void AppResourcesDetector_CleanApp_ReportsNothing()
+    {
+        _app.Write(
+            "logic/Service.cs",
+            """
+            public class Service
+            {
+                public Task DoWork() => Task.CompletedTask;
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- RemovedEFormidlingClientApiDetector -----------------------------------------------------
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheDeletedHttpClientExtension()
+    {
+        // Observed in the wild against unrelated APIs, which is why it is named rather than dropped.
+        _app.Write(
+            "logic/Clients/BevillingsregisterClient.cs",
+            """
+            using Altinn.App.Core.Extensions;
+            using Altinn.EFormidlingClient.Extensions;
+            public class BevillingsregisterClient
+            {
+                public async Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    await client.GetAsync(query, headers);
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using Altinn.EFormidlingClient.Extensions", StringComparison.Ordinal)
+        );
+        Assert.Contains(Summaries(result), w => w.Contains("HttpClientExtension", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsRemovedEndpointsAndModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusPoller.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class StatusPoller
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Poll()
+                {
+                    Capabilities capabilities = await _client.GetCapabilities("991825827", null);
+                    await _client.SubscribeeFormidling(new CreateSubscription(), null);
+                    await _client.FindOutGoingMessages("DPO", null);
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("GetCapabilities", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("SubscribeeFormidling", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("FindOutGoingMessages", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("CreateSubscription", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresTheEndpointsThatSurvived()
+    {
+        // The four the shipment flow is built from keep working; only their namespace changes, and
+        // that is rewritten automatically rather than reported.
+        _app.Write(
+            "logic/Eformidling/Shipment.cs",
+            """
+            using Altinn.App.Core.EFormidling.Interface;
+            public class Shipment
+            {
+                private readonly IEFormidlingClient _client;
+                public async Task Send(StandardBusinessDocument sbd, Stream file)
+                {
+                    await _client.CreateMessage(sbd);
+                    await _client.UploadAttachment(file, "id", "name.pdf");
+                    await _client.SendMessage("id");
+                    await _client.GetMessageStatusById("id");
+                }
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNestedStatusModels()
+    {
+        _app.Write(
+            "logic/Eformidling/StatusReader.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class StatusReader
+            {
+                public bool Delivered(Statuses statuses) =>
+                    statuses.Content.Exists((Content entry) => entry.Status == "levert");
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Content", StringComparison.Ordinal));
+        // Statuses itself keeps its name, so it must not be reported as changed.
+        Assert.DoesNotContain(Summaries(result), w => w.Contains("Statuses is ", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheNowRepeatableArkivmeldingProperties()
+    {
+        _app.Write(
+            "logic/EFormidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Basisregistrering Build() =>
+                    new Basisregistrering
+                    {
+                        Dokumentbeskrivelse = new Dokumentbeskrivelse { Dokumentnummer = 1 },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Contains(Locations(result), w => w.Contains("Basisregistrering", StringComparison.Ordinal));
+        Assert.Contains(Locations(result), w => w.Contains("Dokumentbeskrivelse", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("maxOccurs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsTheRenamedSbdArkivmelding()
+    {
+        _app.Write(
+            "logic/Eformidling/Envelope.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models.SBD;
+            public class Envelope
+            {
+                public StandardBusinessDocument Build() =>
+                    new StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding
+                        {
+                            Sikkerhetsnivaa = 3,
+                            DPF = new DPF { ForsendelsesType = "annet" },
+                        },
+                    };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("Sikkerhetsnivaa", StringComparison.Ordinal));
+        Assert.Contains(locations, w => w.Contains("DPF", StringComparison.Ordinal));
+        Assert.Contains(Summaries(result), w => w.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagTheNoarkArkivmelding()
+    {
+        // The Noark 5 Arkivmelding keeps its name. Matching on the type name would report every app
+        // that generates one, which is nearly all of them.
+        _app.Write(
+            "logic/Eformidling/Metadata.cs",
+            """
+            using Altinn.App.Core.EFormidling.Models;
+            public class Metadata
+            {
+                public Arkivmelding Build() => new Arkivmelding { AntallFiler = 1, System = "app" };
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(Locations(result), w => w.Contains("Arkivmelding", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsReferencesTheNamespaceRewriteCannotReach()
+    {
+        // The rewrite only touches plain `using A.B;`. An alias and a fully-qualified name both
+        // survive it, so they are reported rather than silently left broken.
+        _app.Write(
+            "logic/Eformidling/Aliased.cs",
+            """
+            using Client = Altinn.Common.EFormidlingClient;
+            public class Aliased
+            {
+                private Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(
+            locations,
+            w => w.Contains("using Client = Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            locations,
+            w => w.Contains("Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsGlobalQualifiedReferences()
+    {
+        // `global::` is a legal way to write either form, and the rewrite misses both just the same.
+        _app.Write(
+            "logic/Eformidling/Global.cs",
+            """
+            using Legacy = global::Altinn.Common.EFormidlingClient;
+            public class Global
+            {
+                private global::Altinn.Common.EFormidlingClient.IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        var locations = Locations(result).ToList();
+        Assert.Contains(locations, w => w.Contains("using Legacy = global::", StringComparison.Ordinal));
+        Assert.Contains(
+            locations,
+            w => w.Contains("global::Altinn.Common.EFormidlingClient.IEFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_FlagsAPlainUsingWrittenWithGlobal()
+    {
+        // Not aliased, so it looks rewritable - but the rewrite compares the name exactly, and
+        // "global::Altinn.Common.EFormidlingClient" is not "Altinn.Common.EFormidlingClient".
+        _app.Write(
+            "logic/Eformidling/PlainGlobal.cs",
+            """
+            using global::Altinn.Common.EFormidlingClient;
+            public class PlainGlobal
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.NotEmpty(result.Todos);
+        Assert.Contains(
+            Locations(result),
+            w => w.Contains("using global::Altinn.Common.EFormidlingClient", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_ScopesTheModelChecksByQualifiedNamesToo()
+    {
+        // No `using` anywhere, so scoping on imports alone would give this file only the generic
+        // "repoint these references" warning - and none of the guidance it actually needs about the
+        // nested status types, the list cardinality, or the SBD rename.
+        _app.Write(
+            "logic/Eformidling/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Altinn.Common.EFormidlingClient.Models.Content Entry;
+                public Altinn.Common.EFormidlingClient.Models.Basisregistrering Registration;
+
+                public Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument Build() =>
+                    new Altinn.Common.EFormidlingClient.Models.SBD.StandardBusinessDocument
+                    {
+                        Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = 3 },
+                    };
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("Statuses.Entry", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("maxOccurs", StringComparison.Ordinal));
+        Assert.Contains(summaries, s => s.Contains("ArkivmeldingMetadata", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_GivesTheExtensionsItsOwnGuidanceWhenWrittenInFull()
+    {
+        // The extensions namespace sits under a reported prefix, so without de-duplication this would
+        // arrive only as the generic warning, which does not say what to write instead.
+        _app.Write(
+            "logic/Clients/Qualified.cs",
+            """
+            public class Qualified
+            {
+                public Task Get(HttpClient client, string query, Dictionary<string, string> headers) =>
+                    Altinn.EFormidlingClient.Extensions.HttpClientExtension.GetAsync(client, query, headers);
+            }
+            """
+        );
+
+        var summaries = Summaries(new RemovedEFormidlingClientApiDetector(Scanner()).Detect()).ToList();
+
+        Assert.Contains(summaries, s => s.Contains("HttpClientExtension", StringComparison.Ordinal));
+        Assert.DoesNotContain(summaries, s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_DoesNotFlagAPlainUsingTheRewriteHandles()
+    {
+        // A plain using is rewritten automatically, so reporting it would be noise.
+        _app.Write(
+            "logic/Eformidling/Plain.cs",
+            """
+            using Altinn.Common.EFormidlingClient;
+            public class Plain
+            {
+                private IEFormidlingClient _client;
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.DoesNotContain(
+            Summaries(result),
+            s => s.Contains("survive the v9 namespace rewrite", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void EFormidlingClientDetector_IgnoresContentOutsideTheModelsNamespace()
+    {
+        // "Content" is an everyday identifier. Only files reaching into the eFormidling models
+        // namespace can plausibly mean the nested status type.
+        _app.Write(
+            "logic/Clients/SomeClient.cs",
+            """
+            using System.Net.Http;
+            public class SomeClient
+            {
+                public async Task<string> Read(HttpResponseMessage response) =>
+                    await response.Content.ReadAsStringAsync();
+            }
+            """
+        );
+
+        var result = new RemovedEFormidlingClientApiDetector(Scanner()).Detect();
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+    }
+
+    // --- Scanner ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void Scanner_SkipsBuildOutput()
+    {
+        _app.Write("logic/Real.cs", "public class Real : IProcessTaskEnd {}");
+        _app.Write("obj/Debug/Generated.cs", "public class Generated : IProcessTaskEnd {}");
+
+        var files = Scanner().Files;
+
+        Assert.Contains(files, f => f.RelativePath.EndsWith("Real.cs", StringComparison.Ordinal));
+        Assert.DoesNotContain(files, f => f.RelativePath.Contains("obj"));
+    }
+}

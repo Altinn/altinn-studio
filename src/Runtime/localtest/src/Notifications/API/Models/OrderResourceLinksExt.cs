@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+#nullable disable
+
+using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
 
@@ -6,7 +8,7 @@ namespace Altinn.Notifications.Models;
 /// A class representing a set of resource links of a notification order. 
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class OrderResourceLinksExt
 {

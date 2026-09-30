@@ -16,7 +16,6 @@
       },
       {
         "id": "NavigationButtons-reg",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

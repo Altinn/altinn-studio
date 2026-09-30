@@ -1,0 +1,24 @@
+﻿[
+  {
+    Id: ALTINNAPP0801,
+    Title: Service owner authorization could not be verified,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/config/authorization/policy.xml(2,1),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0801,
+    MessageFormat: Could not verify that the app owner '{0}' is permitted the action(s) [{1}] on {0}/{2}: {3}. Verify this manually - the app performs the corresponding operations as the service owner.,
+    Message: Could not verify that the app owner '[ORG]' is permitted the action(s) [read] on [ORG]/[APP]: the policy grants it only through a rule this analysis cannot decide statically (a condition, a grant scoped to a single task, or an attribute or match function it does not model). Verify this manually - the app performs the corresponding operations as the service owner.,
+    Category: Authorization
+  },
+  {
+    Id: ALTINNAPP0801,
+    Title: Service owner authorization could not be verified,
+    Severity: Warning,
+    WarningLevel: 1,
+    Location: /repo/App/config/authorization/policy.xml(2,1),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0801,
+    MessageFormat: Could not verify that the app owner '{0}' is permitted the action(s) [{1}] on {0}/{2}: {3}. Verify this manually - the app performs the corresponding operations as the service owner.,
+    Message: Could not verify that the app owner '[ORG]' is permitted the action(s) [write] on [ORG]/[APP]: the policy grants it only through a rule this analysis cannot decide statically (a condition, a grant scoped to a single task, or an attribute or match function it does not model). Verify this manually - the app performs the corresponding operations as the service owner.,
+    Category: Authorization
+  }
+]

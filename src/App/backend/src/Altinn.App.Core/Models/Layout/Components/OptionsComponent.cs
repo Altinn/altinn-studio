@@ -1,5 +1,6 @@
 using System.Text.Json;
-using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -106,7 +107,7 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
 
     /// <inheritdoc />
     public override async Task<ComponentContext> GetContext(
-        LayoutEvaluatorState state,
+        IInstanceDataAccessor dataAccessor,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
         Dictionary<string, UiFolderComponent> layoutsLookup
@@ -115,26 +116,24 @@ public sealed class OptionsComponent : Base.NoReferenceComponent
         // Context works normally when we don't have a group binding
         if (!DataModelBindings.TryGetValue("group", out var groupBinding))
         {
-            return await base.GetContext(state, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
+            return await base.GetContext(dataAccessor, defaultDataElementIdentifier, rowIndexes, layoutsLookup);
         }
 
         // For group backed options, we create a child context for each item in the group
-        var numRows = await state.GetModelDataCount(groupBinding, defaultDataElementIdentifier, rowIndexes) ?? 0;
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(groupBinding, defaultDataElementIdentifier);
+        int numRows = formDataWrapper?.GetRowCount(groupBinding.Field, rowIndexes ?? []) ?? 0;
         var component = OptionsRowComponent.FromOptionsComponent(this);
         var childContexts = Enumerable
             .Range(0, numRows)
-            .Select(i =>
-            {
-                return new ComponentContext(
-                    state,
-                    component,
-                    RepeatingGroupComponent.GetSubRowIndexes(rowIndexes, i),
-                    defaultDataElementIdentifier
-                );
-            })
+            .Select(i => new ComponentContext(
+                dataAccessor,
+                component,
+                RepeatingGroupComponent.GetSubRowIndexes(rowIndexes, i),
+                defaultDataElementIdentifier
+            ))
             .ToList();
 
-        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+        return new ComponentContext(dataAccessor, this, rowIndexes, defaultDataElementIdentifier, childContexts);
     }
 
     private static string? ParseStringOrNull(JsonElement componentElement, string propertyName) =>
@@ -178,7 +177,7 @@ public record OptionsSource
     /// </summary>
     /// <remarks>
     /// Notice that the value field must be unique for each element. If the repeating group does not contain a field which is unique for each item
-    /// it is recommended to add a field to the data model that can be used as identificator, for instance a GUID.
+    /// it is recommended to add a field to the data model that can be used as identifier, for instance a GUID.
     /// </remarks>
     public string Value { get; }
 }

@@ -18,6 +18,17 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestFunctions
 {
+    private static readonly string[] _functionFoldersNotYetImplemented = ["authContext", "externalApi", "value"];
+
+    private static readonly string[] _frontendOnlyFunctionFolders =
+    [
+        "_experimentalSelectAndMap",
+        "displayValue",
+        "linkToComponent",
+        "linkToPage",
+        "optionLabel",
+    ];
+
     private readonly ITestOutputHelper _output;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -227,6 +238,32 @@ public class TestFunctions
     [SharedTest("round")]
     public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
+    [Theory]
+    [SharedTestCases("list")]
+    public async Task List_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTestCases("object")]
+    public async Task Object_Theory(string testName, ExpressionTestCaseRoot.TestCaseItem testCaseItem) =>
+        await RunTestCase(testName, new ExpressionTestCaseRoot(testCaseItem));
+
+    [Theory]
+    [SharedTest("jmespath")]
+    public async Task Jmespath_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("sum")]
+    public async Task Sum_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("average")]
+    public async Task Average_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("count")]
+    public async Task Count_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
     private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
         ExpressionTestCaseRoot testCase = new();
@@ -234,6 +271,7 @@ public class TestFunctions
         try
         {
             testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
+            testCase.ExpectsFailure = testCase.ExpectsFailureBackend ?? testCase.ExpectsFailure;
         }
         catch (Exception e)
         {
@@ -271,11 +309,7 @@ public class TestFunctions
         List<DataType> dataTypes = new();
         if (test.DataModels is null)
         {
-            dataTypes.Add(new DataType() { Id = "default" });
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
-                test.Instance,
-                test.DataModel ?? JsonDocument.Parse("{}").RootElement
-            );
+            dataTypes.Add(new DataType { Id = "default" });
         }
         else
         {
@@ -289,7 +323,6 @@ public class TestFunctions
                         AppLogic = new() { ClassRef = "not-in-user" },
                     })
             );
-            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
         }
 
         var positionalArguments = test
@@ -354,15 +387,33 @@ public class TestFunctions
             FakeLoggerXunit.Get<TranslationService>(_output)
         );
 
-        var state = new LayoutEvaluatorState(
-            dataAccessor,
-            componentModel,
-            translationService,
-            test.FrontEndSettings ?? new FrontEndSettings(),
-            test.GatewayAction,
-            language,
-            TimeZoneInfo.Utc // Frontend uses UTC when formating dates
-        );
+        if (test.DataModels is null)
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement,
+                test.GatewayAction,
+                language
+            );
+        }
+        else
+        {
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                translationService,
+                componentModel,
+                test.FrontEndSettings ?? new FrontEndSettings(),
+                test.DataModels,
+                test.GatewayAction,
+                language
+            );
+        }
+
+        var state = dataAccessor.GetLayoutEvaluatorState();
+        Assert.NotNull(state);
 
         ComponentContext? context = null;
         if (test.Context is not null)
@@ -371,7 +422,7 @@ public class TestFunctions
         }
         else if (componentModel is not null)
         {
-            context = (await componentModel.GenerateComponentContexts(state)).First();
+            context = (await componentModel.GenerateComponentContexts(dataAccessor)).First();
         }
 
         if (test.ExpectsFailure is not null && test.ParsingException is not null)
@@ -382,17 +433,20 @@ public class TestFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        await RunTestCaseItem(
-            new ExpressionTestCaseRoot.TestCaseItem()
-            {
-                Expects = test.Expects,
-                Expression = test.Expression,
-                ExpectsFailure = test.ExpectsFailure,
-            },
-            state,
-            context,
-            positionalArguments
-        );
+        if (test.Expression != null)
+        {
+            await RunTestCaseItem(
+                new ExpressionTestCaseRoot.TestCaseItem()
+                {
+                    Expects = test.Expects,
+                    Expression = (Expression)test.Expression,
+                    ExpectsFailure = test.ExpectsFailure,
+                },
+                state,
+                context,
+                positionalArguments
+            );
+        }
 
         if (test.TestCases != null)
         {
@@ -472,14 +526,12 @@ public class TestFunctions
     {
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
-            .GetDirectories(
-                Path.Join(PathUtils.GetCoreTestsPath(), "LayoutExpressions", "CommonTests", "shared-tests", "functions")
-            )
+            .GetDirectories(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions"))
             .Where(d => Directory.GetFiles(d).Length > 0)
             .Select(d => Path.GetFileName(d))
             .OrderBy(s => s)
             .ToArray();
-        var testMethods = this.GetType()
+        var testedOrUnsupportedFolders = this.GetType()
             .GetMethods()
             .Select(m =>
                 m.CustomAttributes.FirstOrDefault(ca =>
@@ -491,17 +543,21 @@ public class TestFunctions
             )
             .OrderBy(s => s)
             .OfType<string>()
+            .Concat(_functionFoldersNotYetImplemented)
+            .Concat(_frontendOnlyFunctionFolders)
             .OrderBy(d => d)
             .ToArray();
-        testMethods.Should().Equal(jsonTestFolders, "Shared test folders should have a corresponding test method");
+        testedOrUnsupportedFolders
+            .Should()
+            .Equal(jsonTestFolders, "shared test folders must either have a backend test method or be unsupported");
     }
 }
 
 public class SharedTestAttribute(string folder)
     : FileNamesInFolderDataAttribute(
-        Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)
+        TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder)
     ) { }
 
 // Can be used when you only want to run the tests listed in the testCases array in the json file
 public class SharedTestCasesAttribute(string folder)
-    : TestCasesAttribute(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions", folder)) { }
+    : TestCasesAttribute(TestAttributeHelper.CommonExpressionTestsPath("evaluation", "functions", folder)) { }

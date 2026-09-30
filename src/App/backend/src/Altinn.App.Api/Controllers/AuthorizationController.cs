@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Auth;
@@ -58,7 +59,7 @@ public class AuthorizationController : Controller
                 {
                     if (returnPartyObject)
                     {
-                        return Ok(details.SelectedParty);
+                        return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
                     }
 
                     return Ok(details.SelectedParty.PartyId);
@@ -69,7 +70,7 @@ public class AuthorizationController : Controller
                 var reportee = details.Profile.Party;
                 if (user.SelectedPartyId != reportee.PartyId)
                 {
-                    // Setting cookie to partyID of logged in user if it varies from previus value.
+                    // Setting cookie to partyID of logged in user if it varies from previous value.
                     Response.Cookies.Append(
                         _settings.GetAltinnPartyCookieName,
                         reportee.PartyId.ToString(CultureInfo.InvariantCulture),
@@ -79,7 +80,7 @@ public class AuthorizationController : Controller
 
                 if (returnPartyObject)
                 {
-                    return Ok(reportee);
+                    return Ok(PartySsnMasking.MaskParty(reportee));
                 }
                 return Ok(reportee.PartyId);
             }
@@ -88,7 +89,7 @@ public class AuthorizationController : Controller
                 var details = await org.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);
@@ -98,7 +99,7 @@ public class AuthorizationController : Controller
                 var details = await so.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);
@@ -108,7 +109,7 @@ public class AuthorizationController : Controller
                 var details = await su.LoadDetails();
                 if (returnPartyObject)
                 {
-                    return Ok(details.Party);
+                    return Ok(PartySsnMasking.MaskParty(details.Party));
                 }
 
                 return Ok(details.Party.PartyId);
@@ -123,20 +124,25 @@ public class AuthorizationController : Controller
     /// </summary>
     /// <param name="userId">The userId</param>
     /// <param name="partyId">The partyId</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>Boolean indicating if the selected party is valid.</returns>
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError, "text/plain")]
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId)
+    public async Task<IActionResult> ValidateSelectedParty(int userId, int partyId, CancellationToken cancellationToken)
     {
         if (partyId == 0 || userId == 0)
         {
             return BadRequest("Both userId and partyId must be provided.");
         }
 
-        bool? result = await _authorization.ValidateSelectedParty(userId, partyId);
+        bool? result = await _authorization.ValidateSelectedParty(
+            userId,
+            partyId,
+            cancellationToken: cancellationToken
+        );
 
         if (result != null)
         {

@@ -1,21 +1,19 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import classes from './PageAccordion.module.css';
-import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { accordionHeaderId, pageAccordionContentId } from '@studio/testing/testids';
 import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioDetails } from '@studio/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
-import { usePagesQuery } from '../../../hooks/queries/usePagesQuery';
+import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
 import { getUpdatedGroupsExcludingPage } from '../../../utils/designViewUtils/designViewUtils';
 import { isPagesModelWithGroups } from 'app-shared/types/api/dto/PagesModel';
 import { useTextResourceValue } from '../../../components/TextResource/hooks/useTextResourceValue';
 
-import cn from 'classnames';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type PageAccordionProps = {
@@ -63,6 +61,11 @@ export const PageAccordion = ({
   const { mutate: deletePage, isPending } = useDeletePageMutation(org, app, layoutSet);
   const { mutate: changePageGroups } = useChangePageGroupOrder(org, app, layoutSet);
 
+  const handleSummaryClick = (event: MouseEvent<HTMLElement>): void => {
+    event.preventDefault();
+    onClick();
+  };
+
   const isUsingGroups = isPagesModelWithGroups(pages);
   const handleConfirmDelete = () => {
     if (!confirm(t('ux_editor.page_delete_text'))) return;
@@ -81,36 +84,33 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item open={isOpen} className={classes.accordionItem}>
-      <div className={classes.accordionHeaderRow}>
-        <div
+    <div className={classes.detailsWrapper}>
+      <StudioDetails open={isOpen} className={classes.details}>
+        <StudioDetails.Summary
           data-testid={accordionHeaderId(pageId)}
-          className={
-            isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
-          }
+          onClick={handleSummaryClick}
+          className={isInvalid || hasDuplicatedIds ? classes.detailsWarning : undefined}
         >
-          <Accordion.Header level={3} onHeaderClick={onClick} className={classes.headerContent}>
-            {pageName || pageId}
-          </Accordion.Header>
-        </div>
-        <div className={cn(classes.navigationMenu, { [classes.accordionSelected]: isOpen })}>
-          {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
-          {showNavigationMenu && <NavigationMenu pageName={pageId} />}
-          <StudioButton
-            icon={<TrashIcon aria-hidden />}
-            onClick={handleConfirmDelete}
-            title={t('general.delete_item', { item: pageName || pageId })}
-            variant='tertiary'
-            disabled={isPending}
-          />
-        </div>
+          {pageName || pageId}
+        </StudioDetails.Summary>
+        <StudioDetails.Content
+          data-testid={pageAccordionContentId(pageId)}
+          className={classes.detailsContent}
+        >
+          {children}
+        </StudioDetails.Content>
+      </StudioDetails>
+      <div className={classes.navigationMenu}>
+        {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
+        {showNavigationMenu && <NavigationMenu pageName={pageId} />}
+        <StudioButton
+          icon={<TrashIcon aria-hidden />}
+          onClick={handleConfirmDelete}
+          title={t('general.delete_item', { item: pageName || pageId })}
+          variant='tertiary'
+          disabled={isPending}
+        />
       </div>
-      <Accordion.Content
-        data-testid={pageAccordionContentId(pageId)}
-        className={classes.accordionContent}
-      >
-        {children}
-      </Accordion.Content>
-    </Accordion.Item>
+    </div>
   );
 };

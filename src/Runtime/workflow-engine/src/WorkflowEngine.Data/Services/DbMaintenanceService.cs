@@ -2,12 +2,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
+
+// CA5394: retention jitter only spreads load, so a non-cryptographic source is the right tool.
+#pragma warning disable CA5394
 
 namespace WorkflowEngine.Data.Services;
 
@@ -19,7 +22,7 @@ internal sealed class DbMaintenanceService(
     IConcurrencyLimiter concurrencyLimiter
 ) : BackgroundService
 {
-    private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan _fallbackInterval = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// Backoff strategy used when database operations fail. Exponential from 1s up to 2min.
@@ -29,7 +32,16 @@ internal sealed class DbMaintenanceService(
         maxDelay: TimeSpan.FromMinutes(2)
     );
 
-    private DateTimeOffset _lastRetentionRun = DateTimeOffset.MinValue;
+    /// <summary>
+    /// When retention last swept, or <c>null</c> until the first maintenance iteration anchors it.
+    /// Anchoring at a random point inside the retention interval - rather than at
+    /// <see cref="DateTimeOffset.MinValue"/>, which is immediately due - keeps a start from
+    /// scheduling a full drain on top of the requests the fresh instance is about to serve, and
+    /// de-synchronizes the replicas of a rollout that all start at once. The check is only evaluated
+    /// once per maintenance iteration, so the first sweep lands within one retention interval plus
+    /// one <see cref="EngineSettings.MaintenanceInterval"/> of startup.
+    /// </summary>
+    private DateTimeOffset? _lastRetentionRun;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -47,14 +59,18 @@ internal sealed class DbMaintenanceService(
                 var now = timeProvider.GetUtcNow();
                 var settings = options.Value;
 
+                _lastRetentionRun ??= now - RandomStartupOffset(settings.Retention.Interval);
+
                 if (now - _lastRetentionRun >= settings.Retention.Interval)
                 {
                     _lastRetentionRun = now;
                     await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
+                    await PurgeExpiredMailboxes(now, settings.Retention, stoppingToken);
                 }
 
-                await AbandonStaleWorkflows(now, settings, stoppingToken);
+                await FailPoisonedWorkflows(now, settings, stoppingToken);
                 await ReclaimStaleWorkflows(now, settings, stoppingToken);
+                await RecoverDependencyResolvedWorkflows(now, stoppingToken);
 
                 consecutiveFailures = 0;
                 Metrics.SetMaintenanceConsecutiveFailures(0);
@@ -77,11 +93,19 @@ internal sealed class DbMaintenanceService(
                 continue;
             }
 
-            await Task.Delay(_interval, timeProvider, stoppingToken);
+            var interval = options.Value.MaintenanceInterval;
+            await Task.Delay(interval > TimeSpan.Zero ? interval : _fallbackInterval, timeProvider, stoppingToken);
         }
 
         logger.ShuttingDown();
     }
+
+    /// <summary>
+    /// A uniformly random offset in <c>[0, interval)</c>, used to place the first retention sweep
+    /// somewhere inside the interval instead of at startup.
+    /// </summary>
+    private static TimeSpan RandomStartupOffset(TimeSpan interval) =>
+        interval <= TimeSpan.Zero ? TimeSpan.Zero : Random.Shared.NextDouble() * interval;
 
     internal async Task PurgeExpiredWorkflows(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
     {
@@ -90,7 +114,7 @@ internal sealed class DbMaintenanceService(
         var cutoff = now - settings.RetentionPeriod;
         var totalDeletedWorkflows = 0;
 
-        // Delete terminal workflows in batches until all eligible rows are drained.
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
         int deleted;
         do
         {
@@ -99,7 +123,7 @@ internal sealed class DbMaintenanceService(
                 deleted = await PurgeExpiredWorkflowBatch(now, cutoff, settings.BatchSize, ct);
                 totalDeletedWorkflows += deleted;
             }
-        } while (deleted >= settings.BatchSize);
+        } while (deleted > 0 && deleted >= settings.BatchSize);
 
         if (totalDeletedWorkflows > 0)
             logger.RetentionDeletedWorkflows(totalDeletedWorkflows);
@@ -313,33 +337,128 @@ internal sealed class DbMaintenanceService(
     private sealed record DeletedWorkflow(Guid Id, string? CollectionKey, string Namespace);
 
     /// <summary>
-    /// Finalizes poison workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
+    /// Purges closed mailboxes past the retention cutoff, with their deliveries and registrations. Children
+    /// first — the schema's <c>ON DELETE RESTRICT</c> enforces the order. Receive workflows purge
+    /// independently under the workflow sweep, which is why <c>workflow_id</c> carries no foreign key.
+    /// </summary>
+    internal async Task PurgeExpiredMailboxes(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.PurgeExpiredMailboxes");
+
+        var cutoff = now - settings.RetentionPeriod;
+        var totalPurged = 0;
+
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
+        int purged;
+        do
+        {
+            using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+            {
+                purged = await PurgeExpiredMailboxBatch(cutoff, settings.BatchSize, ct);
+                totalPurged += purged;
+            }
+        } while (purged > 0 && purged >= settings.BatchSize);
+
+        if (totalPurged > 0)
+            logger.RetentionDeletedMailboxes(totalPurged);
+    }
+
+    private async Task<int> PurgeExpiredMailboxBatch(DateTimeOffset cutoff, int batchSize, CancellationToken ct)
+    {
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+
+        // SKIP LOCKED leaves a mailbox another pod holds alone — and the claim holds the row, so nothing can
+        // begin against a mailbox on its way out.
+        List<Guid> candidates = [];
+        await using (var selectCmd = new NpgsqlCommand(Sql.SelectExpiredMailboxCandidatesCommand, conn, tx))
+        {
+            selectCmd.Parameters.AddWithValue("cutoff", cutoff);
+            selectCmd.Parameters.AddWithValue("batchSize", batchSize);
+
+            await using var reader = await selectCmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+#pragma warning disable CA1849, S6966 // The row is already buffered
+                candidates.Add(reader.GetFieldValue<Guid>(0));
+#pragma warning restore CA1849, S6966
+            }
+        }
+
+        if (candidates.Count == 0)
+        {
+            await tx.CommitAsync(ct);
+            return 0;
+        }
+
+        var mailboxIds = candidates.ToArray();
+
+        await using (var childrenCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxChildrenCommand, conn, tx))
+        {
+            childrenCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            await childrenCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        int deleted;
+        await using (var mailboxCmd = new NpgsqlCommand(Sql.DeleteExpiredMailboxesCommand, conn, tx))
+        {
+            mailboxCmd.Parameters.AddWithValue("mailboxIds", mailboxIds);
+            deleted = await mailboxCmd.ExecuteNonQueryAsync(ct);
+        }
+
+        await tx.CommitAsync(ct);
+        return deleted;
+    }
+
+    /// <summary>
+    /// Finalizes poisoned workflows — rows that have exceeded <see cref="EngineSettings.MaxReclaimCount"/>
     /// and whose heartbeat is stale — by marking them as <see cref="PersistentItemStatus.Failed"/>
     /// and clearing LeaseToken. Idempotent across concurrent sweeps from multiple pods:
     /// a zombie worker that completes the row before this sweep lands will transition it out
     /// of Processing, causing the WHERE clause to skip it.
     /// </summary>
-    internal async Task AbandonStaleWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
+    internal async Task FailPoisonedWorkflows(DateTimeOffset now, EngineSettings settings, CancellationToken ct)
     {
-        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.AbandonStaleWorkflows");
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.FailPoisonedWorkflows");
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
-        int abandoned;
+        // Bucketed by the head-visibility directive so poisoned finalization feeds the same
+        // is_head alert dimension as the execution failure paths: an is_head=false workflow
+        // (e.g. a fire-and-forget side chain) that dies poisoned gates nothing and is otherwise
+        // silent, so it must be visible to the is_head="false" failure alert.
+        var failedByIsHead = new Dictionary<string, int>(StringComparer.Ordinal);
+        int failed = 0;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
-            await using var cmd = dataSource.CreateCommand(Sql.AbandonStaleWorkflows);
+            await using var cmd = dataSource.CreateCommand(Sql.FailPoisonedWorkflows);
             cmd.Parameters.AddWithValue("now", now);
             cmd.Parameters.AddWithValue("staleDeadline", staleDeadline);
             cmd.Parameters.AddWithValue("maxReclaimCount", settings.MaxReclaimCount);
 
-            abandoned = await cmd.ExecuteNonQueryAsync(ct);
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+            {
+                bool? isHead = await reader.IsDBNullAsync(0, ct) ? null : reader.GetBoolean(0);
+                string isHeadTag = isHead switch
+                {
+                    true => "true",
+                    false => "false",
+                    null => "unset",
+                };
+                failedByIsHead[isHeadTag] = failedByIsHead.GetValueOrDefault(isHeadTag) + 1;
+                failed++;
+            }
         }
 
-        if (abandoned > 0)
+        if (failed > 0)
         {
-            Metrics.WorkflowsFailed.Add(abandoned, ("reason", "poison"));
-            logger.AbandonedStaleWorkflows(abandoned);
+            foreach ((string isHeadTag, int count) in failedByIsHead)
+            {
+                Metrics.WorkflowsFailed.Add(count, ("reason", "poisoned"), ("is_head", isHeadTag));
+            }
+
+            logger.FailedPoisonedWorkflows(failed);
         }
     }
 
@@ -373,27 +492,69 @@ internal sealed class DbMaintenanceService(
         }
     }
 
+    /// <summary>
+    /// Re-enqueues workflows stuck in <see cref="PersistentItemStatus.DependencyFailed"/> whose
+    /// dependencies have since all reached <see cref="PersistentItemStatus.Completed"/>. The status
+    /// is purely derived — a workflow lands there because a dependency was in a failed state when it
+    /// was evaluated — so once every dependency completes (typically after the upstream was resumed
+    /// without cascade) the original reason no longer holds and the workflow should run.
+    /// A still-Canceled, still-Failed or Abandoned dependency keeps the workflow parked: a default
+    /// dependency edge requires the upstream to <em>succeed</em>, and abandoning a workflow writes off
+    /// its failure without ever satisfying that requirement — only an actual Completed does. (Abandoned
+    /// differs from the others at <em>evaluation</em> time instead: it does not condemn dependents that
+    /// have not yet been evaluated.) Deep chains heal one layer per sweep as each intermediate
+    /// completes. Idempotent: re-enqueued rows no longer match the predicate.
+    /// </summary>
+    internal async Task RecoverDependencyResolvedWorkflows(DateTimeOffset now, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.RecoverDependencyResolvedWorkflows");
+
+        int recovered;
+        using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+        {
+            await using var cmd = dataSource.CreateCommand(Sql.RecoverDependencyResolvedWorkflows);
+            cmd.Parameters.AddWithValue("now", now);
+
+            recovered = await cmd.ExecuteNonQueryAsync(ct);
+        }
+
+        if (recovered > 0)
+        {
+            Metrics.WorkflowsDependencyRecovered.Add(recovered);
+            logger.RecoveredDependencyResolvedWorkflows(recovered);
+        }
+    }
+
     internal static class Sql
     {
-        internal const string SelectExpiredWorkflowCandidatesCommand = """
+        // Status lists interpolated as literals below all come from PersistentItemStatusMap's SQL
+        // constants (test-pinned to the map properties) so the candidate SELECT, the DELETE, and
+        // the ix_workflows_updated_at partial index filter (see EngineDbContext) can never
+        // disagree about which statuses are terminal. Consts keep the command texts compile-time
+        // constant, which CA2100 requires of raw SQL.
+        private const string FinishedStatuses = PersistentItemStatusMap.FinishedSqlList;
+
+        private const string IncompleteStatuses = PersistentItemStatusMap.IncompleteSqlList;
+
+        internal const string SelectExpiredWorkflowCandidatesCommand = $"""
             SELECT w.id, w.collection_key, w.namespace
             FROM engine.workflows w
             WHERE w.id IN (
                 SELECT candidate.id
                 FROM engine.workflows candidate
-                WHERE candidate.status IN (3, 4, 5, 6)
+                WHERE candidate.status IN ({FinishedStatuses})
                   AND candidate.updated_at < @cutoff
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_dependency dep
                       JOIN engine.workflows d ON dep.workflow_id = d.id
                       WHERE dep.depends_on_workflow_id = candidate.id
-                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
+                        AND (d.status IN ({IncompleteStatuses}) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_link lnk
                       JOIN engine.workflows l ON lnk.workflow_id = l.id
                       WHERE lnk.linked_workflow_id = candidate.id
-                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
+                        AND (l.status IN ({IncompleteStatuses}) OR l.updated_at >= @cutoff)
                   )
                 LIMIT @batchSize
             )
@@ -440,29 +601,55 @@ internal sealed class DbMaintenanceService(
               )
             """;
 
-        internal const string DeleteExpiredWorkflowsCommand = """
+        internal const string DeleteExpiredWorkflowsCommand = $"""
             DELETE FROM engine.workflows
             WHERE id IN (
                 SELECT w.id
                 FROM engine.workflows w
                 WHERE w.id = ANY(@workflowIds)
-                  AND w.status IN (3, 4, 5, 6)
+                  AND w.status IN ({FinishedStatuses})
                   AND w.updated_at < @cutoff
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_dependency dep
                       JOIN engine.workflows d ON dep.workflow_id = d.id
                       WHERE dep.depends_on_workflow_id = w.id
-                        AND (d.status IN (0, 1, 2) OR d.updated_at >= @cutoff)
+                        AND (d.status IN ({IncompleteStatuses}) OR d.updated_at >= @cutoff)
                   )
                   AND NOT EXISTS (
                       SELECT 1 FROM engine.workflow_link lnk
                       JOIN engine.workflows l ON lnk.workflow_id = l.id
                       WHERE lnk.linked_workflow_id = w.id
-                        AND (l.status IN (0, 1, 2) OR l.updated_at >= @cutoff)
+                        AND (l.status IN ({IncompleteStatuses}) OR l.updated_at >= @cutoff)
                   )
                 FOR UPDATE SKIP LOCKED
             )
             RETURNING id, collection_key, namespace
+            """;
+
+        internal const string SelectExpiredMailboxCandidatesCommand = $"""
+            SELECT m.id
+            FROM engine.mailboxes m
+            WHERE m.status = '{MailboxStatusMap.Disposed}'
+              AND m.disposed_at < @cutoff
+            ORDER BY m.disposed_at
+            LIMIT @batchSize
+            FOR UPDATE SKIP LOCKED
+            """;
+
+        // One statement for both child tables: there is no order between them, and two statements would
+        // invite one.
+        internal const string DeleteExpiredMailboxChildrenCommand = """
+            WITH purged_deliveries AS (
+                DELETE FROM engine.mailbox_deliveries
+                WHERE mailbox_id = ANY(@mailboxIds)
+            )
+            DELETE FROM engine.mailbox_receivers
+            WHERE mailbox_id = ANY(@mailboxIds)
+            """;
+
+        internal const string DeleteExpiredMailboxesCommand = """
+            DELETE FROM engine.mailboxes
+            WHERE id = ANY(@mailboxIds)
             """;
 
         internal const string DeleteOrphanedIdempotencyKeys = """
@@ -474,7 +661,7 @@ internal sealed class DbMaintenanceService(
               )
             """;
 
-        internal static readonly string AbandonStaleWorkflows = $"""
+        internal static readonly string FailPoisonedWorkflows = $"""
             UPDATE engine.workflows
             SET status = {(int)PersistentItemStatus.Failed},
                 updated_at = @now,
@@ -484,19 +671,49 @@ internal sealed class DbMaintenanceService(
               AND heartbeat_at IS NOT NULL
               AND heartbeat_at < @staleDeadline
               AND reclaim_count >= @maxReclaimCount
+            RETURNING is_head
             """;
 
+        // execution_started_at is cleared with the lease: the dead attempt is over, and a workflow
+        // back in Enqueued never carries a stamp (same rule as resume and dependency recovery).
         internal static readonly string ReclaimStaleWorkflows = $"""
             UPDATE engine.workflows
             SET status = {(int)PersistentItemStatus.Enqueued},
                 updated_at = @now,
                 heartbeat_at = NULL,
                 lease_token = NULL,
+                execution_started_at = NULL,
                 reclaim_count = reclaim_count + 1
             WHERE status = {(int)PersistentItemStatus.Processing}
               AND heartbeat_at IS NOT NULL
               AND heartbeat_at < @staleDeadline
               AND reclaim_count < @maxReclaimCount
+            """;
+
+        // Reset matches the resume path's column set (LeaseToken cleared to preserve the
+        // "NOT NULL iff Processing" invariant). Steps are left untouched: a DependencyFailed
+        // workflow short-circuits before its steps run, so they remain pristine Enqueued.
+        internal static readonly string RecoverDependencyResolvedWorkflows = $"""
+            UPDATE engine.workflows w
+            SET status = {(int)PersistentItemStatus.Enqueued},
+                cancellation_requested_at = NULL,
+                backoff_until = NULL,
+                heartbeat_at = NULL,
+                lease_token = NULL,
+                execution_started_at = NULL,
+                reclaim_count = 0,
+                updated_at = @now
+            WHERE w.status = {(int)PersistentItemStatus.DependencyFailed}
+              AND EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  WHERE wd.workflow_id = w.id
+              )
+              AND NOT EXISTS (
+                  SELECT 1 FROM engine.workflow_dependency wd
+                  JOIN engine.workflows dep ON dep.id = wd.depends_on_workflow_id
+                  WHERE wd.workflow_id = w.id
+                    AND dep.status <> {(int)PersistentItemStatus.Completed}
+              )
             """;
     }
 }
@@ -527,12 +744,27 @@ internal static partial class DbMaintenanceServiceLogs
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
     internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);
 
+    [LoggerMessage(
+        LogLevel.Information,
+        "Retention: deleted {Count} closed mailbox(es) with their deliveries and receiver registrations"
+    )]
+    internal static partial void RetentionDeletedMailboxes(this ILogger<DbMaintenanceService> logger, int count);
+
     [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
     internal static partial void ReclaimedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(
-        LogLevel.Error,
-        "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
+        LogLevel.Information,
+        "Recovered {Count} dependency-failed workflow(s) whose dependencies have since completed"
     )]
-    internal static partial void AbandonedStaleWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+    internal static partial void RecoveredDependencyResolvedWorkflows(
+        this ILogger<DbMaintenanceService> logger,
+        int count
+    );
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Failed {Count} poisoned workflow(s) that exceeded the reclaim limit with a stale heartbeat"
+    )]
+    internal static partial void FailedPoisonedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
 }

@@ -83,7 +83,8 @@ const navigateToSelf = (subroute: string, navigate: NavigateFunction): void => {
 const navigateToContext = (
   { subroute, selectedContextType }: DashboardRoute,
   navigate: NavigateFunction,
-): void => navigate(subroute + '/' + selectedContextType + location.search, { replace: true });
+): void | Promise<void> =>
+  navigate(subroute + '/' + selectedContextType + location.search, { replace: true });
 
 const navigateToDifferentContext = (
   { subroute, selectedContextType }: DashboardRoute,

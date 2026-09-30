@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
 /// <summary>
-/// Controller for handling general organisation content library operations.
+/// Controller for handling general organization content library operations.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -34,9 +34,9 @@ public class OrgContentController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a list of available library content from the organisation.
+    /// Retrieves a list of available library content from the organization.
     /// </summary>
-    /// <param name="orgName">Unique identifier of the organisation.</param>
+    /// <param name="orgName">Unique identifier of the organization.</param>
     /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
     [HttpGet]
     [Route("content")]
@@ -47,7 +47,7 @@ public class OrgContentController : ControllerBase
     {
         if (!await _orgService.IsOrg(orgName))
         {
-            HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organisation";
+            HttpContext.Response.Headers["Reason"] = $"{orgName} is not a valid organization";
             return NoContent();
         }
 

@@ -47,11 +47,11 @@ internal sealed class SigningCallToActionService(
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartSendSignCallToActionActivity();
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
         HostingEnvironment env = AltinnEnvironments.GetHostingEnvironment(_hostEnvironment);
         var resource = AltinnTaskExtension.GetConfigForEnvironment(env, correspondenceResources)?.Value;
@@ -62,14 +62,21 @@ internal sealed class SigningCallToActionService(
             );
         }
 
-        OrganisationOrPersonIdentifier recipient = OrganisationOrPersonIdentifier.Parse(signingParty);
+        OrganizationOrPersonIdentifier recipient = OrganizationOrPersonIdentifier.Parse(signingParty);
         string instanceUrl = _urlHelper.GetInstanceUrl(appIdentifier, instanceIdentifier);
         UserProfile? recipientProfile = null;
-        if (recipient is OrganisationOrPersonIdentifier.Person person)
+        if (recipient is OrganizationOrPersonIdentifier.Person person)
         {
             try
             {
-                recipientProfile = await _profileClient.GetUserProfile(person.Value);
+                recipientProfile = await _profileClient.GetUserProfile(
+                    person.Value,
+                    cancellationToken: cancellationToken
+                );
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -102,7 +109,6 @@ internal sealed class SigningCallToActionService(
             CorrespondenceRequestBuilder
                 .Create()
                 .WithResourceId(resource)
-                .WithSender(serviceOwnerParty.OrgNumber)
                 .WithSendersReference(instanceIdentifier.ToString())
                 .WithRecipient(recipient)
                 .WithContent(correspondenceContent)
@@ -111,7 +117,7 @@ internal sealed class SigningCallToActionService(
             CorrespondenceAuthenticationMethod.Default()
         );
 
-        SendCorrespondenceResponse response = await _correspondenceClient.Send(request, ct);
+        SendCorrespondenceResponse response = await _correspondenceClient.Send(request, cancellationToken);
         var correspondenceId = response?.Correspondences[0]?.CorrespondenceId ?? Guid.Empty;
         _logger.LogInformation("Correspondence request sent. CorrespondenceId: {CorrespondenceId}", correspondenceId);
         return response;

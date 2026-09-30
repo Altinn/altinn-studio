@@ -394,6 +394,8 @@ internal static class DashboardEndpoints
                                     "COMPLETED" => PersistentItemStatus.Completed,
                                     "FAILED" => PersistentItemStatus.Failed,
                                     "REQUEUED" => PersistentItemStatus.Requeued,
+                                    "WAITING" => PersistentItemStatus.Waiting,
+                                    "HELD" => PersistentItemStatus.Held,
                                     "ENQUEUED" => PersistentItemStatus.Enqueued,
                                     "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
@@ -430,6 +432,59 @@ internal static class DashboardEndpoints
                     };
 
                     return Results.Json(result, _jsonCompact);
+                }
+            )
+            .ExcludeFromDescription();
+
+        // A fetch rather than a field on the live stream: a three-table read on a two-second loop would charge
+        // every engine for a feature most do not use. Two caps, the per-collection one so a busy collection
+        // cannot crowd another's mailbox off the payload; full windows come back named.
+        const int mailboxCollectionCap = 100;
+        const int mailboxesPerCollectionCap = 10;
+        app.MapGet(
+                "/dashboard/mailboxes",
+                async (IServiceProvider sp, string? collectionKeys, string? @namespace, CancellationToken ct) =>
+                {
+                    string? nsFilter = string.IsNullOrWhiteSpace(@namespace) ? null : @namespace;
+
+                    // Extra keys are dropped: a surface showing over a hundred collections is showing a window.
+                    string[] keys =
+                    [
+                        .. (collectionKeys ?? string.Empty)
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .Distinct(StringComparer.Ordinal)
+                            .Take(mailboxCollectionCap),
+                    ];
+
+                    if (keys.Length == 0)
+                    {
+                        return Results.Json(
+                            new
+                            {
+                                mailboxes = Array.Empty<DashboardMailboxDto>(),
+                                truncatedCollections = Array.Empty<string>(),
+                            },
+                            _jsonCompact
+                        );
+                    }
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    MailboxCollectionPage page = await repo.GetMailboxesForCollections(
+                        nsFilter,
+                        keys,
+                        limitPerCollection: mailboxesPerCollectionCap,
+                        ct
+                    );
+
+                    return Results.Json(
+                        new
+                        {
+                            mailboxes = page.Mailboxes.Select(DashboardMapper.MapMailbox),
+                            truncatedCollections = page.TruncatedCollections,
+                        },
+                        _jsonCompact
+                    );
                 }
             )
             .ExcludeFromDescription();
@@ -484,6 +539,10 @@ internal static class DashboardEndpoints
                             status = s.Status.ToString(),
                             processingOrder = s.ProcessingOrder,
                             retryCount = s.RequeueCount,
+                            deferCount = s.DeferCount,
+                            firstDeferredAt = s.FirstDeferredAt,
+                            lastDeferredAt = s.LastDeferredAt,
+                            lastDeferReason = s.LastDeferReason,
                             errorHistory = s.ErrorHistory.Select(e => new
                             {
                                 timestamp = e.Timestamp,
@@ -543,80 +602,77 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
-        app.MapPost(
-                "/dashboard/retry",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+        // On-demand relations for cards whose source query does not eager-load them (the recent
+        // section and the query tab); active cards get relations inline from the live stream.
+        app.MapGet(
+                "/dashboard/relations",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
                 {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, ns, ct);
 
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp)
-                        || nsProp.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
+                    if (workflow is null)
+                        return Results.NotFound();
 
-                    string ns = nsProp.GetString() ?? throw new UnreachableException();
-                    var engine = sp.GetRequiredService<IEngine>();
-                    var result = await engine.ResumeWorkflow(workflowId, ns, cascade: false, ct);
-
-                    return result switch
-                    {
-                        ResumeWorkflowResult.Resumed => Results.Ok(),
-                        ResumeWorkflowResult.NotFound => Results.NotFound(),
-                        ResumeWorkflowResult.NotResumable r => Results.Conflict(
-                            $"Workflow is in {r.CurrentStatus} state"
-                        ),
-                        _ => throw new UnreachableException(),
-                    };
+                    return Results.Json(
+                        new
+                        {
+                            isHead = workflow.IsHead,
+                            dependsOn = DashboardMapper.MapRelations(workflow.Dependencies) ?? [],
+                            dependents = DashboardMapper.MapRelations(workflow.Dependents) ?? [],
+                            links = DashboardMapper.MapRelations(workflow.Links) ?? [],
+                        },
+                        _jsonCompact
+                    );
                 }
             )
             .ExcludeFromDescription();
 
-        app.MapPost(
-                "/dashboard/skip-backoff",
-                async (IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+        // Connected dependency graph for the chain views: every workflow reachable from the given
+        // one through dependency/link relations in either direction, as full card DTOs plus typed
+        // edges so the frontend can lay out the spine without re-deriving relations. Capped at the
+        // most recently created nodes so a pathologically long-lived collection can't produce an
+        // unbounded payload; `truncated` tells the frontend the story has an older, unshown tail.
+        const int graphNodeCap = 200;
+        app.MapGet(
+                "/dashboard/graph",
+                async (IServiceProvider sp, Guid wf, string ns, CancellationToken ct) =>
                 {
-                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
-                    if (
-                        !doc.RootElement.TryGetProperty("workflowId", out var wfProp)
-                        || !Guid.TryParse(wfProp.GetString(), out Guid workflowId)
-                    )
-                    {
-                        return Results.BadRequest("Missing or invalid workflowId");
-                    }
-
-                    if (
-                        !doc.RootElement.TryGetProperty("namespace", out var nsProp2)
-                        || nsProp2.ValueKind != JsonValueKind.String
-                        || string.IsNullOrWhiteSpace(nsProp2.GetString())
-                    )
-                    {
-                        return Results.BadRequest("Missing namespace");
-                    }
-
-                    string ns = nsProp2.GetString() ?? throw new UnreachableException();
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    IReadOnlyList<Workflow>? graph = await repo.GetWorkflowDependencyGraph(
+                        wf,
+                        ns,
+                        limit: graphNodeCap + 1,
+                        ct
+                    );
 
-                    bool updated = await repo.SkipBackoff(workflowId, ns, ct);
-                    if (updated)
-                        return Results.Ok();
-
-                    PersistentItemStatus? status = await repo.GetWorkflowStatus(workflowId, ns, ct);
-                    if (status is null)
+                    if (graph is null)
                         return Results.NotFound();
 
-                    return Results.Conflict($"Workflow is in {status} state");
+                    // The list is CreatedAt-ascending; the +1 sentinel (when present) is the oldest.
+                    bool truncated = graph.Count > graphNodeCap;
+                    if (truncated)
+                        graph = [.. graph.Skip(graph.Count - graphNodeCap)];
+
+                    return Results.Json(
+                        new
+                        {
+                            root = wf,
+                            truncated,
+                            workflows = graph.Select(DashboardMapper.MapWorkflow),
+                            edges = EngineRequestHandlers
+                                .BuildDependencyGraphEdges(graph)
+                                .Select(e => new
+                                {
+                                    from = e.From,
+                                    to = e.To,
+                                    kind = e.Kind == WorkflowDependencyGraphEdgeKind.Dependency ? "dependency" : "link",
+                                }),
+                        },
+                        _jsonCompact
+                    );
                 }
             )
             .ExcludeFromDescription();

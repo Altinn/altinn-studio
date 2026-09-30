@@ -28,6 +28,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     where TControllerTest : class
 {
     private HttpClient _httpClient;
+    private readonly List<WebApplicationFactory<Program>> _configuredFactories = [];
 
     /// <summary>
     /// HttpClient that should call endpoints of a provided controller.
@@ -80,8 +81,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory
-            .WithWebHostBuilder(builder =>
+        return CreateTestClient(
+            builder =>
             {
                 builder.UseConfiguration(configuration);
                 builder.ConfigureAppConfiguration(
@@ -106,9 +107,48 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                     services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
                 });
                 builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
-            })
-            .CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+            },
+            new ApiTestsAuthAndCookieDelegatingHandler(),
+            new CookieContainerHandler()
+        );
     }
+
+    /// <summary>
+    /// Creates an HttpClient whose requests are authenticated by <typeparamref name="TAuthHandler"/> instead of the
+    /// default test scheme, with the same configuration and test services as <see cref="HttpClient"/>. No xsrf
+    /// cookie is added, so it suits GET requests from anonymous or API key callers.
+    /// </summary>
+    protected HttpClient CreateTestClientWithAuthHandler<TAuthHandler>()
+        where TAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    {
+        const string SchemeName = "TestClientScheme";
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile(GetConfigPath(), false, false)
+            .AddJsonStream(GenerateJsonOverrideConfig())
+            .AddEnvironmentVariables()
+            .Build();
+
+        return CreateTestClient(builder =>
+        {
+            builder.UseConfiguration(configuration);
+            builder.ConfigureTestServices(ConfigureTestServices);
+            builder.ConfigureTestServices(services =>
+                services
+                    .AddAuthentication(defaultScheme: SchemeName)
+                    .AddScheme<AuthenticationSchemeOptions, TAuthHandler>(SchemeName, _ => { })
+            );
+            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
+        });
+    }
+
+    protected HttpClient CreateTestClient(Action<IWebHostBuilder> configureWebHost, params DelegatingHandler[] handlers)
+    {
+        var factory = new TestWebApplicationFactory(configureWebHost, EnableOpenTelemetry);
+        _configuredFactories.Add(factory);
+        return factory.CreateDefaultClient(handlers);
+    }
+
+    protected virtual bool EnableOpenTelemetry => false;
 
     /// <summary>
     /// Override when want to build WebHost with non default appsettings.json
@@ -125,9 +165,34 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         Dispose(true);
     }
 
-    protected virtual void Dispose(bool disposing) { }
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+        {
+            return;
+        }
+
+        foreach (WebApplicationFactory<Program> factory in _configuredFactories)
+        {
+            factory.Dispose();
+        }
+
+        _configuredFactories.Clear();
+        _httpClient = null;
+    }
 
     protected List<string> JsonConfigOverrides;
+
+    private sealed class TestWebApplicationFactory(Action<IWebHostBuilder> configureWebHost, bool enableOpenTelemetry)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            TestWebHostDefaults.Configure(builder);
+            builder.UseSetting("OpenTelemetry:Enabled", enableOpenTelemetry.ToString());
+            configureWebHost(builder);
+        }
+    }
 
     private void InitializeJsonConfigOverrides()
     {
@@ -135,25 +200,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         [
             $@"
               {{
-                    ""FeatureManagement"": {{
-                        ""StudioOidc"": false
-                    }},
-                    ""OidcLoginSettings"": {{
+                    ""StudioOidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
                         ""ClientSecret"": ""{Guid.NewGuid()}"",
                         ""Authority"": ""http://studio.localhost/repos/"",
                         ""Scopes"": [
                             ""openid"",
-                            ""profile"",
-                            ""write:activitypub"",
-                            ""write:admin"",
-                            ""write:issue"",
-                            ""write:misc"",
-                            ""write:notification"",
-                            ""write:organization"",
-                            ""write:package"",
-                            ""write:repository"",
-                            ""write:user""
+                            ""profile""
                         ],
                         ""RequireHttpsMetadata"": false,
                         ""CookieExpiryTimeInMinutes"" : 59

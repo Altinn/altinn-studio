@@ -33,6 +33,8 @@ internal static class WorkflowRequestExtensions
             Context = enqueueRequest.Context,
             DistributedTraceContext = metadata.TraceContext,
             InitialState = workflowRequest.State,
+            IsHead = workflowRequest.IsHead,
+            MailboxId = workflowRequest.Mailbox?.Id,
             Steps = workflowRequest
                 .Steps.Select(
                     (s, i) =>

@@ -54,14 +54,14 @@ internal sealed class UsingRewriter : CSharpSyntaxRewriter
 
     private bool HasFieldOfType(CompilationUnitSyntax node, string typeName)
     {
-        var fieldDecendants = node.DescendantNodes().OfType<FieldDeclarationSyntax>();
-        return fieldDecendants.Any(f => f.Declaration.Type.ToString() == typeName);
+        var fieldDescendants = node.DescendantNodes().OfType<FieldDeclarationSyntax>();
+        return fieldDescendants.Any(f => f.Declaration.Type.ToString() == typeName);
     }
 
     private bool ImplementsIProcessExclusiveGateway(CompilationUnitSyntax node)
     {
-        var classDecendants = node.DescendantNodes().OfType<ClassDeclarationSyntax>();
-        return classDecendants.Any(c =>
+        var classDescendants = node.DescendantNodes().OfType<ClassDeclarationSyntax>();
+        return classDescendants.Any(c =>
             c.BaseList?.Types.Any(t => t.Type.ToString() == "IProcessExclusiveGateway") == true
         );
     }

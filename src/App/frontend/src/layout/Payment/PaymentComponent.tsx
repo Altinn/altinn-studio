@@ -11,9 +11,9 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
-import { useBackoff } from 'src/features/process/feedback/Feedback';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
+import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Payment/PaymentComponent.module.css';
@@ -29,7 +29,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
-  const { title, description } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
+  const { title, description, help } = useItemWhenType(baseComponentId, 'Payment').textResourceBindings ?? {};
   const { data: process, refetch: reFetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
@@ -88,7 +88,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
     await navigateBasedOnProcess(false);
   }, [navigateBasedOnProcess]);
 
-  useBackoff(goToCurrentTask);
+  usePollingWithBackoff(goToCurrentTask);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
@@ -97,6 +97,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
           orderDetails={paymentInfo?.orderDetails}
           tableTitle={title}
           description={description}
+          help={help}
         />
         <div className={classes.alertContainer}>
           {(paymentInfo?.status === PaymentStatus.Failed || paymentError) && (

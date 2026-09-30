@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioLanguagePicker } from './StudioLanguagePicker';
 import type { StudioLanguagePickerProps } from './StudioLanguagePicker';
@@ -167,6 +167,41 @@ describe('StudioLanguagePicker', () => {
     expect(onSelect).toHaveBeenCalledWith(twoLetterCodes[1]);
   });
 
+  it('Keeps new language input field visible when the user moves focus from the field to the add button using tab', async () => {
+    const user = setupUser();
+    renderLanguagePicker();
+
+    await user.clickAdd();
+    await user.tab();
+
+    expect(getAddButton()).toHaveFocus();
+    await act(() => studioTest.waitForAnimationFrame());
+    expect(getNewLanguageInput()).toBeVisible();
+  });
+
+  it('Hides the new language input field when the user moves focus from the field to the remove button using tab', async () => {
+    const user = setupUser();
+    renderLanguagePicker();
+
+    await user.clickAdd();
+    await user.tab({ shift: true });
+
+    expect(getRemoveButton()).toHaveFocus();
+    await act(() => studioTest.waitForAnimationFrame());
+    expect(queryNewLanguageInput()).not.toBeInTheDocument();
+  });
+
+  it('Hides the new language input field when the user clicks outside', async () => {
+    const user = setupUser();
+    renderLanguagePicker();
+
+    await user.clickAdd();
+    await user.click(document.body);
+
+    await act(() => studioTest.waitForAnimationFrame());
+    expect(queryNewLanguageInput()).not.toBeInTheDocument();
+  });
+
   describe('When wrapped in controlling component', () => {
     it('Renders without the removed language code when a language is removed', async () => {
       const user = setupUser();
@@ -221,10 +256,10 @@ function setupUser(): ExtendedUserEvent {
       await this.selectOptions(getLanguageInput(), getLanguageOption(code));
     },
     async clickRemove(): Promise<void> {
-      await this.click(screen.getByRole('button', { name: texts.remove }));
+      await this.click(getRemoveButton());
     },
     async clickAdd(): Promise<void> {
-      await this.click(screen.getByRole('button', { name: texts.add }));
+      await this.click(getAddButton());
     },
     async typeNewLanguageCode(code: string): Promise<void> {
       await this.type(getNewLanguageInput(), code);
@@ -242,6 +277,18 @@ function getLanguageOption(language: string): HTMLElement {
 
 function getNewLanguageInput(): HTMLElement {
   return screen.getByRole('textbox', { name: texts.newLanguageCode });
+}
+
+function queryNewLanguageInput(): HTMLElement | null {
+  return screen.queryByRole('textbox', { name: texts.newLanguageCode });
+}
+
+function getAddButton(): HTMLElement {
+  return screen.getByRole('button', { name: texts.add });
+}
+
+function getRemoveButton(): HTMLElement {
+  return screen.getByRole('button', { name: texts.remove });
 }
 
 function renderUncontrolledLanguagePicker(

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO.Hashing;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features.Auth;
@@ -214,6 +215,53 @@ public class AuthenticatedTests
     }
 
     [Fact]
+    public void Can_Classify_App_Callback_WithInstance()
+    {
+        var instanceGuid = Guid.NewGuid();
+        var instanceId = new InstanceIdentifier(512345, instanceGuid);
+        // AppId is the route authority — deliberately distinct from the app metadata identity.
+        var appId = new AppIdentifier("ttd", "callback-app");
+        var jwt = new JwtSecurityToken(claims: [new Claim("jti", instanceGuid.ToString())]);
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        var auth = Authenticated.FromApp(
+            tokenStr: token,
+            parsedToken: null,
+            appId: appId,
+            instanceId: instanceId,
+            appMetadata: TestAuthentication.NewApplicationMetadata()
+        );
+
+        var app = Assert.IsType<Authenticated.App>(auth);
+        Assert.Equal(appId, app.AppId);
+        Assert.Equal(instanceId, app.InstanceId);
+        Assert.Equal(token, app.Token);
+        // Callback principals carry no Altinn identity scopes and are not exchanged tokens.
+        Assert.False(app.Scopes.HasScope("altinn:portal/enduser"));
+        Assert.False(app.TokenIsExchanged);
+    }
+
+    [Fact]
+    public void Can_Classify_App_Callback_WithoutInstance()
+    {
+        var appId = new AppIdentifier("ttd", "callback-app");
+        var jwt = new JwtSecurityToken(claims: [new Claim("jti", Guid.NewGuid().ToString())]);
+        var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+        var auth = Authenticated.FromApp(
+            tokenStr: token,
+            parsedToken: null,
+            appId: appId,
+            instanceId: null,
+            appMetadata: TestAuthentication.NewApplicationMetadata()
+        );
+
+        var app = Assert.IsType<Authenticated.App>(auth);
+        Assert.Equal(appId, app.AppId);
+        Assert.Null(app.InstanceId);
+    }
+
+    [Fact]
     public async Task Can_Parse_Real_ServiceOwner_Token_When_App_Metadata_Org_Differs()
     {
         const string appMetadataOrg = "ttd";
@@ -254,7 +302,7 @@ public class AuthenticatedTests
             .AddExtraSettings(s =>
             {
                 s.Converters.Add(new ScopesConverter());
-                s.Converters.Add(new OrganisationNumberConverter());
+                s.Converters.Add(new OrganizationNumberConverter());
             });
 
     private sealed class ScopesConverter : WriteOnlyJsonConverter<Scopes>
@@ -265,11 +313,11 @@ public class AuthenticatedTests
         }
     }
 
-    private sealed class OrganisationNumberConverter : WriteOnlyJsonConverter<OrganisationNumber>
+    private sealed class OrganizationNumberConverter : WriteOnlyJsonConverter<OrganizationNumber>
     {
-        public override void Write(VerifyJsonWriter writer, OrganisationNumber value)
+        public override void Write(VerifyJsonWriter writer, OrganizationNumber value)
         {
-            writer.WriteValue(value.Get(OrganisationNumberFormat.International));
+            writer.WriteValue(value.Get(OrganizationNumberFormat.International));
         }
     }
 
@@ -486,8 +534,8 @@ public class AuthenticatedTests
                             var json = Assert.IsType<JsonElement>(claim.Value);
                             var authDetails = AuthorizationDetailsClaim.Parse(json);
                             var systemUserDetails = Assert.IsType<SystemUserAuthorizationDetailsClaim>(authDetails);
-                            var systemUserOrgNo = OrganisationNumber.Parse(systemUserDetails.SystemUserOrg.Id);
-                            Assert.Equal(orgNo, systemUserOrgNo.Get(OrganisationNumberFormat.Local));
+                            var systemUserOrgNo = OrganizationNumber.Parse(systemUserDetails.SystemUserOrg.Id);
+                            Assert.Equal(orgNo, systemUserOrgNo.Get(OrganizationNumberFormat.Local));
                             return Task.FromResult<Party>(
                                 new Party
                                 {

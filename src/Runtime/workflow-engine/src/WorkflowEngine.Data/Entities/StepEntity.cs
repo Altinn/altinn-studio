@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
@@ -26,9 +25,20 @@ internal sealed class StepEntity
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
+
     public int ProcessingOrder { get; set; }
 
     public int RequeueCount { get; set; }
+
+    public int DeferCount { get; set; }
+
+    public DateTimeOffset? FirstDeferredAt { get; set; }
+
+    public DateTimeOffset? LastDeferredAt { get; set; }
+
+    [MaxLength(500)]
+    public string? LastDeferReason { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
@@ -59,8 +69,13 @@ internal sealed class StepEntity
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
+            ExecutionStartedAt = step.ExecutionStartedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
+            DeferCount = step.DeferCount,
+            FirstDeferredAt = step.FirstDeferredAt,
+            LastDeferredAt = step.LastDeferredAt,
+            LastDeferReason = step.LastDeferReason,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
@@ -89,7 +104,12 @@ internal sealed class StepEntity
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
+            ExecutionStartedAt = ExecutionStartedAt,
             RequeueCount = RequeueCount,
+            DeferCount = DeferCount,
+            FirstDeferredAt = FirstDeferredAt,
+            LastDeferredAt = LastDeferredAt,
+            LastDeferReason = LastDeferReason,
             Command = command,
             RetryStrategy = retryStrategy,
             Labels = Labels,

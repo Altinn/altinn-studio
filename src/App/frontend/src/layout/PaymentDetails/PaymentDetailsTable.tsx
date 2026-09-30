@@ -12,9 +12,16 @@ type PaymentDetailsTableProps = {
   orderDetails?: OrderDetails;
   tableTitle?: string;
   description?: string;
+  help?: string;
 } & React.HTMLAttributes<HTMLTableElement>;
 
-export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...rest }: PaymentDetailsTableProps) => (
+export const PaymentDetailsTable = ({
+  orderDetails,
+  tableTitle,
+  description,
+  help,
+  ...rest
+}: PaymentDetailsTableProps) => (
   <Table
     {...rest}
     className={cn(classes.orderDetailsTable, rest.className)}
@@ -23,6 +30,7 @@ export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...
       <Caption
         title={<Lang id={tableTitle} />}
         description={description && <Lang id={description} />}
+        helpText={help ? { text: <Lang id={help} />, accessibleTitle: tableTitle } : undefined}
       />
     )}
 

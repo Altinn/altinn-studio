@@ -41,7 +41,7 @@ public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBa
 
     protected TTestType JsonSchemaLoaded(string json)
     {
-        JsonSchema = JsonSchema.FromText(json);
+        JsonSchema = JsonSchemaKeywords.FromText(json);
         return this as TTestType;
     }
 

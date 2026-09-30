@@ -14,7 +14,8 @@ describe('Page load times', () => {
   });
 
   [false, true].forEach((PDF) => {
-    Cypress.env('_pageLoadTimes', {});
+    const pageLoadTimes: Record<string, number[]> = {};
+    let pageLoadStart = 0;
 
     describe(PDF ? 'PDF load times' : 'Page load times', () => {
       ['message', 'changename', 'group', 'likert', 'datalist'].forEach((task: FrontendTestTask) => {
@@ -33,11 +34,11 @@ describe('Page load times', () => {
           }
 
           cy.on('window:before:load', () => {
-            Cypress.env('_pageLoadStart', performance.now());
+            pageLoadStart = performance.now();
           });
 
           cy.then(() => {
-            Cypress.env('_pageLoadTimes')[task] = [];
+            pageLoadTimes[task] = [];
           });
 
           for (let i = 0; i < n_loads; i++) {
@@ -45,7 +46,7 @@ describe('Page load times', () => {
             cy.reload(false);
             cy.get(PDF ? '#readyForPrint' : '#finishedLoading').should('exist');
             cy.then(() => {
-              Cypress.env('_pageLoadTimes')[task].push(performance.now() - Cypress.env('_pageLoadStart'));
+              pageLoadTimes[task].push(performance.now() - pageLoadStart);
             });
           }
         });
@@ -53,17 +54,16 @@ describe('Page load times', () => {
 
       it('results', () => {
         cy.then(() => {
-          const times = Cypress.env('_pageLoadTimes') as Record<string, number[]>;
-          for (const task of Object.keys(times)) {
+          for (const task of Object.keys(pageLoadTimes)) {
             cy.log(`${PDF ? 'PDF' : 'Page'} load times for ${task}:`);
-            for (const time of times[task]) {
+            for (const time of pageLoadTimes[task]) {
               cy.log(`- ${Math.round(time)}ms`);
             }
             cy.log(
-              `Average time for ${task}: ${Math.round(times[task].reduce((n, c) => n + c, 0) / times[task].length)}ms`,
+              `Average time for ${task}: ${Math.round(pageLoadTimes[task].reduce((n, c) => n + c, 0) / pageLoadTimes[task].length)}ms`,
             );
           }
-          const values = Object.values(times).flatMap((t) => t);
+          const values = Object.values(pageLoadTimes).flatMap((times) => times);
           cy.log(`Average time in total: ${Math.round(values.reduce((n, c) => n + c, 0) / values.length)}ms`);
         });
       });

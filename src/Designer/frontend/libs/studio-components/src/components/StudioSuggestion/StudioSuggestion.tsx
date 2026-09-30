@@ -17,8 +17,10 @@ export type StudioSuggestionProps = SuggestionProps &
     emptyText: string;
     label: string;
     className?: string;
+    clearButtonLabel?: string;
     description?: string;
     error?: string | false;
+    placeholder?: string;
   };
 
 function StudioSuggestion(
@@ -29,8 +31,10 @@ function StudioSuggestion(
     children,
     emptyText,
     className,
+    clearButtonLabel,
     description,
     error,
+    placeholder,
     ...rest
   }: StudioSuggestionProps,
   ref: Ref<React.ElementRef<typeof Suggestion.Input>>,
@@ -44,7 +48,7 @@ function StudioSuggestion(
       {description && (
         <StudioParagraph className={classes.description}>{description}</StudioParagraph>
       )}
-      <Suggestion {...rest}>
+      <Suggestion {...rest} data-sr-clear={clearButtonLabel}>
         <Suggestion.Input
           aria-label={label}
           id={inputId}
@@ -52,6 +56,7 @@ function StudioSuggestion(
           required={required}
           aria-required={required}
           aria-invalid={!!error}
+          placeholder={placeholder}
         />
         <Suggestion.Clear />
         <Suggestion.List>

@@ -36,4 +36,7 @@ public interface IAltinnStorageInstancesClient
         string instanceId,
         CancellationToken ct
     );
+
+    /// <inheritdoc cref="DeleteInstance"/>
+    Task DeleteInstance(string org, string env, string app, string instanceId, CancellationToken ct);
 }

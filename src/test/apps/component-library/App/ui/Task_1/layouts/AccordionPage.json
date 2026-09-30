@@ -12,7 +12,7 @@
         "textResourceBindings": {
           "title": "Sample Accordion Title"
         },
-        "children": ["paragraph-example", "button-example", "AccordionPage-Input"]
+        "children": ["paragraph-example", "AccordionPage-Input"]
       },
       {
         "id": "paragraph-example",
@@ -45,7 +45,6 @@
       {
         "id": "AccordionLookupPage-NavigationButtons",
         "type": "NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"

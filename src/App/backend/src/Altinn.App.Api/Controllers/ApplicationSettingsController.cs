@@ -21,7 +21,7 @@ public class ApplicationSettingsController : ControllerBase
     private readonly FrontEndSettings _frontEndSettings;
 
     /// <summary>
-    /// Controller that exposes a subset of app setings
+    /// Controller that exposes a subset of app settings
     /// </summary>
     public ApplicationSettingsController(IOptions<AppSettings> appSettings, IOptions<FrontEndSettings> frontEndSettings)
     {

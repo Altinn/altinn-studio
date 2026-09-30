@@ -1,4 +1,4 @@
-#nullable disable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,12 +15,12 @@ namespace Altinn.App.Models.model
     [XmlElement("firstname", Order = 1)]
     [JsonProperty("firstname")]
     [JsonPropertyName("firstname")]
-    public string firstname { get; set; }
+    public string? firstname { get; set; }
 
     [XmlElement("lastname", Order = 2)]
     [JsonProperty("lastname")]
     [JsonPropertyName("lastname")]
-    public string lastname { get; set; }
+    public string? lastname { get; set; }
 
     [Range(0d, 99d)]
     [XmlElement("age", Order = 3)]
@@ -33,22 +33,22 @@ namespace Altinn.App.Models.model
     [XmlElement("birthday", Order = 4)]
     [JsonProperty("birthday")]
     [JsonPropertyName("birthday")]
-    public string birthday { get; set; }
+    public string? birthday { get; set; }
 
     [XmlElement("emails", Order = 5)]
     [JsonProperty("emails")]
     [JsonPropertyName("emails")]
-    public List<emails> emails { get; set; }
+    public List<emails>? emails { get; set; }
 
     [XmlElement("extra", Order = 6)]
     [JsonProperty("extra")]
     [JsonPropertyName("extra")]
-    public string extra { get; set; }
+    public string? extra { get; set; }
 
     [XmlElement("feedback", Order = 7)]
     [JsonProperty("feedback")]
     [JsonPropertyName("feedback")]
-    public string feedback { get; set; }
+    public string? feedback { get; set; }
 
   }
 
@@ -65,7 +65,7 @@ namespace Altinn.App.Models.model
     [XmlElement("email", Order = 1)]
     [JsonProperty("email")]
     [JsonPropertyName("email")]
-    public string email { get; set; }
+    public string? email { get; set; }
 
   }
 }

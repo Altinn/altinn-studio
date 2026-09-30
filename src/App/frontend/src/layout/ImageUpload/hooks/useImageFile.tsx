@@ -1,5 +1,7 @@
 import { type UploadedAttachment } from 'src/features/attachments';
-import { useAttachmentsFor, useAttachmentsRemover, useAttachmentsUploader } from 'src/features/attachments/hooks';
+import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
+import { AttachmentRemoval } from 'src/features/attachments/hooks/attachmentRemoval';
+import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
@@ -17,9 +19,9 @@ type UseImageFileResult = {
 export const useImageFile = (baseComponentId: string): UseImageFileResult => {
   const { dataModelBindings } = useItemWhenType(baseComponentId, 'ImageUpload');
   const indexedId = useIndexedId(baseComponentId);
-  const uploadImage = useAttachmentsUploader();
-  const removeImage = useAttachmentsRemover();
-  const storedImage = useAttachmentsFor(baseComponentId)[0] as UploadedAttachment | undefined;
+  const uploadImage = AttachmentUpload.useAttachmentsUploader();
+  const removeImage = AttachmentRemoval.useAttachmentsRemover();
+  const storedImage = AttachmentReadModel.useAttachmentsFor(baseComponentId)[0] as UploadedAttachment | undefined;
 
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceId();

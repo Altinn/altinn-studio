@@ -1,3 +1,4 @@
+using System.Net;
 using Altinn.App.Core.Exceptions;
 
 namespace Altinn.App.Core.Models.Notifications.Email;
@@ -9,12 +10,10 @@ public sealed class EmailNotificationException : AltinnException
 {
     internal EmailNotificationException(
         string? message,
-        HttpResponseMessage? response,
+        HttpStatusCode? statusCode,
+        string? reasonPhrase,
         string? content,
         Exception? innerException
     )
-        : base(
-            $"{message}: StatusCode={response?.StatusCode}\nReason={response?.ReasonPhrase}\nBody={content}\n",
-            innerException
-        ) { }
+        : base($"{message}: StatusCode={statusCode}\nReason={reasonPhrase}\nBody={content}\n", innerException) { }
 }

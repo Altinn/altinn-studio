@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useRef } from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph } from '@studio/components';
 import { DownloadIcon, TrashIcon } from '@studio/icons';
 import { LocalChangesActionButton } from '../LocalChangesActionButton';
 import { DeleteModal } from '../DeleteModal';
@@ -20,7 +20,7 @@ export const LocalChanges = (): ReactNode => {
 
   return (
     <div className={classes.contentWrapper}>
-      <Paragraph size='small'>{t('local_changes.modal_info_text')}</Paragraph>
+      <StudioParagraph>{t('local_changes.modal_info_text')}</StudioParagraph>
       <LocalChangesActionButton
         label={t('local_changes.modal_download_your_files_label')}
         description={t('local_changes.modal_download_your_files_description')}

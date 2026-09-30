@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers;
 
-[Route("designer/api/[controller]")]
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/[controller]")]
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
@@ -22,7 +22,7 @@ public class CanUseFeatureController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> CanUseFeature([FromQuery] string? featureName)
+    public async Task<IActionResult> CanUseFeature(string org, string app, [FromQuery] string? featureName)
     {
         if (!Enum.TryParse<CanUseFeatureEnum>(featureName, true, out var parsedFeatureName))
         {
@@ -30,7 +30,7 @@ public class CanUseFeatureController : ControllerBase
         }
 
         ICanUseFeatureEvaluator evaluator = _canUseFeatureEvaluatorRegistry.GetEvaluator(parsedFeatureName);
-        bool canUseFeature = await evaluator.CanUseFeatureAsync();
+        bool canUseFeature = await evaluator.CanUseFeatureAsync(org, app);
 
         return Ok(new CanUseFeatureDto { CanUseFeature = canUseFeature });
     }

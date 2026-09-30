@@ -1,4 +1,6 @@
-﻿namespace Altinn.Notifications.Core.Models.ContactPoints;
+#nullable disable
+
+namespace Altinn.Notifications.Core.Models.ContactPoints;
 
 /// <summary>
 /// Class describing the availability of contact points for a user

@@ -3,7 +3,7 @@ using System.Text;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Cache;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -141,7 +141,7 @@ internal sealed class ScopeAuthorizationMiddleware(RequestDelegate _next)
 }
 
 internal sealed class ScopeAuthorizationService(
-    IAppConfigurationCache _appConfigurationCache,
+    IAppMetadata _appMetadata,
     IEnumerable<EndpointDataSource> _endpointDataSources,
     IHostApplicationLifetime _hostLifetime,
     IOptions<GeneralSettings> _generalSettings,
@@ -243,13 +243,14 @@ internal sealed class ScopeAuthorizationService(
         _logger.LogDebug("Starting scope authorization initialization");
         try
         {
-            var appMetadata = _appConfigurationCache.ApplicationMetadata;
+            var appMetadata = _appMetadata.ApplicationMetadata;
 
             HasDefinedCustomScopes =
                 !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.Users?.Read)
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.Users?.Write)
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.ServiceOwners?.Read)
                 || !string.IsNullOrWhiteSpace(appMetadata.ApiScopes?.ServiceOwners?.Write);
+
             ProcessEndpoints(appMetadata);
 
             _initialization.TrySetResult();
@@ -272,10 +273,23 @@ internal sealed class ScopeAuthorizationService(
     {
         var metadataLookup = new Dictionary<ApiEndpoint, ScopeRequirementMetadata>();
         var endpoints = _endpointDataSources.SelectMany(ed => ed.Endpoints).ToArray();
+        var routeEndpoints = endpoints.OfType<RouteEndpoint>().ToArray();
+
         foreach (var endpointObj in endpoints)
         {
             if (endpointObj is not RouteEndpoint endpoint)
+            {
+                if (IsMvcInertEndpoint(endpointObj))
+                {
+                    _logger.LogDebug(
+                        "Skipping non-routable MVC inert endpoint {DisplayName} during scope authorization initialization",
+                        endpointObj.DisplayName
+                    );
+                    continue;
+                }
+
                 throw new Exception("Unexpected endpoint type: " + endpointObj.GetType().FullName);
+            }
 
             var httpMethods = GetEndpointHttpMethods(endpoint);
             foreach (var httpMethod in httpMethods)
@@ -310,18 +324,13 @@ internal sealed class ScopeAuthorizationService(
 
         if (_logger.IsEnabled(LogLevel.Debug) && HasDefinedCustomScopes)
         {
-            endpoints = _endpointDataSources.SelectMany(ed => ed.Endpoints).ToArray();
-
             var message = new StringBuilder("Endpoint API scope authorization summary:\n");
-            foreach (var endpoint in endpoints)
+            foreach (var endpoint in routeEndpoints)
             {
                 var httpMethods = GetEndpointHttpMethods(endpoint);
                 foreach (var httpMethod in httpMethods)
                 {
-                    var apiEndpoint = new ApiEndpoint(
-                        endpoint as RouteEndpoint ?? throw new Exception("Not a route endpoint"),
-                        httpMethod
-                    );
+                    var apiEndpoint = new ApiEndpoint(endpoint, httpMethod);
                     var metadata = _metadataLookup.GetValueOrDefault(apiEndpoint);
                     if (metadata is not null)
                     {
@@ -373,6 +382,16 @@ internal sealed class ScopeAuthorizationService(
 
             _logger.LogDebug(message.ToString());
         }
+    }
+
+    private static bool IsMvcInertEndpoint(Endpoint endpoint)
+    {
+        if (endpoint.GetType() != typeof(Endpoint))
+            return false;
+
+        // MapFallbackToController creates non-routable MVC "inert" endpoints for dynamic selection.
+        // They are represented by base Endpoint instances with MVC action metadata, not RouteEndpoint instances.
+        return endpoint.Metadata.GetMetadata<ControllerActionDescriptor>() is not null;
     }
 
     private void ProcessEndpoint(
@@ -445,7 +464,7 @@ internal sealed class ScopeAuthorizationService(
         if (string.IsNullOrWhiteSpace(configuredScope))
             return null;
 
-        var appMetadata = _appConfigurationCache.ApplicationMetadata;
+        var appMetadata = _appMetadata.ApplicationMetadata;
         configuredScope = configuredScope.Replace("[app]", appMetadata.AppIdentifier.App);
         return new[] { configuredScope, "altinn:portal/enduser" }.ToFrozenSet(StringComparer.Ordinal);
     }
@@ -456,7 +475,7 @@ internal sealed class ScopeAuthorizationService(
         if (string.IsNullOrWhiteSpace(configuredScope))
             return null;
 
-        var appMetadata = _appConfigurationCache.ApplicationMetadata;
+        var appMetadata = _appMetadata.ApplicationMetadata;
         configuredScope = configuredScope.Replace("[app]", appMetadata.AppIdentifier.App);
         return new[] { configuredScope }.ToFrozenSet(StringComparer.Ordinal);
     }

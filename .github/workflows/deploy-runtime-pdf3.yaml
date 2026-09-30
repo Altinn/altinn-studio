@@ -35,13 +35,14 @@ jobs:
     outputs:
       short-sha: ${{ steps.vars.outputs.short-sha }}
       config-repo: ${{ steps.vars.outputs.config-repo }}
+      ghcr-image-worker-repo: ${{ steps.vars.outputs.ghcr-image-worker-repo }}
     defaults:
       run:
         working-directory: src/Runtime/pdf3
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clone
+          persist-credentials: false
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
@@ -75,7 +76,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -85,14 +86,22 @@ jobs:
         run: az acr login --name ${{ steps.vars.outputs.registry-name }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
         run: |
           set -e
-          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
+            -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
           PROXY_PID=$!
-          docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
+          docker build --platform linux/amd64,linux/arm64 \
+            --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache \
+            --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache,mode=max \
+            --label org.opencontainers.image.revision=${GITHUB_SHA} \
+            -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID
@@ -135,16 +144,17 @@ jobs:
     environment: ${{ matrix.environment }}
     permissions:
       id-token: write # Require write permission to Fetch an OIDC token.
+      packages: write # Require write permission to move the tt02 tag on GHCR.
     strategy:
       matrix:
         include: ${{ fromJson(needs.construct-rings-array.outputs.result) }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # Shallow clone
+          persist-credentials: false
 
       - name: az login
-        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -154,9 +164,24 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: tag artifact
         run: |
           flux tag artifact oci://${{ needs.push-pdf3-artifact.outputs.config-repo }} \
             --tag ${{ matrix.ring }}
+
+      # studioctl runs the worker from the "tt02" tag, so local environments render PDFs with
+      # the same build as tt02. Moved here rather than in the build job, so it only ever points
+      # at a build handed to the ring. Only the worker is tagged: it is the one image studioctl
+      # runs, and what the ring deploys stays described by the artifact flux tagged above.
+      - name: Point the tt02 tag at this build
+        if: matrix.ring == 'tt_ring1' && github.ref == 'refs/heads/main'
+        env:
+          WORKER_IMAGE: ${{ needs.push-pdf3-artifact.outputs.ghcr-image-worker-repo }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker buildx imagetools create \
+            -t ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:tt02 \
+            "$WORKER_IMAGE"

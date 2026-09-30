@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
@@ -69,7 +70,7 @@ public class SigningUserActionTests
             var signClient = new Mock<ISignClient>();
             var instanceDataMutatorMock = new Mock<IInstanceDataMutator>();
 
-            appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(_defaultAppMetadata);
+            appMetadata.Setup(x => x.ApplicationMetadata).Returns(_defaultAppMetadata);
             signingReceiptService
                 .Setup(x =>
                     x.SendSignatureReceipt(
@@ -99,7 +100,13 @@ public class SigningUserActionTests
 
             var signatureWasAdded = false;
             signClient
-                .Setup(x => x.SignDataElements(It.IsAny<SignatureContext>()))
+                .Setup(x =>
+                    x.SignDataElements(
+                        It.IsAny<SignatureContext>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .Callback(() =>
                 {
                     signatureWasAdded = true;
@@ -200,7 +207,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -228,8 +235,14 @@ public class SigningUserActionTests
         // Arrange
         var fixture = Fixture.Create();
         fixture
-            .SignClient.Setup(x => x.SignDataElements(It.IsAny<SignatureContext>()))
-            .ThrowsAsync(new PlatformHttpException(new HttpResponseMessage(), "Failed to sign dataelements"));
+            .SignClient.Setup(x =>
+                x.SignDataElements(
+                    It.IsAny<SignatureContext>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.OK, "Failed to sign dataelements"));
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,
@@ -244,7 +257,15 @@ public class SigningUserActionTests
             errorType: ProcessErrorType.Internal
         );
         Assert.Equal(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(result));
-        fixture.SignClient.Verify(x => x.SignDataElements(It.IsAny<SignatureContext>()), Times.Once);
+        fixture.SignClient.Verify(
+            x =>
+                x.SignDataElements(
+                    It.IsAny<SignatureContext>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Theory]
@@ -256,7 +277,7 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
@@ -290,7 +311,9 @@ public class SigningUserActionTests
                     signClient.Verify(
                         s =>
                             s.SignDataElements(
-                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))
+                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<CancellationToken>()
                             ),
                         Times.Once
                     );
@@ -304,13 +327,15 @@ public class SigningUserActionTests
                         new InstanceIdentifier(instance),
                         instance.Process.CurrentTask.ElementId,
                         "signature",
-                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganisationNumber = null },
+                        new Signee() { SystemUserId = systemUser.SystemUserId[0], OrganizationNumber = null },
                         new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
                     );
                     signClient.Verify(
                         s =>
                             s.SignDataElements(
-                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))
+                                It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                                It.IsAny<StorageAuthenticationMethod?>(),
+                                It.IsAny<CancellationToken>()
                             ),
                         Times.Once
                     );
@@ -338,13 +363,13 @@ public class SigningUserActionTests
         [
             new CorrespondenceDetailsResponse
             {
-                Recipient = OrganisationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
+                Recipient = OrganizationOrPersonIdentifier.Create(NationalIdentityNumber.Parse("17858296439")),
                 CorrespondenceId = Guid.Parse("a499c3ef-e88a-436b-8650-1c43e5037ada"),
             },
         ];
         var fixture = Fixture.Create(overrideCorrespondences: o);
 
-        fixture.AppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         var instance = fixture.Instance;
         var signClientMock = fixture.SignClient;
@@ -367,7 +392,12 @@ public class SigningUserActionTests
             new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
         );
         signClientMock.Verify(
-            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            s =>
+                s.SignDataElements(
+                    It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
@@ -397,7 +427,12 @@ public class SigningUserActionTests
             new DataElementSignature("a499c3ef-e88a-436b-8650-1c43e5037ada")
         );
         signClientMock.Verify(
-            s => s.SignDataElements(It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected))),
+            s =>
+                s.SignDataElements(
+                    It.Is<SignatureContext>(sc => AssertSigningContextAsExpected(sc, expected)),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
@@ -417,7 +452,7 @@ public class SigningUserActionTests
             ],
         };
         var fixture = Fixture.Create();
-        fixture.AppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         var userActionContext = new UserActionContext(
             fixture.InstanceDataMutatorMock.Object,
@@ -518,11 +553,17 @@ public class SigningUserActionTests
 
         var signingClientMock = new Mock<ISignClient>();
         var appMetadataMock = new Mock<IAppMetadata>();
-        appMetadataMock.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(applicationMetadataToReturn);
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(applicationMetadataToReturn);
         if (platformHttpExceptionToThrow != null)
         {
             signingClientMock
-                .Setup(p => p.SignDataElements(It.IsAny<SignatureContext>()))
+                .Setup(p =>
+                    p.SignDataElements(
+                        It.IsAny<SignatureContext>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ThrowsAsync(platformHttpExceptionToThrow);
         }
 

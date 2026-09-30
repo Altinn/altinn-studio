@@ -1,10 +1,8 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Core.Internal.App;
 
@@ -16,75 +14,47 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private static readonly object _cacheLock = new();
-    private static volatile bool _cacheInitialized;
-    private static bool _hasLegacyIndexCshtml;
-    private static BrowserAssetsConfiguration? _cachedFrontendConfig;
-    private static IReadOnlyList<string> _cachedCustomCssFileNames = [];
-    private static IReadOnlyList<string> _cachedCustomJsFileNames = [];
-
     private readonly IFrontendFeatures _frontendFeatures;
-    private readonly AppSettings _appSettings;
+    private readonly AppFilesAccessor _appFiles;
 
-    public IndexPageGenerator(IFrontendFeatures frontendFeatures, IOptions<AppSettings> appSettings)
+    public IndexPageGenerator(IFrontendFeatures frontendFeatures, AppFilesAccessor appFiles)
     {
         _frontendFeatures = frontendFeatures;
-        _appSettings = appSettings.Value;
-        EnsureCacheInitialized(_appSettings);
+        _appFiles = appFiles;
     }
 
-    public bool HasLegacyIndexCshtml => _hasLegacyIndexCshtml;
+    public bool HasLegacyIndexCshtml => _appFiles.Current.HasLegacyIndexPage;
 
-    public async Task<string> Generate(
+    public Task<string> Generate(
         string org,
         string app,
         BootstrapGlobalResponse appGlobalState,
         string? appFrontendAssetBaseUrl = null
     )
     {
-        if (appFrontendAssetBaseUrl is null)
-        {
-            var htmlContentError = $$"""
-                <!DOCTYPE html>
-                <html lang="no">
-                <head>
-                 <meta charset="utf-8">
-                 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                 <title>{{org}} - {{app}}</title>
-                 <link rel="icon" href="https://altinncdn.no/favicon.ico">
-                </head>
-                <body>
-                <h1>Not implemented yet</h1>
-                  <p>Sorry, loading our built-in frontend is not yet supported. Please build and host frontend from the monorepo code yourself.</p>
-                  <p>To serve a production-level/faster build with no hot-reloads:</p>
-                  <pre>cd src/App/frontend; yarn build; yarn serve 8080</pre>
-                  <p>To serve a slightly slower build with hot-reloads tailored for development:</p>
-                  <pre>cd src/App/frontend; yarn start</pre>
-                  <p>Then make sure to restart this app with:</p>
-                  <pre>studioctl run --dev-frontend</pre>
-                </body>
-                </html>
-                """;
-            return htmlContentError;
-        }
+        appFrontendAssetBaseUrl ??= $"/{org}/{app}/altinn-app-frontend";
 
-        var featureToggles = await _frontendFeatures.GetFrontendFeatures();
+        var featureToggles = _frontendFeatures.GetDictionary();
         var featureTogglesJson = JsonSerializer.Serialize(featureToggles, _jsonSerializerOptions);
         var globalDataJson = JsonSerializer.Serialize(appGlobalState, _jsonSerializerOptions);
 
-        var externalStylesheets = string.Concat(_cachedFrontendConfig?.Stylesheets.Select(GenerateStylesheetTag) ?? []);
+        var files = _appFiles.Current;
+        var frontendAssets = files.FrontendAssets is { } assetsJson
+            ? JsonSerializer.Deserialize<BrowserAssetsConfiguration>(assetsJson.Span, _jsonSerializerOptions)
+            : null;
+
+        var externalStylesheets = string.Concat(frontendAssets?.Stylesheets.Select(GenerateStylesheetTag) ?? []);
         var customCssLinks = string.Join(
             "\n",
-            _cachedCustomCssFileNames.Select(f =>
-                $"<link rel=\"stylesheet\" type=\"text/css\" href=\"/{org}/{app}/custom-css/{f}\">"
-            )
+            files
+                .GetCustomCssFileNames()
+                .Select(f => $"<link rel=\"stylesheet\" type=\"text/css\" href=\"/{org}/{app}/custom-css/{f}\">")
         );
 
-        var externalScripts = string.Concat(_cachedFrontendConfig?.Scripts.Select(GenerateScriptTag) ?? []);
+        var externalScripts = string.Concat(frontendAssets?.Scripts.Select(GenerateScriptTag) ?? []);
         var customJsScripts = string.Join(
             "\n",
-            _cachedCustomJsFileNames.Select(f => $"<script src=\"/{org}/{app}/custom-js/{f}\"></script>")
+            files.GetCustomJsFileNames().Select(f => $"<script src=\"/{org}/{app}/custom-js/{f}\"></script>")
         );
 
         var htmlContent = $$"""
@@ -111,45 +81,7 @@ internal sealed class IndexPageGenerator : IIndexPageGenerator
             </html>
             """;
 
-        return htmlContent;
-    }
-
-    private static void EnsureCacheInitialized(AppSettings appSettings)
-    {
-        if (_cacheInitialized)
-            return;
-
-        lock (_cacheLock)
-        {
-            if (_cacheInitialized)
-                return;
-
-            var indexCshtmlPath = Path.Join(appSettings.AppBasePath, "views", "Home", "Index.cshtml");
-            _hasLegacyIndexCshtml = File.Exists(indexCshtmlPath);
-
-            var configPath = Path.Join(appSettings.AppBasePath, appSettings.ConfigurationFolder, "assets.json");
-            if (File.Exists(configPath))
-            {
-                var json = File.ReadAllText(configPath);
-                _cachedFrontendConfig = JsonSerializer.Deserialize<BrowserAssetsConfiguration>(
-                    json,
-                    _jsonSerializerOptions
-                );
-            }
-
-            _cachedCustomCssFileNames = GetFileNames(appSettings, "custom-css");
-            _cachedCustomJsFileNames = GetFileNames(appSettings, "custom-js");
-            _cacheInitialized = true;
-        }
-    }
-
-    private static List<string> GetFileNames(AppSettings appSettings, string subfolder)
-    {
-        var dir = Path.Join(appSettings.AppBasePath, "wwwroot", subfolder);
-        if (!Directory.Exists(dir))
-            return [];
-
-        return Directory.GetFiles(dir).Order().Select(Path.GetFileName).OfType<string>().ToList();
+        return Task.FromResult(htmlContent);
     }
 
     private static string GenerateStylesheetTag(BrowserStylesheet stylesheet)

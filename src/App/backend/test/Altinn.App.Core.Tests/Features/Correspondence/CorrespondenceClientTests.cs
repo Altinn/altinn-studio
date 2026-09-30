@@ -116,7 +116,7 @@ public class CorrespondenceClientTests
         result.Recipient.Should().Be("urn:altinn:organization:identifier-no:213872702");
         result.CorrespondenceId.Should().Be(Guid.Parse("94fa9dd9-734e-4712-9d49-4018aeb1a5dc"));
         result.ResourceId.Should().Be("test-resource-id");
-        result.Sender.Should().Be(OrganisationNumber.Parse("991825827"));
+        result.Sender.Should().Be(OrganizationNumber.Parse("991825827"));
         result.SendersReference.Should().Be("1234");
         result.IsConfirmationNeeded.Should().BeTrue();
     }
@@ -240,6 +240,23 @@ public class CorrespondenceClientTests
             .WithInnerExceptionExactly(typeof(HttpRequestException));
     }
 
+    [Fact]
+    public void Payloads_RejectMissingAuthenticationMethod()
+    {
+        // Arrange
+        var request = PayloadFactory.Send().CorrespondenceRequest;
+
+        // Act
+        var send = () => new SendCorrespondencePayload(request, null!);
+        var getStatus = () => new GetCorrespondenceStatusPayload(Guid.NewGuid(), null!);
+        var missingRequest = () => new SendCorrespondencePayload(null!, CorrespondenceAuthenticationMethod.Default());
+
+        // Assert
+        send.Should().Throw<ArgumentNullException>().WithParameterName("authenticationMethod");
+        getStatus.Should().Throw<ArgumentNullException>().WithParameterName("authenticationMethod");
+        missingRequest.Should().Throw<ArgumentNullException>().WithParameterName("request");
+    }
+
     // csharpier-ignore
     public static TheoryData<(
         AuthenticationScenario scenario,
@@ -249,8 +266,6 @@ public class CorrespondenceClientTests
         get
         {
             TheoryData<(AuthenticationScenario scenario, IEnumerable<string> expectedScopes)> data = new();
-            data.Add((AuthenticationScenario.LegacyMaskinporten, ["altinn:correspondence.write", "altinn:serviceowner"]));
-            data.Add((AuthenticationScenario.LegacyCustom, ["old:custom"]));
             data.Add((AuthenticationScenario.Default, ["altinn:serviceowner", "altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write", "altinn:correspondence.write"]));
             data.Add((AuthenticationScenario.Custom, ["new:custom"]));
             return data;
@@ -275,14 +290,6 @@ public class CorrespondenceClientTests
         // csharpier-ignore
         switch (testCase.scenario)
         {
-            case AuthenticationScenario.LegacyMaskinporten:
-                sendPayload = PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten);
-                statusPayload = PayloadFactory.GetStatus(authorisation: CorrespondenceAuthorisation.Maskinporten);
-                break;
-            case AuthenticationScenario.LegacyCustom:
-                sendPayload = PayloadFactory.Send(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
-                statusPayload = PayloadFactory.GetStatus(tokenFactory: () => TestHelpers.OrgTokenFactory(["old:custom"]));
-                break;
             case AuthenticationScenario.Default:
                 sendPayload = PayloadFactory.Send(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
                 statusPayload = PayloadFactory.GetStatus(authenticationMethod: CorrespondenceAuthenticationMethod.Default());
@@ -326,7 +333,7 @@ public class CorrespondenceClientTests
         mockHttpClient.Verify();
         Assert.Equivalent(testCase.expectedScopes, capturedToken!.Value.Scope!.Split(" "));
 
-        if (testCase.scenario is AuthenticationScenario.Default or AuthenticationScenario.LegacyMaskinporten)
+        if (testCase.scenario is AuthenticationScenario.Default)
         {
             mockMaskinportenClient.Verify();
         }
@@ -518,8 +525,6 @@ public class CorrespondenceClientTests
             CorrespondenceAuthenticationMethod.Default();
 
         public static SendCorrespondencePayload Send(
-            Func<Task<JwtToken>>? tokenFactory = null,
-            CorrespondenceAuthorisation? authorisation = null,
             CorrespondenceAuthenticationMethod? authenticationMethod = null,
             bool withAttachment = false
         )
@@ -527,9 +532,8 @@ public class CorrespondenceClientTests
             var builder = CorrespondenceRequestBuilder
                 .Create()
                 .WithResourceId("resource-id")
-                .WithSender(OrganisationNumber.Parse("991825827"))
                 .WithSendersReference("senders-ref")
-                .WithRecipient(OrganisationOrPersonIdentifier.Parse("213872702"))
+                .WithRecipient(OrganizationOrPersonIdentifier.Parse("213872702"))
                 .WithContent(
                     CorrespondenceContentBuilder
                         .Create()
@@ -550,27 +554,13 @@ public class CorrespondenceClientTests
 
             var request = builder.Build();
 
-            if (tokenFactory is not null)
-                return new SendCorrespondencePayload(request, tokenFactory);
-
-            if (authorisation is not null)
-                return new SendCorrespondencePayload(request, authorisation.Value);
-
             return new SendCorrespondencePayload(request, authenticationMethod ?? _defaultAuthenticationMethod);
         }
 
         public static GetCorrespondenceStatusPayload GetStatus(
-            Func<Task<JwtToken>>? tokenFactory = null,
-            CorrespondenceAuthorisation? authorisation = null,
             CorrespondenceAuthenticationMethod? authenticationMethod = null
         )
         {
-            if (tokenFactory is not null)
-                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), tokenFactory);
-
-            if (authorisation is not null)
-                return new GetCorrespondenceStatusPayload(Guid.NewGuid(), authorisation.Value);
-
             return new GetCorrespondenceStatusPayload(
                 Guid.NewGuid(),
                 authenticationMethod ?? _defaultAuthenticationMethod
@@ -580,8 +570,6 @@ public class CorrespondenceClientTests
 
     public enum AuthenticationScenario
     {
-        LegacyMaskinporten,
-        LegacyCustom,
         Default,
         Custom,
     }

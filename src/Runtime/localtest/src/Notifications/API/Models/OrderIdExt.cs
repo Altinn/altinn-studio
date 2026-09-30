@@ -1,4 +1,3 @@
-﻿#nullable enable
 using System.Text.Json.Serialization;
 
 namespace Altinn.Notifications.Models;
@@ -7,7 +6,7 @@ namespace Altinn.Notifications.Models;
 /// A class representing a container for an order id.
 /// </summary>
 /// <remarks>
-/// External representaion to be used in the API.
+/// External representation to be used in the API.
 /// </remarks>
 public class OrderIdExt
 {

@@ -18,21 +18,24 @@ public class GetCanUseFeatureTests
     : DesignerEndpointsTestsBase<GetCanUseFeatureTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
-        : base(
-            factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    var evaluatorMock = new Mock<ICanUseFeatureEvaluator>();
-                    evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
-                    evaluatorMock.Setup(e => e.CanUseFeatureAsync()).ReturnsAsync(true);
+    private const string Org = "kari";
+    private const string App = "test-app";
 
-                    services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { evaluatorMock.Object });
-                    services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
-                });
-            })
-        ) { }
+    private readonly Mock<ICanUseFeatureEvaluator> _evaluatorMock = new();
+
+    public GetCanUseFeatureTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+
+        _evaluatorMock.Setup(e => e.Feature).Returns(CanUseFeatureEnum.UploadDataModel);
+        _evaluatorMock.Setup(e => e.CanUseFeatureAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
+
+        services.AddSingleton<IEnumerable<ICanUseFeatureEvaluator>>(new[] { _evaluatorMock.Object });
+        services.AddSingleton<CanUseFeatureEvaluatorRegistry>();
+    }
 
     [Fact]
     public async Task CanUseFeature_Returns200Ok_WithTrue()
@@ -61,5 +64,28 @@ public class GetCanUseFeatureTests
         Assert.Contains("Invalid feature name", responseBody);
     }
 
-    private static string ApiUrl(string featureName) => $"designer/api/CanUseFeature?featureName={featureName}";
+    [Fact]
+    public async Task CanUseFeature_PassesTheRepositoryToTheEvaluator()
+    {
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, ApiUrl("UploadDataModel"));
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        _evaluatorMock.Verify(e => e.CanUseFeatureAsync(Org, App), Times.Once);
+    }
+
+    [Fact]
+    public async Task CanUseFeature_Returns404NotFound_ForInvalidAppName()
+    {
+        using var httpRequestMessage = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"designer/api/{Org}/datamodels/CanUseFeature?featureName=UploadDataModel"
+        );
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private static string ApiUrl(string featureName) =>
+        $"designer/api/{Org}/{App}/CanUseFeature?featureName={featureName}";
 }

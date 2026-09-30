@@ -9,12 +9,11 @@ namespace Altinn.App.Core.Features.Correspondence.Builder;
 public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
 {
     private string? _resourceId;
-    private OrganisationNumber? _sender;
     private string? _sendersReference;
     private CorrespondenceContent? _content;
     private List<CorrespondenceAttachment>? _contentAttachments;
     private DateTimeOffset? _dueDateTime;
-    private List<OrganisationOrPersonIdentifier>? _recipients;
+    private List<OrganizationOrPersonIdentifier>? _recipients;
     private DateTimeOffset? _requestedPublishTime;
     private string? _messageSender;
     private List<CorrespondenceExternalReference>? _externalReferences;
@@ -25,6 +24,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     private bool? _isConfirmationNeeded;
     private bool? _isConfidential;
     private List<Guid>? _existingAttachments;
+    private Guid? _idempotentKey;
 
     private CorrespondenceRequestBuilder() { }
 
@@ -34,26 +34,10 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     public static ICorrespondenceRequestBuilderResourceId Create() => new CorrespondenceRequestBuilder();
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderSender WithResourceId(string resourceId)
+    public ICorrespondenceRequestBuilderSendersReference WithResourceId(string resourceId)
     {
         BuilderUtils.NotNullOrEmpty(resourceId, "Resource ID cannot be empty");
         _resourceId = resourceId;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderSendersReference WithSender(OrganisationNumber sender)
-    {
-        BuilderUtils.NotNullOrEmpty(sender, "Sender cannot be empty");
-        _sender = sender;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderSendersReference WithSender(string sender)
-    {
-        BuilderUtils.NotNullOrEmpty(sender, "Sender cannot be empty");
-        _sender = OrganisationNumber.Parse(sender);
         return this;
     }
 
@@ -66,24 +50,24 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderContent WithRecipient(OrganisationOrPersonIdentifier recipient)
+    public ICorrespondenceRequestBuilderContent WithRecipient(OrganizationOrPersonIdentifier recipient)
     {
         BuilderUtils.NotNullOrEmpty(recipient, "Recipients cannot be empty");
         return WithRecipients([recipient]);
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderContent WithRecipient(OrganisationNumber organisation)
+    public ICorrespondenceRequestBuilderContent WithRecipient(OrganizationNumber organization)
     {
-        BuilderUtils.NotNullOrEmpty(organisation, "Recipients cannot be empty");
-        return WithRecipients([OrganisationOrPersonIdentifier.Create(organisation)]);
+        BuilderUtils.NotNullOrEmpty(organization, "Recipients cannot be empty");
+        return WithRecipients([OrganizationOrPersonIdentifier.Create(organization)]);
     }
 
     /// <inheritdoc/>
     public ICorrespondenceRequestBuilderContent WithRecipient(NationalIdentityNumber person)
     {
         BuilderUtils.NotNullOrEmpty(person, "Recipients cannot be empty");
-        return WithRecipients([OrganisationOrPersonIdentifier.Create(person)]);
+        return WithRecipients([OrganizationOrPersonIdentifier.Create(person)]);
     }
 
     /// <inheritdoc/>
@@ -97,11 +81,11 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     public ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<string> recipients)
     {
         BuilderUtils.NotNullOrEmpty(recipients);
-        return WithRecipients(recipients.Select(OrganisationOrPersonIdentifier.Parse));
+        return WithRecipients(recipients.Select(OrganizationOrPersonIdentifier.Parse));
     }
 
     /// <inheritdoc/>
-    public ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganisationOrPersonIdentifier> recipients)
+    public ICorrespondenceRequestBuilderContent WithRecipients(IEnumerable<OrganizationOrPersonIdentifier> recipients)
     {
         BuilderUtils.NotNullOrEmpty(recipients, "Recipients cannot be empty");
         _recipients ??= [];
@@ -159,14 +143,6 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     {
         BuilderUtils.NotNullOrEmpty(dueDateTime, "DueDateTime cannot be empty");
         _dueDateTime = dueDateTime;
-        return this;
-    }
-
-    /// <inheritdoc/>
-    [Obsolete("AllowSystemDeleteAfter is no longer supported by the Correspondence API.")]
-    public ICorrespondenceRequestBuilder WithAllowSystemDeleteAfter(DateTimeOffset allowSystemDeleteAfter)
-    {
-        // Intentional no-op: AllowSystemDeleteAfter is no longer accepted by the Correspondence API.
         return this;
     }
 
@@ -315,10 +291,16 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey)
+    {
+        _idempotentKey = idempotentKey;
+        return this;
+    }
+
+    /// <inheritdoc/>
     public CorrespondenceRequest Build()
     {
         BuilderUtils.NotNullOrEmpty(_resourceId);
-        BuilderUtils.NotNullOrEmpty(_sender);
         BuilderUtils.NotNullOrEmpty(_sendersReference);
         BuilderUtils.NotNullOrEmpty(_content);
         BuilderUtils.NotNullOrEmpty(_recipients);
@@ -326,19 +308,19 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
         return new CorrespondenceRequest
         {
             ResourceId = _resourceId,
-            Sender = _sender.Value,
             SendersReference = _sendersReference,
-            Content = _content with { Attachments = _contentAttachments },
+            Content = _content with { Attachments = _contentAttachments?.ToArray() },
             DueDateTime = _dueDateTime,
-            Recipients = _recipients,
+            Recipients = _recipients.ToArray(),
             RequestedPublishTime = _requestedPublishTime,
             MessageSender = _messageSender,
-            ExternalReferences = _externalReferences,
-            PropertyList = _propertyList,
-            ReplyOptions = _replyOptions,
+            ExternalReferences = _externalReferences?.ToArray(),
+            PropertyList = _propertyList?.ToDictionary(),
+            ReplyOptions = _replyOptions?.ToArray(),
             Notification = _notification,
             IgnoreReservation = _ignoreReservation,
-            ExistingAttachments = _existingAttachments,
+            ExistingAttachments = _existingAttachments?.ToArray(),
+            IdempotentKey = _idempotentKey,
             IsConfirmationNeeded = _isConfirmationNeeded,
             IsConfidential = _isConfidential,
         };

@@ -15,10 +15,6 @@ import { webcrypto } from 'crypto';
 failOnConsole({
   shouldFailOnWarn: true,
   silenceMessage(message) {
-    if (/React Router Future Flag Warning/.test(message)) {
-      // TODO: remove when react router has been updated to v7
-      return true;
-    }
     if (
       // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
       'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===
@@ -65,6 +61,17 @@ window.ResizeObserver = ResizeObserver;
 // document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
 Object.defineProperty(document, 'getAnimations', {
   value: () => [],
+  writable: true,
+});
+
+// document.elementFromPoint must be mocked because the Popover component from the design system uses
+// it to check whether it is the top layer, but jsdom has no layout, so every element reports a
+// zero-sized rect. Returning the open popover lets the Escape key reach it.
+Object.defineProperty(document, 'elementFromPoint', {
+  value: () =>
+    Array.from(document.querySelectorAll<HTMLElement>('[popover]')).findLast(
+      (element) => element.matches(':popover-open') || element.classList.contains(':popover-open'),
+    ) ?? document.body,
   writable: true,
 });
 

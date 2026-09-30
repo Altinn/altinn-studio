@@ -5,7 +5,6 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage, Switch } from '@digdir/designsystemet-react';
 import type {
   NumberRestrictionsReducerAction,
   NumberRestrictionsReducerState,
@@ -16,7 +15,7 @@ import {
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { ValidationUtils } from '@studio/pure-functions';
-import { StudioTextfield } from '@studio/components';
+import { StudioSwitch, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
@@ -69,8 +68,7 @@ export function NumberRestrictions({
   const handleMinMaxChange = (
     event: React.ChangeEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>,
     actionType:
-      | NumberRestrictionsReducerActionType.setMin
-      | NumberRestrictionsReducerActionType.setMax,
+      NumberRestrictionsReducerActionType.setMin | NumberRestrictionsReducerActionType.setMax,
   ) => {
     const newValue = event.target.value.trim();
     dispatchAction(
@@ -98,20 +96,18 @@ export function NumberRestrictions({
               value={formatState.min === undefined ? '' : formatState.min.toString()}
               type='number'
               label={t(minLabel)}
+              error={minMaxErrorMessage}
             />
-            <div className={classes.minNumberErrorMassage}>
-              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
-            </div>
           </div>
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             checked={formatState.isMinInclusive}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMinIncl, e.target.checked)
             }
-          >
-            {t('schema_editor.format_date_inclusive')}
-          </Switch>
+            className={classes.includeMinMaxSwitch}
+            label={t('schema_editor.format_date_inclusive')}
+          />
         </div>
       </div>
       <div>
@@ -123,21 +119,19 @@ export function NumberRestrictions({
               value={formatState.max === undefined ? '' : formatState.max.toString()}
               type='number'
               label={t(maxLabel)}
+              error={minMaxErrorMessage}
             />
-            <div className={classes.minNumberErrorMassage}>
-              <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
-            </div>
           </div>
-          <Switch
-            size='small'
+          <StudioSwitch
+            data-size='sm'
             id='include-minimum-value-checkbox'
             checked={formatState.isMaxInclusive}
+            className={classes.includeMinMaxSwitch}
             onChange={(e) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMaxIncl, e.target.checked)
             }
-          >
-            {t('schema_editor.format_date_inclusive')}
-          </Switch>
+            label={t('schema_editor.format_date_inclusive')}
+          />
         </div>
       </div>
       <div>

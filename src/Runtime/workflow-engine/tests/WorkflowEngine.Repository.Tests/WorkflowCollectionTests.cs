@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -43,16 +44,18 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         string collectionKey,
         IReadOnlyList<WorkflowRequest> workflows,
         string ns = "test-ns",
-        string? idempotencyKey = null
+        string? idempotencyKey = null,
+        Dictionary<string, string>? labels = null,
+        DateTimeOffset? createdAt = null
     )
     {
-        var request = new WorkflowEnqueueRequest { Workflows = workflows };
+        var request = new WorkflowEnqueueRequest { Workflows = workflows, Labels = labels };
 
         var metadata = new WorkflowRequestMetadata(
             ns,
             idempotencyKey ?? Guid.NewGuid().ToString("N"),
             collectionKey,
-            DateTimeOffset.UtcNow,
+            createdAt ?? DateTimeOffset.UtcNow,
             null
         );
         var buffered = new BufferedEnqueueRequest(
@@ -82,6 +85,231 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         var collection = Assert.Single(collections);
         Assert.Equal("my-collection", collection.Key);
         Assert.Single(collection.Heads);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadWorkflowLabels()
+    {
+        // The collection detail exposes each head's labels so a consumer can identify a head by an
+        // application-specific label (e.g. a target task) without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        var labels = new Dictionary<string, string> { ["processNextTargetId"] = "Task_2:3" };
+
+        await EnqueueWithCollection(repo, "labeled-collection", [wf], labels: labels);
+
+        var collection = await repo.GetCollection(
+            "labeled-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+        Assert.NotNull(head.Labels);
+        Assert.Equal("Task_2:3", head.Labels["processNextTargetId"]);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadStepProgress()
+    {
+        // The collection detail exposes each head's step progress (completed / total) so a consumer
+        // can show how far an executing head has come without a second per-workflow lookup.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a");
+        wf = wf with
+        {
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step-1",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-2",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-3",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+        var results = await EnqueueWithCollection(repo, "progress-collection", [wf]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var before = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(before);
+        var headBefore = Assert.Single(before.Heads);
+        Assert.Equal(0, headBefore.StepsCompleted);
+        Assert.Equal(3, headBefore.StepsTotal);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var firstStep = workflow.Steps.OrderBy(s => s.ProcessingOrder).First();
+        firstStep.Status = PersistentItemStatus.Completed;
+        await repo.UpdateStep(firstStep, cancellationToken: TestContext.Current.CancellationToken);
+
+        var after = await repo.GetCollection("progress-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(after);
+        var headAfter = Assert.Single(after.Heads);
+        Assert.Equal(1, headAfter.StepsCompleted);
+        Assert.Equal(3, headAfter.StepsTotal);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadResumedAt()
+    {
+        // Resume reruns the head in place and keeps its creation time, so the collection detail
+        // reports the resume time for consumers that time the current run.
+        var repo = fixture.CreateRepository();
+        var results = await EnqueueWithCollection(repo, "resumed-at-collection", [CreateWorkflowRequest("a")]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var fresh = await repo.GetCollection("resumed-at-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(fresh);
+        var freshHead = Assert.Single(fresh.Heads);
+        Assert.Null(freshHead.ResumedAt);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        workflow.Status = PersistentItemStatus.Failed;
+        await repo.UpdateWorkflow(workflow, cancellationToken: TestContext.Current.CancellationToken);
+
+        var resumedAt = new DateTimeOffset(2026, 9, 24, 12, 0, 0, TimeSpan.Zero);
+        await repo.ResumeWorkflow(
+            workflowId,
+            "test-ns",
+            resumedAt,
+            cascade: false,
+            TestContext.Current.CancellationToken
+        );
+
+        var after = await repo.GetCollection("resumed-at-collection", "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(after);
+        var head = Assert.Single(after.Heads);
+        Assert.Equal(resumedAt, head.ResumedAt);
+        Assert.Equal(freshHead.CreatedAt, head.CreatedAt);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesCurrentStepFailedAttempts()
+    {
+        // A consumer escalates its waiting message on failed attempts, so the count must be the
+        // current step's own: a completed step's leftover retries must not leak into it.
+        var repo = fixture.CreateRepository();
+        var wf = CreateWorkflowRequest("a") with
+        {
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "step-1",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+                new StepRequest
+                {
+                    OperationId = "step-2",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
+        };
+
+        var results = await EnqueueWithCollection(repo, "failed-attempts-collection", [wf]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        var fresh = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(fresh);
+        Assert.Equal(0, Assert.Single(fresh.Heads).FailedAttempts);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var steps = workflow.Steps.OrderBy(s => s.ProcessingOrder).ToList();
+        steps[0].Status = PersistentItemStatus.Requeued;
+        steps[0].RequeueCount = 2;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+
+        var failing = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(failing);
+        Assert.Equal(2, Assert.Single(failing.Heads).FailedAttempts);
+
+        steps[0].Status = PersistentItemStatus.Processing;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+
+        var retrying = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(retrying);
+        Assert.Equal(2, Assert.Single(retrying.Heads).FailedAttempts);
+
+        steps[0].Status = PersistentItemStatus.Completed;
+        await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
+        steps[1].Status = PersistentItemStatus.Requeued;
+        steps[1].RequeueCount = 1;
+        await repo.UpdateStep(steps[1], cancellationToken: TestContext.Current.CancellationToken);
+
+        var next = await repo.GetCollection(
+            "failed-attempts-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(next);
+        Assert.Equal(1, Assert.Single(next.Heads).FailedAttempts);
+    }
+
+    [Fact]
+    public async Task GetCollection_IncludesHeadCreatedAtAndCurrentEngineTime()
+    {
+        // The collection detail exposes each head's creation time so a consumer can anchor
+        // "how long has this been running" to the engine's clock without a per-workflow lookup.
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero));
+        var repo = fixture.CreateRepository(clock);
+        var results = await EnqueueWithCollection(
+            repo,
+            "created-at-collection",
+            [CreateWorkflowRequest("a")],
+            createdAt: clock.GetUtcNow()
+        );
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+
+        clock.Advance(TimeSpan.FromSeconds(15));
+        var collection = await repo.GetCollection(
+            "created-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(collection);
+        var head = Assert.Single(collection.Heads);
+
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        Assert.Equal(workflow.CreatedAt, head.CreatedAt);
+        Assert.Equal(clock.GetUtcNow(), collection.CurrentTime);
+        Assert.Equal(TimeSpan.FromSeconds(15), collection.CurrentTime - head.CreatedAt);
+
+        clock.Advance(TimeSpan.FromSeconds(5));
+        var refreshed = await repo.GetCollection(
+            "created-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(refreshed);
+        Assert.Equal(clock.GetUtcNow(), refreshed.CurrentTime);
+        Assert.Equal(head.CreatedAt, Assert.Single(refreshed.Heads).CreatedAt);
     }
 
     [Fact]
@@ -438,6 +666,37 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
             .SingleAsync(w => w.Id == sideId, TestContext.Current.CancellationToken);
         Assert.NotNull(sideEntity.Dependencies);
         Assert.Contains(sideEntity.Dependencies, d => d.Id == headId);
+    }
+
+    [Fact]
+    public async Task Enqueue_IsHeadDirective_PersistsVerbatimAndProjectsToStatusResponse()
+    {
+        // The head-visibility directive is persisted verbatim so status consumers (and telemetry)
+        // can identify deliberately invisible workflows without inspecting operation ids.
+        var repo = fixture.CreateRepository();
+        var main = CreateWorkflowRequest("main");
+        var side = CreateWorkflowRequest("side", dependsOn: [WorkflowRef.FromRefString("main")], isHead: false);
+        var forced = CreateWorkflowRequest("forced", dependsOn: [WorkflowRef.FromRefString("main")], isHead: true);
+
+        var results = await EnqueueWithCollection(repo, "is-head-persistence", [main, side, forced]);
+        var mainId = results[0].WorkflowIds![0];
+        var sideId = results[0].WorkflowIds![1];
+        var forcedId = results[0].WorkflowIds![2];
+
+        var mainWorkflow = await repo.GetWorkflow(mainId, "test-ns", TestContext.Current.CancellationToken);
+        var sideWorkflow = await repo.GetWorkflow(sideId, "test-ns", TestContext.Current.CancellationToken);
+        var forcedWorkflow = await repo.GetWorkflow(forcedId, "test-ns", TestContext.Current.CancellationToken);
+
+        Assert.NotNull(mainWorkflow);
+        Assert.NotNull(sideWorkflow);
+        Assert.NotNull(forcedWorkflow);
+        Assert.Null(mainWorkflow.IsHead);
+        Assert.False(sideWorkflow.IsHead);
+        Assert.True(forcedWorkflow.IsHead);
+
+        // The public status projection carries the directive through to consumers.
+        Assert.False(WorkflowStatusResponse.FromWorkflow(sideWorkflow).IsHead);
+        Assert.Null(WorkflowStatusResponse.FromWorkflow(mainWorkflow).IsHead);
     }
 
     [Fact]

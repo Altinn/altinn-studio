@@ -58,7 +58,7 @@ internal sealed class SigningService(
         IInstanceDataMutator instanceDataMutator,
         List<SigneeContext> signeeContexts,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using Activity? activity = telemetry?.StartAssignSigneesActivity();
@@ -71,12 +71,11 @@ internal sealed class SigningService(
                 "SigneeStatesDataTypeId is not set in the signature configuration."
             );
 
-        //TODO: Can be removed when AddBinaryDataElement supports setting generatedFromTask, because then it will be automatically deleted in ProcessTaskInitializer.
         RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
 
         string instanceIdCombo = instanceDataMutator.Instance.Id;
         InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
-        Party? instanceOwnerParty = await GetInstanceOwnerParty(instanceOwner);
+        Party? instanceOwnerParty = await GetInstanceOwnerParty(instanceOwner, cancellationToken);
         Guid? instanceOwnerPartyUuid = instanceOwnerParty?.PartyUuid;
         AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
 
@@ -86,7 +85,7 @@ internal sealed class SigningService(
             instanceOwnerPartyUuid,
             appIdentifier,
             signeeContexts,
-            ct
+            cancellationToken
         );
 
         Party serviceOwnerParty = new();
@@ -94,7 +93,7 @@ internal sealed class SigningService(
 
         if (delegateSuccess)
         {
-            (serviceOwnerParty, getServiceOwnerSuccess) = await GetServiceOwnerParty(ct);
+            (serviceOwnerParty, getServiceOwnerSuccess) = await GetServiceOwnerParty(cancellationToken);
         }
 
         if (getServiceOwnerSuccess)
@@ -117,7 +116,7 @@ internal sealed class SigningService(
                         signingParty,
                         serviceOwnerParty,
                         signatureConfiguration.CorrespondenceResources,
-                        ct
+                        cancellationToken
                     );
                     signeeContext.SigneeState.CtaCorrespondenceId = response?.Correspondences.Single().CorrespondenceId;
                     signeeContext.SigneeState.HasBeenMessagedForCallToSign = true;
@@ -130,6 +129,10 @@ internal sealed class SigningService(
                     signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
                     telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Correspondence send failed: {Exception}", e.Message);
@@ -140,7 +143,7 @@ internal sealed class SigningService(
             }
         }
 
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         instanceDataMutator.OverrideAuthenticationMethodForRestrictedDataTypes(
             applicationMetadata,
             [signeeStateDataTypeId],
@@ -151,7 +154,8 @@ internal sealed class SigningService(
             dataTypeId: signeeStateDataTypeId,
             contentType: ApplicationJsonContentType,
             filename: null,
-            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions)
+            bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions),
+            generatedFromTask: taskId
         );
 
         return signeeContexts;
@@ -161,27 +165,27 @@ internal sealed class SigningService(
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using Activity? activity = telemetry?.StartReadSigneesActivity();
         List<SigneeContext> signeeContexts = await _signeeContextsManager.GetSigneeContexts(
             instanceDataAccessor,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
         List<SignDocument> signDocuments = await _signDocumentManager.GetSignDocuments(
             instanceDataAccessor,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
         signeeContexts = await _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
             instanceDataAccessor.TaskId ?? instanceDataAccessor.Instance.Process.CurrentTask.ElementId,
             signeeContexts,
             signDocuments,
-            ct
+            cancellationToken
         );
 
         return signeeContexts;
@@ -192,20 +196,24 @@ internal sealed class SigningService(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
         int userId,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = telemetry?.StartReadAuthorizedSigneesActivity();
         List<SigneeContext> signeeContexts = await _signeeContextsManager.GetSigneeContexts(
             instanceDataAccessor,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
         List<OrganizationSignee> orgSignees = [.. signeeContexts.Select(x => x.Signee).OfType<OrganizationSignee>()];
         List<string> orgNumbers = [.. orgSignees.Select(x => x.OrgNumber)];
 
-        List<string> keyRoleOrganizations = await authorizationClient.GetKeyRoleOrganizationParties(userId, orgNumbers);
+        List<string> keyRoleOrganizations = await authorizationClient.GetKeyRoleOrganizationParties(
+            userId,
+            orgNumbers,
+            cancellationToken
+        );
 
         List<OrganizationSignee> authorizedOrganizations =
         [
@@ -219,58 +227,113 @@ internal sealed class SigningService(
     public async Task AbortRuntimeDelegatedSigning(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
-        string taskId = instanceDataMutator.Instance.Process.CurrentTask.ElementId;
+        string taskId = GetTaskId(instanceDataMutator);
 
         using var activity = telemetry?.StartAbortRuntimeDelegatedSigningActivity(taskId);
+
+        // Revoke must run before cleanup, since it reads signee state that cleanup removes.
+        await RevokeDelegatedSigneeRights(instanceDataMutator, signatureConfiguration, taskId, cancellationToken);
 
         // cleanup
         RemoveSigneeState(instanceDataMutator, signatureConfiguration.SigneeStatesDataTypeId);
         RemoveAllSignatures(instanceDataMutator, signatureConfiguration.SignatureDataType);
-
-        List<SigneeContext> signeeContexts = await GetSigneeContexts(
-            instanceDataMutator,
-            signatureConfiguration,
-            ct: ct
-        );
-        List<SigneeContext> signeeContextsWithDelegation =
-        [
-            .. signeeContexts.Where(x => x.SigneeState.IsAccessDelegated),
-        ];
-
-        if (signeeContextsWithDelegation.IsNullOrEmpty())
-        {
-            _logger.LogInformation("Didn't find any signee contexts with delegated access rights. Nothing to revoke.");
-            return;
-        }
-
-        string instanceIdCombo = instanceDataMutator.Instance.Id;
-        InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
-        Party instanceOwnerParty =
-            await GetInstanceOwnerParty(instanceOwner)
-            ?? throw new SigningException("Failed to lookup instance owner party. Unable to revoke signing rights.");
-
-        Guid instanceOwnerPartyUuid =
-            instanceOwnerParty.PartyUuid
-            ?? throw new SigningException(
-                "PartyUuid was missing on instance owner party. Unable to revoke signing rights."
-            );
-
-        AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
-
-        await signingDelegationService.RevokeSigneeRights(
-            taskId,
-            instanceIdCombo,
-            instanceOwnerPartyUuid,
-            appIdentifier,
-            signeeContextsWithDelegation,
-            ct
-        );
     }
 
-    private async Task<Party?> GetInstanceOwnerParty(InstanceOwner instanceOwner)
+    /// <inheritdoc />
+    public async Task RevokeSigneeRightsOnTaskEnd(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string taskId = GetTaskId(instanceDataMutator);
+
+        using var activity = telemetry?.StartRevokeSigneeRightsOnTaskEndActivity(taskId);
+
+        await RevokeDelegatedSigneeRights(instanceDataMutator, signatureConfiguration, taskId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the id of the task currently being processed.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="IInstanceDataAccessor.TaskId"/> is used instead of <c>Instance.Process.CurrentTask</c>,
+    /// because the latter may already have been moved to the next task (or cleared if the process ended)
+    /// by the time task end/abandon handlers run.
+    /// </remarks>
+    private static string GetTaskId(IInstanceDataAccessor instanceDataAccessor) =>
+        instanceDataAccessor.TaskId
+        ?? instanceDataAccessor.Instance.Process.CurrentTask?.ElementId
+        ?? throw new SigningException("Unable to determine the task ID for signee rights revocation.");
+
+    private async Task RevokeDelegatedSigneeRights(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        string taskId,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            List<SigneeContext> signeeContexts = await GetSigneeContexts(
+                instanceDataMutator,
+                signatureConfiguration,
+                cancellationToken: cancellationToken
+            );
+            List<SigneeContext> signeeContextsWithDelegation =
+            [
+                .. signeeContexts.Where(x => x.SigneeState.IsAccessDelegated),
+            ];
+
+            if (signeeContextsWithDelegation.IsNullOrEmpty())
+            {
+                _logger.LogInformation(
+                    "Didn't find any signee contexts with delegated access rights. Nothing to revoke."
+                );
+                return;
+            }
+
+            string instanceIdCombo = instanceDataMutator.Instance.Id;
+            InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
+            Party instanceOwnerParty =
+                await GetInstanceOwnerParty(instanceOwner, cancellationToken)
+                ?? throw new SigningException(
+                    "Failed to lookup instance owner party. Unable to revoke signing rights."
+                );
+
+            Guid instanceOwnerPartyUuid =
+                instanceOwnerParty.PartyUuid
+                ?? throw new SigningException(
+                    "PartyUuid was missing on instance owner party. Unable to revoke signing rights."
+                );
+
+            AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
+
+            await signingDelegationService.RevokeSigneeRights(
+                taskId,
+                instanceIdCombo,
+                instanceOwnerPartyUuid,
+                appIdentifier,
+                signeeContextsWithDelegation,
+                cancellationToken
+            );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Revocation failure shouldn't block the process from progressing past task end/abandon.
+            // Any remaining delegated rights can be cleaned up by a later run or out-of-band.
+            _logger.LogError(ex, "Failed to revoke delegated signee rights for task {TaskId}.", taskId);
+        }
+    }
+
+    private async Task<Party?> GetInstanceOwnerParty(InstanceOwner instanceOwner, CancellationToken cancellationToken)
     {
         using var activity = telemetry?.StartGetInstanceOwnerPartyActivity();
         if (instanceOwner.OrganisationNumber == "ttd" && _hostEnvironment.IsProduction() is false)
@@ -284,27 +347,38 @@ internal sealed class SigningService(
             return await altinnPartyClient.LookupParty(
                 !string.IsNullOrEmpty(instanceOwner.OrganisationNumber)
                     ? new PartyLookup { OrgNo = instanceOwner.OrganisationNumber }
-                    : new PartyLookup { Ssn = instanceOwner.PersonNumber }
+                    : new PartyLookup { Ssn = instanceOwner.PersonNumber },
+                cancellationToken: cancellationToken
             );
         }
-        catch (Exception)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogError("Failed to look up party for instance owner.");
-            throw new SigningException("Failed to lookup party information for instance owner.");
+            throw;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to look up party for instance owner.");
+            throw new SigningException("Failed to lookup party information for instance owner.", e);
         }
     }
 
-    internal async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(CancellationToken ct)
+    internal async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(
+        CancellationToken cancellationToken
+    )
     {
         using var activity = telemetry?.StartGetServiceOwnerPartyActivity();
         Party serviceOwnerParty;
         try
         {
-            AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(ct);
+            AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(cancellationToken);
             PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
-            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup);
+            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup, cancellationToken: cancellationToken);
 
             telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Success);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -316,6 +390,10 @@ internal sealed class SigningService(
         return (serviceOwnerParty, true);
     }
 
+    /// <summary>
+    /// Stale signee states are normally already gone (via CleanupGeneratedFromTask callback),
+    /// but initialization must be able to start from a clean slate regardless of how it was reached.
+    /// </summary>
     private void RemoveSigneeState(IInstanceDataMutator instanceDataMutator, string? signeeStatesDataTypeId)
     {
         using Activity? activity = telemetry?.StartRemoveSigneeStateActivity();

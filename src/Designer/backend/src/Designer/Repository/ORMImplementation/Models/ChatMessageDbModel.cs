@@ -50,4 +50,24 @@ public class ChatMessageDbModel
     /// Sources referenced by the assistant, serialized as JSON.
     /// </summary>
     public string? Sources { get; set; }
+
+    /// <summary>
+    /// Set when the assistant reported that an uploaded document tried to instruct it.
+    /// </summary>
+    public bool? AttachmentInstructionFlagged { get; set; }
+
+    /// <summary>
+    /// Langfuse trace id of the agent run that produced this message.
+    /// </summary>
+    public string? TraceId { get; set; }
+
+    /// <summary>
+    /// Id of the agent event this message was persisted from. Unique per thread.
+    /// </summary>
+    public string? EventId { get; set; }
+
+    /// <summary>
+    /// The user's thumbs up/down on this answer.
+    /// </summary>
+    public bool? FeedbackThumbsUp { get; set; }
 }

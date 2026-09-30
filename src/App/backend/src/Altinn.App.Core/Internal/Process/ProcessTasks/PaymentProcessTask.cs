@@ -1,15 +1,16 @@
+using System.Text.Json;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
+using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -18,12 +19,11 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 /// </summary>
 internal sealed class PaymentProcessTask : IProcessTask
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+
     private readonly IPdfService _pdfService;
-    private readonly IDataClient _dataClient;
     private readonly IProcessReader _processReader;
-    private readonly IPaymentService _paymentService;
-    private readonly IAppMetadata _appMetadata;
-    private readonly IHostEnvironment _hostEnvironment;
+    private readonly AppImplementationFactory _appImplementationFactory;
 
     private const string PdfContentType = "application/pdf";
     private const string ReceiptFileName = "Betalingskvittering.pdf";
@@ -33,44 +33,60 @@ internal sealed class PaymentProcessTask : IProcessTask
     /// </summary>
     public PaymentProcessTask(
         IPdfService pdfService,
-        IDataClient dataClient,
         IProcessReader processReader,
         IPaymentService paymentService,
-        IAppMetadata appMetadata,
-        IHostEnvironment hostEnvironment
+        AppImplementationFactory appImplementationFactory
     )
     {
         _pdfService = pdfService;
-        _dataClient = dataClient;
         _processReader = processReader;
-        _paymentService = paymentService;
-        _appMetadata = appMetadata;
-        _hostEnvironment = hostEnvironment;
+        _appImplementationFactory = appImplementationFactory;
     }
 
     /// <inheritdoc/>
     public string Type => AltinnTaskTypes.Payment;
 
     /// <inheritdoc/>
-    public async Task Start(string taskId, Instance instance)
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
     {
-        ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
-
-        if (_hostEnvironment.IsDevelopment())
+        try
         {
-            ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
-            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
+            ValidAltinnPaymentConfiguration configuration = GetAltinnPaymentConfiguration(context.TaskId).Validate();
+            if (context.Environment == HostingEnvironment.Development)
+            {
+                AllowedContributorsHelper.EnsureDataTypeIsAppOwned(
+                    context.ApplicationMetadata,
+                    configuration.PaymentDataType
+                );
+            }
+            return [];
         }
-
-        await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration);
+        catch (ApplicationConfigException e)
+        {
+            return [e.Message];
+        }
     }
 
     /// <inheritdoc/>
-    public async Task End(string taskId, Instance instance)
+    public async Task Start(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
+        ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
+
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration, context.CancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task End(ProcessTaskContext context)
+    {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        CancellationToken cancellationToken = context.CancellationToken;
+        string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
 
-        PaymentStatus paymentStatus = await _paymentService.GetPaymentStatus(instance, paymentConfiguration.Validate());
+        PaymentStatus paymentStatus = await GetPaymentStatus(dataMutator, paymentConfiguration.Validate());
 
         if (paymentStatus == PaymentStatus.Skipped)
             return;
@@ -78,27 +94,109 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, CancellationToken.None);
+        await using Stream pdfStream = await _pdfService.GeneratePdf(
+            dataMutator,
+            taskId,
+            false,
+            cancellationToken: cancellationToken
+        );
+        using var memoryStream = new MemoryStream();
+        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
-
-        await _dataClient.InsertBinaryData(
-            instance.Id,
+        dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
-            pdfStream,
-            taskId,
-            authenticationMethod: null,
-            CancellationToken.None
+            memoryStream.ToArray(),
+            generatedFromTask: taskId
         );
     }
 
     /// <inheritdoc/>
-    public async Task Abandon(string taskId, Instance instance)
+    public async Task Abandon(ProcessTaskContext context)
     {
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        Instance instance = dataMutator.Instance;
+        string taskId = GetTaskId(dataMutator);
         AltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId);
-        await _paymentService.CancelAndDeleteAnyExistingPayment(instance, paymentConfiguration.Validate());
+        await CleanupAnyExistingPayment(dataMutator, paymentConfiguration.Validate(), context.CancellationToken);
+    }
+
+    private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>
+        dataAccessor.TaskId
+        ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
+        ?? throw new InvalidOperationException("Process task requires a current task id.");
+
+    private static async Task<PaymentStatus> GetPaymentStatus(
+        IInstanceDataAccessor dataAccessor,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    )
+    {
+        DataElement? paymentDataElement = dataAccessor
+            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
+            .SingleOrDefault();
+        if (paymentDataElement is null)
+        {
+            throw new PaymentException("Payment information not found.");
+        }
+
+        ReadOnlyMemory<byte> paymentData = await dataAccessor.GetBinaryData(paymentDataElement);
+        PaymentInformation paymentInformation =
+            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
+
+        return paymentInformation.Status;
+    }
+
+    private async Task CleanupAnyExistingPayment(
+        IInstanceDataMutator dataMutator,
+        ValidAltinnPaymentConfiguration paymentConfiguration,
+        CancellationToken cancellationToken
+    )
+    {
+        DataElement? paymentDataElement = dataMutator
+            .GetDataElementsForType(paymentConfiguration.PaymentDataType)
+            .SingleOrDefault();
+        if (paymentDataElement is null)
+        {
+            return;
+        }
+
+        ReadOnlyMemory<byte> paymentData = await dataMutator.GetBinaryData(paymentDataElement);
+        PaymentInformation paymentInformation =
+            JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
+
+        if (paymentInformation.Status == PaymentStatus.Paid)
+        {
+            return;
+        }
+
+        if (paymentInformation.Status != PaymentStatus.Skipped)
+        {
+            string paymentProcessorId = paymentInformation.OrderDetails.PaymentProcessorId;
+            IPaymentProcessor paymentProcessor =
+                _appImplementationFactory
+                    .GetAll<IPaymentProcessor>()
+                    .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
+                ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
+
+            bool success = await paymentProcessor.TerminatePayment(
+                dataMutator.Instance,
+                paymentInformation,
+                cancellationToken
+            );
+            string paymentId = paymentInformation.PaymentDetails?.PaymentId ?? "missing";
+            if (!success)
+            {
+                throw new PaymentException(
+                    $"Unable to cancel existing {paymentProcessorId} payment with ID: {paymentId}."
+                );
+            }
+        }
+
+        dataMutator.RemoveDataElement(paymentDataElement);
     }
 
     private AltinnPaymentConfiguration GetAltinnPaymentConfiguration(string taskId)

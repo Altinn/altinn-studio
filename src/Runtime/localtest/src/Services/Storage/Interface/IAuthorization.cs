@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+#nullable disable
+
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -13,9 +15,9 @@ namespace Altinn.Platform.Storage.Authorization;
 public interface IAuthorization
 {
     /// <summary>
-    /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance.
+    /// Authorize instances, and returns a list of MessageBoxInstances with information about read and write rights of each instance.
     /// </summary>
-    public Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(
+    public Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(
         List<Instance> instances,
         bool keyAccessMode
     );

@@ -122,6 +122,19 @@ func TestEnvironmentDefaults(t *testing.T) {
 	if got := auth.SchemeForEnv("prod"); got != testHTTPS {
 		t.Errorf("expected prod scheme https, got %s", got)
 	}
+	for env, host := range map[string]string{
+		"prod":    "altinn.studio",
+		"dev":     "dev.altinn.studio",
+		"local":   "studio.localhost",
+		"staging": "staging.altinn.studio",
+	} {
+		if got := auth.EnvForHost(host); got != env {
+			t.Errorf("EnvForHost(%q) = %q, want %q", host, got, env)
+		}
+	}
+	if got := auth.EnvForHost("example.com"); got != "" {
+		t.Errorf("EnvForHost(unknown) = %q, want empty", got)
+	}
 }
 
 func TestEnvCredentialsSchemeOrDefault(t *testing.T) {

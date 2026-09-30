@@ -139,15 +139,16 @@ export class DataModelPage extends BasePage {
     await this.page.getByRole('option', { name: option }).isVisible();
   }
 
-  public async clickOnDeleteDataModelButton(): Promise<void> {
+  public async clickOnDataModelMenuButton(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.delete_data_model') })
+      .getByRole('button', { name: this.textMock('schema_editor.data_model_menu') })
       .click();
   }
 
-  public async clickOnConfirmDeleteDataModelButton(): Promise<void> {
+  public async clickOnDeleteDataModelButton(): Promise<void> {
+    this.page.once('dialog', (dialog) => dialog.accept());
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.confirm_deletion') })
+      .getByRole('button', { name: this.textMock('schema_editor.delete_data_model') })
       .click();
   }
 
@@ -158,12 +159,12 @@ export class DataModelPage extends BasePage {
   public async selectFileToUpload(fileName: string): Promise<void> {
     await this.page
       .getByRole('toolbar')
-      .getByLabel(this.textMock('app_data_modelling.upload_xsd'))
+      .getByLabel(this.textMock('app_data_modeling.upload_xsd'))
       .setInputFiles(path.join(__dirname, fileName));
   }
 
   public async waitForDataModelToBeUploaded(): Promise<void> {
-    const spinner = this.page.getByText(this.textMock('app_data_modelling.uploading_xsd'));
+    const spinner = this.page.getByText(this.textMock('app_data_modeling.uploading_xsd'));
     await expect(spinner).toBeHidden();
   }
 

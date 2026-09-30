@@ -1,8 +1,8 @@
+import type { CompCategory } from '@app/layout-contract';
+import type { IDataModelReference, ILayoutFile } from '@app/layout-contract/generated/common.generated';
 import type { $Keys, PickByValue } from 'utility-types';
 
 import type { CompBehaviors } from 'src/codegen/Config';
-import type { CompCategory } from 'src/layout/common';
-import type { IDataModelReference, ILayoutFile } from 'src/layout/common.generated';
 import type { ComponentTypeConfigs, getComponentConfigs } from 'src/layout/components.generated';
 import type { CompClassMapCategories } from 'src/layout/index';
 
@@ -78,10 +78,6 @@ export type CompInternal<T extends CompTypes = CompTypes> = ReturnType<Component
 
 export type TypesFromCategory<Cat extends CompCategory> = $Keys<PickByValue<CompClassMapCategories, Cat>>;
 
-export type CompWithPlugin<Plugin> = {
-  [Type in CompTypes]: Extract<ComponentTypeConfigs[Type]['plugins'], Plugin> extends never ? never : Type;
-}[CompTypes];
-
 export type ILayoutCollection = { [pageName: string]: ILayoutFile };
 
 export type CompWithBehavior<Behavior extends keyof CompBehaviors> = {
@@ -96,7 +92,6 @@ export type CompWithBinding<BindingKey extends string> = {
     : never;
 }[CompTypes];
 
-export interface NodeValidationProps<T extends CompTypes> {
+export interface ComponentLayoutValidationProps<T extends CompTypes> {
   externalItem: CompExternal<T>;
-  intermediateItem: CompIntermediate<T>;
 }

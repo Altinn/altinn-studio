@@ -66,7 +66,7 @@ internal class SigningUserAction : IUserAction
     /// <exception cref="ApplicationConfigException"></exception>
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
-        var ct = context.CancellationToken;
+        var cancellationToken = context.CancellationToken;
 
         if (context.Authentication is not Authenticated.User and not Authenticated.SystemUser)
         {
@@ -91,7 +91,7 @@ internal class SigningUserAction : IUserAction
             currentTask.Id
         );
 
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
         AltinnSignatureConfiguration signatureConfiguration =
             currentTask.ExtensionElements?.TaskExtension?.SignatureConfiguration
             ?? throw new ApplicationConfigException(
@@ -124,7 +124,7 @@ internal class SigningUserAction : IUserAction
 
         if (!string.IsNullOrEmpty(context.OnBehalfOf))
         {
-            var canSignOnbehalfOf = await HandleOnBehalfOf(context, signatureConfiguration, ct);
+            var canSignOnbehalfOf = await HandleOnBehalfOf(context, signatureConfiguration, cancellationToken);
             if (!canSignOnbehalfOf)
             {
                 return UserActionResult.FailureResult(
@@ -140,7 +140,7 @@ internal class SigningUserAction : IUserAction
 
         try
         {
-            await _signClient.SignDataElements(signatureContext);
+            await _signClient.SignDataElements(signatureContext, cancellationToken: cancellationToken);
 
             // Reloading instance data because we know that storage has added a binary data element to the instance.
             // This is a workaround until we have a better solution for this. Don't take it as inspiration.
@@ -174,7 +174,7 @@ internal class SigningUserAction : IUserAction
                 dataElementSignatures,
                 context,
                 signatureConfiguration.CorrespondenceResources,
-                ct
+                cancellationToken
             )
         );
 
@@ -207,7 +207,7 @@ internal class SigningUserAction : IUserAction
     internal async Task<bool> HandleOnBehalfOf(
         UserActionContext context,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         int? userId = context.Authentication switch
@@ -219,29 +219,29 @@ internal class SigningUserAction : IUserAction
         if (userId is null)
         {
             _logger.LogWarning(
-                "Unsupported authentication type for signing on behalf of {OrganisationNumber}",
+                "Unsupported authentication type for signing on behalf of {OrganizationNumber}",
                 context.OnBehalfOf
             );
             return false;
         }
 
-        // Fetch authorized organisation signees for the extracted user ID
-        var authorizedOrganisations = await _signingService.GetAuthorizedOrganizationSignees(
+        // Fetch authorized organization signees for the extracted user ID
+        var authorizedOrganizations = await _signingService.GetAuthorizedOrganizationSignees(
             context.DataMutator,
             signatureConfiguration,
             userId.Value,
-            ct
+            cancellationToken
         );
 
-        bool isAuthorized = authorizedOrganisations.Any(o => o.OrgNumber == context.OnBehalfOf);
+        bool isAuthorized = authorizedOrganizations.Any(o => o.OrgNumber == context.OnBehalfOf);
 
         if (isAuthorized)
         {
-            _logger.LogInformation("User is authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
+            _logger.LogInformation("User is authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
         }
         else
         {
-            _logger.LogWarning("User is not authorized to sign on behalf of {OrganisationNumber}", context.OnBehalfOf);
+            _logger.LogWarning("User is not authorized to sign on behalf of {OrganizationNumber}", context.OnBehalfOf);
         }
 
         return isAuthorized;
@@ -297,14 +297,14 @@ internal class SigningUserAction : IUserAction
                 {
                     UserId = userProfile.UserId.ToString(CultureInfo.InvariantCulture),
                     PersonNumber = userProfile.Party.SSN,
-                    OrganisationNumber = context.OnBehalfOf,
+                    OrganizationNumber = context.OnBehalfOf,
                 };
             }
             case Authenticated.SystemUser systemUser:
                 return new Signee
                 {
                     SystemUserId = systemUser.SystemUserId[0],
-                    OrganisationNumber = context.OnBehalfOf,
+                    OrganizationNumber = context.OnBehalfOf,
                 };
             default:
                 throw new SigningException("Could not get signee");

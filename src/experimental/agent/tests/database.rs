@@ -1,0 +1,1494 @@
+#![allow(clippy::expect_used)]
+
+mod support;
+
+use std::path::{Path, PathBuf};
+
+use agent::{
+    AgentId, Condition, ConditionStatus, Error, Status,
+    control_plane::{AgentRecord, AgentStore as _},
+    persistence,
+    sandbox::{Assignment, ProviderId},
+    sessions::{Lifecycle, NewSession, SessionName, SessionReports as _, SessionStore as _},
+};
+use sandbox::secret_store::SecretStore as _;
+use tempfile::TempDir;
+use tokio::runtime::LocalRuntime;
+
+fn test_agent_id() -> AgentId {
+    "38f41de4-6ff7-4679-ae46-678bc61e4dcb".parse().expect("Agent ID")
+}
+
+fn record_with_id(name: &str, generation: u64, id: AgentId) -> AgentRecord {
+    let mut agent = support::agent(name);
+    agent.metadata.generation = generation;
+    AgentRecord {
+        id,
+        source_directory: PathBuf::from("/source"),
+        manifest_path: None,
+        env_file: None,
+        agent,
+    }
+}
+
+fn record(name: &str, generation: u64) -> AgentRecord {
+    record_with_id(name, generation, test_agent_id())
+}
+
+fn ready_record(name: &str, id: AgentId) -> AgentRecord {
+    let mut ready = record_with_id(name, 1, id);
+    ready.agent.status = Status::observed(
+        1,
+        Some(Assignment::Materialized {
+            provider: ProviderId::new("memory").expect("Provider ID"),
+            id: "3f978c33-4d43-4ea4-b58d-10b90ef166af".parse().expect("Sandbox ID"),
+            harnesses: ready
+                .agent
+                .spec
+                .harnesses
+                .iter()
+                .map(|installation| installation.kind)
+                .collect(),
+        }),
+        vec![Condition {
+            kind: "Ready".into(),
+            status: ConditionStatus::True,
+            reason: "SandboxReady".into(),
+            message: String::new(),
+            last_transition_time: None,
+        }],
+    );
+    ready
+}
+
+const PREVIEW_1_SCHEMA: &str = "
+    CREATE TABLE agents (
+        id TEXT PRIMARY KEY NOT NULL,
+        active_name TEXT UNIQUE,
+        source_directory TEXT NOT NULL,
+        desired_json TEXT NOT NULL,
+        deletion_timestamp INTEGER,
+        status_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE secrets (
+        name TEXT PRIMARY KEY NOT NULL,
+        value BLOB NOT NULL
+    );
+    CREATE TABLE provider_accounts (
+        provider TEXT PRIMARY KEY NOT NULL,
+        metadata_json TEXT NOT NULL
+    );
+    CREATE TABLE sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        harness_native_id TEXT,
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (agent_id, name)
+    );
+    PRAGMA user_version = 1;
+";
+
+// The schema produced by the session-management build on main before migrations were introduced.
+const EXPANDED_VERSION_1_SCHEMA: &str = "
+    CREATE TABLE IF NOT EXISTS agents (
+        id TEXT PRIMARY KEY NOT NULL,
+        active_name TEXT UNIQUE,
+        source_directory TEXT NOT NULL,
+        desired_json TEXT NOT NULL,
+        deletion_timestamp INTEGER,
+        status_json TEXT NOT NULL DEFAULT '{}'
+    );
+    CREATE TABLE IF NOT EXISTS secrets (
+        name TEXT PRIMARY KEY NOT NULL,
+        value BLOB NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS provider_accounts (
+        provider TEXT PRIMARY KEY NOT NULL,
+        metadata_json TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        agent_id TEXT NOT NULL REFERENCES agents(id),
+        name TEXT NOT NULL,
+        harness TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        activation_generation INTEGER NOT NULL DEFAULT 0,
+        lifecycle_json TEXT NOT NULL DEFAULT '{}',
+        initial_prompt TEXT,
+        harness_native_id TEXT,
+        harness_transcript_path TEXT,
+        activity_json TEXT NOT NULL DEFAULT '{}',
+        launch_token TEXT UNIQUE,
+        launch_sandbox TEXT,
+        launched_at INTEGER,
+        launch_attempts INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (agent_id, name)
+    );
+    CREATE TABLE IF NOT EXISTS session_activity_reports (
+        session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+        launch_token TEXT NOT NULL,
+        event_id TEXT NOT NULL,
+        PRIMARY KEY (session_id, launch_token, event_id)
+    );
+    PRAGMA user_version = 1;
+";
+
+const PREVIEW_AGENT_ID: &str = "11111111-1111-4111-8111-111111111111";
+const PREVIEW_DELETED_AGENT_ID: &str = "22222222-2222-4222-8222-222222222222";
+const EXPANDED_AGENT_ID: &str = "33333333-3333-4333-8333-333333333333";
+const PREVIEW_SECRET: &[u8] = b"\0preview-one-secret\xff";
+
+fn preview_desired(name: &str) -> String {
+    let mut desired = serde_json::to_value(support::agent(name)).expect("serialize fixture Agent");
+    let spec = desired["spec"].as_object_mut().expect("fixture spec");
+    let mut instructions = spec.remove("instructions").expect("fixture instructions");
+    let instruction = instructions.as_array_mut().expect("current instructions").remove(0);
+    spec.insert("instructions".into(), instruction);
+    spec.remove("skills");
+    serde_json::to_string(&desired).expect("encode preview desired state")
+}
+
+fn preview_desired_with_null_instructions(name: &str) -> String {
+    let mut desired = serde_json::to_value(support::agent(name)).expect("serialize fixture Agent");
+    let spec = desired["spec"].as_object_mut().expect("fixture spec");
+    spec.insert("instructions".into(), serde_json::Value::Null);
+    spec.remove("skills");
+    serde_json::to_string(&desired).expect("encode preview desired state")
+}
+
+fn create_preview_1_database(path: &Path) {
+    let connection = rusqlite::Connection::open(path).expect("create preview 1 database");
+    connection.execute_batch(PREVIEW_1_SCHEMA).expect("preview 1 schema");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}'), (?4, NULL, ?5, ?6, 1700000000, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/preview/source")).expect("source"),
+                preview_desired("worker"),
+                PREVIEW_DELETED_AGENT_ID,
+                serde_json::to_string(Path::new("/preview/deleted")).expect("deleted source"),
+                preview_desired_with_null_instructions("deleted")
+            ],
+        )
+        .expect("preview Agents");
+    for (index, state) in (0_i64..).zip(["starting", "running", "idle", "failed"]) {
+        let id = format!("00000000-0000-4000-8000-{index:012}");
+        let lifecycle = serde_json::json!({
+            "state": state,
+            "failure": (state == "failed").then_some("preview failure"),
+            "observedActivationGeneration": index,
+        });
+        connection
+            .execute(
+                "INSERT INTO sessions \
+                 (id, agent_id, name, harness, created_at, activation_generation, lifecycle_json, \
+                  harness_native_id, launch_token, launch_sandbox, launched_at, launch_attempts) \
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'preview-sandbox', ?10, ?11)",
+                rusqlite::params![
+                    id,
+                    PREVIEW_AGENT_ID,
+                    format!("session-{state}"),
+                    if index % 2 == 0 { "claudeCode" } else { "codex" },
+                    1_700_000_000_i64 + index,
+                    index,
+                    serde_json::to_string(&lifecycle).expect("lifecycle"),
+                    format!("native-{index}"),
+                    format!("00000000-0000-4000-9000-{index:012}"),
+                    1_700_000_100_i64 + index,
+                    index + 1,
+                ],
+            )
+            .expect("preview Session");
+    }
+    connection
+        .execute(
+            "INSERT INTO secrets (name, value) VALUES ('claude-access-token', ?1)",
+            [PREVIEW_SECRET],
+        )
+        .expect("preview secret");
+    connection
+        .execute(
+            "INSERT INTO provider_accounts (provider, metadata_json) VALUES ('claudeCode', ?1)",
+            [r#"{"account":"preview-user"}"#],
+        )
+        .expect("preview provider account");
+}
+
+#[test]
+fn stores_scrub_projected_provenance_and_keep_recorded_manifest_paths() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let mut record = ready_record("worker", test_agent_id());
+        record.manifest_path = Some(PathBuf::from("/source/worker.yml"));
+        record.agent.status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+            env_file: None,
+        });
+        store.put(record.clone(), 0).await.expect("Agent stored");
+
+        let stored = store.get(record.id).await.expect("Agent loaded");
+        assert_eq!(stored.agent.status.provenance, None);
+        assert_eq!(stored.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(stored.source_directory, record.source_directory);
+
+        let mut status = stored.agent.status.clone();
+        status.provenance = Some(agent::Provenance {
+            source_directory: PathBuf::from("/leaked"),
+            manifest_path: None,
+            env_file: None,
+        });
+        store
+            .update_status(record.id, stored.agent.metadata.generation, status)
+            .await
+            .expect("status updated");
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status.provenance, None);
+        assert_eq!(reloaded.agent.status.conditions, stored.agent.status.conditions);
+        assert_eq!(reloaded.manifest_path.as_deref(), Some(Path::new("/source/worker.yml")));
+        assert_eq!(reloaded.source_directory, record.source_directory);
+    });
+}
+
+fn ready_false(reason: &str, message: &str, at: Option<time::OffsetDateTime>) -> Condition {
+    Condition {
+        kind: Condition::READY.into(),
+        status: ConditionStatus::False,
+        reason: reason.into(),
+        message: message.into(),
+        last_transition_time: at,
+    }
+}
+
+#[test]
+fn status_updates_stamp_condition_transitions_and_keep_the_failure_class() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let entered = time::OffsetDateTime::from_unix_timestamp(1_600_000_000).expect("timestamp");
+        let mut record = record("worker", 1);
+        record.agent.status = Status::observed(
+            1,
+            None,
+            vec![ready_false("ProviderSelected", "provisioning", Some(entered))],
+        );
+        let changes = store.changes();
+        store.put(record.clone(), 0).await.expect("Agent stored");
+        let written = changes.revision();
+        store.get(record.id).await.expect("Agent read");
+        assert_eq!(
+            changes.revision(),
+            written,
+            "reads do not advance the resource revision"
+        );
+
+        let mut retry = Status::observed(1, None, vec![ready_false("ProviderSelected", "another detail", None)]);
+        retry.failure = Some(agent::FailureKind::Transient);
+        retry.progress = Some(agent::progress::Provisioning {
+            pass: changes.revision(),
+            progress: sandbox::progress::Progress::new(),
+        });
+        let stored = store.update_status(record.id, 1, retry).await.expect("status updated");
+        assert_ne!(
+            changes.revision(),
+            written,
+            "status writes advance the resource revision"
+        );
+        assert_eq!(stored.progress, None, "progress is projected, never stored");
+        assert_eq!(
+            stored.conditions[0].last_transition_time,
+            Some(entered),
+            "a message-only change is not a transition"
+        );
+        assert_eq!(stored.failure, Some(agent::FailureKind::Transient));
+        let reloaded = store.get(record.id).await.expect("Agent reloaded");
+        assert_eq!(reloaded.agent.status, stored, "the returned status is what was stored");
+
+        let failed = Status::observed(1, None, vec![ready_false("SandboxReconcileFailed", "boom", None)]);
+        let stored = store.update_status(record.id, 1, failed).await.expect("status updated");
+        assert!(
+            stored.conditions[0].last_transition_time.is_some_and(|at| at > entered),
+            "a reason change is stamped"
+        );
+        assert_eq!(stored.failure, None);
+    });
+}
+
+#[test]
+fn sessions_are_idempotent_and_survive_database_reopen() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let ready = ready_record("worker", test_agent_id());
+        first.put(ready, 0).await.expect("ready Agent");
+        let name = SessionName::new("s1").expect("session name");
+        let created = first
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession {
+                    initial_prompt: Some("first prompt".into()),
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
+                },
+            )
+            .await
+            .expect("create session");
+        let existing = first
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession {
+                    initial_prompt: Some("ignored: not created here".into()),
+                    ..NewSession::resolved(
+                        agent::Harness::ClaudeCode,
+                        agent::ModelSelection {
+                            model: Some(agent::Model::new("fable").expect("model")),
+                            effort: Some(agent::Effort::new("xhigh").expect("effort")),
+                        },
+                        &agent::ModelSelection::default(),
+                    )
+                },
+            )
+            .await
+            .expect("get session");
+        assert_eq!(created.agent_id, test_agent_id());
+        assert_eq!(created.harness, agent::Harness::ClaudeCode);
+        assert_eq!(created.model_selection.model_str(), Some("fable"));
+        assert_eq!(created.model_selection.effort_str(), Some("xhigh"));
+        assert_eq!(created, existing, "creation-time selections are recorded once");
+        let unselected = first
+            .ensure_session(
+                "worker",
+                &SessionName::new("plain").expect("session name"),
+                NewSession::for_harness(agent::Harness::Codex),
+            )
+            .await
+            .expect("create session without selections");
+        assert!(unselected.model_selection.is_empty());
+        first
+            .update_session_lifecycle(created.id, Lifecycle::running(), 0)
+            .await
+            .expect("persist observed state");
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let sessions = second.list_agent_sessions("worker").await.expect("persistent sessions");
+        assert_eq!(sessions.len(), 2);
+        assert_eq!(sessions[1].name.as_str(), "s1");
+        assert_eq!(sessions[1].harness, agent::Harness::ClaudeCode);
+        assert_eq!(sessions[1].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[1].model_selection.effort_str(), Some("xhigh"));
+        assert_eq!(sessions[0].name.as_str(), "plain");
+        assert!(sessions[0].model_selection.is_empty());
+        assert_eq!(
+            sessions[1].status.lifecycle.state,
+            agent::sessions::LifecycleState::Running
+        );
+        assert_eq!(
+            rusqlite::Connection::open(&path)
+                .expect("read database")
+                .query_row(
+                    "SELECT initial_prompt FROM sessions WHERE id = ?1",
+                    [sessions[1].id.to_string()],
+                    |row| row.get::<_, Option<String>>(0)
+                )
+                .expect("initial prompt")
+                .as_deref(),
+            Some("first prompt"),
+            "the first prompt is recorded once, at creation"
+        );
+        assert_eq!(
+            second
+                .get_agent_session("worker", &SessionName::new("s1").expect("Session name"))
+                .await
+                .expect("named Session"),
+            sessions[1]
+        );
+    });
+}
+
+#[test]
+fn concurrent_creation_only_conflicts_on_explicit_selections() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let name = SessionName::new("raced").expect("session name");
+        let selection = |model: Option<&str>, effort: Option<&str>| agent::ModelSelection {
+            model: model.map(|model| agent::Model::new(model).expect("model")),
+            effort: effort.map(|effort| agent::Effort::new(effort).expect("effort")),
+        };
+        let defaults = selection(Some("fable"), Some("xhigh"));
+        let first = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
+            )
+            .await
+            .expect("first creation");
+        assert_eq!(first.model_selection, selection(Some("opus"), Some("xhigh")));
+
+        // A loser that chose nothing resolved to other values, but it did not ask for them.
+        let omitted = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, agent::ModelSelection::default(), &defaults),
+            )
+            .await
+            .expect("omitted selections take the Session as recorded");
+        assert_eq!(omitted.id, first.id);
+        assert_eq!(omitted.model_selection, first.model_selection);
+
+        let same = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("opus"), None), &defaults),
+            )
+            .await
+            .expect("the same explicit choice finds the Session");
+        assert_eq!(same.id, first.id);
+
+        let conflict = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(agent::Harness::ClaudeCode, selection(Some("sonnet"), None), &defaults),
+            )
+            .await
+            .expect_err("a loser that explicitly chose differently is told");
+        assert_eq!(
+            conflict.to_string(),
+            "invalid Agent: Session \"raced\" already uses model \"opus\", not \"sonnet\""
+        );
+        let unselected = store
+            .ensure_session(
+                "worker",
+                &name,
+                NewSession::resolved(
+                    agent::Harness::ClaudeCode,
+                    selection(None, Some("low")),
+                    &agent::ModelSelection::default(),
+                ),
+            )
+            .await
+            .expect_err("an explicit effort conflicts with the recorded one");
+        assert!(
+            unselected
+                .to_string()
+                .contains("already uses effort \"xhigh\", not \"low\""),
+            "{unselected}"
+        );
+    });
+}
+
+#[test]
+fn attach_error_identifies_the_session_and_its_lifecycle_failure() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("open database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("ready Agent");
+        let session = store
+            .ensure_session("worker", &SessionName::new("recovering").expect("Session name"), NewSession::for_harness(agent::Harness::Codex))
+            .await
+            .expect("Session");
+        store
+            .update_session_lifecycle(
+                session.id,
+                Lifecycle::starting("harness exited; relaunching after up to 10s of backoff"),
+                1,
+            )
+            .await
+            .expect("lifecycle");
+
+        assert_eq!(
+            store
+                .session_attach_target(session.id)
+                .await
+                .expect_err("Session is not running")
+                .to_string(),
+            "invalid Agent: Session \"recovering\" is not running: harness exited; relaunching after up to 10s of backoff"
+        );
+    });
+}
+
+#[test]
+fn finalized_agents_and_their_sessions_remain_as_tombstones_when_a_name_is_reused() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    let old_id = "f9fc2dac-ae2d-4534-a9c1-dd13dd9b5160".parse().expect("old Agent ID");
+    let new_id = "f50fbec8-03a9-43ea-b65d-c15a86e9eb65".parse().expect("new Agent ID");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store.put(ready_record("worker", old_id), 0).await.expect("old Agent");
+        let old_session = SessionName::new("old-session").expect("session name");
+        store
+            .ensure_session(
+                "worker",
+                &old_session,
+                NewSession::for_harness(agent::Harness::ClaudeCode),
+            )
+            .await
+            .expect("old session");
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(old_id, 1).await.expect("finalize deletion");
+        assert!(matches!(store.get(old_id).await, Err(Error::NotFound)));
+
+        store
+            .put(ready_record("worker", new_id), 0)
+            .await
+            .expect("new Agent incarnation");
+        let sessions = store.list_agent_sessions("worker").await.expect("new Agent sessions");
+        assert!(sessions.is_empty());
+    });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM agents", [], |row| row.get::<_, i64>(0))
+            .expect("Agent count"),
+        2
+    );
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get::<_, i64>(0))
+            .expect("session count"),
+        1
+    );
+}
+
+#[test]
+fn released_preview_1_database_migrates_without_losing_state() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+
+    let database = persistence::Database::open(&path).expect("migrate preview 1 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let agent = database
+            .get(PREVIEW_AGENT_ID.parse().expect("preview Agent ID"))
+            .await
+            .expect("migrated Agent");
+        assert_eq!(agent.source_directory, Path::new("/preview/source"));
+        assert_eq!(agent.agent.spec.instructions.len(), 1);
+        assert!(agent.agent.spec.skills.is_empty());
+        let sessions = database.list_agent_sessions("worker").await.expect("migrated Sessions");
+        assert_eq!(sessions.len(), 4);
+        assert_eq!(
+            sessions[0].status.lifecycle.state,
+            agent::sessions::LifecycleState::Failed
+        );
+        assert_eq!(
+            sessions[1].status.lifecycle.state,
+            agent::sessions::LifecycleState::Idle
+        );
+        assert_eq!(
+            sessions[2].status.lifecycle.state,
+            agent::sessions::LifecycleState::Running
+        );
+        assert_eq!(
+            sessions[3].status.lifecycle.state,
+            agent::sessions::LifecycleState::Starting
+        );
+    });
+    drop(database);
+
+    let connection = rusqlite::Connection::open(&path).expect("inspect migrated database");
+    assert_eq!(
+        connection
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("schema version"),
+        5
+    );
+    assert_migrated_session_selections(&connection, 2, 2);
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT source_directory FROM agents WHERE id = ?1",
+                [PREVIEW_DELETED_AGENT_ID],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("deleted Agent source"),
+        serde_json::to_string(Path::new("/preview/deleted")).expect("source")
+    );
+    let deleted: agent::Agent = serde_json::from_str(
+        &connection
+            .query_row(
+                "SELECT desired_json FROM agents WHERE id = ?1",
+                [PREVIEW_DELETED_AGENT_ID],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("deleted Agent desired state"),
+    )
+    .expect("migrated deleted Agent");
+    assert!(deleted.spec.instructions.is_empty());
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT value FROM secrets WHERE name = 'claude-access-token'",
+                [],
+                |row| { row.get::<_, Vec<u8>>(0) }
+            )
+            .expect("migrated secret"),
+        PREVIEW_SECRET
+    );
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT metadata_json FROM provider_accounts WHERE provider = 'claudeCode'",
+                [],
+                |row| row.get::<_, String>(0),
+            )
+            .expect("provider metadata"),
+        r#"{"account":"preview-user"}"#
+    );
+    assert_eq!(
+        connection
+            .query_row(
+                "SELECT COUNT(*) FROM sessions \
+                 WHERE initial_prompt IS NULL AND harness_transcript_path IS NULL AND activity_json = '{}'",
+                [],
+                |row| row.get::<_, u32>(0),
+            )
+            .expect("migrated Session defaults"),
+        4
+    );
+    drop(connection);
+    drop(persistence::Database::open(&path).expect("reopen migrated database"));
+}
+
+#[test]
+fn preview_1_home_opened_by_the_expanded_version_1_build_migrates() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+    let connection = rusqlite::Connection::open(&path).expect("open intermediate database");
+    connection
+        .execute_batch(
+            "CREATE TABLE session_activity_reports (
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                launch_token TEXT NOT NULL,
+                event_id TEXT NOT NULL,
+                PRIMARY KEY (session_id, launch_token, event_id)
+            );",
+        )
+        .expect("intermediate reports table");
+    let expanded_desired = serde_json::to_string(&support::agent("new-worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'new-worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                expanded_desired,
+            ],
+        )
+        .expect("expanded Agent");
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate intermediate database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let agent = database
+            .get(PREVIEW_AGENT_ID.parse().expect("preview Agent ID"))
+            .await
+            .expect("preserved Agent");
+        assert_eq!(agent.agent.spec.instructions.len(), 1);
+        let expanded = database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved expanded Agent");
+        assert_eq!(expanded.agent.spec.instructions.len(), 1);
+    });
+    drop(database);
+
+    assert_eq!(schema_snapshot(&path).0, 5);
+    assert_eq!(
+        connection_value(&path, EXPANDED_AGENT_ID, "desired_json"),
+        expanded_desired,
+        "array-valued instructions should not rewrite current desired state"
+    );
+}
+
+#[test]
+fn version_2_home_records_the_model_existing_claude_code_sessions_launched_with() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create version 2 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("version 2 tables");
+    connection.pragma_update(None, "user_version", 2).expect("version 2");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                PREVIEW_AGENT_ID,
+                serde_json::to_string(Path::new("/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("Agent");
+    for (index, harness) in ["claudeCode", "codex"].into_iter().enumerate() {
+        connection
+            .execute(
+                "INSERT INTO sessions (id, agent_id, name, harness, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+                rusqlite::params![
+                    format!("00000000-0000-4000-8000-{index:012}"),
+                    PREVIEW_AGENT_ID,
+                    format!("session-{harness}"),
+                    harness,
+                    1_700_000_000_i64,
+                ],
+            )
+            .expect("version 2 Session");
+    }
+    drop(connection);
+
+    let database = persistence::Database::open(&path).expect("migrate version 2 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let sessions = database.list_agent_sessions("worker").await.expect("Sessions");
+        assert_eq!(sessions.len(), 2);
+        assert_eq!(sessions[0].harness, agent::Harness::ClaudeCode);
+        assert_eq!(sessions[0].model_selection.model_str(), Some("fable"));
+        assert_eq!(sessions[0].model_selection.effort_str(), None);
+        assert_eq!(sessions[1].harness, agent::Harness::Codex);
+        assert!(sessions[1].model_selection.is_empty());
+    });
+    drop(database);
+    assert_eq!(schema_snapshot(&path).0, 5);
+    assert!(
+        directory.path().join("backups").is_dir(),
+        "a pending migration is backed up first"
+    );
+}
+
+#[test]
+fn expanded_version_1_schema_is_adopted_without_losing_state() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("create expanded version 1 database");
+    connection
+        .execute_batch(EXPANDED_VERSION_1_SCHEMA)
+        .expect("expanded version 1 schema");
+    let desired = serde_json::to_string(&support::agent("worker")).expect("expanded desired state");
+    connection
+        .execute(
+            "INSERT INTO agents \
+             (id, active_name, source_directory, desired_json, deletion_timestamp, status_json) \
+             VALUES (?1, 'worker', ?2, ?3, NULL, '{}')",
+            rusqlite::params![
+                EXPANDED_AGENT_ID,
+                serde_json::to_string(Path::new("/expanded/source")).expect("source"),
+                desired,
+            ],
+        )
+        .expect("expanded Agent");
+    drop(connection);
+    let before = schema_snapshot(&path).1;
+
+    let database = persistence::Database::open(&path).expect("adopt expanded version 1 database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        database
+            .get(EXPANDED_AGENT_ID.parse().expect("expanded Agent ID"))
+            .await
+            .expect("preserved Agent");
+    });
+    drop(database);
+
+    let after = schema_snapshot(&path);
+    assert_eq!(after.0, 5);
+    let unchanged = |snapshot: &[(String, String)]| {
+        snapshot
+            .iter()
+            .filter(|(name, _)| name != "table:sessions")
+            .cloned()
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(unchanged(&after.1), unchanged(&before));
+    let sessions_sql = |snapshot: &[(String, String)]| {
+        snapshot
+            .iter()
+            .find(|(name, _)| name == "table:sessions")
+            .map(|(_, sql)| sql.clone())
+            .expect("sessions table")
+    };
+    let (before_sessions, after_sessions) = (sessions_sql(&before), sessions_sql(&after.1));
+    assert!(!before_sessions.contains("model TEXT"));
+    assert!(
+        after_sessions.contains("model TEXT") && after_sessions.contains("effort TEXT"),
+        "only the Session selection columns are added: {after_sessions}"
+    );
+}
+
+#[test]
+fn partial_version_1_schema_is_rejected_without_mutation() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("partial database");
+    connection
+        .execute_batch("CREATE TABLE agents (id TEXT PRIMARY KEY NOT NULL); PRAGMA user_version = 1;")
+        .expect("partial version 1 schema");
+    let before = schema_snapshot(&path);
+
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("partial schema should be rejected");
+    };
+    assert!(error.to_string().contains("not a recognized released schema"));
+    assert_eq!(schema_snapshot(&path), before, "rejection must not mutate the schema");
+}
+
+#[test]
+fn future_schema_is_rejected_without_mutation() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let connection = rusqlite::Connection::open(&path).expect("future database");
+    connection
+        .pragma_update(None, "user_version", 99)
+        .expect("future version");
+    drop(connection);
+    let before = schema_snapshot(&path);
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("future schema should be rejected");
+    };
+    assert!(error.to_string().contains("newer than the supported schema"));
+    assert_eq!(
+        rusqlite::Connection::open(&path)
+            .expect("inspect future database")
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("future version"),
+        99
+    );
+    assert_eq!(schema_snapshot(&path), before);
+}
+
+#[test]
+fn failed_preview_1_row_migration_rolls_back_schema_and_rows() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    create_preview_1_database(&path);
+    let connection = rusqlite::Connection::open(&path).expect("corrupt preview fixture");
+    connection
+        .execute(
+            "UPDATE agents SET desired_json = 'not-json' WHERE id = ?1",
+            [PREVIEW_DELETED_AGENT_ID],
+        )
+        .expect("corrupt later Agent row");
+    drop(connection);
+    let before = schema_snapshot(&path);
+    let valid_desired = connection_value(&path, PREVIEW_AGENT_ID, "desired_json");
+
+    let Err(error) = persistence::Database::open(&path) else {
+        panic!("malformed desired state should fail migration");
+    };
+    assert!(error.to_string().contains("invalid desired state during migration"));
+    assert_eq!(schema_snapshot(&path), before);
+    assert_eq!(connection_value(&path, PREVIEW_AGENT_ID, "desired_json"), valid_desired);
+    let connection = rusqlite::Connection::open(path).expect("inspect rollback");
+    assert_eq!(
+        connection
+            .query_row("PRAGMA user_version", [], |row| row.get::<_, u32>(0))
+            .expect("rolled-back version"),
+        1
+    );
+}
+
+/// Preview Sessions never chose a model, but every Claude Code Session launched on
+/// the `fable` alias the adapter hardcoded; the migration records that so they stay
+/// on the same model, while Codex Sessions keep their harness default.
+fn assert_migrated_session_selections(connection: &rusqlite::Connection, claude_code: u32, codex: u32) {
+    let count = |filter: &str| {
+        connection
+            .query_row(&format!("SELECT COUNT(*) FROM sessions WHERE {filter}"), [], |row| {
+                row.get::<_, u32>(0)
+            })
+            .expect("migrated Sessions")
+    };
+    assert_eq!(
+        count("harness = 'claudeCode' AND model = 'fable' AND effort IS NULL"),
+        claude_code
+    );
+    assert_eq!(count("harness = 'codex' AND model IS NULL AND effort IS NULL"), codex);
+}
+
+fn schema_snapshot(path: &Path) -> (u32, Vec<(String, String)>) {
+    let connection = rusqlite::Connection::open(path).expect("snapshot database");
+    let version = connection
+        .query_row("PRAGMA user_version", [], |row| row.get(0))
+        .expect("snapshot version");
+    let mut statement = connection
+        .prepare(
+            "SELECT type || ':' || name, coalesce(sql, '') FROM sqlite_schema \
+             WHERE name NOT LIKE 'sqlite_%' ORDER BY 1",
+        )
+        .expect("snapshot query");
+    let schema = statement
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+        .expect("snapshot rows")
+        .collect::<Result<_, _>>()
+        .expect("snapshot values");
+    (version, schema)
+}
+
+fn connection_value(path: &Path, id: &str, column: &str) -> String {
+    let connection = rusqlite::Connection::open(path).expect("read fixture value");
+    connection
+        .query_row(&format!("SELECT {column} FROM agents WHERE id = ?1"), [id], |row| {
+            row.get(0)
+        })
+        .expect("fixture value")
+}
+
+#[test]
+fn secret_material_is_persistent_and_replaced_by_name() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        first.set("claude-access", b"first").await.expect("store secret");
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let reference = second.set("claude-access", b"second").await.expect("replace secret");
+        let material = second.resolve(&reference).await.expect("resolve secret");
+        assert_eq!(material.expose(), b"second");
+    });
+}
+
+#[test]
+fn finalizing_an_agent_removes_only_its_scoped_secret_material() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let id = test_agent_id();
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        let agent_secret = store
+            .set(&format!("agent/{id}/github-token"), b"github-secret")
+            .await
+            .expect("Agent secret");
+        let provider_secret = store
+            .set("claude-access-token", b"claude-secret")
+            .await
+            .expect("provider secret");
+
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(id, 1).await.expect("finalize deletion");
+
+        assert!(store.resolve(&agent_secret).await.is_err());
+        assert_eq!(
+            store
+                .resolve(&provider_secret)
+                .await
+                .expect("provider secret remains")
+                .expose(),
+            b"claude-secret"
+        );
+    });
+}
+
+#[test]
+fn agent_records_survive_reopen_and_preserve_compare_and_swap() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let first = persistence::Database::open(&path).expect("open first database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        first
+            .put(record("worker", 1), 0)
+            .await
+            .expect("insert first generation");
+        let error = first
+            .put(record("worker", 2), 0)
+            .await
+            .expect_err("duplicate create should conflict");
+        assert!(matches!(error, Error::Conflict));
+    });
+    drop(first);
+
+    let second = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        assert_eq!(
+            second.get(test_agent_id()).await.expect("persistent record"),
+            record("worker", 1)
+        );
+        second.put(record("worker", 2), 1).await.expect("compare and swap");
+        let error = second
+            .update_status(test_agent_id(), 1, Status::default())
+            .await
+            .expect_err("stale status should conflict");
+        assert!(matches!(error, Error::Conflict));
+    });
+}
+
+#[test]
+fn desired_state_cannot_change_after_deletion_starts() {
+    let directory = TempDir::new().expect("temporary directory");
+    let store = persistence::Database::open(&directory.path().join("control-plane.db")).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        let mut stale = store.get_by_name("worker").await.expect("stale desired state");
+        store.mark_deleting("worker").await.expect("mark deleting");
+
+        stale.agent.metadata.generation = 2;
+        let error = store
+            .put(stale, 1)
+            .await
+            .expect_err("deleting Agent must reject desired-state updates");
+        assert!(matches!(error, Error::Conflict));
+        assert!(
+            store
+                .get_by_name("worker")
+                .await
+                .expect("deleting Agent")
+                .agent
+                .metadata
+                .deletion_timestamp
+                .is_some()
+        );
+    });
+}
+
+#[tokio::test(flavor = "local")]
+async fn initial_prompt_consumption_and_launch_record_commit_together() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession {
+                initial_prompt: Some("once".into()),
+                ..NewSession::for_harness(agent::Harness::ClaudeCode)
+            },
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    let launch = agent::sessions::LaunchRecord {
+        token: token.clone(),
+        sandbox: "sandbox-1".into(),
+        launched_at: 0,
+        attempts: 1,
+    };
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_consumption AFTER UPDATE OF initial_prompt ON sessions WHEN OLD.initial_prompt IS NOT NULL AND NEW.initial_prompt IS NULL BEGIN SELECT RAISE(ABORT, 'injected consumption failure'); END;").expect("inject failure");
+    database
+        .record_session_launch(session.id, launch.clone())
+        .await
+        .expect_err("consumption failure");
+    assert_eq!(
+        database.session_launch_state(session.id).await.expect("state"),
+        None,
+        "failed consumption rolls back launch bookkeeping"
+    );
+    inspect
+        .execute_batch("DROP TRIGGER reject_consumption;")
+        .expect("remove failure");
+    assert_eq!(
+        database
+            .record_session_launch(session.id, launch.clone())
+            .await
+            .expect("consume"),
+        Some("once".into()),
+        "failed transaction did not consume the prompt"
+    );
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    assert_eq!(
+        reopened
+            .record_session_launch(session.id, launch)
+            .await
+            .expect("relaunch"),
+        None,
+        "recovery after a crash never replays the prompt"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_records_when_it_entered_its_state() {
+    use agent::sessions::{ActivityEvent, LaunchRecord, State};
+    let directory = TempDir::new().expect("temporary directory");
+    let database = persistence::Database::open(&directory.path().join("agent.db")).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let failed = Lifecycle::failed("harness exited");
+    database
+        .update_session_lifecycle(session.id, failed.clone(), 0)
+        .await
+        .expect("failed");
+    let entered = database
+        .get_session(session.id)
+        .await
+        .expect("Session")
+        .status
+        .state_since;
+    assert!(entered.is_some(), "a lifecycle change is stamped");
+    database
+        .update_session_lifecycle(session.id, failed, 0)
+        .await
+        .expect("still failed");
+    assert_eq!(
+        database
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .state_since,
+        entered,
+        "the same lifecycle state keeps its time"
+    );
+
+    database
+        .update_session_lifecycle(session.id, Lifecycle::running(), 0)
+        .await
+        .expect("running");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let at = |seconds| time::OffsetDateTime::from_unix_timestamp(seconds).expect("timestamp");
+    database
+        .record_session_start_for_launch(session.id, &token, uuid::Uuid::new_v4(), "native", None, at(100))
+        .await
+        .expect("start");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::TurnCompleted,
+            at(110),
+        )
+        .await
+        .expect("turn");
+    database
+        .apply_session_activity_for_launch(
+            session.id,
+            &token,
+            uuid::Uuid::new_v4(),
+            ActivityEvent::WaitingForInput,
+            at(170),
+        )
+        .await
+        .expect("idle notification");
+    let status = database.get_session(session.id).await.expect("Session").status;
+    assert_eq!(status.state, State::WaitingForInput);
+    assert_eq!(
+        status.state_since,
+        Some(at(110)),
+        "waiting since the turn ended, not since the notification"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn activity_deduplication_is_durable_and_rolls_back_with_the_fold() {
+    use agent::sessions::{ActivityEvent, LaunchRecord};
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("agent.db");
+    let database = persistence::Database::open(&path).expect("database");
+    database
+        .put(ready_record("worker", test_agent_id()), 0)
+        .await
+        .expect("Agent");
+    let session = database
+        .ensure_session(
+            "worker",
+            &SessionName::new("s1").expect("name"),
+            NewSession::for_harness(agent::Harness::ClaudeCode),
+        )
+        .await
+        .expect("Session");
+    let token: agent::sessions::LaunchToken = "cccccccc-cccc-4ccc-8ccc-cccccccccccc".parse().expect("token");
+    database
+        .record_session_launch(
+            session.id,
+            LaunchRecord {
+                token: token.clone(),
+                sandbox: "sandbox-1".into(),
+                launched_at: 0,
+                attempts: 1,
+            },
+        )
+        .await
+        .expect("launch");
+    let event_id = uuid::Uuid::new_v4();
+    let at = time::OffsetDateTime::now_utc();
+    let inspect = rusqlite::Connection::open(&path).expect("inspect");
+    inspect.execute_batch("CREATE TRIGGER reject_activity BEFORE UPDATE OF activity_json ON sessions BEGIN SELECT RAISE(ABORT, 'injected fold failure'); END;").expect("inject failure");
+    database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect_err("fold failure");
+    inspect
+        .execute_batch("DROP TRIGGER reject_activity;")
+        .expect("remove failure");
+    let activity = database
+        .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+        .await
+        .expect("retry")
+        .expect("applied");
+    assert_eq!(activity.turns, 1, "rolled-back receipt must not suppress the retry");
+    drop(database);
+    let reopened = persistence::Database::open(&path).expect("reopen");
+    assert_eq!(
+        reopened
+            .apply_session_activity_for_launch(session.id, &token, event_id, ActivityEvent::TurnCompleted, at)
+            .await
+            .expect("lost response retry"),
+        None
+    );
+    assert_eq!(
+        reopened
+            .get_session(session.id)
+            .await
+            .expect("Session")
+            .status
+            .reported
+            .activity,
+        activity,
+        "duplicate does not change count, phase, or timestamp"
+    );
+}
+
+#[test]
+fn a_deleted_session_is_marked_before_it_is_removed_and_frees_its_name() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let name = SessionName::new("s1").expect("session name");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+
+        let marked = store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert_eq!(marked.id, created.id);
+        let timestamp = marked.deletion_timestamp.expect("deletion timestamp");
+        assert_eq!(
+            store
+                .mark_session_deleting("worker", &name)
+                .await
+                .expect("repeated deletion is safe")
+                .deletion_timestamp,
+            Some(timestamp),
+            "the first request owns the deletion timestamp"
+        );
+
+        // Reconciliation still sees the Session it has to release, so a daemon
+        // restart between the request and the release cannot strand a harness.
+        assert!(
+            store
+                .get_session(created.id)
+                .await
+                .expect("marked Session")
+                .is_deleting()
+        );
+        assert!(
+            store
+                .list_all_sessions()
+                .await
+                .expect("sessions")
+                .iter()
+                .any(|session| session.id == created.id)
+        );
+        // The name stays taken until the harness is gone.
+        let reused = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect_err("the name is still taken");
+        assert!(reused.to_string().contains("is being deleted"), "{reused}");
+
+        store
+            .finalize_session_deletion(created.id)
+            .await
+            .expect("finalize deletion");
+        assert!(matches!(store.get_session(created.id).await, Err(Error::NotFound)));
+        assert!(matches!(
+            store.finalize_session_deletion(created.id).await,
+            Err(Error::Conflict)
+        ));
+        assert!(matches!(
+            store.mark_session_deleting("worker", &name).await,
+            Err(Error::NotFound)
+        ));
+
+        let replacement = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("the freed name is available again");
+        assert_ne!(replacement.id, created.id);
+    });
+    drop(store);
+
+    let connection = rusqlite::Connection::open(path).expect("inspect database");
+    assert_eq!(
+        connection
+            .query_row("SELECT COUNT(*) FROM sessions", [], |row| row.get::<_, i64>(0))
+            .expect("session count"),
+        1,
+        "the released Session leaves no row behind"
+    );
+}
+
+#[test]
+fn ssh_host_keys_are_stored_per_incarnation_and_removed_with_it() {
+    use agent::ssh::HostKeyStore as _;
+
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("database");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let id = test_agent_id();
+        store.put(record("worker", 1), 0).await.expect("Agent");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+        store
+            .store_host_key(id, zeroize::Zeroizing::new(b"host-key".to_vec()))
+            .await
+            .expect("store");
+        assert_eq!(
+            store.load_host_key(id).await.expect("load").expect("stored").as_slice(),
+            b"host-key"
+        );
+        // Manifest secrets of the same Agent live under another prefix.
+        let agent_secret = store
+            .set(&format!("agent/{id}/github-token"), b"github-secret")
+            .await
+            .expect("Agent secret");
+        store.mark_deleting("worker").await.expect("mark deleting");
+        store.finalize_deletion(id, 1).await.expect("finalize deletion");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+        assert!(store.resolve(&agent_secret).await.is_err());
+
+        store
+            .store_host_key(id, zeroize::Zeroizing::new(b"again".to_vec()))
+            .await
+            .expect("store");
+        store.delete_host_key(id).await.expect("delete");
+        store.delete_host_key(id).await.expect("deleting twice is fine");
+        assert!(store.load_host_key(id).await.expect("load").is_none());
+    });
+}
+
+#[test]
+fn archiving_a_session_is_recorded_once_and_survives_reopening() {
+    let directory = TempDir::new().expect("temporary directory");
+    let path = directory.path().join("control-plane.db");
+    let store = persistence::Database::open(&path).expect("open database owner");
+    let name = SessionName::new("s1").expect("session name");
+    let (id, archived_at) = LocalRuntime::new().expect("local runtime").block_on(async {
+        store
+            .put(ready_record("worker", test_agent_id()), 0)
+            .await
+            .expect("Agent");
+        let created = store
+            .ensure_session("worker", &name, NewSession::for_harness(agent::Harness::ClaudeCode))
+            .await
+            .expect("create Session");
+        assert!(!created.is_archived());
+
+        let archived = store
+            .set_session_archived("worker", &name, true)
+            .await
+            .expect("archive");
+        let archived_at = archived.archived_at.expect("archive time");
+        assert_eq!(
+            store
+                .set_session_archived("worker", &name, true)
+                .await
+                .expect("archiving again is safe")
+                .archived_at,
+            Some(archived_at),
+            "the first request owns the archive time"
+        );
+        (created.id, archived_at)
+    });
+    drop(store);
+
+    let store = persistence::Database::open(&path).expect("reopen database owner");
+    LocalRuntime::new().expect("local runtime").block_on(async {
+        let session = store.get_session(id).await.expect("archived Session");
+        assert_eq!(session.archived_at, Some(archived_at));
+        let unarchived = store
+            .set_session_archived("worker", &name, false)
+            .await
+            .expect("unarchive");
+        assert!(!unarchived.is_archived());
+
+        store
+            .mark_session_deleting("worker", &name)
+            .await
+            .expect("mark deleting");
+        assert!(matches!(
+            store.set_session_archived("worker", &name, true).await,
+            Err(Error::NotFound)
+        ));
+    });
+}

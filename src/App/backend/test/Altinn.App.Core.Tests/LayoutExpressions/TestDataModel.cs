@@ -16,7 +16,7 @@ public class TestDataModel
     public void TestSimpleGet()
     {
         var model = new Model { Name = new() { Value = "myValue" } };
-        var modelHelper = new ReflectionFormDataWrapper(model);
+        var modelHelper = new ReflectionFormDataWrapper(model, null!);
         modelHelper.Get("does.not.exist").Should().BeNull();
         modelHelper.Get("name.value").Should().Be(model.Name.Value);
         modelHelper.Get(modelHelper.AddIndexToPath("name.value", [1, 2, 3])).Should().Be(model.Name.Value);
@@ -26,7 +26,7 @@ public class TestDataModel
     public void AttributeNoAttributeCaseSensitive()
     {
         var model = new Model { NoAttribute = "asdfsf559" };
-        var modelHelper = new ReflectionFormDataWrapper(model);
+        var modelHelper = new ReflectionFormDataWrapper(model, null!);
         modelHelper.Get("NOATTRIBUTE").Should().BeNull("data model lookup is case sensitive");
         modelHelper.Get("noAttribute").Should().BeNull();
         modelHelper.Get("NoAttribute").Should().Be("asdfsf559");
@@ -35,7 +35,7 @@ public class TestDataModel
     [Fact]
     public void NewtonsoftAttributeWorks()
     {
-        var modelHelper = new ReflectionFormDataWrapper(new Model { OnlyNewtonsoft = "asdfsf559" });
+        var modelHelper = new ReflectionFormDataWrapper(new Model { OnlyNewtonsoft = "asdfsf559" }, null!);
         modelHelper.Get("OnlyNewtonsoft").Should().BeNull("Attribute should win over property when set");
         modelHelper.Get("ONlyNewtonsoft").Should().BeNull();
         modelHelper.Get("onlyNewtonsoft").Should().Be("asdfsf559");
@@ -44,7 +44,7 @@ public class TestDataModel
     [Fact]
     public void SystemTextJsonAttributeWorks()
     {
-        var modelHelper = new ReflectionFormDataWrapper(new Model { OnlySystemTextJson = "asdfsf559" });
+        var modelHelper = new ReflectionFormDataWrapper(new Model { OnlySystemTextJson = "asdfsf559" }, null!);
         modelHelper.Get("OnlySystemTextJson").Should().BeNull("Attribute should win over property when set");
         modelHelper.Get("onlysystemtextjson").Should().BeNull();
         modelHelper.Get("onlySystemTextJson").Should().Be("asdfsf559");
@@ -65,7 +65,7 @@ public class TestDataModel
                 new() { Name = new() { Value = "Dolly Duck" } },
             },
         };
-        var modelHelper = new ReflectionFormDataWrapper(model);
+        var modelHelper = new ReflectionFormDataWrapper(model, null!);
         modelHelper.Get("friends.name.value").Should().BeNull();
         modelHelper.Get("friends[0].name.value").Should().Be("Donald Duck");
         modelHelper.Get("friends.name.value", [0]).Should().Be("Donald Duck");
@@ -77,7 +77,8 @@ public class TestDataModel
         // Run the same tests with JsonDataModel
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(model));
         var jsonModelHelper = new ReflectionFormDataWrapper(
-            DynamicClassBuilder.DataObjectFromJsonDocument(doc.RootElement)
+            DynamicClassBuilder.DataObjectFromJsonDocument(doc.RootElement),
+            null!
         );
         jsonModelHelper.Get("friends.name.value").Should().BeNull();
         jsonModelHelper.Get("friends[0].name.value").Should().Be("Donald Duck");
@@ -149,7 +150,7 @@ public class TestDataModel
             },
         };
 
-        var modelHelper = new ReflectionFormDataWrapper(model);
+        var modelHelper = new ReflectionFormDataWrapper(model, null!);
         modelHelper.Get("friends[1].friends[0].name.value").Should().Be("Onkel Skrue");
         modelHelper.Get("friends[1].friends.name.value", [0, 0]).Should().BeNull();
         modelHelper
@@ -168,7 +169,8 @@ public class TestDataModel
         // Run the same tests with JsonDataModel
         using var doc = JsonDocument.Parse(JsonSerializer.Serialize(model));
         var jsonModelHelper = new ReflectionFormDataWrapper(
-            DynamicClassBuilder.DataObjectFromJsonDocument(doc.RootElement)
+            DynamicClassBuilder.DataObjectFromJsonDocument(doc.RootElement),
+            null!
         );
         jsonModelHelper.Get("friends[1].friends[0].name.value").Should().Be("Onkel Skrue");
         jsonModelHelper.Get("friends[1].friends.name.value", [0, 0]).Should().BeNull();
@@ -210,7 +212,7 @@ public class TestDataModel
                 },
             },
         };
-        var modelHelper = new ReflectionFormDataWrapper(model);
+        var modelHelper = new ReflectionFormDataWrapper(model, null!);
         model.Id.Should().Be(2);
         modelHelper.RemoveField("id", RowRemovalOption.SetToNull);
         model.Id.Should().Be(default);
@@ -295,7 +297,7 @@ public class TestDataModel
 
         // deleteRows = false
         var model1 = JsonSerializer.Deserialize<Model>(serializedModel)!;
-        var modelHelper1 = new ReflectionFormDataWrapper(model1);
+        var modelHelper1 = new ReflectionFormDataWrapper(model1, null!);
 
         modelHelper1.RemoveField("friends[0].friends[0]", RowRemovalOption.SetToNull);
         model1.Friends![0].Friends![0].Should().BeNull();
@@ -309,7 +311,7 @@ public class TestDataModel
 
         // deleteRows = true
         var model2 = JsonSerializer.Deserialize<Model>(serializedModel)!;
-        var modelHelper2 = new ReflectionFormDataWrapper(model2);
+        var modelHelper2 = new ReflectionFormDataWrapper(model2, null!);
 
         modelHelper2.RemoveField("friends[0].friends[0]", RowRemovalOption.DeleteRow);
         model2.Friends![0].Friends!.Count.Should().Be(2);
@@ -328,7 +330,8 @@ public class TestDataModel
             {
                 Id = 3,
                 Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" } } },
-            }
+            },
+            null!
         );
         Assert.Null(modelHelper.Get("."));
         modelHelper.Get("friends[0]").Should().BeOfType<Friend>().Which.Name?.Value.Should().Be("Ole");
@@ -351,7 +354,8 @@ public class TestDataModel
             {
                 Id = 3,
                 Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" } } },
-            }
+            },
+            null!
         );
 
         // Plain add indexes
@@ -376,7 +380,7 @@ public class TestDataModel
     [Fact]
     public void AddIndexes_WhenGivenIndexOnNonIndexableProperty_ThrowsError()
     {
-        var modelHelper = new ReflectionFormDataWrapper(new Model { Id = 3 });
+        var modelHelper = new ReflectionFormDataWrapper(new Model { Id = 3 }, null!);
 
         // Throws because id is not indexable
         modelHelper
@@ -389,7 +393,7 @@ public class TestDataModel
     [Fact]
     public void RemoveField_WhenValueDoesNotExist_DoNothing()
     {
-        var modelHelper = new ReflectionFormDataWrapper(new Model());
+        var modelHelper = new ReflectionFormDataWrapper(new Model(), null!);
 
         // real fields works, no error
         modelHelper.RemoveField("id", RowRemovalOption.SetToNull);

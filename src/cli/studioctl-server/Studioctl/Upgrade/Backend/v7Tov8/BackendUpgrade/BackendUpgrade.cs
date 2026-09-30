@@ -75,11 +75,6 @@ internal static class BackendUpgrade
         if (!options.SkipAppSettingsUpgrade && returnCode == 0)
             returnCode = await UpgradeAppSettings(appSettingsFolder);
 
-        UpgradeConsole.WriteLine(
-            returnCode == 0
-                ? "Upgrade completed without errors. Please verify that the application is still working as expected."
-                : "Upgrade completed with errors. Please check for errors in the log above."
-        );
         return returnCode;
     }
 

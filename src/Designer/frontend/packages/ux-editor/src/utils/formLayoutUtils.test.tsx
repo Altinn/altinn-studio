@@ -24,8 +24,6 @@ import {
   getAllDescendants,
   getAllFormItemIds,
   getAllLayoutComponents,
-  getAvailableChildComponentsForContainer,
-  getDefaultChildComponentsForContainer,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -43,7 +41,6 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
 import { containerComponentTypes } from '../data/containerComponentTypes';
-import { allComponents, defaultComponents, formItemConfigs } from '../data/formItemConfig';
 
 // Test data:
 const baseContainer: FormContainer<ComponentType.Group> = {
@@ -54,9 +51,9 @@ const baseContainer: FormContainer<ComponentType.Group> = {
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
-const headerComponent: FormComponent<ComponentType.Header> = {
+const headingComponent: FormComponent<ComponentType.Heading> = {
   id: headerId,
-  type: ComponentType.Header,
+  type: ComponentType.Heading,
   itemType: 'COMPONENT',
   textResourceBindings: {
     title: 'ServiceName',
@@ -118,7 +115,7 @@ const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> =
 };
 const mockInternal: IInternalLayout = {
   components: {
-    [headerId]: headerComponent,
+    [headerId]: headingComponent,
     [paragraphId]: paragraphComponent,
     [paragraphInGroupId]: paragraphInGroupComponent,
     [paragraphInGroupInGroupId]: paragraphInGroupInGroupComponent,
@@ -353,7 +350,6 @@ describe('formLayoutUtils', () => {
         'id',
         'itemType',
         'onClickAction',
-        'showBackButton',
         'textResourceBindings',
         'type',
         'pageIndex',
@@ -395,7 +391,21 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
+    // The shared enum includes pre-v9 names (OrganisationLookup, Header) used by ux-editor-v4.
+    const supportedComponentTypes = Object.values(ComponentType).filter(
+      (
+        v,
+      ): v is Exclude<
+        ComponentType,
+        ComponentType.OrganisationLookup | ComponentType.Header | ComponentType.FileUploadWithTag
+      > =>
+        v !== ComponentType.OrganisationLookup &&
+        v !== ComponentType.Header &&
+        v !== ComponentType.FileUploadWithTag &&
+        !containerComponentTypes.includes(v),
+    );
+
+    it.each(supportedComponentTypes)(
       'Adds a new component to the layout when the given type is %s',
       (componentType) => {
         const id = 'newItemId';
@@ -670,62 +680,6 @@ describe('formLayoutUtils', () => {
       groupInGroupId,
       paragraphInGroupInGroupId,
     ]);
-  });
-
-  describe('getAvailableChildComponentsForContainer', () => {
-    it('Returns all component categories for the base container', () => {
-      const layout = { ...mockInternal };
-      const result = getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID);
-      expect(Object.keys(result)).toEqual(Object.keys(allComponents));
-    });
-
-    it('Returns only available child component categories for the button group container', () => {
-      const layout = { ...mockInternal };
-      const result = getAvailableChildComponentsForContainer(layout, buttonGroupId);
-      expect(Object.keys(result)).toEqual(['button']);
-    });
-  });
-
-  describe('getDefaultChildComponentsForContainer', () => {
-    it('Returns all default components for the base container', () => {
-      const layout = { ...mockInternal };
-      const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
-      expect(result.length).toEqual(defaultComponents.length);
-      defaultComponents.forEach((componentType) => {
-        expect(result.find((c) => c.type === componentType)).toBeDefined();
-      });
-    });
-
-    it('Returns all default components for the ButtonGroup container', () => {
-      const layout = { ...mockInternal };
-      const result = getDefaultChildComponentsForContainer(layout, buttonGroupId);
-      const expectedComponents = formItemConfigs[ComponentType.ButtonGroup].validChildTypes;
-      expect(result.length).toEqual(expectedComponents.length);
-      expectedComponents.forEach((componentType) => {
-        expect(result.find((c) => c.type === componentType)).toBeDefined();
-      });
-    });
-
-    it('Returns all default components for the Group container', () => {
-      const layout = { ...mockInternal };
-      const result = getDefaultChildComponentsForContainer(layout, groupId);
-      expect(result.length).toEqual(defaultComponents.length);
-      defaultComponents.forEach((componentType) => {
-        expect(result.find((c) => c.type === componentType)).toBeDefined();
-      });
-    });
-
-    it.each([ComponentType.ButtonGroup, ComponentType.Group])(
-      'Returns all default components for the given container type',
-      (containerType) => {
-        const layout = { ...mockInternal };
-        const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
-        expect(result.length).toEqual(defaultComponents.length);
-        defaultComponents.forEach((componentType) => {
-          expect(result.find((c) => c.type === componentType)).toBeDefined();
-        });
-      },
-    );
   });
 
   describe('getAllLayoutComponents', () => {

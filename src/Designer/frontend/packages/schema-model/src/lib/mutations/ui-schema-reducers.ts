@@ -11,6 +11,12 @@ export const deleteNode: UiSchemaReducer<string> = (uiSchema, path) => {
   return newSchema;
 };
 
+export const duplicateNode: UiSchemaReducer<string> = (uiSchema, path) => {
+  const newSchema = uiSchema.deepClone();
+  newSchema.duplicateNode(path);
+  return newSchema;
+};
+
 export type SetRestrictionArgs = {
   path: string;
   key: string;

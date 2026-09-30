@@ -1,0 +1,13 @@
+﻿[
+  {
+    Id: ALTINNAPP0900,
+    Title: Duplicate field id in applicationmetadata.json,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/applicationmetadata.json(6,13),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0900,
+    MessageFormat: '{0}' declares the id '{1}' twice for dataTypeId '{2}', on '{3}' and on '{4}'. The id is the key the value is stored under on the instance, and the entries for one data type are computed together into a map that cannot hold the same key twice - so the app fails instead of computing either of them. Give each entry its own id.,
+    Message: 'presentationFields' declares the id 'Navn' twice for dataTypeId 'datamodel', on 'Soknad.NavnElev' and on 'Soknad.NavnElevManuelt'. The id is the key the value is stored under on the instance, and the entries for one data type are computed together into a map that cannot hold the same key twice - so the app fails instead of computing either of them. Give each entry its own id.,
+    Category: Metadata
+  }
+]

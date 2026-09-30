@@ -1,4 +1,6 @@
-﻿namespace Altinn.Notifications.Core.Enums;
+#nullable disable
+
+namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing the various Altinn Service update schemas 
@@ -8,7 +10,7 @@ public enum AltinnServiceUpdateSchema
     /// <summary>
     /// Default value for unknown schema
     /// </summary>
-    Unkown, 
+    Unknown, 
 
     /// <summary>
     /// The resource limit exceeded schema

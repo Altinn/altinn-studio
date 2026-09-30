@@ -23,7 +23,7 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
 
         using var response = await fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = partyId } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = partyId } }
         );
 
         using var data = await response.Read<Instance>();
@@ -47,6 +47,14 @@ public class SubunitOnlyAppTests(ITestOutputHelper _output, AppFixtureClassFixtu
 
         Assert.True(response.Response.IsSuccessStatusCode);
         using var applicationMetadata = await response.Read<ApplicationMetadata>();
+        if (
+            applicationMetadata.Data.Model?.AltinnNugetVersion is { } altinnNugetVersion
+            && Version.TryParse(altinnNugetVersion, out var parsedVersion)
+        )
+        {
+            applicationMetadata.Data.Model.AltinnNugetVersion = parsedVersion.Major.ToString();
+        }
+
         await verifier.Verify<ApplicationMetadata>(applicationMetadata);
 
         await verifier.Verify(await fixture.GetSnapshotAppLogs(), snapshotName: "Logs");

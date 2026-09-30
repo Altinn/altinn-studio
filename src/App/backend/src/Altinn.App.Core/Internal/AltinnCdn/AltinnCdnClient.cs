@@ -76,7 +76,7 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
             throw new JsonException("Missing 'orgs' property in Altinn CDN response");
         }
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         // Only deserialize the org we care about - other orgs with bad data won't affect us
         if (!orgsElement.TryGetProperty(appMetadata.Org, out var orgElement))
@@ -88,7 +88,7 @@ internal sealed class AltinnCdnClient : IAltinnCdnClient
             orgElement.Deserialize<AltinnCdnOrgDetails>(_jsonOptions)
             ?? throw new JsonException($"Org '{appMetadata.Org}' deserialized to null");
 
-        // Inject Digdir's organisation number for TTD, because TTD does not have an organisation number
+        // Inject Digdir's organization number for TTD, because TTD does not have an organization number
         if (
             string.Equals(appMetadata.Org, "ttd", StringComparison.OrdinalIgnoreCase)
             && string.IsNullOrEmpty(orgDetails.Orgnr)

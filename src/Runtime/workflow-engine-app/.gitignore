@@ -1,4 +1,6 @@
 .cache/
+[Bb]in/
+[Oo]bj/
 
 # dotnet ef creates directories with literal backslashes on macOS
 bin\\Debug/

@@ -8,13 +8,15 @@
   );
   --left-menu-width: 68px;
 
-  background: var(--fds-semantic-background-default);
+  background: var(--ds-color-neutral-background-default);
   width: 100%;
 }
 
 .appContainer {
   display: grid;
   grid-template-rows: auto 1fr;
+  /* The header's minimum width must not stretch the page content beyond the viewport. */
+  grid-template-columns: minmax(0, 1fr);
   height: 100vh;
 }
 

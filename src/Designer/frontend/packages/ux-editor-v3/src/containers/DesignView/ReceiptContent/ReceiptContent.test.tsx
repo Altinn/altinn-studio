@@ -67,7 +67,7 @@ describe('ReceiptContent', () => {
     const addButton = screen.getByRole('button', { name: textMock('receipt.create') });
     expect(addButton).toBeInTheDocument();
 
-    const receiptAccordion = screen.queryByRole('button', { name: mockReceiptName });
+    const receiptAccordion = screen.queryByText(mockReceiptName);
     expect(receiptAccordion).not.toBeInTheDocument();
   });
 
@@ -77,7 +77,7 @@ describe('ReceiptContent', () => {
     const addButton = screen.queryByRole('button', { name: textMock('receipt.create') });
     expect(addButton).not.toBeInTheDocument();
 
-    const receiptAccordion = screen.getByRole('button', { name: mockReceiptName });
+    const receiptAccordion = screen.getByText(mockReceiptName);
     expect(receiptAccordion).toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe('ReceiptContent', () => {
     const user = userEvent.setup();
     await render();
 
-    const receiptButton = screen.getByRole('button', { name: mockReceiptName });
+    const receiptButton = screen.getByText(mockReceiptName);
     await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);
@@ -95,7 +95,7 @@ describe('ReceiptContent', () => {
     const user = userEvent.setup();
     await render({ selectedAccordion: mockPageName1 });
 
-    const receiptButton = screen.getByRole('button', { name: mockReceiptName });
+    const receiptButton = screen.getByText(mockReceiptName);
     await user.click(receiptButton);
 
     expect(mockOnClickAccordion).toHaveBeenCalledTimes(1);

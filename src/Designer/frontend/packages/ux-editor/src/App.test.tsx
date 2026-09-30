@@ -9,7 +9,7 @@ import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
+import { PreviewContextProvider } from 'app-shared/contexts/PreviewContext';
 
 const mockQueries: Partial<ServicesContextProps> = {
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),

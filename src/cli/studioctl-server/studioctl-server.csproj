@@ -12,8 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../Shared/HostBridge/**/*.cs" LinkBase="HostBridge" />
-    <Compile Include="../../Shared/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
+    <InternalsVisibleTo Include="Studioctl.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Runtime/common/dotnet/Altinn.Studio.Runtime.Common/HostBridge/**/*.cs" LinkBase="HostBridge" />
+    <Compile Include="../../Runtime/common/dotnet/Altinn.Studio.Runtime.Common/EnvTopology/**/*.cs" LinkBase="EnvTopology" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,5 +32,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="NuGet.Versioning" />
   </ItemGroup>
 </Project>

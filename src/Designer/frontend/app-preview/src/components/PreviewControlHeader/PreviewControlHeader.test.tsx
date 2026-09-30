@@ -30,20 +30,18 @@ const mockHandleChangeLayoutSet = jest.fn();
 export const layoutSet1NameMock = 'test-layout-set';
 export const layoutSet2NameMock = 'test-layout-set-2';
 
-export const layoutSetsMock: LayoutSets = {
-  sets: [
-    {
-      id: layoutSet1NameMock,
-      dataType: 'data-model',
-      tasks: ['Task_1'],
-    },
-    {
-      id: layoutSet2NameMock,
-      dataType: 'data-model-2',
-      tasks: ['Task_2'],
-    },
-  ],
-};
+export const layoutSetsMock: LayoutSets = [
+  {
+    id: layoutSet1NameMock,
+    dataType: 'data-model',
+    taskId: 'Task_1',
+  },
+  {
+    id: layoutSet2NameMock,
+    dataType: 'data-model-2',
+    taskId: 'Task_2',
+  },
+];
 
 const defaultProps: PreviewControlHeaderProps = {
   viewSize: 'desktop',
@@ -99,10 +97,10 @@ describe('PreviewControlHeader', () => {
     const select = screen.getByRole('combobox');
     const options = screen.getAllByRole('option');
 
-    expect(select).toHaveValue(layoutSetsMock.sets[0].id);
+    expect(select).toHaveValue(layoutSetsMock[0].id);
     expect(options).toHaveLength(2);
-    expect(options[0]).toHaveTextContent(layoutSetsMock.sets[0].id);
-    expect(options[1]).toHaveTextContent(layoutSetsMock.sets[1].id);
+    expect(options[0]).toHaveTextContent(layoutSetsMock[0].id);
+    expect(options[1]).toHaveTextContent(layoutSetsMock[1].id);
   });
 
   it('should call handleChangeLayoutSet when a new layout set is selected', async () => {
@@ -113,9 +111,9 @@ describe('PreviewControlHeader', () => {
     renderPreviewControlHeader({ queryClient });
 
     const select = screen.getByRole('combobox');
-    await user.selectOptions(select, layoutSetsMock.sets[1].id);
+    await user.selectOptions(select, layoutSetsMock[1].id);
 
-    expect(mockHandleChangeLayoutSet).toHaveBeenCalledWith(layoutSetsMock.sets[1].id);
+    expect(mockHandleChangeLayoutSet).toHaveBeenCalledWith(layoutSetsMock[1].id);
     expect(mockHandleChangeLayoutSet).toHaveBeenCalledTimes(1);
   });
 

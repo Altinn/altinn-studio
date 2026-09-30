@@ -1,35 +1,29 @@
 {
   "name": "altinn-studio",
   "devDependencies": {
-    "eslint": "8.57.1",
-    "husky": "9.1.7",
-    "lint-staged": "16.3.2",
-    "prettier": "3.8.1"
+    "eslint": "10.8.1",
+    "lefthook": "2.1.10",
+    "prettier": "3.9.6"
   },
-  "lint-staged": {
-    "./src/App/frontend/**/*.{js,jsx,ts,tsx}": [
-      "./scripts/pre-commit-check-for-skipped-tests",
-      "yarn --cwd src/App/frontend eslint --cache --fix"
-    ],
-    "./src/App/frontend/**/*.json": "yarn --cwd src/App/frontend eslint --cache --fix",
-    "./src/App/frontend/**/*.{css,md}": "prettier -w",
-    "*{js,jsx,tsx,ts,css,md}": "prettier -w",
-    "./src/Designer/frontend/language/src/*.json": "yarn run sort-texts"
-  },
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.18.0",
   "private": true,
   "scripts": {
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
+    "docs:validate": "node .github/scripts/agents-docs-validate.mjs",
     "lint": "yarn workspace studio-designer-frontend lint && yarn lint:libs",
     "lint:fix": "yarn workspace studio-designer-frontend lint:fix && yarn lint:libs",
-    "lint:libs": "yarn workspace @app/form-engine lint",
+    "lint:libs": "yarn workspace @studio/common-typescript lint",
     "codestyle:check": "yarn workspace studio-designer-frontend codestyle:check",
     "codestyle:fix": "yarn workspace studio-designer-frontend codestyle:fix",
-    "setup": "husky && node src/Designer/development/setup.js && yarn run git:ignore-revs",
+    "setup": "lefthook install && node src/Designer/development/setup.js && yarn run git:ignore-revs",
     "sort-texts": "yarn workspace @altinn-studio/language run sort",
+    "build-app-frontend-bundle": "yarn workspace app-frontend-react build && node src/Designer/development/copy-app-frontend-bundle.mjs",
+    "spell:check": "node scripts/spellcheck/run.mjs",
+    "spell:fix": "node scripts/spellcheck/run.mjs --fix",
+    "spell:quick": "node scripts/spellcheck/run.mjs quick",
     "start-app-development": "yarn workspace app-development start",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "syncpack": {
     "semverRange": ""
@@ -62,11 +56,16 @@
     "src/Designer/frontend/packages/ux-editor-v4",
     "src/Designer/frontend/packages/ux-editor-v3",
     "src/Designer/frontend/packages/process-editor",
+    "src/Designer/frontend/packages/process-editor-v8",
     "src/Designer/frontend/packages/policy-editor",
     "src/Designer/frontend/libs/**",
-    "libs/**"
+    "src/common/ts",
+    "src/common/ts/**"
   ],
   "resolutions": {
-    "jsdom@npm:^26.1.0": "patch:jsdom@npm%3A26.1.0#~/.yarn/patches/jsdom-npm-26.1.0-3857255f02.patch"
+    "dom-accessibility-api@npm:^0.5.9": "patch:dom-accessibility-api@npm%3A0.5.16#~/.yarn/patches/dom-accessibility-api-npm-0.5.16-d3e2310666.patch",
+    "dom-accessibility-api@npm:^0.6.3": "patch:dom-accessibility-api@npm%3A0.6.3#~/.yarn/patches/dom-accessibility-api-npm-0.6.3-0345e4dede.patch",
+    "jsdom@npm:30.1.1": "patch:jsdom@npm%3A30.1.1#~/.yarn/patches/jsdom-npm-30.1.1-6cc9c69fd4.patch",
+    "qs": "6.16.0"
   }
 }

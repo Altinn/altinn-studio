@@ -1,10 +1,9 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
 import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon, XMarkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';
 import { DefaultItems } from './DefaultItems';
 import { AddItemModal } from './AddItemModal';
 import type { AddedItem } from './types';
@@ -13,6 +12,10 @@ import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useAddComponentHandlerWithCallback } from './hooks/useAddComponentHandlerWithCallback';
 import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
+import { useConfigurationMode } from '../../../hooks';
+import { getAvailableFavorites, getComponentSelection } from './AddItemUtils';
+import { FavoriteItems } from './FavoriteItems';
+import { useFavoriteComponents } from './hooks/useFavoriteComponents';
 
 export type AddItemProps = {
   containerId: string;
@@ -104,21 +107,35 @@ const DefaultItemButtons = ({
   onAddComponent: (item: AddedItem) => void;
   onCancel: () => void;
 }) => {
-  const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
-  const shouldShowAllComponentsButton = defaultComponents.length > 8;
+  const { favorites, isFavorite, toggleFavorite } = useFavoriteComponents();
+  const { t } = useTranslation(['translation', 'addComponentModal']);
+  const configurationMode = useConfigurationMode();
+  const { quickAddComponents, availableComponents, shouldShowAllComponentsButton } =
+    getComponentSelection(layout, containerId, configurationMode);
+
+  const availableFavorites = getAvailableFavorites(availableComponents, favorites);
 
   return (
     <div className={classes.addItemButtons}>
+      <StudioButton
+        icon={<XMarkIcon title={t('general.close')} />}
+        onClick={onCancel}
+        variant='tertiary'
+        className={classes.closeButton}
+      />
+      {shouldShowAllComponentsButton && (
+        <FavoriteItems onAddItem={onAddComponent} favorites={availableFavorites} />
+      )}
       <DefaultItems
         onAddItem={onAddComponent}
-        onCancel={onCancel}
-        availableComponents={defaultComponents}
+        availableComponents={quickAddComponents}
         showAllButton={
           shouldShowAllComponentsButton && (
             <AddItemModal
-              containerId={containerId}
-              layout={layout}
               onAddComponent={onAddComponent}
+              availableComponents={availableComponents}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
             />
           )
         }

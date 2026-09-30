@@ -41,8 +41,6 @@ const mockResource1: Resource = {
   delegable: true,
   rightDescription: { nb: '', nn: '', en: '' },
   status: 'Completed',
-  selfIdentifiedUserEnabled: false,
-  enterpriseUserEnabled: false,
   availableForType: ['Company'],
   contactPoints: [mockContactPoint],
 };
@@ -337,45 +335,6 @@ describe('AboutResourcePage', () => {
     expect(mockOnSaveResource).toHaveBeenCalledWith({
       ...mockResource1,
       status: mockStatus,
-    });
-  });
-
-  it('handles self identifiable switch changes', async () => {
-    const user = userEvent.setup();
-    render(<AboutResourcePage {...defaultProps} />);
-
-    const input = screen.getByLabelText(
-      textMock('resourceadm.about_resource_self_identified_show_text', {
-        shouldText: textMock('resourceadm.switch_should_not'),
-      }),
-    );
-    expect(input).not.toBeChecked();
-
-    await user.click(input);
-
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      selfIdentifiedUserEnabled: true,
-    });
-  });
-
-  it('handles enterprise switch changes', async () => {
-    const user = userEvent.setup();
-    render(<AboutResourcePage {...defaultProps} />);
-
-    const input = screen.getByLabelText(
-      textMock('resourceadm.about_resource_enterprise_show_text', {
-        shouldText: textMock('resourceadm.switch_should_not'),
-      }),
-    );
-
-    expect(input).not.toBeChecked();
-
-    await user.click(input);
-
-    expect(mockOnSaveResource).toHaveBeenCalledWith({
-      ...mockResource1,
-      enterpriseUserEnabled: true,
     });
   });
 

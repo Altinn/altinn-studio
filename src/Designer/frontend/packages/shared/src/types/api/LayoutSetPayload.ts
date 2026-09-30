@@ -10,7 +10,7 @@ type SubformConfig = {
 };
 
 type RegularLayoutSetConfig = {
-  tasks: string[];
+  taskId: string;
 };
 
 export type LayoutSetConfig = {

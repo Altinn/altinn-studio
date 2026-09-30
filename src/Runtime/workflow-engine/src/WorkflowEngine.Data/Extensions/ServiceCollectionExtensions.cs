@@ -1,5 +1,8 @@
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using WorkflowEngine.Data.Constants;
@@ -22,8 +25,13 @@ internal static class ServiceCollectionExtensions
         /// gated by the concurrency limiter's DB semaphore.
         /// </summary>
         /// <param name="enableSensitiveDataLogging">Enable EF Core sensitive data logging.</param>
-        public IServiceCollection AddDbRepository(bool enableSensitiveDataLogging = false)
+        /// <param name="enableAzureWorkloadIdentity">Enable Azure workload identity for passwordless connections.</param>
+        public IServiceCollection AddDbRepository(
+            bool enableSensitiveDataLogging = false,
+            bool enableAzureWorkloadIdentity = true
+        )
         {
+            services.TryAddSingleton<WorkloadIdentityCredential>();
             services.AddSingleton(sp =>
             {
                 var connectionString = sp.GetRequiredService<EngineConnectionString>().Value;
@@ -37,6 +45,26 @@ internal static class ServiceCollectionExtensions
                         KeepAlive = 60,
                     },
                 };
+
+                if (
+                    enableAzureWorkloadIdentity
+                    && string.IsNullOrEmpty(dataSourceBuilder.ConnectionStringBuilder.Password)
+                )
+                {
+                    var credential = sp.GetRequiredService<WorkloadIdentityCredential>();
+                    dataSourceBuilder.UsePeriodicPasswordProvider(
+                        async (_, cancellationToken) =>
+                        {
+                            var accessToken = await credential.GetTokenAsync(
+                                new TokenRequestContext(["https://ossrdbms-aad.database.windows.net/.default"]),
+                                cancellationToken
+                            );
+                            return accessToken.Token;
+                        },
+                        TimeSpan.FromMinutes(55),
+                        TimeSpan.FromSeconds(5)
+                    );
+                }
 
                 return dataSourceBuilder.Build();
             });
@@ -70,6 +98,23 @@ internal static class ServiceCollectionExtensions
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();
+            services.AddHostedService<MailboxDeadlineService>();
+
+            // Namespace failure-storm throttling (see the failure-throttling ADR). The view is a
+            // singleton so the workflow handler can consume the same snapshot the sweep publishes.
+            // Registration order relative to the other hosted services is not load-bearing here
+            // (unlike HeartbeatService vs the processor in Core's AddWorkflowEngineHost): the
+            // sweep holds no in-flight work and stops instantly, and with Throttling.Enabled off
+            // it exits before entering its loop.
+            // The sweep service is registered as a singleton and forwarded to both roles: the
+            // hosted service (the sweep loop) and INamespaceThrottleOperator (the force-trip/
+            // force-clear override endpoints), so overrides share the sweep's trip/clear logic
+            // and its in-process state.
+            services.AddSingleton<ThrottleStateView>();
+            services.AddSingleton<IThrottleStateView>(sp => sp.GetRequiredService<ThrottleStateView>());
+            services.AddSingleton<NamespaceThrottleService>();
+            services.AddSingleton<INamespaceThrottleOperator>(sp => sp.GetRequiredService<NamespaceThrottleService>());
+            services.AddHostedService(sp => sp.GetRequiredService<NamespaceThrottleService>());
 
             return services;
         }

@@ -1,4 +1,4 @@
-import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
@@ -6,6 +6,7 @@ import { TaskCardEditing, type TaskCardEditingProps } from './TaskCardEditing';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const updateProcessDataTypesMutation = jest.fn().mockImplementation((params, options) => {
   options.onSettled();
@@ -21,25 +22,25 @@ jest.mock('app-development/hooks/mutations/useUpdateLayoutSetIdMutation', () => 
 }));
 
 const datamodels = ['datamodell123', 'unuseddatamodel'];
-const dataTaskLayoutSet: LayoutSetModel = {
+const dataTaskLayoutSet: UiFolderLayoutSetModel = {
   id: 'dataTaskLayoutSet1',
   dataType: datamodels[0],
   type: null,
-  task: { id: 'activity-123', type: 'DataTask' },
+  taskType: 'DataTask',
 };
 
-const subformLayoutSet: LayoutSetModel = {
+const subformLayoutSet: UiFolderLayoutSetModel = {
   id: 'test',
   dataType: datamodels[0],
   type: 'subform',
-  task: null,
+  taskType: null,
 };
 
-const customReceiptLayoutSet: LayoutSetModel = {
-  id: 'test',
+const customReceiptLayoutSet: UiFolderLayoutSetModel = {
+  id: 'CustomReceipt',
   dataType: datamodels[0],
   type: '',
-  task: { id: 'CustomReceipt', type: 'CustomReceipt' },
+  taskType: 'CustomReceipt',
 };
 
 describe('taskCard', () => {
@@ -75,7 +76,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -89,7 +90,7 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     expect(confirmSpy.getMockImplementation()).toHaveBeenCalledTimes(0);
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
@@ -165,13 +166,13 @@ describe('taskCard', () => {
     const onClose = jest.fn();
     render({ onClose, layoutSetModel: customReceiptLayoutSet });
 
-    await user.selectOptions(dataModelBindingCombobox(), datamodels[1]);
+    await selectSuggestionOption({ user, optionLabel: datamodels[1] });
     await user.click(screen.getByRole('button', { name: /general.save/ }));
 
     expect(updateProcessDataTypesMutation).toHaveBeenCalledTimes(1);
     expect(updateProcessDataTypesMutation).toHaveBeenCalledWith(
       {
-        connectedTaskId: customReceiptLayoutSet.task?.id,
+        connectedTaskId: customReceiptLayoutSet.id,
         newDataTypes: [datamodels[1]],
       },
       expect.anything(),
@@ -191,10 +192,15 @@ describe('taskCard', () => {
     expect(screen.getByRole('button', { name: /general.save/ })).toBeDisabled();
   });
 
-  it('should show default "choose model" option if layoutset dataType is null', () => {
+  it('should show placeholder "choose model" if layoutset datamodel is not selected', () => {
     render({ layoutSetModel: { ...dataTaskLayoutSet, dataType: null } });
+    const placeholder = screen.getByPlaceholderText(/ux_editor.task_card.choose_datamodel/);
+    expect(placeholder).toBeInTheDocument();
+  });
 
-    expect(dataModelBindingCombobox()).toHaveTextContent('ux_editor.task_card.choose_datamodel');
+  it('should disable task name input when editing a protected task', () => {
+    render({ layoutSetModel: customReceiptLayoutSet });
+    expect(layoutSetNameTextbox()).toBeDisabled();
   });
 });
 
@@ -213,5 +219,12 @@ const layoutSetNameTextbox = (): Element =>
 const subformNameTextbox = (): Element =>
   screen.getByRole('textbox', { name: /ux_editor.task_card.subform_name_label/ });
 
-const dataModelBindingCombobox = (): Element =>
-  screen.getByRole('combobox', { name: /ux_editor.modal_properties_data_model_binding/ });
+export const selectSuggestionOption = async ({ user, optionLabel }) => {
+  const selector = await screen.findByRole('combobox', {
+    name: (name) => name.startsWith(textMock('ux_editor.modal_properties_data_model_binding')),
+  });
+  await user.click(selector);
+  await user.clear(selector);
+  const option = await screen.findByRole('option', { name: optionLabel });
+  await user.click(option);
+};

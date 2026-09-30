@@ -1,3 +1,5 @@
+#nullable disable
+
 using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.Storage.Implementation;
@@ -58,6 +60,11 @@ public class BlobRepository : IBlobRepository
     private string GetFilePath(string fileName)
     {
         return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.BlobStorageFolder + fileName;
+    }
+
+    public static string GetVersionedBlobPath(string appId, string instanceGuid, string versionId)
+    {
+        return $"{appId}/{instanceGuid}/data-elements/{versionId}";
     }
 
     private static async Task<Stream> ReadFileAsStream(string path)

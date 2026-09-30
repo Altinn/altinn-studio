@@ -21,7 +21,7 @@ public sealed record GetCorrespondenceStatusResponse
     public IEnumerable<CorrespondenceNotificationOrderResponse>? Notifications { get; init; }
 
     /// <summary>
-    /// The recipient of the correspondence. Either an organisation number or identity number.
+    /// The recipient of the correspondence. Either an organization number or identity number.
     /// </summary>
     [JsonPropertyName("recipient")]
     public required string Recipient { get; init; }
@@ -75,11 +75,11 @@ public sealed record GetCorrespondenceStatusResponse
     public required string ResourceId { get; init; }
 
     /// <summary>
-    /// The sending organisation of the correspondence.
+    /// The sending organization of the correspondence.
     /// </summary>
     [JsonPropertyName("sender")]
-    [OrganisationNumberJsonConverter(OrganisationNumberFormat.International)]
-    public OrganisationNumber Sender { get; init; }
+    [OrganizationNumberJsonConverter(OrganizationNumberFormat.International)]
+    public OrganizationNumber Sender { get; init; }
 
     /// <summary>
     /// A reference value given to the message by the creator.
@@ -98,13 +98,6 @@ public sealed record GetCorrespondenceStatusResponse
     /// </summary>
     [JsonPropertyName("requestedPublishTime")]
     public DateTimeOffset? RequestedPublishTime { get; init; }
-
-    /// <summary>
-    /// The date for when Altinn can remove the correspondence from its database.
-    /// </summary>
-    [Obsolete("AllowSystemDeleteAfter is no longer returned by the Correspondence API.")]
-    [JsonPropertyName("allowSystemDeleteAfter")]
-    public DateTimeOffset? AllowSystemDeleteAfter { get; init; }
 
     /// <summary>
     /// A date and time for when the recipient must reply.

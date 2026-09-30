@@ -5,7 +5,7 @@
 
 This library contains code for doing deep file analysis based the actual binary data of files uploaded to an instance in Altinn 3. The implementation is two folded, one part that analyses and another part that validates against the analysis results. The reasoning for this split is to be able to use only the analyzer and extract metadata without validating. In addition it will be simpler to configure validators against a standardized result set rather than embed that into the analysis code.
 
-The [Getting started](#getting-started) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of file analysers in Altinn 3 please see https://docs.altinn.studio/app/development/logic/validation/files/.
+The [Getting started](#getting-started) section describes the basic steps required in order to use this package within an Altinn 3 application. For a more comprehensive description of file analyzers in Altinn 3 please see https://docs.altinn.studio/app/development/logic/validation/files/.
 <hr>
 <br/>  
 
@@ -20,7 +20,7 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
    nuget install Altinn.FileAnalyzers
    ```
 2. Register the analyzers you would like to use
-   Each analyzer/validator has it's own method for registering required services. Se table below for available analyser.
+   Each analyzer/validator has it's own method for registering required services. Se table below for available analyzer.
    ```csharp
    services.AddMimeTypeValidation();
    ```
@@ -43,7 +43,7 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
    ```
 
 ## Available analyzers and their corresponding validators
-| Analyser Id                 | Validator Id       | Description                                                                                                                                                                               |
+| Analyzer Id                 | Validator Id       | Description                                                                                                                                                                               |
 | --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | mimeTypeAnalyser            | mimeTypeValidator  | Checks if a file is actually the MIME type it claims to be. This uses the [Mime Detective](https://github.com/MediatedCommunications/Mime-Detective) library to determine the mime type.  |
 
@@ -52,4 +52,4 @@ This guide assumes you have an existing Altinn 3 application. If not please see 
 
 ## Contributing
 
-## Licence
+## License

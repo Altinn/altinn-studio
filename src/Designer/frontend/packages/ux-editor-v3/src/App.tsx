@@ -34,7 +34,7 @@ export function App() {
     if (
       areLayoutSetsFetched &&
       selectedLayoutSet &&
-      (!layoutSets || !layoutSets.sets.map((set) => set.id).includes(selectedLayoutSet))
+      (!layoutSets || !layoutSets.map((set) => set.id).includes(selectedLayoutSet))
     )
       removeSelectedLayoutSet();
   }, [
@@ -71,7 +71,7 @@ export function App() {
   useEffect(() => {
     if (selectedLayoutSet === null && layoutSets) {
       // Only set layout set if layout sets exists and there is no layout set selected yet
-      setSelectedLayoutSet(layoutSets.sets[0].id);
+      setSelectedLayoutSet(layoutSets[0].id);
     }
   }, [setSelectedLayoutSet, selectedLayoutSet, layoutSets, app]);
 

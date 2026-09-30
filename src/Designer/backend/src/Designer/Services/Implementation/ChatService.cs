@@ -113,6 +113,9 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             AttachmentFileNames = request.AttachmentFileNames,
             FilesChanged = request.FilesChanged,
             Sources = request.Sources,
+            AttachmentInstructionFlagged = request.AttachmentInstructionFlagged,
+            TraceId = request.TraceId,
+            EventId = request.EventId,
         };
 
         return await repository.CreateMessageAsync(message, cancellationToken);
@@ -130,6 +133,23 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             return;
 
         await repository.DeleteMessageAsync(threadId, messageId, cancellationToken);
+    }
+
+    public Task<bool> SetFeedbackAsync(
+        string traceId,
+        bool? thumbsUp,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    ) => repository.SetFeedbackAsync(traceId, thumbsUp, context, cancellationToken);
+
+    public async Task<bool> ThreadBelongsToDeveloperAsync(
+        Guid threadId,
+        AltinnRepoEditingContext context,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ChatThreadEntity? thread = await GetOwnedThreadAsync(threadId, context, cancellationToken);
+        return thread is not null;
     }
 
     private Task<ChatThreadEntity?> GetOwnedThreadAsync(

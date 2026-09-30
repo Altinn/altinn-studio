@@ -54,7 +54,7 @@ describe('Dashboard', () => {
     await waitForElementToBeRemoved(() => screen.queryAllByLabelText(textMock('general.loading')));
 
     const starredHeading = screen.getByRole('heading', {
-      name: textMock('dashboard.favourites'),
+      name: textMock('dashboard.favorites'),
     });
     //eslint-disable-next-line testing-library/no-node-access
     const starredContainer = starredHeading.closest('div');

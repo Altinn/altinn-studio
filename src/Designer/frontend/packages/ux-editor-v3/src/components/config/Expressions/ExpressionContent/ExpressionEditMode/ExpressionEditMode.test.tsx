@@ -206,7 +206,7 @@ describe('ExpressionEditMode', () => {
         expression: internalUnParsableComplexExpression,
       },
     });
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+    const enableFreeStyleEditingSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).toHaveAttribute('readonly');
@@ -217,14 +217,14 @@ describe('ExpressionEditMode', () => {
         expression: internalParsableComplexExpression,
       },
     });
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+    const enableFreeStyleEditingSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).toBeChecked();
   });
   it('displays toggled off free-style-editing-switch if expression is not complex', () => {
     render({});
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+    const enableFreeStyleEditingSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).not.toBeChecked();
@@ -236,7 +236,7 @@ describe('ExpressionEditMode', () => {
         expression: internalParsableComplexExpression,
       },
     });
-    const enableFreeStyleEditingSwitch = screen.getByRole('checkbox', {
+    const enableFreeStyleEditingSwitch = screen.getByRole('switch', {
       name: textMock('right_menu.expression_enable_free_style_editing'),
     });
     expect(enableFreeStyleEditingSwitch).toBeChecked();

@@ -22,11 +22,11 @@
 }
 
 .toggleTextActive {
-  color: var(--fds-semantic-text-success-default);
+  color: var(--ds-color-success-text-default);
 }
 
 .toggleTextInactive {
-  color: var(--fds-semantic-text-neutral-subtle);
+  color: var(--ds-color-neutral-text-subtle);
 }
 
 .markdownToolbar {

@@ -12,19 +12,19 @@ export function LandingPagePanel({ openCreateNew, canUseUploadXSDFeature }: Land
   const { t } = useTranslation();
   return (
     <div className={classes.landingDialog}>
-      <StudioHeading level={3}>{t('app_data_modelling.landing_dialog_header')}</StudioHeading>
+      <StudioHeading level={3}>{t('app_data_modeling.landing_dialog_header')}</StudioHeading>
       <StudioParagraph data-size='md'>
-        {t('app_data_modelling.landing_dialog_paragraph')}
+        {t('app_data_modeling.landing_dialog_paragraph')}
       </StudioParagraph>
       <div className={classes.buttonWrapper}>
         {canUseUploadXSDFeature && (
           <XSDUpload
-            uploadButtonText={t('app_data_modelling.landing_dialog_upload')}
+            uploadButtonText={t('app_data_modeling.landing_dialog_upload')}
             uploaderButtonVariant='primary'
           />
         )}
         <StudioButton variant='primary' onClick={openCreateNew}>
-          {t('app_data_modelling.landing_dialog_create')}
+          {t('app_data_modeling.landing_dialog_create')}
         </StudioButton>
       </div>
     </div>

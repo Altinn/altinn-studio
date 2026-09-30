@@ -56,7 +56,7 @@ public class ServiceResource
     public List<ContactPoint>? ContactPoints { get; set; }
 
     /// <summary>
-    /// Linkes to the outcome of a public service
+    /// Links to the outcome of a public service
     /// </summary>
     public List<string>? Produces { get; set; }
 
@@ -100,16 +100,6 @@ public class ServiceResource
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ResourceAccessListMode AccessListMode { get; set; }
-
-    /// <summary>
-    /// The user acting on behalf of party can be a selfidentifed users
-    /// </summary>
-    public bool SelfIdentifiedUserEnabled { get; set; }
-
-    /// <summary>
-    /// The user acting on behalf of party can be an enterprise users
-    /// </summary>
-    public bool EnterpriseUserEnabled { get; set; }
 
     /// <summary>
     /// ResourceType

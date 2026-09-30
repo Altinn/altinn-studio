@@ -1,8 +1,11 @@
-import { CyHttpMessages } from 'cypress/types/net-stubbing';
+import type { CyHttpMessages } from 'cypress/types/net-stubbing';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import IncomingHttpResponse = CyHttpMessages.IncomingHttpResponse;
+import { Tenor } from 'test/e2e/support/users';
+
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+
+type IncomingHttpResponse<T> = CyHttpMessages.IncomingHttpResponse<T>;
 
 const appFrontend = new AppFrontend();
 
@@ -34,5 +37,6 @@ function testSelfIdentifiedUser() {
   cy.findByRole('link', { name: /tilbake til innboks/i }).should('be.visible');
   cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
 
-  cy.assertUser('selfIdentified');
+  // TODO: We probably have to do something else here to make the Tenor/tt02 variant work
+  cy.assertUser('selfIdentified', Tenor.users.dypsindigLoddsnor);
 }

@@ -1,7 +1,7 @@
 namespace Altinn.App.Api.Helpers.RequestHandling;
 
 /// <summary>
-/// A helper to organise the parts in a multipart
+/// A helper to organize the parts in a multipart
 /// </summary>
 public class RequestPart
 {

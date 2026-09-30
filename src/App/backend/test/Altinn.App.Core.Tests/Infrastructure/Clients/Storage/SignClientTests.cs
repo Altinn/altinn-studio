@@ -1,5 +1,6 @@
 using System.Net;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.Auth;
@@ -8,6 +9,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Signee = Altinn.App.Core.Internal.Sign.Signee;
@@ -17,8 +19,12 @@ namespace Altinn.App.Core.Tests.Infrastructure.Clients.Storage;
 public class SignClientTests
 {
     private readonly IOptions<PlatformSettings> platformSettingsOptions;
-    private readonly Mock<IUserTokenProvider> userTokenProvide;
+    private readonly Mock<IAuthenticationTokenResolver> authenticationTokenResolver;
     private readonly string apiStorageEndpoint = "https://local.platform.altinn.no/api/storage/";
+
+    // Valid JWT format required by JwtToken.Parse
+    private const string ValidJwtToken =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
     public SignClientTests()
     {
@@ -26,8 +32,10 @@ public class SignClientTests
             new PlatformSettings() { ApiStorageEndpoint = apiStorageEndpoint, SubscriptionKey = "test" }
         );
 
-        userTokenProvide = new Mock<IUserTokenProvider>();
-        userTokenProvide.Setup(s => s.GetUserToken()).Returns("dummytoken");
+        authenticationTokenResolver = new Mock<IAuthenticationTokenResolver>();
+        authenticationTokenResolver
+            .Setup(s => s.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(ValidJwtToken));
     }
 
     [Fact]
@@ -75,10 +83,14 @@ public class SignClientTests
         await signClient.SignDataElements(signatureContext);
 
         // Assert
-        userTokenProvide.Verify(s => s.GetUserToken(), Times.Once);
+        authenticationTokenResolver.Verify(
+            s => s.GetAccessToken(It.IsAny<AuthenticationMethod>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         callCount.Should().Be(1);
         platformRequest.Should().NotBeNull();
         platformRequest!.Method.Should().Be(HttpMethod.Post);
+        platformRequest.Headers.Contains("Altinn-Storage-Lock-Token").Should().BeFalse();
         platformRequest!
             .RequestUri!.ToString()
             .Should()
@@ -125,6 +137,12 @@ public class SignClientTests
     private SignClient GetSignClient(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handlerFunc)
     {
         DelegatingHandlerStub delegatingHandlerStub = new(handlerFunc);
-        return new SignClient(platformSettingsOptions, new HttpClient(delegatingHandlerStub), userTokenProvide.Object);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(platformSettingsOptions);
+        services.AddSingleton(authenticationTokenResolver.Object);
+        var serviceProvider = services.BuildServiceProvider();
+
+        return new SignClient(new HttpClient(delegatingHandlerStub), serviceProvider);
     }
 }

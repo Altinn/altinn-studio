@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Models;
 public class RepositorySearch
 {
     /// <summary>
-    /// Gets or sets keyword that is used to seatch repository
+    /// Gets or sets keyword that is used to search repository
     /// </summary>
     public string KeyWord { get; set; }
 

@@ -31,7 +31,7 @@ def init_langfuse():
         from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
 
         # Give Langfuse its own dedicated TracerProvider so it is isolated from
-        # the global OTel provider that third-party libraries (fastmcp) share.
+        # the global OTel provider that third-party libraries share.
         langfuse_provider = _OtelTracerProvider()
 
         _client = Langfuse(
@@ -44,9 +44,9 @@ def init_langfuse():
         )
 
         # Reset the global OTel provider to a bare no-op (no exporters/processors).
-        # fastmcp's client_span() calls otel_get_tracer() against this global
-        # provider and will now get a no-op tracer, eliminating the duplicate
-        # 'tools/call <name>' child spans and orphan traces from health checks.
+        # Any third-party library that instruments via the global provider will
+        # now get a no-op tracer, eliminating duplicate child spans and orphan
+        # traces from health checks.
         _otel_trace.set_tracer_provider(_OtelTracerProvider())
 
         _initialized = True
@@ -93,50 +93,6 @@ def get_raw_langfuse_prompt(prompt_name: str, **kwargs):
         return None
 
 
-def fetch_langfuse_prompt(
-    prompt_name: str,
-    variables: dict | None = None,
-    *,
-    label: str | None = None,
-    version: int | None = None,
-    cache_ttl_seconds: int | None = None,
-) -> str:
-    """
-    Fetch a prompt from Langfuse by name.
-
-    When variables are provided, they are substituted into the prompt using
-    Langfuse's {{variable}} syntax.
-
-    Args:
-        prompt_name: Name of the prompt in Langfuse
-        variables: Optional dictionary of variables to substitute into the prompt
-        label: Optional label (e.g. "production", "latest"). Defaults to "production" in Langfuse.
-        version: Optional specific version number to fetch
-        cache_ttl_seconds: Optional cache TTL override in seconds
-
-    Returns:
-        Compiled prompt content as string
-
-    Raises:
-        RuntimeError: If Langfuse client is not initialized
-        Exception: If prompt not found in Langfuse
-    """
-    client = get_langfuse_client()
-    if client is None:
-        raise RuntimeError("Langfuse client not initialized")
-
-    kwargs = {}
-    if label is not None:
-        kwargs["label"] = label
-    if version is not None:
-        kwargs["version"] = version
-    if cache_ttl_seconds is not None:
-        kwargs["cache_ttl_seconds"] = cache_ttl_seconds
-
-    prompt = client.get_prompt(prompt_name, type="text", **kwargs)
-    return prompt.compile(**(variables or {}))
-
-
 def flush_langfuse():
     """Flush any pending Langfuse events (for short-lived applications)"""
     if _client and is_langfuse_enabled():
@@ -176,58 +132,14 @@ def score_validation(
             kwargs["config_id"] = config_id
         if observation_id:
             kwargs["observation_id"] = observation_id
-        if comment:
+        if comment is not None:
             kwargs["comment"] = comment
         if score_id:
             kwargs["score_id"] = score_id
         client.create_score(**kwargs)
-        log.debug(
-            "Langfuse score '%s' = %s written to trace %s", name, passed, trace_id
-        )
+        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
     except Exception as e:
         log.debug("Failed to create Langfuse score '%s': %s", name, e)
-
-
-# For backward compatibility with code that expects these functions
-# These are no-ops now since Langfuse handles things differently
-def start_run_safe(run_name: str = None, **kwargs):
-    """
-    Legacy compatibility function. Langfuse uses traces instead of runs.
-    Returns a dummy context manager.
-    """
-
-    class DummyContext:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *args):
-            pass
-
-    return DummyContext()
-
-
-def log_param_safe(key: str, value):
-    """
-    Legacy compatibility function. Langfuse uses metadata instead of params.
-    This is now a no-op - use metadata on spans/traces instead.
-    """
-    pass
-
-
-def log_metric_safe(key: str, value: float):
-    """
-    Legacy compatibility function. Langfuse uses scores instead of metrics.
-    This is now a no-op - use scores on traces instead.
-    """
-    pass
-
-
-def log_text_safe(text: str, artifact_file: str):
-    """
-    Legacy compatibility function. Langfuse stores outputs directly.
-    This is now a no-op - use outputs on spans instead.
-    """
-    pass
 
 
 class _NoopSpan:
@@ -243,6 +155,20 @@ class _NoopSpan:
         pass
 
 
+def delete_score(score_id: str) -> None:
+    """Remove a score by id. Used to clear user feedback on a trace."""
+    client = get_langfuse_client()
+    if not config.LANGFUSE_ENABLED:
+        return
+    if not client or not score_id:
+        return
+    try:
+        client.api.legacy.score_v1.delete(score_id)
+        log.debug("Langfuse score %s deleted", score_id)
+    except Exception as e:
+        log.warning("Failed to delete Langfuse score '%s': %s", score_id, e)
+
+
 def get_trace_developer(trace_id: str) -> str | None:
     """Return the developer stored on a Langfuse trace's root-span metadata."""
     client = get_langfuse_client()
@@ -256,11 +182,7 @@ def get_trace_developer(trace_id: str) -> str | None:
 
     observations = getattr(trace, "observations", None) or []
     root_observation = next(
-        (
-            obs
-            for obs in observations
-            if not getattr(obs, "parent_observation_id", None)
-        ),
+        (obs for obs in observations if not getattr(obs, "parent_observation_id", None)),
         None,
     )
     if root_observation is None:
@@ -296,9 +218,7 @@ def trace_span(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(
-        as_type="span", name=name, **kwargs
-    ) as span:
+    with get_client().start_as_current_observation(as_type="span", name=name, **kwargs) as span:
         yield span
 
 
@@ -312,7 +232,5 @@ def trace_generation(name: str, **kwargs):
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(
-        name=name, as_type="generation", **kwargs
-    ) as span:
+    with get_client().start_as_current_observation(name=name, as_type="generation", **kwargs) as span:
         yield span

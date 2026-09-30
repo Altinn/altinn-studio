@@ -1,5 +1,5 @@
 import { Properties } from './Properties';
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, waitFor, within } from '@testing-library/react';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
@@ -31,54 +31,52 @@ jest.mock('./Calculations', () => ({
   Calculations: () => <div data-testid={calculationsTestId} />,
 }));
 
+const getAccordionSummary = (name: string): HTMLElement => screen.getByText(name);
+
+const getAccordion = (name: string): HTMLElement =>
+  screen.getAllByRole('group').find((accordion) => within(accordion).queryByText(name));
+
+const expectToggleAccordion = async (name: string) => {
+  await user.click(getAccordionSummary(name));
+  expect(getAccordion(name)).toHaveAttribute('open');
+  await user.click(getAccordionSummary(name));
+  expect(getAccordion(name)).not.toHaveAttribute('open');
+};
+
 describe('Properties', () => {
   describe('Content', () => {
     it('Closes content on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: contentText });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(contentText)).not.toHaveAttribute('open');
     });
 
     it('Toggles content when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: contentText });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(contentText);
     });
 
     it('Opens content when a component is selected', async () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
-      const button = screen.queryByRole('button', { name: contentText });
-      await waitFor(() => expect(button).toHaveAttribute('aria-expanded', 'true'));
+      await waitFor(() => expect(getAccordion(contentText)).toHaveAttribute('open'));
     });
   });
 
   describe('Dynamics', () => {
     it('Closes dynamics on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: dynamicsText });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(dynamicsText)).not.toHaveAttribute('open');
     });
 
     it('Toggles dynamics when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: dynamicsText });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(dynamicsText);
     });
 
     it('Shows new dynamics by default', async () => {
       const { rerender } = render();
       rerender(getComponent({ formItemId: 'test' }));
-      const dynamicsButton = screen.queryByRole('button', {
-        name: dynamicsText,
-      });
-      await user.click(dynamicsButton);
+      await user.click(getAccordionSummary(dynamicsText));
       const newDynamics = screen.getByTestId(expressionsTestId);
       expect(newDynamics).toBeInTheDocument();
     });
@@ -87,17 +85,12 @@ describe('Properties', () => {
   describe('Calculations', () => {
     it('Closes calculations on load', () => {
       render();
-      const button = screen.queryByRole('button', { name: calculationsText });
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      expect(getAccordion(calculationsText)).not.toHaveAttribute('open');
     });
 
     it('Toggles calculations when clicked', async () => {
       render();
-      const button = screen.queryByRole('button', { name: calculationsText });
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'true');
-      await user.click(button);
-      expect(button).toHaveAttribute('aria-expanded', 'false');
+      await expectToggleAccordion(calculationsText);
     });
   });
 

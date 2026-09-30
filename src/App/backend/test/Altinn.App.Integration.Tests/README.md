@@ -7,7 +7,7 @@ This project contains scenario-based integration tests for Altinn apps. The test
 - `studioctl` installed and available on `PATH`
 - A local container runtime usable by `studioctl env up`
 
-The harness starts localtest with `studioctl env up --detach` if no environment is running. If localtest was already running, the harness reuses it and does not stop it during cleanup.
+The harness starts localtest with `studioctl env up --detach` if no environment is running. It always sets `STUDIOCTL_INTERNAL_DEV=true` on its `studioctl` subprocesses so localtest uses images built from the current monorepo checkout when available. If localtest was already running, the harness reuses it and does not stop it during cleanup.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ public class MyIntegrationTests(ITestOutputHelper output) : IAsyncLifetime
 
         using var response = await Fixture.Instances.PostSimplified(
             token,
-            new InstansiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
+            new InstantiationInstance { InstanceOwner = new InstanceOwner { PartyId = "501337" } }
         );
 
         using var readResponse = await response.Read<Instance>();
@@ -192,7 +192,7 @@ Generated apps are written to `_testapps/generated/`, which is ignored by git.
 2. Ensure localtest is running through `studioctl env up --detach`.
 3. Copy the requested test app to `_testapps/generated/{app}-fNNNN`.
 4. Patch `applicationmetadata.json` to use a unique app id.
-5. Copy scenario overrides and shared harness code.
+5. Copy scenario `config` into `App/config`, scenario `services` into `App/scenario-overrides/services`, and the shared harness code. The app reads its config files once at startup, so overrides must be in place before the process starts.
 6. Start the app with `studioctl run --mode process --detach --random-host-port --json`.
 7. Run requests through localtest at `http://local.altinn.cloud:8000`.
 8. Stop the app process and delete the generated app folder on fixture disposal.

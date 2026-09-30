@@ -1,9 +1,9 @@
 .cardsContainer {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  --gap-cards: var(--fds-spacing-2);
+  --gap-cards: var(--ds-size-2);
   gap: var(--gap-cards);
-  --padding-cards: var(--fds-spacing-2);
+  --padding-cards: var(--ds-size-2);
   padding: var(--padding-cards);
 }
 

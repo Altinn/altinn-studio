@@ -9,19 +9,16 @@ namespace Altinn.Studio.Designer.Configuration;
 public class GeneralSettings : ISettingsMarker
 {
     /// <summary>
-    /// Gets or sets the location to search for templates
+    /// Gets or sets the root folder holding one sub folder per app template, e.g. "Templates/AspNet"
+    /// containing "v8" and "v9". Individual template paths are derived from this root, not configured.
     /// </summary>
     public string TemplateLocation { get; set; }
 
     /// <summary>
-    /// Gets or sets the location for the deployment
+    /// Gets or sets the id of the app template new applications are created from when the caller does not
+    /// ask for a specific one. Must match one of the sub folders under <see cref="TemplateLocation"/>.
     /// </summary>
-    public string DeploymentLocation { get; set; }
-
-    /// <summary>
-    /// Gets or sets the location for the app
-    /// </summary>
-    public string AppLocation { get; set; }
+    public string DefaultAppTemplate { get; set; } = "v8";
 
     /// <summary>
     /// Gets or sets the host name.
@@ -34,14 +31,6 @@ public class GeneralSettings : ISettingsMarker
     public string AuthorizationPolicyTemplate
     {
         get { return "App/config/authorization/policy.xml"; }
-    }
-
-    /// <summary>
-    /// Gets the path to the app templates
-    /// </summary>
-    public string TemplatePath
-    {
-        get { return TemplateLocation; }
     }
 
     /// <summary>

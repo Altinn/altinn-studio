@@ -30,6 +30,7 @@
   align-items: flex-start;
   flex-direction: row;
   break-inside: avoid;
+  gap: var(--ds-size-2);
 }
 
 .summaryItem {

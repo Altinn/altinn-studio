@@ -1,10 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fs = require('fs');
+import fs from 'node:fs';
 
 let validLanguageKeys = undefined;
 function getValidLanguageKeys(source = undefined) {
   if (validLanguageKeys === undefined || source !== undefined) {
-    const sourceCode = source ?? fs.readFileSync(`${__dirname}/texts/en.ts`, 'utf-8');
+    const sourceCode =
+      source ?? fs.readFileSync(`${import.meta.dirname}/../../../../common/ts/language/src/texts/en.ts`, 'utf-8');
     const functionSet = sourceCode.replace('export function en() {', 'en = () => {');
     if (functionSet.indexOf('return') === -1) {
       throw new Error('Language file en.ts does not contain a return statement');
@@ -47,7 +47,7 @@ const functionCalls = [
   'translate',
 ];
 
-module.exports = {
+export const langKey = {
   name: 'language-key',
   meta: {
     type: 'problem',
@@ -91,16 +91,12 @@ module.exports = {
         }
       },
       CallExpression(node) {
-        if (
-          !(
-            // Direct function call: lang('key')
-            (
-              (node.callee.type === 'Identifier' && functionCalls.indexOf(node.callee.name) !== -1) ||
-              // Method call: obj.lang('key') or this.lang('key')
-              (node.callee.type === 'MemberExpression' && functionCalls.indexOf(node.callee.property.name) !== -1)
-            )
-          )
-        ) {
+        if (!(
+          // Direct function call: lang('key')
+          (node.callee.type === 'Identifier' && functionCalls.indexOf(node.callee.name) !== -1) ||
+          // Method call: obj.lang('key') or this.lang('key')
+          (node.callee.type === 'MemberExpression' && functionCalls.indexOf(node.callee.property.name) !== -1)
+        )) {
           return;
         }
 

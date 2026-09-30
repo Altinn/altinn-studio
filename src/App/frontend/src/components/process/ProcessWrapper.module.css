@@ -1,0 +1,32 @@
+.navigationError {
+  display: flex;
+  margin-top: 35px;
+  gap: 10px;
+}
+
+.stillWorkingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.stillWorkingAlert {
+  max-width: 65ch;
+}
+
+.failedDescription {
+  margin-top: 12px;
+}
+
+.failedDetails {
+  margin-top: 24px;
+}
+
+.failedDetailsContainer {
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}

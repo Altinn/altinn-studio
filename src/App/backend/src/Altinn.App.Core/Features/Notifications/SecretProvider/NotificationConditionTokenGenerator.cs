@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Notifications.Exceptions;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -15,7 +16,7 @@ internal interface INotificationConditionTokenGenerator
     /// <summary>
     /// Generates a signed JWT token for the given instance, valid for 31 days.
     /// </summary>
-    string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken ct = default);
+    string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken cancellationToken = default);
 }
 
 /// <inheritdoc />
@@ -23,7 +24,11 @@ internal sealed class NotificationConditionTokenGenerator(INotificationCondition
     : INotificationConditionTokenGenerator
 {
     /// <inheritdoc />
-    public string GenerateToken(Guid instanceGuid, Telemetry? telemetry = null, CancellationToken ct = default)
+    public string GenerateToken(
+        Guid instanceGuid,
+        Telemetry? telemetry = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = telemetry?.StartNotificationConditionTokenGenerateActivity(instanceGuid);
         AppCode appCode;
@@ -47,8 +52,8 @@ internal sealed class NotificationConditionTokenGenerator(INotificationCondition
         {
             Claims = new Dictionary<string, object>
             {
-                [JwtRegisteredClaimNames.Jti] = instanceGuid.ToString(),
-                ["secret_id"] = appCode.Id,
+                [JwtClaimTypes.JwtId] = instanceGuid.ToString(),
+                [JwtClaimTypes.AppCode.SecretId] = appCode.Id,
             },
             Expires = DateTime.UtcNow.AddDays(31),
             SigningCredentials = credentials,

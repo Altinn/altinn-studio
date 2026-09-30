@@ -1,5 +1,5 @@
 using System.Threading.Channels;
-using Altinn.Studio.Runtime.Common;
+using Altinn.Studio.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -228,6 +228,15 @@ internal class WorkflowWriteBuffer : BackgroundService
                     case BatchEnqueueResultStatus.InvalidReference:
                         Assert.That(result.ErrorMessage is not null);
                         item.Completion.TrySetException(new InvalidWorkflowReferenceException(result.ErrorMessage));
+                        break;
+
+                    // Outcomes rather than exceptions: ordinary answers, no workflow ids, each its own HTTP status.
+                    case BatchEnqueueResultStatus.MailboxNotFound:
+                    case BatchEnqueueResultStatus.MailboxLogFull:
+                        Assert.That(result.ErrorMessage is not null);
+                        item.Completion.TrySetResult(
+                            new WorkflowEnqueueOutcome([], result.Status, result.ErrorMessage)
+                        );
                         break;
                 }
             }

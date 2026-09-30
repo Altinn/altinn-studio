@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Repository;

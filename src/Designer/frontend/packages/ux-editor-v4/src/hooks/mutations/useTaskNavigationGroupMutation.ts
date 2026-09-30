@@ -4,11 +4,11 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useTaskNavigationGroupMutation = (org: string, app: string) => {
-  const { updateTaskNavigationGroup } = useServicesContext();
+  const { updateTaskNavigationGroupV4 } = useServicesContext();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: TaskNavigationGroup[]) => updateTaskNavigationGroup(org, app, payload),
+    mutationFn: (payload: TaskNavigationGroup[]) => updateTaskNavigationGroupV4(org, app, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.TaskNavigationGroup, org, app] });
     },

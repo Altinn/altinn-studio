@@ -1,13 +1,4 @@
-.chipWrapper {
-  display: flex;
-  flex-wrap: wrap;
-}
-
 .dropdownWrapper {
   margin-top: var(--ds-size-8);
   margin-bottom: var(--ds-size-3);
-}
-
-.chip {
-  margin: var(--ds-size-1) var(--ds-size-1) 0 0;
 }

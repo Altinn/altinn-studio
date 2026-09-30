@@ -16,15 +16,23 @@ import (
 
 	containermock "altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
+	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
 )
 
-var errRemoveFailed = errors.New("remove failed")
+var (
+	errRemoveFailed          = errors.New("remove failed")
+	errStatusUnavailable     = errors.New("status unavailable")
+	errUnexpectedRegisterApp = errors.New("unexpected RegisterApp call")
+	errUnexpectedStatus      = errors.New("unexpected Status call")
+)
 
 func TestFollowContainer_ContextCancelledReturnsRunStopped(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
@@ -79,10 +87,196 @@ func TestStartupMonitorError_ContextCancelledReturnsRunStopped(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	err := startupMonitorError(ctx, t.Context(), context.Canceled, errAppStartupTimedOut)
+	err := startupMonitorError(
+		ctx,
+		t.Context(),
+		appStartupClientStub{},
+		studioctlserver.AppRegistration{},
+		context.Canceled,
+		errAppStartupTimedOut,
+	)
 	if !errors.Is(err, errAppRunStopped) {
 		t.Fatalf("startupMonitorError() error = %v, want errAppRunStopped", err)
 	}
+}
+
+func TestRegisterAppWithStartupMonitor_MonitorDeadlineReportsDiscoveryStatus(t *testing.T) {
+	t.Parallel()
+
+	statusCalled := false
+	client := appStartupClientStub{
+		statusFunc: func(context.Context) (*studioctlserver.Status, error) {
+			statusCalled = true
+			return &studioctlserver.Status{}, nil
+		},
+	}
+	registration := studioctlserver.AppRegistration{AppID: "ttd/app", ProcessID: 42}
+	timeoutErr := processAppRegistrationTimeoutError("ttd/app", 42, 10*time.Millisecond)
+	monitor := func(ctx context.Context) error {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	_, err := registerAppWithStartupMonitor(
+		t.Context(),
+		client,
+		registration,
+		monitor,
+		10*time.Millisecond,
+		timeoutErr,
+	)
+
+	if !statusCalled {
+		t.Fatal("Status() was not called after monitor reached the startup deadline")
+	}
+	if !errors.Is(err, errAppStartupTimedOut) {
+		t.Fatalf("registerAppWithStartupMonitor() error = %v, want errAppStartupTimedOut", err)
+	}
+	if !strings.Contains(err.Error(), "no matching app metadata endpoint was discovered") {
+		t.Fatalf("registerAppWithStartupMonitor() error = %v, want missing endpoint detail", err)
+	}
+}
+
+func TestAppStartupTimeoutError_ContextCancelledDuringStatusReturnsRunStopped(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	client := appStartupClientStub{
+		statusFunc: func(context.Context) (*studioctlserver.Status, error) {
+			cancel()
+			return nil, context.Canceled
+		},
+	}
+
+	err := appStartupTimeoutError(
+		ctx,
+		client,
+		studioctlserver.AppRegistration{},
+		errAppStartupTimedOut,
+	)
+	if !errors.Is(err, errAppRunStopped) {
+		t.Fatalf("appStartupTimeoutError() error = %v, want errAppRunStopped", err)
+	}
+}
+
+func TestAppStartupTimeoutError_StatusFailurePreservesTimeoutAndContext(t *testing.T) {
+	t.Parallel()
+
+	client := appStartupClientStub{
+		statusFunc: func(context.Context) (*studioctlserver.Status, error) {
+			return nil, errStatusUnavailable
+		},
+	}
+	timeoutErr := processAppRegistrationTimeoutError("ttd/app", 42, 30*time.Second)
+
+	err := appStartupTimeoutError(
+		t.Context(),
+		client,
+		studioctlserver.AppRegistration{AppID: "ttd/app", ProcessID: 42},
+		timeoutErr,
+	)
+
+	if !errors.Is(err, errAppStartupTimedOut) {
+		t.Fatalf("appStartupTimeoutError() error = %v, want errAppStartupTimedOut", err)
+	}
+	if !errors.Is(err, errStatusUnavailable) {
+		t.Fatalf("appStartupTimeoutError() error = %v, want errStatusUnavailable", err)
+	}
+	if !strings.Contains(err.Error(), "could not inspect studioctl-server status: status unavailable") {
+		t.Fatalf("appStartupTimeoutError() error = %v, want Status failure context", err)
+	}
+}
+
+func TestAppStartupTimeoutErrorFromStatusReportsLocaltestStorage(t *testing.T) {
+	t.Parallel()
+
+	processID := 42
+	hostPort := 5100
+	registration := studioctlserver.AppRegistration{
+		AppID:          "ttd/app",
+		ContainerID:    "",
+		HostPort:       hostPort,
+		ProcessID:      processID,
+		TimeoutSeconds: 30,
+	}
+	status := &studioctlserver.Status{Apps: []studioctlserver.DiscoveredApp{{
+		ProcessID:   &processID,
+		HostPort:    &hostPort,
+		AppID:       "TTD/APP",
+		BaseURL:     "http://127.0.0.1:5100/",
+		Source:      "process",
+		Description: "Altinn.Application.dll",
+		Name:        "Altinn.Application.dll",
+		ContainerID: "",
+	}}}
+
+	timeoutErr := processAppRegistrationTimeoutError("ttd/app", processID, 30*time.Second)
+	err := appStartupTimeoutErrorFromStatus(registration, status, timeoutErr)
+	if !errors.Is(err, errAppStartupTimedOut) {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, want errAppStartupTimedOut", err)
+	}
+	if !strings.Contains(err.Error(), "endpoint http://127.0.0.1:5100/ was discovered") {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, want discovered endpoint", err)
+	}
+	if !strings.Contains(err.Error(), "Localtest Storage did not return metadata for ttd/app") {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, want Localtest Storage detail", err)
+	}
+	if strings.Contains(err.Error(), "was not discovered") {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, contains contradictory discovery detail", err)
+	}
+}
+
+func TestAppStartupTimeoutErrorFromStatusReportsMissingMatchingEndpoint(t *testing.T) {
+	t.Parallel()
+
+	otherProcessID := 41
+	registration := studioctlserver.AppRegistration{
+		AppID:          "ttd/app",
+		ContainerID:    "",
+		HostPort:       0,
+		ProcessID:      42,
+		TimeoutSeconds: 30,
+	}
+	status := &studioctlserver.Status{Apps: []studioctlserver.DiscoveredApp{{
+		ProcessID:   &otherProcessID,
+		HostPort:    nil,
+		AppID:       "ttd/app",
+		BaseURL:     "http://127.0.0.1:5100/",
+		Source:      "process",
+		Description: "Altinn.Application.dll",
+		Name:        "Altinn.Application.dll",
+		ContainerID: "",
+	}}}
+
+	err := appStartupTimeoutErrorFromStatus(registration, status, errAppStartupTimedOut)
+	if !errors.Is(err, errAppStartupTimedOut) {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, want errAppStartupTimedOut", err)
+	}
+	if !strings.Contains(err.Error(), "no matching app metadata endpoint was discovered") {
+		t.Fatalf("appStartupTimeoutErrorFromStatus() error = %v, want missing endpoint detail", err)
+	}
+}
+
+type appStartupClientStub struct {
+	registerAppFunc func(context.Context, studioctlserver.AppRegistration) (string, error)
+	statusFunc      func(context.Context) (*studioctlserver.Status, error)
+}
+
+func (s appStartupClientStub) RegisterApp(
+	ctx context.Context,
+	registration studioctlserver.AppRegistration,
+) (string, error) {
+	if s.registerAppFunc == nil {
+		return "", errUnexpectedRegisterApp
+	}
+	return s.registerAppFunc(ctx, registration)
+}
+
+func (s appStartupClientStub) Status(ctx context.Context) (*studioctlserver.Status, error) {
+	if s.statusFunc == nil {
+		return nil, errUnexpectedStatus
+	}
+	return s.statusFunc(ctx)
 }
 
 func TestRunJSONRequiresDetach(t *testing.T) {
@@ -125,6 +319,9 @@ func TestParseRunFlagsUsesProcessMode(t *testing.T) {
 	if !flags.randomHostPort {
 		t.Fatal("randomHostPort = false, want true")
 	}
+	if flags.startupTimeout != 30*time.Second {
+		t.Fatalf("startupTimeout = %s, want 30s", flags.startupTimeout)
+	}
 }
 
 func TestParseRunFlagsCanDisableRandomHostPort(t *testing.T) {
@@ -150,6 +347,51 @@ func TestParseRunFlagsReadsDevFrontend(t *testing.T) {
 	}
 	if !flags.devFrontend {
 		t.Fatal("devFrontend = false, want true")
+	}
+}
+
+func TestParseRunFlagsReadsStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, _, _, err := cmd.parseRunFlags([]string{"--startup-timeout", "60s"}, "run")
+	if err != nil {
+		t.Fatalf("parseRunFlags() error = %v", err)
+	}
+	if flags.startupTimeout != 60*time.Second {
+		t.Fatalf("startupTimeout = %s, want 1m0s", flags.startupTimeout)
+	}
+}
+
+func TestParseRunFlagsRejectsNonPositiveStartupTimeout(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	flags, dotnetArgs, help, err := cmd.parseRunFlags([]string{"--startup-timeout", "0s"}, "run")
+	if err == nil {
+		t.Fatalf(
+			"parseRunFlags() = flags %#v, dotnetArgs %v, help %v, error nil; want error",
+			flags,
+			dotnetArgs,
+			help,
+		)
+	}
+	if !strings.Contains(err.Error(), "--startup-timeout must be at least 1s") {
+		t.Fatalf("parseRunFlags() error = %v, want startup-timeout error", err)
+	}
+}
+
+func TestBuildDotnetAppIfNeededSkipsBuildWhenRequested(t *testing.T) {
+	t.Parallel()
+
+	cmd := &RunCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	spec := appsvc.DotnetRunSpec{
+		Dir:       filepath.Join(t.TempDir(), "does-not-exist"),
+		BuildArgs: []string{"build", "does-not-exist.csproj"},
+	}
+
+	if err := cmd.buildDotnetAppIfNeeded(t.Context(), spec, runFlags{skipBuild: true}); err != nil {
+		t.Fatalf("buildDotnetAppIfNeeded() error = %v, want nil when skip-build is set", err)
 	}
 }
 
@@ -214,7 +456,7 @@ func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T
 	var out bytes.Buffer
 	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
 
-	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+	cmd.printAppReady("ttd/app", "http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
 
 	rendered := out.String()
 	for _, want := range []string{
@@ -227,10 +469,45 @@ func TestPrintAppReadyUsesStudioctlStatusLinesWithoutPortsOrLogPath(t *testing.T
 			t.Fatalf("output %q missing %q", rendered, want)
 		}
 	}
-	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/"} {
+	for _, unwanted := range []string{"Log:", "Container:", "Port:", "/tmp/", "Maskinporten"} {
 		if strings.Contains(rendered, unwanted) {
 			t.Fatalf("output %q contains %q", rendered, unwanted)
 		}
+	}
+}
+
+func TestPrintAppReadyNamesTheStoredMaskinportenClient(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, Version: config.NewVersion("test-version")}
+	client, err := appsecrets.ParseMaskinportenClient([]byte(`{
+		"clientId": "client-1", "authority": "https://test.maskinporten.no/",
+		"jwk": {"kty": "RSA", "use": "sig", "kid": "k1", "alg": "RS256", "n": "m", "e": "AQAB",
+			"d": "private", "p": "p", "q": "q", "qi": "qi", "dp": "dp", "dq": "dq"}
+	}`))
+	if err != nil {
+		t.Fatalf("ParseMaskinportenClient() error = %v", err)
+	}
+	dir, err := cfg.AppSecretsDir("ttd/app")
+	if err != nil {
+		t.Fatalf("AppSecretsDir() error = %v", err)
+	}
+	if _, err := appsecrets.StoreMaskinportenClient(dir, client); err != nil {
+		t.Fatalf("StoreMaskinportenClient() error = %v", err)
+	}
+
+	var out bytes.Buffer
+	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false), cfg: cfg}
+
+	cmd.printAppReady("ttd/app", "http://local.altinn.cloud:8000/ttd/app/", processRunDetails(123)...)
+
+	rendered := out.String()
+	if !strings.Contains(rendered, "studioctl    - Maskinporten: client-1 (test)") {
+		t.Fatalf("output %q missing the Maskinporten client line", rendered)
+	}
+	if strings.Contains(rendered, "private") {
+		t.Fatalf("output %q leaks key material", rendered)
 	}
 }
 
@@ -240,7 +517,10 @@ func TestPrintAppReadyUsesContainerDetails(t *testing.T) {
 	var out bytes.Buffer
 	cmd := &RunCommand{out: ui.NewOutput(&out, io.Discard, false)}
 
-	cmd.printAppReady("http://local.altinn.cloud:8000/ttd/app/", containerRunDetails("localtest-app-test")...)
+	cmd.printAppReady(
+		"ttd/app",
+		"http://local.altinn.cloud:8000/ttd/app/",
+		containerRunDetails("localtest-app-test")...)
 
 	rendered := out.String()
 	for _, want := range []string{

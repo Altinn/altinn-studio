@@ -3,16 +3,17 @@ import type { JSX } from 'react';
 
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
+import { getLayoutDepth } from 'src/utils/layout/hierarchy';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { HeadingLevel } from 'src/layout/common.generated';
 
 export interface IDisplayRepAsLargeGroup {
   baseComponentId: string;
@@ -36,9 +37,8 @@ export function LargeRowSummaryContainer({
   inExcludedChildren,
 }: IDisplayRepAsLargeGroup) {
   const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const indexedId = useIndexedId(baseComponentId, true);
-  const depth = FormStore.raw.useSelector((state) => state.nodes.nodeData?.[indexedId]?.depth);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const depth = getLayoutDepth(baseComponentId, layoutLookups);
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
@@ -48,10 +48,6 @@ export function LargeRowSummaryContainer({
         .filter(([_, settings]) => settings.hidden === true)
         .map(([id]) => id)
     : [];
-
-  if (typeof depth !== 'number') {
-    return null;
-  }
 
   const { title, summaryTitle } = item.textResourceBindings || {};
   const parent = layoutLookups.componentToParent[baseComponentId];

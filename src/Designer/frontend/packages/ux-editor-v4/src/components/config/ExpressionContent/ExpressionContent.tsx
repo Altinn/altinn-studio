@@ -2,11 +2,10 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { getComponentIds, getDataModelElementNames } from '../../../utils/expressionsUtils';
 import type { Expression, DataLookupOptions } from '@studio/components';
-import { DataLookupFuncName, StudioDeleteButton } from '@studio/components';
+import { DataLookupFuncName, StudioDeleteButton, StudioParagraph } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
-import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './ExpressionContent.module.css';
 import { Expression as ExpressionWithTexts } from './Expression';
 import { useText } from '../../../hooks';
@@ -45,9 +44,9 @@ export const ExpressionContent = ({
   return (
     <fieldset className={classes.expressionContent}>
       <legend className={classes.legend}>
-        <Paragraph className={classes.legendContent} size='small'>
+        <StudioParagraph className={classes.legendContent} data-size='sm'>
           {heading}
-        </Paragraph>
+        </StudioParagraph>
       </legend>
       {expression && (
         <StudioDeleteButton

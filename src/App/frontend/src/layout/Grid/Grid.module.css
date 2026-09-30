@@ -1,3 +1,5 @@
+@value mediaMdDown from '@app/form-component/styles/breakpoints.module.css';
+
 .rowReadOnly,
 .rowReadOnly td,
 .rowReadOnly th {
@@ -24,7 +26,7 @@ Altinn, and making sure they are consistent. */
     0 1px 1px rgba(0, 0, 0, 0.12),
     0 2px 2px rgba(0, 0, 0, 0.12);
 }
-@media (max-width: 992px) {
+@media mediaMdDown {
   .table {
     border-top: 1px solid #dde3e5;
   }

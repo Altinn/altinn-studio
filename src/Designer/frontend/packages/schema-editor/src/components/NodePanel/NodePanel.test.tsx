@@ -33,6 +33,8 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
   setSelectedTypePointer,
   save,
   name,
+  prefillConfig: {},
+  savePrefillConfig: jest.fn(),
 };
 
 const defaultDragAndDropTreeProviderProps: Omit<

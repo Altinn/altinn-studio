@@ -9,8 +9,8 @@ import {
 import { useSchemaEditorAppContext } from '../../../../../hooks/useSchemaEditorAppContext';
 import { useTypeName } from './hooks/useTypeName';
 import { useKindName } from './hooks/useKindName';
-import { Link } from '@digdir/designsystemet-react';
 import classes from './ItemFieldType.module.css';
+import { StudioButton } from '@studio/components';
 
 export type ItemFieldTypeProps = {
   fieldNode: UiSchemaNode;
@@ -34,9 +34,9 @@ const ReferenceLink = ({ fieldNode }: { fieldNode: ReferenceNode }) => {
   const handleClick = (): void => setSelectedTypePointer(fieldNode.reference);
 
   return (
-    <Link asChild onClick={handleClick}>
-      <button className={classes.linkButton}>{name}</button>
-    </Link>
+    <StudioButton onClick={handleClick} variant='tertiary' className={classes.referenceButton}>
+      {name}
+    </StudioButton>
   );
 };
 

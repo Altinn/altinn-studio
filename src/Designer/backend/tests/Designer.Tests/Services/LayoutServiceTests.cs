@@ -202,12 +202,17 @@ public class LayoutServiceTests
         Assert.Equal(originalFileContent, renamedFileContent);
     }
 
-    [Fact]
-    public async Task PageGroupAddingPages_ShouldCreateLayouts()
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public async Task PageGroupAddingPages_ShouldCreateVersionCompatibleNavigationButtons(
+        bool isV9App,
+        bool expectShowBackButton
+    )
     {
         const string Repo = "app-with-groups-and-task-navigation";
         (AltinnRepoEditingContext editingContext, LayoutService layoutService, Mock<IPublisher> mediatr) =
-            await PrepareTestForRepo(Repo);
+            await PrepareTestForRepo(Repo, isV9App);
 
         LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, "form");
 
@@ -241,6 +246,25 @@ public class LayoutServiceTests
                 i.Method.Name == nameof(IPublisher.Publish) && i.Arguments[0] is LayoutPageAddedEvent
             )
         );
+
+        string newPageContent = TestDataHelper.GetFileFromRepo(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer,
+            "App/ui/form/layouts/newPage.json"
+        );
+        using JsonDocument newPage = JsonDocument.Parse(newPageContent);
+        JsonElement navigationButtons = newPage
+            .RootElement.GetProperty("data")
+            .GetProperty("layout")
+            .EnumerateArray()
+            .Single(component => component.GetProperty("type").GetString() == "NavigationButtons");
+        bool hasShowBackButton = navigationButtons.TryGetProperty("showBackButton", out JsonElement showBackButton);
+        Assert.Equal(expectShowBackButton, hasShowBackButton);
+        if (expectShowBackButton)
+        {
+            Assert.True(showBackButton.GetBoolean());
+        }
     }
 
     [Fact]
@@ -269,24 +293,31 @@ public class LayoutServiceTests
         AltinnRepoEditingContext editingContext,
         LayoutService layoutService,
         Mock<IPublisher> mock
-    )> PrepareTestForRepo(string repo)
+    )> PrepareTestForRepo(string repo, bool isV9App = false)
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, targetRepository, Developer);
 
         Mock<IPublisher> mediatr = new();
-        LayoutService layoutService = GetLayoutServiceForTest(mediatr);
+        LayoutService layoutService = GetLayoutServiceForTest(mediatr, isV9App);
         return (editingContext, layoutService, mediatr);
     }
 
-    private static LayoutService GetLayoutServiceForTest(Mock<IPublisher> mediatr)
+    private static LayoutService GetLayoutServiceForTest(Mock<IPublisher> mediatr, bool isV9App)
     {
         var appDevelopmentServiceMock = new Mock<IAppDevelopmentService>();
+        var appVersionServiceMock = new Mock<IAppVersionService>();
+        appVersionServiceMock.Setup(service => service.IsV9App(It.IsAny<AltinnRepoEditingContext>())).Returns(isV9App);
         AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
             TestDataHelper.GetTestDataRepositoriesRootDirectory()
         );
-        LayoutService layoutService = new(altinnGitRepositoryFactory, mediatr.Object, appDevelopmentServiceMock.Object);
+        LayoutService layoutService = new(
+            altinnGitRepositoryFactory,
+            mediatr.Object,
+            appDevelopmentServiceMock.Object,
+            appVersionServiceMock.Object
+        );
 
         return layoutService;
     }

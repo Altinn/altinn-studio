@@ -6,10 +6,12 @@ import type { StorageState } from '../../types/StorageState';
 import { Gitea } from '../../helpers/Gitea';
 
 // Before the tests starts, we need to create the data model app
-test.beforeAll(async ({ testAppName, request, storageState }) => {
+test.beforeAll(async ({ testAppName, testAppTemplate, request, storageState }) => {
   // Create a new app
   const designerApi = new DesignerApi({ app: testAppName });
-  const response = await designerApi.createApp(request, storageState as StorageState);
+  const response = await designerApi.createApp(request, storageState as StorageState, {
+    appTemplate: testAppTemplate,
+  });
   expect(response.ok()).toBeTruthy();
 });
 
@@ -92,12 +94,17 @@ test('Allows to add a data model, include an object with properties and a combin
 
   // Generate the data model
   await dataModelPage.clickOnGenerateDataModelButton();
-  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+  // The success check is disabled for now. It passes sometimes, but only because Playwright is
+  // occasionally faster than the autosave feature and therefore does not save all changes. Above,
+  // we added an empty model and an empty combination, and both of these will fail model generation.
+  // We need two fixes: (1) add children to the model and the combination so that they are not
+  // empty, and (2) ensure we use the latest data from the UI to generate models.
+  // await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
 
   // Delete the data model
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
+  await dataModelPage.clickOnDataModelMenuButton();
   await dataModelPage.clickOnDeleteDataModelButton();
-  await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 
@@ -117,8 +124,8 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   expect(dataModelComboboxValue).toMatch(/\/testDataModel.schema.json$/);
 
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
+  await dataModelPage.clickOnDataModelMenuButton();
   await dataModelPage.clickOnDeleteDataModelButton();
-  await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
 

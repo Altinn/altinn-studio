@@ -232,6 +232,11 @@ func TestCLI_Run(t *testing.T) {
 			args:     []string{"apps", "search", "--help"},
 			wantCode: 0,
 		},
+		{
+			name:     "agent skills install command exists",
+			args:     []string{"agent", "skills", "install", "--help"},
+			wantCode: 0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -245,11 +250,14 @@ func TestCLI_Run(t *testing.T) {
 	}
 }
 
-func TestMain_DoctorRunsWithInvalidConfigFile(t *testing.T) {
+// TestMain_DoctorRunsWithUnusableHome covers doctor's fallback path: it must still report,
+// with defaults, when the configuration it would normally run on cannot be resolved. Here the
+// home directory is a file, so creating the directories under it fails.
+func TestMain_DoctorRunsWithUnusableHome(t *testing.T) {
 	tempDir := t.TempDir()
-	configPath := filepath.Join(tempDir, "config.yaml")
-	if err := os.WriteFile(configPath, []byte("invalid: [yaml"), 0o600); err != nil {
-		t.Fatalf("write invalid config: %v", err)
+	homeFile := filepath.Join(tempDir, "home-file")
+	if err := os.WriteFile(homeFile, []byte("x"), 0o600); err != nil {
+		t.Fatalf("write home file: %v", err)
 	}
 
 	oldArgs := os.Args
@@ -258,7 +266,7 @@ func TestMain_DoctorRunsWithInvalidConfigFile(t *testing.T) {
 	}()
 
 	os.Args = []string{"studioctl", "doctor", "--json"}
-	t.Setenv(config.EnvHome, tempDir)
+	t.Setenv(config.EnvHome, homeFile)
 
 	exitCode := cmd.Main()
 	if exitCode != 0 {

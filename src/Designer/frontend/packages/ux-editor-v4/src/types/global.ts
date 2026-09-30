@@ -21,8 +21,7 @@ export type ExplicitDataModelBinding = {
 
 export type IDataModelBindingsKeyValueExplicit = KeyValuePairs<ExplicitDataModelBinding>;
 export type IDataModelBindingsKeyValue =
-  | KeyValuePairs<ImplicitDataModelBinding>
-  | KeyValuePairs<ExplicitDataModelBinding>;
+  KeyValuePairs<ImplicitDataModelBinding> | KeyValuePairs<ExplicitDataModelBinding>;
 export type IDataModelBindings = ImplicitDataModelBinding | ExplicitDataModelBinding;
 
 export type IFormDesignerComponents = KeyValuePairs<FormComponent>;
@@ -65,7 +64,7 @@ export interface IToolbarElement {
   type: ComponentType | CustomComponentType;
 }
 
-export enum CollapsableMenus {
+export enum CollapsibleMenus {
   Components = 'standard',
   Texts = 'texts',
   AdvancedComponents = 'advanced',

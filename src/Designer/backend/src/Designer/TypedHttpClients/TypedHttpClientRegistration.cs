@@ -11,11 +11,9 @@ using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Clients.Implementations;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
@@ -85,18 +83,7 @@ public static class TypedHttpClientRegistration
         services.AddKubernetesWrapperTypedHttpClient();
         services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
         services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
-        services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
-        bool studioOidcEnabled =
-            config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
-        if (studioOidcEnabled)
-        {
-            services.AddTransient<GiteaWebAuthDelegatingHandler>();
-        }
-        else
-        {
-            services.AddTransient<GiteaTokenDelegatingHandler>();
-        }
+        services.AddTransient<GiteaWebAuthDelegatingHandler>();
 
         services.AddGiteaUserProvisioningTypedHttpClient(config);
         services.AddTransient<GitOpsBotTokenDelegatingHandler>();
@@ -200,9 +187,6 @@ public static class TypedHttpClientRegistration
 
     private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
     {
-        bool studioOidcEnabled =
-            config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
-
         var builder = services
             .AddHttpClient<IGiteaClient, GiteaClient>(
                 (_, httpClient) =>
@@ -223,14 +207,7 @@ public static class TypedHttpClientRegistration
                 }
             );
 
-        if (studioOidcEnabled)
-        {
-            builder.AddHttpMessageHandler<GiteaWebAuthDelegatingHandler>();
-        }
-        else
-        {
-            builder.AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
-        }
+        builder.AddHttpMessageHandler<GiteaWebAuthDelegatingHandler>();
 
         return builder;
     }

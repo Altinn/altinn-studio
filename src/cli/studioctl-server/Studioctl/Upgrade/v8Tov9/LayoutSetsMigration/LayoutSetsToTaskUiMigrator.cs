@@ -1,24 +1,16 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 
-internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
+internal sealed class LayoutSetsToTaskUiMigrator
 {
     private readonly string _projectFolder;
-    private readonly GitOperations? _git;
 
     public LayoutSetsToTaskUiMigrator(string projectFolder)
     {
         _projectFolder = projectFolder;
-        _git = GitOperations.TryCreate(projectFolder);
-    }
-
-    public void Dispose()
-    {
-        _git?.Dispose();
     }
 
     public MigrationResult Migrate()
@@ -32,9 +24,6 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 return new MigrationResult();
             }
         }
-
-        // Clean up empty folders from previous botched runs before proceeding
-        DeleteEmptyDirectoriesRecursively(uiPath);
 
         var layoutSetsPath = Path.Combine(uiPath, "layout-sets.json");
         if (!File.Exists(layoutSetsPath))
@@ -56,8 +45,15 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
 
         var subformReferencedSets = CollectSubformLayoutSetReferences(uiPath);
         var plans = BuildPlans(uiPath, sets, subformReferencedSets);
-        ValidateCollisions(uiPath, plans);
+        var collisionTodos = FindCollisionTodos(uiPath, plans);
+        if (collisionTodos.Count > 0)
+            return new MigrationResult { Todos = collisionTodos };
 
+        // Clean up empty folders from previous botched runs only after the complete plan has passed
+        // preflight. A migration that needs manual input must leave the UI tree untouched.
+        DeleteEmptyDirectoriesRecursively(uiPath);
+
+        var todos = new List<string>();
         var touchedFolders = new HashSet<string>(StringComparer.Ordinal);
         var copiedFolderCount = 0;
         var renamedFolderCount = 0;
@@ -65,31 +61,43 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
 
         foreach (var plan in plans)
         {
+            if (string.IsNullOrWhiteSpace(plan.DataType))
+            {
+                todos.Add(
+                    $"Layout set '{plan.SourceId}' had no dataType in layout-sets.json; Settings.json will not get defaultDataType. Connect the datamodel in the process editor after upgrade."
+                );
+            }
+
             foreach (var destinationId in plan.DestinationIds)
             {
                 var destinationPath = Path.Combine(uiPath, destinationId);
-                if (!plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal))
+                if (
+                    !plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal)
+                    && Directory.Exists(plan.SourcePath)
+                )
                 {
+                    CopyDirectory(plan.SourcePath, destinationPath);
                     if (plan.DestinationIds.Count == 1)
-                    {
-                        MoveDirectory(plan.SourcePath, destinationPath);
                         renamedFolderCount++;
-                    }
                     else
-                    {
-                        CopyDirectory(plan.SourcePath, destinationPath);
-                        _git?.StageDirectory(destinationPath);
                         copiedFolderCount++;
-                    }
                 }
 
                 touchedFolders.Add(destinationId);
-                UpsertDefaultDataType(destinationPath, plan.DataType);
+                UpsertLayoutSetMetadata(destinationPath, plan.DataType, plan.Type);
             }
+        }
 
-            if (plan.DestinationIds.Count > 1 && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal))
+        // Delete sources only after every destination is complete. If the process stops before this
+        // point, a rerun can safely continue copying into the compatible destination folders.
+        foreach (var plan in plans)
+        {
+            if (
+                Directory.Exists(plan.SourcePath)
+                && !plan.DestinationIds.Contains(plan.SourceId, StringComparer.Ordinal)
+            )
             {
-                DeleteDirectory(plan.SourcePath);
+                Directory.Delete(plan.SourcePath, recursive: true);
                 deletedSourceFolderCount++;
             }
         }
@@ -100,13 +108,10 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             var globalSettingsPath = Path.Combine(uiPath, "Settings.json");
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(globalSettingsPath, uiSettingsObject.ToJsonString(options));
-            _git?.StageFile(globalSettingsPath);
             migratedGlobalSettings = true;
         }
 
         // Restore whitespace-only changes to preserve original formatting in Settings.json files.
-        // UpsertDefaultDataType intentionally leaves files unstaged so the processor can diff
-        // the working directory against the index (which has the original formatting).
         try
         {
             var whitespaceRestorer = new WhitespaceRestorationProcessor(uiPath);
@@ -117,18 +122,7 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             // Non-fatal: whitespace restoration is best-effort
         }
 
-        // Stage settings files after whitespace restoration has cleaned them up
-        foreach (var destinationId in touchedFolders)
-        {
-            var settingsPath = Path.Combine(uiPath, destinationId, "Settings.json");
-            if (File.Exists(settingsPath))
-            {
-                _git?.StageFile(settingsPath);
-            }
-        }
-
         File.Delete(layoutSetsPath);
-        _git?.StageRemoval(layoutSetsPath);
 
         return new MigrationResult
         {
@@ -138,31 +132,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             RenamedFolderCount = renamedFolderCount,
             DeletedSourceFolderCount = deletedSourceFolderCount,
             MigratedGlobalSettings = migratedGlobalSettings,
+            Todos = todos,
         };
-    }
-
-    private void MoveDirectory(string sourcePath, string destinationPath)
-    {
-        if (_git is not null)
-        {
-            _git.MoveDirectory(sourcePath, destinationPath);
-        }
-        else
-        {
-            Directory.Move(sourcePath, destinationPath);
-        }
-    }
-
-    private void DeleteDirectory(string path)
-    {
-        if (_git is not null)
-        {
-            _git.DeleteDirectory(path);
-        }
-        else
-        {
-            Directory.Delete(path, recursive: true);
-        }
     }
 
     /// <summary>
@@ -208,29 +179,23 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 continue;
             }
 
-            var sourcePath = Path.Combine(uiPath, sourceId);
-            if (!Directory.Exists(sourcePath))
-            {
-                throw new InvalidOperationException($"Missing UI folder for layout set '{sourceId}' ({sourcePath}).");
-            }
-
             // A set referenced by a Subform component is never bound to a task — the v9 task-folder
             // layout is for top-level layouts. Ignore any 'tasks' it has and keep the folder name.
-            var tasksArray = setObject["tasks"] as JsonArray;
-            if (subformReferencedSets.Contains(sourceId) && tasksArray is { Count: > 0 })
-            {
-                UpgradeConsole.WriteLine(
-                    $"Layout set '{sourceId}' is referenced by a Subform component; ignoring its 'tasks' entry and keeping it as a subform folder."
+            var tasks = subformReferencedSets.Contains(sourceId) ? null : setObject["tasks"] as JsonArray;
+            var destinationIds = ResolveDestinationFolderIds(sourceId, tasks);
+            var sourcePath = Path.Combine(uiPath, sourceId);
+            if (!Directory.Exists(sourcePath) && destinationIds.Any(id => !Directory.Exists(Path.Combine(uiPath, id))))
+                throw new InvalidOperationException(
+                    $"Missing UI folder for layout set '{sourceId}', and its task folders are incomplete."
                 );
-                tasksArray = null;
-            }
 
             plans.Add(
                 new LayoutSetMigrationPlan(
                     sourceId,
                     sourcePath,
-                    ResolveDestinationFolderIds(sourceId, tasksArray),
-                    setObject["dataType"]?.GetValue<string>()
+                    destinationIds,
+                    setObject["dataType"]?.GetValue<string>(),
+                    setObject["type"]?.GetValue<string>()
                 )
             );
         }
@@ -260,7 +225,7 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 {
                     root = JsonNode.Parse(File.ReadAllText(file));
                 }
-                catch
+                catch (JsonException)
                 {
                     continue;
                 }
@@ -307,31 +272,44 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         }
     }
 
-    private static void ValidateCollisions(string uiPath, List<LayoutSetMigrationPlan> plans)
+    private static List<string> FindCollisionTodos(string uiPath, List<LayoutSetMigrationPlan> plans)
     {
+        var todos = new List<string>();
         var claimedDestinations = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var plan in plans)
         {
             foreach (var destinationId in plan.DestinationIds)
             {
                 var destinationPath = Path.Combine(uiPath, destinationId);
+                if (File.Exists(destinationPath))
+                {
+                    todos.Add(
+                        $"Layout set '{plan.SourceId}' maps to '{destinationId}', but that path is a file. Resolve the collision and rerun; layout-sets.json and source folders were kept."
+                    );
+                    continue;
+                }
                 if (
                     !plan.SourcePath.Equals(destinationPath, StringComparison.Ordinal)
                     && Directory.Exists(destinationPath)
+                    && Directory.Exists(plan.SourcePath)
+                    && !CanResumeCopy(plan.SourcePath, destinationPath)
                 )
                 {
-                    throw new InvalidOperationException(
-                        $"Cannot migrate layout set '{plan.SourceId}' to '{destinationId}'. Destination folder already exists."
+                    todos.Add(
+                        $"Layout set '{plan.SourceId}' maps to task folder '{destinationId}', but that folder already exists. "
+                            + "Resolve the folder collision, then run the upgrade again; layout-sets.json was kept."
                     );
+                    continue;
                 }
 
                 if (claimedDestinations.TryGetValue(destinationId, out var previousSourceId))
                 {
                     if (!string.Equals(previousSourceId, plan.SourceId, StringComparison.Ordinal))
                     {
-                        throw new InvalidOperationException(
-                            $"Cannot migrate layout sets '{previousSourceId}' and '{plan.SourceId}' to '{destinationId}'. "
-                                + "Multiple layout sets target the same destination folder."
+                        todos.Add(
+                            $"Layout sets '{previousSourceId}' and '{plan.SourceId}' both map to task folder "
+                                + $"'{destinationId}'. Consolidate or rename them manually, then run the upgrade again; "
+                                + "layout-sets.json and all source folders were kept."
                         );
                     }
                 }
@@ -341,6 +319,8 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
                 }
             }
         }
+
+        return todos.Distinct(StringComparer.Ordinal).ToList();
     }
 
     private static List<string> ResolveDestinationFolderIds(string sourceId, JsonArray? tasks)
@@ -362,9 +342,9 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         return taskIds;
     }
 
-    private void UpsertDefaultDataType(string folderPath, string? dataType)
+    private void UpsertLayoutSetMetadata(string folderPath, string? dataType, string? type)
     {
-        if (string.IsNullOrWhiteSpace(dataType))
+        if (string.IsNullOrWhiteSpace(dataType) && string.IsNullOrWhiteSpace(type))
         {
             return;
         }
@@ -382,11 +362,18 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             settings = [];
         }
 
-        settings["defaultDataType"] = dataType;
+        if (!string.IsNullOrWhiteSpace(dataType))
+        {
+            settings["defaultDataType"] = dataType;
+        }
+
+        if (!string.IsNullOrWhiteSpace(type))
+        {
+            settings["type"] = type;
+        }
+
         var options = new JsonSerializerOptions { WriteIndented = true };
         File.WriteAllText(settingsPath, settings.ToJsonString(options));
-        // Don't stage here — leave in working dir so the whitespace restoration
-        // processor can detect and revert formatting-only changes against the index.
     }
 
     private static void CopyDirectory(string sourceDir, string destinationDir)
@@ -395,7 +382,21 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
         foreach (var file in Directory.GetFiles(sourceDir))
         {
             var destinationFile = Path.Combine(destinationDir, Path.GetFileName(file));
-            File.Copy(file, destinationFile, overwrite: false);
+            if (!File.Exists(destinationFile))
+            {
+                File.Copy(file, destinationFile);
+                continue;
+            }
+
+            if (
+                !Path.GetFileName(file).Equals("Settings.json", StringComparison.Ordinal)
+                && !File.ReadAllBytes(file).AsSpan().SequenceEqual(File.ReadAllBytes(destinationFile))
+            )
+            {
+                throw new InvalidOperationException(
+                    $"Cannot resume task-folder migration because {destinationFile} differs from its source."
+                );
+            }
         }
 
         foreach (var subDirectory in Directory.GetDirectories(sourceDir))
@@ -403,6 +404,32 @@ internal sealed class LayoutSetsToTaskUiMigrator : IDisposable
             var destinationSubDirectory = Path.Combine(destinationDir, Path.GetFileName(subDirectory));
             CopyDirectory(subDirectory, destinationSubDirectory);
         }
+    }
+
+    private static bool CanResumeCopy(string sourceDir, string destinationDir)
+    {
+        foreach (var destinationFile in Directory.EnumerateFiles(destinationDir))
+        {
+            var fileName = Path.GetFileName(destinationFile);
+            if (fileName.Equals("Settings.json", StringComparison.Ordinal))
+                continue;
+
+            var sourceFile = Path.Combine(sourceDir, fileName);
+            if (
+                !File.Exists(sourceFile)
+                || !File.ReadAllBytes(sourceFile).AsSpan().SequenceEqual(File.ReadAllBytes(destinationFile))
+            )
+                return false;
+        }
+
+        foreach (var destinationSubDirectory in Directory.EnumerateDirectories(destinationDir))
+        {
+            var sourceSubDirectory = Path.Combine(sourceDir, Path.GetFileName(destinationSubDirectory));
+            if (!Directory.Exists(sourceSubDirectory) || !CanResumeCopy(sourceSubDirectory, destinationSubDirectory))
+                return false;
+        }
+
+        return true;
     }
 }
 
@@ -414,11 +441,13 @@ internal sealed class MigrationResult
     public int RenamedFolderCount { get; init; }
     public int DeletedSourceFolderCount { get; init; }
     public bool MigratedGlobalSettings { get; init; }
+    public IReadOnlyList<string> Todos { get; init; } = [];
 }
 
 internal sealed record LayoutSetMigrationPlan(
     string SourceId,
     string SourcePath,
     List<string> DestinationIds,
-    string? DataType
+    string? DataType,
+    string? Type
 );

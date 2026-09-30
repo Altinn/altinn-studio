@@ -1,0 +1,40 @@
+{
+  "name": "Display value of Person Lookup component",
+  "expression": [
+    "displayValue",
+    "personlookup"
+  ],
+  "context": {
+    "component": "personlookup",
+    "currentLayout": "Page"
+  },
+  "expects": "44829800753, Sulten Karl Løve",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "personlookup",
+            "type": "PersonLookup",
+            "dataModelBindings": {
+              "ssn": "PersonLookup.Ssn",
+              "fullName": "PersonLookup.Name",
+              "firstName": "PersonLookup.FirstName",
+              "lastName": "PersonLookup.LastName"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "PersonLookup": {
+      "Ssn": "44829800753",
+      "Name": "Sulten Karl Løve",
+      "FirstName": "Sulten",
+      "MiddleName": "Karl",
+      "LastName": "Løve"
+    }
+  }
+}

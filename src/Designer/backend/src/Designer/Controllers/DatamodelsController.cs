@@ -23,7 +23,7 @@ using Microsoft.Net.Http.Headers;
 namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
-/// Controller containing all actions related to data modelling
+/// Controller containing all actions related to data modeling
 /// </summary>
 [ApiController]
 [Authorize]
@@ -76,6 +76,39 @@ public class DatamodelsController : ControllerBase
         var json = await _schemaModelService.GetSchema(editingContext, decodedPath, cancellationToken);
 
         return Ok(json);
+    }
+
+    /// <summary>
+    /// Checks whether the generated model files are out of date with the stored datamodel.
+    /// </summary>
+    /// <param name="org">The org owning the repository.</param>
+    /// <param name="repository">The repository name</param>
+    /// <param name="modelPath">The path to the datamodel to check.</param>
+    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("datamodel/generation-status")]
+    public async Task<ActionResult<bool>> GetGenerationStatus(
+        [FromRoute] string org,
+        [FromRoute] string repository,
+        [FromQuery] string? modelPath,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            return BadRequest();
+        }
+
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+        bool isOutOfDate = await _schemaModelService.AreModelFilesOutOfDate(
+            editingContext,
+            modelPath,
+            cancellationToken
+        );
+
+        return Ok(isOutOfDate);
     }
 
     /// <summary>
@@ -174,7 +207,7 @@ public class DatamodelsController : ControllerBase
     /// Upload an XSD.
     /// </summary>
     /// <remarks>
-    /// This operation will use the new data modelling library to convert the XSD into a JSON schema,
+    /// This operation will use the new data modeling library to convert the XSD into a JSON schema,
     /// metadata model and C# class.
     /// </remarks>
     /// <param name="org">The short name of the application owner.</param>
@@ -213,6 +246,45 @@ public class DatamodelsController : ControllerBase
         );
 
         return Created(Uri.EscapeDataString(fileNameWithExtension), jsonSchema);
+    }
+
+    /// <summary>
+    /// Replaces the data model at <paramref name="modelPath"/> with an uploaded XSD. The model keeps
+    /// its name, so references to it, e.g. the data type in the application metadata, are kept intact.
+    /// </summary>
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("datamodel/xsd")]
+    public async Task<ActionResult<string>> ReplaceXsd(
+        string org,
+        string repository,
+        [FromQuery] string? modelPath,
+        [FromForm(Name = "file")] IFormFile? theFile,
+        CancellationToken cancellationToken
+    )
+    {
+        Guard.AssertArgumentNotNull(theFile, nameof(theFile));
+        if (string.IsNullOrWhiteSpace(modelPath))
+        {
+            return BadRequest($"{nameof(modelPath)} is required.");
+        }
+
+        string fileNameWithExtension = GetFileNameFromUploadedFile(theFile!);
+        Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
+
+        string decodedPath = Uri.UnescapeDataString(modelPath!);
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
+        string jsonSchema = await _schemaModelService.ReplaceSchemaFromXsd(
+            editingContext,
+            decodedPath,
+            theFile!.OpenReadStream(),
+            cancellationToken
+        );
+
+        return Ok(jsonSchema);
     }
 
     /// <summary>

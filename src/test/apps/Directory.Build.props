@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    In-repo test apps reference Altinn.App.Api via <ProjectReference>, not the published
+    NuGet package. That means the package's build/Altinn.App.Api.props (which sets IsAltinnApp,
+    exposes it to analyzers, and registers config/** as AdditionalFiles) and the bundled
+    Roslyn analyzer are NOT imported automatically.
+
+    This file reproduces that wiring for the test apps so the app analyzers (e.g. the
+    applicationmetadata.json deprecation checks) actually run at build time. Keep the
+    IsAltinnApp / AdditionalFiles items in sync with:
+      src/App/backend/src/Altinn.App.Api/packaging/Altinn.App.Api.props
+  -->
+  <PropertyGroup>
+    <IsAltinnApp>true</IsAltinnApp>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Exposes IsAltinnApp to the Roslyn analyzers (see IsAltinnApp() gate). -->
+    <CompilerVisibleProperty Include="IsAltinnApp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Relative globs resolve against each consuming App.csproj directory, so these match
+      per-app config just like the NuGet package props do.
+    -->
+    <AdditionalFiles Include="config/**" />
+    <AdditionalFiles Include="ui/**/*.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Every in-repo test app references the same App backend projects. Declared once here
+      (anchored to this file's location) instead of repeating them in each App.csproj.
+      Per-app extras (e.g. Altinn.Codelists, Altinn.FileAnalyzers) stay in the individual csprojs.
+    -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Deliver the app analyzers to the test apps. The Altinn.App.Api project reference
+      intentionally does not flow the analyzer (OutputItemType="None"), so we reference it
+      directly here. Anchored to this file's location since the analyzer project lives at a
+      fixed path regardless of which app is being built.
+    -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../App/backend/src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+</Project>

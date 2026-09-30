@@ -59,15 +59,7 @@ export function useBranchOperations(org: string, app: string): UseBranchOperatio
 
     createBranchMutation.mutate(branchName, {
       onSuccess: () => checkoutAndReload(branchName),
-      onError: (error: AxiosError) => {
-        setCreateError(
-          t(
-            HttpResponseUtils.isConflict(error)
-              ? 'branching.new_branch_dialog.error_already_exists'
-              : 'branching.new_branch_dialog.error_generic',
-          ),
-        );
-      },
+      onError: () => setCreateError(t('branching.new_branch_dialog.error_generic')),
     });
   };
 

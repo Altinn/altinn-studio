@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+#nullable disable
+
+using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -16,6 +18,19 @@ public interface IInstanceEventService
     /// <param name="instance">Instance</param>
     /// <returns></returns>
     public InstanceEvent BuildInstanceEvent(InstanceEventType eventType, Instance instance);
+
+    /// <summary>
+    /// Construct a data-element related instance event given a type
+    /// </summary>
+    /// <param name="eventType">Event type</param>
+    /// <param name="instance">Instance</param>
+    /// <param name="dataElement">Data element</param>
+    /// <returns></returns>
+    public InstanceEvent BuildInstanceEvent(
+        InstanceEventType eventType,
+        Instance instance,
+        DataElement dataElement
+    );
 
     /// <summary>
     /// Dispatch an instance event to the repository

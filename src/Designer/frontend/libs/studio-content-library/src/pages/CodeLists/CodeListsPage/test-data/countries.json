@@ -1,0 +1,5 @@
+[
+  { "value": "norway", "label": { "nb": "Norge", "en": "Norway" } },
+  { "value": "sweden", "label": { "nb": "Sverige", "en": "Sweden" } },
+  { "value": "denmark", "label": { "nb": "Danmark", "en": "Denmark" } }
+]

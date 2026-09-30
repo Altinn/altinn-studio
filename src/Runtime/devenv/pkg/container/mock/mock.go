@@ -22,6 +22,7 @@ type Client struct {
 		opts ...types.BuildOptions,
 	) error
 	PushFunc                  func(ctx context.Context, image string) error
+	TagFunc                   func(ctx context.Context, source, target string) error
 	CreateContainerFunc       func(ctx context.Context, cfg types.ContainerConfig) (string, error)
 	ContainerStateFunc        func(ctx context.Context, nameOrID string) (types.ContainerState, error)
 	ContainerNetworksFunc     func(ctx context.Context, nameOrID string) ([]string, error)
@@ -105,6 +106,15 @@ func (c *Client) Push(ctx context.Context, image string) error {
 	c.recordCall("Push", image)
 	if c.PushFunc != nil {
 		return c.PushFunc(ctx, image)
+	}
+	return nil
+}
+
+// Tag implements ContainerClient.
+func (c *Client) Tag(ctx context.Context, source, target string) error {
+	c.recordCall("Tag", source, target)
+	if c.TagFunc != nil {
+		return c.TagFunc(ctx, source, target)
 	}
 	return nil
 }

@@ -18,6 +18,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -36,6 +37,7 @@ public class AppDevelopmentController : Controller
     private readonly ISourceControl _sourceControl;
     private readonly ILayoutService _layoutService;
     private readonly IMediator _mediator;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppDevelopmentController"/> class.
@@ -45,12 +47,14 @@ public class AppDevelopmentController : Controller
     /// <param name="sourceControl">The source control service.</param>
     /// <param name="layoutService">An <see cref="ILayoutService"/></param>
     /// <param name="mediator"></param>
+    /// <param name="appVersionService">The app version service</param>
     public AppDevelopmentController(
         IAppDevelopmentService appDevelopmentService,
         IRepository repositoryService,
         ISourceControl sourceControl,
         ILayoutService layoutService,
-        IMediator mediator
+        IMediator mediator,
+        IAppVersionService appVersionService
     )
     {
         _appDevelopmentService = appDevelopmentService;
@@ -58,13 +62,14 @@ public class AppDevelopmentController : Controller
         _sourceControl = sourceControl;
         _layoutService = layoutService;
         _mediator = mediator;
+        _appVersionService = appVersionService;
     }
 
     /// <summary>
     /// Get all form layouts
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set to get layouts for</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -82,7 +87,7 @@ public class AppDevelopmentController : Controller
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+            Dictionary<string, JsonNode?> formLayouts = await _appDevelopmentService.GetFormLayouts(
                 editingContext,
                 layoutSetName,
                 cancellationToken
@@ -102,8 +107,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Save form layout as JSON
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layoutSet the specific layout belongs to</param>
     /// <param name="layoutName">The name of the form layout to be saved.</param>
     /// <param name="formLayoutPayload">A json object with, layout, the content to be saved, and the componentIdsChange: If componentIDs have been changed, this event includes info to perform the change across the app</param>
@@ -125,7 +130,7 @@ public class AppDevelopmentController : Controller
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(
+            Dictionary<string, JsonNode?> formLayouts = await _appDevelopmentService.GetFormLayouts(
                 editingContext,
                 layoutSetName,
                 cancellationToken
@@ -170,7 +175,7 @@ public class AppDevelopmentController : Controller
                     );
                 }
             }
-            if (!formLayouts.ContainsKey(layoutName))
+            if (!formLayouts.ContainsKey(layoutName) && layoutSetName is not null)
             {
                 LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(
                     editingContext,
@@ -198,8 +203,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Delete a form layout
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">The name of the layout set the specific layout belongs to</param>
     /// <param name="layoutName">The form layout to be deleted</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -243,8 +248,8 @@ public class AppDevelopmentController : Controller
     /// Update a form layout name
     /// </summary>
     /// <param name="newName">The new name of the form layout.</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific layout belongs to</param>
     /// <param name="layoutName">The current name of the form layout</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -288,8 +293,8 @@ public class AppDevelopmentController : Controller
     /// </summary>
     /// <param name="layoutSetName">Name of the layout set the layout settings belong to</param>
     /// <param name="layoutSettings">The data to be saved</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A success message if the save was successful</returns>
     [HttpPost]
@@ -324,8 +329,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets the layout settings for an app without layoutSets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific layout settings belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The content of the settings file</returns>
@@ -363,8 +368,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Updates validation on navigation settings for multiple layout sets based on grouped configurations
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="settings">List of grouped validation navigation settings to apply</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The updated list of grouped validation navigation settings</returns>
@@ -421,9 +426,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(layoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(layoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -440,9 +444,8 @@ public class AppDevelopmentController : Controller
 
                     await _appDevelopmentService.SaveLayoutSettings(
                         editingContext,
-                        System.Text.Json.Nodes.JsonNode.Parse(
-                            System.Text.Json.JsonSerializer.Serialize(newLayoutSettings)
-                        ),
+                        JsonSerializer.SerializeToNode(newLayoutSettings)
+                            ?? throw new JsonException("Failed to serialize layout settings."),
                         layoutSet.Id,
                         cancellationToken
                     );
@@ -486,8 +489,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets validation on navigation settings grouped by shared show/page values across all layout sets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of grouped validation navigation settings</returns>
     [HttpGet("layout-settings/validation-on-navigation")]
@@ -556,8 +559,8 @@ public class AppDevelopmentController : Controller
     /// Each page's validationOnNavigation is read from the top-level property of its layout file.
     /// Only pages that have validationOnNavigation configured are included.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A list of page groups per layout set, each sharing the same validationOnNavigation settings</returns>
     [HttpGet("layout-settings/validation-on-navigation/pages")]
@@ -582,30 +585,38 @@ public class AppDevelopmentController : Controller
 
             foreach (var layoutSet in layoutSetsModel.Sets)
             {
-                Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                Dictionary<string, JsonNode?> layouts = await _appDevelopmentService.GetFormLayouts(
                     editingContext,
                     layoutSet.Id,
                     cancellationToken
                 );
 
-                IEnumerable<PageValidationOnNavigationDto> groups = layouts
-                    .Where(kvp => kvp.Value?["data"]?["validationOnNavigation"] != null)
-                    .Select(kvp => new
+                var layoutsWithNavigation = new List<(string PageName, ValidationOnNavigation Navigation)>();
+                foreach ((string pageName, JsonNode? layout) in layouts)
+                {
+                    ValidationOnNavigation? navigation = layout?["data"]?[
+                        "validationOnNavigation"
+                    ]?.Deserialize<ValidationOnNavigation>();
+                    if (navigation is not null)
                     {
-                        PageName = kvp.Key,
-                        Nav = kvp.Value["data"]!["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
-                    })
+                        layoutsWithNavigation.Add((pageName, navigation));
+                    }
+                }
+
+                IEnumerable<PageValidationOnNavigationDto> groups = layoutsWithNavigation
                     .GroupBy(x => new
                     {
-                        Page = x.Nav!.Page ?? string.Empty,
-                        ShowKey = x.Nav.Show != null ? string.Join(",", x.Nav.Show.OrderBy(s => s)) : string.Empty,
+                        Page = x.Navigation.Page ?? string.Empty,
+                        ShowKey = x.Navigation.Show != null
+                            ? string.Join(",", x.Navigation.Show.OrderBy(s => s))
+                            : string.Empty,
                     })
                     .Select(group => new PageValidationOnNavigationDto
                     {
                         Task = layoutSet.Id,
                         Pages = [.. group.Select(x => x.PageName)],
-                        Page = group.First().Nav!.Page!,
-                        Show = group.First().Nav!.Show!.OrderBy(s => s).ToList(),
+                        Page = group.Key.Page,
+                        Show = group.First().Navigation.Show?.OrderBy(s => s).ToList() ?? [],
                     });
 
                 result.AddRange(groups);
@@ -627,8 +638,8 @@ public class AppDevelopmentController : Controller
     /// Updates validationOnNavigation settings for individual pages by writing to each page's layout file.
     /// Pages included in a group get their data.validationOnNavigation set; pages not in any group have it removed.
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="pageSettings">List of page validation groups to update.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost("layout-settings/validation-on-navigation/pages")]
@@ -652,7 +663,7 @@ public class AppDevelopmentController : Controller
 
             foreach (var layoutSet in layoutSetsModel.Sets)
             {
-                Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                Dictionary<string, JsonNode?> layouts = await _appDevelopmentService.GetFormLayouts(
                     editingContext,
                     layoutSet.Id,
                     cancellationToken
@@ -660,14 +671,19 @@ public class AppDevelopmentController : Controller
 
                 var validationGroupsForLayoutSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
 
-                foreach ((string pageName, JsonNode layoutNode) in layouts)
+                foreach ((string pageName, JsonNode? layoutNode) in layouts)
                 {
                     PageValidationOnNavigationDto? matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(
                         g => g.Pages.Contains(pageName)
                     );
 
-                    JsonObject? dataNode = layoutNode?["data"]?.AsObject();
-                    if (dataNode == null)
+                    if (layoutNode is null)
+                    {
+                        continue;
+                    }
+
+                    JsonObject? dataNode = layoutNode["data"]?.AsObject();
+                    if (dataNode is null)
                     {
                         continue;
                     }
@@ -722,8 +738,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get all names of layouts across layoutSets
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A string array of all layout names without file extension in all sets</returns>
     [HttpGet]
@@ -740,8 +756,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets a list of all data model IDs present in application metadata
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="onlyUnReferenced">If true only model IDs without task_id ref in app metadata is returned</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns></returns>
@@ -767,8 +783,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Return JSON presentation of the model
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of current layoutSet in ux-editor that edited layout belongs to</param>
     /// <param name="dataModelName">Name of data model to fetch</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
@@ -795,24 +811,6 @@ public class AppDevelopmentController : Controller
         return Ok(modelMetadata);
     }
 
-    /// <summary>
-    /// Get all layout sets in the layout-set.json file
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The layout-sets.json</returns>
-    [HttpGet]
-    [UseSystemTextJson]
-    [Route("layout-sets")]
-    public async Task<IActionResult> GetLayoutSets(string org, string app, CancellationToken cancellationToken)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        LayoutSets layoutSets = await _appDevelopmentService.GetLayoutSets(editingContext, cancellationToken);
-        return Ok(layoutSets);
-    }
-
     [HttpGet("layout-sets/extended")]
     [UseSystemTextJson]
     public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
@@ -834,7 +832,7 @@ public class AppDevelopmentController : Controller
                 async (layoutSet) =>
                 {
                     LayoutSetDto layoutSetDto = layoutSet.ToDto();
-                    string? layoutSetId = layoutSet?.Id;
+                    string layoutSetId = layoutSet.Id;
                     LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(editingContext, layoutSetId);
                     PagesDto pages = PagesDto.From(layoutSettings);
                     layoutSetDto.PageCount =
@@ -858,7 +856,7 @@ public class AppDevelopmentController : Controller
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        ValidationOnNavigation config = await _appDevelopmentService.GetValidationOnNavigationLayoutSets(
+        ValidationOnNavigation? config = await _appDevelopmentService.GetValidationOnNavigationLayoutSets(
             editingContext,
             cancellationToken
         );
@@ -899,115 +897,10 @@ public class AppDevelopmentController : Controller
     }
 
     /// <summary>
-    /// Add a new layout set
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="layoutSetPayload">Includes the connected taskType and the actual config needed for the layout set to be added to layout-sets.json.</param>
-    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPost]
-    [UseSystemTextJson]
-    [Route("layout-set/{layoutSetIdToUpdate}")]
-    public async Task<ActionResult> AddLayoutSet(
-        string org,
-        string app,
-        [FromBody] LayoutSetPayload layoutSetPayload,
-        CancellationToken cancellationToken
-    )
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(
-            editingContext,
-            layoutSetPayload.LayoutSetConfig,
-            layoutSetPayload.TaskType,
-            cancellationToken
-        );
-        await _mediator.Publish(
-            new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = layoutSetPayload.LayoutSetConfig },
-            cancellationToken
-        );
-        return Ok(layoutSets);
-    }
-
-    /// <summary>
-    /// Updates the layout set name for an existing layout set
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="layoutSetIdToUpdate">The layout set id to update</param>
-    /// <param name="newLayoutSetName">The new id for the layout set</param>
-    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPut]
-    [UseSystemTextJson]
-    [Route("layout-set/{layoutSetIdToUpdate}")]
-    public async Task<ActionResult> UpdateLayoutSetName(
-        string org,
-        string app,
-        [FromRoute] string layoutSetIdToUpdate,
-        [FromBody] string newLayoutSetName,
-        CancellationToken cancellationToken
-    )
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-        LayoutSets layoutSets = await _appDevelopmentService.UpdateLayoutSetName(
-            editingContext,
-            layoutSetIdToUpdate,
-            newLayoutSetName,
-            cancellationToken
-        );
-        await _mediator.Publish(
-            new LayoutSetIdChangedEvent
-            {
-                EditingContext = editingContext,
-                LayoutSetName = layoutSetIdToUpdate,
-                NewLayoutSetName = newLayoutSetName,
-            },
-            cancellationToken
-        );
-        return Ok(layoutSets);
-    }
-
-    /// <summary>
-    /// Delete an existing layout set
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="layoutSetIdToUpdate">The id of the layout set to delete</param>
-    /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpDelete]
-    [UseSystemTextJson]
-    [Route("layout-set/{layoutSetIdToUpdate}")]
-    public async Task<ActionResult> DeleteLayoutSet(
-        string org,
-        string app,
-        [FromRoute] string layoutSetIdToUpdate,
-        CancellationToken cancellationToken
-    )
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-
-        await _mediator.Publish(
-            new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetIdToUpdate },
-            cancellationToken
-        );
-
-        LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(
-            editingContext,
-            layoutSetIdToUpdate,
-            cancellationToken
-        );
-
-        return Ok(layoutSets);
-    }
-
-    /// <summary>
     /// Get rule handler in JSON structure
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -1044,8 +937,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Save rule handler in JSON structure
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of the layout set the specific rule handler belong to</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -1080,8 +973,8 @@ public class AppDevelopmentController : Controller
     /// Save rule configuration
     /// </summary>
     /// <param name="ruleConfig">The code list data to save</param>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>A success message if the save was successful</returns>
@@ -1112,8 +1005,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Get rule configuration
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="layoutSetName">Name of layout set</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     /// <returns>The model representation as JSON</returns>
@@ -1151,8 +1044,8 @@ public class AppDevelopmentController : Controller
     /// <summary>
     /// Gets widget settings for app
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The widget settings for the app.</returns>
     [HttpGet]
     [Route("widget-settings")]
@@ -1166,16 +1059,21 @@ public class AppDevelopmentController : Controller
     }
 
     [HttpGet("app-version")]
-    public VersionResponse GetAppVersion(string org, string app)
+    public ActionResult<VersionResponse> GetAppVersion(string org, string app)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-        var backendVersion = _appDevelopmentService.GetAppLibVersion(editingContext);
-        string frontendVersion;
+        SemanticVersion backendVersion = _appVersionService.GetAppLibVersion(editingContext);
+        if (backendVersion is null)
+        {
+            return NotFound();
+        }
+
+        string? frontendVersion;
 
         // For v9 apps and onwards, Index.cshtml no longer exists and frontend major version aligns with backend major version.
-        if (backendVersion?.Major >= 9)
+        if (backendVersion.Major >= 9)
         {
             frontendVersion = backendVersion.Major.ToString();
         }
@@ -1184,6 +1082,6 @@ public class AppDevelopmentController : Controller
             _appDevelopmentService.TryGetFrontendVersion(editingContext, out frontendVersion);
         }
 
-        return new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion };
+        return Ok(new VersionResponse { BackendVersion = backendVersion, FrontendVersion = frontendVersion });
     }
 }

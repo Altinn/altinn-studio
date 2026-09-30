@@ -5,9 +5,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import userEvent from '@testing-library/user-event';
+import type { UserEvent } from '@testing-library/user-event';
+import { StudioDropdown } from '@studio/components';
 
 const menuItemName: string = 'testMenuItem';
 const menuItemLink: string = '/test-path';
+const triggerButtonText: string = 'openMenu';
 const mockMenuItem: NavigationMenuSmallItem = {
   name: menuItemName,
   action: {
@@ -18,70 +21,57 @@ const mockMenuItem: NavigationMenuSmallItem = {
   isBeta: false,
 };
 
-const mockOnClick = jest.fn();
 const defaultProps: SmallHeaderMenuItemProps = {
   menuItem: mockMenuItem,
-  onClick: mockOnClick,
 };
 
 describe('SmallHeaderMenuItem', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('should render a NavLink when the menuItem action type is "link"', () => {
-    renderSmallHeaderMenuItem();
+  it('should render a NavLink when the menuItem action type is "link"', async () => {
+    await renderSmallHeaderMenuItem();
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
+    const linkElement = getMenuItem();
     expect(linkElement).toBeInTheDocument();
     expect(linkElement).toHaveAttribute('href', menuItemLink);
   });
 
-  it('should add "active" class when the current route matches the menuItem href', () => {
-    renderSmallHeaderMenuItem({
+  it('should add "active" class when the current route matches the menuItem href', async () => {
+    await renderSmallHeaderMenuItem({
       routerInitialEntries: [menuItemLink],
     });
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
-    expect(linkElement).toHaveClass('active');
+    expect(getMenuItem()).toHaveClass('active');
   });
 
-  it('should add "isBeta" class when menuItem is beta', () => {
-    renderSmallHeaderMenuItem({
+  it('should add "isBeta" class when menuItem is beta', async () => {
+    await renderSmallHeaderMenuItem({
       componentProps: { menuItem: { ...mockMenuItem, isBeta: true } },
     });
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
-    expect(linkElement).toHaveClass('isBeta');
+    expect(getMenuItem()).toHaveClass('isBeta');
   });
 
-  it('should not add "isBeta" class by default', () => {
-    renderSmallHeaderMenuItem();
+  it('should not add "isBeta" class by default', async () => {
+    await renderSmallHeaderMenuItem();
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
-    expect(linkElement).not.toHaveClass('isBeta');
+    expect(getMenuItem()).not.toHaveClass('isBeta');
   });
 
-  it('should call onClick when the NavLink is clicked', async () => {
+  it('should close the menu when the NavLink is clicked', async () => {
     const user = userEvent.setup();
-    renderSmallHeaderMenuItem();
+    await renderSmallHeaderMenuItem({ user });
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock(menuItemName),
-    });
-    await user.click(linkElement);
+    const trigger = screen.getByRole('button', { name: triggerButtonText });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
 
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
+    await user.click(getMenuItem());
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('should open the link in a new tab when openInNewTab is true', () => {
-    renderSmallHeaderMenuItem({
+  it('should open the link in a new tab when openInNewTab is true', async () => {
+    await renderSmallHeaderMenuItem({
       componentProps: {
         menuItem: {
           ...mockMenuItem,
@@ -94,28 +84,36 @@ describe('SmallHeaderMenuItem', () => {
       },
     });
 
-    const linkElement = screen.getByRole('menuitem', {
-      name: textMock('testMenuItem'),
-    });
+    const linkElement = getMenuItem();
     expect(linkElement).toHaveAttribute('target', '_blank');
     expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });
 
+const getMenuItem = (): HTMLElement =>
+  screen.getByRole('menuitem', { name: textMock(menuItemName) });
+
 type Props = {
   componentProps: Partial<SmallHeaderMenuItemProps>;
   routerInitialEntries?: string[];
+  user: UserEvent;
 };
 
-const renderSmallHeaderMenuItem = ({
+const renderSmallHeaderMenuItem = async ({
   componentProps,
   routerInitialEntries = ['/'],
-}: Partial<Props> = {}) => {
-  return render(
+  user = userEvent.setup(),
+}: Partial<Props> = {}): Promise<void> => {
+  render(
     <MemoryRouter initialEntries={routerInitialEntries}>
       <PageHeaderContext.Provider value={{ variant: 'regular' }}>
-        <SmallHeaderMenuItem {...defaultProps} {...componentProps} />
+        <StudioDropdown triggerButtonText={triggerButtonText}>
+          <StudioDropdown.List>
+            <SmallHeaderMenuItem {...defaultProps} {...componentProps} />
+          </StudioDropdown.List>
+        </StudioDropdown>
       </PageHeaderContext.Provider>
     </MemoryRouter>,
   );
+  await user.click(screen.getByRole('button', { name: triggerButtonText }));
 };

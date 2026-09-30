@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 import { createStore } from 'zustand';
+import type { IGroupEditProperties } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useAttachmentDeletionInRepGroups } from 'src/features/attachments/useAttachmentDeletionInRepGroups';
@@ -14,7 +15,6 @@ import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenB
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { CompInternal } from 'src/layout/layout';
-import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 import type { RepGroupRow, RepGroupRowWithButtons } from 'src/layout/RepeatingGroup/utils';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -26,6 +26,7 @@ interface Store {
   deletingIds: string[];
   addingIds: string[];
   currentPage: number | undefined;
+  deletedRowsCount: number;
 }
 
 interface ZustandHiddenMethods {
@@ -205,6 +206,7 @@ function newStore({ baseComponentId, getRows, editMode, pagination }: NewStorePr
     deletingIds: [],
     addingIds: [],
     currentPage: pagination ? 0 : undefined,
+    deletedRowsCount: 0,
 
     closeForEditing: (row) => {
       set((state) => {
@@ -286,11 +288,13 @@ function newStore({ baseComponentId, getRows, editMode, pagination }: NewStorePr
           return state;
         }
         const deletingIds = [...state.deletingIds.slice(0, i), ...state.deletingIds.slice(i + 1)];
+        const deletedRowsCount = successful ? state.deletedRowsCount + 1 : state.deletedRowsCount;
         if (isEditing && successful) {
-          return { editingId: undefined, deletingIds };
+          return { editingId: undefined, deletingIds, deletedRowsCount };
         }
         return {
           deletingIds,
+          deletedRowsCount,
           editingId: isEditing && successful ? undefined : state.editingId,
         };
       });
@@ -441,11 +445,13 @@ export const RepGroupContext = {
     const rawOpenNextForEditing = ZStore.useStaticSelector((state) => state.openNextForEditing);
     const maybeValidateRow = useMaybeValidateRow();
 
-    return async () => {
+    // Returns true when the next row was opened, false when validation blocked it (row stays open).
+    return async (): Promise<boolean> => {
       if (await maybeValidateRow()) {
-        return;
+        return false;
       }
       rawOpenNextForEditing();
+      return true;
     };
   },
   useCloseForEditing() {
@@ -453,12 +459,14 @@ export const RepGroupContext = {
     const maybeValidateRow = useMaybeValidateRow();
     const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
 
-    return async (row: BaseRow) => {
+    // Returns true when the row was closed, false when validation blocked it (row stays open).
+    return async (row: BaseRow): Promise<boolean> => {
       if (await maybeValidateRow()) {
-        return;
+        return false;
       }
       setRowValidationMask(row.uuid, undefined);
       rawCloseForEditing(row);
+      return true;
     };
   },
   useChangePage() {

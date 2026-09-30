@@ -9,7 +9,7 @@ import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 
 describe('InstantiateHeader', () => {
-  it('should not show organisation name when profile has party, and party has organisation with name', async () => {
+  it('should not show organization name when profile has party, and party has organization with name', async () => {
     const profile = getProfileMock();
     const org = getOrganisationMock();
     profile.party!.organization = org;

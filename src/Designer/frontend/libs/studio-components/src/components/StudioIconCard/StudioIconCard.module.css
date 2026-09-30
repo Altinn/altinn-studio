@@ -102,3 +102,8 @@
 .title {
   letter-spacing: var(--ds-size-0);
 }
+
+.popoverContainer > * {
+  width: 100%;
+  justify-content: flex-start;
+}

@@ -40,7 +40,7 @@ public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
 
     public KeywordConstraint GetConstraint(
         SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
+        ReadOnlySpan<KeywordConstraint> localConstraints,
         EvaluationContext context
     )
     {
@@ -100,7 +100,6 @@ public sealed class InfoKeyword : IJsonSchemaKeyword, IEquatable<InfoKeyword>
         /// </summary>
         public override void Write(Utf8JsonWriter writer, InfoKeyword value, JsonSerializerOptions options)
         {
-            writer.WritePropertyName(Name);
             writer.WriteValue(value.Value);
         }
     }

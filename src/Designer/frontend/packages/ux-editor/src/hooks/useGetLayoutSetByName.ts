@@ -1,5 +1,5 @@
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 type UseGetLayoutSetByName = {
   name: string;
@@ -11,7 +11,7 @@ export const useGetLayoutSetByName = ({
   name,
   org,
   app,
-}: UseGetLayoutSetByName): LayoutSet | null => {
+}: UseGetLayoutSetByName): LayoutSetConfig | null => {
   const { data: layoutSetsResponse } = useLayoutSetsQuery(org, app);
-  return layoutSetsResponse?.sets.find((set) => set.id === name);
+  return layoutSetsResponse?.find((set) => set.id === name);
 };

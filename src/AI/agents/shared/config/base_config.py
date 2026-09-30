@@ -1,114 +1,106 @@
 """Base configuration"""
+
 import os
 import tempfile
 from pathlib import Path
+from typing import ClassVar
+
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 
 class BaseConfig:
-    """Base configuration class"""
-
-    # Project paths
-    PROJECT_ROOT = Path(__file__).parent.parent.parent
-    LOG_DIR = PROJECT_ROOT / "logs"
-
-    # Environment
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-    # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    # API server settings
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
-    # Gitea integration for agent branch pushes
     GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal/repos")
 
-    # CORS settings for frontend connections
-    CORS_ORIGINS = [
+    CORS_ORIGINS: ClassVar[list[str]] = [
         "http://localhost:3000",  # React dev server
         "http://localhost:5173",  # Vite dev server
         "http://localhost:8080",  # Alternative frontend port
-        "http://studio.localhost" # Studio frontend
+        "http://studio.localhost",  # Studio frontend
     ]
 
-    # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://host.docker.internal:8070/sse")
-    MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
-
-    # LLM configuration - Azure OpenAI preferred
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://rndlabaidemoss0618689180.openai.azure.com/")
-    AZURE_ANTHROPIC_ENDPOINT = os.getenv("AZURE_ANTHROPIC_ENDPOINT", "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/")
+    AZURE_ANTHROPIC_API_KEY = os.getenv("AZURE_ANTHROPIC_API_KEY") or os.getenv("AZURE_API_KEY")
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://altinn-studio-assistant.openai.azure.com/")
+    # Anthropic is only on the older resource; the EU data zone one has OpenAI alone.
+    AZURE_ANTHROPIC_ENDPOINT = os.getenv(
+        "AZURE_ANTHROPIC_ENDPOINT",
+        "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/",
+    )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
-    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-4o-mini-2M-tps")
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
 
-    # Fallback to OpenAI if Azure not configured
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
+    # Reviews the eval report; not in the agent's path.
+    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-5.6-sol")
+    LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
 
-    # Multi-model configuration for different agent roles
-    # Planner: Complex reasoning, multi-step planning
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5")
-    LLM_VERSION_PLANNER = os.getenv("LLM_VERSION_PLANNER", "2025-08-07")
-    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # Use model default
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
+    LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
-    # Tool Planner: Tool selection and query generation
-    LLM_MODEL_TOOL_PLANNER = os.getenv("LLM_MODEL_TOOL_PLANNER", "gpt-4o-2M-tps")
-    LLM_VERSION_TOOL_PLANNER = os.getenv("LLM_VERSION_TOOL_PLANNER", "2025-09-15")
-    LLM_TEMPERATURE_TOOL_PLANNER = os.getenv("LLM_TEMPERATURE_TOOL_PLANNER")
-    LLM_TOOL_PLANNER_USE_COMPLETIONS = os.getenv("LLM_TOOL_PLANNER_USE_COMPLETIONS", "false").lower() == "true"
-    LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.6-terra")
 
-    # Actor: Precise code generation (Claude recommended)
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.2")
-    LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR", "2025-04-14")
-    LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))
+    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
+    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
 
-    # Reviewer: Code review and validation
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-4o-2M-tps")
-    LLM_VERSION_REVIEWER = os.getenv("LLM_VERSION_REVIEWER", "2024-11-20")
-    LLM_TEMPERATURE_REVIEWER = float(os.getenv("LLM_TEMPERATURE_REVIEWER", "0.0"))
+    PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
+    PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
+    PREVIEW_STUDIO_USER = os.getenv("PREVIEW_STUDIO_USER", "localgiteaadmin")
+    PREVIEW_HOST_RESOLVER_RULES = os.getenv("PREVIEW_HOST_RESOLVER_RULES", "")
 
-    # Verifier: Deterministic checks
-    LLM_MODEL_VERIFIER = os.getenv("LLM_MODEL_VERIFIER", "gpt-4o-mini-2M-tps")
-    LLM_VERSION_VERIFIER = os.getenv("LLM_VERSION_VERIFIER", "2024-07-18")
-    LLM_TEMPERATURE_VERIFIER = float(os.getenv("LLM_TEMPERATURE_VERIFIER", "0.0"))
-
-    # Assistant: Q&A chat
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "o3")
-    LLM_VERSION_ASSISTANT = os.getenv("LLM_VERSION_ASSISTANT")
-    LLM_TEMPERATURE_ASSISTANT = os.getenv("LLM_TEMPERATURE_ASSISTANT")  # Some models don't support custom temperature
-
-    # Attachment storage
     _DEFAULT_ATTACHMENTS_PATH = Path(tempfile.gettempdir()) / "altinity_agent_attachments"
     ATTACHMENTS_ROOT = Path(os.getenv("AGENT_ATTACHMENTS_PATH", str(_DEFAULT_ATTACHMENTS_PATH)))
 
-    # Langfuse configuration
+    PROJECT_ROOT = Path(__file__).parent.parent.parent
+    LAYOUT_SCHEMA_V9_DIR = (
+        PROJECT_ROOT.parent.parent / "common" / "ts" / "layout-contract" / "schemas" / "json" / "layout"
+    )
+
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")  # Use cloud by default, or self-hosted URL
+    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
-    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1.1")  # Version/release tag for traces
-    LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment
-
-    # Created in Langfuse UI and paste the UUIDs here.
-    # They enable structured, objective quality measurement across traces.
-    LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA = os.getenv("LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA", "")
-    LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION = os.getenv("LANGFUSE_SCORE_CONFIG_PATCH_VALIDATION", "")
-    LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT = os.getenv("LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT", "")
-    LANGFUSE_SCORE_CONFIG_INTENT_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_INTENT_MATCH", "")
-    LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION = os.getenv("LANGFUSE_SCORE_CONFIG_NO_HALLUCINATION", "")
-    LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH = os.getenv("LANGFUSE_SCORE_CONFIG_IMPLEMENTATION_MATCH", "")
+    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "assistant-agents")
+    LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)
+    LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
 
 
 def get_config() -> BaseConfig:
-    """Get configuration instance"""
     return BaseConfig()
+
+
+ROLE_MODEL_CONFIG_KEYS = {
+    "actor": "LLM_MODEL_ACTOR",
+    "planner": "LLM_MODEL_PLANNER",
+    "reviewer": "LLM_MODEL_REVIEWER",
+    "assistant": "LLM_MODEL_ASSISTANT",
+}
+
+# The role LLMClient has no branch for, reached by get_llm_client() with no role.
+DEFAULT_ROLE = "default"
+
+
+def default_role_model() -> str:
+    """What the default role runs on: the model LLMClient picks with no role."""
+    config = get_config()
+    return config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL
+
+
+def resolved_role_models() -> dict[str, str]:
+    """The model each role resolves to, as this process is configured."""
+    config = get_config()
+    models = {role: getattr(config, key) for role, key in ROLE_MODEL_CONFIG_KEYS.items()}
+    models[DEFAULT_ROLE] = default_role_model()
+    return models

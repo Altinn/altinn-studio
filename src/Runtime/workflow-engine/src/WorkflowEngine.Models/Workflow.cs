@@ -28,7 +28,7 @@ public sealed record Workflow : PersistentItem
     /// <summary>
     /// Opaque context passed to command handlers at execution time.
     /// The engine stores but never inspects this. Handlers deserialize what they need.
-    /// Example: {"lockToken":"...", "actor":{...}, "commandEndpoint":"..."}
+    /// Example: {"actor":{...}, "commandEndpoint":"..."}
     /// </summary>
     public JsonElement? Context { get; init; }
 
@@ -43,6 +43,15 @@ public sealed record Workflow : PersistentItem
     /// Set by the engine based on the active <see cref="Step.RetryStrategy"/>.
     /// </summary>
     public DateTimeOffset? BackoffUntil { get; set; }
+
+    /// <summary>
+    /// Scheduling gate written by the failure-storm throttling circuit breaker: while set to a
+    /// future time, the fetch query skips this workflow (only when throttling is enabled).
+    /// A gate parallel to <see cref="BackoffUntil"/>, never a replacement — <see cref="BackoffUntil"/>
+    /// stays purely the retry/schedule clock, so throttle effects remain identifiable and undoable.
+    /// <c>null</c> when the workflow is not throttled.
+    /// </summary>
+    public DateTimeOffset? ThrottledUntil { get; set; }
 
     /// <summary>
     /// Last time the owning worker proved liveness for this workflow.
@@ -61,7 +70,7 @@ public sealed record Workflow : PersistentItem
     /// Per-fetch lease identifier. <c>null</c> until the workflow is first fetched; a fresh token is
     /// then issued on every fetch by the engine and asserted on heartbeat and write-back to prevent
     /// a stale worker from writing over a workflow that has been reclaimed by another host. Cleared
-    /// on every transition out of <c>Processing</c> (terminal write-back, resume, poison abandon,
+    /// on every transition out of <c>Processing</c> (terminal write-back, resume, poisoned failure,
     /// stale reclaim) to maintain the invariant "<c>LeaseToken IS NOT NULL iff Status = Processing</c>",
     /// which is what makes a frozen owner's later CAS fail deterministically.
     /// </summary>
@@ -105,7 +114,40 @@ public sealed record Workflow : PersistentItem
     /// </summary>
     public string? InitialState { get; init; }
 
-    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    /// <summary>
+    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),
+    /// persisted verbatim. <c>false</c> identifies workflows deliberately invisible to collection
+    /// head tracking (e.g. non-blocking side chains), so status consumers and telemetry can tell
+    /// them apart from head workflows without inspecting operation ids; <c>null</c> means natural
+    /// leaf detection applied at enqueue.
+    /// </summary>
+    public bool? IsHead { get; init; }
+
+    /// <summary>
+    /// The mailbox this workflow receives from, or <c>null</c> on every ordinary workflow. The position is
+    /// deliberately not here: it lives on the receivers registry, costing the hot enqueue <c>COPY</c> one
+    /// nullable column rather than two.
+    /// </summary>
+    public Guid? MailboxId { get; init; }
+
+    /// <summary>
+    /// When a worker most recently began processing this workflow. Stamped on every attempt and persisted
+    /// by that attempt's write-backs. <c>null</c> whenever the workflow is <see cref="PersistentItemStatus.Enqueued"/>
+    /// — before the first attempt, and again after resume, a stale reclaim or dependency recovery return it
+    /// there — and, on a persisted read, still null for a <see cref="PersistentItemStatus.Processing"/>
+    /// workflow whose attempt has not written back yet. The gap from
+    /// <see cref="PersistentItem.CreatedAt"/> is queue wait, and on a settled workflow
+    /// the gap to <see cref="PersistentItem.UpdatedAt"/> is the last attempt's processing time — which is
+    /// why consumers must not substitute <c>CreatedAt</c> for it.
+    /// </summary>
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
+
+    /// <summary>
+    /// Failure classification for the current in-memory attempt, used to tag the
+    /// workflow-failure metric (e.g. <c>wait_expired</c> vs the default <c>execution</c>).
+    /// Not persisted.
+    /// </summary>
+    internal string? FailureReason { get; set; }
 
     /// <inheritdoc/>
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";

@@ -2,7 +2,7 @@ import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
 import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { Alert, Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph, StudioAlert } from '@studio/components';
 import { FormLayoutWarning } from './FormLayoutWarning';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItem } from './AddItem';
@@ -38,8 +38,8 @@ export const FormLayout = ({ layout, isInvalid, duplicateComponents }: FormLayou
 const MultiPageWarning = () => {
   const { t } = useTranslation();
   return (
-    <Alert severity='warning'>
-      <Paragraph size='small'>{t('ux_editor.multi_page_warning')}</Paragraph>
-    </Alert>
+    <StudioAlert data-color='warning'>
+      <StudioParagraph>{t('ux_editor.multi_page_warning')}</StudioParagraph>
+    </StudioAlert>
   );
 };

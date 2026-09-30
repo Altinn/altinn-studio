@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Threading.Tasks;
 using Altinn.Platform.Register.Models;
 
@@ -19,7 +21,7 @@ public interface IRegisterService
     /// Party lookup
     /// </summary>
     /// <param name="person">The f or d number to look up</param>
-    /// <param name="orgNo">The organisation number to look up</param>
-    /// <returns>The partyId corresponding to the provided person or organisation</returns>
+    /// <param name="orgNo">The organization number to look up</param>
+    /// <returns>The partyId corresponding to the provided person or organization</returns>
     Task<int> PartyLookup(string person, string orgNo);
 }

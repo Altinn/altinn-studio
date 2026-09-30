@@ -1,48 +1,18 @@
 using Altinn.App.Core.EFormidling.Interface;
-using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Models;
-using Altinn.Common.EFormidlingClient.Models.SBD;
-using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Core.EFormidling.Models.SBD;
+using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.EFormidling.Implementation;
 
 /// <summary>
 /// Default implementation of <see cref="Altinn.App.Core.EFormidling.Interface.IEFormidlingReceivers"/>
 /// </summary>
-public class DefaultEFormidlingReceivers : IEFormidlingReceivers
+internal sealed class DefaultEFormidlingReceivers : IEFormidlingReceivers
 {
-    private readonly IAppMetadata _appMetadata;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultEFormidlingReceivers"/> class.
-    /// </summary>
-    /// <param name="appMetadata">Service for fetching application metadata</param>
-    public DefaultEFormidlingReceivers(IAppMetadata appMetadata)
-    {
-        _appMetadata = appMetadata;
-    }
-
     /// <inheritdoc />
-    public async Task<List<Receiver>> GetEFormidlingReceivers(Instance instance)
+    public Task<List<Receiver>> GetEFormidlingReceivers(IInstanceDataAccessor dataAccessor, string? receiverFromConfig)
     {
-        ArgumentNullException.ThrowIfNull(instance);
-
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
-
-        if (string.IsNullOrWhiteSpace(appMetadata.EFormidling?.Receiver))
-        {
-            return new List<Receiver>();
-        }
-
-        string receiver = appMetadata.EFormidling.Receiver.Trim();
-
-        return CreateReceiverList(receiver);
-    }
-
-    /// <inheritdoc />
-    public Task<List<Receiver>> GetEFormidlingReceivers(Instance instance, string? receiverFromConfig)
-    {
-        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataAccessor);
 
         if (string.IsNullOrWhiteSpace(receiverFromConfig))
         {
@@ -58,7 +28,7 @@ public class DefaultEFormidlingReceivers : IEFormidlingReceivers
     {
         var identifier = new Identifier
         {
-            // 0192 prefix for all Norwegian organisations.
+            // 0192 prefix for all Norwegian organizations.
             Value = $"0192:{receiver}",
             Authority = "iso6523-actorid-upis",
         };

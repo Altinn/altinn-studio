@@ -1,0 +1,8 @@
+[
+  { "id": "message", "dataType": "message", "taskId": "Task_1" },
+  { "id": "changename", "dataType": "ServiceModel-test", "taskId": "Task_2" },
+  { "id": "group", "dataType": "nested-group", "taskId": "Task_3" },
+  { "id": "likert", "dataType": "likert", "taskId": "Task_4" },
+  { "id": "datalist", "dataType": "datalist", "taskId": "Task_5" },
+  { "id": "receipt", "dataType": "receiptDataType", "taskId": "CustomReceipt" }
+]

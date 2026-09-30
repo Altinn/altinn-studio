@@ -3,15 +3,21 @@ import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
-import { useUpdateValidationOnNavigationLayoutSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useUpdateValidationOnNavigationLayoutSettingsMutation';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
+import { useValidationOnNavigationQuery } from '../../../../../hooks/queries/useValidationOnNavigationQuery';
+import { useValidationOnNavigationMutation } from '../../../../../hooks/mutations/useValidationOnNavigationMutation';
 
 export const ValidateSelectedTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: settingsValidationData } = useValidationOnNavigationGroupedSettingsQuery(org, app);
-  const { mutate: updateSettings } = useUpdateValidationOnNavigationLayoutSettingsMutation(
+  const { data: settingsValidationData } = useValidationOnNavigationQuery(
     org,
     app,
+    ValidationOnNavigationLevel.LayoutSets,
+  );
+  const { mutate: saveSettings } = useValidationOnNavigationMutation(
+    org,
+    app,
+    ValidationOnNavigationLevel.LayoutSets,
   );
 
   const internalConfigs = useConvertToInternalConfig(settingsValidationData ?? []);
@@ -23,13 +29,12 @@ export const ValidateSelectedTasksConfig = () => {
     } else {
       updatedInternalConfigs.push(updatedConfig);
     }
-
-    updateSettings(updatedInternalConfigs.map(convertToExternalConfig));
+    saveSettings(updatedInternalConfigs.map(convertToExternalConfig));
   };
 
   const handleDelete = (index: number) => {
-    const newIntConfigs = internalConfigs.filter((_, i) => i !== index);
-    updateSettings(newIntConfigs.map(convertToExternalConfig));
+    const remainingConfigs = internalConfigs.filter((_, i) => i !== index);
+    saveSettings(remainingConfigs.map(convertToExternalConfig));
   };
 
   return (

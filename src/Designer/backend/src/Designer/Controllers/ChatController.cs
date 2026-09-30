@@ -7,7 +7,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Altinity;
+using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/chat")]
-public class ChatController(IChatService chatService, IAltinityAgentClient altinityAgentClient) : ControllerBase
+public class ChatController(IChatService chatService, IAssistantServiceClient assistantClient) : ControllerBase
 {
     [HttpGet("threads")]
     public async Task<ActionResult<List<ChatThreadEntity>>> GetThreads(
@@ -138,19 +138,36 @@ public class ChatController(IChatService chatService, IAltinityAgentClient altin
     [HttpPut("feedback/{traceId}")]
     [RequestSizeLimit(20_000)]
     public async Task<IActionResult> SubmitFeedback(
+        string org,
+        string app,
         string traceId,
         [FromBody] ChatFeedbackRequest request,
         CancellationToken cancellationToken
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        await altinityAgentClient.SendFeedbackAsync(
-            developer,
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        await assistantClient.SendFeedbackAsync(
+            editingContext.Developer,
             traceId,
             request.ThumbsUp,
             request.Comment,
             cancellationToken
         );
+        await chatService.SetFeedbackAsync(traceId, request.ThumbsUp, editingContext, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("feedback/{traceId}")]
+    public async Task<IActionResult> ClearFeedback(
+        string org,
+        string app,
+        string traceId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnRepoEditingContext editingContext = GetEditingContext(org, app);
+        await assistantClient.ClearFeedbackAsync(editingContext.Developer, traceId, cancellationToken);
+        await chatService.SetFeedbackAsync(traceId, null, editingContext, cancellationToken);
         return NoContent();
     }
 

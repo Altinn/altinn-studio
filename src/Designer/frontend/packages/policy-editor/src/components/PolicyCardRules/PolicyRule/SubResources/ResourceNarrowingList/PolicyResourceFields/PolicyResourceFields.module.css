@@ -1,14 +1,14 @@
 .wrapper {
   display: flex;
   justify-content: space-between;
-  margin-block: var(--fds-spacing-3);
+  margin-block: var(--ds-size-3);
 }
 
 .inputWrapper {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  margin-right: var(--fds-spacing-1);
+  margin-right: var(--ds-size-1);
 }
 
 .textfieldWrapper {
@@ -16,9 +16,9 @@
 }
 
 .buttonWrapper {
-  width: var(--fds-spacing-8);
+  width: var(--ds-size-8);
 }
 
 .label {
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--ds-size-2);
 }

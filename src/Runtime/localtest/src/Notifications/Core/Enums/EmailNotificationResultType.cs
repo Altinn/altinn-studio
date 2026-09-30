@@ -1,4 +1,6 @@
-﻿namespace Altinn.Notifications.Core.Enums;
+#nullable disable
+
+namespace Altinn.Notifications.Core.Enums;
 
 /// <summary>
 /// Enum describing email notification result types
@@ -46,9 +48,9 @@ public enum EmailNotificationResultType
     Failed_InvalidEmailFormat,
 
     /// <summary>
-    /// Recipient supressed by email service
+    /// Recipient suppressed by email service
     /// </summary>
-    Failed_SupressedRecipient,
+    Failed_SuppressedRecipient,
 
     /// <summary>
     /// Transient error, retry later

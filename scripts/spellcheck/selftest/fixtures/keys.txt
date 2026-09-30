@@ -1,0 +1,32 @@
+# Fixture key declarations for the self-test. Each declaration kind is
+# planted next to a live defect of the same class in the lang fixtures, so
+# the checks prove they honor a declaration without going blind:
+#
+#   planted.empty_ok is declared empty while planted.empty_in_nb stays
+#   flagged; planted.organisation_key_ok is a declared key contract while
+#   planted.colour_key stays flagged; planted.nynorsk_ok re-routes a nynorsk
+#   value out of the bokmål pipeline while planted.norwegian_typo stays
+#   flagged in both. The ghost entries match nothing and must be reported
+#   as stale by the checks that run stale detection here (structure, en).
+
+@files scripts/spellcheck/selftest/fixtures/lang/fixture-nb.json
+@empty
+planted.empty_ok
+
+# stale plant: no such key exists
+@files scripts/spellcheck/selftest/fixtures/lang/fixture-nb.json
+@empty
+planted.ghost_empty
+
+@files scripts/spellcheck/selftest/fixtures/lang/*.json
+@key-contract
+planted.organisation_key_ok
+
+# stale plant: no such key exists
+@files scripts/spellcheck/selftest/fixtures/lang/*.json
+@key-contract
+planted.ghost_key
+
+@files scripts/spellcheck/selftest/fixtures/lang/fixture-nb.json
+@language nn
+planted.nynorsk_ok

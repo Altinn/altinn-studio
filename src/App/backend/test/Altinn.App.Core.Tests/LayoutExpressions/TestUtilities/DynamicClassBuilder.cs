@@ -2,7 +2,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -109,13 +112,23 @@ public class DynamicClassBuilder
 
     private static Type GetArrayType(JsonElement arrayElement, string propertyName, ModuleBuilder moduleBuilder)
     {
-        if (arrayElement.GetArrayLength() == 0)
+        if (arrayElement.GetArrayLength() == 0 || HasDifferentTypes(arrayElement))
         {
             return typeof(object);
         }
 
         var firstElement = arrayElement[0];
         return GetTypeFromJsonElement(firstElement, propertyName + "Item", moduleBuilder);
+    }
+
+    private static bool HasDifferentTypes(JsonElement arrayElement)
+    {
+        if (arrayElement.GetArrayLength() == 0)
+        {
+            return false;
+        }
+        var types = arrayElement.EnumerateArray().Select(element => element.ValueKind).ToArray();
+        return types.Distinct().Count() > 1;
     }
 
     private static readonly JsonSerializerOptions _options = new JsonSerializerOptions()
@@ -136,21 +149,51 @@ public class DynamicClassBuilder
 
     public static IInstanceDataAccessor DataAccessorFromJsonDocument(
         Instance instance,
+        ITranslationService? translationService,
+        LayoutModel? layout,
+        FrontEndSettings? frontEndSettings,
         JsonElement doc,
+        string? gatewayAction,
+        string? language,
         DataElement? dataElement = null
     )
     {
         object data = DataObjectFromJsonDocument(doc);
-        var dataAccessor = new InstanceDataAccessorFake(instance, applicationMetadata: null) { { dataElement, data } };
+        var dataAccessor = new InstanceDataAccessorFake(
+            instance,
+            applicationMetadata: null,
+            translationService: translationService,
+            layout: layout,
+            frontEndSettings: frontEndSettings,
+            gatewayAction: gatewayAction,
+            language: language,
+            defaultTaskId: instance.Process?.CurrentTask?.ElementId ?? "Task_1"
+        )
+        {
+            { dataElement, data },
+        };
         return dataAccessor;
     }
 
     public static IInstanceDataAccessor DataAccessorFromJsonDocument(
         Instance instance,
-        List<DataModelAndElement> dataModels
+        ITranslationService? translationService,
+        LayoutModel? layout,
+        FrontEndSettings? frontEndSettings,
+        List<DataModelAndElement> dataModels,
+        string? gatewayAction,
+        string? language
     )
     {
-        var dataAccessor = new InstanceDataAccessorFake(instance, applicationMetadata: null);
+        var dataAccessor = new InstanceDataAccessorFake(
+            instance,
+            applicationMetadata: null,
+            translationService: translationService,
+            layout: layout,
+            frontEndSettings: frontEndSettings,
+            gatewayAction: gatewayAction,
+            language: language
+        );
         foreach (var pair in dataModels)
         {
             dataAccessor.Add(pair.DataElement, DataObjectFromJsonDocument(pair.Data));

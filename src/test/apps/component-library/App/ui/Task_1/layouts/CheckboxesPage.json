@@ -10,7 +10,7 @@
       {
         "size": "h2",
         "id": "CheckboxesPage-Header",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "CheckboxesPage"
         }
@@ -18,7 +18,7 @@
       {
         "size": "h3",
         "id": "CheckboxesPage-Header-Component",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Component"
         }
@@ -54,7 +54,7 @@
       {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary"
         }
@@ -68,7 +68,7 @@
       {
         "size": "h3",
         "id": "CheckboxesPage-Header-Summary2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Header.Summary2"
         }
@@ -76,7 +76,7 @@
       {
         "size": "h4",
         "id": "CheckboxesPage-Header-Summary2-Display-Auto",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "displayType: NULL (Auto)"
         }
@@ -93,7 +93,7 @@
       {
         "size": "h4",
         "id": "CheckboxesPage-Header-Summary2-Display-String",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "displayType: String"
         }
@@ -116,7 +116,7 @@
       {
         "size": "h4",
         "id": "CheckboxesPage-Header-Summary2-Display-List",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "displayType: List"
         }
@@ -139,7 +139,7 @@
       {
         "size": "h2",
         "id": "CheckboxesPage-Header2",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Avkryssningsbokser mot datamodell"
         }
@@ -194,7 +194,7 @@
       },
       {
         "id": "CheckboxesPage-Header-Summary-Component2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary"
@@ -207,7 +207,7 @@
       },
       {
         "id": "CheckboxesPage-Header-Summary2-Component2",
-        "type": "Header",
+        "type": "Heading",
         "size": "h3",
         "textResourceBindings": {
           "title": "Header.Summary2"
@@ -224,7 +224,6 @@
       },
       {
         "id": "CheckboxesPage-NavigationButtons",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

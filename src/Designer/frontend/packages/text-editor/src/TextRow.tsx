@@ -3,13 +3,12 @@ import classes from './TextRow.module.css';
 import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { TrashIcon, PencilIcon } from '@studio/icons';
-import { Table } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioTable, StudioTextfield } from '@studio/components';
 
 export interface TextRowProps {
   idExists: (newTextId: string, oldTextId: string) => boolean;
@@ -64,8 +63,8 @@ export const TextRow = ({
   };
 
   return (
-    <Table.Row>
-      <Table.Cell>
+    <StudioTable.Row>
+      <StudioTable.Cell>
         {showDeleteButton && (
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
@@ -84,7 +83,7 @@ export const TextRow = ({
             <p>{t('schema_editor.textRow-deletion-text')}</p>
           </AltinnConfirmDialog>
         )}
-      </Table.Cell>
+      </StudioTable.Cell>
       {selectedLanguages.map((lang) => {
         let translation = textRowEntries.find((e) => e.lang === lang);
         if (!translation) {
@@ -94,7 +93,7 @@ export const TextRow = ({
           };
         }
         return (
-          <Table.Cell
+          <StudioTable.Cell
             key={translation.lang + '-' + textId}
             className={`${classes.textAreaCell} ${classes.cellContent}`}
           >
@@ -104,10 +103,10 @@ export const TextRow = ({
               textId={textId}
               className={classes.textEntryComponent}
             />
-          </Table.Cell>
+          </StudioTable.Cell>
         );
       })}
-      <Table.Cell className={classes.cellContent}>
+      <StudioTable.Cell className={classes.cellContent}>
         <div className={classes.textIdContainer}>
           {textIdEditOpen ? (
             <StudioTextfield
@@ -133,10 +132,10 @@ export const TextRow = ({
             />
           )}
         </div>
-      </Table.Cell>
-      <Table.Cell>
+      </StudioTable.Cell>
+      <StudioTable.Cell>
         <Variables variables={textVariables} />
-      </Table.Cell>
-    </Table.Row>
+      </StudioTable.Cell>
+    </StudioTable.Row>
   );
 };

@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.App.Tests.Fixtures;
@@ -48,12 +47,12 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
     ) => _base.CreateWorkflow(wfRef, steps, dependsOn);
 
     /// <summary>
-    /// Creates an enqueue request with AppCommand-compatible context (includes lockToken, actor, instance info).
+    /// Creates an enqueue request with AppCommand-compatible actor and instance context.
     /// </summary>
-    public static WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, string? lockToken = null) =>
+    public static WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow) =>
         new()
         {
-            Context = CreateAppContext(lockToken),
+            Context = CreateAppContext(),
             Labels = new Dictionary<string, string>
             {
                 ["org"] = EngineAppFixture.DefaultOrg,
@@ -62,14 +61,11 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
             Workflows = [workflow],
         };
 
-    /// <inheritdoc cref="CreateEnqueueRequest(WorkflowRequest, string?)"/>
-    public static WorkflowEnqueueRequest CreateEnqueueRequest(
-        IEnumerable<WorkflowRequest> workflows,
-        string? lockToken = null
-    ) =>
+    /// <inheritdoc cref="CreateEnqueueRequest(WorkflowRequest)"/>
+    public static WorkflowEnqueueRequest CreateEnqueueRequest(IEnumerable<WorkflowRequest> workflows) =>
         new()
         {
-            Context = CreateAppContext(lockToken),
+            Context = CreateAppContext(),
             Labels = new Dictionary<string, string>
             {
                 ["org"] = EngineAppFixture.DefaultOrg,
@@ -84,16 +80,16 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
 
     public Task AssertDbStepCount(int expectedCount) => _base.AssertDbStepCount(expectedCount);
 
-    private static JsonElement CreateAppContext(string? lockToken = null) =>
+    private static JsonElement CreateAppContext() =>
         JsonSerializer.SerializeToElement(
             new AppWorkflowContext
             {
-                Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-                LockToken = lockToken!,
+                Actor = new Actor { OrgId = "test-user" },
                 Org = EngineAppFixture.DefaultOrg,
                 App = EngineAppFixture.DefaultApp,
                 InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, NumberFormatInfo.InvariantInfo),
                 InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+                CallbackToken = "test-callback-token",
             }
         );
 }

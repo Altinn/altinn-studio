@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -19,12 +20,13 @@ public static class PackageVersionHelper
     }
 
     public static bool TryGetPackageVersionFromCsprojContent(
-        string csprojContent,
+        byte[] csprojContent,
         IReadOnlyList<string> packageNames,
         out SemanticVersion version
     )
     {
-        return TryGetPackageVersionFromCsprojXml(XDocument.Parse(csprojContent), packageNames, out version);
+        using var stream = new MemoryStream(csprojContent, writable: false);
+        return TryGetPackageVersionFromCsprojXml(XDocument.Load(stream), packageNames, out version);
     }
 
     private static bool TryGetPackageVersionFromCsprojXml(

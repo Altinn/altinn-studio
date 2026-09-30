@@ -15,7 +15,7 @@ type RenderTaskOptionsProps = {
 const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskOptionsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
-  const layoutSets = layoutSetsSchema?.sets || [];
+  const layoutSets = layoutSetsSchema || [];
   const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, initialSelectedTasks);
 
   return availableTasks.map((task) => (
@@ -41,6 +41,7 @@ export const TaskSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTask}
       label={t('ux_editor.settings.navigation_validation_specific_task_label')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -75,6 +76,7 @@ export const TasksSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTasks}
       label={t('ux_editor.settings.navigation_validation_specific_task_label_several')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -122,6 +124,7 @@ export const PagesSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedPages}
       label={t('ux_editor.settings.navigation_validation_specific_page_label')}
       emptyText={emptyText}

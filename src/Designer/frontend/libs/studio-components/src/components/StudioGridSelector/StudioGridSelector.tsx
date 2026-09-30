@@ -44,8 +44,8 @@ export const StudioGridSelector = ({
     const steps: string[] = [];
     const stepWidth = 100 / 12;
     const gapSize = 0.2;
-    const selectedColor = isHover ? 'var(--hover-square-color)' : 'var(--selected-square-colour)';
-    const unselectedColor = 'var(--unselected-square-colour)';
+    const selectedColor = isHover ? 'var(--hover-square-color)' : 'var(--selected-square-color)';
+    const unselectedColor = 'var(--unselected-square-color)';
     const gapColor = 'white';
 
     for (let i = 1; i <= 12; i++) {

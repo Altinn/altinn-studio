@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +24,8 @@ public interface IInstanceAndEventsRepository
         Instance instance,
         List<string> updateProperties,
         List<InstanceEvent> events,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        int? expectedInstanceVersion = null,
+        int? expectedProcessStateVersion = null
     );
 }

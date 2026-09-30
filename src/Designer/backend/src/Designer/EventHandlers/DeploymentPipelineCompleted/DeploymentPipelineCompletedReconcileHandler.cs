@@ -1,41 +1,31 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
 
 namespace Altinn.Studio.Designer.EventHandlers.DeploymentPipelineCompleted;
 
 public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<Events.DeploymentPipelineCompleted>
 {
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
-    private readonly IFeatureManager _featureManager;
     private readonly ILogger<DeploymentPipelineCompletedReconcileHandler> _logger;
 
     public DeploymentPipelineCompletedReconcileHandler(
         IRuntimeGatewayClient runtimeGatewayClient,
-        IFeatureManager featureManager,
         ILogger<DeploymentPipelineCompletedReconcileHandler> logger
     )
     {
         _runtimeGatewayClient = runtimeGatewayClient;
-        _featureManager = featureManager;
         _logger = logger;
     }
 
     public async Task Handle(Events.DeploymentPipelineCompleted notification, CancellationToken cancellationToken)
     {
         if (!notification.Succeeded)
-        {
-            return;
-        }
-
-        if (!await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
         {
             return;
         }

@@ -47,7 +47,7 @@
       },
       {
         "id": "Header-tNYPtf",
-        "type": "Header",
+        "type": "Heading",
         "textResourceBindings": {
           "title": "Side1.Header-tNYPtf.title"
         },

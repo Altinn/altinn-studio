@@ -1,0 +1,185 @@
+using System.Text.Json.Serialization;
+using Altinn.App.Core.Models.Process;
+
+namespace Altinn.App.Core.Internal.Process.Elements;
+
+/// <summary>
+/// Live workflow-engine status for the instance's current task, layered on top of the
+/// Storage-committed process state. It lets the frontend tell a settled task apart from one where
+/// a transition is still executing (<see cref="WorkflowActivityStatus.Processing"/>) or has failed
+/// and must be retried (<see cref="WorkflowActivityStatus.Failed"/>), rather than having to infer
+/// the truth from a lagging committed state.
+/// </summary>
+public sealed class AppProcessWorkflowStatus
+{
+    /// <summary>
+    /// The live activity status of the current task's transition.
+    /// </summary>
+    [JsonPropertyName("status")]
+    public WorkflowActivityStatus Status { get; init; }
+
+    /// <summary>
+    /// The BPMN element id of the task the in-flight or failed transition is moving toward, when
+    /// known. Omitted when the status is <see cref="WorkflowActivityStatus.Idle"/> or the target
+    /// cannot be resolved.
+    /// </summary>
+    [JsonPropertyName("targetTask")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TargetTask { get; init; }
+
+    /// <summary>
+    /// True when the transition is currently parked between automatic retry attempts (a previous
+    /// attempt failed and the engine will retry it). Only present while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/> - it does not change what a consumer should
+    /// do (wait), but lets a waiting UI explain an unusually long wait honestly ("a step is being
+    /// retried") instead of leaving the user guessing. Omitted when false.
+    /// </summary>
+    [JsonPropertyName("retrying")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Retrying { get; init; }
+
+    /// <summary>
+    /// How many consecutive attempts of the transition's current step have failed and been
+    /// scheduled for automatic retry. Only present while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/>, and unlike <see cref="Retrying"/> it holds
+    /// steady while a retry attempt executes, so a waiting UI can escalate its message for a
+    /// failing transition. Omitted when zero.
+    /// </summary>
+    [JsonPropertyName("failedAttempts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? FailedAttempts { get; init; }
+
+    /// <summary>
+    /// The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
+    /// awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
+    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the
+    /// transition is parked on a deferring task that gave a reason. Presentation-only, like
+    /// <see cref="Retrying"/>: a waiting UI may display it (treating it as a text-resource key
+    /// first, falling back to the literal text), but nothing about the wait changes.
+    /// </summary>
+    [JsonPropertyName("waitingReason")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WaitingReason { get; init; }
+
+    /// <summary>
+    /// Progress through the in-flight transition's workflow steps. Present only while
+    /// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the engine
+    /// reported step counts. Presentation-only: a waiting UI can show "step x of y" movement, but
+    /// the step identities stay internal.
+    /// </summary>
+    [JsonPropertyName("progress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AppProcessWorkflowProgress? Progress { get; init; }
+
+    /// <summary>
+    /// When the in-flight transition was enqueued, on the workflow engine's clock. Present only
+    /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Compare with
+    /// <see cref="CurrentTime"/> to measure elapsed processing time across page reloads.
+    /// </summary>
+    [JsonPropertyName("startedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? StartedAt { get; init; }
+
+    /// <summary>
+    /// When the in-flight transition was last resumed, on the workflow engine's clock. Resume reruns
+    /// the transition in place and keeps <see cref="StartedAt"/>, so a client timing the current run
+    /// starts from this when it is present. Present only while <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Processing"/> and the transition has been resumed.
+    /// </summary>
+    [JsonPropertyName("resumedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? ResumedAt { get; init; }
+
+    /// <summary>
+    /// The workflow engine clock time when its status response was assembled. Present only while
+    /// processing and when supported by the engine. Shares a clock with <see cref="StartedAt"/>,
+    /// so clients can calculate elapsed time without relying on synchronized clocks.
+    /// </summary>
+    [JsonPropertyName("currentTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? CurrentTime { get; init; }
+
+    /// <summary>
+    /// Failure detail. Present only when <see cref="Status"/> is
+    /// <see cref="WorkflowActivityStatus.Failed"/>.
+    /// </summary>
+    [JsonPropertyName("failure")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AppProcessWorkflowFailure? Failure { get; init; }
+}
+
+/// <summary>
+/// Progress through an in-flight transition's workflow steps: <see cref="Completed"/> of
+/// <see cref="Total"/> steps have finished (so execution is on step <c>completed + 1</c>).
+/// </summary>
+public sealed class AppProcessWorkflowProgress
+{
+    /// <summary>
+    /// The number of the transition's steps that have completed.
+    /// </summary>
+    [JsonPropertyName("completed")]
+    public required int Completed { get; init; }
+
+    /// <summary>
+    /// The total number of steps in the transition.
+    /// </summary>
+    [JsonPropertyName("total")]
+    public required int Total { get; init; }
+}
+
+/// <summary>
+/// A slim, consumer-facing projection of a failed process transition: the coarse classification
+/// plus the safe structured facts a support dialogue needs (which workflow, when). The raw error
+/// detail is intentionally never serialized to clients - it originates from exception/callback
+/// messages that can carry internal infrastructure text. It remains available server-side
+/// (callback failure logs and the engine's step error history, keyed by <see cref="WorkflowId"/>).
+/// </summary>
+public sealed class AppProcessWorkflowFailure
+{
+    /// <summary>
+    /// The failure classification.
+    /// </summary>
+    [JsonPropertyName("kind")]
+    public WorkflowFailureKind Kind { get; init; }
+
+    /// <summary>
+    /// The id of the failed workflow - a support reference that lets operations find the failure
+    /// (and its full error history) in the engine. Omitted when unknown.
+    /// </summary>
+    [JsonPropertyName("workflowId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? WorkflowId { get; init; }
+
+    /// <summary>
+    /// When the failure was recorded (the failing step's last error timestamp). Omitted when
+    /// unknown.
+    /// </summary>
+    [JsonPropertyName("occurredAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? OccurredAt { get; init; }
+}
+
+/// <summary>
+/// The consumer-facing activity status of a task's workflow transition. Deliberately coarse:
+/// <see cref="Processing"/> covers the first attempt and every automatic retry, because the
+/// consumer behavior (wait) is identical. The presentation-only
+/// <see cref="AppProcessWorkflowStatus.Retrying"/> hint is the one place retries surface.
+/// </summary>
+[JsonConverter(typeof(JsonCamelCaseEnumConverter))]
+public enum WorkflowActivityStatus
+{
+    /// <summary>
+    /// No workflow is executing or failed for the current task; render normally.
+    /// </summary>
+    Idle,
+
+    /// <summary>
+    /// A transition is executing (first attempt or any automatic retry); the consumer should wait.
+    /// </summary>
+    Processing,
+
+    /// <summary>
+    /// The transition failed terminally and must be retried (resumed) before the process can continue.
+    /// </summary>
+    Failed,
+}

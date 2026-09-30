@@ -76,6 +76,19 @@ const extractArrayCategoryFromPointer = (pointer: string): Keyword.Items | null 
   return category === Keyword.Items ? Keyword.Items : null;
 };
 
+/**
+ * Converts a field's schema pointer to the dot-separated data model binding name used
+ * to reference the field at runtime (the same format used in layout `dataModelBindings`
+ * and in prefill configuration files).
+ */
+export const schemaPointerToDataBindingName = (schemaPointer: string): string => {
+  const ignoredSegments: string[] = [Keyword.Properties, Keyword.Items];
+  return schemaPointer
+    .split('/')
+    .filter((segment) => segment !== ROOT_POINTER && !ignoredSegments.includes(segment))
+    .join('.');
+};
+
 export const changeNameInPointer = (pointer: string, newName: string): string => {
   const parts = pointer.split('/');
   parts.pop();

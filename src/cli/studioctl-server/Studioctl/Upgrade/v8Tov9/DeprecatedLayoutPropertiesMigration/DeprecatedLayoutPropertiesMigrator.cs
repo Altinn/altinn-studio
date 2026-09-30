@@ -1,0 +1,325 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+
+namespace Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
+
+internal sealed record DeprecatedLayoutPropertiesMigrationResult(
+    int FilesChanged,
+    int QueryParametersConverted,
+    int SummaryBindingsConverted,
+    bool ManualActionRequired,
+    IReadOnlyList<string> Warnings
+)
+{
+    public IReadOnlyList<string> FilesRequiringManualWork { get; init; } = [];
+}
+
+/// <summary>
+/// Rewrites the layout properties removed in v9:
+/// <list type="bullet">
+///   <item><c>mapping</c> becomes <c>queryParameters</c> holding <c>["dataModel", "&lt;path&gt;"]</c>
+///   expressions, on option components, <c>List</c> and <c>InstantiationButton</c>.</item>
+///   <item><c>mapping</c> on <c>PaymentDetails</c> becomes <c>refetchDependencies</c>.</item>
+///   <item><c>bindingToShowInSummary</c> on <c>List</c> becomes <c>summaryBinding</c>, which names a key
+///   in <c>dataModelBindings</c> rather than repeating the data model path.</item>
+/// </list>
+/// Instantiating <c>Button</c> components become <c>InstantiationButton</c>; other buttons lose their unused mapping.
+/// </summary>
+internal sealed class DeprecatedLayoutPropertiesMigrator
+{
+    /// <summary>
+    /// Components supporting expression-based query parameters.
+    /// Both spellings of the tagged file upload are listed: <c>FileUploadWithTag</c> is what a v8 layout
+    /// holds, and <c>FileUpload</c> what <see cref="FileUploadWithTagLayoutMigration"/> has already
+    /// rewritten it to by the time this runs. Matching both keeps this migration independent of the order
+    /// the two jobs run in.
+    /// </summary>
+    private static readonly HashSet<string> _componentsWithQueryParameters = new(StringComparer.Ordinal)
+    {
+        "Checkboxes",
+        "Dropdown",
+        "FileUpload",
+        "FileUploadWithTag",
+        "InstantiationButton",
+        "Likert",
+        "LikertItem",
+        "List",
+        "MultipleSelect",
+        "Option",
+        "PaymentDetails",
+        "RadioButtons",
+    };
+
+    /// <summary>Repeating group row markers (<c>[{0}]</c>) an expression resolves on its own.</summary>
+    private static readonly Regex _rowIndexMarkerPattern = new(
+        @"\[\{\d+\}\]",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant
+    );
+
+    private readonly string _projectFolder;
+    private readonly List<string> _warnings = [];
+
+    public DeprecatedLayoutPropertiesMigrator(string projectFolder)
+    {
+        _projectFolder = projectFolder;
+    }
+
+    public async Task<DeprecatedLayoutPropertiesMigrationResult> Migrate()
+    {
+        var workspace = await LayoutMigrationWorkspace.Load(_projectFolder);
+        if (workspace is null)
+            return new DeprecatedLayoutPropertiesMigrationResult(0, 0, 0, false, []);
+
+        var result = Apply(workspace);
+        await workspace.Save();
+        return result with
+        {
+            ManualActionRequired = result.ManualActionRequired || workspace.UnreadableFiles.Count > 0,
+            Warnings = result
+                .Warnings.Concat(workspace.UnreadableFiles.Select(issue => $"{issue.FilePath}: {issue.Reason}"))
+                .ToList(),
+        };
+    }
+
+    internal DeprecatedLayoutPropertiesMigrationResult Apply(LayoutMigrationWorkspace workspace)
+    {
+        _warnings.Clear();
+        var filesChanged = 0;
+        var queryParametersConverted = 0;
+        var summaryBindingsConverted = 0;
+        var manualActionRequired = false;
+        var filesRequiringManualWork = new List<string>();
+        foreach (var document in workspace.Documents)
+        {
+            var root = document.Root.DeepClone();
+            var path = document.FilePath;
+            var fileName = Path.GetFileName(path);
+            var changes = MigrateComponents(root, fileName);
+            manualActionRequired |= changes.ManualActionRequired;
+            if (changes.ManualActionRequired)
+                filesRequiringManualWork.Add(path);
+            if (!changes.Changed)
+                continue;
+
+            document.ReplaceRoot(root);
+
+            filesChanged++;
+            queryParametersConverted += changes.QueryParameters;
+            summaryBindingsConverted += changes.SummaryBindings;
+        }
+
+        return new DeprecatedLayoutPropertiesMigrationResult(
+            filesChanged,
+            queryParametersConverted,
+            summaryBindingsConverted,
+            manualActionRequired,
+            _warnings
+        )
+        {
+            FilesRequiringManualWork = filesRequiringManualWork,
+        };
+    }
+
+    private ComponentChanges MigrateComponents(JsonNode node, string fileName)
+    {
+        var changes = new ComponentChanges();
+        if (node is JsonObject obj && obj["type"] is JsonValue typeValue && typeValue.TryGetValue<string>(out var type))
+        {
+            if (string.Equals(type, "Button", StringComparison.Ordinal))
+            {
+                if (obj["mode"]?.GetValue<string>() == "instantiate")
+                {
+                    obj["type"] = "InstantiationButton";
+                    obj.Remove("mode");
+                    type = "InstantiationButton";
+                    changes.Changed = true;
+                }
+                else
+                {
+                    changes.Changed |= obj.Remove("mode");
+                    changes.Changed |= obj.Remove("mapping");
+                }
+            }
+
+            if (_componentsWithQueryParameters.Contains(type))
+                changes.Add(ConvertMapping(obj, type, fileName));
+
+            if (string.Equals(type, "List", StringComparison.Ordinal))
+                changes.Add(ConvertSummaryBinding(obj, fileName));
+        }
+
+        foreach (var child in GetChildren(node))
+            changes.Add(MigrateComponents(child, fileName));
+
+        return changes;
+    }
+
+    /// <summary>
+    /// Turns <c>mapping</c> into expression-based <c>queryParameters</c>, or <c>refetchDependencies</c>
+    /// for payment details, merging into any values already configured.
+    /// </summary>
+    private ComponentChanges ConvertMapping(JsonObject component, string type, string fileName)
+    {
+        var changes = new ComponentChanges();
+        if (component["mapping"] is not JsonObject mapping)
+            return changes;
+
+        var componentId = ComponentId(component);
+        var property = type == "PaymentDetails" ? "refetchDependencies" : "queryParameters";
+        var queryParameters = component[property] as JsonObject;
+        var converted = new List<KeyValuePair<string, JsonNode?>>();
+
+        foreach (var (dataModelPath, parameterNode) in mapping)
+        {
+            if (parameterNode is not JsonValue parameterValue || !parameterValue.TryGetValue<string>(out var parameter))
+            {
+                _warnings.Add(
+                    $"{fileName}: {type} '{componentId}' maps '{dataModelPath}' to a non-text query parameter name. "
+                        + $"Convert this entry to `{property}` by hand."
+                );
+                changes.ManualActionRequired = true;
+                return changes;
+            }
+
+            if (queryParameters?.ContainsKey(parameter) == true)
+            {
+                _warnings.Add(
+                    $"{fileName}: {type} '{componentId}' already has a `{property}` entry named '{parameter}', "
+                        + $"so the `mapping` entry for '{dataModelPath}' was left in place. Decide which one to keep."
+                );
+                changes.ManualActionRequired = true;
+                return changes;
+            }
+
+            converted.Add(new KeyValuePair<string, JsonNode?>(parameter, DataModelExpression(dataModelPath)));
+        }
+
+        component.Remove("mapping");
+        changes.Changed = true;
+        if (converted.Count == 0)
+            return changes;
+
+        if (queryParameters is null)
+        {
+            queryParameters = new JsonObject();
+            component[property] = queryParameters;
+        }
+
+        foreach (var (parameter, expression) in converted)
+        {
+            queryParameters[parameter] = expression;
+            changes.QueryParameters++;
+        }
+
+        return changes;
+    }
+
+    /// <summary>
+    /// Replaces <c>bindingToShowInSummary</c> (a data model path) with <c>summaryBinding</c>
+    /// (the name of the matching key in <c>dataModelBindings</c>).
+    /// </summary>
+    private ComponentChanges ConvertSummaryBinding(JsonObject component, string fileName)
+    {
+        var changes = new ComponentChanges();
+        if (
+            component["bindingToShowInSummary"] is not JsonValue deprecatedValue
+            || !deprecatedValue.TryGetValue<string>(out var field)
+        )
+        {
+            return changes;
+        }
+
+        var componentId = ComponentId(component);
+        if (component.ContainsKey("summaryBinding"))
+        {
+            component.Remove("bindingToShowInSummary");
+            changes.SummaryBindings++;
+            changes.Changed = true;
+            return changes;
+        }
+
+        var bindingName = FindBindingName(component["dataModelBindings"] as JsonObject, field);
+        if (bindingName is null)
+        {
+            _warnings.Add(
+                $"{fileName}: List '{componentId}' shows '{field}' in the summary, but no key in `dataModelBindings` "
+                    + "points at that field. Set `summaryBinding` to the key you want to show and remove "
+                    + "`bindingToShowInSummary`."
+            );
+            changes.ManualActionRequired = true;
+            return changes;
+        }
+
+        component.Remove("bindingToShowInSummary");
+        component["summaryBinding"] = bindingName;
+        changes.SummaryBindings++;
+        changes.Changed = true;
+        return changes;
+    }
+
+    /// <summary>
+    /// Finds the key in <c>dataModelBindings</c> bound to <paramref name="field"/>. A binding is either the
+    /// field itself or an object naming the data type alongside it.
+    /// </summary>
+    private static string? FindBindingName(JsonObject? bindings, string field)
+    {
+        if (bindings is null)
+            return null;
+
+        foreach (var (name, binding) in bindings)
+        {
+            var boundField = binding switch
+            {
+                JsonValue value when value.TryGetValue<string>(out var text) => text,
+                JsonObject obj
+                    when obj["field"] is JsonValue fieldValue && fieldValue.TryGetValue<string>(out var text) => text,
+                _ => null,
+            };
+
+            if (string.Equals(boundField, field, StringComparison.Ordinal))
+                return name;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Builds <c>["dataModel", "&lt;path&gt;"]</c>. Repeating group row markers are dropped: an expression
+    /// is already resolved relative to the row the component is rendered in.
+    /// </summary>
+    private static JsonArray DataModelExpression(string dataModelPath) =>
+        new("dataModel", _rowIndexMarkerPattern.Replace(dataModelPath, string.Empty));
+
+    private static string ComponentId(JsonObject component) =>
+        component["id"] is JsonValue idValue && idValue.TryGetValue<string>(out var id) ? id : "<no id>";
+
+    private static IEnumerable<JsonNode> GetChildren(JsonNode node) =>
+        node switch
+        {
+            JsonObject obj => obj.Select(property => property.Value).OfType<JsonNode>(),
+            JsonArray array => array.OfType<JsonNode>(),
+            _ => [],
+        };
+
+    /// <summary>
+    /// What one subtree of a layout file changed. <see cref="Changed"/> is what decides whether the file is
+    /// rewritten - the counters only cover the properties worth reporting, and a component can change without
+    /// adding to either (an empty <c>mapping</c> is dropped, not converted).
+    /// </summary>
+    private sealed class ComponentChanges
+    {
+        public int QueryParameters { get; set; }
+        public int SummaryBindings { get; set; }
+        public bool Changed { get; set; }
+        public bool ManualActionRequired { get; set; }
+
+        public void Add(ComponentChanges other)
+        {
+            QueryParameters += other.QueryParameters;
+            SummaryBindings += other.SummaryBindings;
+            Changed |= other.Changed;
+            ManualActionRequired |= other.ManualActionRequired;
+        }
+    }
+}

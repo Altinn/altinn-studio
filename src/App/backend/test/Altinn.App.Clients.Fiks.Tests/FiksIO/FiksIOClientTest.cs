@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Clients.Fiks.FiksIO;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
@@ -155,6 +156,63 @@ public class FiksIOClientTest
     }
 
     [Fact]
+    public async Task InitialiseFiksIOClient_WhenCreatingTheReplacementFails_KeepsTheExistingClient()
+    {
+        // Arrange
+        var existingClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var fixture = TestFixture.Create(services => // Don't dispose the fixture here, it messes with the verifications
+        {
+            services.AddFiksIOClient();
+        });
+
+        fixture
+            .FiksIOClientFactoryMock.SetupSequence(x => x.CreateClient(It.IsAny<ExternalFiksIOConfiguration>()))
+            .ReturnsAsync(existingClientMock.Object)
+            .ThrowsAsync(new FiksIOException("Maskinporten token could not be retrieved"));
+
+        // The client that is still in use must not be disposed on behalf of a replacement that was never built.
+        existingClientMock.Setup(x => x.DisposeAsync()).Verifiable(Times.Never);
+        existingClientMock.Setup(x => x.IsOpenAsync()).ReturnsAsync(true);
+
+        await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Act
+        await Assert.ThrowsAsync<FiksIOException>(() => fixture.FiksIOClient.InitializeFiksIOClient());
+
+        // Assert
+        Assert.Same(existingClientMock.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
+        Assert.True(await fixture.FiksIOClient.IsHealthy());
+        existingClientMock.Verify();
+    }
+
+    [Fact]
+    public async Task InitialiseFiksIOClient_WhenRetiringTheOldClientFails_StillReturnsTheReplacement()
+    {
+        // Arrange
+        var existingClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var replacementClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
+        var fixture = TestFixture.Create(services => // Don't dispose the fixture here, it messes with the verifications
+        {
+            services.AddFiksIOClient();
+        });
+
+        fixture
+            .FiksIOClientFactoryMock.SetupSequence(x => x.CreateClient(It.IsAny<ExternalFiksIOConfiguration>()))
+            .ReturnsAsync(existingClientMock.Object)
+            .ReturnsAsync(replacementClientMock.Object);
+        existingClientMock.Setup(x => x.DisposeAsync()).Throws(new FiksIOException("Connection already faulted"));
+
+        await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Act
+        var result = await fixture.FiksIOClient.InitializeFiksIOClient();
+
+        // Assert
+        Assert.Same(replacementClientMock.Object, result);
+        Assert.Same(replacementClientMock.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
+    }
+
+    [Fact]
     public async Task SendMessage_WithValidRequest_ReturnsSuccessResponse()
     {
         // Arrange
@@ -226,20 +284,16 @@ public class FiksIOClientTest
     }
 
     [Fact]
-    public async Task SendMessage_WhenSendFails_ThrowsExceptionWithLogging()
+    public async Task SendMessage_WhenSendFails_MakesOneAttemptAndThrowsWithLogging()
     {
-        // Arrange
-        await using var autoAdvancingFakeTime = AutoAdvancingFakeTime.Create(
-            TimeSpan.FromMilliseconds(10),
-            TimeSpan.FromMinutes(1)
-        );
+        // One attempt per call: retries belong to the caller — the workflow engine's step ladder for the
+        // Fiks Arkiv task, or whatever policy a standalone consumer wraps the client in.
         var externalFiksIOClientMock = new Mock<KS.Fiks.IO.Client.IFiksIOClient>();
         var loggerMock = new Mock<ILogger<FiksIOClient>>();
         var fixture = TestFixture.Create(services =>
         {
             services.AddFiksIOClient();
             services.AddSingleton(loggerMock.Object);
-            services.AddSingleton(autoAdvancingFakeTime.Provider);
         });
 
         var (request, _) = MessageRequestAndResponseFactory();
@@ -253,7 +307,7 @@ public class FiksIOClientTest
         externalFiksIOClientMock
             .Setup(x => x.Send(It.IsAny<MeldingRequest>(), It.IsAny<IList<IPayload>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException)
-            .Verifiable(Times.Exactly(6));
+            .Verifiable(Times.Once);
 
         // Act
         var thrownException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
@@ -266,14 +320,10 @@ public class FiksIOClientTest
         loggerMock.Verify(
             TestHelpers.MatchLogEntry(
                 LogLevel.Error,
-                $"Failed to send message {request.MessageType}:{request.SendersReference} after 6 attempts",
+                $"Failed to send message {request.MessageType}:{request.SendersReference}",
                 loggerMock.Object
             ),
             Times.Once
-        );
-        loggerMock.Verify(
-            TestHelpers.MatchLogEntry(LogLevel.Warning, "Failed to send FiksIO message", loggerMock.Object),
-            Times.Exactly(5)
         );
     }
 
@@ -318,7 +368,7 @@ public class FiksIOClientTest
         fixture.FiksIOClientFactoryMock.Verify();
         externalFiksIOClientMock1.Verify();
         externalFiksIOClientMock2.Verify();
-        fixture.AppMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Exactly(2));
+        fixture.AppMetadataMock.VerifyGet(x => x.ApplicationMetadata, Times.Exactly(2));
         Assert.Same(externalFiksIOClientMock2.Object, fixture.FiksIOClient.GetUnderlyingFiksIOClient());
     }
 

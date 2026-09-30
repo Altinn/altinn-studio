@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { Paragraph } from '@digdir/designsystemet-react';
+import type { ValidLanguageKey } from '@app/language';
 
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { ValidLangParam, ValidLanguageKey } from 'src/features/language/useLanguage';
+import type { ValidLangParam } from 'src/features/language/useLanguage';
 
 export interface LangProps {
   id: ValidLanguageKey | string | undefined;

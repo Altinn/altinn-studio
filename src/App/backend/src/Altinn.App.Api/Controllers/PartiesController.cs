@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Models.Validation;
@@ -31,8 +32,8 @@ public class PartiesController : ControllerBase
     /// <summary>
     /// Gets the list of parties the user can represent
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
     /// <returns>parties</returns>
     [ProducesResponseType(typeof(IReadOnlyList<Party>), StatusCodes.Status200OK)]
@@ -49,25 +50,23 @@ public class PartiesController : ControllerBase
             case Authenticated.User user:
             {
                 var details = await user.LoadDetails(validateSelectedParty: false);
-                return allowedToInstantiateFilter ? Ok(details.PartiesAllowedToInstantiate) : Ok(details.Parties);
+                var parties = allowedToInstantiateFilter ? details.PartiesAllowedToInstantiate : details.Parties;
+                return Ok(PartySsnMasking.MaskParties(parties));
             }
             case Authenticated.Org orgInfo:
             {
                 var details = await orgInfo.LoadDetails();
-                IReadOnlyList<Party> parties = [details.Party];
-                return Ok(parties);
+                return Ok(PartySsnMasking.MaskParties([details.Party]));
             }
             case Authenticated.ServiceOwner serviceOwner:
             {
                 var details = await serviceOwner.LoadDetails();
-                IReadOnlyList<Party> parties = [details.Party];
-                return Ok(parties);
+                return Ok(PartySsnMasking.MaskParties([details.Party]));
             }
             case Authenticated.SystemUser su:
             {
                 var details = await su.LoadDetails();
-                IReadOnlyList<Party> parties = [details.Party];
-                return Ok(parties);
+                return Ok(PartySsnMasking.MaskParties([details.Party]));
             }
             default:
                 throw new Exception($"Unexpected authentication context: {context.GetType().Name}");
@@ -77,8 +76,8 @@ public class PartiesController : ControllerBase
     /// <summary>
     /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
     /// </summary>
-    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="partyId">The selected partyId</param>
     /// <returns>A validation status</returns>
     [ProducesResponseType(typeof(InstantiationValidationResult), StatusCodes.Status200OK)]
@@ -102,7 +101,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The user does not represent the supplied party",
-                            ValidParties = details.PartiesAllowedToInstantiate.ToList(),
+                            ValidParties = PartySsnMasking.MaskParties(details.PartiesAllowedToInstantiate),
                         }
                     );
                 }
@@ -114,7 +113,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The supplied party is not allowed to instantiate the application",
-                            ValidParties = details.PartiesAllowedToInstantiate.ToList(),
+                            ValidParties = PartySsnMasking.MaskParties(details.PartiesAllowedToInstantiate),
                         }
                     );
                 }
@@ -131,7 +130,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The user does not represent the supplied party",
-                            ValidParties = new List<Party> { details.Party },
+                            ValidParties = PartySsnMasking.MaskParties([details.Party]),
                         }
                     );
                 }
@@ -142,7 +141,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The supplied party is not allowed to instantiate the application",
-                            ValidParties = new List<Party> { details.Party },
+                            ValidParties = PartySsnMasking.MaskParties([details.Party]),
                         }
                     );
                 }
@@ -163,7 +162,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The user does not represent the supplied party",
-                            ValidParties = new List<Party> { details.Party },
+                            ValidParties = PartySsnMasking.MaskParties([details.Party]),
                         }
                     );
                 }
@@ -174,7 +173,7 @@ public class PartiesController : ControllerBase
                         {
                             Valid = false,
                             Message = "The supplied party is not allowed to instantiate the application",
-                            ValidParties = new List<Party> { details.Party },
+                            ValidParties = PartySsnMasking.MaskParties([details.Party]),
                         }
                     );
                 }

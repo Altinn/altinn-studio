@@ -17,6 +17,16 @@ describe('StudioDropdown', () => {
     expect(triggerButton).toHaveAttribute('aria-expanded', 'true');
   });
 
+  it('Closes the dropdown menu when the trigger button is clicked again', async () => {
+    const user = userEvent.setup();
+    renderStudioDropdown();
+    const triggerButton = getButton(triggerButtonText);
+    await openDropdown(user);
+    expect(triggerButton).toHaveAttribute('aria-expanded', 'true');
+    await user.click(triggerButton);
+    expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('Renders all headings', async () => {
     const user = userEvent.setup();
     renderStudioDropdown();

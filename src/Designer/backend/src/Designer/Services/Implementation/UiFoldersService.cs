@@ -3,99 +3,909 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Events;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Mappers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 using Microsoft.Extensions.Logging;
+using Reference = Altinn.Studio.Designer.Models.Reference;
+
+namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UiFoldersService : IUiFoldersService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IProcessModelingService _processModelingService;
+    private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
+    private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
+    private const string SubformComponentType = "Subform";
+    private const string SubformPdfTaskType = "subformPdf";
 
-    public UiFoldersService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILogger<UiFoldersService> logger)
+    public UiFoldersService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IProcessModelingService processModelingService,
+        IPublisher publisher,
+        ILogger<UiFoldersService> logger
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+        _processModelingService = processModelingService;
+        _publisher = publisher;
         _logger = logger;
     }
 
-    private AltinnAppGitRepository GetRepository(AltinnRepoEditingContext editingContext) =>
-        _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            editingContext.Org,
-            editingContext.Repo,
-            editingContext.Developer
-        );
-
-    public async Task<IEnumerable<LayoutSetDto>> GetLayoutSetsExtended(
+    private AltinnAppGitRepository GetRepository(
         AltinnRepoEditingContext editingContext,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+
+        return _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
+    }
+
+    private static bool ProcessHasTask(Definitions definitions, string taskId) =>
+        definitions.Process.AllTasks().Any(task => task.Id == taskId);
+
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSets(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+        return [.. layoutSetInfos.Select(ToLayoutSetDto)];
+    }
+
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSetsExtended(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+        return
+        [
+            .. layoutSetInfos.Select(info =>
+            {
+                UiFolderLayoutSetDto layoutSet = ToLayoutSetDto(info);
+
+                PagesDto pages = PagesDto.From(info.LayoutSettings);
+                layoutSet.PageCount =
+                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
+
+                return layoutSet;
+            }),
+        ];
+    }
+
+    private static UiFolderLayoutSetDto ToLayoutSetDto(LayoutSetInfo info) =>
+        new()
+        {
+            Id = info.LayoutSetName,
+            DataType = info.LayoutSettings.DefaultDataType,
+            Type = info.LayoutSettings.Type,
+            TaskType = info.TaskType,
+        };
+
+    /// <summary>
+    /// Validates that a layout set name is safe to use as a path segment. Every endpoint that accepts a
+    /// layout set name from the caller must validate it through this method.
+    /// </summary>
+    private static void ValidateLayoutSetNameIsSafe(string layoutSetName)
+    {
+        if (!Guard.IsSafePathSegment(layoutSetName))
+        {
+            throw new InvalidLayoutSetIdException("Layout set name is not valid.");
+        }
+    }
+
+    /// <summary>
+    /// Validates that a new layout set name follows the naming policy for new names.
+    /// </summary>
+    private static void ValidateLayoutSetNameIsAllowedForNewLayoutSet(string layoutSetName)
+    {
+        ValidateLayoutSetNameIsSafe(layoutSetName);
+        if (!Regex.IsMatch(layoutSetName, LayoutSetNameRegEx))
+        {
+            throw new InvalidLayoutSetIdException("Layout set name is not valid.");
+        }
+    }
+
+    private static async Task ValidateNewLayoutSetName(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        ValidateLayoutSetNameIsAllowedForNewLayoutSet(layoutSetName);
+
+        IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        if (existingLayoutSets.Contains(layoutSetName))
+        {
+            throw new NonUniqueLayoutSetIdException($"Layout set name, {layoutSetName}, already exists.");
+        }
+    }
+
+    public async Task ValidateTaskIdChange(
+        AltinnRepoEditingContext editingContext,
+        string oldTaskId,
+        string newTaskId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (oldTaskId == newTaskId)
+        {
+            return;
+        }
+
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        // Only a task whose layout set folder carries its id is renamed on disk, see ProcessTaskIdChangedUiFoldersHandler.
+        if (altinnAppGitRepository.LayoutSetFolderExistsByExactName(oldTaskId))
+        {
+            await ValidateNewLayoutSetName(altinnAppGitRepository, newTaskId, cancellationToken);
+        }
+    }
+
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
+        AltinnRepoEditingContext editingContext,
+        LayoutSetConfig newLayoutSet,
+        TaskType? taskType,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSet.Id, cancellationToken);
+
+        try
+        {
+            await CreateLayoutSetFiles(altinnAppGitRepository, newLayoutSet, taskType);
+        }
+        catch
+        {
+            // Roll back any partially written files so a failed create does not leave a half-created layout set.
+            altinnAppGitRepository.DeleteLayoutSetFolder(newLayoutSet.Id, CancellationToken.None);
+            throw;
+        }
+
+        await _publisher.Publish(
+            new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = newLayoutSet },
+            cancellationToken
+        );
+
+        return await GetLayoutSets(editingContext, cancellationToken);
+    }
+
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> UpdateLayoutSetName(
+        AltinnRepoEditingContext editingContext,
+        string oldLayoutSetName,
+        string newLayoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        ValidateLayoutSetNameIsSafe(oldLayoutSetName);
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSetName, cancellationToken);
+
+        // In v9 a non-subform layout set's folder name equals its process task id, so renaming such a
+        // layout set must also rename the corresponding task in the process definition.
+        Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
+        bool isTaskConnected = ProcessHasTask(definitions, oldLayoutSetName);
+
+        altinnAppGitRepository.ChangeLayoutSetFolderName(oldLayoutSetName, newLayoutSetName, cancellationToken);
+
+        if (isTaskConnected)
+        {
+            try
+            {
+                await _processModelingService.UpdateTaskId(
+                    editingContext,
+                    oldLayoutSetName,
+                    newLayoutSetName,
+                    cancellationToken
+                );
+            }
+            catch
+            {
+                // Roll back the folder rename so the repository is not left with the folder name and task id out of sync.
+                altinnAppGitRepository.ChangeLayoutSetFolderName(
+                    newLayoutSetName,
+                    oldLayoutSetName,
+                    CancellationToken.None
+                );
+                throw;
+            }
+        }
+
+        await _publisher.Publish(
+            new LayoutSetIdChangedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetName = oldLayoutSetName,
+                NewLayoutSetName = newLayoutSetName,
+            },
+            cancellationToken
+        );
+
+        if (isTaskConnected)
+        {
+            await _publisher.Publish(
+                new ProcessTaskIdChangedEvent
+                {
+                    EditingContext = editingContext,
+                    OldId = oldLayoutSetName,
+                    NewId = newLayoutSetName,
+                },
+                cancellationToken
+            );
+        }
+
+        return await GetLayoutSets(editingContext, cancellationToken);
+    }
+
+    public async Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetToDeleteId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        ValidateLayoutSetNameIsSafe(layoutSetToDeleteId);
+
+        string? dataType = (
+            await TryGetLayoutSettings(altinnAppGitRepository, layoutSetToDeleteId, cancellationToken)
+        )?.DefaultDataType;
+        if (!string.IsNullOrEmpty(dataType))
+        {
+            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType, layoutSetToDeleteId);
+        }
+
+        altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
+
+        // Only publish once every repository mutation has succeeded.
+        await _publisher.Publish(
+            new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetToDeleteId },
+            cancellationToken
+        );
+
+        return await GetLayoutSets(editingContext, cancellationToken);
+    }
+
+    private async Task<LayoutSettings?> TryGetLayoutSettings(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        try
+        {
+            return await altinnAppGitRepository.GetLayoutSettings(layoutSetName, cancellationToken);
+        }
+        catch (Exception e) when (e is FileNotFoundException or JsonException)
+        {
+            _logger.LogWarning(
+                e,
+                "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
+                SanitizeForLog(layoutSetName)
+            );
+            return null;
+        }
+    }
+
+    private static string SanitizeForLog(string input)
+    {
+        return input.Replace('\r', ' ').Replace('\n', ' ');
+    }
+
+    private static async Task DeleteTaskRefInApplicationMetadata(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string dataTypeId,
+        string connectedTaskId
+    )
+    {
+        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+        DataType? dataType = applicationMetadata.DataTypes.Find(type => type.Id == dataTypeId);
+        // dataType.taskId != connectedTaskId means that the data type is used by another task, so we should not delete it.
+        if (dataType == null || dataType.TaskId != connectedTaskId)
+        {
+            return;
+        }
+
+        dataType.TaskId = null;
+        await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+    }
+
+    /// <summary>
+    /// Creates the initial layout and Settings.json files for a new layout set. Since v9 apps have no
+    /// layout-sets.json, the set's <c>type</c> (e.g. subform) and <c>defaultDataType</c> are persisted
+    /// directly into the set's Settings.json. Payment, PDF and subform PDF tasks get tailored initial
+    /// content.
+    /// </summary>
+    private static async Task CreateLayoutSetFiles(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig newLayoutSet,
+        TaskType? taskType
+    )
+    {
+        if (taskType is TaskType.Pdf or TaskType.SubformPdf)
+        {
+            await CreateServiceTaskLayoutSetFiles(
+                altinnAppGitRepository,
+                newLayoutSet,
+                withPdfLayout: taskType == TaskType.Pdf
+            );
+            return;
+        }
+
+        JsonNode initialLayout = altinnAppGitRepository.InitialLayout;
+        if (taskType == TaskType.Payment)
+        {
+            AddPaymentComponentToInitialLayout(initialLayout);
+        }
+
+        await altinnAppGitRepository.SaveLayout(
+            newLayoutSet.Id,
+            AltinnAppGitRepository.InitialLayoutFileName,
+            initialLayout
+        );
+        await altinnAppGitRepository.SaveLayoutSettings(
+            newLayoutSet.Id,
+            BuildLayoutSettings(altinnAppGitRepository, newLayoutSet)
+        );
+    }
+
+    private static JsonObject BuildLayoutSettings(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig layoutSet
+    )
+    {
+        JsonObject settings = new()
+        {
+            ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
+            ["pages"] = new JsonObject { ["order"] = new JsonArray([AltinnAppGitRepository.InitialLayoutFileName]) },
+        };
+        ApplyLayoutSetMetadata(settings, layoutSet);
+        return settings;
+    }
+
+    private static void ApplyLayoutSetMetadata(JsonObject settings, LayoutSetConfig layoutSet)
+    {
+        if (!string.IsNullOrEmpty(layoutSet.Type))
+        {
+            settings["type"] = layoutSet.Type;
+        }
+        if (!string.IsNullOrEmpty(layoutSet.DataType))
+        {
+            settings["defaultDataType"] = layoutSet.DataType;
+        }
+    }
+
+    private static void AddPaymentComponentToInitialLayout(JsonNode layout)
+    {
+        if (layout["data"]?["layout"] is JsonArray layoutArray)
+        {
+            layoutArray.Add(
+                new JsonObject
+                {
+                    ["id"] = "PaymentComponentId",
+                    ["type"] = "Payment",
+                    ["renderAsSummary"] = true,
+                }
+            );
+        }
+    }
+
+    /// <summary>
+    /// Creates the waiting page for a PDF or subform PDF task. A custom UI folder replaces the default task view.
+    /// Adds an empty PDF layout only for PDF tasks. Subform PDF tasks use the subform layout set.
+    /// The v9 frontend provides the failure view and retry action.
+    /// </summary>
+    private static async Task CreateServiceTaskLayoutSetFiles(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig layoutSet,
+        bool withPdfLayout
+    )
+    {
+        const string PdfLayoutFilename = "PdfLayout";
+        const string ServiceTaskLayoutFilename = "ServiceTask";
+        string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
+
+        if (withPdfLayout)
+        {
+            await altinnAppGitRepository.SaveLayout(
+                layoutSet.Id,
+                PdfLayoutFilename,
+                new JsonObject
+                {
+                    ["$schema"] = layoutSchema,
+                    ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+                }
+            );
+        }
+
+        await altinnAppGitRepository.SaveLayout(
+            layoutSet.Id,
+            ServiceTaskLayoutFilename,
+            new JsonObject
+            {
+                ["$schema"] = layoutSchema,
+                ["data"] = new JsonObject
+                {
+                    ["layout"] = new JsonArray([
+                        new JsonObject
+                        {
+                            ["size"] = "L",
+                            ["id"] = "service-task-waiting-title",
+                            ["type"] = "Heading",
+                            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_title" },
+                        },
+                        new JsonObject
+                        {
+                            ["id"] = "service-task-waiting-body",
+                            ["type"] = "Paragraph",
+                            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_body" },
+                        },
+                    ]),
+                },
+            }
+        );
+
+        JsonObject pages = new();
+        if (withPdfLayout)
+        {
+            pages["pdfLayoutName"] = PdfLayoutFilename;
+        }
+        pages["order"] = new JsonArray([ServiceTaskLayoutFilename]);
+
+        JsonObject settings = new()
+        {
+            ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
+            ["pages"] = pages,
+        };
+        ApplyLayoutSetMetadata(settings, layoutSet);
+        await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id, settings);
+    }
+
+    /// <summary>
+    /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
+    /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
+    /// definitions. Only folders that are subforms or that match a task are included.
+    /// </summary>
+    private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         IEnumerable<string> uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
 
-        List<LayoutSetDto> layoutSets = [];
+        // Order layout sets by their task's position in the process flow, with subforms (no task) last.
+        List<string> orderedTaskIds = definitions.Process.OrderAllTaskIdsByFlow();
+        Dictionary<string, int> taskOrderById = orderedTaskIds
+            .Select((taskId, index) => (taskId, index))
+            .ToDictionary(entry => entry.taskId, entry => entry.index);
+
+        List<LayoutSetInfo> layoutSets = [];
 
         foreach (string layoutSetName in uiFolders)
         {
+            LayoutSettings? layoutSettings = await TryGetLayoutSettings(
+                altinnAppGitRepository,
+                layoutSetName,
+                cancellationToken
+            );
+
+            if (layoutSettings is null)
+            {
+                continue;
+            }
+
+            bool isSubform = layoutSettings.Type == Constants.General.SubformId;
+            bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
+            bool isCustomReceipt = layoutSetName == Constants.General.CustomReceiptId;
+
+            if (!isSubform && !hasMatchingTask && !isCustomReceipt)
+            {
+                continue;
+            }
+
+            string? taskType = hasMatchingTask ? definitions.Process.TaskTypeOf(layoutSetName) ?? string.Empty : null;
+
+            layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
+        }
+
+        return
+        [
+            .. layoutSets.OrderBy(layoutSet =>
+                taskOrderById.TryGetValue(layoutSet.LayoutSetName, out int order) ? order : int.MaxValue
+            ),
+        ];
+    }
+
+    private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
+
+    public async Task<IEnumerable<SubformComponentDto>> GetSubformComponents(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+        Dictionary<string, string?> defaultDataTypes = layoutSetInfos.ToDictionary(
+            info => info.LayoutSetName,
+            info =>
+                string.IsNullOrEmpty(info.LayoutSettings.DefaultDataType) ? null : info.LayoutSettings.DefaultDataType
+        );
+
+        List<SubformComponentDto> subformComponents = [];
+        foreach (LayoutSetInfo info in layoutSetInfos)
+        {
+            // A Subform component cannot live inside a subform.
+            if (info.LayoutSettings.Type == Constants.General.SubformId)
+            {
+                continue;
+            }
+
+            List<PageLayout> pages = await GetPageLayouts(
+                altinnAppGitRepository,
+                info.LayoutSetName,
+                info.LayoutSettings,
+                cancellationToken
+            );
+            foreach (PageLayout page in pages)
+            {
+                foreach (JsonObject component in GetSubformComponentsOnPage(page))
+                {
+                    string? componentId = GetStringProperty(component, "id");
+                    if (componentId is null)
+                    {
+                        continue;
+                    }
+
+                    string? subformLayoutSetId = GetStringProperty(component, "layoutSet");
+                    string? defaultDataType = null;
+                    if (
+                        subformLayoutSetId is not null
+                        && !defaultDataTypes.TryGetValue(subformLayoutSetId, out defaultDataType)
+                    )
+                    {
+                        defaultDataType = await GetDefaultDataType(
+                            altinnAppGitRepository,
+                            subformLayoutSetId,
+                            cancellationToken
+                        );
+                        defaultDataTypes[subformLayoutSetId] = defaultDataType;
+                    }
+                    subformComponents.Add(
+                        new SubformComponentDto
+                        {
+                            ComponentId = componentId,
+                            LayoutSetId = info.LayoutSetName,
+                            TaskType = info.TaskType,
+                            LayoutName = page.LayoutName,
+                            SubformLayoutSetId = subformLayoutSetId,
+                            SubformDataTypeId = defaultDataType,
+                        }
+                    );
+                }
+            }
+        }
+
+        return subformComponents;
+    }
+
+    public async Task<IEnumerable<SubformComponentDto>> SaveSubformPdfComponent(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string componentId,
+        string sourceLayoutSetId,
+        string? previousComponentId,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        ValidateLayoutSetNameIsSafe(layoutSetId);
+        ValidateLayoutSetNameIsSafe(sourceLayoutSetId);
+
+        LayoutSettings? sourceLayoutSettings = await TryGetLayoutSettings(
+            altinnAppGitRepository,
+            sourceLayoutSetId,
+            cancellationToken
+        );
+        List<PageLayout> sourcePages = await GetPageLayouts(
+            altinnAppGitRepository,
+            sourceLayoutSetId,
+            sourceLayoutSettings,
+            cancellationToken
+        );
+        JsonObject sourceComponent =
+            sourcePages
+                .SelectMany(GetSubformComponentsOnPage)
+                .FirstOrDefault(component => GetStringProperty(component, "id") == componentId)
+            ?? throw new SubformComponentNotFoundException(
+                $"Layout set {sourceLayoutSetId} has no Subform component with id {componentId}."
+            );
+
+        string subformLayoutSetId =
+            GetStringProperty(sourceComponent, "layoutSet")
+            ?? throw new SubformComponentMissingLayoutSetException(
+                $"Subform component {componentId} does not name the layout set of its subform."
+            );
+        if (await GetDefaultDataType(altinnAppGitRepository, subformLayoutSetId, cancellationToken) is null)
+        {
+            throw new SubformMissingDefaultDataTypeException(
+                $"Subform layout set {subformLayoutSetId} is missing or has no default data type."
+            );
+        }
+
+        Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
+        bool layoutSetExists = altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetId);
+        if (definitions.Process.TaskTypeOf(layoutSetId) != SubformPdfTaskType)
+        {
+            throw new LayoutSetIsNotSubformPdfTaskException(
+                $"Layout set {layoutSetId} belongs to a task that is not a subform PDF task."
+            );
+        }
+
+        if (!layoutSetExists)
+        {
+            // Use the data task's type because it has one data element per instance. The subform type has
+            // one element per entry and cannot be the task's default type.
+            LayoutSetConfig layoutSet = new()
+            {
+                Id = layoutSetId,
+                DataType = sourceLayoutSettings?.DefaultDataType,
+                Tasks = [layoutSetId],
+            };
+            await AddLayoutSet(editingContext, layoutSet, TaskType.SubformPdf, cancellationToken);
+        }
+
+        await SaveSubformComponentCopy(
+            altinnAppGitRepository,
+            layoutSetId,
+            CreateSubformComponentCopy(componentId, subformLayoutSetId),
+            previousComponentId,
+            cancellationToken
+        );
+
+        return await GetSubformComponents(editingContext, cancellationToken);
+    }
+
+    public async Task<IEnumerable<SubformComponentDto>> DeleteSubformPdfComponent(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string componentId,
+        CancellationToken cancellationToken
+    )
+    {
+        ValidateLayoutSetNameIsSafe(layoutSetId);
+        AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
+        Definitions definitions = repository.GetProcessDefinitions();
+        if (definitions.Process.TaskTypeOf(layoutSetId) != SubformPdfTaskType)
+        {
+            throw new LayoutSetIsNotSubformPdfTaskException(
+                $"Layout set {layoutSetId} belongs to a task that is not a subform PDF task."
+            );
+        }
+        if (!repository.LayoutSetFolderExistsByExactName(layoutSetId))
+        {
+            return await GetSubformComponents(editingContext, cancellationToken);
+        }
+        LayoutSettings? settings = await TryGetLayoutSettings(repository, layoutSetId, cancellationToken);
+        foreach (PageLayout page in await GetPageLayouts(repository, layoutSetId, settings, cancellationToken))
+        {
+            JsonObject[] copies =
+            [
+                .. GetSubformComponentsOnPage(page).Where(component => IsGeneratedSubformCopy(component, componentId)),
+            ];
+            if (copies.Length == 0)
+            {
+                continue;
+            }
+            foreach (JsonObject copy in copies)
+            {
+                page.Components.Remove(copy);
+            }
+            await repository.SaveLayout(layoutSetId, page.LayoutName, page.Layout, cancellationToken);
+        }
+        return await GetSubformComponents(editingContext, cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates the selected copy on its current page, the previous copy's page, or the first page.
+    /// Removes the previous generated copy when the selection changes. Preserves other content.
+    /// </summary>
+    private async Task SaveSubformComponentCopy(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetName,
+        JsonObject componentCopy,
+        string? previousComponentId,
+        CancellationToken cancellationToken
+    )
+    {
+        LayoutSettings? layoutSettings = await TryGetLayoutSettings(
+            altinnAppGitRepository,
+            layoutSetName,
+            cancellationToken
+        );
+        List<PageLayout> pages = await GetPageLayouts(
+            altinnAppGitRepository,
+            layoutSetName,
+            layoutSettings,
+            cancellationToken
+        );
+        string componentId = componentCopy["id"]!.GetValue<string>();
+        List<(PageLayout Page, JsonObject Component)> matchingComponents =
+        [
+            .. pages.SelectMany(page =>
+                GetSubformComponentsOnPage(page)
+                    .Where(component => GetStringProperty(component, "id") == componentId)
+                    .Select(component => (page, component))
+            ),
+        ];
+
+        List<(PageLayout Page, JsonObject Component)> previousCopies =
+        [
+            .. pages.SelectMany(page =>
+                GetSubformComponentsOnPage(page)
+                    .Where(component =>
+                        previousComponentId != componentId && IsGeneratedSubformCopy(component, previousComponentId)
+                    )
+                    .Select(component => (page, component))
+            ),
+        ];
+
+        if (
+            previousCopies.Count == 0
+            && matchingComponents.Count == 1
+            && JsonNode.DeepEquals(matchingComponents[0].Component, componentCopy)
+        )
+        {
+            return;
+        }
+
+        PageLayout targetPage =
+            matchingComponents.FirstOrDefault().Page
+            ?? previousCopies.FirstOrDefault().Page
+            ?? pages.FirstOrDefault()
+            ?? throw new InvalidOperationException($"Layout set {layoutSetName} has no page to hold the component.");
+
+        var replacedComponents = matchingComponents.Concat(previousCopies).ToList();
+        foreach ((PageLayout page, JsonObject component) in replacedComponents)
+        {
+            page.Components.Remove(component);
+        }
+        targetPage.Components.Add(componentCopy);
+
+        foreach (PageLayout page in replacedComponents.Select(item => item.Page).Append(targetPage).Distinct())
+        {
+            await altinnAppGitRepository.SaveLayout(layoutSetName, page.LayoutName, page.Layout, cancellationToken);
+        }
+    }
+
+    private static JsonObject CreateSubformComponentCopy(string componentId, string subformLayoutSetId) =>
+        new()
+        {
+            ["id"] = componentId,
+            ["type"] = SubformComponentType,
+            ["layoutSet"] = subformLayoutSetId,
+            ["hidden"] = true,
+        };
+
+    private static bool IsGeneratedSubformCopy(JsonObject component, string? componentId)
+    {
+        // Delete only unchanged generated copies. Preserve components customized by the user.
+        string? subformLayoutSetId = GetStringProperty(component, "layoutSet");
+        return !string.IsNullOrEmpty(componentId)
+            && subformLayoutSetId is not null
+            && JsonNode.DeepEquals(component, CreateSubformComponentCopy(componentId, subformLayoutSetId));
+    }
+
+    /// <summary>
+    /// Reads layouts in page order, then reads files omitted from that order.
+    /// Skips unreadable files and layouts with no component list.
+    /// </summary>
+    private async Task<List<PageLayout>> GetPageLayouts(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string layoutSetName,
+        LayoutSettings? layoutSettings,
+        CancellationToken cancellationToken
+    )
+    {
+        string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+        IEnumerable<string> pageOrder = layoutSettings?.Pages switch
+        {
+            PagesWithOrder pagesWithOrder => pagesWithOrder.Order ?? [],
+            PagesWithGroups pagesWithGroups => (pagesWithGroups.Groups ?? []).SelectMany(group => group.Order),
+            _ => [],
+        };
+        List<string> orderedLayoutNames =
+        [
+            .. pageOrder.Where(layoutName => layoutNames.Contains(layoutName)).Distinct(),
+        ];
+        orderedLayoutNames.AddRange(layoutNames.Except(orderedLayoutNames).Order(StringComparer.Ordinal));
+
+        List<PageLayout> pages = [];
+        foreach (string layoutName in orderedLayoutNames)
+        {
             try
             {
-                LayoutSettings layoutSettings = await altinnAppGitRepository.GetLayoutSettings(
-                    layoutSetName,
-                    cancellationToken
-                );
-
-                bool isSubform = layoutSettings.Type == "subform";
-                bool hasMatchingTask = definitions.Process.Tasks.Any(task => task.Id == layoutSetName);
-
-                if (!isSubform && !hasMatchingTask)
+                JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
+                if (layout?["data"]?["layout"] is JsonArray components)
                 {
-                    continue;
+                    pages.Add(new PageLayout(layoutName, layout, components));
                 }
-
-                string? taskType = hasMatchingTask ? TaskTypeFromDefinitions(definitions, layoutSetName) : null;
-                PagesDto pages = PagesDto.From(layoutSettings);
-                int pageCount =
-                    pages.Groups != null ? pages.Groups.Sum(group => group.Pages.Count) : pages.Pages!.Count;
-
-                layoutSets.Add(
-                    new LayoutSetDto
-                    {
-                        Id = layoutSetName,
-                        DataType = layoutSettings.DataType,
-                        Type = layoutSettings.Type,
-                        Task = taskType != null ? new TaskModel { Type = taskType } : null,
-                        PageCount = pageCount,
-                    }
-                );
             }
             catch (Exception e) when (e is FileNotFoundException or JsonException)
             {
                 _logger.LogWarning(
                     e,
-                    "Could not read Settings.json for layout set {LayoutSetName}. Skipping.",
-                    layoutSetName
+                    "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                    SanitizeForLog(layoutName),
+                    SanitizeForLog(layoutSetName)
                 );
             }
         }
 
-        return layoutSets;
+        return pages;
     }
 
-    private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
+    private sealed record PageLayout(string LayoutName, JsonNode Layout, JsonArray Components);
+
+    private static List<JsonObject> GetSubformComponentsOnPage(PageLayout page) =>
+        [
+            .. page
+                .Components.OfType<JsonObject>()
+                .Where(component => GetStringProperty(component, "type") == SubformComponentType),
+        ];
+
+    private static string? GetStringProperty(JsonObject component, string propertyName) =>
+        component[propertyName] is JsonValue value && value.TryGetValue(out string? text) && !string.IsNullOrEmpty(text)
+            ? text
+            : null;
+
+    private async Task<string?> GetDefaultDataType(
+        AltinnAppGitRepository altinnAppGitRepository,
+        string? layoutSetName,
+        CancellationToken cancellationToken
+    )
     {
-        return definitions
-                .Process.Tasks.FirstOrDefault(task => task.Id == taskId)
-                ?.ExtensionElements?.TaskExtension?.TaskType
-            ?? string.Empty;
+        if (layoutSetName is null || !altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetName))
+        {
+            return null;
+        }
+
+        LayoutSettings? layoutSettings = await TryGetLayoutSettings(
+            altinnAppGitRepository,
+            layoutSetName,
+            cancellationToken
+        );
+        string? defaultDataType = layoutSettings?.DefaultDataType;
+        return string.IsNullOrEmpty(defaultDataType) ? null : defaultDataType;
     }
 
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
@@ -103,8 +913,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.ValidationOnNavigation;
@@ -116,14 +925,211 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile =
             await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken) ?? new UiSettings();
 
-        globalSettingsFile.ValidationOnNavigation = config;
+        globalSettingsFile.ValidationOnNavigation = IsEmpty(config) ? null : config;
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    private static bool IsEmpty(ValidationOnNavigation? config) =>
+        config == null || (string.IsNullOrEmpty(config.Page) && (config.Show == null || config.Show.Count == 0));
+
+    public async Task<IEnumerable<ValidationOnNavigationDto>> GetLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Layout sets that share the same validation config are grouped into a single entry, with the
+        // sharing layout set ids listed under Tasks.
+        return
+        [
+            .. layoutSetInfos
+                .Where(info => info.LayoutSettings.Pages?.ValidationOnNavigation != null)
+                .Select(info => new
+                {
+                    info.LayoutSetName,
+                    info.LayoutSettings.Pages!.ValidationOnNavigation!.Show,
+                    info.LayoutSettings.Pages.ValidationOnNavigation.Page,
+                })
+                .GroupBy(item => new
+                {
+                    ShowKey = item.Show != null ? string.Join(",", item.Show.OrderBy(s => s)) : string.Empty,
+                    item.Page,
+                })
+                .Select(group => new ValidationOnNavigationDto
+                {
+                    Tasks = [.. group.Select(item => item.LayoutSetName)],
+                    Show = group.First().Show ?? [],
+                    Page = group.First().Page ?? string.Empty,
+                }),
+        ];
+    }
+
+    public async Task SaveLayoutSetsValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<ValidationOnNavigationDto> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Full replace: map each targeted layout set to its config; any layout set absent from the payload
+        // has its validation cleared.
+        Dictionary<string, ValidationOnNavigation> configByLayoutSet = [];
+        foreach (ValidationOnNavigationDto setting in settings)
+        {
+            ValidationOnNavigation config = new() { Page = setting.Page, Show = setting.Show };
+            foreach (string layoutSetId in setting.Tasks)
+            {
+                configByLayoutSet[layoutSetId] = config;
+            }
+        }
+
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
+        {
+            configByLayoutSet.TryGetValue(layoutSetInfo.LayoutSetName, out ValidationOnNavigation? config);
+
+            LayoutSettings layoutSettings = layoutSetInfo.LayoutSettings;
+            if (layoutSettings.Pages?.ValidationOnNavigation == null && config == null)
+            {
+                continue;
+            }
+
+            layoutSettings.Pages ??= new Pages();
+            layoutSettings.Pages.ValidationOnNavigation = config;
+            await repository.SaveLayoutSettings(layoutSetInfo.LayoutSetName, layoutSettings);
+        }
+    }
+
+    public async Task<IEnumerable<PageValidationOnNavigationDto>> GetPagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        List<PageValidationOnNavigationDto> result = [];
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
+        {
+            List<(string PageName, ValidationOnNavigation? Nav)> pageValidations = [];
+            foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
+            {
+                try
+                {
+                    JsonNode layout = await repository.GetLayout(
+                        layoutSetInfo.LayoutSetName,
+                        pageId,
+                        cancellationToken
+                    );
+                    JsonNode? validationNode = layout["data"]?["validationOnNavigation"];
+                    if (validationNode == null)
+                    {
+                        continue;
+                    }
+                    pageValidations.Add((pageId, validationNode.Deserialize<ValidationOnNavigation>()));
+                }
+                catch (Exception e) when (e is FileNotFoundException or JsonException)
+                {
+                    _logger.LogWarning(
+                        e,
+                        "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                        SanitizeForLog(pageId),
+                        SanitizeForLog(layoutSetInfo.LayoutSetName)
+                    );
+                }
+            }
+
+            // Within a layout set, pages that share the same validation config are grouped into a single
+            // entry, with the sharing page names listed under Pages.
+            result.AddRange(
+                pageValidations
+                    .GroupBy(item => new
+                    {
+                        Page = item.Nav!.Page ?? string.Empty,
+                        ShowKey = item.Nav.Show != null
+                            ? string.Join(",", item.Nav.Show.OrderBy(s => s))
+                            : string.Empty,
+                    })
+                    .Select(group => new PageValidationOnNavigationDto
+                    {
+                        Task = layoutSetInfo.LayoutSetName,
+                        Pages = [.. group.Select(item => item.PageName)],
+                        Page = group.First().Nav?.Page ?? string.Empty,
+                        Show = [.. (group.First().Nav?.Show ?? []).OrderBy(s => s)],
+                    })
+            );
+        }
+        return result;
+    }
+
+    public async Task SavePagesValidationOnNavigation(
+        AltinnRepoEditingContext editingContext,
+        IEnumerable<PageValidationOnNavigationDto> settings,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository repository = GetRepository(editingContext, cancellationToken);
+        List<PageValidationOnNavigationDto> settingsList = [.. settings];
+        List<LayoutSetInfo> layoutSetInfos = await GetLayoutSetInfos(editingContext, cancellationToken);
+
+        // Full replace: within each layout set, pages present in the payload get their config and any other
+        // page has its validation cleared.
+        foreach (LayoutSetInfo layoutSetInfo in layoutSetInfos)
+        {
+            List<PageValidationOnNavigationDto> groupsForLayoutSet =
+            [
+                .. settingsList.Where(group => group.Task == layoutSetInfo.LayoutSetName),
+            ];
+
+            foreach (string pageId in repository.GetLayoutNames(layoutSetInfo.LayoutSetName))
+            {
+                JsonNode layout;
+                try
+                {
+                    layout = await repository.GetLayout(layoutSetInfo.LayoutSetName, pageId, cancellationToken);
+                }
+                catch (Exception e) when (e is FileNotFoundException or JsonException)
+                {
+                    // Skip a single unreadable layout file rather than aborting the whole save operation.
+                    _logger.LogWarning(
+                        e,
+                        "Could not read layout file for page {PageId} in layout set {LayoutSetId}. Skipping.",
+                        SanitizeForLog(pageId),
+                        SanitizeForLog(layoutSetInfo.LayoutSetName)
+                    );
+                    continue;
+                }
+
+                JsonObject? data = layout["data"]?.AsObject();
+                if (data == null)
+                {
+                    continue;
+                }
+
+                PageValidationOnNavigationDto? matchingGroup = groupsForLayoutSet.FirstOrDefault(group =>
+                    group.Pages.Contains(pageId)
+                );
+
+                if (matchingGroup != null)
+                {
+                    data["validationOnNavigation"] = JsonSerializer.SerializeToNode(
+                        new ValidationOnNavigation { Page = matchingGroup.Page, Show = matchingGroup.Show }
+                    );
+                    await repository.SaveLayout(layoutSetInfo.LayoutSetName, pageId, layout, cancellationToken);
+                }
+                else if (data.Remove("validationOnNavigation"))
+                {
+                    await repository.SaveLayout(layoutSetInfo.LayoutSetName, pageId, layout, cancellationToken);
+                }
+            }
+        }
     }
 
     public async Task<IEnumerable<TaskNavigationGroupDto>> GetGlobalTaskNavigationDto(
@@ -138,12 +1144,7 @@ public class UiFoldersService : IUiFoldersService
 
         IEnumerable<ProcessTask> tasks = GetTasks(editingContext, cancellationToken);
 
-        Dictionary<string, string?> taskTypesById = tasks.ToDictionary(
-            task => task.Id,
-            task => task.ExtensionElements?.TaskExtension?.TaskType
-        );
-
-        return taskNavigationGroups.Select(group => group.ToDto(taskId => taskTypesById.GetValueOrDefault(taskId)));
+        return taskNavigationGroups.Select(group => group.ToDto(taskId => tasks.TaskTypeOf(taskId)));
     }
 
     public async Task<List<TaskNavigationGroup>> GetGlobalTaskNavigation(
@@ -151,9 +1152,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         UiSettings globalSettingsFile = await altinnAppGitRepository.GetGlobalSettingsFile(cancellationToken);
         return globalSettingsFile?.TaskNavigation?.ToList() ?? [];
@@ -164,11 +1163,10 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
-        return definitions.Process.Tasks;
+        return definitions.Process.AllTasks();
     }
 
     public async Task UpdateGlobalTaskNavigation(
@@ -177,9 +1175,7 @@ public class UiFoldersService : IUiFoldersService
         CancellationToken cancellationToken
     )
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext);
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         IEnumerable<TaskNavigationGroup> taskNavigationGroupList = taskNavigationGroupDtoList.Select(x => x.ToDomain());
 
@@ -189,5 +1185,43 @@ public class UiFoldersService : IUiFoldersService
         globalSettingsFile.TaskNavigation = taskNavigationGroupList.Any() ? taskNavigationGroupList : null;
 
         await altinnAppGitRepository.SaveGlobalSettingsFile(globalSettingsFile);
+    }
+
+    public async Task<bool> UpdateLayoutReferences(
+        AltinnRepoEditingContext editingContext,
+        List<Reference> referencesToUpdate,
+        CancellationToken cancellationToken
+    )
+    {
+        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
+
+        IEnumerable<string> folderNames;
+        try
+        {
+            folderNames = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+        }
+        catch (LibGit2Sharp.NotFoundException)
+        {
+            return false;
+        }
+        // For v9, task ID equals the layout set name (folder name), so TaskId = Id.
+        List<LayoutSetConfigDto> layoutSetDtos = folderNames
+            .Select(name => new LayoutSetConfigDto { Id = name, TaskId = name })
+            .ToList();
+
+        List<Reference> referencesIncludingTaskDeletions =
+        [
+            .. referencesToUpdate,
+            .. referencesToUpdate
+                .Where(reference => reference.Type == ReferenceType.LayoutSet && string.IsNullOrEmpty(reference.NewId))
+                .Select(reference => new Reference(ReferenceType.Task, null, reference.Id)),
+        ];
+
+        return await LayoutReferenceUpdateHelper.UpdateReferences(
+            altinnAppGitRepository,
+            layoutSetDtos,
+            referencesIncludingTaskDeletions,
+            cancellationToken
+        );
     }
 }

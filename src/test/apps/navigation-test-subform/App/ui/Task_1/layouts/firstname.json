@@ -16,7 +16,6 @@
       },
       {
         "id": "NavigationButtons-TDmowk",
-        "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

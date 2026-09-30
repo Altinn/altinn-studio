@@ -9,8 +9,6 @@ export {
   mapKeywordsArrayToString,
   resourceTypeMap,
   validateResource,
-  getAltinn2Reference,
-  getMigrationErrorMessage,
   convertMetadataStringToConsentMetadata,
   getResourcePolicyRules,
   getResourceSubjects,

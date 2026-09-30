@@ -1,13 +1,43 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineTests
 {
+    [Fact]
+    public async Task ListWorkflows_StatusFilter_IsCaseInsensitive()
+    {
+        // Arrange — a workflow that runs to completion.
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+        );
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        // Act — filter using a lowercase status (query binding bypasses the JSON converter).
+        using var lower = await _client.ListWorkflowsRaw("?status=completed");
+
+        // Assert — accepted and returns the workflow, identical to the PascalCase form.
+        Assert.Equal(HttpStatusCode.OK, lower.StatusCode);
+        var body = await EngineApiClient.AssertSuccessAndDeserialize<PaginatedResponse<WorkflowStatusResponse>>(lower);
+        Assert.Contains(body.Data, w => w.DatabaseId == workflowId);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_UnknownStatus_ReturnsBadRequest()
+    {
+        using var response = await _client.ListWorkflowsRaw("?status=bogus");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task GetWorkflow_AfterCompletion_ReturnsFullDetails()
     {

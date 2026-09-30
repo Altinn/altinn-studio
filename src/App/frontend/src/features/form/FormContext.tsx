@@ -8,14 +8,16 @@ import { pageNavigationHooks } from 'src/features/form/layout/PageNavigationCont
 import { formBootstrapHooks } from 'src/features/formBootstrap/FormBootstrap';
 import { formDataHooks } from 'src/features/formData/FormDataWrite';
 import { validationHooks } from 'src/features/validation/validationContext';
-import { nodesHooks } from 'src/utils/layout/NodesContext';
+import { SelectorStrictness } from 'src/hooks/delayedSelectors';
+import { layoutDiagnosticsHooks } from 'src/utils/layout/LayoutDiagnostics';
+import type { AttachmentsSliceState } from 'src/features/attachments/AttachmentsStore';
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { FormDataMethods, FormDataSliceState } from 'src/features/formData/FormDataWriteStateMachine';
 import type { ValidationSliceState } from 'src/features/validation';
 import type { ValidationInternals } from 'src/features/validation/validationContext';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { NodesSliceState } from 'src/utils/layout/NodesContext';
+import type { LayoutDiagnosticsSliceState } from 'src/utils/layout/LayoutDiagnostics';
 
 const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
   name: 'Form',
@@ -24,6 +26,19 @@ const { Provider, useLaxCtx, useCtx } = createContext<FormStoreApi>({
 
 export const FormStoreProvider = Provider;
 
+const raw = createZustandHooks<FormStoreApi, FormStoreState>({
+  useStore: () => useCtx(),
+  useLaxStore: () => {
+    const ctx = useLaxCtx();
+    return ctx === ContextNotProvided ? ContextNotProvided : ctx;
+  },
+});
+
+type FormStoreRawDelayedSelector = <U>(
+  select: <S extends FormStoreState>(state: S) => U,
+  deps: unknown[],
+) => U | undefined;
+
 export const FormStore = {
   useIsInContext() {
     return useLaxCtx() !== ContextNotProvided;
@@ -31,22 +46,29 @@ export const FormStore = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.readOnly);
   },
-  raw: createZustandHooks<FormStoreApi, FormStoreState>({
-    useStore: () => useCtx(),
-    useLaxStore: () => {
-      const ctx = useLaxCtx();
-      return ctx === ContextNotProvided ? ContextNotProvided : ctx;
-    },
-  }),
+  raw: {
+    ...raw,
+    useRawDelayedSelector: (): FormStoreRawDelayedSelector =>
+      raw.useLaxDelayedSelector(
+        {
+          mode: 'innerSelector',
+          makeArgs: (state) => [state],
+        },
+        undefined,
+        SelectorStrictness.returnUndefinedWhenNotProvided,
+      ),
+  },
   data: formDataHooks,
   validation: validationHooks,
-  nodes: nodesHooks,
+  layoutDiagnostics: layoutDiagnosticsHooks,
   pageNavigation: pageNavigationHooks,
   bootstrap: formBootstrapHooks,
 };
 
 export interface FormStoreState {
   parent: FormStoreApi | undefined;
+  // Mounted descendants publish their save state to the root store for page-level unload handling.
+  nestedFormStatus: { unsaved: number; unloadWarnings: number };
 
   // Set this if this form context is provided somewhere it's not expected we should write data to the data model.
   // By setting this to true, no effects like 'preselectedOptionIndex' runs (which might try to change the data model).
@@ -56,8 +78,9 @@ export interface FormStoreState {
   readOnly: boolean;
 
   data: FormDataSliceState & FormDataMethods;
+  attachments: AttachmentsSliceState;
   validation: ValidationSliceState & ValidationInternals;
-  nodes: NodesSliceState;
+  layoutDiagnostics: LayoutDiagnosticsSliceState;
   pageNavigation: PageNavigationSliceState;
   bootstrap: FormBootstrapSliceState;
 }
@@ -88,11 +111,11 @@ interface FormBootstrapSliceState extends FormBootstrapContextValue {
 
 export function processBootstrap(bootstrap: FormBootstrapBase): FormBootstrapContextValue {
   const processedLayouts = processLayouts(bootstrap.layouts, bootstrap.defaultDataType);
-  const layoutLookups = makeLayoutLookups(processedLayouts.processedLayouts);
+  const layoutLookups = makeLayoutLookups(processedLayouts, bootstrap.layouts);
 
   return {
     ...bootstrap,
-    ...processedLayouts,
+    processedLayouts,
     layoutLookups,
   };
 }

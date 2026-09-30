@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Models;
 using Altinn.App.Models.modell1;
@@ -16,24 +11,25 @@ namespace Altinn.App.logic.DataProcessing
     public class InstantiationProcessor : IInstantiationProcessor
     {
         private readonly IAltinnPartyClient _registerService;
-        private readonly IDataClient _dataClient;
 
-        public InstantiationProcessor(IAltinnPartyClient registerService, IDataClient dataClient)
+        public InstantiationProcessor(IAltinnPartyClient registerService)
         {
             _registerService = registerService;
-            _dataClient = dataClient;
         }
 
-        public async Task DataCreation(
-            Instance instance,
+        public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task DataCreation(
+            IInstanceDataMutator instanceDataMutator,
             object data,
-            Dictionary<string, string> prefill
+            Dictionary<string, string>? prefill
         )
         {
-            if (data.GetType() == typeof(modell2))
+            if (data is modell2 form)
             {
-                var form = data as modell2;
-
                 form.questions = new List<questions>
                 {
                     new questions { Id = "question-1", Answer = "" },
@@ -42,12 +38,12 @@ namespace Altinn.App.logic.DataProcessing
                 };
             }
 
-            // Create the shared model when the first model (modell1) is auto-created
             if (data.GetType() == typeof(modell1))
             {
-                FormDataHelper formDataHelper = new FormDataHelper(instance, _dataClient);
-                await formDataHelper.InsertFormData(new sharedperson());
+                instanceDataMutator.AddFormDataElement("sharedperson", new sharedperson());
             }
+
+            return Task.CompletedTask;
         }
     }
 }

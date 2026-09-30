@@ -57,12 +57,10 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
           onError: (error: AxiosError): void => {
             const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
             if (appNameAlreadyExists) {
-              setFormError(
-                (prevErrors): CreateServiceFormError => ({
-                  ...prevErrors,
-                  repoName: t('dashboard.app_already_exists'),
-                }),
-              );
+              setFormError((prevErrors): CreateServiceFormError => ({
+                ...prevErrors,
+                repoName: t('dashboard.app_already_exists'),
+              }));
             }
           },
         },
@@ -86,6 +84,7 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
             organizations={organizations}
             isLoading={isCopyAppPending || isCopyAppSuccess}
             shouldUseCustomTemplate={false}
+            shouldUseAppTemplate={false}
             submitButtonText={t('dashboard.make_copy')}
             formError={formError}
             setFormError={setFormError}

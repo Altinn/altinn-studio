@@ -1,7 +1,6 @@
 import React from 'react';
-import { StudioHelpText, StudioTextfield } from '@studio/components';
-import { useDebounce } from '@studio/hooks';
-import { Switch } from '@digdir/designsystemet-react';
+import { StudioHelpText, StudioSwitch, StudioTextfield } from '@studio/components';
+import { usePropState } from '@studio/hooks';
 import {
   BpmnActionModeler,
   ActionType,
@@ -20,12 +19,7 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { handleOnActionChange } = useActionHandler(actionElement);
-  const { debounce } = useDebounce({ debounceTimeInMs: 300 });
   const bpmnActionModeler = new BpmnActionModeler(bpmnDetails.element);
-
-  const onCustomActionChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    debounce(() => handleOnActionChange(event));
-  };
 
   const onActionTypeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const isChecked = event.target.checked;
@@ -34,26 +28,31 @@ export const CustomActions = ({ actionElement }: CustomActionsProps): React.Reac
   };
 
   const isCustomAction = !getPredefinedActions(bpmnDetails.taskType).includes(actionElement.action);
+  const [actionName, setActionName] = usePropState(
+    isCustomAction ? (actionElement.action ?? '') : '',
+  );
   const currentActionType = bpmnActionModeler.getTypeForAction(actionElement) || ActionType.Process;
 
   return (
     <>
       <StudioTextfield
-        onChange={onCustomActionChange}
+        onChange={(event) => setActionName(event.target.value)}
+        onBlur={(event) => {
+          if (event.target.value !== actionElement.action) handleOnActionChange(event);
+        }}
         label={t('process_editor.configuration_panel_actions_action_card_custom_label')}
         className={classes.customActionTextfield}
-        value={isCustomAction ? actionElement.action : ''}
+        value={actionName}
       />
       <div className={classes.actionTypeContainer}>
-        <Switch
-          size='small'
+        <StudioSwitch
+          data-size='sm'
           onChange={onActionTypeChange}
           value={currentActionType}
           checked={currentActionType === ActionType.Process}
           disabled={!isCustomAction}
-        >
-          {t('process_editor.configuration_panel_actions_set_server_action_label')}
-        </Switch>
+          label={t('process_editor.configuration_panel_actions_set_server_action_label')}
+        />
         <StudioHelpText
           aria-label={t('process_editor.configuration_panel_actions_action_type_help_text')}
         >

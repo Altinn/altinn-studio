@@ -1,0 +1,24 @@
+﻿[
+  {
+    Id: ALTINNAPP0600,
+    Title: enablePdfCreation is not supported,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/applicationmetadata.json(4,43),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0600,
+    MessageFormat: 'enablePdfCreation' on dataType '{0}' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
+    Message: 'enablePdfCreation' on dataType 'first' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
+    Category: Deprecation
+  },
+  {
+    Id: ALTINNAPP0600,
+    Title: enablePdfCreation is not supported,
+    Severity: Error,
+    WarningLevel: 0,
+    Location: /repo/App/config/applicationmetadata.json(6,43),
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0600,
+    MessageFormat: 'enablePdfCreation' on dataType '{0}' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
+    Message: 'enablePdfCreation' on dataType 'third' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
+    Category: Deprecation
+  }
+]

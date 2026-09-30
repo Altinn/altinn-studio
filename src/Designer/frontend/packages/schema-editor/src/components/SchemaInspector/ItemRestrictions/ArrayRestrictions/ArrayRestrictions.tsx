@@ -1,9 +1,8 @@
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
-import { Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { StudioTextfield } from '@studio/components';
+import { StudioSwitch, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function ArrayRestrictions({
@@ -45,15 +44,14 @@ export function ArrayRestrictions({
         </div>
       </div>
       <div>
-        <Switch
-          size='small'
+        <StudioSwitch
+          data-size='sm'
           checked={restrictions[ArrRestrictionKey.uniqueItems]}
           onChange={(e) =>
             onChangeRestrictionValue(path, ArrRestrictionKey.uniqueItems, e.target.checked)
           }
-        >
-          {t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
-        </Switch>
+          label={t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
+        />
       </div>
     </ItemWrapper>
   );

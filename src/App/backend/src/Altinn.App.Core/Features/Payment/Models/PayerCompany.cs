@@ -6,9 +6,10 @@ namespace Altinn.App.Core.Features.Payment.Models;
 public class PayerCompany
 {
     /// <summary>
-    /// The organisation number of the company.
+    /// The organization number of the company.
     /// </summary>
-    public string? OrganisationNumber { get; set; }
+    [System.Text.Json.Serialization.JsonPropertyName("organisationNumber")]
+    public string? OrganizationNumber { get; set; }
 
     /// <summary>
     /// The name of the company.

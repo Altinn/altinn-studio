@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Paragraph, Alert, Heading } from '@digdir/designsystemet-react';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import { ConfigContent } from './ConfigContent';
@@ -8,6 +7,8 @@ import { ConfigEndEvent } from './ConfigEndEvent';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { ConfigServiceTask } from './ConfigServiceTask';
+import { ConfigGateway } from './ConfigGateway';
+import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (
@@ -51,6 +52,11 @@ const ConfigPanelContent = (): React.ReactElement => {
     return <ConfigServiceTask key={bpmnDetails.id} />;
   }
 
+  const elementIsExclusiveGateway = bpmnDetails.type === BpmnTypeEnum.ExclusiveGateway;
+  if (elementIsExclusiveGateway) {
+    return <ConfigGateway key={bpmnDetails.id} />;
+  }
+
   return (
     <BpmnAlert
       title={t('process_editor.configuration_panel_element_not_supported_title')}
@@ -65,11 +71,11 @@ type BpmnAlertProps = {
 };
 const BpmnAlert = ({ title, message }: BpmnAlertProps): React.ReactElement => {
   return (
-    <Alert>
-      <Heading level={3} size='xxsmall' spacing>
+    <StudioAlert>
+      <StudioHeading level={3} data-size='xs' spacing>
         {title}
-      </Heading>
-      <Paragraph size='small'>{message}</Paragraph>
-    </Alert>
+      </StudioHeading>
+      <StudioParagraph data-size='md'>{message}</StudioParagraph>
+    </StudioAlert>
   );
 };

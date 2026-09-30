@@ -53,6 +53,20 @@ dotnet csharpier check .
 dotnet minver
 ```
 
+**C# sources and generated code use LF:**
+
+`.gitattributes` declares `*.cs text eol=lf` for checkouts on every platform, and `.editorconfig`
+sets `end_of_line = lf` to match. CSharpier.MSBuild applies that setting during builds.
+
+Raw string literals inherit their source file's line endings. Keep explicit newlines in
+`SourceTextGenerator` and its helpers as `\n` so generated code also uses LF consistently.
+Avoid `AppendLine()` and `Environment.NewLine` when generating source, since they introduce CRLF
+on Windows.
+
+`Altinn.App.SourceGenerator.Tests` enables `AutoVerify(includeBuildServer: false)`, which can silently
+accept changed snapshots on a developer machine. Set `TF_BUILD=true` (or another build-server
+variable) when validating changes so snapshot mismatches fail as they do in CI.
+
 ## Architecture Overview
 
 The solution follows a **layered architecture** with feature-based organization:
@@ -74,6 +88,14 @@ The solution follows a **layered architecture** with feature-based organization:
 - **Validation** - Data validation pipelines
 - **Telemetry** - OpenTelemetry observability (considered public contract)
 
+### Process engine (`/src/Altinn.App.Core/Internal/WorkflowEngine/`)
+
+All process transitions (ProcessNext) execute through the async Workflow Engine — commands enqueued to
+an external engine service that calls back into the app. Anything touching process state, task
+start/end hooks, or service tasks runs on this foundation. Architecture, command sequences, and hard
+constraints (idempotency, state passthrough, callback auth):
+[WorkflowEngine/AGENTS.md](src/Altinn.App.Core/Internal/WorkflowEngine/AGENTS.md).
+
 ### Technology Stack
 
 - **.NET 10.0** (see global.json)
@@ -83,7 +105,7 @@ The solution follows a **layered architecture** with feature-based organization:
 
 ### ADR
 
-We have Architecture Decision Records in the `/doc/adr/` folder.
+Architecture Decision Records live in the monorepo root `docs/adr/` folder.
 
 ## Development Guidelines
 
@@ -110,7 +132,7 @@ We have Architecture Decision Records in the `/doc/adr/` folder.
 
 ### Versioning
 
-- Uses **semantic versioning** with MinVer
+- Uses **semantic versioning** for packages
 - Avoid breaking changes (we plan to release major versions yearly. Some breaking changes can be done inbetween but must be manually verified)
 - PR titles become release notes
 - Normal interfaces in Altinn.App.Core must be binary compatible within a major version so that users can have local packages that still work (never remove a method)

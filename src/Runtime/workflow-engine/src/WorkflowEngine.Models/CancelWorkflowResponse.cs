@@ -6,8 +6,11 @@ namespace WorkflowEngine.Models;
 /// <param name="WorkflowId">Database ID of the workflow that was targeted.</param>
 /// <param name="CancellationRequestedAt">When the cancellation was recorded.</param>
 /// <param name="CanceledImmediately">
-/// <c>true</c> when the workflow was already in a non-running state and could be canceled in-place,
-/// <c>false</c> when cancellation has been requested but is still propagating to the active worker.
+/// <c>true</c> when the workflow was actively executing on the pod that received the request, so its
+/// cancellation token was triggered synchronously (in-process) before this response returned.
+/// <c>false</c> when the cancellation was recorded but the workflow was not running on this pod — it is
+/// either still queued or running on another pod, and will be canceled via the distributed path. In all
+/// cases the cancellation is durably recorded and guaranteed to take effect.
 /// </param>
 public sealed record CancelWorkflowResponse(
     Guid WorkflowId,

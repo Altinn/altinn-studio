@@ -4,8 +4,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import { getAvailablePages, getAvailableTasks } from '../utils/ValidateNavigationUtils';
-import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
-import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
+import { useValidationOnNavigationQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationQuery';
+import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
@@ -15,7 +15,7 @@ type RenderTaskOptionsProps = {
 const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskOptionsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
-  const layoutSets = layoutSetsSchema?.sets || [];
+  const layoutSets = layoutSetsSchema || [];
   const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, initialSelectedTasks);
 
   return availableTasks.map((task) => (
@@ -41,6 +41,7 @@ export const TaskSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTask}
       label={t('ux_editor.settings.navigation_validation_specific_task_label')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -65,7 +66,11 @@ export const TasksSelector = ({
 }: TasksSelectorProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const { data: settings } = useValidationOnNavigationQuery(
+    org,
+    app,
+    ValidationOnNavigationLevel.LayoutSets,
+  );
   const tasksWithRules = settings?.flatMap((config) => config.tasks) ?? [];
   const selectedTasksValues = selectedTasks.map((task) => task.value);
   const initialSelectedTasksValues = initialSelectedTasks?.map((task) => task.value) || [];
@@ -75,6 +80,7 @@ export const TasksSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedTasks}
       label={t('ux_editor.settings.navigation_validation_specific_task_label_several')}
       emptyText={t('ux_editor.settings.navigation_validation_specific_task_no_tasks')}
@@ -105,7 +111,11 @@ export const PagesSelector = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
-  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+  const { data: pageValidationData } = useValidationOnNavigationQuery(
+    org,
+    app,
+    ValidationOnNavigationLevel.Pages,
+  );
 
   const configsForTask = (pageValidationData ?? []).filter((config) => config.task === taskName);
 
@@ -122,6 +132,7 @@ export const PagesSelector = ({
 
   return (
     <StudioSuggestion
+      clearButtonLabel={t('general.clear_selection')}
       selected={selectedPages}
       label={t('ux_editor.settings.navigation_validation_specific_page_label')}
       emptyText={emptyText}

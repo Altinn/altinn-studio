@@ -75,7 +75,6 @@ class ConditionalRendering extends React.Component<
   public componentDidMount() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
-        // eslint-disable-next-line max-len
         if (
           this.props.ruleModelElements[i].name ===
           this.props.conditionalRendering[this.props.connectionId].selectedFunction
@@ -183,7 +182,7 @@ class ConditionalRendering extends React.Component<
 
   /**
    * Methods that removes a layout component from the pool of layout
-   * compoenents that will be affected by the conditional rendering rule
+   * components that will be affected by the conditional rendering rule
    */
   public removeFieldMapping = (removeId: any) => {
     this.setState({
@@ -205,7 +204,7 @@ class ConditionalRendering extends React.Component<
   /**
    * Methods that adds a new layout component to the GUI that will later be put in the pool of layout
    * components that will be affected by the conditional rendering rule.
-   * On init this field is empty and not mapped to a layout compoenent
+   * On init this field is empty and not mapped to a layout component
    */
   public addNewField = () => {
     const newId = uuidv1();

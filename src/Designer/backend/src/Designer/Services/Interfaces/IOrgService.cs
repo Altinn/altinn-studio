@@ -12,17 +12,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 public interface IOrgService
 {
     /// <summary>
-    /// Returns the list of organisations with metadata from CDN.
+    /// Returns the list of organizations with metadata from CDN.
     /// </summary>
     public Task<OrgList> GetOrgList(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns the organisation matching orgCode.
+    /// Returns the organization matching orgCode.
     /// </summary>
     public Task<Org> GetOrg(string orgCode);
 
     /// <summary>
-    /// Checks if provided organisation name is in org list.
+    /// Checks if provided organization name is in org list.
     /// </summary>
     public Task<bool> IsOrg(string nameToCheck, CancellationToken cancellationToken = default);
 }

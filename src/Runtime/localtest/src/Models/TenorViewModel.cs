@@ -1,4 +1,3 @@
-#nullable enable
 namespace LocalTest.Models;
 
 using LocalTest.Services.Tenor.Models;

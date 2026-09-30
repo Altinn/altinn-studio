@@ -1,4 +1,5 @@
-import type { GridRows } from 'src/layout/common.generated';
+import type { GridRows } from '@app/layout-contract/generated/common.generated';
+
 import type { CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps } from 'src/layout/LayoutComponent';
 

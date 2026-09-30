@@ -104,6 +104,23 @@ public class WorkflowExtensionsTests
     }
 
     [Fact]
+    public void OverallStatus_ReturnsWaiting_WhenAnyStepWaiting()
+    {
+        // Arrange
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Completed, 0),
+            CreateStep(PersistentItemStatus.Waiting, 1),
+            CreateStep(PersistentItemStatus.Enqueued, 2)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Waiting, result);
+    }
+
+    [Fact]
     public void OverallStatus_ReturnsProcessing_WhenMixedActiveStatuses()
     {
         // Arrange

@@ -1,9 +1,13 @@
 import React from 'react';
 
-import { FormattedInput, Input, Label, NumericInput } from '@app/form-component';
+import { FormattedInput, getDescriptionId, getLabelId, Input, Label, NumericInput } from '@app/form-component';
 import type { InputProps } from '@app/form-component';
+import type {
+  HTMLAutoCompleteValues,
+  NumberFormatProps as NumberFormatPropsCG,
+  PatternFormatProps as PatternFormatPropsCG,
+} from '@app/layout-contract/generated/common.generated';
 
-import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -17,11 +21,6 @@ import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type {
-  HTMLAutoCompleteValues,
-  NumberFormatProps as NumberFormatPropsCG,
-  PatternFormatProps as PatternFormatPropsCG,
-} from 'src/layout/common.generated';
 
 type NumberFormatProps = Omit<NumberFormatPropsCG, 'thousandSeparator' | 'decimalSeparator' | 'suffix' | 'prefix'> & {
   thousandSeparator?: boolean | string;

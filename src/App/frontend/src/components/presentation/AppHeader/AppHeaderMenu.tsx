@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { useIsMobile } from '@app/form-component';
 import { Button, Dropdown } from '@digdir/designsystemet-react';
 import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -10,7 +11,6 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useInstanceOwnerParty, useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { logoutUrlAltinn } from 'src/utils/urls/urlHelper';
 
 export interface AppHeaderMenuProps {

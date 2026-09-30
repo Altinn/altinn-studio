@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components.Base;
@@ -15,6 +16,7 @@ public sealed class ComponentContext
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
+    [Obsolete("Use the overload with dataAccessor instead")]
     public ComponentContext(
         LayoutEvaluatorState state,
         BaseComponent? component,
@@ -22,8 +24,20 @@ public sealed class ComponentContext
         DataElementIdentifier? dataElementIdentifier,
         List<ComponentContext>? childContexts = null
     )
+        : this(state.DataAccessor, component, rowIndices, dataElementIdentifier, childContexts) { }
+
+    /// <summary>
+    /// Constructor for ComponentContext
+    /// </summary>
+    public ComponentContext(
+        IInstanceDataAccessor dataAccessor,
+        BaseComponent? component,
+        int[]? rowIndices,
+        DataElementIdentifier? dataElementIdentifier,
+        List<ComponentContext>? childContexts = null
+    )
     {
-        State = state;
+        DataAccessor = dataAccessor;
         DataElementIdentifier = dataElementIdentifier;
         Component = component;
         RowIndices = rowIndices;
@@ -144,9 +158,16 @@ public sealed class ComponentContext
     public ComponentContext? Parent { get; private set; }
 
     /// <summary>
-    /// The LayoutEvaluatorState that this context is part of
+    /// The LayoutEvaluatorState that this context is part of.
     /// </summary>
-    public LayoutEvaluatorState State { get; }
+    public LayoutEvaluatorState State =>
+        DataAccessor.GetLayoutEvaluatorState()
+        ?? throw new InvalidOperationException("DataAccessor is not initialized to create a LayoutEvaluatorState");
+
+    /// <summary>
+    /// Provides access to the current <see cref="IInstanceDataAccessor"/> .
+    /// </summary>
+    public IInstanceDataAccessor DataAccessor { get; }
 
     /// <summary>
     /// The Id of the default data element in this context

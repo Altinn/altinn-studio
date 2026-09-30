@@ -24,8 +24,8 @@ public sealed record CorrespondenceDetailsResponse
     /// The recipient of the correspondence.
     /// </summary>
     [JsonPropertyName("recipient")]
-    [JsonConverter(typeof(OrganisationOrPersonIdentifierJsonConverter))]
-    public required OrganisationOrPersonIdentifier Recipient { get; init; }
+    [JsonConverter(typeof(OrganizationOrPersonIdentifierJsonConverter))]
+    public required OrganizationOrPersonIdentifier Recipient { get; init; }
 
     /// <summary>
     /// Notifications linked to the correspondence.

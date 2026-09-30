@@ -58,7 +58,6 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
   private syncPropsToState() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
-        // eslint-disable-next-line max-len
         if (
           this.props.ruleModelElements[i].name ===
           this.props.ruleConnection[this.props.connectionId].selectedFunction

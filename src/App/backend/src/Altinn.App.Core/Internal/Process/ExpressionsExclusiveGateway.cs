@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.Process;
 /// <summary>
 /// Class implementing <see cref="IProcessExclusiveGateway" /> for evaluating expressions on flows connected to a gateway
 /// </summary>
-public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
+internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -95,7 +95,7 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
             DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);
 
             var componentContext = new ComponentContext(
-                state,
+                state.DataAccessor,
                 component: null,
                 rowIndices: null,
                 dataElementIdentifier: dataElement

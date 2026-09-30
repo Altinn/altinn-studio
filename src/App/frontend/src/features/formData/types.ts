@@ -18,13 +18,7 @@ export const DEFAULT_DEBOUNCE_TIMEOUT = 400;
  * configurable whether you want to debounce (and thus automatically save) when blurring a field.
  */
 export type DebounceReason =
-  | 'blur'
-  | 'timeout'
-  | 'backendChanges'
-  | 'listChanges'
-  | 'unmount'
-  | 'beforeSave'
-  | 'forced';
+  'blur' | 'timeout' | 'backendChanges' | 'listChanges' | 'unmount' | 'beforeSave' | 'forced';
 
 /**
  * This field always exists in the data model for objects inside arrays (i.e. repeating groups). It's used to

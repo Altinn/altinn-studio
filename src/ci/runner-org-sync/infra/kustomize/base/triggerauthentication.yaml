@@ -1,0 +1,15 @@
+# KEDA TriggerAuthentication for the github-runner scaler. Keep this during
+# the metrics-api POC so either scaler revision can authenticate while Flux
+# independently reconciles the runner-org-sync and gitea-runners releases.
+# It reuses the PAT Secret written by runner-org-sync and can be removed in a
+# cleanup after the metrics-api POC is validated and rollback is no longer
+# required.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-gitea-auth
+spec:
+  secretTargetRef:
+    - parameter: personalAccessToken
+      name: keda-gitea-pat
+      key: token

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import classes from './ReceiptContent.module.css';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import { PageAccordion } from '../PageAccordion';
-import { Accordion } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { FormTree } from '../FormTree';
 import { StudioButton } from '@studio/components';
@@ -62,16 +61,14 @@ export const ReceiptContent = ({
     return (
       <div className={classes.wrapper}>
         <div className={classes.accordionWrapper}>
-          <Accordion color='neutral'>
-            <PageAccordion
-              pageName={receiptName}
-              isOpen={receiptName === selectedAccordion}
-              onClick={onClickAccordion}
-              pageIsReceipt
-            >
-              <FormTree layout={layout} />
-            </PageAccordion>
-          </Accordion>
+          <PageAccordion
+            pageName={receiptName}
+            isOpen={receiptName === selectedAccordion}
+            onClick={onClickAccordion}
+            pageIsReceipt
+          >
+            <FormTree layout={layout} />
+          </PageAccordion>
         </div>
       </div>
     );

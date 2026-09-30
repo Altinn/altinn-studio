@@ -17,7 +17,7 @@ describe('returnConfirmSummaryObject', () => {
 
     expect(result).toEqual({
       'confirm.sender': {
-        value: '01017512345-Ola Privatperson',
+        value: '010175*****-Ola Privatperson',
       },
     });
   });
@@ -35,7 +35,7 @@ describe('returnConfirmSummaryObject', () => {
 
     expect(result).toEqual({
       'confirm.sender': {
-        value: '01017512345-Ola Privatperson',
+        value: '010175*****-Ola Privatperson',
       },
     });
   });
@@ -113,7 +113,7 @@ describe('returnConfirmSummaryObject', () => {
 
     expect(result).toEqual({
       'Some custom value': {
-        value: '01017512345-Ola Privatperson',
+        value: '010175*****-Ola Privatperson',
       },
     });
   });

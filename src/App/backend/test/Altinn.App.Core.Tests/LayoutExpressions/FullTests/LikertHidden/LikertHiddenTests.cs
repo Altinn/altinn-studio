@@ -49,7 +49,12 @@ public class LikertHiddenTests
         );
         IInstanceDataAccessor dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
             new Instance(),
-            jsonDoc.RootElement
+            null,
+            null,
+            null,
+            jsonDoc.RootElement,
+            null,
+            null
         );
         var data = await dataAccessor.GetFormData(dataAccessor.Instance.Data.First());
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "LikertHidden");

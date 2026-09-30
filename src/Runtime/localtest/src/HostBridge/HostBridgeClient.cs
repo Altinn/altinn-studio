@@ -193,6 +193,7 @@ public sealed class HostBridgeClient
             catch
             {
                 _pending.TryRemove(requestId, out _);
+                pending.Cancel();
                 throw;
             }
         }
@@ -230,6 +231,7 @@ public sealed class HostBridgeClient
             catch
             {
                 _pending.TryRemove(requestId, out _);
+                pending.Cancel();
                 throw;
             }
         }
@@ -413,6 +415,7 @@ public sealed class HostBridgeClient
         {
             if (_pending.TryRemove(requestId, out var pending))
             {
+                pending.Cancel();
                 pending.TrySetException(new OperationCanceledException());
                 try
                 {
@@ -572,6 +575,7 @@ public sealed class HostBridgeClient
                 FullMode = BoundedChannelFullMode.Wait,
             }
         );
+        private int _cancelled;
 
         public Task<ResponseStartFrame> Start => _start.Task;
         public ChannelReader<byte[]> Body => _body.Reader;
@@ -584,14 +588,30 @@ public sealed class HostBridgeClient
 
         public async Task AppendBody(byte[] payload, bool isFinal, CancellationToken cancellationToken)
         {
-            if (payload.Length > 0)
+            try
             {
-                HostBridgeProtocol.EnsureFrameWithinLimit(payload.Length);
-                await _body.Writer.WriteAsync(payload, cancellationToken);
-            }
+                if (Volatile.Read(ref _cancelled) != 0)
+                    return;
 
-            if (isFinal)
-                _body.Writer.TryComplete();
+                if (payload.Length > 0)
+                {
+                    HostBridgeProtocol.EnsureFrameWithinLimit(payload.Length);
+                    await _body.Writer.WriteAsync(payload, cancellationToken);
+                }
+
+                if (isFinal)
+                    _body.Writer.TryComplete();
+            }
+            catch (ChannelClosedException) when (Volatile.Read(ref _cancelled) != 0)
+            {
+                // The HTTP client can disconnect while the bridge is still receiving response frames.
+            }
+        }
+
+        public void Cancel()
+        {
+            Interlocked.Exchange(ref _cancelled, 1);
+            _body.Writer.TryComplete();
         }
 
         public void SetTrailers(Dictionary<string, string[]> trailers)

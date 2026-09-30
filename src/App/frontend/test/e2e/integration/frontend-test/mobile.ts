@@ -1,8 +1,7 @@
+import { breakpoints } from '@app/form-component';
+
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
-
-import { breakpoints } from 'src/hooks/useDeviceWidths';
-import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.generated';
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
@@ -20,7 +19,7 @@ it('is possible to submit app instance from mobile', () => {
 });
 
 it('is possible to submit app instance from a tablet', () => {
-  cy.viewport(breakpoints.tablet - 5, 1024);
+  cy.viewport(breakpoints.md - 5, 1024);
   testChangeName();
   cy.get('html.viewport-is-tablet').should('be.visible');
   testGroup('tablet');
@@ -50,23 +49,20 @@ function testGroup(mode: Mode) {
 
   // Mobile tables always have two columns
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
-  let editWas: IGroupEditProperties = {};
   cy.changeLayout((c) => {
     if (c.id === 'mainGroup' && c.type === 'RepeatingGroup' && c.edit) {
-      editWas = { ...c.edit };
       c.edit.editButton = false;
       c.edit.deleteButton = false;
     }
   });
   ensureTableHasNumColumns(appFrontend.group.mainGroup, 6, 2);
-  cy.changeLayout((component) => {
-    if (component.id === 'mainGroup' && component.type === 'Group' && 'edit' in component && component.edit) {
-      component.edit = { ...editWas };
-    }
-  });
 
   cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-  cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+  cy.waitUntilSaved();
+  cy.get(appFrontend.group.hideRepeatingGroupRow).type('{moveToEnd}{backspace}1000');
+  cy.get(appFrontend.group.hideRepeatingGroupRow).blur();
+  cy.waitUntilSaved();
+  cy.get(appFrontend.group.hiddenRowsInfoMsg).should('exist');
 
   cy.navPage('repeating (store endringer)').click();
   ensureTableHasNumColumns(appFrontend.group.overflowGroup, 4, 2);
@@ -108,7 +104,7 @@ function testListMobile() {
     cy.findByRole('radio', { name: /caroline/i }).check();
     cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
   });
-  cy.findByRole('button', { name: 'Neste' }).click();
+  cy.get(appFrontend.navButtons).findByRole('button', { name: 'Neste' }).click();
   sendIn();
 }
 
@@ -117,7 +113,7 @@ function testListTablet() {
     cy.findByRole('row', { name: /caroline/i }).click();
     cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
   });
-  cy.findAllByRole('button', { name: 'Neste' }).eq(1).click();
+  cy.get(appFrontend.navButtons).findByRole('button', { name: 'Neste' }).click();
   sendIn();
 }
 

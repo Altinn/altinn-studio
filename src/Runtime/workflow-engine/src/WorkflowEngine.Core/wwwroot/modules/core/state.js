@@ -1,7 +1,7 @@
 /* Type definitions, DOM references, shared state */
 
 /**
- * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Canceled'} StepStatus
+ * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Waiting' | 'Canceled'} StepStatus
  * @typedef {'app' | 'webhook' | 'Noop' | 'Throw' | 'Timeout' | 'Delegate'} CommandType
  */
 
@@ -14,6 +14,9 @@
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
+ *   deferCount:     number,
+ *   firstDeferredAt: string | null,
+ *   lastDeferReason: string | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   executionStartedAt: string | null,
@@ -23,6 +26,18 @@
  */
 
 /**
+ * A related workflow (dependency, dependent, or link) as carried on a card.
+ * @typedef {{
+ *   databaseId:  string,
+ *   operationId: string,
+ *   status:      string,
+ * }} WorkflowRelation
+ */
+
+/**
+ * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
+ * deliberately invisible to collection head tracking (side chains).
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -31,6 +46,7 @@
  *   traceId:        string | null,
  *   namespace:      string,
  *   collectionKey:  string | null,
+ *   mailboxId:      string | undefined,
  *   labels:         Record<string, string> | null,
  *   backoffUntil:   string | null,
  *   createdAt:      string,
@@ -39,8 +55,47 @@
  *   removedAt:      string | null,
  *   startAt:        string | null,
  *   hasState:       boolean,
+ *   isHead:         boolean | undefined,
+ *   dependsOn:      WorkflowRelation[] | undefined,
+ *   dependents:     WorkflowRelation[] | undefined,
+ *   links:          WorkflowRelation[] | undefined,
  *   steps:          Step[],
  * }} Workflow
+ */
+
+/**
+ * One position of a mailbox's log. `parkedForSeconds` is absent while a receiver is still parked
+ * (count up from `heldAt`) and for one that never parked.
+ * @typedef {{
+ *   position:           number,
+ *   state:              'delivered' | 'paired' | 'waiting' | 'closed',
+ *   deliveryKey:        string | undefined,
+ *   acceptedAt:         string | undefined,
+ *   receiverWorkflowId: string | undefined,
+ *   heldAt:             string | undefined,
+ *   releasedAt:         string | undefined,
+ *   claimedAt:          string | undefined,
+ *   parkedForSeconds:   number | undefined,
+ * }} MailboxPosition
+ */
+
+/**
+ * A mailbox as `/dashboard/mailboxes` reports it; `positions` is empty for a freshly minted one.
+ * @typedef {{
+ *   id:                   string,
+ *   namespace:            string,
+ *   idempotencyKey:       string,
+ *   collectionKey:        string | undefined,
+ *   status:               'Open' | 'Disposed',
+ *   disposedReason:       'Request' | 'Deadline' | undefined,
+ *   deadline:             string,
+ *   createdAt:            string,
+ *   disposedAt:           string | undefined,
+ *   nextIdx:              number,
+ *   nextSeq:              number,
+ *   unpairedDeliveries: number,
+ *   positions:            MailboxPosition[],
+ * }} Mailbox
  */
 
 /**
@@ -63,12 +118,14 @@
  */
 
 /**
- * @typedef {{ startedAt: string, frozenAt?: number }} WorkflowTimer
+ * `previousWorkflows` is the live section's own set: the freshest SSE copy of every workflow it
+ * holds a live card for, dropped the moment one leaves (an exiting card outlives its entry by the
+ * length of its animation). Other sections read it for fresher data than their own snapshot, and
+ * to tell a live workflow from a settled one.
  *
  * @typedef {{
  *   previousWorkflows:    Record<string, Workflow>,
  *   workflowFingerprints: Record<string, string>,
- *   workflowTimers:       Record<string, WorkflowTimer>,
  *   lastRecentKeys:       string,
  *   queryLoaded:        boolean,
  *   liveFilter:           string,
@@ -112,6 +169,9 @@ export const dom = {
     stateModal: /** @type {HTMLElement} */ (document.getElementById('state-modal')),
     stateTitle: /** @type {HTMLElement} */ (document.getElementById('state-title')),
     stateBody: /** @type {HTMLElement} */ (document.getElementById('state-body')),
+    chainModal: /** @type {HTMLElement} */ (document.getElementById('chain-modal')),
+    chainTitle: /** @type {HTMLElement} */ (document.getElementById('chain-title')),
+    chainBody: /** @type {HTMLElement} */ (document.getElementById('chain-body')),
     themeToggle: /** @type {HTMLElement} */ (document.getElementById('theme-toggle')),
     themeIcon: /** @type {HTMLElement} */ (document.getElementById('theme-icon')),
     themeLabel: /** @type {HTMLElement} */ (document.getElementById('theme-label')),
@@ -123,7 +183,6 @@ export const dom = {
 export const state = {
     previousWorkflows: {},
     workflowFingerprints: {},
-    workflowTimers: {},
     lastRecentKeys: '',
     queryLoaded: false,
     liveFilter: '',
@@ -144,9 +203,30 @@ export const state = {
         recent: localStorage.getItem('compact:recent') === '1',
         query: localStorage.getItem('compact:query') !== '0',
     },
+    /** @type {'chains' | 'compact' | 'full'} Recent section view mode */
+    recentView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('recentView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            // Migrate the legacy two-way toggle; new default is the grouped chains view.
+            return localStorage.getItem('compact:recent') === '1' ? 'compact' : 'chains';
+        })()
+    ),
+    /** @type {'chains' | 'compact' | 'full'} Query tab view mode (compact default: results are often unrelated single rows) */
+    queryView: /** @type {'chains' | 'compact' | 'full'} */ (
+        (() => {
+            const v = localStorage.getItem('queryView');
+            if (v === 'chains' || v === 'compact' || v === 'full') return v;
+            return localStorage.getItem('compact:query') !== '0' ? 'compact' : 'full';
+        })()
+    ),
     /** @type {Workflow[]} */ recentWorkflows: [],
     /** @type {Set<string>} */ pendingExpand: new Set(),
 };
+
+// The flat-mode card builders and URL sync still key off the booleans; keep them derived.
+state.compactSections.recent = state.recentView === 'compact';
+state.compactSections.query = state.queryView === 'compact';
 
 /** @type {Record<string, Workflow>} */
 export const workflowData = {};
@@ -176,21 +256,19 @@ export const parseTransition = (wf) => {
 const TASK_END_COMMANDS = new Set([
     'EndTask',
     'CommonTaskFinalization',
-    'EndTaskLegacyHook',
     'OnTaskEndingHook',
     'LockTaskData',
     'AbandonTask',
     'OnTaskAbandonHook',
-    'AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
     'UnlockTaskData',
+    'CleanupGeneratedFromTask',
     'StartTask',
-    'StartTaskLegacyHook',
     'OnTaskStartingHook',
     'CommonTaskInitialization',
 ]);
-const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook']);
+const PROCESS_END_COMMANDS = new Set(['OnProcessEndingHook', 'EndProcessLegacyHook']);
 
 /** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
 export const stepPhase = (commandDetail) => {
@@ -200,5 +278,11 @@ export const stepPhase = (commandDetail) => {
     return null;
 };
 
-/** Extra sub-label for a step (e.g. service task type). Returns null if none. */
-export const stepSubLabel = (_step) => null;
+/**
+ * Extra sub-label for a step. A Waiting step shows the reason its command gave for deferring, so
+ * the card says what the step is waiting for without opening the modal.
+ * @param {Step} step
+ * @returns {string | null}
+ */
+export const stepSubLabel = (step) =>
+    step.status === 'Waiting' && step.lastDeferReason ? step.lastDeferReason : null;

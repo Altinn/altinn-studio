@@ -593,7 +593,7 @@ public static class JsonSchemaAssertions
 
     private static void KeywordEqual(PatternKeyword expected, PatternKeyword actual)
     {
-        Assert.Equal(expected.Value.ToString(), actual.Value.ToString());
+        Assert.Equal(expected.Pattern.ToString(), actual.Pattern.ToString());
     }
 
     private static void KeywordEqual(PatternPropertiesKeyword expected, PatternPropertiesKeyword actual)

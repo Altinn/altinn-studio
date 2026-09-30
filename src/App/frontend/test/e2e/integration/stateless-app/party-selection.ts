@@ -1,4 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { Tenor } from 'test/e2e/support/users';
 
 const appFrontend = new AppFrontend();
 
@@ -9,9 +10,12 @@ const appFrontend = new AppFrontend();
 describe('Stateless party selection', () => {
   it('should show party selection before starting instance', () => {
     // User 2001 has multiple parties and doNotPromptForParty=false
-    cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'multiPartyPrompt' });
+    cy.startAppInstance(appFrontend.apps.stateless, {
+      cyUser: 'multiPartyPrompt',
+      tenorUser: Tenor.users.humanAndrefiolin,
+    });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-    cy.findByText(/Jeg ønsker ikke å bli spurt om aktør hver gang/).should('be.visible');
+    cy.findByText(/ikke bli spurt om aktør hver gang/).should('be.visible');
 
     cy.findAllByText(/personnr\. \d+/)
       .first()

@@ -19,7 +19,7 @@ describe('ConfigCustomFileEnding', () => {
       },
     });
     const user = userEvent.setup();
-    const hasCustomFileEndingsSwitch = getPropertyByRole('checkbox', 'hasCustomFileEndings');
+    const hasCustomFileEndingsSwitch = getPropertyByRole('switch', 'hasCustomFileEndings');
     expect(hasCustomFileEndingsSwitch).not.toBeChecked();
     await user.click(hasCustomFileEndingsSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
@@ -42,7 +42,7 @@ describe('ConfigCustomFileEnding', () => {
       },
     });
     const user = userEvent.setup();
-    const hasCustomFileEndingsSwitch = getPropertyByRole('checkbox', 'hasCustomFileEndings');
+    const hasCustomFileEndingsSwitch = getPropertyByRole('switch', 'hasCustomFileEndings');
     expect(hasCustomFileEndingsSwitch).toBeChecked();
     await user.click(hasCustomFileEndingsSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(

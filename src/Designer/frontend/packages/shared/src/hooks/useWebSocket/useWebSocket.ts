@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { type WSConnector } from 'app-shared/websockets/WSConnector';
 
 type UseWebsocket<T> = {
@@ -14,9 +14,8 @@ export const useWebSocket = <T>({
   webSocketConnector,
   onWSMessageReceived,
 }: UseWebsocket<T>): void => {
-  const wsConnectionRef = useRef<WSConnector | null>(null);
   useEffect(() => {
-    wsConnectionRef.current = webSocketConnector.getInstance(webSocketUrls, clientsName);
-    wsConnectionRef.current?.onMessageReceived(onWSMessageReceived);
+    const connector = webSocketConnector.getInstance(webSocketUrls, clientsName);
+    return connector.onMessageReceived(onWSMessageReceived);
   }, [webSocketConnector, webSocketUrls, clientsName, onWSMessageReceived]);
 };

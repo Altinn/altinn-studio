@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;

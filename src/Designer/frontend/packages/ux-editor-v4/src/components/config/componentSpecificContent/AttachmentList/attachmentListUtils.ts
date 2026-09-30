@@ -1,4 +1,4 @@
-import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
+import type { AvailableAttachmentLists, InternalDataTypesFormat } from './types';
 
 export const reservedDataTypes = {
   includeAll: 'include-all',
@@ -8,7 +8,7 @@ export const reservedDataTypes = {
 
 export const extractCurrentAvailableAttachments = (
   includeCurrentTask: boolean,
-  attachments: AvailableAttachementLists,
+  attachments: AvailableAttachmentLists,
 ): string[] =>
   includeCurrentTask ? attachments.attachmentsCurrentTasks : attachments.attachmentsAllTasks;
 

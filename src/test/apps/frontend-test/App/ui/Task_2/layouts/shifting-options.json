@@ -51,8 +51,8 @@
           "simpleBinding": "ShiftingOptions.Balloons.Color"
         },
         "optionsId": "balloonColors",
-        "mapping": {
-          "ShiftingOptions.Balloons[{0}].Num": "balloonNum"
+        "queryParameters": {
+          "balloonNum": ["dataModel", "ShiftingOptions.Balloons.Num"]
         }
       },
       {
@@ -111,7 +111,6 @@
           "back": "Tilbake",
           "next": "Neste"
         },
-        "showBackButton": true
       }
     ]
   }

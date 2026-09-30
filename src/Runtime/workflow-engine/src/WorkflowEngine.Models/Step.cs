@@ -1,5 +1,3 @@
-using WorkflowEngine.Resilience.Models;
-
 // CA1716: Identifiers should not match keywords (https://github.com/dotnet/roslyn-analyzers/issues/1858)
 #pragma warning disable CA1716
 
@@ -28,8 +26,39 @@ public sealed record Step : PersistentItem
 
     /// <summary>
     /// Number of times this step has been requeued after a retryable failure.
+    /// Reset when the step defers: a deferral is a successful execution, so retry counting
+    /// bounds consecutive failures between deferrals rather than failures across the step's lifetime.
     /// </summary>
     public int RequeueCount { get; set; }
+
+    /// <summary>
+    /// Number of times this step has deferred (<see cref="ExecutionStatus.Deferred"/>).
+    /// Available to commands via <see cref="CommandExecutionContext.Step"/> for adaptive poll cadence.
+    /// </summary>
+    public int DeferCount { get; set; }
+
+    /// <summary>
+    /// When this step deferred for the first time. Anchors the wait budget
+    /// (<see cref="CommandDefinition.WaitBudget"/>): once <c>FirstDeferredAt + budget</c> passes, the
+    /// next deferral fails the step. Kept after completion as a historical record; cleared on resume.
+    /// </summary>
+    public DateTimeOffset? FirstDeferredAt { get; set; }
+
+    /// <summary>
+    /// When this step deferred most recently. Anchors the <see cref="RetryStrategy"/> deadline for
+    /// errors after a deferral, so a long wait does not consume the retry allowance. Must not be
+    /// conflated with <see cref="PersistentItem.UpdatedAt"/>, which advances on every write-back and
+    /// would slide that deadline forward indefinitely. Cleared on resume.
+    /// </summary>
+    public DateTimeOffset? LastDeferredAt { get; set; }
+
+    /// <summary>
+    /// The reason given by this step's most recent deferral — the command's own words for why it is
+    /// waiting. Surfaced on status reads so consumers can show what a <see cref="PersistentItemStatus.Waiting"/>
+    /// step is waiting for. Overwritten on every deferral (a stale reason is worse than none) and
+    /// cleared on resume alongside the defer anchors.
+    /// </summary>
+    public string? LastDeferReason { get; set; }
 
 #pragma warning disable CA1002, CA2227 // Mutable domain entity — List<T> with setter is intentional
     /// <summary>
@@ -43,7 +72,16 @@ public sealed record Step : PersistentItem
     /// </summary>
     public string? StateOut { get; set; }
 
-    internal DateTimeOffset? ExecutionStartedAt { get; set; }
+    /// <summary>
+    /// When the engine most recently began executing this step. Stamped at the start of every attempt —
+    /// a retry, a re-execution after a deferral and a reclaim alike — and persisted by that attempt's
+    /// write-backs (the first of which is fire-and-forget, so a persisted read of a
+    /// <see cref="PersistentItemStatus.Processing"/> step may still show the previous attempt until the
+    /// step settles). <c>null</c> until the step has run once; cleared on resume alongside the other
+    /// per-attempt anchors. Against <see cref="PersistentItem.UpdatedAt"/> on a settled step it yields
+    /// the last attempt's duration.
+    /// </summary>
+    public DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <inheritdoc/>
     public override string ToString() => $"[{nameof(Step)}.{Command.Type}] {OperationId} ({Status})";

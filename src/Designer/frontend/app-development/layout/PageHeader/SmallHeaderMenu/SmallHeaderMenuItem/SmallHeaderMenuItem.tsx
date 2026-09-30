@@ -2,20 +2,15 @@ import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { DropdownMenu } from '@digdir/designsystemet-react';
+import { StudioDropdown, studioBetaTagClasses } from '@studio/components';
 import { UrlUtils } from '@studio/pure-functions';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
-import { studioBetaTagClasses } from '@studio/components-legacy';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;
-  onClick: () => void;
 };
 
-export const SmallHeaderMenuItem = ({
-  menuItem,
-  onClick,
-}: SmallHeaderMenuItemProps): ReactElement => {
+export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): ReactElement => {
   const { t } = useTranslation();
 
   const location = useLocation();
@@ -23,9 +18,11 @@ export const SmallHeaderMenuItem = ({
 
   if (menuItem.action.type === 'button') {
     return (
-      <DropdownMenu.Item key={menuItem.name} onClick={menuItem.action.onClick}>
-        {menuItem.name}
-      </DropdownMenu.Item>
+      <StudioDropdown.Item>
+        <StudioDropdown.Button role='menuitem' onClick={menuItem.action.onClick}>
+          {menuItem.name}
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
     );
   }
 
@@ -35,16 +32,18 @@ export const SmallHeaderMenuItem = ({
       : '';
 
   return (
-    <DropdownMenu.Item key={menuItem.name} asChild className={linkItemClassName}>
-      <NavLink
-        className={menuItem.isBeta && studioBetaTagClasses.isBeta}
-        to={menuItem.action.href}
-        onClick={onClick}
-        target={menuItem.action.openInNewTab ? '_blank' : ''}
-        rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
-      >
-        {t(menuItem.name)}
-      </NavLink>
-    </DropdownMenu.Item>
+    <StudioDropdown.Item>
+      <StudioDropdown.Button asChild>
+        <NavLink
+          className={`${linkItemClassName} ${menuItem.isBeta ? studioBetaTagClasses.isBeta : ''}`}
+          to={menuItem.action.href}
+          role='menuitem'
+          target={menuItem.action.openInNewTab ? '_blank' : ''}
+          rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
+        >
+          {t(menuItem.name)}
+        </NavLink>
+      </StudioDropdown.Button>
+    </StudioDropdown.Item>
   );
 };

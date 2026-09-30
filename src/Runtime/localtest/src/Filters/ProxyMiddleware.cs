@@ -1,5 +1,3 @@
-#nullable enable
-
 using Altinn.Studio.EnvTopology;
 
 namespace LocalTest.Filters;

@@ -1,0 +1,54 @@
+{
+    "name": "Should set multiple values when resolving keys in a datamodel array",
+    "expects": [
+        {
+            "field": "form.children[0].total",
+            "result": 200
+        },
+        {
+            "field": "form.children[1].total",
+            "result": 220
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": {
+            "form.children.total": {
+                "expression": ["multiply", ["dataModel", "form.children.price"], ["dataModel", "form.children.quantity"]]
+            }
+        }
+    },
+    "formData": {
+        "form": {
+            "children": [
+                {
+                    "price": 100,
+                    "quantity": 2,
+                    "total": 0
+                },
+                {
+                    "price": 5,
+                    "quantity": 44,
+                    "total": 0
+                }
+            ]
+        }
+    },
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": [
+                    {
+                        "id": "name-input",
+                        "type": "Input",
+                        "dataModelBindings": {
+                            "simpleBinding": "form.name"
+                        },
+                        "hidden": true
+                    }
+                ]
+            }
+        }
+    }
+}

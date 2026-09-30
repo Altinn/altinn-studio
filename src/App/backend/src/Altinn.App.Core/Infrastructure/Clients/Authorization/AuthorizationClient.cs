@@ -12,8 +12,7 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -23,69 +22,72 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization;
 /// <summary>
 /// Client for handling authorization actions in Altinn Platform.
 /// </summary>
-public class AuthorizationClient : IAuthorizationClient
+internal sealed class AuthorizationClient : IAuthorizationClient
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly AppSettings _settings;
     private readonly HttpClient _client;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IPDP _pdp;
     private readonly ILogger _logger;
     private readonly Telemetry? _telemetry;
     private const string ForwardedForHeaderName = "x-forwarded-for";
 
+    private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
+
+    // Resolved lazily to avoid circular dependency:
+    // AuthorizationClient → IAuthenticationTokenResolver → AuthenticationContext → IAuthorizationClient
+    private IAuthenticationTokenResolver? _authTokenResolver;
+
+    private IAuthenticationTokenResolver GetAuthTokenResolver() =>
+        _authTokenResolver ??= _serviceProvider.GetRequiredService<IAuthenticationTokenResolver>();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthorizationClient"/> class
     /// </summary>
-    /// <param name="platformSettings">The platform settings from configuration.</param>
-    /// <param name="httpContextAccessor">the http context accessor.</param>
     /// <param name="httpClient">A Http client from the HttpClientFactory.</param>
-    /// <param name="settings">The application settings.</param>
-    /// <param name="pdp"></param>
-    /// <param name="logger">the handler for logger service</param>
-    /// <param name="telemetry">Telemetry for traces and metrics.</param>
-    public AuthorizationClient(
-        IOptions<PlatformSettings> platformSettings,
-        IHttpContextAccessor httpContextAccessor,
-        HttpClient httpClient,
-        IOptionsMonitor<AppSettings> settings,
-        IPDP pdp,
-        ILogger<AuthorizationClient> logger,
-        Telemetry? telemetry = null
-    )
+    /// <param name="serviceProvider">The service provider.</param>
+    public AuthorizationClient(HttpClient httpClient, IServiceProvider serviceProvider)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _settings = settings.CurrentValue;
-        _pdp = pdp;
-        _logger = logger;
-        _telemetry = telemetry;
-        httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
+        _serviceProvider = serviceProvider;
+        _pdp = serviceProvider.GetRequiredService<IPDP>();
+        _logger = serviceProvider.GetRequiredService<ILogger<AuthorizationClient>>();
+        _telemetry = serviceProvider.GetService<Telemetry>();
 
-        if (!httpClient.DefaultRequestHeaders.Contains(ForwardedForHeaderName))
-        {
-            string? clientIpAddress = _httpContextAccessor.HttpContext?.Request?.Headers?[ForwardedForHeaderName];
-            httpClient.DefaultRequestHeaders.Add(ForwardedForHeaderName, clientIpAddress);
-        }
-        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+        var platformSettings = serviceProvider.GetRequiredService<IOptions<PlatformSettings>>().Value;
+        httpClient.BaseAddress = new Uri(platformSettings.ApiAuthorizationEndpoint);
+        httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         _client = httpClient;
     }
 
     /// <inheritdoc />
-    public async Task<List<Party>?> GetPartyList(int userId)
+    public async Task<List<Party>?> GetPartyList(
+        int userId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartClientGetPartyListActivity(userId);
         List<Party>? partyList = null;
         string apiUrl = $"parties?userid={userId}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        JwtToken token = await GetAuthTokenResolver()
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
         try
         {
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            using HttpResponseMessage response = await _client.GetAsync(
+                token,
+                apiUrl,
+                cancellationToken: cancellationToken
+            );
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string partyListData = await response.Content.ReadAsStringAsync();
+                string partyListData = await response.Content.ReadAsStringAsync(cancellationToken);
                 partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -96,18 +98,28 @@ public class AuthorizationClient : IAuthorizationClient
     }
 
     /// <inheritdoc />
-    public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
+    public async Task<bool?> ValidateSelectedParty(
+        int userId,
+        int partyId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = _telemetry?.StartClientValidateSelectedPartyActivity(userId, partyId);
         bool? result;
         string apiUrl = $"parties/{partyId}/validate?userid={userId}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        JwtToken token = await GetAuthTokenResolver()
+            .GetAccessToken(authenticationMethod ?? _defaultAuthenticationMethod, cancellationToken);
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        using HttpResponseMessage response = await _client.GetAsync(
+            token,
+            apiUrl,
+            cancellationToken: cancellationToken
+        );
 
         if (response.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            string responseData = await response.Content.ReadAsStringAsync();
+            string responseData = await response.Content.ReadAsStringAsync(cancellationToken);
             result = JsonConvert.DeserializeObject<bool>(responseData);
         }
         else
@@ -130,7 +142,8 @@ public class AuthorizationClient : IAuthorizationClient
         InstanceIdentifier instanceIdentifier,
         ClaimsPrincipal user,
         string action,
-        string? taskId = null
+        string? taskId = null,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartClientAuthorizeActionActivity(instanceIdentifier, action, taskId);
@@ -146,7 +159,7 @@ public class AuthorizationClient : IAuthorizationClient
             instanceIdentifier.InstanceGuid,
             taskId
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -164,12 +177,13 @@ public class AuthorizationClient : IAuthorizationClient
     public async Task<Dictionary<string, bool>> AuthorizeActions(
         Instance instance,
         ClaimsPrincipal user,
-        List<string> actions
+        List<string> actions,
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartClientAuthorizeActionsActivity(instance);
         XacmlJsonRequestRoot request = MultiDecisionHelper.CreateMultiDecisionRequest(user, instance, actions);
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
         if (response?.Response == null)
         {
             _logger.LogWarning(
@@ -187,17 +201,21 @@ public class AuthorizationClient : IAuthorizationClient
     }
 
     /// <inheritdoc />
-    public async Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers)
+    public async Task<List<string>> GetKeyRoleOrganizationParties(
+        int userId,
+        List<string> orgNumbers,
+        CancellationToken cancellationToken = default
+    )
     {
         XacmlJsonRequestRoot request = CreateXacmlJsonRequest(userId, orgNumbers);
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
             return [];
         }
 
-        List<string> organisations =
+        List<string> organizations =
         [
             .. response
                 .Response.Where(result => result.Decision == "Permit")
@@ -207,7 +225,20 @@ public class AuthorizationClient : IAuthorizationClient
                 .Select(attribute => attribute.Value),
         ];
 
-        return organisations;
+        return organizations;
+    }
+
+    /// <summary>
+    /// <see cref="IPDP"/> (Altinn.Common.PEP) exposes no cancellation token, so cancellation can only be honored
+    /// before the decision request is sent.
+    /// </summary>
+    private Task<XacmlJsonResponse> GetDecisionForRequest(
+        XacmlJsonRequestRoot request,
+        CancellationToken cancellationToken
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _pdp.GetDecisionForRequest(request);
     }
 
     private static XacmlJsonRequestRoot CreateXacmlJsonRequest(int userId, List<string> orgNumbers)

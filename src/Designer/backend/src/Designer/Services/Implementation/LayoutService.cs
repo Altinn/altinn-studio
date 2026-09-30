@@ -16,7 +16,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class LayoutService(
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     IPublisher mediatr,
-    IAppDevelopmentService appDevelopmentService
+    IAppDevelopmentService appDevelopmentService,
+    IAppVersionService appVersionService
 ) : ILayoutService
 {
     public async Task<LayoutSettings> GetLayoutSettings(
@@ -40,7 +41,10 @@ public class LayoutService(
             editingContext.Repo,
             editingContext.Developer
         );
+        // Validated before the existing page is rewritten, so a refused name leaves the set untouched.
+        appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
+        bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         if (layoutSettings.Pages is not PagesWithOrder pages)
         {
             throw new InvalidOperationException("Cannot add order page to layout using groups.");
@@ -49,7 +53,7 @@ public class LayoutService(
         AltinnPageLayout pageLayout = new();
         if (pages.Order.Count > 0)
         {
-            pageLayout = pageLayout.WithNavigationButtons();
+            pageLayout = pageLayout.WithNavigationButtons(includeShowBackButton);
         }
         if (pages.Order.Count == 1)
         {
@@ -58,7 +62,7 @@ public class LayoutService(
             AltinnPageLayout existingPage = new(jsonNode.AsObject());
             if (!existingPage.HasComponentOfType("NavigationButtons"))
             {
-                existingPage.WithNavigationButtons();
+                existingPage.WithNavigationButtons(includeShowBackButton);
                 await appRepository.SaveLayout(layoutSetId, layoutName, existingPage.Structure);
             }
         }
@@ -226,6 +230,12 @@ public class LayoutService(
         IEnumerable<string> order = pagesWithGroups.Groups.SelectMany((group) => group.Order);
         IEnumerable<string> originalOrder = originalPagesWithGroups.Groups.SelectMany((group) => group.Order);
         var deletedPages = originalOrder.Except(order).ToList();
+        var createdPages = order.Except(originalOrder).ToList();
+        // Validated before the first delete, so a refused name leaves the set untouched.
+        foreach (string pageId in createdPages)
+        {
+            appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
+        }
         foreach (string pageId in deletedPages)
         {
             appRepository.DeleteLayout(layoutSetId, pageId);
@@ -238,14 +248,14 @@ public class LayoutService(
                 }
             );
         }
-        var createdPages = order.Except(originalOrder).ToList();
         LayoutSetConfig layoutSetConfig = await appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetId);
+        bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
             AltinnPageLayout altinnPageLayout = new();
             if (originalOrder.Any())
             {
-                altinnPageLayout = altinnPageLayout.WithNavigationButtons();
+                altinnPageLayout = altinnPageLayout.WithNavigationButtons(includeShowBackButton);
             }
             await appRepository.CreatePageLayoutFile(layoutSetId, pageId, altinnPageLayout);
             await mediatr.Publish(

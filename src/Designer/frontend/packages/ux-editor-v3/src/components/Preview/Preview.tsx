@@ -8,8 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../hooks/useAppContext';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { previewPage } from 'app-shared/api/paths';
-import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCenter } from '@studio/components';
+import { StudioButton, StudioCenter, StudioParagraph } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ArrowRightIcon } from '@studio/icons';
@@ -48,7 +47,7 @@ const NoSelectedPageMessage = () => {
   const { t } = useTranslation();
   return (
     <StudioCenter>
-      <Paragraph size='medium'>{t('ux_editor.no_components_selected')}</Paragraph>
+      <StudioParagraph data-size='md'>{t('ux_editor.no_components_selected')}</StudioParagraph>
     </StudioCenter>
   );
 };

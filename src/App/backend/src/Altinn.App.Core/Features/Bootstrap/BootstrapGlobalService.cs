@@ -46,7 +46,7 @@ internal sealed class BootstrapGlobalService(
         string? language
     )
     {
-        var appMetadataTask = _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var footerTask = GetFooterLayout();
         var textResourcesTask = GetTextResources(org, app, language);
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
@@ -65,7 +65,6 @@ internal sealed class BootstrapGlobalService(
         var orgDataTask = GetOrgData();
 
         await Task.WhenAll(
-            appMetadataTask,
             footerTask,
             availableLanguagesTask,
             userProfileTask,
@@ -80,7 +79,7 @@ internal sealed class BootstrapGlobalService(
         {
             AvailableLanguages = await availableLanguagesTask,
             TextResources = await textResourcesTask,
-            ApplicationMetadata = await appMetadataTask,
+            ApplicationMetadata = appMetadata,
             Footer = await footerTask,
             Ui = ui,
             FrontEndSettings = _frontEndSettings.Value,

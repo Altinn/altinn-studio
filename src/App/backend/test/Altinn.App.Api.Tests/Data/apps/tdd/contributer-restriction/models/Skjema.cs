@@ -37,7 +37,8 @@ public class Dummy
     [JsonPropertyName("simple_list")]
     public ValuesList? SimpleList { get; set; }
 
-    [XmlElement("nested_list", Order = 5)]
+    [XmlArray("nested_list", Order = 5)]
+    [XmlArrayItem("nested_list_item")]
     [JsonProperty("nested_list")]
     [JsonPropertyName("nested_list")]
     public List<Nested>? NestedList { get; set; }
@@ -81,6 +82,11 @@ public class Dummy
     [JsonProperty("hiddenPageNotRemove")]
     [JsonPropertyName("hiddenPageNotRemove")]
     public string? HiddenPageNotRemove { get; set; }
+
+    [XmlElement("missing-from-xsd", IsNullable = true, Order = 13)]
+    [JsonProperty("missing-from-xsd")]
+    [JsonPropertyName("missing-from-xsd")]
+    public string? MissingFromXsd { get; set; }
 }
 
 public class TagWithAttribute
@@ -111,10 +117,7 @@ public class SimpleKeyvalues
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-        return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]
@@ -140,10 +143,7 @@ public class Nested
     [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid AltinnRowId { get; set; }
 
-    public bool AltinnRowIdSpecified()
-    {
-        return AltinnRowId != default;
-    }
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]

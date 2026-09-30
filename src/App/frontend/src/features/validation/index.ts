@@ -39,6 +39,7 @@ export enum ValidationMask {
   Component             = 0b0000000000000010,
   Expression            = 0b0000000000000100,
   CustomBackend         = 0b0000000000001000,
+  Invalid               = 0b0000000000010000, // Input that cannot be saved
   Required              = 0b0100000000000000,
   AllExceptRequired     = 0b0011111111111111, // All frontend validations except required
   All                   = 0b0111111111111111, // All frontend validations
@@ -62,11 +63,9 @@ export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] 
  * Visibility setting used for selecting errors for nodes.
  * 'visible' = Select all validations with a ValidationMask matching the nodes current visibility
  * 'showAll' = Matches both current visibility and all backend validations, needed for "showAllUnboundValidations"
- * number = Select all validations with a ValidationMask maching the mask (number, because you can OR multiple masks together in any combination)
+ * number = Select all validations with a ValidationMask matching the mask (number, because you can OR multiple masks together in any combination)
  */
 export type NodeVisibility = 'visible' | 'showAll' | number;
-
-export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
 
 export type ValidationSliceState = {
   state: ValidationState;
