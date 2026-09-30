@@ -281,7 +281,7 @@ impl MicrosandboxProvider {
     }
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
-        let record = self.state.sandbox_by_id(id).await?;
+        let mut record = self.state.sandbox_by_id(id).await?;
         self.prepare_runtime_network(&record)?;
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
@@ -294,7 +294,14 @@ impl MicrosandboxProvider {
                 step.complete().await;
                 running
             }
-            None => Box::pin(self.create_runtime(&record, progress)).await?,
+            None => {
+                let running = Box::pin(self.create_runtime(&record, progress)).await?;
+                if !record.runtime_created {
+                    record.runtime_created = true;
+                    self.state.update_sandbox(&record).await?;
+                }
+                running
+            }
         };
         Ok(())
     }
@@ -480,9 +487,14 @@ impl MicrosandboxProviderBuilder {
     ///
     /// An image is needed while a Sandbox uses it, whether or not the Sandbox is running.
     /// Resolving or importing an image uses it. Removal runs when the Provider opens, after
-    /// each image is resolved or imported and after each Sandbox is deleted, so the cache
-    /// holds only the images Sandboxes need and those used within `retention`. The period
-    /// must also cover the time between resolving an image and creating its Sandbox.
+    /// each image is resolved or imported and after each Sandbox is deleted, so an unused
+    /// image can outlive `retention` until the next of these. Only resolving and importing
+    /// add images. The period must also cover the time between resolving an image and
+    /// creating its Sandbox.
+    ///
+    /// Image versions that no catalog reference names, which Providers left behind before
+    /// images were recorded by digest, are removed only once every remaining image belongs to
+    /// a Sandbox whose runtime this Provider created.
     ///
     /// Enable this only for the Provider that owns its home. It cannot be combined with
     /// [`Self::cache_directory`], since another Provider may use a shared cache.

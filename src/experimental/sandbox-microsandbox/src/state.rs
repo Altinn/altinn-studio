@@ -30,6 +30,12 @@ pub(crate) struct SandboxRecord {
     pub(crate) mounts: Vec<Mount>,
     pub(crate) environment: BTreeMap<String, String>,
     pub(crate) network: Option<NetworkAttachment>,
+    /// Set once this Provider has created the Microsandbox runtime. Microsandbox reports a
+    /// runtime created only after recording that it uses the image, which protects the image
+    /// from `Image::prune_local`; a runtime that is still booting, or whose creation was
+    /// interrupted, has no such record yet. Absent in records written before it was tracked.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(crate) runtime_created: bool,
 }
 
 impl SandboxRecord {
@@ -47,6 +53,7 @@ impl SandboxRecord {
             mounts: request.mounts,
             environment: request.environment,
             network: request.network,
+            runtime_created: false,
         }
     }
 

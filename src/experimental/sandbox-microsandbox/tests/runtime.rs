@@ -254,6 +254,88 @@ async fn unused_images_are_removed_while_every_sandbox_keeps_its_image() {
     }
 }
 
+#[tokio::test(flavor = "local")]
+#[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+async fn removal_while_a_sandbox_boots_keeps_the_booting_sandboxs_image() {
+    let temporary = RetainedOnFailureTempDir::new();
+    let home = temporary.path().join("control-plane");
+    let backend = Rc::new(
+        MicrosandboxProvider::builder(&home)
+            .remove_unused_images_after(Duration::from_hours(24))
+            .open()
+            .await
+            .expect("Backend should open"),
+    );
+    let service = SandboxService::new(backend.clone());
+    let request = EnsureSandboxRequest::new(
+        SandboxName::new("booting").expect("test Sandbox name should be valid"),
+        SandboxSpec {
+            image: ImageSource::Reference {
+                reference: "docker.io/library/alpine:3.21".to_string(),
+            },
+            platform: native_linux_platform(),
+            resources: resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            retention_policy: RetentionPolicy::Retain,
+        },
+    );
+    let vmdk = home.join("runtime/cache/vmdk");
+    let boot = async { service.ensure(&request).await.map(|handle| handle.snapshot().clone()) };
+    // Microsandbox reports the runtime before it records that the runtime uses its image.
+    // Resolving the same image by digest from the cache, as another Agent would, ends with a
+    // removal pass while the first runtime boots.
+    let resolve_while_booting = async {
+        while !backend
+            .find(request.name())
+            .await
+            .is_ok_and(|sandbox| sandbox.state == SandboxState::Running)
+        {
+            tokio::time::sleep(Duration::from_millis(5)).await;
+        }
+        let manifest_digest = cached_files(&vmdk)[0]
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .expect("VMDK should be named by its manifest digest")
+            .replacen('_', ":", 1);
+        backend
+            .image_backend()
+            .resolve(&ResolveRequest {
+                source: ImageSource::Reference {
+                    reference: format!("docker.io/library/alpine@{manifest_digest}"),
+                },
+                platform: native_linux_platform(),
+                root_filesystem_mode: RootFilesystemMode::Layered,
+            })
+            .await
+    };
+    let (booted, resolved) = tokio::join!(boot, resolve_while_booting);
+    let booted = booted.expect("Sandbox should start");
+    let resolved = resolved.expect("image should resolve");
+
+    backend.stop(&booted.id).await.expect("Sandbox should stop");
+    backend
+        .start(&booted.id)
+        .await
+        .expect("the Sandbox that was booting should keep its image and restart");
+    let second = backend
+        .create(CreateSandboxRequest {
+            id: "00000000-0000-4000-8000-0000000020d5".parse().expect("test Sandbox ID"),
+            image: resolved,
+            name: SandboxName::new("second").expect("test Sandbox name should be valid"),
+            hostname: Hostname::new("second").expect("test hostname should be valid"),
+            resources: resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: None,
+        })
+        .await
+        .expect("a Sandbox should be created from the image resolved during the boot");
+    for sandbox in [&booted, &second] {
+        service.delete(&sandbox.name).await.expect("Sandbox should be deleted");
+    }
+}
+
 /// Creates a direct Sandbox without starting it, so it has no runtime to hold its image, as
 /// when a Sandbox's first start fails.
 async fn create_never_started(backend: &MicrosandboxProvider, reference: &str) -> Sandbox {

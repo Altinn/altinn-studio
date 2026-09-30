@@ -20,8 +20,9 @@ use tokio::sync::{RwLock, RwLockReadGuard};
 
 use crate::{client::Client, error, state::StateStore};
 
-/// Directory below the Microsandbox cache for image and build-context archives.
-pub(crate) const SCRATCH_DIRECTORY: &str = "tmp";
+/// Directory below the Microsandbox cache for this crate's image and build-context archives.
+/// Microsandbox stages its own downloads in the parent directory.
+pub(crate) const SCRATCH_DIRECTORY: &str = "tmp/sandbox-microsandbox";
 
 /// The Microsandbox image cache of one Provider home.
 #[derive(Clone)]
@@ -101,11 +102,12 @@ impl ImageCache {
 
         // Image versions that no catalog reference names, such as those a moved tag left
         // behind before images were recorded by digest, are reachable only through
-        // Microsandbox's prune. Prune also removes every reference no runtime uses, so it
-        // runs only when each remaining reference belongs to a Sandbox with a runtime.
+        // Microsandbox's prune. Prune also removes every reference no runtime has recorded
+        // that it uses, so it runs only when each remaining reference belongs to a Sandbox
+        // whose runtime this Provider has created and which still exists.
         let mut pinned = HashSet::new();
         for record in &records {
-            if self.client.runtime_handle(&record.runtime_name).await?.is_some() {
+            if record.runtime_created && self.client.runtime_handle(&record.runtime_name).await?.is_some() {
                 pinned.insert(record.image.manifest_digest.as_str());
             }
         }
@@ -130,7 +132,7 @@ impl ImageCache {
         Ok(())
     }
 
-    /// Removes archives an interrupted image operation left in the scratch directory.
+    /// Removes archives an interrupted image build left in this crate's scratch directory.
     async fn remove_stale_scratch(&self, retention: Duration) {
         let scratch = self.scratch_directory();
         let Ok(mut entries) = tokio::fs::read_dir(&scratch).await else {
