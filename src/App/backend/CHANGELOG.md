@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the `ApplicationMetadata.Client.*` and `ApplicationMetadata.Service.*` trace spans are gone. They timed reads of the app's own files, which now come from memory, so there is nothing left to measure. Repoint any dashboard or query that filters on them.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
+- The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
 
 ### Removed
 

@@ -469,6 +469,7 @@ public class ProcessNextRequestFactoryTests
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
         var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key");
         var workflow = Assert.Single(acquire.Request.Workflows);
+        Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
         var command = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
         Assert.Equal(AcquireProcessingStatus.Key, command.CommandKey);
