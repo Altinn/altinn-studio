@@ -14,4 +14,4 @@ public sealed record DataType(
     public bool IsForm => !string.IsNullOrEmpty(ClassRef);
 }
 
-public sealed record ProcessTask(string Id, string TaskType, SourceSpan Position);
+public sealed record ProcessTask(string Id, string TaskType, SourceSpan Position, bool Reachable);
