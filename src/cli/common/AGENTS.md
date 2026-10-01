@@ -34,5 +34,3 @@ dotnet test studioctl.slnx
   builds copy this directory together with the studioctl `Directory.Build.props`,
   `Directory.Packages.props` and `.editorconfig` chain it inherits, and the Designer backend CI
   workflows trigger on `src/cli/common/dotnet/**`.
-- Changes here that alter studioctl behavior need a `src/cli/CHANGELOG.md` entry, like any other
-  studioctl change (`cli-changelog.yaml` covers `src/cli/**`).
