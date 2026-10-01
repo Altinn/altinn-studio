@@ -62,6 +62,21 @@ export class GenerateExpressionOr<Val extends ExprVal> extends DescribableCodeGe
     }
   }
 
+  assertValidFallback(value: unknown): void {
+    const matchesType: Record<ExprVal, boolean> = {
+      [ExprVal.Boolean]: typeof value === 'boolean',
+      [ExprVal.String]: typeof value === 'string',
+      [ExprVal.Number]: typeof value === 'number',
+      [ExprVal.Date]: value instanceof Date,
+      [ExprVal.List]: Array.isArray(value),
+      [ExprVal.Object]: typeof value === 'object' && value !== null && !Array.isArray(value),
+      [ExprVal.Any]: true,
+    };
+    if (!matchesType[this.valueType]) {
+      throw new Error(`Expression fallback must match the return type ${this.valueType}`);
+    }
+  }
+
   expressionDescriptors(): ExpressionDescriptorEntry[] {
     return [{ path: [], returnType: this.valueType, defaultValue: this.getExpressionFallback() }];
   }

@@ -24,7 +24,7 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
 
   private expressionFallback?: Extract<U[number]>;
 
-  /** Required unions accepting multiple expression return types need a runtime fallback. */
+  /** Sets the runtime fallback for a required union containing expressions. */
   setExpressionFallback(value: Extract<U[number]>): this {
     this.ensureMutable();
     this.expressionFallback = value;
@@ -65,6 +65,12 @@ export class GenerateUnion<U extends CodeGenerator<any>[]> extends DescribableCo
         if (defaultValue === undefined && expression.internal.optional) {
           defaultValue = expression.internal.optional.default;
         }
+      } else if (this.expressionFallback !== undefined) {
+        if (expression.internal.optional) {
+          expression.assertNoExplicitFallback();
+        }
+        defaultValue = this.getExpressionFallback();
+        expression.assertValidFallback(defaultValue);
       } else {
         defaultValue = expression.getExpressionFallback();
       }
