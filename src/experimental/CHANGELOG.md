@@ -30,7 +30,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
-- In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older.
+- In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older. ([#20909](https://github.com/Altinn/altinn-studio/pull/20909))
 - Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - Interrupted commands that wait for an Agent, such as an editor retrying its SSH connection to an Agent that cannot start, no longer make `agentd` stop answering every other command. ([#20884](https://github.com/Altinn/altinn-studio/pull/20884))
