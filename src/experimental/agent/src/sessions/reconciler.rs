@@ -157,6 +157,14 @@ impl Reconciler {
             }
         }
         let agent = self.sandboxes.agent(session.agent_id).await?;
+        // A stopped Agent's harnesses stop with its VM. The Session is Idle, as after
+        // inactivity, so the next attach after a start resumes its conversation.
+        // A recorded stop counts too: a start may already be asked for while the
+        // stop waits for its Sessions to see it.
+        if agent.agent.spec.is_stopped() || agent.agent.status.is_stopped() {
+            self.sessions.reset_session_launch_attempts(session.id).await?;
+            return Ok(Lifecycle::idle());
+        }
         if let Some(held) = launch_blocked(&agent, session) {
             return Ok(held);
         }

@@ -79,14 +79,24 @@ seconds and records when it last advanced on the host clock. After 15 seconds wi
 Agent reports `SandboxResponsive=False` and `Ready=False` with reason `SandboxUnresponsive`. A stalled guest therefore
 cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready fails once the stall is
 recorded. The next pass after the heartbeat advances makes the Agent Ready again. A stalled guest is not restarted
-automatically.
+automatically; `agentctl stop` and then `agentctl start` restart it.
+
+An Agent's `spec.runState` is `Running`, the default, or `Stopped`. `agentctl stop` and `agentctl start` set it as a
+new generation; a manifest may set it, and `apply` of one that omits it keeps the current run state. For a stopped Agent
+the reconciler stops the Sandbox VM and its Network, killing a VM that does not stop gracefully, and keeps its root
+filesystem, Volumes, identity and Provider assignment. It reaches nothing in the guest and reports `Ready=False` and
+`SandboxReady=False` with reason `Stopped`. Commands that need the Sandbox fail at once, and its Sessions go Idle, as
+after inactivity. A start is an ordinary pass on the same root filesystem; it launches no harness, and the next attach
+to a Session resumes its conversation.
 
 Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
 value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
 Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
 durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
 with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
-drains.
+drains. Commands that wait for an Agent, such as `apply --wait`, `wait`, `start` and `stop`, call `agents.v1.converge`
+while they follow its progress. It wakes the Agent and returns once a pass for its generation recorded its desired run
+state, Ready or stopped, waiting through transient failures.
 
 `agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
 one Agent's provisioning, and derives each Agent's state from its conditions and failure class.
