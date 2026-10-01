@@ -137,6 +137,12 @@ impl Provider for MemoryProvider {
                 .spec
                 .sandbox
                 .resolve_from(&record.source_directory, &self.default_architecture);
+            // Like Microsandbox, starting a stopped Sandbox restarts its runtime.
+            let was_stopped = self
+                .service
+                .inspect(&record.sandbox_name()?)
+                .await
+                .is_ok_and(|sandbox| sandbox.state == sandbox::SandboxState::Stopped);
             let sandbox = self
                 .service
                 .ensure(
@@ -149,7 +155,7 @@ impl Provider for MemoryProvider {
                 .map_err(Error::from)?;
             Ok(ProviderEnsureOutcome {
                 sandbox,
-                runtime_restarted: self.report_runtime_restart.replace(false),
+                runtime_restarted: self.report_runtime_restart.replace(false) || was_stopped,
                 harnesses: record
                     .agent
                     .spec
@@ -172,6 +178,10 @@ impl Provider for MemoryProvider {
                 .await
                 .map_err(Error::from)
         })
+    }
+
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.service.stop(&record.sandbox_name()?).await.map_err(Error::from) })
     }
 
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
@@ -288,6 +298,10 @@ impl Provider for PlannedProvider {
         self.inner.open(record, id)
     }
 
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        self.inner.stop(record)
+    }
+
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
         self.inner.release(record)
     }
@@ -324,6 +338,10 @@ impl Provider for UnsupportedProvider {
         _record: &'a AgentRecord,
         _id: &'a sandbox::SandboxId,
     ) -> LocalFuture<'a, Result<SandboxHandle, Error>> {
+        Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
+    }
+
+    fn stop<'a>(&'a self, _record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async { Err(Error::Invalid("unsupported Provider was selected".into())) })
     }
 
@@ -2298,5 +2316,359 @@ async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
         waited >= UNRESPONSIVE_AFTER && waited < UNRESPONSIVE_AFTER + Duration::from_secs(3),
         "the wait ends with the pass that finds the stall, took {waited:?}"
     );
+    task.abort();
+}
+
+async fn assert_stopped(store: &memory::InMemoryAgentStore, backend: &sandbox_memory::Provider, id: AgentId) {
+    let record = store.get(id).await.expect("stored Agent");
+    let status = &record.agent.status;
+    assert!(status.is_stopped(), "{status:?}");
+    assert_eq!(status.observed_generation, record.agent.metadata.generation);
+    assert_eq!(status.failure, None, "a stop is not a failure");
+    let ready = condition(status, agent::Condition::READY);
+    assert_eq!(ready.status, ConditionStatus::False);
+    assert_eq!(
+        condition(status, agent::Condition::SANDBOX_READY).reason,
+        agent::Condition::REASON_STOPPED
+    );
+    assert!(
+        status
+            .conditions
+            .iter()
+            .all(|condition| condition.kind != agent::Condition::SANDBOX_RESPONSIVE),
+        "a stopped Sandbox has no guest to be responsive or not: {status:?}"
+    );
+    let sandbox = backend.find(&sandbox_name(&record)).await.expect("kept Sandbox");
+    assert_eq!(sandbox.state, sandbox::SandboxState::Stopped);
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_stopped_agent_keeps_its_sandbox_stopped_across_passes_and_reapplies() {
+    let fixture = fixture();
+    fixture
+        .control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("apply");
+    reconcile(&fixture, "worker").await;
+    let ready = stored(&fixture, "worker").await;
+    let sandbox = ready.agent.status.sandbox.clone().expect("materialized Sandbox");
+
+    let stopping = fixture
+        .control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    assert_eq!(stopping.metadata.generation, ready.agent.metadata.generation + 1);
+    assert_eq!(stopping.spec.run_state, Some(agent::RunState::Stopped));
+    reconcile(&fixture, "worker").await;
+    assert_stopped(&fixture.store, &fixture.backend, ready.id).await;
+    let stopped = stored(&fixture, "worker").await;
+    assert_eq!(
+        stopped.agent.status.sandbox,
+        Some(sandbox),
+        "the Sandbox keeps its identity"
+    );
+
+    // A periodic pass and a repeated stop change nothing.
+    reconcile(&fixture, "worker").await;
+    let again = fixture
+        .control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("repeated stop");
+    assert_eq!(again.metadata.generation, stopped.agent.metadata.generation);
+    assert_stopped(&fixture.store, &fixture.backend, ready.id).await;
+
+    // Applying a manifest that does not set a run state keeps the Agent stopped.
+    let reapplied = fixture
+        .control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("re-apply");
+    assert_eq!(reapplied.metadata.generation, stopped.agent.metadata.generation);
+    assert!(reapplied.spec.is_stopped());
+    let mut changed = apply_request("worker");
+    changed.agent.spec.harnesses[0].version = Some("2.1.240".into());
+    let changed = fixture.control_plane.apply(changed).await.expect("changed apply");
+    assert!(changed.spec.is_stopped(), "a changed manifest keeps the run state too");
+    reconcile(&fixture, "worker").await;
+    assert_stopped(&fixture.store, &fixture.backend, ready.id).await;
+    assert_eq!(fixture.backend.count(), 1);
+
+    // A manifest that sets the run state changes it, like `agentctl start` does.
+    let mut running = apply_request("worker");
+    running.agent.spec.harnesses[0].version = Some("2.1.240".into());
+    running.agent.spec.run_state = Some(agent::RunState::Running);
+    let started = fixture.control_plane.apply(running).await.expect("apply Running");
+    assert_eq!(started.spec.run_state, None, "Running is stored as omitted");
+    reconcile(&fixture, "worker").await;
+    assert!(stored(&fixture, "worker").await.agent.status.is_ready());
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_start_boots_the_same_sandbox_and_wakes_sessions() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let notifications = Rc::new(SessionNotificationCounter::default());
+    let reconciler = reconciler(store.clone(), provider).with_session_notifier(notifications.clone());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("Agent").id;
+    reconciler.reconcile(id).await.expect("materialize");
+    let sandbox = store.get(id).await.expect("Agent").agent.status.sandbox;
+
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    reconciler.reconcile(id).await.expect("stop pass");
+    assert_stopped(&store, &backend, id).await;
+    let after_stop = notifications.0.get();
+    assert!(after_stop > 1, "Sessions are told their Agent is no longer Ready");
+
+    control_plane
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    reconciler.reconcile(id).await.expect("start pass");
+    let record = store.get(id).await.expect("Agent");
+    assert!(record.agent.status.is_ready());
+    assert_eq!(record.agent.status.sandbox, sandbox, "the same Sandbox starts again");
+    let running = backend.find(&sandbox_name(&record)).await.expect("Sandbox");
+    assert_eq!(running.state, sandbox::SandboxState::Running);
+    assert!(notifications.0.get() > after_stop, "Sessions wake to resume");
+    assert_eq!(backend.count(), 1);
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_new_agent_applied_stopped_materializes_only_once_started() {
+    let fixture = fixture();
+    let mut request = apply_request("worker");
+    request.agent.spec.run_state = Some(agent::RunState::Stopped);
+    fixture.control_plane.apply(request).await.expect("apply");
+    reconcile(&fixture, "worker").await;
+    let record = stored(&fixture, "worker").await;
+    assert!(record.agent.status.is_stopped());
+    assert_eq!(record.agent.status.sandbox, None);
+    assert_eq!(fixture.backend.count(), 0);
+
+    fixture
+        .control_plane
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    reconcile(&fixture, "worker").await;
+    assert!(stored(&fixture, "worker").await.agent.status.is_ready());
+    assert_eq!(fixture.backend.count(), 1);
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_restarted_daemon_keeps_a_stopped_agent_stopped_and_starts_a_running_one() {
+    let fixture = fixture();
+    for name in ["stopped", "running"] {
+        fixture.control_plane.apply(apply_request(name)).await.expect("apply");
+        reconcile(&fixture, name).await;
+    }
+    fixture
+        .control_plane
+        .set_run_state("stopped", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    reconcile(&fixture, "stopped").await;
+    // The host went down: every VM is gone, and a new daemon reconciles the stored Agents.
+    let running = stored(&fixture, "running").await;
+    fixture
+        .backend
+        .stop(
+            running
+                .agent
+                .status
+                .sandbox
+                .as_ref()
+                .and_then(agent::sandbox::Assignment::id)
+                .expect("Sandbox"),
+        )
+        .await
+        .expect("VM gone");
+    let restarted = reconciler(
+        fixture.store.clone(),
+        Rc::new(MemoryProvider::new(fixture.backend.clone())),
+    );
+    for name in ["stopped", "running"] {
+        restarted
+            .reconcile(stored(&fixture, name).await.id)
+            .await
+            .expect("pass");
+    }
+
+    assert_stopped(&fixture.store, &fixture.backend, stored(&fixture, "stopped").await.id).await;
+    let sandbox = fixture.backend.find(&sandbox_name(&running)).await.expect("Sandbox");
+    assert_eq!(sandbox.state, sandbox::SandboxState::Running);
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_stopped_agent_can_be_deleted() {
+    let fixture = fixture();
+    fixture
+        .control_plane
+        .apply(apply_request("worker"))
+        .await
+        .expect("apply");
+    reconcile(&fixture, "worker").await;
+    fixture
+        .control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    reconcile(&fixture, "worker").await;
+    let record = stored(&fixture, "worker").await;
+
+    fixture.control_plane.delete("worker").await.expect("delete");
+    fixture.reconciler.reconcile(record.id).await.expect("release");
+
+    assert!(matches!(fixture.store.get(record.id).await, Err(Error::NotFound)));
+    // The test manifest retains its Sandbox on release.
+    let retained = fixture
+        .backend
+        .find(&sandbox_name(&record))
+        .await
+        .expect("retained Sandbox");
+    assert_eq!(retained.state, sandbox::SandboxState::Stopped);
+    let error = fixture
+        .control_plane
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect_err("a deleted Agent cannot start");
+    assert!(matches!(error, Error::NotFound));
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn an_agent_with_a_stalled_guest_can_be_stopped_and_started() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
+    let result = fixture.reconciler.reconcile(fixture.id).await;
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+
+    let control_plane = ControlPlane::new(fixture.store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    let setups = fixture.platform.setups.get();
+    fixture
+        .reconciler
+        .reconcile(fixture.id)
+        .await
+        .expect("a stop needs no guest");
+    assert_eq!(
+        fixture.platform.setups.get(),
+        setups,
+        "the stop does not reach into the guest"
+    );
+    assert_stopped(&fixture.store, &fixture.backend, fixture.id).await;
+
+    // The started guest beats from a new sequence, and the stall before the stop is forgotten.
+    fixture.platform.stall.set(false);
+    control_plane
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    fixture.reconciler.reconcile(fixture.id).await.expect("start pass");
+    let status = fixture.record().await.agent.status;
+    assert!(status.is_ready(), "{status:?}");
+    assert!(status.unresponsive().is_none());
+}
+
+#[tokio::test(flavor = "local")]
+async fn commands_on_a_stopped_agent_fail_at_once_and_a_wait_ends_when_it_stops() {
+    let ended = Rc::new(Cell::new(false));
+    let fixture = waiting(
+        [PlannedFailure::Outage {
+            message: "runtime is down".into(),
+            ended: ended.clone(),
+        }],
+        BACKGROUND_RETRIES,
+    )
+    .await;
+    let control_plane = ControlPlane::new(fixture.store.clone(), Rc::new(fixture.wakeup.clone()));
+
+    // A wait through an outage ends once the Agent is stopped.
+    let waited = tokio::task::spawn_local({
+        let execution = fixture.execution.clone();
+        async move { execution.ensure("worker", WaitPolicy::UntilReady).await }
+    });
+    tokio::time::sleep(BACKGROUND_RETRIES * 3).await;
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    let error = tokio::time::timeout(Duration::from_secs(1), waited)
+        .await
+        .expect("the wait ends with the stop")
+        .expect("the wait does not panic")
+        .expect_err("a stopped Agent never becomes Ready");
+    assert!(matches!(&error, Error::Stopped(name) if name == "worker"), "{error:?}");
+    assert_eq!(
+        error.to_string(),
+        "Agent \"worker\" is stopped; run `agentctl start agent/worker`"
+    );
+
+    // Later commands are refused before anything is woken or waited for.
+    ended.set(true);
+    for wait in [WaitPolicy::FirstPass, WaitPolicy::UntilReady] {
+        let error = tokio::time::timeout(Duration::from_millis(100), fixture.execution.ensure("worker", wait))
+            .await
+            .expect("refused without waiting")
+            .expect_err("a stopped Agent runs nothing");
+        assert!(matches!(error, Error::Stopped(_)), "{error:?}");
+    }
+    fixture.task.abort();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_stop_recorded_while_a_wait_is_woken_ends_the_wait() {
+    let changes = Changes::new();
+    let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("Agent").id;
+    let started = Rc::new(Notify::new());
+    let release = Rc::new(Notify::new());
+    let provider: Rc<dyn Provider> = Rc::new(
+        MemoryProvider::new(Rc::new(sandbox_memory::Provider::new())).with_blocking(Blocking {
+            agent: id,
+            calls: Rc::new(Cell::new(0)),
+            started: started.clone(),
+            release: release.clone(),
+        }),
+    );
+    let (controller, wakeup) = Controller::new(
+        store.clone(),
+        Rc::new(reconciler(store.clone(), provider)),
+        NO_BACKGROUND_PASSES,
+        Rc::new(|_, _| {}),
+    );
+    let task = tokio::task::spawn_local(controller.run());
+    started.notified().await;
+
+    // The wait is admitted while the Agent runs, and its pass is the one after the stop.
+    let convergence = Convergence::new(wakeup, store.clone(), changes);
+    let waited = tokio::task::spawn_local(async move { convergence.converge(id, WaitPolicy::FirstPass).await });
+    tokio::task::yield_now().await;
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    release.notify_one();
+
+    let result = tokio::time::timeout(Duration::from_secs(1), waited)
+        .await
+        .expect("the wait ends with the stop pass")
+        .expect("the wait does not panic");
+    assert!(matches!(result, Err(Error::Stopped(_))), "{result:?}");
     task.abort();
 }

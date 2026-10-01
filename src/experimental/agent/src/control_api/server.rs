@@ -17,9 +17,10 @@ use super::protocol::{
     METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
     METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
-    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
-    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
+    NameParams, PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response,
+    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
+    error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -53,6 +54,9 @@ pub trait AgentApi {
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
 
+    /// Records whether an Agent's Sandbox runs; see [`control_plane::ControlPlane::set_run_state`].
+    fn set_run_state<'a>(&'a self, name: &'a str, state: crate::RunState) -> LocalFuture<'a, Result<Agent, Error>>;
+
     /// Reads an Agent's stored status and its latest pass's progress, with
     /// only the output after `output` when it names the same pass.
     fn progress<'a>(
@@ -85,6 +89,10 @@ impl AgentApi for control_plane::ControlPlane {
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move { Self::delete(self, name).await })
+    }
+
+    fn set_run_state<'a>(&'a self, name: &'a str, state: crate::RunState) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { Self::set_run_state(self, name, state).await })
     }
 
     fn progress<'a>(
@@ -507,6 +515,14 @@ impl Server {
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_STOP => {
+                self.handle_run_state(request.id, request.params, crate::RunState::Stopped)
+                    .await
+            }
+            METHOD_START => {
+                self.handle_run_state(request.id, request.params, crate::RunState::Running)
+                    .await
+            }
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
@@ -597,6 +613,14 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    async fn handle_run_state(&self, id: u64, value: Value, state: crate::RunState) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.agents.set_run_state(&params.name, state).await)
     }
 
     async fn handle_ssh_access(&self, id: u64, value: Value) -> Response {
@@ -812,6 +836,8 @@ fn is_mutating(method: &str) -> bool {
         method,
         METHOD_APPLY
             | METHOD_DELETE
+            | METHOD_STOP
+            | METHOD_START
             | METHOD_EXECUTION_ENSURE
             | METHOD_AUTH_LOGIN
             | METHOD_SESSION_ENSURE
@@ -849,6 +875,7 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
         Err(Error::Immutable(field)) => error_response(id, CODE_IMMUTABLE, Error::Immutable(field).to_string()),
         Err(Error::Conflict) => error_response(id, CODE_IMMUTABLE, Error::Conflict.to_string()),
         Err(Error::Invalid(message)) => error_response(id, CODE_INVALID_PARAMS, message),
+        Err(error @ Error::Stopped(_)) => error_response(id, CODE_INVALID_PARAMS, error.to_string()),
         Err(error) => error_response(id, CODE_INTERNAL, error.to_string()),
     }
 }

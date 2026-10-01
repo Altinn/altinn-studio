@@ -11,9 +11,10 @@ use super::protocol::{
     METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
     METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
+    NameParams, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult,
+    read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -229,6 +230,20 @@ impl Client {
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
         let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
         Ok(())
+    }
+
+    /// Records whether an Agent's Sandbox runs and returns the Agent as stored;
+    /// the reconciler stops or starts it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn set_run_state(&self, name: &str, state: crate::RunState) -> Result<Agent, Error> {
+        let method = match state {
+            crate::RunState::Running => METHOD_START,
+            crate::RunState::Stopped => METHOD_STOP,
+        };
+        self.call(method, NameParams { name: name.into() }).await
     }
 
     /// Stores a host-acquired harness credential in the daemon.

@@ -281,6 +281,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                     app.error = Some(error.to_string());
                 }
             }
+            Action::SetRunState { agent, state } => {
+                if let Err(error) = client.set_run_state(&agent, state).await {
+                    app.error = Some(error.to_string());
+                }
+            }
             Action::OpenCreate => {
                 if !app.discovering {
                     app.discovering = true;

@@ -14,7 +14,7 @@ use agent::{
         AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
     },
     control_plane::WaitPolicy,
-    control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
+    control_plane::{ApplyRequest, ControlPlane, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
     resources::Changes,
 };
@@ -24,9 +24,7 @@ use tokio::{
     sync::Notify,
 };
 
-use support::agent;
-
-struct IgnoreNotifications;
+use support::{IgnoreNotifications, agent};
 
 struct FakeAuthentication;
 struct FakeSshAccess;
@@ -125,10 +123,6 @@ fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
             },
         ],
     }
-}
-
-impl Notifier for IgnoreNotifications {
-    fn notify(&self, _id: agent::AgentId) {}
 }
 
 impl AuthenticationApi for FakeAuthentication {
@@ -281,6 +275,9 @@ impl ExecutionApi for FakeExecutions {
                 self.waiting.set(self.waiting.get() + 1);
                 let _waiting = Waiting(self.waiting.clone());
                 std::future::pending::<()>().await;
+            }
+            if name == "stopped" {
+                return Err(Error::Stopped(name.into()));
             }
             if name != "worker" {
                 return Err(Error::NotFound);
@@ -998,6 +995,59 @@ async fn a_frame_that_is_not_the_response_fails_the_call() {
         .await
         .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
+}
+
+#[tokio::test(flavor = "local")]
+async fn stop_and_start_record_the_run_state_as_a_new_generation() {
+    let fixture = api();
+    let client = &fixture.client;
+    let applied = client.apply(request("worker")).await.expect("apply");
+
+    let stopped = client
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    assert_eq!(stopped.spec.run_state, Some(agent::RunState::Stopped));
+    assert_eq!(stopped.metadata.generation, applied.metadata.generation + 1);
+    assert_eq!(client.get("worker").await.expect("get"), stopped);
+    let again = client
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("repeated stop");
+    assert_eq!(again.metadata.generation, stopped.metadata.generation);
+
+    let started = client
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    assert_eq!(started.spec.run_state, None);
+    assert_eq!(started.metadata.generation, stopped.metadata.generation + 1);
+
+    let error = client
+        .set_run_state("missing", agent::RunState::Stopped)
+        .await
+        .expect_err("missing Agent");
+    assert!(matches!(error, Error::Rpc(error) if error.is_not_found()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn work_in_a_stopped_agent_is_refused_with_how_to_start_it() {
+    let fixture = api();
+    let error = fixture
+        .client
+        .ensure_execution("stopped", WaitPolicy::UntilReady)
+        .await
+        .expect_err("a stopped Agent runs nothing");
+    match error {
+        Error::Rpc(error) => {
+            assert!(error.is_invalid_params(), "agentctl prints it as the whole story");
+            assert_eq!(
+                error.message,
+                "Agent \"stopped\" is stopped; run `agentctl start agent/stopped`"
+            );
+        }
+        other => panic!("unexpected error: {other}"),
+    }
 }
 
 #[tokio::test(flavor = "local")]

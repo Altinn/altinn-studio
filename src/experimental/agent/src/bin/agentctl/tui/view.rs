@@ -804,6 +804,13 @@ fn render_modal(frame: &mut Frame, area: Rect, app: &App, modal: &Modal, hit_map
                 .row(note_line(&format!("{sessions} session(s) will be deleted with it.")))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
+        Modal::ConfirmStop { agent } => {
+            Form::new(" stop ", Color::Yellow, &CONFIRM_HINTS)
+                .row(Line::from(format!("Stop agent {agent}?")))
+                .row(note_line("Running harnesses stop with its VM."))
+                .row(note_line("Its disk is kept, and Sessions resume after a start."))
+                .render(frame, area, FORM_WIDTH, hit_map);
+        }
         Modal::ConfirmDeleteSession { agent, session } => {
             Form::new(" delete ", Color::Red, &CONFIRM_HINTS)
                 .row(Line::from(format!("Delete session {agent}/{session}?")))
@@ -1540,7 +1547,7 @@ mod tests {
             footer(&terminal),
             [
                 "enter fold · n new session · o open… · e exec · f forward · d delete",
-                "p provisioning · s describe · y yaml · z all · c new agent",
+                "p provisioning · s describe · y yaml · x stop · z all · c new agent",
                 "? help · tab needs you · / filter · A hide archived · F forwards · q quit",
             ]
         );
@@ -2085,6 +2092,23 @@ mod tests {
             .find_map(|(area, target)| (target == &confirmation).then_some(*area))
             .expect("confirmation control");
         assert_eq!(hit_map.click_at(area.x, area.y), Some(confirmation));
+    }
+
+    #[test]
+    fn the_stop_confirmation_says_what_a_stop_keeps_in_full() {
+        let mut app = tree_app(1);
+        app.modal = Some(Modal::ConfirmStop {
+            agent: "agent-00".into(),
+        });
+        let mut terminal = Terminal::new(TestBackend::new(80, 16)).expect("test terminal");
+        draw(&mut terminal, &app);
+        let text = buffer_text(&terminal);
+        assert!(text.contains("Stop agent agent-00?"), "{text}");
+        assert!(text.contains("Running harnesses stop with its VM."), "{text}");
+        assert!(
+            text.contains("Its disk is kept, and Sessions resume after a start."),
+            "{text}"
+        );
     }
 
     #[test]

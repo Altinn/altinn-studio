@@ -25,7 +25,8 @@ pub enum WaitPolicy {
     FirstPass,
     /// Keeps waiting through transient failures, which the background controller
     /// retries, until the Agent is Ready or its desired state is invalid. A
-    /// guest recorded as unresponsive ends the wait instead.
+    /// guest recorded as unresponsive, or an Agent stopped while waited on,
+    /// ends the wait instead.
     UntilReady,
 }
 
@@ -44,27 +45,29 @@ impl Convergence {
         Self { wakeup, store, changes }
     }
 
-    /// Wakes convergence of one Agent and waits according to `wait`.
+    /// Wakes convergence of one Agent and waits according to `wait`. A stopped
+    /// Agent never becomes Ready, so it is refused without waiting.
     ///
     /// # Errors
     ///
-    /// Returns `Error::Invalid` when desired state must change, the first pass's
+    /// Returns `Error::Stopped` when the Agent's run state is Stopped,
+    /// `Error::Invalid` when desired state must change, the first pass's
     /// failure under [`WaitPolicy::FirstPass`], `Error::SandboxUnresponsive`
     /// when the Agent's guest is unresponsive under [`WaitPolicy::UntilReady`],
     /// `Error::Conflict` when the Agent is deleted while waited on, or a storage error.
     pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
-        match (wait, self.wakeup.reconcile(id).await) {
+        self.active(id).await?;
+        let woken = self.wakeup.reconcile(id).await;
+        // A stop recorded while the pass ran ends the wait as well.
+        let record = self.active(id).await?;
+        match (wait, woken) {
             (_, Ok(())) => return Ok(()),
             (WaitPolicy::FirstPass, Err(failure)) => {
                 // A stalled guest is reported as the stall, not as a daemon failure.
-                let stalled = self.store.get(id).await.ok().and_then(|record| {
-                    record
-                        .agent
-                        .status
-                        .unresponsive()
-                        .map(|stalled| Error::SandboxUnresponsive(stalled.detail()))
-                });
-                return Err(stalled.unwrap_or_else(|| failure.into()));
+                return Err(record.agent.status.unresponsive().map_or_else(
+                    || failure.into(),
+                    |stalled| Error::SandboxUnresponsive(stalled.detail()),
+                ));
             }
             (WaitPolicy::UntilReady, Err(failure)) if failure.kind == FailureKind::Invalid => {
                 return Err(failure.into());
@@ -73,11 +76,7 @@ impl Convergence {
         }
         loop {
             let revision = self.changes.revision();
-            let record = match self.store.get(id).await {
-                Ok(record) => record,
-                Err(Error::NotFound) => return Err(Error::Conflict),
-                Err(error) => return Err(error),
-            };
+            let record = self.active(id).await?;
             let status = &record.agent.status;
             if status.observed_generation == record.agent.metadata.generation {
                 if status.is_ready() {
@@ -98,5 +97,16 @@ impl Convergence {
                 .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)
                 .await;
         }
+    }
+
+    /// Reads the waited-on Agent, which must still exist and not be stopped.
+    async fn active(&self, id: AgentId) -> Result<super::AgentRecord, Error> {
+        let record = match self.store.get(id).await {
+            Ok(record) => record,
+            Err(Error::NotFound) => return Err(Error::Conflict),
+            Err(error) => return Err(error),
+        };
+        record.reject_stopped()?;
+        Ok(record)
     }
 }

@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
+    Agent, Condition, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection, RunState,
     sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -136,12 +136,25 @@ const FORWARD_VIEW_HINTS: [Hint; 4] = [
 
 // Selection hints come most used first, so a footer too narrow for all of
 // them drops the rarest.
-const AGENT_HINTS: [Hint; 11] = [
+const AGENT_HINTS: [Hint; 12] = [
     Hint::key("enter", "fold", KeyCode::Enter),
     Hint::key("n", "new session", KeyCode::Char('n')),
     Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("e", "exec", KeyCode::Char('e')),
     Hint::key("f", "forward", KeyCode::Char('f')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("x", "stop", KeyCode::Char('x')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+/// A stopped Agent runs nothing, so only what works without its Sandbox is offered.
+const STOPPED_AGENT_HINTS: [Hint; 8] = [
+    Hint::key("x", "start", KeyCode::Char('x')),
+    Hint::key("enter", "fold", KeyCode::Enter),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("p", "provisioning", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
@@ -176,7 +189,13 @@ const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))]
 
 /// Every hint set the tree shows for its selection. The footer is sized for
 /// the widest, so moving the selection never moves the tree.
-pub(crate) const SELECTION_HINTS: [&[Hint]; 4] = [&AGENT_HINTS, &SESSION_HINTS, &ARCHIVED_SESSION_HINTS, &EMPTY_HINTS];
+pub(crate) const SELECTION_HINTS: [&[Hint]; 5] = [
+    &AGENT_HINTS,
+    &STOPPED_AGENT_HINTS,
+    &SESSION_HINTS,
+    &ARCHIVED_SESSION_HINTS,
+    &EMPTY_HINTS,
+];
 
 pub(crate) const HELP_HINTS: [Hint; 1] = [Hint::key("esc", "close", KeyCode::Esc)];
 
@@ -220,6 +239,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("o", "open in editor, desktop…"),
                 ("e", "shell in its Sandbox"),
                 ("f", "forward a port"),
+                ("x", "stop, or start"),
                 ("d", "delete"),
             ],
         ),
@@ -393,6 +413,9 @@ pub(crate) enum Modal {
     ConfirmDelete {
         agent: String,
         sessions: usize,
+    },
+    ConfirmStop {
+        agent: String,
     },
     ConfirmDeleteSession {
         agent: String,
@@ -1051,6 +1074,10 @@ pub(crate) enum Action {
     Delete {
         agent: String,
     },
+    SetRunState {
+        agent: String,
+        state: RunState,
+    },
     DeleteSession {
         agent: String,
         session: SessionName,
@@ -1615,6 +1642,10 @@ impl App {
             return Action::None;
         };
         let name = agent.metadata.name.clone();
+        // Nothing runs in a stopped Agent until it is started.
+        if agent.spec.is_stopped() && matches!(key.code, KeyCode::Char('n' | 'o' | 'e' | 'f')) {
+            return Action::None;
+        }
         match key.code {
             KeyCode::Enter | KeyCode::Char(' ') => self.toggle_fold(&name),
             KeyCode::Right => {
@@ -1639,6 +1670,13 @@ impl App {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
             }
+            KeyCode::Char('x') if agent.spec.is_stopped() => {
+                return Action::SetRunState {
+                    agent: name,
+                    state: RunState::Running,
+                };
+            }
+            KeyCode::Char('x') => self.modal = Some(Modal::ConfirmStop { agent: name }),
             KeyCode::Char('n') => self.open_new_session(group),
             KeyCode::Char('o') => self.open_menu(&name),
             KeyCode::Char('e') => return Action::Exec { agent: name },
@@ -1744,6 +1782,17 @@ impl App {
                 KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
                 _ => {
                     self.modal = Some(Modal::ConfirmDelete { agent, sessions });
+                    Action::None
+                }
+            },
+            Some(Modal::ConfirmStop { agent }) => match key.code {
+                KeyCode::Char('y') => Action::SetRunState {
+                    agent,
+                    state: RunState::Stopped,
+                },
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmStop { agent });
                     Action::None
                 }
             },
@@ -2389,7 +2438,10 @@ impl App {
     pub(crate) fn hints(&self) -> &'static [Hint] {
         if let Some(modal) = &self.modal {
             return match modal {
-                Modal::ConfirmDelete { .. } | Modal::ConfirmDeleteSession { .. } | Modal::ConfirmQuit => &CONFIRM_HINTS,
+                Modal::ConfirmDelete { .. }
+                | Modal::ConfirmStop { .. }
+                | Modal::ConfirmDeleteSession { .. }
+                | Modal::ConfirmQuit => &CONFIRM_HINTS,
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
@@ -2408,7 +2460,13 @@ impl App {
             return &FORWARD_VIEW_HINTS;
         }
         match self.selected_row() {
-            Some(Row::Agent(_)) => &AGENT_HINTS,
+            Some(Row::Agent(group)) => {
+                if self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped()) {
+                    &STOPPED_AGENT_HINTS
+                } else {
+                    &AGENT_HINTS
+                }
+            }
             Some(Row::Session { group, position }) => {
                 if self.group_session(group, position).is_some_and(Session::is_archived) {
                     &ARCHIVED_SESSION_HINTS
@@ -2464,10 +2522,23 @@ fn agent_state(agent: &Agent) -> AgentState {
     let ready = agent.status.ready_condition();
     let entered = ready.and_then(|ready| ready.last_transition_time);
     let message = || ready.map_or_else(String::new, |ready| ready.detail().trim_end().to_owned());
-    let failure = agent
-        .status
-        .failure
-        .filter(|_| agent.status.observed_generation == agent.metadata.generation);
+    let current = agent.status.observed_generation == agent.metadata.generation;
+    let failure = agent.status.failure.filter(|_| current);
+    let changing = if agent.spec.is_stopped() {
+        if current && agent.status.is_stopped() {
+            return state(Tone::Gray, "Stopped", String::new(), entered);
+        }
+        // A failed stop reads as Retrying below, like any other failed pass.
+        failure.is_none().then_some("Stopping")
+    } else {
+        ready
+            .is_some_and(|ready| ready.reason == Condition::REASON_STARTING)
+            .then_some("Starting")
+    };
+    if let Some(label) = changing {
+        let detail = provisioning(agent).map_or_else(String::new, progress_summary);
+        return state(Tone::Cyan, label, detail, entered);
+    }
     // Retried like any transient failure, but nothing reaches the guest until it responds again.
     if agent.status.unresponsive().is_some() {
         return failed(Tone::Red, "Unresponsive", message(), entered);
@@ -3975,6 +4046,98 @@ mod tests {
                 "Agent Sandbox is not responding: the guest has not reported progress for more than 15s"
             )
         );
+    }
+
+    fn not_ready_agent(name: &str, run_state: RunState, reason: &str) -> Agent {
+        let mut agent = agent(name);
+        agent.spec.run_state = Some(run_state);
+        agent.status.conditions.push(agent::Condition {
+            kind: agent::Condition::READY.into(),
+            status: ConditionStatus::False,
+            reason: reason.into(),
+            message: String::new(),
+            last_transition_time: None,
+        });
+        agent
+    }
+
+    #[test]
+    fn a_stopped_agent_reads_stopped_and_one_changing_reads_stopping_or_starting() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![
+                not_ready_agent("a-stopped", RunState::Stopped, agent::Condition::REASON_STOPPED),
+                not_ready_agent("b-stopping", RunState::Stopped, agent::Condition::REASON_STOPPING),
+                // Asked to stop, but the last pass still recorded it Ready.
+                {
+                    let mut agent = ready_agent("c-asked");
+                    agent.spec.run_state = Some(RunState::Stopped);
+                    agent
+                },
+                not_ready_agent("d-starting", RunState::Running, agent::Condition::REASON_STARTING),
+            ],
+            Vec::new(),
+        );
+        let states = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.state, row.tone))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            states,
+            [
+                ("a-stopped".into(), "Stopped", Tone::Gray),
+                ("b-stopping".into(), "Stopping", Tone::Cyan),
+                ("c-asked".into(), "Stopping", Tone::Cyan),
+                ("d-starting".into(), "Starting", Tone::Cyan),
+            ]
+        );
+    }
+
+    #[test]
+    fn x_stops_an_agent_once_confirmed_and_starts_a_stopped_one_at_once() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![
+                not_ready_agent("idle", RunState::Stopped, agent::Condition::REASON_STOPPED),
+                ready_agent("worker"),
+            ],
+            Vec::new(),
+        );
+
+        app.select_index(1);
+        assert_eq!(app.hints(), &AGENT_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('x'))), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::ConfirmStop { agent }) if agent == "worker"));
+        assert_eq!(app.hints(), &CONFIRM_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None, "declined");
+        assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Char('x')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::SetRunState {
+                agent: "worker".into(),
+                state: RunState::Stopped,
+            }
+        );
+
+        app.select_index(0);
+        assert_eq!(app.hints(), &STOPPED_AGENT_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('x'))),
+            Action::SetRunState {
+                agent: "idle".into(),
+                state: RunState::Running,
+            },
+            "a start interrupts nothing, so it is not confirmed"
+        );
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('e'))),
+            Action::None,
+            "nothing runs in a stopped Agent"
+        );
+        app.on_key(key(KeyCode::Char('n')));
+        assert!(app.modal.is_none(), "no Session is created in a stopped Agent");
     }
 
     #[test]

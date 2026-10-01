@@ -19,6 +19,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
   - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
 - `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl stop` and `agentctl start`, or `x` in `agentctl tui`, stop an Agent's VM and start it again on the same disk, also one that stopped responding. Sessions resume after the start, and re-applying keeps a stopped Agent stopped. ([#20807](https://github.com/Altinn/altinn-studio/issues/20807))
 
 ### Changed
 

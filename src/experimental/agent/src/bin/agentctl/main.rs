@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, AgentVariantName, Error,
+    Agent, AgentVariantName, Error, RunState,
     control_api::Client,
     control_plane::ApplyRequest,
     control_plane::WaitPolicy,
@@ -28,6 +28,9 @@ use futures_util::StreamExt as _;
 use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
+
+/// Pause before following a stop again after agentd could not be reached.
+const STOP_RETRY_INTERVAL: Duration = Duration::from_millis(250);
 
 #[derive(Parser)]
 #[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent::build_version())]
@@ -152,6 +155,18 @@ enum Command {
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
         variant: Option<AgentVariantName>,
+    },
+    /// Stop an Agent's Sandbox VM, keeping its disk, so a later start resumes its Sessions.
+    ///
+    /// Running harnesses are stopped with the VM. Applying the manifest again keeps the Agent stopped.
+    Stop {
+        #[command(flatten)]
+        target: RunStateTarget,
+    },
+    /// Start a stopped Agent's Sandbox VM on its kept disk and wait until the Agent is Ready.
+    Start {
+        #[command(flatten)]
+        target: RunStateTarget,
     },
     /// Archive a Session: stop its harness and hide it from listings, keeping its name and conversation.
     Archive {
@@ -313,6 +328,18 @@ enum Command {
 enum Resource {
     Agent,
     Session,
+}
+
+/// The Agent `stop` or `start` acts on: `agent/NAME` or `agent NAME`, and how long to wait.
+#[derive(clap::Args)]
+struct RunStateTarget {
+    /// Agent resource, optionally combined with its name (for example `agent/worker`).
+    resource: String,
+    /// Optional Agent name when it is not part of `resource`.
+    name: Option<String>,
+    /// Maximum wait, written as seconds, minutes, or hours (for example `2m`).
+    #[arg(long, default_value = "10m", value_parser = parse_duration)]
+    timeout: Duration,
 }
 
 /// The Session a verb acts on: `session/NAME` or `session NAME`, plus its owning Agent.
@@ -515,7 +542,10 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             let applied = client.apply(request).await?;
             let name = applied.metadata.name;
             println!("agent/{name} applied");
-            if wait {
+            if wait && applied.spec.is_stopped() {
+                wait_for_stopped(client, &name, applied.metadata.generation, timeout).await?;
+                println!("agent/{name} stopped");
+            } else if wait {
                 wait_for_ready(client, &name, timeout).await?;
                 println!("agent/{name} ready");
             }
@@ -549,6 +579,8 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
                 println!("session/{agent}/{name} deleted");
             }
         }
+        Command::Stop { target } => set_run_state(client, target, RunState::Stopped).await?,
+        Command::Start { target } => set_run_state(client, target, RunState::Running).await?,
         Command::Archive { target } => set_archived(client, target, true).await?,
         Command::Unarchive { target } => set_archived(client, target, false).await?,
         Command::Attach {
@@ -1289,6 +1321,15 @@ async fn wait(
     Ok(())
 }
 
+/// Resolves `agent/NAME` or `agent NAME` for a verb that acts only on Agents.
+fn agent_reference(resource: &str, name: Option<String>) -> Result<String, Error> {
+    let (resource, name) = resource_reference(resource, name)?;
+    if resource != Resource::Agent {
+        return Err(Error::Invalid("this command requires an Agent resource".into()));
+    }
+    require_name(name, "Agent")
+}
+
 fn resource_reference(resource: &str, name: Option<String>) -> Result<(Resource, Option<String>), Error> {
     let (kind, embedded_name) = resource.split_once('/').map_or((resource, None), |(kind, name)| {
         (kind, (!name.is_empty()).then(|| name.to_owned()))
@@ -1370,6 +1411,74 @@ async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> Comma
             Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
         }
     }
+}
+
+/// Stops or starts an Agent and waits until it is stopped or Ready.
+async fn set_run_state(client: &Client, target: RunStateTarget, state: RunState) -> CommandResult<()> {
+    let name = agent_reference(&target.resource, target.name)?;
+    let recorded = client.set_run_state(&name, state).await?;
+    match state {
+        RunState::Stopped => {
+            wait_for_stopped(client, &name, recorded.metadata.generation, target.timeout).await?;
+            println!("agent/{name} stopped");
+        }
+        RunState::Running => {
+            wait_for_ready(client, &name, target.timeout).await?;
+            println!("agent/{name} started");
+        }
+    }
+    Ok(())
+}
+
+/// Follows a stop with live progress until a pass for `generation` or later
+/// records the Agent as stopped. agentd retries a transient failure, and a
+/// lost connection is retried here, so only a permanent failure, a start, a
+/// deletion, the timeout or Ctrl-C ends the wait early.
+async fn wait_for_stopped(client: &Client, name: &str, generation: u64, timeout: Duration) -> CommandResult<()> {
+    let stopped = async {
+        let mut after = None;
+        loop {
+            let progress = match client.agent_progress(name, after, None).await {
+                Ok(progress) => progress,
+                Err(Error::Rpc(error)) if error.is_not_found() => {
+                    return Err(CommandError::Message(format!(
+                        "Agent {name:?} was deleted before it stopped"
+                    )));
+                }
+                Err(_) => {
+                    // agentd may be restarting; it keeps stopping the Agent.
+                    tokio::time::sleep(STOP_RETRY_INTERVAL).await;
+                    after = None;
+                    continue;
+                }
+            };
+            after = Some(progress.revision);
+            let status = &progress.status;
+            if status.observed_generation < generation {
+                continue;
+            }
+            if status.is_stopped() {
+                return Ok(());
+            }
+            if let Some(message) = status.invalid() {
+                return Err(CommandError::Message(format!("Agent {name:?} cannot stop: {message}")));
+            }
+            // A later generation, such as an apply, may still be Stopped; a start is not.
+            if status.observed_generation > generation && !client.get(name).await?.spec.is_stopped() {
+                return Err(CommandError::Message(format!(
+                    "Agent {name:?} was started again before it stopped"
+                )));
+            }
+        }
+    };
+    let waited = progress::Wait::start()
+        .until(client, name, tokio::time::timeout(timeout, stopped))
+        .await;
+    waited.unwrap_or_else(|_elapsed| {
+        Err(CommandError::Message(format!(
+            "timed out waiting for Agent {name:?} to stop; agentd keeps stopping it"
+        )))
+    })
 }
 
 fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String {

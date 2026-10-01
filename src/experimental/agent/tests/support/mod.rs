@@ -9,6 +9,13 @@ use agent::{
 use sandbox::{
     ByteQuantity, CpuQuantity, Platform, RetentionPolicy, RootFilesystem, SandboxResources, image::ImageSource,
 };
+/// Drops reconciliation wake-ups, for tests that reconcile by hand or not at all.
+pub(crate) struct IgnoreNotifications;
+
+impl agent::control_plane::Notifier for IgnoreNotifications {
+    fn notify(&self, _id: agent::AgentId) {}
+}
+
 pub(crate) fn agent(name: &str) -> Agent {
     Agent {
         api_version: API_VERSION.into(),
@@ -19,6 +26,7 @@ pub(crate) fn agent(name: &str) -> Agent {
             deletion_timestamp: None,
         },
         spec: Spec {
+            run_state: None,
             sandbox: SandboxManifestSpec {
                 image: ImageSource::Build {
                     context: PathBuf::from("image"),

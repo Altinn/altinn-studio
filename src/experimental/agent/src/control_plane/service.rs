@@ -77,6 +77,7 @@ impl ControlPlane {
         resolve_mount_sources(&mut desired, &request.source_directory).await?;
         desired.validate()?;
         reject_dot_env_in_bind_mounts(&desired).await?;
+        let run_state = desired.spec.run_state;
 
         loop {
             let result = match self.store.get_by_name(&desired.metadata.name).await {
@@ -94,6 +95,7 @@ impl ControlPlane {
                         return Err(Error::Immutable("sourceDirectory"));
                     }
                     validate_immutable_fields(&current, &desired)?;
+                    desired.spec.set_run_state(applied_run_state(run_state, Some(&current)));
                     let manifest_path = request.manifest_path.clone().or_else(|| current.manifest_path.clone());
                     let env_file = request.env_file.clone().or_else(|| current.env_file.clone());
                     self.reject_exposed_secret_files(
@@ -131,6 +133,7 @@ impl ControlPlane {
                 Err(Error::NotFound) => {
                     let id = AgentId::generate();
                     desired.metadata.generation = 1;
+                    desired.spec.set_run_state(applied_run_state(run_state, None));
                     self.reject_exposed_secret_files(
                         id,
                         &request.source_directory,
@@ -363,6 +366,35 @@ impl ControlPlane {
             .ok_or(Error::NotFound)
     }
 
+    /// Records whether an Agent's Sandbox runs and returns the Agent as stored,
+    /// without waiting for the reconciler to stop or start it. A change is a new
+    /// generation; setting the run state the Agent already has changes nothing.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent does not exist, is being deleted, or
+    /// cannot be stored.
+    pub async fn set_run_state(&self, name: &str, state: crate::RunState) -> Result<Agent, Error> {
+        loop {
+            let mut record = self.store.get_by_name(name).await?;
+            if record.agent.metadata.deletion_timestamp.is_some() {
+                return Err(Error::Conflict);
+            }
+            if record.agent.spec.run_state() != state {
+                let expected_generation = record.agent.metadata.generation;
+                record.agent.spec.set_run_state(state);
+                record.agent.metadata.generation = expected_generation + 1;
+                match self.store.put(record.clone(), expected_generation).await {
+                    Ok(()) => {}
+                    Err(Error::Conflict) => continue,
+                    Err(error) => return Err(error),
+                }
+            }
+            self.notifier.notify(record.id);
+            return Ok(self.resource(record));
+        }
+    }
+
     /// Marks an Agent for asynchronous release. Repeated deletion is safe.
     ///
     /// # Errors
@@ -439,6 +471,14 @@ impl ControlPlane {
         });
         agent
     }
+}
+
+/// The run state an apply stores: the manifest's, else the Agent's own, so
+/// applying a manifest that omits it never stops or starts the Agent.
+fn applied_run_state(requested: Option<crate::RunState>, current: Option<&AgentRecord>) -> crate::RunState {
+    requested
+        .or_else(|| current.map(|current| current.agent.spec.run_state()))
+        .unwrap_or_default()
 }
 
 fn validate_immutable_fields(current: &AgentRecord, desired: &Agent) -> Result<(), Error> {

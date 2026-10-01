@@ -182,6 +182,10 @@ impl Provider for CountingProvider {
         })
     }
 
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.service.stop(&record.sandbox_name()?).await.map_err(Error::from) })
+    }
+
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
             self.service
@@ -3242,4 +3246,92 @@ async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
         .expect("turn completed");
     waiting.await.expect("task").expect("the wait ends with the turn");
     harness.finish();
+}
+
+/// Records the run state of the Agent `worker` as `agentctl stop` and `start` do.
+async fn set_worker_run_state(database: &persistence::Database, state: agent::RunState) {
+    agent::control_plane::ControlPlane::new(Rc::new(database.clone()), Rc::new(support::IgnoreNotifications))
+        .set_run_state("worker", state)
+        .await
+        .expect("run state");
+}
+
+#[tokio::test(flavor = "local")]
+async fn work_in_a_stopped_agent_is_refused_without_creating_a_session() {
+    const TOKEN: &str = "a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1";
+    let directory = TempDir::new().expect("temporary directory");
+    let harness = ServiceHarness::start(&directory, TOKEN).await;
+    set_worker_run_state(&harness.database, agent::RunState::Stopped).await;
+    let stored = harness.database.get_by_name("worker").await.expect("Agent");
+    assert!(
+        stored.agent.spec.is_stopped(),
+        "the run state is stored with the desired state"
+    );
+    let s1 = SessionName::new("s1").expect("name");
+    let is_stopped = |error: &Error| matches!(error, Error::Stopped(name) if name == "worker");
+
+    let error = harness
+        .service
+        .prompt("worker", &s1, "hello", false, None)
+        .await
+        .expect_err("nothing runs to prompt");
+    assert!(is_stopped(&error), "{error:?}");
+    let error = harness
+        .service
+        .turns("worker", &s1, None)
+        .await
+        .expect_err("no guest to read");
+    assert!(is_stopped(&error), "{error:?}");
+    for name in ["s1", "s2"] {
+        let name = SessionName::new(name).expect("name");
+        let error = harness
+            .service
+            .ensure("worker", &name, SessionRequest::default(), WaitPolicy::UntilReady)
+            .await
+            .expect_err("nothing runs to attach to");
+        assert!(is_stopped(&error), "{error:?}");
+    }
+    assert!(matches!(
+        harness
+            .database
+            .get_agent_session("worker", &SessionName::new("s2").expect("name"))
+            .await,
+        Err(Error::NotFound)
+    ));
+    assert!(harness.runtime.sent.borrow().is_empty());
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_of_a_stopped_agent_is_held_and_resumes_once_it_starts() {
+    const TOKEN: &str = "b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    set_worker_run_state(&database, agent::RunState::Stopped).await;
+
+    reconciler.reconcile(session.id).await.expect("held");
+    let held = database.get_session(session.id).await.expect("Session");
+    assert_eq!(held.status.state, agent::sessions::State::Starting);
+    assert_eq!(
+        held.status.lifecycle.failure.as_deref(),
+        Some("Agent \"worker\" is stopped; run `agentctl start agent/worker`")
+    );
+    assert!(
+        runtime.launch_tokens.borrow().is_empty(),
+        "no harness launches in a stopped Agent"
+    );
+
+    set_worker_run_state(&database, agent::RunState::Running).await;
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("resumed");
+    assert_eq!(runtime.launch_tokens.borrow().len(), 1);
+    assert_eq!(
+        runtime
+            .launches
+            .borrow()
+            .last()
+            .and_then(|(resume, _)| resume.as_deref()),
+        Some("native-0"),
+        "the harness resumes its conversation"
+    );
 }

@@ -79,7 +79,14 @@ seconds and records when it last advanced on the host clock. After 15 seconds wi
 Agent reports `SandboxResponsive=False` and `Ready=False` with reason `SandboxUnresponsive`. A stalled guest therefore
 cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready fails once the stall is
 recorded. The next pass after the heartbeat advances makes the Agent Ready again. A stalled guest is not restarted
-automatically.
+automatically; `agentctl stop` and then `agentctl start` restart it.
+
+An Agent's `spec.runState` is `Running`, the default, or `Stopped`. `agentctl stop` and `agentctl start` set it as a
+new generation; a manifest may set it, and `apply` of one that omits it keeps the current run state. For a stopped Agent
+the reconciler stops the Sandbox VM and its Network, killing a VM that does not stop gracefully, and keeps its root
+filesystem, Volumes, identity and Provider assignment. It reaches nothing in the guest and reports `Ready=False` and
+`SandboxReady=False` with reason `Stopped`. Commands that need the Sandbox fail at once and Sessions are held. A start
+is an ordinary pass on the same root filesystem, and Sessions resume their conversations.
 
 Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
 value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
