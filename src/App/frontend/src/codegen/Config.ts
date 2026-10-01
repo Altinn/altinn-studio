@@ -7,7 +7,11 @@ export interface RequiredComponentConfig {
   availability: 'configurable' | 'internal';
   metadata: ComponentMetadata;
   capabilities: CompCapabilities;
-  /** Disable display data for form components bound to groups rather than scalar values. */
+  /**
+   * If set to false, the component will not support display data. This is useful for components otherwise would
+   * be required to support display data (when having data model bindings, and being a form component), but where
+   * display data is not relevant (i.e. when binding to a group or array of objects).
+   */
   displayData?: false;
 }
 
