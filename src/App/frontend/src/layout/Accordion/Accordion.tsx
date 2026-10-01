@@ -29,7 +29,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
   return (
     <AccordionLayout
       title={title}
-      openByDefault={Boolean(openByDefault)}
+      openByDefault={openByDefault}
       renderAsItem={renderAsAccordionItem}
       className={classes.container}
       componentId={componentId}
