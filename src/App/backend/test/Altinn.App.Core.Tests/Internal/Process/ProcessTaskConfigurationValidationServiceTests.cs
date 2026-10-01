@@ -326,6 +326,32 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.Contains("Task 'Task_Custom': missing archive settings", exception.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("plain-task-custom-type.bpmn", false)]
+    [InlineData("service-task-custom-type.bpmn", true)]
+    public async Task StartAsync_ServiceTaskRegisteredOnlyAsProcessTask_MustBeDrawnAsTask(
+        string bpmn,
+        bool expectMismatch
+    )
+    {
+        // The runtime runs a task as a service task only when the service-task lookup finds it, so a
+        // service task implementation registered as an IProcessTask alone is a process task.
+        var exception = await Validate(
+            s => s.AddSingleton<IProcessTask>(new SimpleTask("archive")),
+            ProcessTestUtils.SetupProcessReader(bpmn)
+        );
+
+        if (expectMismatch)
+        {
+            Assert.NotNull(exception);
+            Assert.Contains("which is not a service task", exception.Message, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Null(exception);
+        }
+    }
+
     [Fact]
     public async Task StartAsync_BlankTypeOnTaskOrServiceTask_FailsValidation()
     {
