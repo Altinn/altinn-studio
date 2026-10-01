@@ -22,9 +22,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Changed
 
-- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.286.
-- Altinn, self-development and worktree Agents install Codex CLI 0.159.3. Codex Sessions keep running in their own
-  terminal rather than Codex's new shared background server, without a startup warning about it.
+- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.286. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
+- Altinn, self-development and worktree Agents install Codex CLI 0.159.3. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
 - `agentctl tui` port forwards: ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
   - `q` asks before quitting would close them
   - they close when their Agent is deleted or re-created
