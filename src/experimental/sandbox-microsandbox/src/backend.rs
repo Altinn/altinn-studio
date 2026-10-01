@@ -22,6 +22,7 @@ use crate::{
     client::{Client, RuntimeResources},
     error,
     execution::ExecutionControls,
+    heartbeat,
     image::MicrosandboxImageBackend,
     image_cache::ImageCache,
     network_endpoint, platform,
@@ -253,11 +254,26 @@ impl MicrosandboxProvider {
     }
 
     async fn inspect_record(&self, record: &SandboxRecord) -> Result<Sandbox, Error> {
-        let state = self
-            .runtime_handle(&record.runtime_name)
-            .await?
-            .map_or(SandboxState::Stopped, |handle| map_state(handle.status_snapshot()));
-        Ok(record.to_sandbox(state))
+        let Some(handle) = self.runtime_handle(&record.runtime_name).await? else {
+            return Ok(record.to_sandbox(SandboxState::Stopped));
+        };
+        let status = handle.status_snapshot();
+        // A starting, draining or paused guest is not expected to beat, so its
+        // stale heartbeat is no evidence either way.
+        let guest_heartbeat = if status == SandboxStatus::Running {
+            heartbeat::read(&self.runtime_directory(&record.runtime_name)).await
+        } else {
+            None
+        };
+        Ok(Sandbox {
+            guest_heartbeat,
+            ..record.to_sandbox(map_state(status))
+        })
+    }
+
+    /// Host-side directory the runtime shares with its guest.
+    fn runtime_directory(&self, runtime_name: &str) -> PathBuf {
+        self.client.local().sandboxes_dir().join(runtime_name).join("runtime")
     }
 
     async fn update_sandbox_resources(
@@ -804,6 +820,7 @@ impl SandboxRecord {
             hostname: self.hostname(),
             resources: self.resources,
             state,
+            guest_heartbeat: None,
             mounts: self.mounts.clone(),
             environment: self.environment.clone(),
             network: self.network.clone(),

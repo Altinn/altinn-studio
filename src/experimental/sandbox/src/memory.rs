@@ -17,8 +17,9 @@ use tokio_util::sync::PollSender;
 use zeroize::Zeroizing;
 
 use crate::{
-    Error, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode, RootFilesystemModeSet, Sandbox,
-    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxResources, SandboxState,
+    Error, GuestHeartbeat, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode,
+    RootFilesystemModeSet, Sandbox, SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxResources,
+    SandboxState,
     backend::{CreateSandboxRequest, SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
     mount::{MountKind, MountKindSet},
@@ -130,6 +131,22 @@ impl Provider {
         self.state.borrow_mut().queued_terminal_events.push_back(events);
     }
 
+    /// Reports `heartbeat` as the guest's latest heartbeat until it is set
+    /// again or the Sandbox stops.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Sandbox does not exist.
+    pub fn set_guest_heartbeat(&self, id: &SandboxId, heartbeat: Option<GuestHeartbeat>) -> Result<(), Error> {
+        let mut storage = self.state.borrow_mut();
+        let sandbox = storage
+            .by_id
+            .get_mut(id)
+            .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
+        sandbox.guest_heartbeat = heartbeat;
+        Ok(())
+    }
+
     fn set_state(&self, id: &SandboxId, state: SandboxState) -> Result<(), Error> {
         let mut storage = self.state.borrow_mut();
         let sandbox = storage
@@ -137,6 +154,9 @@ impl Provider {
             .get_mut(id)
             .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
         sandbox.state = state;
+        if state == SandboxState::Stopped {
+            sandbox.guest_heartbeat = None;
+        }
         Ok(())
     }
 
@@ -336,6 +356,7 @@ impl SandboxBackend for Provider {
                     hostname: request.hostname,
                     resources: request.resources,
                     state: SandboxState::Stopped,
+                    guest_heartbeat: None,
                     mounts: request.mounts,
                     environment: request.environment,
                     network: request.network,

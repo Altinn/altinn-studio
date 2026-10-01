@@ -195,10 +195,17 @@ impl<W: Write> Renderer<W> {
             self.cursor = ProgressCursor::new();
             self.printed_step = false;
             self.recent_output.clear();
-            // The latest pass may have succeeded long before following began.
-            // It is history, not progress: take its position without printing it.
-            if following_began && *provisioning.progress.status() == OperationStatus::Succeeded {
+            // The latest pass may have ended long before following began. It is
+            // history, not progress: take its position without printing it. The
+            // command asks for a pass of its own, which reports its outcome.
+            if following_began
+                && matches!(
+                    provisioning.progress.status(),
+                    OperationStatus::Succeeded | OperationStatus::Failed { .. }
+                )
+            {
                 let _ = self.cursor.updates(&provisioning.progress);
+                self.reported_failure = Some(provisioning.pass);
                 return Ok(());
             }
         }
@@ -236,8 +243,11 @@ impl<W: Write> Renderer<W> {
                     .map_or(("Provision Sandbox", 0), |phase| {
                         (phase.phase.label.as_ref(), phase.elapsed_ms)
                     });
-                let failure = progress.status.failure.unwrap_or(FailureKind::Transient);
-                self.phase_failed(phase, detail, failure, elapsed_ms)
+                // A stalled guest ends the wait like an invalid Agent does; the
+                // command reports both itself.
+                let retried = progress.status.failure.unwrap_or(FailureKind::Transient) == FailureKind::Transient
+                    && progress.status.unresponsive().is_none();
+                self.phase_failed(phase, detail, retried, elapsed_ms)
             }
             OperationStatus::Running => {
                 let Some(current) = pass.current() else {
@@ -318,9 +328,9 @@ impl<W: Write> Renderer<W> {
     /// itself. A transient failure is explained once, with the failed step's
     /// last output; on a terminal further identical failures only advance a
     /// counter on the updating line, because the daemon retries every pass.
-    fn phase_failed(&mut self, label: &str, detail: &str, failure: FailureKind, elapsed_ms: u64) -> io::Result<()> {
+    fn phase_failed(&mut self, label: &str, detail: &str, retried: bool, elapsed_ms: u64) -> io::Result<()> {
         self.clear_active_line()?;
-        if failure == FailureKind::Invalid {
+        if !retried {
             return writeln!(self.output, "✗ {label} ({})", duration(elapsed_ms));
         }
         // The first failed pass this command observes is always explained in full,
@@ -733,22 +743,45 @@ mod tests {
     }
 
     #[test]
-    fn a_pass_that_failed_before_following_began_reports_its_error_once() {
+    fn a_pass_that_failed_before_following_began_is_not_replayed() {
         let mut renderer = renderer(false);
         let mut daemon = Daemon::new();
         daemon.phase(SandboxPhase::SandboxStart).fail("VMDK missing");
         renderer.render(&daemon.snapshot());
+        daemon
+            .retry()
+            .phase(SandboxPhase::SandboxStart)
+            .fail("VMDK still missing");
+        renderer.render(&daemon.snapshot());
         renderer.finish();
         let lines = lines(renderer);
+        assert!(!lines.iter().any(|line| line == "error: VMDK missing"), "{lines:#?}");
         assert_eq!(
-            lines
-                .iter()
-                .filter(|line| line.as_str() == "error: VMDK missing")
-                .count(),
-            1,
-            "{lines:#?}"
+            lines.first().map(String::as_str),
+            Some("✗ Start Sandbox (0ms)"),
+            "the command's own pass reports its failure: {lines:#?}"
         );
-        assert_eq!(lines.first().map(String::as_str), Some("✗ Start Sandbox (0ms)"));
+    }
+
+    #[test]
+    fn a_stalled_guest_ends_the_wait_without_a_retry_hint() {
+        let mut renderer = renderer(false);
+        let mut daemon = Daemon::new();
+        renderer.render(&daemon.snapshot());
+        daemon
+            .retry()
+            .phase(SandboxPhase::SandboxStart)
+            .fail("the guest has not reported progress for more than 15s");
+        daemon.status.conditions.push(Condition {
+            kind: Condition::SANDBOX_RESPONSIVE.into(),
+            status: ConditionStatus::False,
+            reason: "HeartbeatStale".into(),
+            message: "the guest has not reported progress for more than 15s".into(),
+            last_transition_time: None,
+        });
+        renderer.render(&daemon.snapshot());
+        renderer.finish();
+        assert_eq!(lines(renderer), ["✗ Start Sandbox (0ms)"]);
     }
 
     #[test]

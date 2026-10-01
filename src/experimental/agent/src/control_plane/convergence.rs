@@ -24,7 +24,8 @@ pub enum WaitPolicy {
     /// Returns after one reconciliation pass with that pass's outcome.
     FirstPass,
     /// Keeps waiting through transient failures, which the background controller
-    /// retries, until the Agent is Ready or its desired state is invalid.
+    /// retries, until the Agent is Ready or its desired state is invalid. A
+    /// guest recorded as unresponsive ends the wait instead.
     UntilReady,
 }
 
@@ -48,12 +49,23 @@ impl Convergence {
     /// # Errors
     ///
     /// Returns `Error::Invalid` when desired state must change, the first pass's
-    /// failure under [`WaitPolicy::FirstPass`], `Error::Conflict` when the Agent
-    /// is deleted while waited on, or a storage error.
+    /// failure under [`WaitPolicy::FirstPass`], `Error::SandboxUnresponsive`
+    /// when the Agent's guest is unresponsive under [`WaitPolicy::UntilReady`],
+    /// `Error::Conflict` when the Agent is deleted while waited on, or a storage error.
     pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
         match (wait, self.wakeup.reconcile(id).await) {
             (_, Ok(())) => return Ok(()),
-            (WaitPolicy::FirstPass, Err(failure)) => return Err(failure.into()),
+            (WaitPolicy::FirstPass, Err(failure)) => {
+                // A stalled guest is reported as the stall, not as a daemon failure.
+                let stalled = self.store.get(id).await.ok().and_then(|record| {
+                    record
+                        .agent
+                        .status
+                        .unresponsive()
+                        .map(|stalled| Error::SandboxUnresponsive(stalled.detail()))
+                });
+                return Err(stalled.unwrap_or_else(|| failure.into()));
+            }
             (WaitPolicy::UntilReady, Err(failure)) if failure.kind == FailureKind::Invalid => {
                 return Err(failure.into());
             }
@@ -78,6 +90,9 @@ impl Convergence {
                     }
                     .into());
                 }
+            }
+            if let Some(stalled) = status.unresponsive() {
+                return Err(Error::SandboxUnresponsive(stalled.detail()));
             }
             self.changes
                 .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)

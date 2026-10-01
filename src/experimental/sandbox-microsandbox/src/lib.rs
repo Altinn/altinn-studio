@@ -12,6 +12,7 @@ mod error;
 mod execution;
 mod files;
 mod guest_tcp;
+mod heartbeat;
 mod image;
 mod image_cache;
 mod network_backend;

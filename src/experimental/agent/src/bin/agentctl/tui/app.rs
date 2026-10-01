@@ -2360,6 +2360,15 @@ impl App {
                     let session = self.group_session(group, position)?;
                     let (tone, marker, state) = session_state(session.status.state);
                     let harness = harness_label(session.harness);
+                    let identity = session
+                        .model_selection
+                        .model_str()
+                        .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}"));
+                    // A Session held or failed says why, such as an Agent whose guest stalled.
+                    let detail = match (&session.status.state, &session.status.lifecycle.failure) {
+                        (State::Starting | State::Failed, Some(reason)) => format!("{identity} · {reason}"),
+                        _ => identity,
+                    };
                     Some(RowView {
                         agent: false,
                         attention: needs_you(session),
@@ -2368,10 +2377,7 @@ impl App {
                         state,
                         tone,
                         since: session.status.state_since.map_or_else(String::new, format::format_age),
-                        detail: session
-                            .model_selection
-                            .model_str()
-                            .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}")),
+                        detail,
                         detail_keeps_end: false,
                         age: format::format_age(session.created_at),
                     })
@@ -2462,6 +2468,10 @@ fn agent_state(agent: &Agent) -> AgentState {
         .status
         .failure
         .filter(|_| agent.status.observed_generation == agent.metadata.generation);
+    // Retried like any transient failure, but nothing reaches the guest until it responds again.
+    if agent.status.unresponsive().is_some() {
+        return failed(Tone::Red, "Unresponsive", message(), entered);
+    }
     match (failure, provisioning(agent)) {
         (Some(FailureKind::Invalid), _) => failed(Tone::Red, "Failed", message(), entered),
         (Some(FailureKind::Transient), Some(progress)) => {
@@ -3918,6 +3928,52 @@ mod tests {
             app.triage_counts().provisioning,
             2,
             "the header counts the rows shown as Provisioning"
+        );
+    }
+
+    #[test]
+    fn a_held_session_says_why() {
+        let mut held = session("worker", "s1", "starting");
+        held.status.lifecycle.failure = Some("Agent \"worker\" is not ready: the guest stalled".into());
+        let mut app = App::new();
+        app.apply_snapshot(vec![ready_agent("worker")], vec![held]);
+        let rows = app.render_rows();
+        assert_eq!(
+            rows[1].detail,
+            "Claude Code · Agent \"worker\" is not ready: the guest stalled"
+        );
+    }
+
+    #[test]
+    fn a_stalled_guest_is_shown_as_unresponsive_even_while_a_pass_retries() {
+        let mut stalled = provisioning_agent("stalled", Some(FailureKind::Transient));
+        stalled.status.conditions = vec![
+            agent::Condition {
+                kind: agent::Condition::SANDBOX_RESPONSIVE.into(),
+                status: ConditionStatus::False,
+                reason: "HeartbeatStale".into(),
+                message: "the guest has not reported progress for more than 15s".into(),
+                last_transition_time: None,
+            },
+            agent::Condition {
+                kind: "Ready".into(),
+                status: ConditionStatus::False,
+                reason: "SandboxUnresponsive".into(),
+                message: "Agent Sandbox is not responding: the guest has not reported progress for more than 15s"
+                    .into(),
+                last_transition_time: None,
+            },
+        ];
+        let mut app = App::new();
+        app.apply_snapshot(vec![stalled], Vec::new());
+        let rows = app.render_rows();
+        assert_eq!(
+            (rows[0].state, rows[0].tone, rows[0].detail.as_str()),
+            (
+                "Unresponsive",
+                Tone::Red,
+                "Agent Sandbox is not responding: the guest has not reported progress for more than 15s"
+            )
         );
     }
 

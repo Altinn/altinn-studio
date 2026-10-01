@@ -393,8 +393,15 @@ fn launch_blocked(agent: &crate::control_plane::AgentRecord, session: &Session) 
         .sandbox
         .as_ref()
         .and_then(crate::sandbox::Assignment::installed_harnesses);
-    let reason = if agent.agent.metadata.deletion_timestamp.is_some() || !agent.agent.status.is_ready() {
-        format!("Agent {:?} is not ready", agent.agent.metadata.name)
+    let name = &agent.agent.metadata.name;
+    let reason = if agent.agent.metadata.deletion_timestamp.is_some() {
+        format!("Agent {name:?} is being deleted")
+    } else if !agent.agent.status.is_ready() {
+        // Says why, such as a guest that stopped responding.
+        agent.agent.status.ready_condition().map_or_else(
+            || format!("Agent {name:?} is not ready"),
+            |ready| format!("Agent {name:?} is not ready: {}", ready.detail().trim_end()),
+        )
     } else if !installed.is_some_and(|installed| installed.contains(&session.harness)) {
         format!(
             "Agent {:?} does not carry harness {:?}; sign in on the host and the next Agent \
