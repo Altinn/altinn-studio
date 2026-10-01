@@ -114,13 +114,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         );
         AssertStringOrProblemConflictResponse(
             paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start")
-                .GetProperty("post")
-                .GetProperty("responses")
-                .GetProperty("409")
-        );
-        AssertStringOrProblemConflictResponse(
-            paths
                 .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess")
                 .GetProperty("put")
                 .GetProperty("responses")

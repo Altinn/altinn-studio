@@ -92,7 +92,7 @@ WorkflowEngine/
 
 Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSequence` assembles the sequences:
 
-1. `AcquireProcessingStatus` only for instantiation and `process/start`; a user-triggered `process/next` has already acquired in W1 before this dependent sequence is built
+1. `AcquireProcessingStatus` only for instantiation; a user-triggered `process/next` has already acquired in W1 before this dependent sequence is built
 2. Task-end/abandon commands (from `process_EndTask`/`process_AbandonTask` events)
 3. `MutateProcessState` (inserted by the factory if there are task-end/abandon commands)
 4. Task-start and process-end commands (from `process_StartTask`/`process_EndEvent` events)
@@ -105,7 +105,7 @@ Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSe
 
 `CreateAcquire` builds W1 for user-triggered `process/next`, including `reject`: a single acquire step whose payload carries only the action, plus instance and source-task labels derived directly from the snapshot. W1 is named `Process next: Mark instance as processing`. It has no destination labels and performs no gateway evaluation in the request. Until W2 exists, status reads report processing with an unknown target; the source label keeps W1 discoverable for admission. The request still performs authorization, user-action handlers and validation. Once the acquire save succeeds, its callback computes the transition with the restored instance/data and the actor's language and calls `CreateDependent` to build W2. W2 depends on W1 and exists before W1's callback returns, so the collection cannot settle between them. W1 uses `process-next-operation-{instanceGuid:N}-{instanceVersion}`; W2 uses `process-next-dependent-{W1:N}`. An acquire conflict creates no W2.
 
-`CreateChainInitiating` remains for instantiation and `process/start`, whose already-started process snapshot and complete sequence stay in one workflow with an acquire first and no acquire payload. `CreateDependent` also builds workflows that continue the process after a service task succeeds. Every dependent inherits `processing` and does not reacquire it.
+`CreateChainInitiating` remains for instantiation, whose already-started process snapshot and complete sequence stay in one workflow with an acquire first and no acquire payload. `CreateDependent` also builds workflows that continue the process after a service task succeeds. Every dependent inherits `processing` and does not reacquire it.
 
 The sequence above forms the **Main workflow** — W2 for user-triggered `process/next`, or the single workflow for instantiation/start. Each enqueue batch contains one such workflow. The
 non-critical side-effect commands (`SideEffectCommands`) travel inside step 6's payload as a
