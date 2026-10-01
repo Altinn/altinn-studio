@@ -196,56 +196,6 @@ public class UiFoldersController : Controller
         return Ok(subformComponents);
     }
 
-    [HttpPost("layout-sets/{layoutSetId}/subform-pdf-component")]
-    [UseSystemTextJson]
-    public async Task<IActionResult> SaveSubformPdfComponent(
-        string org,
-        string app,
-        [FromRoute] string layoutSetId,
-        [FromBody] SubformPdfComponentPayload payload,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        if (!_appVersionService.IsV9App(editingContext))
-        {
-            return Problem(SubformPdfRequiresV9Message, statusCode: StatusCodes.Status400BadRequest);
-        }
-        IEnumerable<SubformComponentDto> subformComponents = await _uiFoldersService.SaveSubformPdfComponent(
-            editingContext,
-            layoutSetId,
-            payload.ComponentId,
-            payload.SourceLayoutSetId,
-            payload.PreviousComponentId,
-            cancellationToken
-        );
-        return Ok(subformComponents);
-    }
-
-    [HttpDelete("layout-sets/{layoutSetId}/subform-pdf-component")]
-    [UseSystemTextJson]
-    public async Task<IActionResult> DeleteSubformPdfComponent(
-        string org,
-        string app,
-        [FromRoute] string layoutSetId,
-        [FromQuery] string componentId,
-        CancellationToken cancellationToken
-    )
-    {
-        AltinnRepoEditingContext editingContext = CreateContext(org, app);
-        if (!_appVersionService.IsV9App(editingContext))
-        {
-            return Problem(SubformPdfRequiresV9Message, statusCode: StatusCodes.Status400BadRequest);
-        }
-        IEnumerable<SubformComponentDto> components = await _uiFoldersService.DeleteSubformPdfComponent(
-            editingContext,
-            layoutSetId,
-            componentId,
-            cancellationToken
-        );
-        return Ok(components);
-    }
-
     [HttpGet("settings/validation-on-navigation")]
     [UseSystemTextJson]
     public async Task<IActionResult> GetValidationOnNavigation(

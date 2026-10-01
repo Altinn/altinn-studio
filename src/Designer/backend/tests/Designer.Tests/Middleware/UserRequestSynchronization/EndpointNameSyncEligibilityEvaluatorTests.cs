@@ -12,7 +12,6 @@ public class EndpointNameSyncEligibilityEvaluatorTests
     // save operation locks exclusively.
     [Theory]
     [InlineData(nameof(UiFoldersController.GetSubformComponents))]
-    [InlineData(nameof(UiFoldersController.SaveSubformPdfComponent))]
     [InlineData(nameof(UiFoldersController.AddLayoutSet))]
     public void IsEligibleForSynchronization_AllowedUiFoldersAction_ReturnsTrue(string actionName)
     {
