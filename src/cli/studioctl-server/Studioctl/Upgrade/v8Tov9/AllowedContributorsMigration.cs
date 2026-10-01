@@ -1,7 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -16,11 +14,11 @@ internal static class AllowedContributorsMigration
     private const string NewName = "allowedContributors";
     private const string MetadataPath = "config/applicationmetadata.json";
 
-    // The quoted name followed by a colon is a property name, never a mention inside a string value.
-    private static readonly Regex _oldProperty = new(
-        $"\"{OldName}\"(?=\\s*:)",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant
-    );
+    private static readonly JsonReaderOptions _readerOptions = new()
+    {
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
 
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
@@ -30,20 +28,15 @@ internal static class AllowedContributorsMigration
         if (metadataFile is null)
             return new MigrationResult(messages);
 
-        string text;
+        byte[] json;
         bool hadBom;
-        JsonNode? root;
+        List<DataType> dataTypes;
         try
         {
-            (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(metadataFile));
-            root = JsonNode.Parse(
-                text,
-                documentOptions: new JsonDocumentOptions
-                {
-                    CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true,
-                }
-            );
+            var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(metadataFile));
+            json = Encoding.UTF8.GetBytes(decoded.Text);
+            hadBom = decoded.HadBom;
+            dataTypes = ReadDataTypes(json);
         }
         catch (Exception ex) when (ex is DecoderFallbackException or JsonException)
         {
@@ -53,44 +46,104 @@ internal static class AllowedContributorsMigration
             return new MigrationResult(messages);
         }
 
-        if (root is not JsonObject metadata || metadata["dataTypes"] is not JsonArray dataTypes)
-            return new MigrationResult(messages);
-
-        var renamed = new List<string>();
-        var conflicts = new List<string>();
-        foreach (var dataType in dataTypes.OfType<JsonObject>().Where(dataType => dataType.ContainsKey(OldName)))
-        {
-            var id = dataType["id"] is JsonValue value && value.TryGetValue<string>(out var s) ? s : "<unknown>";
-            (dataType.ContainsKey(NewName) ? conflicts : renamed).Add($"'{id}'");
-        }
-
+        var conflicts = dataTypes.Where(dataType => dataType.OldNames.Count > 0 && dataType.HasNewName).ToList();
         if (conflicts.Count > 0)
         {
             messages.Todo(
-                $"Left {MetadataPath} unchanged: data type(s) {string.Join(", ", conflicts)} have both {OldName} and "
-                    + $"{NewName}, and the app uses {OldName} when it is not empty. Keep the list you want under "
-                    + $"{NewName}, remove {OldName} and re-run the upgrade."
+                $"Left {MetadataPath} unchanged: data type(s) {Ids(conflicts)} have both {OldName} and {NewName}, and "
+                    + $"the app uses {OldName} when it is not empty. Keep the list you want under {NewName}, remove "
+                    + $"{OldName} and re-run the upgrade."
             );
             return new MigrationResult(messages);
         }
 
+        var renamed = dataTypes.Where(dataType => dataType.OldNames.Count > 0).ToList();
         if (renamed.Count == 0)
             return new MigrationResult(messages);
 
-        if (_oldProperty.Count(text) != renamed.Count)
+        var replacement = Encoding.UTF8.GetBytes($"\"{NewName}\"");
+        var result = new List<byte>(json.Length);
+        var copied = 0;
+        foreach (var (start, length) in renamed.SelectMany(dataType => dataType.OldNames).OrderBy(name => name.Start))
         {
-            messages.Todo(
-                $"Left {MetadataPath} unchanged: {OldName} also appears outside the data types. Rename it to "
-                    + $"{NewName} on data type(s) {string.Join(", ", renamed)} manually."
-            );
-            return new MigrationResult(messages);
+            result.AddRange(json.AsSpan(copied, start - copied));
+            result.AddRange(replacement);
+            copied = start + length;
         }
+        result.AddRange(json.AsSpan(copied));
 
-        await Utf8TextFile.Write(metadataFile, _oldProperty.Replace(text, $"\"{NewName}\""), hadBom);
+        await Utf8TextFile.Write(metadataFile, Encoding.UTF8.GetString([.. result]), hadBom);
         messages.Warn(
-            $"Renamed {OldName} to {NewName} on data type(s) {string.Join(", ", renamed)} in {MetadataPath}, the "
-                + "spelling the application metadata schema accepts."
+            $"Renamed {OldName} to {NewName} on data type(s) {Ids(renamed)} in {MetadataPath}, the spelling the "
+                + "application metadata schema accepts."
         );
         return new MigrationResult(messages);
+    }
+
+    /// <summary>
+    /// Finds the objects in the root <c>dataTypes</c> array, with the position of every <see cref="OldName"/>
+    /// property name directly on them. Positions are byte ranges covering the quoted name as written, escapes
+    /// included, so a property elsewhere in the file or a mention inside a string value is never among them.
+    /// </summary>
+    private static List<DataType> ReadDataTypes(byte[] json)
+    {
+        var reader = new Utf8JsonReader(json, _readerOptions);
+        var dataTypes = new List<DataType>();
+        string? rootProperty = null;
+        var inDataTypes = false;
+        DataType? current = null;
+
+        while (reader.Read())
+        {
+            switch (reader.TokenType, reader.CurrentDepth)
+            {
+                case (JsonTokenType.PropertyName, 1):
+                    rootProperty = reader.GetString();
+                    break;
+                case (JsonTokenType.StartArray, 1):
+                    inDataTypes = rootProperty == "dataTypes";
+                    break;
+                case (JsonTokenType.EndArray, 1):
+                    inDataTypes = false;
+                    break;
+                case (JsonTokenType.StartObject, 2) when inDataTypes:
+                    current = new DataType();
+                    dataTypes.Add(current);
+                    break;
+                case (JsonTokenType.EndObject, 2):
+                    current = null;
+                    break;
+                case (JsonTokenType.PropertyName, 3) when current is not null:
+                    switch (reader.GetString())
+                    {
+                        case OldName:
+                            current.OldNames.Add(((int)reader.TokenStartIndex, reader.ValueSpan.Length + 2));
+                            break;
+                        case NewName:
+                            current.HasNewName = true;
+                            break;
+                        case "id":
+                            // A non-string id is skipped token by token by the loop; no case matches inside it.
+                            if (reader.Read() && reader.TokenType == JsonTokenType.String)
+                                current.Id = reader.GetString();
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        return dataTypes;
+    }
+
+    private static string Ids(IEnumerable<DataType> dataTypes) =>
+        string.Join(", ", dataTypes.Select(dataType => $"'{dataType.Id ?? "<unknown>"}'"));
+
+    private sealed class DataType
+    {
+        public string? Id { get; set; }
+
+        public bool HasNewName { get; set; }
+
+        public List<(int Start, int Length)> OldNames { get; } = [];
     }
 }

@@ -89,20 +89,33 @@ public sealed class AllowedContributorsMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task LeavesFileUnchangedWhenThePropertyAppearsOutsideTheDataTypes()
+    public async Task RenamesOnlyThePropertyOnTheDataTypes()
     {
-        var content = """
+        // The data type's name is written with a JSON escape for the C, so a literal match on the text would find
+        // only the properties outside the data types.
+        const string escapedName = "allowed\\u0043ontributers";
+        _app.Write(
+            MetadataPath,
+            $$"""
             {
-              "dataTypes": [{ "id": "a", "allowedContributers": ["app:owned"] }],
-              "custom": { "allowedContributers": [] }
+              "dataTypes": [{ "id": "a", "{{escapedName}}": ["app:owned"] }],
+              "custom": { "allowedContributers": [], "nested": [{ "allowedContributers": [] }] }
             }
-            """;
-        _app.Write(MetadataPath, content);
+            """
+        );
 
         var result = await AllowedContributorsMigration.Migrate(_app.Root);
 
-        Assert.Equal(content, _app.Read(MetadataPath));
-        Assert.Contains("'a'", Assert.Single(result.Todos));
+        Assert.Equal(
+            """
+            {
+              "dataTypes": [{ "id": "a", "allowedContributors": ["app:owned"] }],
+              "custom": { "allowedContributers": [], "nested": [{ "allowedContributers": [] }] }
+            }
+            """,
+            _app.Read(MetadataPath)
+        );
+        Assert.Contains("'a'", Assert.Single(result.Warnings));
     }
 
     [Fact]
