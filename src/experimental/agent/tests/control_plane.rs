@@ -1582,7 +1582,7 @@ async fn an_invalid_failure_fails_the_wait_immediately() {
     .await;
     let error = fixture
         .execution
-        .ensure("worker", WaitPolicy::UntilReady)
+        .ensure("worker", WaitPolicy::UntilConverged)
         .await
         .expect_err("invalid preparation must fail fast");
 
@@ -1602,7 +1602,7 @@ async fn a_provider_rejection_is_permanent_and_fails_the_wait_immediately() {
     let fixture = waiting([PlannedFailure::Rejected], NO_BACKGROUND_PASSES).await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.execution.ensure("worker", WaitPolicy::UntilConverged),
     )
     .await
     .expect("a permanent rejection must not be waited through")
@@ -1623,7 +1623,7 @@ async fn a_flood_of_progress_does_not_stall_the_wait() {
     .await;
     let error = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.execution.ensure("worker", WaitPolicy::UntilConverged),
     )
     .await
     .expect("progress volume must not stall the request")
@@ -1645,7 +1645,7 @@ async fn waiting_follows_background_retries_after_transient_failures() {
     .await;
     let target = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.execution.ensure("worker", WaitPolicy::UntilConverged),
     )
     .await
     .expect("background retry should complete")
@@ -1794,7 +1794,7 @@ async fn a_first_pass_wait_returns_its_failure_and_until_ready_waits_through_ret
 
     let target = tokio::time::timeout(
         Duration::from_secs(1),
-        fixture.execution.ensure("worker", WaitPolicy::UntilReady),
+        fixture.execution.ensure("worker", WaitPolicy::UntilConverged),
     )
     .await
     .expect("background retry should complete")
@@ -1818,7 +1818,7 @@ async fn dropping_a_wait_does_not_stop_background_reconciliation() {
     .await;
     let id = fixture.id().await;
     let waiting = fixture.execution.clone();
-    let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilReady).await });
+    let wait = tokio::task::spawn_local(async move { waiting.ensure("worker", WaitPolicy::UntilConverged).await });
     tokio::time::timeout(Duration::from_secs(1), async {
         while !fixture.provisioning.get(id).is_some_and(|pass| {
             matches!(
@@ -2301,14 +2301,14 @@ async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
     let task = tokio::task::spawn_local(controller.run());
     let convergence = Convergence::new(wakeup, fixture.store.clone(), changes);
     convergence
-        .converge(fixture.id, WaitPolicy::UntilReady)
+        .converge("worker", WaitPolicy::UntilConverged)
         .await
         .expect("the healthy Agent should become Ready");
     fixture.beat(1).await;
     fixture.platform.stall.set(true);
 
     let started = tokio::time::Instant::now();
-    let result = convergence.converge(fixture.id, WaitPolicy::UntilReady).await;
+    let result = convergence.converge("worker", WaitPolicy::UntilConverged).await;
 
     assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
     let waited = started.elapsed();
@@ -2599,7 +2599,7 @@ async fn commands_on_a_stopped_agent_fail_at_once_and_a_wait_ends_when_it_stops(
     // A wait through an outage ends once the Agent is stopped.
     let waited = tokio::task::spawn_local({
         let execution = fixture.execution.clone();
-        async move { execution.ensure("worker", WaitPolicy::UntilReady).await }
+        async move { execution.ensure("worker", WaitPolicy::UntilConverged).await }
     });
     tokio::time::sleep(BACKGROUND_RETRIES * 3).await;
     control_plane
@@ -2619,7 +2619,7 @@ async fn commands_on_a_stopped_agent_fail_at_once_and_a_wait_ends_when_it_stops(
 
     // Later commands are refused before anything is woken or waited for.
     ended.set(true);
-    for wait in [WaitPolicy::FirstPass, WaitPolicy::UntilReady] {
+    for wait in [WaitPolicy::FirstPass, WaitPolicy::UntilConverged] {
         let error = tokio::time::timeout(Duration::from_millis(100), fixture.execution.ensure("worker", wait))
             .await
             .expect("refused without waiting")
@@ -2630,7 +2630,7 @@ async fn commands_on_a_stopped_agent_fail_at_once_and_a_wait_ends_when_it_stops(
 }
 
 #[tokio::test(flavor = "local")]
-async fn a_stop_recorded_while_a_wait_is_woken_ends_the_wait() {
+async fn a_stop_recorded_while_an_execution_waits_refuses_it() {
     let changes = Changes::new();
     let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
     let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
@@ -2656,8 +2656,11 @@ async fn a_stop_recorded_while_a_wait_is_woken_ends_the_wait() {
     started.notified().await;
 
     // The wait is admitted while the Agent runs, and its pass is the one after the stop.
-    let convergence = Convergence::new(wakeup, store.clone(), changes);
-    let waited = tokio::task::spawn_local(async move { convergence.converge(id, WaitPolicy::FirstPass).await });
+    let execution = Rc::new(ExecutionService::new(
+        store.clone(),
+        Convergence::new(wakeup, store.clone(), changes),
+    ));
+    let waited = tokio::task::spawn_local(async move { execution.ensure("worker", WaitPolicy::FirstPass).await });
     tokio::task::yield_now().await;
     control_plane
         .set_run_state("worker", agent::RunState::Stopped)
@@ -2678,35 +2681,47 @@ async fn converging_the_run_state_waits_for_a_stop_and_for_a_start() {
     let fixture = waiting([], NO_BACKGROUND_PASSES).await;
     let convergence = Convergence::new(fixture.wakeup.clone(), fixture.store.clone(), Changes::new());
     let control_plane = ControlPlane::new(fixture.store.clone(), Rc::new(fixture.wakeup.clone()));
-    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
-        .await
-        .expect("a new Agent converges")
-        .expect("Ready");
-    assert!(converged.status.is_ready());
+    let converged = tokio::time::timeout(
+        Duration::from_secs(1),
+        convergence.converge("worker", WaitPolicy::UntilConverged),
+    )
+    .await
+    .expect("a new Agent converges")
+    .expect("Ready");
+    assert!(converged.agent.status.is_ready());
 
     control_plane
         .set_run_state("worker", agent::RunState::Stopped)
         .await
         .expect("stop");
-    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
-        .await
-        .expect("a stop converges")
-        .expect("stopped");
-    assert!(converged.spec.is_stopped() && converged.status.is_stopped());
-    assert_eq!(converged.status.observed_generation, converged.metadata.generation);
+    let converged = tokio::time::timeout(
+        Duration::from_secs(1),
+        convergence.converge("worker", WaitPolicy::UntilConverged),
+    )
+    .await
+    .expect("a stop converges")
+    .expect("stopped");
+    assert!(converged.agent.spec.is_stopped() && converged.agent.status.is_stopped());
+    assert_eq!(
+        converged.agent.status.observed_generation,
+        converged.agent.metadata.generation
+    );
 
     control_plane
         .set_run_state("worker", agent::RunState::Running)
         .await
         .expect("start");
-    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
-        .await
-        .expect("a start converges")
-        .expect("Ready");
-    assert!(converged.status.is_ready() && !converged.spec.is_stopped());
+    let converged = tokio::time::timeout(
+        Duration::from_secs(1),
+        convergence.converge("worker", WaitPolicy::UntilConverged),
+    )
+    .await
+    .expect("a start converges")
+    .expect("Ready");
+    assert!(converged.agent.status.is_ready() && !converged.agent.spec.is_stopped());
 
     let error = convergence
-        .converge_run_state("missing")
+        .converge("missing", WaitPolicy::UntilConverged)
         .await
         .expect_err("missing Agent");
     assert!(matches!(error, Error::NotFound), "{error:?}");
@@ -2725,11 +2740,14 @@ async fn converging_a_stopped_agent_is_not_ended_by_the_stall_it_was_stopped_for
     );
     let task = tokio::task::spawn_local(controller.run());
     let convergence = Convergence::new(wakeup, fixture.store.clone(), changes);
-    convergence.converge_run_state("worker").await.expect("Ready");
+    convergence
+        .converge("worker", WaitPolicy::UntilConverged)
+        .await
+        .expect("Ready");
     fixture.beat(1).await;
     fixture.platform.stall.set(true);
     let error = convergence
-        .converge_run_state("worker")
+        .converge("worker", WaitPolicy::UntilConverged)
         .await
         .expect_err("a running Agent with a stalled guest cannot converge");
     assert!(matches!(error, Error::SandboxUnresponsive(_)), "{error:?}");
@@ -2739,10 +2757,10 @@ async fn converging_a_stopped_agent_is_not_ended_by_the_stall_it_was_stopped_for
         .await
         .expect("stop");
     let stopped = convergence
-        .converge_run_state("worker")
+        .converge("worker", WaitPolicy::UntilConverged)
         .await
         .expect("the stop converges");
-    assert!(stopped.status.is_stopped());
+    assert!(stopped.agent.status.is_stopped());
     task.abort();
 }
 

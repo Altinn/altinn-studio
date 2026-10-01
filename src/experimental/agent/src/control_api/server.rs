@@ -249,13 +249,17 @@ impl SessionApi for sessions::Service {
 /// Waiting for an Agent to converge, exposed through the local control API.
 pub trait ConvergenceApi {
     /// Waits until an Agent has its desired run state; see
-    /// [`control_plane::Convergence::converge_run_state`].
+    /// [`control_plane::Convergence::converge`].
     fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>>;
 }
 
 impl ConvergenceApi for control_plane::Convergence {
     fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>> {
-        Box::pin(async move { self.converge_run_state(name).await })
+        Box::pin(async move {
+            self.converge(name, WaitPolicy::UntilConverged)
+                .await
+                .map(|record| record.agent)
+        })
     }
 }
 
@@ -824,7 +828,7 @@ impl Server {
 
 const fn wait_policy(follow: bool) -> WaitPolicy {
     if follow {
-        WaitPolicy::UntilReady
+        WaitPolicy::UntilConverged
     } else {
         WaitPolicy::FirstPass
     }

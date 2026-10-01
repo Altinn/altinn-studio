@@ -122,9 +122,13 @@ impl Service {
         wait: WaitPolicy,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait).await?;
+        let converged = self.convergence.converge(agent, wait).await?;
+        if converged.id != owner.id {
+            // The Agent was deleted and its name reused while this request waited.
+            return Err(Error::Conflict);
+        }
+        converged.reject_stopped()?;
         // On a brand-new Agent this is the first moment the answer exists.
-        let converged = self.sandboxes.agent_by_name(agent).await?;
         Self::reject_omitted_optional_harness(&converged, session.harness)?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await

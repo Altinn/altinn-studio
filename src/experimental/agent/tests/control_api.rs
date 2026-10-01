@@ -568,7 +568,7 @@ async fn a_wait_ends_when_its_client_goes_away() {
     let fixture = api();
     let interrupted = tokio::time::timeout(
         Duration::from_millis(100),
-        fixture.client.ensure_execution("stuck", WaitPolicy::UntilReady),
+        fixture.client.ensure_execution("stuck", WaitPolicy::UntilConverged),
     )
     .await;
     assert!(interrupted.is_err(), "the wait never ends on its own");
@@ -1001,7 +1001,7 @@ async fn a_frame_that_is_not_the_response_fails_the_call() {
     };
     let client = Client::new(Rc::new(notification));
     let error = client
-        .ensure_execution("worker", WaitPolicy::UntilReady)
+        .ensure_execution("worker", WaitPolicy::UntilConverged)
         .await
         .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
@@ -1046,7 +1046,7 @@ async fn work_in_a_stopped_agent_is_refused_with_how_to_start_it() {
     let fixture = api();
     let error = fixture
         .client
-        .ensure_execution("stopped", WaitPolicy::UntilReady)
+        .ensure_execution("stopped", WaitPolicy::UntilConverged)
         .await
         .expect_err("a stopped Agent runs nothing");
     match error {

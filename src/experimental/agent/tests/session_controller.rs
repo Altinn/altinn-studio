@@ -3286,7 +3286,7 @@ async fn work_in_a_stopped_agent_is_refused_without_creating_a_session() {
         let name = SessionName::new(name).expect("name");
         let error = harness
             .service
-            .ensure("worker", &name, SessionRequest::default(), WaitPolicy::UntilReady)
+            .ensure("worker", &name, SessionRequest::default(), WaitPolicy::UntilConverged)
             .await
             .expect_err("nothing runs to attach to");
         assert!(is_stopped(&error), "{error:?}");

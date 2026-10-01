@@ -749,7 +749,7 @@ async fn attach(
         .until(
             client,
             &agent,
-            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilConverged),
         )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
@@ -776,7 +776,11 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -837,7 +841,11 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -895,8 +903,12 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
-        .await?;
+    wait.until(
+        client,
+        &agent,
+        client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+    )
+    .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
     ssh.args(ssh_client_arguments(&access)).args(command);
@@ -946,7 +958,11 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -1019,7 +1035,11 @@ async fn vnc(
     client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     // Read again now the Agent is Ready: which ports its image offers is something a
     // reconciliation pass observes, so before converging the browser viewer's port is unknown
@@ -1078,7 +1098,11 @@ async fn vnc_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let access = client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -1152,7 +1176,7 @@ async fn create_session(
         &agent,
         tokio::time::timeout_at(
             deadline,
-            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
+            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilConverged),
         ),
     )
     .await

@@ -157,7 +157,7 @@ impl Client {
             METHOD_EXECUTION_ENSURE,
             ExecutionEnsureParams {
                 name: name.into(),
-                follow: wait == WaitPolicy::UntilReady,
+                follow: wait == WaitPolicy::UntilConverged,
             },
         )
         .await
@@ -306,7 +306,7 @@ impl Client {
                 harness: request.harness,
                 model_selection: request.model_selection,
                 initial_prompt: request.initial_prompt,
-                follow: wait == WaitPolicy::UntilReady,
+                follow: wait == WaitPolicy::UntilConverged,
             },
         )
         .await
