@@ -2438,7 +2438,7 @@ async fn a_start_boots_the_same_sandbox_and_wakes_sessions() {
     assert_eq!(record.agent.status.sandbox, sandbox, "the same Sandbox starts again");
     let running = backend.find(&sandbox_name(&record)).await.expect("Sandbox");
     assert_eq!(running.state, sandbox::SandboxState::Running);
-    assert!(notifications.0.get() > after_stop, "Sessions wake to resume");
+    assert!(notifications.0.get() > after_stop, "Sessions wake");
     assert_eq!(backend.count(), 1);
 }
 
@@ -2744,4 +2744,48 @@ async fn converging_a_stopped_agent_is_not_ended_by_the_stall_it_was_stopped_for
         .expect("the stop converges");
     assert!(stopped.status.is_stopped());
     task.abort();
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn stopping_an_agent_with_a_stalled_guest_tells_its_sessions() {
+    let store = Rc::new(memory::InMemoryAgentStore::new());
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let platform = Rc::new(StallingPlatform::default());
+    let sandboxes =
+        Rc::new(Service::new([provider], [platform.clone() as Rc<dyn PlatformAdapter>]).expect("Sandbox service"));
+    let notifications = Rc::new(SessionNotificationCounter::default());
+    let reconciler = Reconciler::new(store.clone(), sandboxes, ProvisioningState::default())
+        .with_session_notifier(notifications.clone());
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("Agent").id;
+    reconciler.reconcile(id).await.expect("first pass");
+    let sandbox = store
+        .get(id)
+        .await
+        .expect("Agent")
+        .agent
+        .status
+        .sandbox
+        .and_then(|assignment| assignment.id().cloned())
+        .expect("materialized Sandbox");
+    backend
+        .set_guest_heartbeat(&sandbox, Some(GuestHeartbeat::new(1)))
+        .expect("heartbeat should be set");
+    platform.stall.set(true);
+    let result = reconciler.reconcile(id).await;
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+    // Not Ready already, so only the stop itself can tell the held Sessions.
+    let before = notifications.0.get();
+
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    reconciler.reconcile(id).await.expect("stop pass");
+    assert!(
+        notifications.0.get() > before,
+        "Sessions held by the stalled guest must learn the Agent stopped, so they go Idle"
+    );
 }

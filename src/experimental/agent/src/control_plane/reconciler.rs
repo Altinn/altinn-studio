@@ -502,6 +502,7 @@ fn recorded_by_stop(status: &Status) -> bool {
 
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
+        || recorded_by_stop(previous) != recorded_by_stop(current)
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
         || previous
