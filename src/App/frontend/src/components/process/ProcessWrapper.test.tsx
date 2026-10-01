@@ -452,7 +452,7 @@ describe('ProcessWrapper workflow state machine', () => {
   });
 
   it.each([
-    { altinnTaskType: 'fetchMedicalNote', description: 'a custom task type drawn as a plain task' },
+    { altinnTaskType: 'fetchMedicalNote', description: 'a custom task type on a bpmn:task element' },
     { altinnTaskType: 'signing', description: 'a signing task without a layout' },
   ])('renders an in-page error for $description, keeping the app shell', async ({ altinnTaskType }) => {
     const logErrorOnce = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
@@ -492,8 +492,11 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(screen.getByTestId('presentation')).toBeInTheDocument();
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
       expect(screen.queryByText(/ukjent feil/i)).not.toBeInTheDocument();
-      expect(logErrorOnce).toHaveBeenCalledWith(
-        expect.stringContaining(`'Task_Unsupported' has task type '${altinnTaskType}'`),
+      // The log is written from an effect, which can run after the text is first found.
+      await waitFor(() =>
+        expect(logErrorOnce).toHaveBeenCalledWith(
+          expect.stringContaining(`'Task_Unsupported' has task type '${altinnTaskType}'`),
+        ),
       );
     } finally {
       logErrorOnce.mockRestore();

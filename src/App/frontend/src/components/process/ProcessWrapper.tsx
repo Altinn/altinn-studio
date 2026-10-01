@@ -284,8 +284,8 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 }
 
 /**
- * Shown in place of a task that ProcessWrapper has no view for, such as a custom task type drawn as a
- * plain task, or a signing or payment task without a layout. Names the task and its type for the app
+ * Shown in place of a task that ProcessWrapper has no view for, such as a custom service task declared as
+ * a bpmn:task element, or a signing or payment task without a layout. Names the task and its type for the app
  * developer, and keeps the app shell instead of taking the whole app down.
  */
 function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
