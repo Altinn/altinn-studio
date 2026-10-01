@@ -34,6 +34,7 @@ import {
   accessListMemberPath,
   appValidationPath,
   processEditorPath,
+  processStatePath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -151,6 +152,7 @@ import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
+import type { ProcessState } from 'app-shared/types/api/ProcessState';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -247,6 +249,7 @@ export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(conse
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
 export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);
+export const getProcessState = (org: string, app: string) => get<ProcessState>(processStatePath(org, app));
 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());

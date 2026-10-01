@@ -1,0 +1,36 @@
+import { updateProcessState } from './mutations';
+import { put } from 'app-shared/utils/networking';
+import { processStatePath } from './paths';
+import type { ProcessChange, ProcessState } from '../types/api/ProcessState';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('app-shared/utils/networking');
+
+describe('updateProcessState', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('submits the edit and expected version to the process-state endpoint', async () => {
+    const change: ProcessChange = {
+      bpmnXml: '<definitions />',
+      metadata: { taskIdChange: { oldId: 'Task_1', newId: 'Task_2' } },
+      expectedVersion: 'version-1',
+    };
+
+    await updateProcessState(org, app, change);
+
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(put).toHaveBeenCalledWith(processStatePath(org, app), change);
+  });
+
+  it('returns the saved state from the server', async () => {
+    const saved: ProcessState = { bpmnXml: '<definitions id="saved" />', version: 'version-2' };
+    jest.mocked(put).mockResolvedValueOnce(saved);
+
+    const result = await updateProcessState(org, app, {
+      layoutSetDeletion: { layoutSetIdToUpdate: 'Task_1' },
+      expectedVersion: 'version-1',
+    });
+
+    expect(result).toEqual(saved);
+  });
+});

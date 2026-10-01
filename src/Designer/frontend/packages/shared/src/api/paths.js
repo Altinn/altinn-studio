@@ -218,6 +218,7 @@ export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/pro
 export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId, allowedContentTypes) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId, allowedContentTypes }, { arrayFormat: 'repeat' })}`; // Post, Delete
+export const processStatePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-state`; // Get, Put
 
 // Env
 export const envFilePath = () => `${basePath}/config/env.json`;

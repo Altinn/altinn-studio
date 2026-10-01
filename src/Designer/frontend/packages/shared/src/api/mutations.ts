@@ -49,6 +49,7 @@ import {
   optionListUpdatePath,
   optionListIdUpdatePath,
   processEditorPath,
+  processStatePath,
   selectedMaskinportenScopesPath,
   appSettingsPath,
   createInstancePath,
@@ -138,6 +139,7 @@ import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyRe
 import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type { ProcessChange, ProcessState } from 'app-shared/types/api/ProcessState';
 
 const headers = {
   Accept: 'application/json',
@@ -246,6 +248,7 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
   });
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
+export const updateProcessState = (org: string, app: string, change: ProcessChange) => put<ProcessState, ProcessChange>(processStatePath(org, app), change);
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);

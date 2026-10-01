@@ -92,6 +92,7 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { ProcessState } from 'app-shared/types/api/ProcessState';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -274,6 +275,9 @@ export const queriesMock: ServicesContextProps = {
 
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getProcessState: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ProcessState>({ bpmnXml: '', version: '' })),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
   getSelectedMaskinportenScopes: jest
@@ -422,6 +426,9 @@ export const queriesMock: ServicesContextProps = {
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessState: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<ProcessState>({ bpmnXml: '', version: '' })),
 
   // Mutations - User settings
   addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),

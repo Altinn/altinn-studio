@@ -1,6 +1,7 @@
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';
 import { Queue } from 'app-shared/queue/Queue';
+import { processDependencyQueryKeys } from './processDependencyQueryKeys';
 
 /**
  * This class is a singleton and should be used to invalidate queries when specific files are successfully synced/updated.
@@ -32,6 +33,12 @@ export class SyncSuccessQueriesInvalidator extends Queue {
       [QueryKey.AppValidation, '[org]', '[app]'],
     ],
     'policy.xml': [[QueryKey.AppPolicy, '[org]', '[app]']],
+    // The editor tracks its active process version from save responses, not sync refetches.
+    'process-state': [
+      [QueryKey.FetchBpmn, '[org]', '[app]'],
+      [QueryKey.AppValidation, '[org]', '[app]'],
+      ...processDependencyQueryKeys.map((key) => [key, '[org]', '[app]']),
+    ],
     'process.bpmn': [
       [QueryKey.FetchBpmn, '[org]', '[app]'],
       [QueryKey.AppValidation, '[org]', '[app]'],
