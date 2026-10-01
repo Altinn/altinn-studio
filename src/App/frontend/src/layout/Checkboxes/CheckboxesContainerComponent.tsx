@@ -8,8 +8,8 @@ import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useSaveValueToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
-import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
