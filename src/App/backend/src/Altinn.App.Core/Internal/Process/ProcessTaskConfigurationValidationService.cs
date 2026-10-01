@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
@@ -121,6 +122,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
+        WarnAboutUnreferencedServiceTasks(bpmnTasks, serviceTasks);
+
         if (listRegisteredTypes)
         {
             string[] types = processTasks
@@ -147,6 +150,35 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>
+    /// Warns once per service task type that is registered on purpose but that no BPMN task declares.
+    /// </summary>
+    /// <remarks>
+    /// Altinn.App.Core registers its own service tasks for every app, so an unused one says nothing about the app.
+    /// A service task declared in any other assembly was registered by the app or by an opt-in builder call such as
+    /// <c>AddFiksArkiv()</c>.
+    /// </remarks>
+    private void WarnAboutUnreferencedServiceTasks(List<ProcessTask> bpmnTasks, List<IPipelineServiceTask> serviceTasks)
+    {
+        HashSet<string> declaredTypes = bpmnTasks
+            .Select(task => task.ExtensionElements?.TaskExtension?.TaskType)
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
+        Assembly libraryAssembly = typeof(ProcessTaskConfigurationValidationService).Assembly;
+
+        IEnumerable<IPipelineServiceTask> unreferenced = serviceTasks
+            .Where(task => task.GetType().Assembly != libraryAssembly && !declaredTypes.Contains(task.Type))
+            .DistinctBy(task => task.Type, StringComparer.Ordinal);
+        foreach (IPipelineServiceTask task in unreferenced)
+        {
+            logger.LogWarning(
+                "Service task type '{TaskType}' is registered ({ServiceTaskImplementation}), but no task in the process definition declares it.",
+                task.Type,
+                task.GetType().FullName
+            );
+        }
+    }
 
     private static string ElementMismatch(
         string taskId,
