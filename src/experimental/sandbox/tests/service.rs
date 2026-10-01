@@ -347,6 +347,10 @@ async fn independent_network_backend_follows_the_sandbox_lifecycle() {
     ));
     let service = SandboxService::new(sandbox_backend.clone()).with_network_backend(network_backend.clone());
     let request = request();
+    service
+        .stop(request.name())
+        .await
+        .expect("stopping a missing Sandbox has no effect");
 
     let sandbox = service.ensure(&request).await.expect("create attached Sandbox");
     assert_eq!(
@@ -359,10 +363,10 @@ async fn independent_network_backend_follows_the_sandbox_lifecycle() {
     assert!(network_backend.is_attached(sandbox.id()));
     assert!(network_backend.is_running(sandbox.id()));
 
-    service
-        .release(request.name(), RetentionPolicy::Retain)
-        .await
-        .expect("retain attached Sandbox");
+    service.stop(request.name()).await.expect("stop attached Sandbox");
+    service.stop(request.name()).await.expect("repeated stop");
+    let stopped = service.inspect(request.name()).await.expect("inspect stopped Sandbox");
+    assert_eq!(stopped.state, sandbox::SandboxState::Stopped);
     assert!(network_backend.is_attached(sandbox.id()));
     assert!(!network_backend.is_running(sandbox.id()));
 
