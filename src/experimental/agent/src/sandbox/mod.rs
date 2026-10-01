@@ -17,6 +17,12 @@ pub use execution::{ExecutionService, ExecutionTarget, start_execution};
 pub use microsandbox::{GuestConnection, GuestDialer};
 pub use responsiveness::UNRESPONSIVE_AFTER;
 
+/// What watching a guest's heartbeat found.
+enum Heartbeat {
+    Stalled,
+    Advanced,
+}
+
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(try_from = "String", into = "String")]
@@ -290,12 +296,21 @@ impl Service {
         self.provider(provider)?.open(record, id).await
     }
 
+    /// Whether the Sandbox's guest reported a heartbeat when last inspected.
+    #[must_use]
+    pub fn reports_heartbeat(&self, sandbox: &SandboxId) -> bool {
+        self.responsiveness.heartbeat(sandbox).is_some()
+    }
+
     /// Runs work that reaches into a Sandbox's guest, inspecting the Sandbox
     /// every [`responsiveness::OBSERVATION_INTERVAL`] without a round trip to
     /// the guest, and ends the work once the guest has stalled.
     ///
-    /// A guest already known to be stalled is not reached at all. Dropping the
-    /// work closes its guest connections.
+    /// A guest already known to be stalled is not reached at all. When the work
+    /// fails, such as a command timing out inside a guest that just stalled,
+    /// the heartbeat decides whether the failure is the stall: an advancing
+    /// heartbeat keeps the failure. Dropping the work closes its guest
+    /// connections.
     ///
     /// # Errors
     ///
@@ -311,25 +326,45 @@ impl Service {
             return Err(responsiveness::stalled());
         }
         let provider = self.assigned_provider(record)?;
-        let watch = async {
-            let interval = responsiveness::OBSERVATION_INTERVAL;
-            let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + interval, interval);
-            loop {
-                ticker.tick().await;
-                // A failed inspection is retried at the next tick.
-                if let Ok(inspected) = provider.open(record, sandbox).await {
-                    self.responsiveness
-                        .observe(inspected.snapshot(), tokio::time::Instant::now());
-                }
-                if self.responsiveness.stalled(sandbox, tokio::time::Instant::now()) {
-                    return;
-                }
-            }
-        };
-        tokio::select! {
+        let result = tokio::select! {
             biased;
-            () = watch => Err(responsiveness::stalled()),
+            _stalled = self.watch_heartbeat(provider, record, sandbox, None) => return Err(responsiveness::stalled()),
             result = work => result,
+        };
+        let current = self.responsiveness.heartbeat(sandbox);
+        match result {
+            Err(error) if current.is_some() => match self.watch_heartbeat(provider, record, sandbox, current).await {
+                Heartbeat::Stalled => Err(responsiveness::stalled()),
+                Heartbeat::Advanced => Err(error),
+            },
+            result => result,
+        }
+    }
+
+    /// Inspects the Sandbox until its guest has stalled, or, given `from`,
+    /// until its heartbeat moves past `from` or is no longer reported.
+    async fn watch_heartbeat(
+        &self,
+        provider: &dyn Provider,
+        record: &AgentRecord,
+        sandbox: &SandboxId,
+        from: Option<::sandbox::GuestHeartbeat>,
+    ) -> Heartbeat {
+        let interval = responsiveness::OBSERVATION_INTERVAL;
+        let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + interval, interval);
+        loop {
+            ticker.tick().await;
+            // A failed inspection is retried at the next tick.
+            if let Ok(inspected) = provider.open(record, sandbox).await {
+                self.responsiveness
+                    .observe(inspected.snapshot(), tokio::time::Instant::now());
+            }
+            if self.responsiveness.stalled(sandbox, tokio::time::Instant::now()) {
+                return Heartbeat::Stalled;
+            }
+            if from.is_some() && self.responsiveness.heartbeat(sandbox) != from {
+                return Heartbeat::Advanced;
+            }
         }
     }
 

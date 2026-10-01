@@ -7,7 +7,7 @@
 
 use std::time::Duration;
 
-use crate::{AgentId, Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, Status, resources::Changes};
+use crate::{AgentId, Error, FailureKind, ReconcileFailure, resources::Changes};
 
 use super::{SharedAgentStore, Wakeup};
 
@@ -55,7 +55,17 @@ impl Convergence {
     pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
         match (wait, self.wakeup.reconcile(id).await) {
             (_, Ok(())) => return Ok(()),
-            (WaitPolicy::FirstPass, Err(failure)) => return Err(failure.into()),
+            (WaitPolicy::FirstPass, Err(failure)) => {
+                // A stalled guest is reported as the stall, not as a daemon failure.
+                let stalled = self.store.get(id).await.ok().and_then(|record| {
+                    record
+                        .agent
+                        .status
+                        .unresponsive()
+                        .map(|stalled| Error::SandboxUnresponsive(stalled.detail()))
+                });
+                return Err(stalled.unwrap_or_else(|| failure.into()));
+            }
             (WaitPolicy::UntilReady, Err(failure)) if failure.kind == FailureKind::Invalid => {
                 return Err(failure.into());
             }
@@ -81,7 +91,7 @@ impl Convergence {
                     .into());
                 }
             }
-            if let Some(stalled) = unresponsive(status) {
+            if let Some(stalled) = status.unresponsive() {
                 return Err(Error::SandboxUnresponsive(stalled.detail()));
             }
             self.changes
@@ -89,12 +99,4 @@ impl Convergence {
                 .await;
         }
     }
-}
-
-/// Returns the recorded condition when the Agent's guest is unresponsive.
-fn unresponsive(status: &Status) -> Option<&Condition> {
-    status
-        .conditions
-        .iter()
-        .find(|condition| condition.kind == Condition::SANDBOX_RESPONSIVE && condition.status == ConditionStatus::False)
 }

@@ -135,7 +135,10 @@ impl Reconciler {
         )];
         self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
-        conditions.insert(1, responsive_condition(ensured.sandbox.snapshot()));
+        conditions.insert(
+            1,
+            responsive_condition(self.sandboxes.reports_heartbeat(&ensured.sandbox.snapshot().id)),
+        );
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         // As on failure, readiness is stored before followers see the pass end.
@@ -263,7 +266,8 @@ impl Reconciler {
 
     /// Records that the Sandbox's guest stopped responding and returns `error`.
     ///
-    /// The Sandbox's lifecycle is unchanged, so the last `SandboxReady` stays.
+    /// A stall is only found in work after the Sandbox started, so the Sandbox
+    /// itself is running; only the guest inside it has stopped.
     async fn record_unresponsive(
         &self,
         record: &AgentRecord,
@@ -272,14 +276,12 @@ impl Reconciler {
         error: Error,
     ) -> Result<(), Error> {
         let failure = ReconcileFailure::classify(&error);
-        let mut conditions: Vec<Condition> = record
-            .agent
-            .status
-            .conditions
-            .iter()
-            .filter(|condition| condition.kind == Condition::SANDBOX_READY)
-            .cloned()
-            .collect();
+        let mut conditions = vec![condition(
+            Condition::SANDBOX_READY,
+            ConditionStatus::True,
+            "SandboxRunning",
+            "",
+        )];
         conditions.push(condition(
             Condition::SANDBOX_RESPONSIVE,
             ConditionStatus::False,
@@ -420,8 +422,8 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
 
 /// Reports the guest's heartbeat after a pass whose guest work finished. A
 /// Sandbox that reports no heartbeat gives no evidence either way.
-fn responsive_condition(sandbox: &::sandbox::Sandbox) -> Condition {
-    if sandbox.guest_heartbeat.is_some() {
+fn responsive_condition(reports_heartbeat: bool) -> Condition {
+    if reports_heartbeat {
         condition(
             Condition::SANDBOX_RESPONSIVE,
             ConditionStatus::True,

@@ -2042,6 +2042,8 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
 #[derive(Default)]
 struct StallingPlatform {
     stall: Cell<bool>,
+    /// Setup fails at once, as a command timing out inside the guest does.
+    fail: Cell<bool>,
     setups: Cell<usize>,
     started: Notify,
 }
@@ -2060,6 +2062,9 @@ impl PlatformAdapter for StallingPlatform {
     ) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
             self.setups.set(self.setups.get() + 1);
+            if self.fail.get() {
+                return Err(Error::SandboxSetup("`codex --version` did not finish within 5s".into()));
+            }
             if self.stall.get() {
                 self.started.notify_one();
                 std::future::pending::<()>().await;
@@ -2191,6 +2196,56 @@ async fn a_stalled_guest_ends_setup_and_its_agent_reports_it_unresponsive() {
     assert_eq!(
         (responsive.status, responsive.reason.as_str()),
         (ConditionStatus::True, "HeartbeatAdvancing")
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_failure_from_a_guest_that_stopped_beating_is_reported_as_the_stall() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.fail.set(true);
+
+    let result = fixture.reconciler.reconcile(fixture.id).await;
+
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+    let status = fixture.record().await.agent.status;
+    assert_eq!(
+        condition(&status, agent::Condition::READY).reason,
+        "SandboxUnresponsive"
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_failure_from_a_guest_that_still_beats_stands() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.fail.set(true);
+    let beating = tokio::task::spawn_local({
+        let fixture = Rc::new(fixture);
+        let pass = fixture.clone();
+        let beats = async move {
+            let mut sequence = 1;
+            loop {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                sequence += 1;
+                fixture.beat(sequence).await;
+            }
+        };
+        async move {
+            tokio::select! {
+                () = beats => unreachable!(),
+                result = pass.reconciler.reconcile(pass.id) => result,
+            }
+        }
+    });
+
+    let result = beating.await.expect("the pass should not panic");
+
+    assert!(
+        matches!(&result, Err(Error::SandboxSetup(message)) if message.contains("codex --version")),
+        "{result:?}"
     );
 }
 

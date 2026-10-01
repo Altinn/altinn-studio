@@ -124,14 +124,6 @@ async fn open_sandboxes(
     ))
 }
 
-/// Describes how a subsystem task that should run until shutdown ended.
-fn stopped(subsystem: &str, result: Result<(), tokio::task::JoinError>) -> Error {
-    match result {
-        Ok(()) => Error::Daemon(format!("{subsystem} stopped")),
-        Err(error) => Error::Daemon(format!("{subsystem} task failed: {error}")),
-    }
-}
-
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
@@ -212,8 +204,14 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
     let result = tokio::select! {
         result = server.serve_path(&socket_path) => result,
         result = tokio::signal::ctrl_c() => result.map_err(Error::from),
-        result = &mut controller_task => Err(stopped("reconciliation controller", result)),
-        result = &mut session_controller_task => Err(stopped("Session reconciliation controller", result)),
+        result = &mut controller_task => match result {
+            Ok(()) => Err(Error::Daemon("reconciliation controller stopped".into())),
+            Err(error) => Err(Error::Daemon(format!("reconciliation controller task failed: {error}"))),
+        },
+        result = &mut session_controller_task => match result {
+            Ok(()) => Err(Error::Daemon("Session reconciliation controller stopped".into())),
+            Err(error) => Err(Error::Daemon(format!("Session reconciliation controller task failed: {error}"))),
+        },
         result = &mut platform_api_task => match result {
             Ok(Ok(())) => Err(Error::Daemon("Platform API stopped".into())),
             Ok(Err(error)) => Err(Error::Daemon(format!("Platform API failed: {error}"))),

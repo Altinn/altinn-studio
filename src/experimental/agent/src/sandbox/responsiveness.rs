@@ -25,7 +25,7 @@ pub const OBSERVATION_INTERVAL: Duration = Duration::from_secs(2);
 #[must_use]
 pub fn stall_detail() -> String {
     format!(
-        "the guest has not reported progress for {}s",
+        "the guest has not reported progress for more than {}s",
         UNRESPONSIVE_AFTER.as_secs()
     )
 }
@@ -66,6 +66,12 @@ impl Tracker {
         {
             sandboxes.insert(sandbox.id.clone(), Tracked { heartbeat, since: now });
         }
+    }
+
+    /// The Sandbox's last observed heartbeat, if it reports one.
+    #[must_use]
+    pub fn heartbeat(&self, id: &SandboxId) -> Option<GuestHeartbeat> {
+        self.sandboxes.borrow().get(id).map(|tracked| tracked.heartbeat)
     }
 
     /// Whether the Sandbox's heartbeat has not changed for [`UNRESPONSIVE_AFTER`].

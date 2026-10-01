@@ -852,6 +852,15 @@ impl Status {
         Condition::any_ready(&self.conditions)
     }
 
+    /// Returns the `SandboxResponsive=False` condition when the Agent's guest
+    /// is recorded as unresponsive.
+    #[must_use]
+    pub fn unresponsive(&self) -> Option<&Condition> {
+        self.conditions.iter().find(|condition| {
+            condition.kind == Condition::SANDBOX_RESPONSIVE && condition.status == ConditionStatus::False
+        })
+    }
+
     /// Returns the failure detail when desired state must change before
     /// another pass can succeed.
     #[must_use]
