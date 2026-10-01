@@ -25,7 +25,7 @@ public class ProcessTaskElementAnalyzerTests
         """;
 
     [Fact]
-    public async Task Reports_The_Apps_Own_Tasks_Drawn_As_The_Wrong_Element()
+    public async Task Reports_The_Apps_Own_Tasks_On_The_Wrong_Element()
     {
         var diagnostics = await Analyze(
             Usings

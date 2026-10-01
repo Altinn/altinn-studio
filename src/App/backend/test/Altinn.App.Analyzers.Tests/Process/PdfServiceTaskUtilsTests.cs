@@ -219,9 +219,9 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
-    public void A_Pdf_Task_Drawn_As_A_Task_Is_Checked_Too()
+    public void A_Pdf_Task_On_A_Task_Element_Is_Checked_Too()
     {
-        // ALTINNAPP1003 reports the element; checking the configuration as well means redrawing the task does not
+        // ALTINNAPP1003 reports the element; checking the configuration as well means changing the element does not
         // uncover a second error.
         var process = Process(PdfTask("PdfTask").Replace("bpmn:serviceTask", "bpmn:task"));
 

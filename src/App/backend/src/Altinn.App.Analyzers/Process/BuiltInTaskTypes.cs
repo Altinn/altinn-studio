@@ -8,7 +8,7 @@ namespace Altinn.App.Analyzers.Process;
 internal static class BuiltInTaskTypes
 {
     /// <summary>
-    /// Types implemented as <c>IServiceTask</c> or <c>IPipelineServiceTask</c>, drawn as <c>bpmn:serviceTask</c>.
+    /// Types implemented as <c>IServiceTask</c> or <c>IPipelineServiceTask</c>, declared as a <c>bpmn:serviceTask</c> element.
     /// </summary>
     internal static readonly ImmutableHashSet<string> ServiceTasks = ImmutableHashSet.Create(
         StringComparer.Ordinal,
@@ -19,7 +19,7 @@ internal static class BuiltInTaskTypes
     );
 
     /// <summary>
-    /// Types implemented as an <c>IProcessTask</c> that is not a service task, drawn as <c>bpmn:task</c>.
+    /// Types implemented as an <c>IProcessTask</c> that is not a service task, declared as a <c>bpmn:task</c> element.
     /// </summary>
     internal static readonly ImmutableHashSet<string> ProcessTasks = ImmutableHashSet.Create(
         StringComparer.Ordinal,

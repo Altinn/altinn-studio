@@ -161,12 +161,12 @@ public static class Diagnostics
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the
         // types this rule cannot see: those from packages, and a Type that is not a constant. Reported once the
         // whole compilation is analyzed, since a task's type can be declared by any class in it.
-        public static readonly DiagnosticDescriptor TaskDrawnAsWrongElement = Error(
+        public static readonly DiagnosticDescriptor TaskUsesWrongElement = Error(
             "ALTINNAPP1003",
             Category.Process,
-            "Task is drawn as the wrong BPMN element",
-            "Task '{0}' declares <altinn:taskType>{1}</altinn:taskType>, which is {2}, but is drawn as <{3}>. "
-                + "Draw it as <{4}>.",
+            "Task uses the wrong BPMN element",
+            "Task '{0}' declares <altinn:taskType>{1}</altinn:taskType>, which is {2}, but is a <{3}> element. "
+                + "Change it to a <{4}> element.",
             WellKnownDiagnosticTags.CompilationEnd
         );
     }

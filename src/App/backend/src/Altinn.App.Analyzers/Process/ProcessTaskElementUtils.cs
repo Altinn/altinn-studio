@@ -3,8 +3,8 @@ using Altinn.App.Analyzers.Utils;
 namespace Altinn.App.Analyzers.Process;
 
 /// <summary>
-/// Checks that every task in <c>config/process/process.bpmn</c> is drawn as the element its type requires: a
-/// service task as <c>bpmn:serviceTask</c>, and every other task as <c>bpmn:task</c>. The app frontend chooses
+/// Checks that every task in <c>config/process/process.bpmn</c> uses the BPMN element its type requires: a
+/// service task a <c>bpmn:serviceTask</c>, and every other task a <c>bpmn:task</c>. The app frontend chooses
 /// how to show a task from its element, so a mismatch runs on the backend and then breaks the page. This is the
 /// build-time front of the startup check in <c>ProcessTaskConfigurationValidationService</c> in Altinn.App.Core.
 /// The runtime classifies a type by how its task is registered, which the build cannot see, so this assumes each of
@@ -75,20 +75,20 @@ internal static class ProcessTaskElementUtils
                 continue;
             }
 
-            var drawnAsServiceTask = task.Name == ProcessFile.ServiceTask;
-            if (isServiceTask == drawnAsServiceTask)
+            var isServiceTaskElement = task.Name == ProcessFile.ServiceTask;
+            if (isServiceTask == isServiceTaskElement)
             {
                 continue;
             }
 
             diagnostics.Add(
                 Diagnostic.Create(
-                    Diagnostics.Process.TaskDrawnAsWrongElement,
+                    Diagnostics.Process.TaskUsesWrongElement,
                     FileLocationHelper.GetXmlElementLocation(processFile, content, task),
                     taskId,
                     taskType,
                     isServiceTask ? "a service task" : "not a service task",
-                    drawnAsServiceTask ? "bpmn:serviceTask" : "bpmn:task",
+                    isServiceTaskElement ? "bpmn:serviceTask" : "bpmn:task",
                     isServiceTask ? "bpmn:serviceTask" : "bpmn:task"
                 )
             );

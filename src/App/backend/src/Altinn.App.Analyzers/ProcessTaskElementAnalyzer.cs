@@ -5,8 +5,8 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Altinn.App.Analyzers;
 
 /// <summary>
-/// Reports a task in <c>config/process/process.bpmn</c> drawn as the wrong element for its type: a service task as
-/// <c>bpmn:task</c>, or another task as <c>bpmn:serviceTask</c>. Besides the built-in types, it knows the types of
+/// Reports a task in <c>config/process/process.bpmn</c> that uses the wrong BPMN element for its type: a service task
+/// declared as a <c>bpmn:task</c>, or another task as a <c>bpmn:serviceTask</c>. Besides the built-in types, it knows the types of
 /// the app's own task classes whose <c>Type</c> returns a constant, and assumes each such class is registered under
 /// the interface it implements.
 /// </summary>
@@ -18,7 +18,7 @@ public sealed class ProcessTaskElementAnalyzer : DiagnosticAnalyzer
     private const string TypePropertyName = "Type";
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [Diagnostics.Process.TaskDrawnAsWrongElement];
+        [Diagnostics.Process.TaskUsesWrongElement];
 
     public override void Initialize(AnalysisContext context)
     {

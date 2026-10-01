@@ -15,7 +15,7 @@ public class ProcessTaskElementUtilsTests
     [InlineData("subformPdf")]
     [InlineData("eFormidling")]
     [InlineData("fiksArkiv")]
-    public void Built_In_Service_Task_Drawn_As_Task_Is_An_Error(string taskType)
+    public void Built_In_Service_Task_On_Task_Element_Is_An_Error(string taskType)
     {
         var diagnostic = Assert.Single(Collect(Process(Task("Task_2", taskType))));
 
@@ -23,7 +23,7 @@ public class ProcessTaskElementUtilsTests
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal(
             $"Task 'Task_2' declares <altinn:taskType>{taskType}</altinn:taskType>, which is a service task, "
-                + "but is drawn as <bpmn:task>. Draw it as <bpmn:serviceTask>.",
+                + "but is a <bpmn:task> element. Change it to a <bpmn:serviceTask> element.",
             diagnostic.GetMessage()
         );
     }
@@ -34,7 +34,7 @@ public class ProcessTaskElementUtilsTests
     [InlineData("feedback")]
     [InlineData("signing")]
     [InlineData("payment")]
-    public void Built_In_Process_Task_Drawn_As_Service_Task_Is_An_Error(string taskType)
+    public void Built_In_Process_Task_On_Service_Task_Element_Is_An_Error(string taskType)
     {
         var diagnostic = Assert.Single(Collect(Process(ServiceTask("Task_2", taskType))));
 
@@ -42,7 +42,7 @@ public class ProcessTaskElementUtilsTests
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal(
             $"Task 'Task_2' declares <altinn:taskType>{taskType}</altinn:taskType>, which is not a service task, "
-                + "but is drawn as <bpmn:serviceTask>. Draw it as <bpmn:task>.",
+                + "but is a <bpmn:serviceTask> element. Change it to a <bpmn:task> element.",
             diagnostic.GetMessage()
         );
     }
@@ -52,7 +52,7 @@ public class ProcessTaskElementUtilsTests
     [InlineData("subformPdf")]
     [InlineData("eFormidling")]
     [InlineData("fiksArkiv")]
-    public void Built_In_Service_Task_Drawn_As_Service_Task_Is_Valid(string taskType)
+    public void Built_In_Service_Task_On_Service_Task_Element_Is_Valid(string taskType)
     {
         Assert.Empty(Collect(Process(ServiceTask("Task_2", taskType))));
     }
@@ -63,7 +63,7 @@ public class ProcessTaskElementUtilsTests
     [InlineData("feedback")]
     [InlineData("signing")]
     [InlineData("payment")]
-    public void Built_In_Process_Task_Drawn_As_Task_Is_Valid(string taskType)
+    public void Built_In_Process_Task_On_Task_Element_Is_Valid(string taskType)
     {
         Assert.Empty(Collect(Process(Task("Task_2", taskType))));
     }

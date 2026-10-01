@@ -138,8 +138,8 @@ internal static class PdfServiceTaskUtils
                 continue;
             }
 
-            // A pdf task drawn as a bpmn:task is reported by ProcessTaskElementAnalyzer, and is checked here as well,
-            // so redrawing it does not uncover more errors.
+            // A pdf task on a bpmn:task element is reported by ProcessTaskElementAnalyzer, and is checked here as well,
+            // so changing its element does not uncover more errors.
             var task = ProcessFile.FindHostingTask(taskType);
             if (task?.Attribute("id")?.Value is not { Length: > 0 } id)
             {
