@@ -38,10 +38,12 @@ export type PendingAttachmentMutation =
       dataElementId: string;
     };
 
-export function makeAttachmentNode(baseId: string, component: CompExternal): AttachmentNode {
+type AttachmentComponent = CompExternal & { indexedId: string };
+
+export function makeAttachmentNode(component: AttachmentComponent): AttachmentNode {
   return {
-    id: component.id,
-    baseId,
+    id: component.indexedId,
+    baseId: component.id,
     dataModelBindings: component.dataModelBindings as AttachmentNode['dataModelBindings'],
   };
 }

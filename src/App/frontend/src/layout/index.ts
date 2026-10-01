@@ -95,6 +95,7 @@ export function implementsValidateComponent<Def extends CompDef>(def: Def): def 
 
 export interface ComponentValidationContext<T extends CompTypes = CompTypes> {
   baseComponentId: string;
+  indexedId: string;
   component: CompExternal<T>;
   formState: FormStoreState;
   instanceData: IData[];

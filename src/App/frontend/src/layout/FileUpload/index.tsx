@@ -64,7 +64,7 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
 
   validateComponent(ctx: ComponentValidationContext<'FileUpload'>): AnyValidation[] {
     const attachments = attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      makeAttachmentNode({ ...ctx.component, indexedId: ctx.indexedId }),
       ctx.formState,
       ctx.instanceData,
       getApplicationMetadata(),

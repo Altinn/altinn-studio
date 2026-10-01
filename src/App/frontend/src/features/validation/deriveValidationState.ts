@@ -145,10 +145,10 @@ function makeComponentValidationContext(
   taskId: string | undefined,
 ): ComponentValidationContext {
   const component = { ...item };
-  component.id = node.id;
   component.dataModelBindings = getIndexedDataModelBindings(item.dataModelBindings, node.rowContexts);
   return {
     baseComponentId: node.baseId,
+    indexedId: node.id,
     component,
     formState: state,
     instanceData,
