@@ -76,7 +76,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "taskId": "Task_Sign",
