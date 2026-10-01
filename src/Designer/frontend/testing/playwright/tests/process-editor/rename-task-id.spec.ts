@@ -13,7 +13,7 @@ const renamedTaskId: string = 'RenamedTask';
 const idLongerThanLayoutSetNameLimit: string = 'a'.repeat(29);
 const rejectedTaskId: string = 'RejectedTask';
 const finalTaskId: string = 'FinalTask';
-const processDefinitionRoute: string = '**/process-modelling/process-definition';
+const processStateRoute: string = '**/process-modelling/process-state';
 const namedTaskId: string = 'NamedTask';
 const lastTaskId: string = 'LastTask';
 
@@ -38,7 +38,7 @@ test.afterAll(async ({ request, testAppName }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('that renaming a task renames its layout set, and a second rename follows the layout set naming rule', async ({
+test('renames the task folder and rejects IDs longer than the folder-name limit', async ({
   page,
   request,
   testAppName,
@@ -69,7 +69,7 @@ test('that renaming a task renames its layout set, and a second rename follows t
   expect(processDefinition).not.toContain(idLongerThanLayoutSetNameLimit);
 });
 
-test('that a rejected save restores the saved process, so the next rename keeps the layout set in step', async ({
+test('restores saved task and folder IDs after discarding a rejected rename', async ({
   page,
   request,
   testAppName,
@@ -86,7 +86,7 @@ test('that a rejected save restores the saved process, so the next rename keeps 
     }
   });
 
-  await page.route(processDefinitionRoute, (route) =>
+  await page.route(processStateRoute, (route) =>
     route.request().method() === 'PUT'
       ? route.fulfill({ status: 400, body: 'Rejected by test' })
       : route.continue(),
@@ -94,23 +94,44 @@ test('that a rejected save restores the saved process, so the next rename keeps 
   await processEditorPage.clickOnTaskInBpmnEditor(
     await bpmnJSQuery.getTaskByIdAndType(renamedTaskId, 'g'),
   );
+  const rejectedSave: Promise<Response> = waitForProcessStateSave(page);
   await changeTaskId(processEditorPage, rejectedTaskId);
+  expect((await rejectedSave).status()).toBe(400);
 
   await expect(
-    page.getByText(processEditorPage.textMock('process_editor.save_bpmn_xml_error')),
+    page.getByRole('alert').getByText(processEditorPage.textMock('process_editor.save_rejected')),
   ).toBeVisible();
+  await expect(
+    page.getByRole('button', {
+      name: processEditorPage.textMock('process_editor.configuration_panel_change_task_id'),
+    }),
+  ).toBeDisabled();
+  await page
+    .getByRole('button', { name: processEditorPage.textMock('process_editor.discard_changes') })
+    .click();
   await expect(page.locator(`g[data-element-id="${renamedTaskId}"]`)).toBeVisible();
   await expect(page.locator(`g[data-element-id="${rejectedTaskId}"]`)).toHaveCount(0);
-  await page.waitForTimeout(1000); // Give any request triggered by restoring the process time to be sent
-  expect(changeRequests).toEqual([
-    `PUT /designer/api/${org}/${testAppName}/process-modelling/process-definition`,
-  ]);
-  expect(await getLayoutSetIds(request, org, testAppName)).toContain(renamedTaskId);
-  await page.unroute(processDefinitionRoute);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  const layoutSetIdsAfterRejection: string[] = await getLayoutSetIds(request, org, testAppName);
+  expect(layoutSetIdsAfterRejection).toContain(renamedTaskId);
+  expect(layoutSetIdsAfterRejection).not.toContain(rejectedTaskId);
+  const processDefinitionAfterRejection: string = await getProcessDefinition(
+    request,
+    org,
+    testAppName,
+  );
+  expect(processDefinitionAfterRejection).toContain(`id="${renamedTaskId}"`);
+  expect(processDefinitionAfterRejection).not.toContain(`id="${rejectedTaskId}"`);
+  await page.unroute(processStateRoute);
 
   await processEditorPage.clickOnTaskInBpmnEditor(
     await bpmnJSQuery.getTaskByIdAndType(renamedTaskId, 'g'),
   );
+  await expect(
+    page.getByRole('button', {
+      name: processEditorPage.textMock('process_editor.configuration_panel_change_task_id'),
+    }),
+  ).toBeEnabled();
   await saveTaskIdChange(processEditorPage, finalTaskId);
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(finalTaskId);
 
@@ -118,9 +139,11 @@ test('that a rejected save restores the saved process, so the next rename keeps 
   expect(layoutSetIds).toContain(finalTaskId);
   expect(layoutSetIds).not.toContain(renamedTaskId);
   expect(await getProcessDefinition(request, org, testAppName)).toContain(`id="${finalTaskId}"`);
+  const processStateSave = `PUT /designer/api/${org}/${testAppName}/process-modelling/process-state`;
+  expect(changeRequests).toEqual([processStateSave, processStateSave]);
 });
 
-test('that naming a new task through the recommended action keeps its id when the process is edited again', async ({
+test('keeps the recommended task name when another task is renamed', async ({
   page,
   request,
   testAppName,
@@ -140,28 +163,29 @@ test('that naming a new task through the recommended action keeps its id when th
     }
   });
 
-  const taskAddSaved: Promise<Response> = waitForProcessDefinitionSave(page);
-  const layoutSetCreated: Promise<Response> = page.waitForResponse(
-    (response) =>
-      response.request().method() === 'POST' && response.url().endsWith('/ui-folders/layout-sets'),
-  );
+  const taskAddSaved: Promise<Response> = waitForProcessStateSave(page);
   await processEditorPage.dragTaskInToBpmnEditor(
     'data',
     await bpmnJSQuery.getTaskByIdAndType('SingleDataTask', 'svg'),
   );
-  await Promise.all([taskAddSaved, layoutSetCreated]);
-  expect(layoutSetCreationsAndDeletions).toHaveLength(1);
+  expect((await taskAddSaved).ok()).toBeTruthy();
+  const layoutSetsAfterTaskAdd: string[] = await getLayoutSetIds(request, org, testAppName);
+  expect(layoutSetsAfterTaskAdd).toHaveLength(2);
+  expect(layoutSetsAfterTaskAdd).toContain(finalTaskId);
+  expect(layoutSetCreationsAndDeletions).toHaveLength(0);
 
   await page
     .getByRole('textbox', {
       name: processEditorPage.textMock('process_editor.recommended_action.new_name_label'),
     })
     .fill(namedTaskId);
+  const taskNameSaved: Promise<Response> = waitForProcessStateSave(page);
   await page.getByRole('button', { name: processEditorPage.textMock('general.save') }).click();
+  expect((await taskNameSaved).ok()).toBeTruthy();
   await processEditorPage.waitForNewTaskIdButtonToBeVisible(namedTaskId);
-  expect(layoutSetCreationsAndDeletions).toHaveLength(1);
+  expect(layoutSetCreationsAndDeletions).toHaveLength(0);
 
-  // A click made right after the reload does not select the task (cause not found), so the click is retried.
+  // Selection can lag behind the diagram reload.
   const finalTaskSelector: string = await bpmnJSQuery.getTaskByIdAndType(finalTaskId, 'g');
   await expect(async () => {
     await processEditorPage.clickOnTaskInBpmnEditor(finalTaskSelector);
@@ -191,20 +215,19 @@ const changeTaskId = async (processEditorPage: ProcessEditorPage, newId: string)
   await processEditorPage.saveNewId();
 };
 
-// Designer cannot read the process definition while a save is writing it, so reads wait for the save to finish.
 const saveTaskIdChange = async (
   processEditorPage: ProcessEditorPage,
   newId: string,
 ): Promise<void> => {
-  const saved: Promise<Response> = waitForProcessDefinitionSave(processEditorPage.page);
+  const saved: Promise<Response> = waitForProcessStateSave(processEditorPage.page);
   await changeTaskId(processEditorPage, newId);
-  await saved;
+  expect((await saved).ok()).toBeTruthy();
 };
 
-const waitForProcessDefinitionSave = (page: Page): Promise<Response> =>
+const waitForProcessStateSave = (page: Page): Promise<Response> =>
   page.waitForResponse(
     (response) =>
-      response.request().method() === 'PUT' && response.url().endsWith('/process-definition'),
+      response.request().method() === 'PUT' && response.url().endsWith('/process-state'),
   );
 
 const getLayoutSetIds = async (

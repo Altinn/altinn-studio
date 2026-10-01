@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './ConfigPanel.module.css';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
@@ -10,10 +11,12 @@ import { ConfigServiceTask } from './ConfigServiceTask';
 import { ConfigGateway } from './ConfigGateway';
 import { StudioParagraph, StudioHeading, StudioAlert } from '@studio/components';
 
-export const ConfigPanel = (): React.ReactElement => {
+export const ConfigPanel = ({ disabled = false }: { disabled?: boolean }): React.ReactElement => {
   return (
     <ConfigSurface>
-      <ConfigPanelContent />
+      <fieldset disabled={disabled} className={classes.fields}>
+        <ConfigPanelContent />
+      </fieldset>
     </ConfigSurface>
   );
 };

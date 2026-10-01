@@ -8,6 +8,8 @@ import { TaskUtils } from '../utils/taskUtils';
 export type UpdateTaskIdContext = {
   element: Element;
   newId: string;
+
+  oldId?: string;
 };
 
 class UpdateTaskIdCommandHandler implements CommandHandler {
@@ -26,6 +28,7 @@ class UpdateTaskIdCommandHandler implements CommandHandler {
   preExecute(context: UpdateTaskIdContext) {
     const { element, newId } = context;
     const oldId = element.id;
+    context.oldId = oldId;
 
     this.modeling.updateProperties(element, { id: newId });
 

@@ -1,10 +1,6 @@
-.configPanel {
-  background-color: var(--ds-color-neutral-surface-tinted);
-  overflow-y: scroll;
-  border-left: 1px solid var(--ds-color-neutral-border-subtle);
-}
-
-.configPanelParagraph {
-  margin-inline: 1rem;
-  margin-top: 1rem;
+.fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
 }

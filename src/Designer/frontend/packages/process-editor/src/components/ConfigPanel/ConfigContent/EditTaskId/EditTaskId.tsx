@@ -2,15 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioToggleableTextfield } from '@studio/components';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
-import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useValidateBpmnTaskId } from '../../../../hooks/useValidateBpmnId';
 import type { CommandStack } from 'bpmn-js/lib/features/modeling/Modeling';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const { metadataFormRef } = useBpmnConfigPanelFormContext();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
 
   const updateId = (value: string): void => {
@@ -25,14 +22,6 @@ export const EditTaskId = (): React.ReactElement => {
     const newId = event.target.value;
 
     if (newId === bpmnDetails.id) return;
-
-    const newMetadata: MetadataForm = {
-      taskIdChange: {
-        newId,
-        oldId: bpmnDetails.id,
-      },
-    };
-    metadataFormRef.current = Object.assign({}, metadataFormRef.current, newMetadata);
 
     updateId(newId);
   };

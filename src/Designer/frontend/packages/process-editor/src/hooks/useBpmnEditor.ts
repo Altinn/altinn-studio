@@ -1,52 +1,69 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
 import { useModelerEventListener } from './useModelerEventListener';
 import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import { useReloadSavedProcess } from './useReloadSavedProcess';
 import type { TaskEvent } from '../types/TaskEvent';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { Element } from 'bpmn-js/lib/model/Types';
+import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
+import type { UpdateTaskIdContext } from '../commandHandlers/UpdateTaskIdCommandHandler';
+import type { TaskIdChange } from 'app-shared/types/BpmnMetadataForm';
 
 // Wrapper around bpmn-js to Reactify it
 
 export type UseBpmnEditorResult = (div: HTMLDivElement) => void;
 
+type UpdateTaskIdEvent = { context: UpdateTaskIdContext };
+
 export const useBpmnEditor = (): UseBpmnEditorResult => {
   const { getUpdatedXml, setBpmnDetails, isReloadingRef } = useBpmnContext();
   const { metadataFormRef, resetForm } = useBpmnConfigPanelFormContext();
   const { addAction } = useStudioRecommendedNextActionContext();
-  const reloadSavedProcess = useReloadSavedProcess();
 
-  const { saveBpmn, onProcessTaskAdd, onProcessTaskRemove } = useBpmnApiContext();
+  const { saveBpmn } = useBpmnApiContext();
+  const addsOrRemovesTasksRef = useRef(false);
 
-  const handleCommandStackChanged = useCallback(async () => {
+  const handleCommandStackChanged = useCallback((): void => {
+    const addsOrRemovesTasks = addsOrRemovesTasksRef.current;
+    addsOrRemovesTasksRef.current = false;
+    if (isReloadingRef.current) return;
     const metadata = metadataFormRef.current || null;
     resetForm();
-    const xml = await getUpdatedXml();
-    try {
-      await saveBpmn(xml, metadata);
-    } catch {
-      // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
-      // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
-      if (metadata?.taskIdChange) await reloadSavedProcess();
-    }
-  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, reloadSavedProcess]);
+    saveBpmn(getUpdatedXml(), metadata, { addsOrRemovesTasks });
+  }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, isReloadingRef]);
+
+  const setTaskIdChange = useCallback(
+    (taskIdChange: TaskIdChange): void => {
+      metadataFormRef.current = { ...metadataFormRef.current, taskIdChange };
+    },
+    [metadataFormRef],
+  );
+
+  // Command events cover undo/redo and leave ignored commands without metadata.
+  const handleTaskIdUpdated = useCallback(
+    ({ context }: UpdateTaskIdEvent): void =>
+      setTaskIdChange({ oldId: context.oldId, newId: context.newId }),
+    [setTaskIdChange],
+  );
+
+  const handleTaskIdUpdateReverted = useCallback(
+    ({ context }: UpdateTaskIdEvent): void =>
+      setTaskIdChange({ oldId: context.newId, newId: context.oldId }),
+    [setTaskIdChange],
+  );
 
   const handleShapeAdd = useCallback(
-    async (taskEvent: TaskEvent): Promise<void> => {
+    (taskEvent: TaskEvent): void => {
       if (isReloadingRef.current) return; // Reloading re-adds every shape; those are not new tasks.
+      if (isTask(taskEvent?.element)) addsOrRemovesTasksRef.current = true;
       const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
         taskEvent?.element?.businessObject,
       );
-      onProcessTaskAdd({
-        taskEvent,
-        taskType: bpmnDetails.taskType,
-      });
       if (
         bpmnDetails.taskType === 'data' ||
         bpmnDetails.taskType === 'payment' ||
@@ -54,21 +71,15 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
       )
         addAction(bpmnDetails.id);
     },
-    [addAction, onProcessTaskAdd, isReloadingRef],
+    [addAction, isReloadingRef],
   );
 
   const handleShapeRemove = useCallback(
     (taskEvent: TaskEvent): void => {
       if (isReloadingRef.current) return; // Reloading removes every shape; those are not deleted tasks.
-      const bpmnDetails = getBpmnEditorDetailsFromBusinessObject(
-        taskEvent?.element?.businessObject,
-      );
-      onProcessTaskRemove({
-        taskEvent,
-        taskType: bpmnDetails.taskType,
-      });
+      if (isTask(taskEvent?.element)) addsOrRemovesTasksRef.current = true;
     },
-    [onProcessTaskRemove, isReloadingRef],
+    [isReloadingRef],
   );
 
   const updateBpmnDetails = useCallback(
@@ -108,6 +119,14 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   );
 
   useModelerEventListener<void>('commandStack.changed', handleCommandStackChanged);
+  useModelerEventListener<UpdateTaskIdEvent>(
+    'commandStack.updateTaskId.executed',
+    handleTaskIdUpdated,
+  );
+  useModelerEventListener<UpdateTaskIdEvent>(
+    'commandStack.updateTaskId.reverted',
+    handleTaskIdUpdateReverted,
+  );
   useModelerEventListener<TaskEvent>('shape.added', handleShapeAdd);
   useModelerEventListener<TaskEvent>('shape.remove', handleShapeRemove);
   useModelerEventListener<SelectionChangedEvent>('selection.changed', handleSelectionChange);
@@ -153,4 +172,9 @@ async function initializeEditor(modeler: Modeler, bpmnXml: string): Promise<void
   } catch (exception) {
     console.log('An error occurred while rendering the viewer:', exception);
   }
+}
+
+function isTask(element: TaskEvent['element'] | undefined): boolean {
+  const type = element?.businessObject?.$type;
+  return type === BpmnTypeEnum.Task || type === BpmnTypeEnum.ServiceTask;
 }

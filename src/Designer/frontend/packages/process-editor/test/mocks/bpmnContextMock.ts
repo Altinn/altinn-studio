@@ -43,7 +43,5 @@ export const mockBpmnApiContextValue: BpmnApiContextProps = {
   mutateLayoutSetId: jest.fn(),
   mutateDataTypes: jest.fn(),
   saveBpmn: jest.fn(),
-  getSavedBpmn: jest.fn(),
-  onProcessTaskRemove: jest.fn(),
-  onProcessTaskAdd: jest.fn(),
+  saveSubformPdfComponent: jest.fn(),
 };

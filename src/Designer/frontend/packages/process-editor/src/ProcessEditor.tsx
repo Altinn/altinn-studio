@@ -1,65 +1,42 @@
-import React, { type JSX } from 'react';
+import { useRef, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 import {
   StudioPageError,
   StudioRecommendedNextActionContextProvider,
   StudioPageSpinner,
+  StudioAlert,
+  StudioButton,
+  StudioParagraph,
 } from '@studio/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
-
 import classes from './ProcessEditor.module.css';
-import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import { BpmnApiContextProvider, type BpmnApiContextProps } from './contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
-import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
-import type { OnProcessTaskEvent } from './types/OnProcessTask';
-import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
-import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useBpmnQuery } from 'app-shared/hooks/queries/useBpmnQuery';
-import { useBpmnMutation } from 'app-shared/hooks/mutations/useBpmnMutation';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import { useAppPolicyQuery } from 'app-development/hooks/queries';
-import { useAppPolicyMutation } from 'app-development/hooks/mutations';
-import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
-import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
-import { useUpdateLayoutSetIdMutation } from 'app-development/hooks/mutations/useUpdateLayoutSetIdMutation';
-import { useUpdateProcessDataTypesMutation } from 'app-development/hooks/mutations/useUpdateProcessDataTypesMutation';
-import { useAddDataTypeToAppMetadata } from 'app-development/hooks/mutations/useAddDataTypeToAppMetadata';
-import { useDeleteDataTypeFromAppMetadata } from 'app-development/hooks/mutations/useDeleteDataTypeFromAppMetadata';
+import type { ProcessState } from 'app-shared/types/api/ProcessState';
+import { useProcessState } from './hooks/useProcessState';
+import { useProcessOperations } from './hooks/useProcessOperations';
+import type { ProcessSaveFailure } from './utils/ProcessChangeQueue';
 
 export const ProcessEditor = (): JSX.Element => {
-  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  return <ProcessEditorForApp key={`${org}/${app}`} org={org} app={app} />;
+};
 
-  const { data: currentPolicy, isPending: isPendingCurrentPolicy } = useAppPolicyQuery(org, app);
-  const { mutate: mutateApplicationPolicy } = useAppPolicyMutation(org, app);
-  const {
-    data: bpmnXml,
-    isError: hasBpmnQueryError,
-    refetch: refetchBpmn,
-  } = useBpmnQuery(org, app);
-  const { mutateAsync: mutateBpmn, isPending: mutateBpmnPending } = useBpmnMutation(org, app);
-  const { mutate: mutateLayoutSetId, isPending: mutateLayoutSetIdPending } =
-    useUpdateLayoutSetIdMutation(org, app);
-  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
-    org,
-    app,
-  );
-  const { mutate: deleteLayoutSet, isPending: deleteLayoutSetPending } = useDeleteLayoutSetMutation(
-    org,
-    app,
-  );
-  const { mutate: mutateDataTypes, isPending: updateDataTypePending } =
-    useUpdateProcessDataTypesMutation(org, app);
-  const { mutate: addDataTypeToAppMetadata } = useAddDataTypeToAppMetadata(org, app);
-  const { mutate: deleteDataTypeFromAppMetadata } = useDeleteDataTypeFromAppMetadata(org, app);
-
+function ProcessEditorForApp({ org, app }: { org: string; app: string }): JSX.Element {
+  const { t } = useTranslation();
+  const { data: state, isError, isFetching, refetch } = useProcessState(org, app);
+  // Background refetches must not replace the diagram or the version of its queued edits.
+  const initialState = useRef<ProcessState>(undefined);
+  if (!initialState.current && state && !isFetching) {
+    initialState.current = state;
+  }
   const { data: appMetadata, isPending: appMetadataPending } = useAppMetadataQuery(org, app);
   const { data: availableDataModelIds, isPending: availableDataModelIdsPending } =
     useAppMetadataModelIdsQuery(org, app);
@@ -69,114 +46,106 @@ export const ProcessEditor = (): JSX.Element => {
     false,
   );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const existingCustomReceiptLayoutSetId: string | undefined = useCustomReceiptLayoutSetName(
-    org,
-    app,
-  );
+  const existingCustomReceiptLayoutSetId = useCustomReceiptLayoutSetName(org, app);
 
-  const pendingApiOperations: boolean =
-    mutateBpmnPending ||
-    mutateLayoutSetIdPending ||
-    addLayoutSetPending ||
-    deleteLayoutSetPending ||
-    updateDataTypePending ||
-    appMetadataPending ||
-    availableDataModelIdsPending ||
-    allDataModelIdsPending ||
-    isPendingCurrentPolicy;
-
-  const saveBpmn = async (xml: string, metadata?: MetadataForm): Promise<void> => {
-    const formData = new FormData();
-    formData.append('content', new Blob([xml]));
-    formData.append('metadata', JSON.stringify(metadata));
-
-    await mutateBpmn(
-      { form: formData, metadata },
-      {
-        onError: () => {
-          toast.error(t('process_editor.save_bpmn_xml_error'));
-        },
-      },
+  if (!initialState.current && isError) {
+    return (
+      <StudioPageError
+        title={t('process_editor.fetch_bpmn_error_title')}
+        message={t('process_editor.fetch_bpmn_error_message')}
+      />
     );
-  };
-
-  const getSavedBpmn = async (): Promise<string> => {
-    const { data } = await refetchBpmn({ throwOnError: true });
-    return data;
-  };
-
-  const onProcessTaskAdd = (taskMetadata: OnProcessTaskEvent): void => {
-    new OnProcessTaskAddHandler(
-      org,
-      app,
-      currentPolicy,
-      addLayoutSet,
-      mutateApplicationPolicy,
-      addDataTypeToAppMetadata,
-    ).handleOnProcessTaskAdd(taskMetadata);
-  };
-
-  const onProcessTaskRemove = (taskMetadata: OnProcessTaskEvent): void => {
-    new OnProcessTaskRemoveHandler(
-      org,
-      app,
-      currentPolicy,
-      layoutSets,
-      mutateApplicationPolicy,
-      deleteDataTypeFromAppMetadata,
-      deleteLayoutSet,
-    ).handleOnProcessTaskRemove(taskMetadata);
-  };
-
-  if (appMetadataPending) {
+  }
+  if (appMetadataPending || !initialState.current) {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
-  if (hasBpmnQueryError || bpmnXml === null) {
-    return <NoBpmnFoundAlert />;
-  }
-
-  if (bpmnXml === undefined) {
-    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
-  }
+  const load = async (): Promise<ProcessState> => {
+    const { data } = await refetch({ throwOnError: true });
+    return data;
+  };
 
   return (
-    <BpmnContextProvider bpmnXml={bpmnXml}>
-      <BpmnApiContextProvider
-        availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
-        availableDataModelIds={availableDataModelIds}
-        allDataModelIds={allDataModelIds}
-        layoutSets={layoutSets}
-        pendingApiOperations={pendingApiOperations}
-        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
-        addLayoutSet={addLayoutSet}
-        deleteLayoutSet={deleteLayoutSet}
-        mutateLayoutSetId={mutateLayoutSetId}
-        mutateDataTypes={mutateDataTypes}
-        saveBpmn={saveBpmn}
-        getSavedBpmn={getSavedBpmn}
-        onProcessTaskAdd={onProcessTaskAdd}
-        onProcessTaskRemove={onProcessTaskRemove}
-      >
-        <BpmnConfigPanelFormContextProvider>
-          <StudioRecommendedNextActionContextProvider>
-            <div className={classes.container}>
-              <Canvas />
-              <ConfigPanel />
-            </div>
-          </StudioRecommendedNextActionContextProvider>
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnApiContextProvider>
+    <BpmnContextProvider bpmnXml={initialState.current.bpmnXml}>
+      <ProcessEditorContent
+        initialState={initialState.current}
+        load={load}
+        apiData={{
+          availableDataTypeIds: appMetadata?.dataTypes?.map((dataType) => dataType.id),
+          availableDataModelIds,
+          allDataModelIds,
+          layoutSets,
+          existingCustomReceiptLayoutSetId,
+          pendingApiOperations: availableDataModelIdsPending || allDataModelIdsPending,
+        }}
+      />
     </BpmnContextProvider>
   );
+}
+
+type ProcessEditorContentProps = {
+  initialState: ProcessState;
+  load: () => Promise<ProcessState>;
+  apiData: Partial<BpmnApiContextProps>;
 };
 
-const NoBpmnFoundAlert = (): React.ReactElement => {
-  const { t } = useTranslation();
+function ProcessEditorContent({ initialState, load, apiData }: ProcessEditorContentProps) {
+  const { org, app } = useStudioEnvironmentParams();
+  const { status, retry, discard, ...operations } = useProcessOperations({
+    initialState,
+    org,
+    app,
+    load,
+  });
+
   return (
-    <StudioPageError
-      title={t('process_editor.fetch_bpmn_error_title')}
-      message={t('process_editor.fetch_bpmn_error_message')}
-    />
+    <BpmnApiContextProvider
+      {...apiData}
+      {...operations}
+      pendingApiOperations={apiData.pendingApiOperations || status.pending}
+    >
+      <BpmnConfigPanelFormContextProvider>
+        <StudioRecommendedNextActionContextProvider>
+          <div className={classes.editor}>
+            {status.failure && (
+              <SaveFailureAlert failure={status.failure} retry={retry} discard={discard} />
+            )}
+            <div className={classes.container} aria-busy={status.pending}>
+              <Canvas />
+              <ConfigPanel disabled={status.editingBlocked} />
+            </div>
+          </div>
+        </StudioRecommendedNextActionContextProvider>
+      </BpmnConfigPanelFormContextProvider>
+    </BpmnApiContextProvider>
   );
+}
+
+const failureMessageKeys: Record<ProcessSaveFailure['kind'], string> = {
+  conflict: 'process_editor.save_conflict',
+  lost: 'process_editor.save_failed',
+  rejected: 'process_editor.save_rejected',
+  loadFailed: 'process_editor.reload_failed',
 };
+
+type SaveFailureAlertProps = {
+  failure: ProcessSaveFailure;
+  retry: () => void;
+  discard: () => Promise<void>;
+};
+
+function SaveFailureAlert({ failure, retry, discard }: SaveFailureAlertProps): JSX.Element {
+  const { t } = useTranslation();
+  const canRetry = failure.kind === 'lost';
+  const discardLabel =
+    failure.kind === 'loadFailed' ? 'general.try_again' : 'process_editor.discard_changes';
+  return (
+    <StudioAlert data-color='danger' role='alert'>
+      <StudioParagraph>{t(failureMessageKeys[failure.kind])}</StudioParagraph>
+      {canRetry && <StudioButton onClick={retry}>{t('process_editor.retry_save')}</StudioButton>}
+      <StudioButton onClick={() => void discard()} variant={canRetry ? 'secondary' : 'primary'}>
+        {t(discardLabel)}
+      </StudioButton>
+    </StudioAlert>
+  );
+}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { StudioList } from '@studio/components';
-import { useSaveSubformPdfComponentMutation } from 'app-shared/hooks/mutations/useSaveSubformPdfComponentMutation';
 import { useSubformComponentsQuery } from 'app-shared/hooks/queries/useSubformComponentsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
@@ -12,6 +11,7 @@ import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';
 import { SubformComponentIdField } from './SubformComponentIdField';
 import { SubformPdfStatus } from './SubformPdfStatus';
+import type { ReadOnlyCommandStack } from '../../../../utils/bpmnModeler/ReadOnlyCommandStack';
 import {
   getSelectableSubformComponentIds,
   getSourceSubformComponent,
@@ -21,13 +21,12 @@ import sharedClasses from '../ConfigServiceTask.module.css';
 
 export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
-  const { bpmnDetails } = useBpmnContext();
-  const { pendingApiOperations } = useBpmnApiContext();
+  const { bpmnDetails, modelerRef } = useBpmnContext();
+  const { pendingApiOperations, saveSubformPdfComponent } = useBpmnApiContext();
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
   const { currentLayoutSet } = useCurrentLayoutSet();
-  const { data: subformComponents } = useSubformComponentsQuery(org, app);
-  const { mutate: saveSubformPdfComponent, isPending: isSavingSubformPdfComponent } =
-    useSaveSubformPdfComponentMutation(org, app);
+  const { data: subformComponents, isFetching: isFetchingSubformComponents } =
+    useSubformComponentsQuery(org, app);
   const {
     subformComponentId,
     subformDataTypeId,
@@ -40,9 +39,11 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   const taskId = bpmnDetails.id;
 
   const saveComponentCopy = ({ componentId, layoutSetId }: SubformComponent): void =>
-    saveSubformPdfComponent({ layoutSetId: taskId, componentId, sourceLayoutSetId: layoutSetId });
+    saveSubformPdfComponent({ taskId, componentId, sourceLayoutSetId: layoutSetId });
 
   const handleSubformComponentIdChange = (componentId: string): void => {
+    // Ignored commands must not leave metadata for a later edit.
+    if (modelerRef.current.get<ReadOnlyCommandStack>('commandStack').readOnly) return;
     if (!componentId) {
       if (subformComponentId) {
         metadataFormRef.current = {
@@ -78,9 +79,8 @@ export const ConfigSubformPdfServiceTask = (): React.ReactElement => {
   const handleCreateComponentCopy = (): void =>
     saveComponentCopy(getSourceSubformComponent(subformComponents, subformComponentId));
 
-  // Wait for the save response before checking for the new copy to avoid a temporary missing-copy warning.
-  const isSaving = pendingApiOperations || isSavingSubformPdfComponent;
-  const isStatusKnown = Boolean(subformComponents) && !isSaving;
+  const isSaving = pendingApiOperations;
+  const isStatusKnown = Boolean(subformComponents) && !isSaving && !isFetchingSubformComponents;
 
   return (
     <StudioList.Unordered className={sharedClasses.taskConfigList}>

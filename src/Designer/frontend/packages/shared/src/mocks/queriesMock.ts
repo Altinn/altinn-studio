@@ -364,9 +364,6 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
-  saveSubformPdfComponent: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),

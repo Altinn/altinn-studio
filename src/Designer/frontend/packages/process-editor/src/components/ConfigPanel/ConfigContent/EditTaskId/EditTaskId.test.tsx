@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { commandStackExecuteMock, mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -20,14 +19,6 @@ jest.mock('../../../../contexts/BpmnContext', () => ({
 jest.mock('../../../../contexts/BpmnApiContext', () => ({
   useBpmnApiContext: () => ({ layoutSets: mockLayoutSets }),
 }));
-
-jest.mock('../../../../contexts/BpmnConfigPanelContext', () => ({
-  useBpmnConfigPanelFormContext: jest.fn(),
-}));
-
-(useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-  metadataFormRef: { current: undefined },
-});
 
 jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
@@ -70,13 +61,9 @@ describe('EditTaskId', () => {
     ).toBeInTheDocument();
   });
 
-  it('updates task ID metadata and runs the rename command', async () => {
+  it('runs the rename command', async () => {
     const user = userEvent.setup();
     const newId = 'newId';
-    const metadataFormRefMock = { current: undefined };
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metadataFormRef: metadataFormRefMock,
-    });
 
     render(<EditTaskId />);
 
@@ -93,9 +80,7 @@ describe('EditTaskId', () => {
     await user.type(input, newId);
     await user.tab();
 
-    expect(metadataFormRefMock.current).toEqual(
-      expect.objectContaining({ taskIdChange: { newId: newId, oldId: mockBpmnDetails.id } }),
-    );
+    expect(commandStackExecuteMock).toHaveBeenCalledTimes(1);
     expect(commandStackExecuteMock).toHaveBeenCalledWith('updateTaskId', {
       element: mockBpmnDetails.element,
       newId,
@@ -232,10 +217,6 @@ describe('EditTaskId', () => {
 
   it('should not update id if new id is the same as the old id', async () => {
     const user = userEvent.setup();
-    const metadataFormRefMock = { current: undefined };
-    (useBpmnConfigPanelFormContext as jest.Mock).mockReturnValue({
-      metadataFormRef: metadataFormRefMock,
-    });
 
     render(<EditTaskId />);
 
@@ -252,7 +233,6 @@ describe('EditTaskId', () => {
     await user.type(input, mockBpmnDetails.id);
     await user.tab();
 
-    expect(metadataFormRefMock.current).toBeUndefined();
     expect(commandStackExecuteMock).not.toHaveBeenCalled();
   });
 });

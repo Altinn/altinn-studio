@@ -1,12 +1,15 @@
 import type { LayoutSets, LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import React, { createContext, useContext } from 'react';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
-import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
 
 type QueryOptions = {
   onSuccess: () => void;
+};
+
+export type SaveBpmnOptions = {
+  addsOrRemovesTasks?: boolean;
 };
 
 export type BpmnApiContextProps = {
@@ -29,12 +32,8 @@ export type BpmnApiContextProps = {
     options?: QueryOptions,
   ) => void;
   mutateDataTypes: (dataTypesChange: DataTypesChange, options?: QueryOptions) => void;
-  /** Saves the process definition, and rejects when the save fails. */
-  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => Promise<void>;
-  /** Fetches the process definition as it is saved. */
-  getSavedBpmn: () => Promise<string>;
-  onProcessTaskAdd: (taskMetadata: OnProcessTaskEvent) => void;
-  onProcessTaskRemove: (taskMetadata: OnProcessTaskEvent) => void;
+  saveBpmn: (bpmnXml: Promise<string>, metadata?: MetadataForm, options?: SaveBpmnOptions) => void;
+  saveSubformPdfComponent: (change: NonNullable<MetadataForm['subformPdfComponentChange']>) => void;
 };
 
 export const BpmnApiContext = createContext<Partial<BpmnApiContextProps>>(undefined);
