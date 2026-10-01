@@ -496,6 +496,37 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.StartsWith("Service task type 'pdf' is registered", warning.Message);
     }
 
+    [Fact]
+    public async Task StartAsync_UnreferencedTypeRegisteredTwice_WarningNamesTheLastRegistration()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
+                s.AddSingleton<IServiceTask>(new OtherSimpleTask("archive"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        FakeLogRecord warning = Assert.Single(
+            logger.Collector.GetSnapshot(),
+            record => record.Level == LogLevel.Warning
+        );
+        Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
+    }
+
+    private sealed class OtherSimpleTask(string type) : IServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            throw new InvalidOperationException("Validation must not execute the task.");
+    }
+
     private static T Uninitialized<T>()
         where T : class => (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
 

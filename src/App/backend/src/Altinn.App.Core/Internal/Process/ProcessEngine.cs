@@ -1028,7 +1028,8 @@ internal class ProcessEngine : IProcessEngine
     };
 
     /// <summary>
-    /// Returns the action that process/completeProcess performs on a task of the given type.
+    /// Returns the action that process/completeProcess performs on a task of the given type. A process next without
+    /// an action also uses it, but only to check whether the result is <c>reject</c>.
     /// </summary>
     /// <remarks>
     /// This is deliberately not the table in <see cref="ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType"/>.

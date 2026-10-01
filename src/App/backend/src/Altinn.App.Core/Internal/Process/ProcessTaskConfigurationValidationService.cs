@@ -169,7 +169,9 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
         IEnumerable<IPipelineServiceTask> unreferenced = serviceTasks
             .Where(task => task.GetType().Assembly != libraryAssembly && !declaredTypes.Contains(task.Type))
-            .DistinctBy(task => task.Type, StringComparer.Ordinal);
+            .GroupBy(task => task.Type, StringComparer.Ordinal)
+            // Name the registration the lookup would use: the last one.
+            .Select(registrations => registrations.Last());
         foreach (IPipelineServiceTask task in unreferenced)
         {
             logger.LogWarning(
