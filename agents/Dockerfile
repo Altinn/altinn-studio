@@ -307,6 +307,9 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 FROM base AS full
 
 ARG PLAYWRIGHT_CLI_VERSION=0.1.20
+# The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
+# this ARG together with it. The agent user owns RUSTUP_HOME, so a checkout pinned ahead of this
+# image installs its toolchain on first use instead of failing.
 ARG RUST_VERSION=1.97.1
 
 # Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
@@ -343,7 +346,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
-    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
+    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
+    && chown -R agent:agent /usr/local/rustup
 
 # The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
 # cargo-machete. The release binary is published per architecture, so the digests are pinned here;
@@ -450,8 +454,6 @@ RUN case "${TARGETARCH}" in \
     && helm version --short \
     && flux --version \
     && ffmpeg -version
-
-ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without
