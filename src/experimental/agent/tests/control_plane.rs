@@ -82,6 +82,8 @@ struct MemoryProvider {
     default_architecture: String,
     blocking: Option<Blocking>,
     report_runtime_restart: Rc<Cell<bool>>,
+    /// Stops that fail before stopping anything, as a runtime that cannot be reached does.
+    failing_stops: Rc<Cell<usize>>,
 }
 
 impl MemoryProvider {
@@ -97,6 +99,7 @@ impl MemoryProvider {
             default_architecture: Platform::native("linux").architecture,
             blocking: None,
             report_runtime_restart: Rc::new(Cell::new(false)),
+            failing_stops: Rc::new(Cell::new(0)),
         }
     }
 
@@ -181,7 +184,13 @@ impl Provider for MemoryProvider {
     }
 
     fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
-        Box::pin(async move { self.service.stop(&record.sandbox_name()?).await.map_err(Error::from) })
+        Box::pin(async move {
+            if let Some(remaining) = self.failing_stops.get().checked_sub(1) {
+                self.failing_stops.set(remaining);
+                return Err(Error::Sandbox(sandbox::Error::Backend("runtime unreachable".into())));
+            }
+            self.service.stop(&record.sandbox_name()?).await.map_err(Error::from)
+        })
     }
 
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
@@ -2806,4 +2815,52 @@ async fn stopping_an_agent_with_a_stalled_guest_tells_its_sessions() {
         notifications.0.get() > before,
         "Sessions held by the stalled guest must learn the Agent stopped, so they go Idle"
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_failed_stop_reads_as_stopping_and_converges_once_a_retry_stops_it() {
+    let changes = Changes::new();
+    let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes.clone()));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider = MemoryProvider::new(backend.clone());
+    let failing_stops = provider.failing_stops.clone();
+    let reconciler = Rc::new(reconciler(store.clone(), Rc::new(provider)));
+    let control_plane = ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()));
+    control_plane.apply(apply_request("worker")).await.expect("apply");
+    let id = store.get_by_name("worker").await.expect("Agent").id;
+    reconciler.reconcile(id).await.expect("Ready");
+
+    failing_stops.set(1);
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    reconciler.reconcile(id).await.expect_err("the stop fails");
+    let record = store.get(id).await.expect("Agent");
+    let ready = condition(&record.agent.status, agent::Condition::READY);
+    assert_eq!(ready.reason, agent::Condition::REASON_STOPPING);
+    assert!(ready.message.contains("runtime unreachable"), "{ready:?}");
+    assert_eq!(
+        record.agent.status.failure,
+        Some(FailureKind::Transient),
+        "a failed stop is retried"
+    );
+    let sandbox = backend.find(&sandbox_name(&record)).await.expect("Sandbox");
+    assert_eq!(sandbox.state, sandbox::SandboxState::Running, "nothing stopped yet");
+
+    // The background controller retries, and a wait for the stop ends with it.
+    let (controller, wakeup) = Controller::new(store.clone(), reconciler, BACKGROUND_RETRIES, Rc::new(|_, _| {}));
+    let task = tokio::task::spawn_local(controller.run());
+    failing_stops.set(1);
+    let converged = tokio::time::timeout(
+        Duration::from_secs(1),
+        Convergence::new(wakeup, store.clone(), changes).converge("worker", WaitPolicy::UntilConverged),
+    )
+    .await
+    .expect("a retried stop converges")
+    .expect("stopped");
+    assert!(converged.agent.status.is_stopped());
+    assert_eq!(failing_stops.get(), 0, "the wait went through a failed retry");
+    assert_stopped(&store, &backend, id).await;
+    task.abort();
 }
