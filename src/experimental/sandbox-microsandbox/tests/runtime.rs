@@ -114,11 +114,8 @@ async fn retained_lifecycle_execution_files_and_volumes() {
 #[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
 async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
     let temporary = RetainedOnFailureTempDir::new();
-    let backend = Rc::new(
-        MicrosandboxProvider::open(temporary.path().join("control-plane"))
-            .await
-            .expect("Backend should open"),
-    );
+    let home = temporary.path().join("control-plane");
+    let backend = Rc::new(MicrosandboxProvider::open(&home).await.expect("Backend should open"));
     let service = SandboxService::new(backend.clone());
     let request = EnsureSandboxRequest::new(
         SandboxName::new("direct-reference-worker").expect("test Sandbox name should be valid"),
@@ -160,7 +157,94 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
     assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
     assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
 
+    // A paused VM refuses a graceful stop and a frozen one never answers it;
+    // stopping either must still end it, and it starts again on its own disk.
+    assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+        msb(&home, &["pause", runtime]);
+    })
+    .await;
+    assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+        signal(&runtime_processes(runtime), "STOP");
+    })
+    .await;
+
     backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
+/// Disrupts the running Sandbox's runtime with `disrupt`, then checks that a
+/// stop ends its VM process within a bound and that it starts again on its root disk.
+async fn assert_stop_ends_the_vm(
+    backend: &MicrosandboxProvider,
+    service: &SandboxService,
+    request: &EnsureSandboxRequest,
+    sandbox: &Sandbox,
+    disrupt: impl FnOnce(&str),
+) {
+    let runtime = format!("sandbox-{}", sandbox.id.as_uuid().simple());
+    assert!(
+        !runtime_processes(&runtime).is_empty(),
+        "the running Sandbox should have a runtime process"
+    );
+    disrupt(&runtime);
+    let started = tokio::time::Instant::now();
+    let stopped = service.stop(request.name()).await;
+    let elapsed = started.elapsed();
+    // An exited process has an empty command line, so only a live runtime is left here.
+    let survivors = runtime_processes(&runtime);
+    signal(&survivors, "KILL");
+    stopped.expect("a disrupted Sandbox should stop");
+    assert!(
+        survivors.is_empty(),
+        "runtime processes {survivors:?} outlived the stop"
+    );
+    assert!(
+        elapsed < std::time::Duration::from_secs(30),
+        "stopping a disrupted Sandbox should be bounded, took {elapsed:?}"
+    );
+    let (restarted, _) = collect_progress(service.ensure(request))
+        .await
+        .expect("a stopped direct Sandbox should start again");
+    assert_eq!(restarted.id, sandbox.id);
+    assert_eq!(restarted.state, SandboxState::Running);
+    assert_eq!(read(backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+}
+
+/// Host processes whose command line names the Sandbox's runtime.
+fn runtime_processes(runtime: &str) -> Vec<u32> {
+    std::fs::read_dir("/proc")
+        .expect("/proc should be readable")
+        .filter_map(|entry| entry.ok()?.file_name().to_str()?.parse::<u32>().ok())
+        .filter(|pid| *pid != std::process::id())
+        .filter(|pid| {
+            std::fs::read(format!("/proc/{pid}/cmdline")).is_ok_and(|cmdline| {
+                cmdline
+                    .split(|byte| *byte == 0)
+                    .any(|argument| argument == runtime.as_bytes())
+            })
+        })
+        .collect()
+}
+
+/// Runs the Provider's own `msb` against its runtime home.
+fn msb(home: &std::path::Path, arguments: &[&str]) {
+    let runtime = home.join("runtime");
+    let status = std::process::Command::new(runtime.join("bin").join("msb"))
+        .args(arguments)
+        .env("MSB_HOME", &runtime)
+        .status()
+        .expect("msb should run");
+    assert!(status.success(), "msb {arguments:?} should succeed");
+}
+
+fn signal(pids: &[u32], signal: &str) {
+    for pid in pids {
+        let status = std::process::Command::new("kill")
+            .arg(format!("-{signal}"))
+            .arg(pid.to_string())
+            .status()
+            .expect("kill should run");
+        assert!(status.success(), "kill -{signal} {pid} should succeed");
+    }
 }
 
 /// A running guest's heartbeat advances on its own, without traffic to the guest.
