@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Exceptions.ProcessEditing;
@@ -31,13 +33,17 @@ public sealed class ProcessEditingService(
     IAltinnGitRepositoryFactory repositoryFactory,
     IProcessModelingService processModelingService,
     IUiFoldersService uiFoldersService,
+    ILayoutReferenceUpdater layoutReferenceUpdater,
     IRepository policyRepository,
+    IAppTemplateCatalog appTemplateCatalog,
     IPublisher publisher,
     IHubContext<SyncHub, ISyncClient> syncHub,
     ILogger<ProcessEditingService> logger
 ) : IProcessEditingService
 {
     private const string SyncSourceName = "process-state";
+
+    private readonly PaymentPolicyUpdater _paymentPolicyUpdater = new(policyRepository, appTemplateCatalog);
 
     public ProcessState GetState(AltinnRepoEditingContext editingContext) => ReadState(GetRepository(editingContext));
 
@@ -243,7 +249,112 @@ public sealed class ProcessEditingService(
         {
             await ValidateTaskIdChange(editingContext, repository, taskIdChange, cancellationToken);
         }
-        return new ValidatedEdit { TaskIdChange = taskIdChange, ProcessDefinition = new(bpmnXml, change) };
+        return new ValidatedEdit
+        {
+            TaskIdChange = taskIdChange,
+            ProcessDefinition = new(bpmnXml, change),
+            TaskChanges = await ValidateTaskChanges(editingContext, repository, change, cancellationToken),
+        };
+    }
+
+    private async Task<TaskChanges> ValidateTaskChanges(
+        AltinnRepoEditingContext editingContext,
+        AltinnAppGitRepository repository,
+        ProcessSnapshotChange change,
+        CancellationToken cancellationToken
+    )
+    {
+        var foldersToDelete = new List<string>();
+        foreach (XElement task in change.RemovedTasks)
+        {
+            string taskId = GetTaskId(task);
+            if (!CanHaveLayoutSet(task) || !repository.LayoutSetFolderExistsByExactName(taskId))
+            {
+                continue;
+            }
+            // Match DeleteLayoutSet: unreadable settings do not prevent deletion.
+            if (
+                (await uiFoldersService.TryGetLayoutSettings(editingContext, taskId, cancellationToken))?.Type
+                == Constants.General.SubformId
+            )
+            {
+                throw new ProcessEditValidationException(
+                    $"Removing the task {taskId} would delete the layout set of a subform."
+                );
+            }
+            foldersToDelete.Add(taskId);
+        }
+
+        var foldersToCreate = new List<TaskFolder>();
+        foreach (XElement task in change.AddedTasks)
+        {
+            string taskId = GetTaskId(task);
+            // Reuse a non-subform folder so adding the task after reload can complete a partial edit.
+            if (
+                CanHaveLayoutSet(task)
+                && await IsExistingLayoutSet(editingContext, repository, taskId, cancellationToken)
+            )
+            {
+                continue;
+            }
+            if (UiEntryExists(repository, taskId))
+            {
+                throw new ProcessEditValidationException($"The task ID {taskId} is already the name of a layout set.");
+            }
+            if (GetTaskTypeWithFolder(task) is { } taskType)
+            {
+                await uiFoldersService.ValidateNewLayoutSetName(editingContext, taskId, cancellationToken);
+                foldersToCreate.Add(new TaskFolder(taskId, taskType));
+            }
+        }
+
+        return new TaskChanges
+        {
+            FoldersToDelete = foldersToDelete,
+            FoldersToCreate = foldersToCreate,
+            DefaultPolicy = await ValidatePaymentTaskChanges(editingContext, change, cancellationToken),
+        };
+    }
+
+    private async Task<bool> IsExistingLayoutSet(
+        AltinnRepoEditingContext editingContext,
+        AltinnAppGitRepository repository,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!repository.LayoutSetFolderExistsByExactName(layoutSetName))
+        {
+            return false;
+        }
+        LayoutSettings? settings = await uiFoldersService.TryGetLayoutSettings(
+            editingContext,
+            layoutSetName,
+            cancellationToken
+        );
+        return settings is not null && settings.Type != Constants.General.SubformId;
+    }
+
+    private async Task<string?> ValidatePaymentTaskChanges(
+        AltinnRepoEditingContext editingContext,
+        ProcessSnapshotChange change,
+        CancellationToken cancellationToken
+    )
+    {
+        bool addsPaymentTask = change.AddedTasks.Any(IsPaymentTask);
+        if (!addsPaymentTask && !change.RemovedTasks.Any(IsPaymentTask))
+        {
+            return null;
+        }
+        XacmlPolicy? policy = await ReadForValidation(
+            ProcessStateVersion.PolicyPath,
+            () => Task.FromResult(policyRepository.GetPolicy(editingContext.Org, editingContext.Repo, null))
+        );
+        if (policy is not null || !addsPaymentTask)
+        {
+            return null;
+        }
+        return await _paymentPolicyUpdater.ReadDefaultPolicy(cancellationToken);
     }
 
     private async Task ValidateTaskIdChange(
@@ -333,11 +444,21 @@ public sealed class ProcessEditingService(
         }
     }
 
-    private static async Task ReadForValidation(string relativePath, Func<Task> read)
+    private static Task ReadForValidation(string relativePath, Func<Task> read) =>
+        ReadForValidation(
+            relativePath,
+            async () =>
+            {
+                await read();
+                return true;
+            }
+        );
+
+    private static async Task<T> ReadForValidation<T>(string relativePath, Func<Task<T>> read)
     {
         try
         {
-            await read();
+            return await read();
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -436,9 +557,9 @@ public sealed class ProcessEditingService(
         ValidatedEdit edit
     )
     {
-        // Run first: the folder service rejects invalid task/component selections before writing.
         if (edit.SubformPdfComponentChange is { } subformPdfComponentChange)
         {
+            // Run first: the folder service rejects invalid task/component selections before writing.
             try
             {
                 await publisher.Publish(
@@ -502,12 +623,12 @@ public sealed class ProcessEditingService(
                 repository,
                 taskIdChange.OldId,
                 taskIdChange.NewId,
-                () => ApplyAfterFolderRename(editingContext, edit.TaskIdChange, processDefinition)
+                () => ApplyAfterFolderRename(editingContext, repository, edit, processDefinition)
             );
         }
         else
         {
-            await ApplyAfterFolderRename(editingContext, edit.TaskIdChange, processDefinition);
+            await ApplyAfterFolderRename(editingContext, repository, edit, processDefinition);
         }
     }
 
@@ -551,11 +672,31 @@ public sealed class ProcessEditingService(
 
     private async Task ApplyAfterFolderRename(
         AltinnRepoEditingContext editingContext,
-        TaskIdChange? taskIdChange,
+        AltinnAppGitRepository repository,
+        ValidatedEdit edit,
         ProcessDefinitionToSave processDefinition
     )
     {
-        if (taskIdChange is not null)
+        foreach (string taskId in edit.TaskChanges.FoldersToDelete)
+        {
+            await uiFoldersService.DeleteLayoutSet(
+                editingContext,
+                taskId,
+                CancellationToken.None,
+                publisherNotifies: true
+            );
+        }
+        foreach (TaskFolder folder in edit.TaskChanges.FoldersToCreate)
+        {
+            await uiFoldersService.AddLayoutSet(
+                editingContext,
+                new LayoutSetConfig { Id = folder.TaskId, Tasks = [folder.TaskId] },
+                folder.TaskType,
+                CancellationToken.None,
+                publisherNotifies: true
+            );
+        }
+        if (edit.TaskIdChange is { } taskIdChange)
         {
             await publisher.Publish(
                 new ProcessTaskIdChangedEvent
@@ -568,9 +709,85 @@ public sealed class ProcessEditingService(
                 CancellationToken.None
             );
         }
-        // Keep BPMN last so ancillary-write failures leave the saved process unchanged.
-        await SaveProcessDefinition(editingContext, processDefinition.BpmnXml, processDefinition.Change);
+        ProcessSnapshotChange change = processDefinition.Change;
+        await UpdateGeneratedDataTypes(editingContext, change);
+        await RemoveReferencesToRemovedTasks(editingContext, change);
+        await _paymentPolicyUpdater.UpdatePaymentRules(
+            editingContext,
+            repository,
+            [.. change.AddedTasks.Where(IsPaymentTask).Select(GetTaskId)],
+            [.. change.RemovedTasks.Where(IsPaymentTask).Select(GetTaskId)],
+            edit.TaskChanges.DefaultPolicy
+        );
+        // Keep BPMN last so a partial edit can be inspected and completed after reload.
+        await SaveProcessDefinition(editingContext, processDefinition.BpmnXml, change);
     }
+
+    private async Task UpdateGeneratedDataTypes(AltinnRepoEditingContext editingContext, ProcessSnapshotChange change)
+    {
+        if (change.RemovedTasks.Length > 0)
+        {
+            await processModelingService.ReconcileRemovedTaskDataTypes(
+                editingContext,
+                change.RemovedTasks.Select(GetTaskId).ToArray(),
+                change.DeletedDataTypeIds,
+                change.RetainedDataTypeOwners,
+                CancellationToken.None
+            );
+        }
+        foreach (XElement task in change.AddedTasks.Where(task => GetTaskTypeWithFolder(task) is not null))
+        {
+            foreach (XElement dataType in GeneratedProcessDataTypes.Elements(task))
+            {
+                List<string>? contentTypes = dataType.Name.LocalName
+                    is "signingPdfDataType"
+                        or "paymentReceiptPdfDataType"
+                    ? ["application/pdf"]
+                    : null;
+                await processModelingService.AddDataTypeToApplicationMetadataAsync(
+                    editingContext,
+                    dataType.Value,
+                    GetTaskId(task),
+                    ["app:owned"],
+                    contentTypes,
+                    CancellationToken.None
+                );
+            }
+        }
+    }
+
+    private async Task RemoveReferencesToRemovedTasks(
+        AltinnRepoEditingContext editingContext,
+        ProcessSnapshotChange change
+    )
+    {
+        if (change.RemovedTasks.Length == 0)
+        {
+            return;
+        }
+        await layoutReferenceUpdater.UpdateLayoutReferences(
+            editingContext,
+            [.. change.RemovedTasks.Select(task => new Reference(ReferenceType.Task, null, GetTaskId(task)))],
+            CancellationToken.None
+        );
+    }
+
+    private static string GetTaskId(XElement task) => (string)task.Attribute("id")!;
+
+    private static bool IsPaymentTask(XElement task) => ProcessSnapshotChange.GetTaskType(task) == "payment";
+
+    private static bool CanHaveLayoutSet(XElement task) =>
+        ProcessSnapshotChange.GetTaskType(task) is "data" or "payment" or "signing" or "pdf" or "subformPdf";
+
+    // PDF tasks get their folders when configured, rather than when added.
+    private static TaskType? GetTaskTypeWithFolder(XElement task) =>
+        ProcessSnapshotChange.GetTaskType(task) switch
+        {
+            "data" => TaskType.Data,
+            "payment" => TaskType.Payment,
+            "signing" => TaskType.Signing,
+            _ => null,
+        };
 
     private Task RenameLayoutSet(
         AltinnRepoEditingContext editingContext,
@@ -640,10 +857,27 @@ public sealed class ProcessEditingService(
         public DataTypesChange? DataTypesChange { get; init; }
         public TaskIdChange? TaskIdChange { get; init; }
         public ProcessDefinitionToSave? ProcessDefinition { get; init; }
+        public TaskChanges TaskChanges { get; init; } = TaskChanges.None;
 
         public bool WritesOnlyTheProcessDefinition =>
-            ProcessDefinition is not null && TaskIdChange is null && SubformPdfComponentChange is null;
+            ProcessDefinition is { Change: var change }
+            && change.AddedTasks.Length == 0
+            && change.RemovedTasks.Length == 0
+            && TaskIdChange is null
+            && SubformPdfComponentChange is null;
     }
 
     private sealed record ProcessDefinitionToSave(string BpmnXml, ProcessSnapshotChange Change);
+
+    private sealed record TaskChanges
+    {
+        public static readonly TaskChanges None = new();
+
+        public IReadOnlyList<string> FoldersToDelete { get; init; } = [];
+        public IReadOnlyList<TaskFolder> FoldersToCreate { get; init; } = [];
+
+        public string? DefaultPolicy { get; init; }
+    }
+
+    private sealed record TaskFolder(string TaskId, TaskType TaskType);
 }

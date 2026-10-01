@@ -310,6 +310,12 @@ public class UiFoldersService : IUiFoldersService
         return await GetLayoutSets(editingContext, cancellationToken);
     }
 
+    public Task<LayoutSettings?> TryGetLayoutSettings(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    ) => TryGetLayoutSettings(GetRepository(editingContext, cancellationToken), layoutSetName, cancellationToken);
+
     private async Task<LayoutSettings?> TryGetLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,
         string layoutSetName,

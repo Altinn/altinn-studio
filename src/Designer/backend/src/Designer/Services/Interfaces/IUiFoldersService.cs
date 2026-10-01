@@ -35,6 +35,15 @@ public interface IUiFoldersService
     );
 
     /// <summary>
+    /// Reads the settings of a layout set, or returns null when its <c>Settings.json</c> is missing or not valid.
+    /// </summary>
+    public Task<LayoutSettings?> TryGetLayoutSettings(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Validates that a new layout set can be given this name: the name follows the naming policy for new layout
     /// sets, and no layout set folder has it yet.
     /// </summary>

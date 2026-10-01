@@ -1,6 +1,8 @@
 import { PaymentPolicyBuilder } from './PaymentPolicyBuilder';
 import type { Policy } from '../../../utils/policy/types';
 
+// The backend gives a payment task in a v9 app the same rule, and PaymentPolicyRuleTests in the
+// Designer backend tests expects this same output. Change both together.
 describe('DefaultPaymentPolicyBuilder', () => {
   it('should build a default payment policy based on org, app and taskId as input parameters', () => {
     const testInData = {

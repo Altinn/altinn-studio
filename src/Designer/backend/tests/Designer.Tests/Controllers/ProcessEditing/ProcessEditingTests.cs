@@ -11,16 +11,21 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -30,8 +35,16 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
     : DesignerEndpointsTestsBase<ProcessEditingTests>(factory),
         IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly XNamespace s_bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+    private static readonly XNamespace s_xacml = "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17";
+
+    private static readonly string s_appTemplateRoot = Path.GetFullPath(
+        Path.Combine(UnitTestsFolder, "..", "..", "..", "..", "..", "..", "..", "App", "template")
+    );
+
     private readonly Mock<ISyncClient> _syncClient = new();
     private ILayoutReferenceUpdater _layoutReferenceUpdater;
+    private Exception _nextProcessDefinitionSaveException;
     private string _repository;
     private string Endpoint => $"/designer/api/ttd/{_repository}/process-modelling/process-state";
 
@@ -43,9 +56,72 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
         var hub = new Mock<IHubContext<SyncHub, ISyncClient>>();
         hub.Setup(value => value.Clients).Returns(clients.Object);
         services.AddSingleton(hub.Object);
+        services.AddSingleton<IAppTemplateCatalog>(
+            new AppTemplateCatalog(
+                Options.Create(new GeneralSettings { TemplateLocation = s_appTemplateRoot }),
+                NullLogger<AppTemplateCatalog>.Instance
+            )
+        );
         if (_layoutReferenceUpdater is not null)
         {
             services.AddSingleton(_layoutReferenceUpdater);
+        }
+        if (_nextProcessDefinitionSaveException is not null)
+        {
+            services.AddTransient<IProcessEditingService>(provider =>
+            {
+                var realService = provider.GetRequiredService<IProcessModelingService>();
+                var processModeling = new Mock<IProcessModelingService>(MockBehavior.Strict);
+                processModeling
+                    .Setup(service =>
+                        service.SaveProcessDefinitionAsync(
+                            It.IsAny<AltinnRepoEditingContext>(),
+                            It.IsAny<Stream>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .Returns(
+                        async (AltinnRepoEditingContext context, Stream stream, CancellationToken token) =>
+                        {
+                            if (_nextProcessDefinitionSaveException is { } exception)
+                            {
+                                _nextProcessDefinitionSaveException = null;
+                                throw exception;
+                            }
+                            await realService.SaveProcessDefinitionAsync(context, stream, token);
+                        }
+                    );
+                processModeling
+                    .Setup(service =>
+                        service.AddDataTypeToApplicationMetadataAsync(
+                            It.IsAny<AltinnRepoEditingContext>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<List<string>>(),
+                            It.IsAny<List<string>>(),
+                            It.IsAny<CancellationToken>()
+                        )
+                    )
+                    .Returns(
+                        (
+                            AltinnRepoEditingContext context,
+                            string id,
+                            string taskId,
+                            List<string> contributors,
+                            List<string> contentTypes,
+                            CancellationToken token
+                        ) =>
+                            realService.AddDataTypeToApplicationMetadataAsync(
+                                context,
+                                id,
+                                taskId,
+                                contributors,
+                                contentTypes,
+                                token
+                            )
+                    );
+                return ActivatorUtilities.CreateInstance<ProcessEditingService>(provider, processModeling.Object);
+            });
         }
     }
 
@@ -299,7 +375,7 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
     [InlineData(nameof(ArgumentException))]
     [InlineData(nameof(InvalidLayoutSetIdException))]
     [InlineData(nameof(NonUniqueLayoutSetIdException))]
-    public async Task Rename_WhenAnUpdateFailsAfterTheFolderWasRenamed_RenamesTheFolderBack(string exceptionType)
+    public async Task Rename_AfterBpmnWriteFailure_RestoresFolderAndCompletesAfterReload(string exceptionType)
     {
         Exception exception = exceptionType switch
         {
@@ -308,18 +384,41 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
             nameof(InvalidLayoutSetIdException) => new InvalidLayoutSetIdException("Failed after writing."),
             _ => new NonUniqueLayoutSetIdException("Failed after writing."),
         };
-        _layoutReferenceUpdater = new FailingLayoutReferenceUpdater(exception);
-        await CreateApp(withPolicy: false);
+        _nextProcessDefinitionSaveException = exception;
+        await CreateApp(withPolicy: true);
+        await File.WriteAllTextAsync(AppPath("ui/moreInfoSubform/layouts/Side1.json"), SummaryOfTask1);
         string process = await File.ReadAllTextAsync(ProcessPath);
         ProcessState initial = await GetState();
 
-        using HttpResponseMessage response = await Put(Rename(initial, "Task_1", "RenamedTask"));
+        ProcessEditRequest request = Rename(initial, "Task_1", "RenamedTask");
+        using HttpResponseMessage response = await Put(request);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         Assert.True(Directory.Exists(AppPath("ui/Task_1")));
         Assert.False(Directory.Exists(AppPath("ui/RenamedTask")));
         Assert.Equal(process, await File.ReadAllTextAsync(ProcessPath));
+        string metadata = await File.ReadAllTextAsync(MetadataPath);
+        string policy = await File.ReadAllTextAsync(PolicyPath);
+        string layout = await File.ReadAllTextAsync(AppPath("ui/moreInfoSubform/layouts/Side1.json"));
+        Assert.Equal("RenamedTask", (await GetDataType("model"))["taskId"].GetValue<string>());
+        Assert.Contains("RenamedTask", policy);
+        Assert.DoesNotContain("Task_1", policy);
+        Assert.Equal("RenamedTask", JsonNode.Parse(layout)["data"]["layout"][0]["target"]["taskId"].GetValue<string>());
         _syncClient.VerifyNoOtherCalls();
+
+        ProcessState partlyApplied = await GetState();
+        Assert.NotEqual(initial.Version, partlyApplied.Version);
+        using HttpResponseMessage staleRetry = await Put(request);
+        Assert.Equal(HttpStatusCode.Conflict, staleRetry.StatusCode);
+        ProcessState saved = await Save(Rename(partlyApplied, "Task_1", "RenamedTask"));
+
+        Assert.Equal(request.BpmnXml, saved.BpmnXml);
+        Assert.False(Directory.Exists(AppPath("ui/Task_1")));
+        Assert.True(Directory.Exists(AppPath("ui/RenamedTask")));
+        Assert.Equal(metadata, await File.ReadAllTextAsync(MetadataPath));
+        Assert.Equal(policy, await File.ReadAllTextAsync(PolicyPath));
+        Assert.Equal(layout, await File.ReadAllTextAsync(AppPath("ui/moreInfoSubform/layouts/Side1.json")));
+        VerifyOneNotification();
     }
 
     [Fact]
@@ -779,6 +878,409 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
         Assert.True(Directory.Exists(AppPath("ui/CustomReceipt")));
     }
 
+    [Fact]
+    public async Task AddDataTask_CreatesItsLayoutSet()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string metadata = await File.ReadAllTextAsync(MetadataPath);
+        string bpmnXml = AddTask(initial.BpmnXml, "Task_2", "data");
+
+        ProcessState saved = await Save(Snapshot(initial, bpmnXml));
+
+        Assert.Equal(bpmnXml, saved.BpmnXml);
+        Assert.Equal(bpmnXml, await File.ReadAllTextAsync(ProcessPath));
+        Assert.NotEqual(initial.Version, saved.Version);
+        Assert.True(File.Exists(AppPath("ui/Task_2/layouts/Side1.json")));
+        Assert.True(File.Exists(AppPath("ui/Task_2/Settings.json")));
+        Assert.Equal(metadata, await File.ReadAllTextAsync(MetadataPath));
+        Assert.False(File.Exists(PolicyPath));
+        VerifyOneNotification();
+    }
+
+    [Fact]
+    public async Task AddPaymentTask_CreatesItsLayoutSetDataTypesAndPolicyRule()
+    {
+        await CreateApp(withPolicy: true);
+        string[] originalRuleIds = RuleIds(await File.ReadAllTextAsync(PolicyPath));
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(
+            initial.BpmnXml,
+            "Payment_1",
+            "payment",
+            PaymentConfig("payment-information", "payment-receipt")
+        );
+
+        ProcessState saved = await Save(Snapshot(initial, bpmnXml));
+
+        Assert.Equal(bpmnXml, saved.BpmnXml);
+        JsonNode layout = JsonNode.Parse(await File.ReadAllTextAsync(AppPath("ui/Payment_1/layouts/Side1.json")));
+        Assert.Contains(
+            layout["data"]["layout"].AsArray(),
+            component => component["type"].GetValue<string>() == "Payment"
+        );
+        AssertGeneratedDataType(await GetDataType("payment-information"), "Payment_1", "application/json");
+        AssertGeneratedDataType(await GetDataType("payment-receipt"), "Payment_1", "application/pdf");
+        string policy = await File.ReadAllTextAsync(PolicyPath);
+        Assert.Equal([.. originalRuleIds, PaymentRuleId("Payment_1")], RuleIds(policy));
+        AssertPaymentRule(policy, "Payment_1");
+        VerifyOneNotification();
+    }
+
+    [Fact]
+    public async Task AddSigningTask_AddsItsThreeGeneratedDataTypes()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(
+            initial.BpmnXml,
+            "Signing_1",
+            "signing",
+            SigningConfig("signatures", signeeStates: "signee-states", signingPdf: "signed-pdf")
+        );
+
+        await Save(Snapshot(initial, bpmnXml));
+
+        Assert.True(File.Exists(AppPath("ui/Signing_1/Settings.json")));
+        AssertGeneratedDataType(await GetDataType("signatures"), "Signing_1", "application/json");
+        AssertGeneratedDataType(await GetDataType("signee-states"), "Signing_1", "application/json");
+        AssertGeneratedDataType(await GetDataType("signed-pdf"), "Signing_1", "application/pdf");
+        Assert.False(File.Exists(PolicyPath));
+        VerifyOneNotification();
+    }
+
+    [Fact]
+    public async Task AddPaymentTask_InAnAppWithoutPolicy_CreatesTheDefaultPolicyWithTheRule()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(initial.BpmnXml, "Payment_1", "payment", PaymentConfig("payment-information"));
+
+        ProcessState saved = await Save(Snapshot(initial, bpmnXml));
+
+        Assert.Equal(bpmnXml, saved.BpmnXml);
+        string defaultPolicy = await File.ReadAllTextAsync(
+            Path.Combine(s_appTemplateRoot, "v9", "src", "App", "config", "authorization", "policy.xml")
+        );
+        string policy = await File.ReadAllTextAsync(PolicyPath);
+        Assert.Equal([.. RuleIds(defaultPolicy), PaymentRuleId("Payment_1")], RuleIds(policy));
+        AssertPaymentRule(policy, "Payment_1");
+        AssertGeneratedDataType(await GetDataType("payment-information"), "Payment_1", "application/json");
+        VerifyOneNotification();
+    }
+
+    [Fact]
+    public async Task RemovePaymentTask_RemovesItsRuleAndTheDataTypesNoOtherTaskUses()
+    {
+        await CreateApp(withPolicy: true);
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(
+            AddTask(initial.BpmnXml, "Payment_1", "payment", PaymentConfig("payment-one", "shared-receipt")),
+            "Payment_2",
+            "payment",
+            PaymentConfig("payment-two", "shared-receipt")
+        );
+        await Save(Snapshot(initial, bpmnXml));
+        XDocument policyDocument = XDocument.Load(PolicyPath);
+        XElement paymentRule = PaymentRule(policyDocument, "Payment_1");
+        XElement customRule = new(paymentRule);
+        customRule.SetAttributeValue("RuleId", "urn:altinn:example:ruleid:Payment_1");
+        paymentRule.AddAfterSelf(customRule);
+        policyDocument.Save(PolicyPath);
+        ProcessState added = await GetState();
+
+        ProcessState saved = await Save(Snapshot(added, RemoveTask(added.BpmnXml, "Payment_1")));
+
+        Assert.DoesNotContain("Payment_1", saved.BpmnXml);
+        string[] ruleIds = RuleIds(await File.ReadAllTextAsync(PolicyPath));
+        Assert.DoesNotContain(PaymentRuleId("Payment_1"), ruleIds);
+        Assert.Contains("urn:altinn:example:ruleid:Payment_1", ruleIds);
+        Assert.Contains(PaymentRuleId("Payment_2"), ruleIds);
+        Assert.False(Directory.Exists(AppPath("ui/Payment_1")));
+        Assert.True(Directory.Exists(AppPath("ui/Payment_2")));
+        Assert.Null(await GetDataType("payment-one"));
+        Assert.Equal("Payment_2", (await GetDataType("payment-two"))["taskId"].GetValue<string>());
+        Assert.Equal("Payment_2", (await GetDataType("shared-receipt"))["taskId"].GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RemoveOneOfTwoSigningTasks_GivesTheSharedDataTypeToTheOtherTask()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(
+            AddTask(initial.BpmnXml, "Signing_1", "signing", SigningConfig("shared-signatures", signingPdf: "one-pdf")),
+            "Signing_2",
+            "signing",
+            SigningConfig("shared-signatures")
+        );
+        await Save(Snapshot(initial, bpmnXml));
+        JsonNode metadata = JsonNode.Parse(await File.ReadAllTextAsync(MetadataPath));
+        metadata["dataTypes"]
+            .AsArray()
+            .Add(
+                new JsonObject
+                {
+                    ["id"] = "attachments",
+                    ["taskId"] = "Signing_1",
+                    ["maxCount"] = 5,
+                }
+            );
+        await File.WriteAllTextAsync(MetadataPath, metadata.ToJsonString());
+        ProcessState added = await GetState();
+
+        await Save(Snapshot(added, RemoveTask(added.BpmnXml, "Signing_1")));
+
+        Assert.False(Directory.Exists(AppPath("ui/Signing_1")));
+        Assert.True(Directory.Exists(AppPath("ui/Signing_2")));
+        Assert.Equal("Signing_2", (await GetDataType("shared-signatures"))["taskId"].GetValue<string>());
+        Assert.Null(await GetDataType("one-pdf"));
+        JsonNode attachments = await GetDataType("attachments");
+        Assert.NotNull(attachments);
+        Assert.Null(attachments["taskId"]);
+        Assert.Equal(5, attachments["maxCount"].GetValue<int>());
+        Assert.Equal("Task_1", (await GetDataType("model"))["taskId"].GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RemoveTask_RemovesTheLayoutReferencesToIt()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        ProcessState added = await Save(Snapshot(initial, AddTask(initial.BpmnXml, "Confirmation_1", "confirmation")));
+        Assert.False(Directory.Exists(AppPath("ui/Confirmation_1")));
+        await File.WriteAllTextAsync(
+            AppPath("ui/Task_1/layouts/Side1.json"),
+            SummaryOfTask1.Replace("Task_1", "Confirmation_1")
+        );
+
+        await Save(Snapshot(added, RemoveTask(added.BpmnXml, "Confirmation_1")));
+
+        JsonNode layout = JsonNode.Parse(await File.ReadAllTextAsync(AppPath("ui/Task_1/layouts/Side1.json")));
+        Assert.Empty(layout["data"]["layout"].AsArray());
+    }
+
+    [Fact]
+    public async Task RemoveTask_WhoseLayoutSetIsASubform_IsRejectedBeforeWriting()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        await Save(Snapshot(initial, AddTask(initial.BpmnXml, "SubformTask", "data")));
+        string settingsPath = AppPath("ui/SubformTask/Settings.json");
+        JsonNode settings = JsonNode.Parse(await File.ReadAllTextAsync(settingsPath));
+        settings["type"] = "subform";
+        await File.WriteAllTextAsync(settingsPath, settings.ToJsonString());
+        ProcessState before = await GetState();
+        string metadata = await File.ReadAllTextAsync(MetadataPath);
+        _syncClient.Invocations.Clear();
+
+        using HttpResponseMessage response = await Put(
+            Snapshot(before, RemoveTask(RemoveTask(before.BpmnXml, "Task_1"), "SubformTask"))
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(
+            "Removing the task SubformTask would delete the layout set of a subform.",
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.Equal(before, await GetState());
+        Assert.True(Directory.Exists(AppPath("ui/Task_1")));
+        Assert.True(Directory.Exists(AppPath("ui/SubformTask")));
+        Assert.Equal(metadata, await File.ReadAllTextAsync(MetadataPath));
+        _syncClient.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData("invalid/name")]
+    [InlineData("New.Task")]
+    [InlineData("moreInfoSubform")]
+    public async Task AddTask_WithAnInvalidOrUsedFolderName_IsRejectedBeforeWriting(string taskId)
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string subformSettings = await File.ReadAllTextAsync(AppPath("ui/moreInfoSubform/Settings.json"));
+
+        using HttpResponseMessage response = await Put(
+            Snapshot(initial, AddTask(AddTask(initial.BpmnXml, "ValidTask", "data"), taskId, "data"))
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(initial, await GetState());
+        Assert.False(Directory.Exists(AppPath("ui/ValidTask")));
+        Assert.Equal(subformSettings, await File.ReadAllTextAsync(AppPath("ui/moreInfoSubform/Settings.json")));
+        _syncClient.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData("moreInfoSubform")]
+    [InlineData("CustomReceipt")]
+    public async Task AddTaskWithoutAFolder_WithTheNameOfALayoutSet_IsRejectedBeforeWriting(string taskId)
+    {
+        await CreateApp(withPolicy: false);
+        CopyDirectory(AppPath("ui/Task_1"), AppPath("ui/CustomReceipt"));
+        ProcessState initial = await GetState();
+
+        using HttpResponseMessage response = await Put(
+            Snapshot(initial, AddTask(initial.BpmnXml, taskId, "confirmation"))
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(
+            $"The task ID {taskId} is already the name of a layout set.",
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.Equal(initial, await GetState());
+        _syncClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task AddTask_WithTheIdOfAnotherTask_IsRejectedBeforeWriting()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        string settings = await File.ReadAllTextAsync(AppPath("ui/Task_1/Settings.json"));
+
+        using HttpResponseMessage response = await Put(
+            Snapshot(initial, AddTask(AddTask(initial.BpmnXml, "ValidTask", "data"), "Task_1", "signing"))
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("Each process task must have a unique ID.", await response.Content.ReadAsStringAsync());
+        Assert.Equal(initial, await GetState());
+        Assert.False(Directory.Exists(AppPath("ui/ValidTask")));
+        Assert.Equal(settings, await File.ReadAllTextAsync(AppPath("ui/Task_1/Settings.json")));
+        _syncClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ChangeCustomServiceTaskType_SavesTheProcessWithoutFolderChanges()
+    {
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        ProcessState created = await Save(
+            Snapshot(initial, AddTask(initial.BpmnXml, "CustomTask", "firstCustomType", element: "serviceTask"))
+        );
+        string[] folders = Directory.GetDirectories(AppPath("ui"));
+
+        ProcessState saved = await Save(
+            Snapshot(created, created.BpmnXml.Replace("firstCustomType", "secondCustomType"))
+        );
+
+        Assert.Contains("secondCustomType", saved.BpmnXml);
+        Assert.Equal(folders, Directory.GetDirectories(AppPath("ui")));
+        Assert.False(Directory.Exists(AppPath("ui/CustomTask")));
+    }
+
+    [Theory]
+    [InlineData("signatureDataType", "signing", "application/json")]
+    [InlineData("signeeStatesDataTypeId", "signing", "application/json")]
+    [InlineData("signingPdfDataType", "signing", "application/pdf")]
+    [InlineData("paymentDataType", "payment", "application/json")]
+    [InlineData("paymentReceiptPdfDataType", "payment", "application/pdf")]
+    public async Task GeneratedDataType_IsAddedWithItsContentTypeAndFollowsItsOwners(
+        string tag,
+        string taskType,
+        string contentType
+    )
+    {
+        await CreateApp(withPolicy: true);
+        ProcessState initial = await GetState();
+        string configuration = taskType == "signing" ? "signatureConfig" : "paymentConfig";
+        string config = $"<altinn:{configuration}><altinn:{tag}>generated-data</altinn:{tag}></altinn:{configuration}>";
+        ProcessState added = await Save(
+            Snapshot(
+                initial,
+                AddTask(AddTask(initial.BpmnXml, "FirstOwner", taskType, config), "LastOwner", taskType, config)
+            )
+        );
+        JsonNode generated = await GetDataType("generated-data");
+        AssertGeneratedDataType(generated, "FirstOwner", contentType);
+        Assert.Null(generated["enablePdfCreation"]);
+
+        ProcessState firstRemoved = await Save(Snapshot(added, RemoveTask(added.BpmnXml, "FirstOwner")));
+        Assert.Equal("LastOwner", (await GetDataType("generated-data"))["taskId"].GetValue<string>());
+        await Save(Snapshot(firstRemoved, RemoveTask(firstRemoved.BpmnXml, "LastOwner")));
+
+        Assert.Null(await GetDataType("generated-data"));
+    }
+
+    [Fact]
+    public async Task AddTask_AfterPartialFailure_CompletesAfterReload()
+    {
+        _nextProcessDefinitionSaveException = new IOException("Could not write the process definition.");
+        await CreateApp(withPolicy: true);
+        string originalProcess = await File.ReadAllTextAsync(ProcessPath);
+        ProcessState initial = await GetState();
+        string bpmnXml = AddTask(
+            initial.BpmnXml,
+            "Payment_1",
+            "payment",
+            PaymentConfig("payment-information", "payment-receipt")
+        );
+        ProcessEditRequest request = Snapshot(initial, bpmnXml);
+        using HttpResponseMessage failed = await Put(request);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, failed.StatusCode);
+        Assert.Equal(originalProcess, await File.ReadAllTextAsync(ProcessPath));
+        Assert.True(File.Exists(AppPath("ui/Payment_1/Settings.json")));
+        AssertGeneratedDataType(await GetDataType("payment-information"), "Payment_1", "application/json");
+        AssertGeneratedDataType(await GetDataType("payment-receipt"), "Payment_1", "application/pdf");
+        string layout = await File.ReadAllTextAsync(AppPath("ui/Payment_1/layouts/Side1.json"));
+        string metadata = await File.ReadAllTextAsync(MetadataPath);
+        string policy = await File.ReadAllTextAsync(PolicyPath);
+        AssertPaymentRule(policy, "Payment_1");
+        ProcessState partlyApplied = await GetState();
+        Assert.NotEqual(initial.Version, partlyApplied.Version);
+        _syncClient.VerifyNoOtherCalls();
+        using HttpResponseMessage staleRetry = await Put(request);
+        Assert.Equal(HttpStatusCode.Conflict, staleRetry.StatusCode);
+
+        ProcessState saved = await Save(Snapshot(partlyApplied, bpmnXml));
+
+        Assert.Equal(bpmnXml, saved.BpmnXml);
+        Assert.Equal(layout, await File.ReadAllTextAsync(AppPath("ui/Payment_1/layouts/Side1.json")));
+        Assert.Equal(metadata, await File.ReadAllTextAsync(MetadataPath));
+        Assert.Equal(policy, await File.ReadAllTextAsync(PolicyPath));
+        Assert.Single(RuleIds(policy), PaymentRuleId("Payment_1"));
+        VerifyOneNotification();
+    }
+
+    [Theory]
+    [InlineData(nameof(ArgumentException))]
+    [InlineData(nameof(InvalidLayoutSetIdException))]
+    [InlineData(nameof(NonUniqueLayoutSetIdException))]
+    public async Task Save_WhenAncillaryWriteFails_ReturnsServerErrorWithOriginalBpmn(string exceptionType)
+    {
+        Exception exception = exceptionType switch
+        {
+            nameof(ArgumentException) => new ArgumentException("Failed after writing."),
+            nameof(InvalidLayoutSetIdException) => new InvalidLayoutSetIdException("Failed after writing."),
+            _ => new NonUniqueLayoutSetIdException("Failed after writing."),
+        };
+        var layoutReferenceUpdater = new Mock<ILayoutReferenceUpdater>();
+        layoutReferenceUpdater
+            .Setup(updater =>
+                updater.UpdateLayoutReferences(
+                    It.IsAny<AltinnRepoEditingContext>(),
+                    It.IsAny<List<Reference>>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(exception);
+        _layoutReferenceUpdater = layoutReferenceUpdater.Object;
+        await CreateApp(withPolicy: false);
+        string originalProcess = await File.ReadAllTextAsync(ProcessPath);
+        ProcessState initial = await GetState();
+
+        using HttpResponseMessage response = await Put(Snapshot(initial, RemoveTask(initial.BpmnXml, "Task_1")));
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.False(Directory.Exists(AppPath("ui/Task_1")));
+        Assert.Null((await GetDataType("model"))["taskId"]);
+        Assert.Equal(originalProcess, await File.ReadAllTextAsync(ProcessPath));
+        _syncClient.VerifyNoOtherCalls();
+    }
+
     private sealed class FailingLayoutReferenceUpdater(Exception exception) : ILayoutReferenceUpdater
     {
         public Task<bool> UpdateLayoutReferences(
@@ -793,6 +1295,8 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
     private string ProcessPath => AppPath("config/process/process.bpmn");
 
     private string PolicyPath => AppPath("config/authorization/policy.xml");
+
+    private string MetadataPath => AppPath("config/applicationmetadata.json");
 
     private async Task CreateApp(bool withPolicy)
     {
@@ -839,6 +1343,77 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
               </bpmn:process>
             """
         );
+
+    private static string RemoveTask(string bpmnXml, string id)
+    {
+        XDocument document = XDocument.Parse(bpmnXml, LoadOptions.PreserveWhitespace);
+        document
+            .Descendants()
+            .Single(element =>
+                (element.Name == s_bpmn + "task" || element.Name == s_bpmn + "serviceTask")
+                && (string)element.Attribute("id") == id
+            )
+            .Remove();
+        return document.Declaration + document.ToString(SaveOptions.DisableFormatting);
+    }
+
+    private static string PaymentConfig(string paymentDataType, string receiptPdfDataType = null) =>
+        "<altinn:paymentConfig>"
+        + $"<altinn:paymentDataType>{paymentDataType}</altinn:paymentDataType>"
+        + (
+            receiptPdfDataType is null
+                ? ""
+                : $"<altinn:paymentReceiptPdfDataType>{receiptPdfDataType}</altinn:paymentReceiptPdfDataType>"
+        )
+        + "</altinn:paymentConfig>";
+
+    private static string SigningConfig(
+        string signatureDataType,
+        string signeeStates = null,
+        string signingPdf = null
+    ) =>
+        "<altinn:signatureConfig>"
+        + $"<altinn:signatureDataType>{signatureDataType}</altinn:signatureDataType>"
+        + (signeeStates is null ? "" : $"<altinn:signeeStatesDataTypeId>{signeeStates}</altinn:signeeStatesDataTypeId>")
+        + (signingPdf is null ? "" : $"<altinn:signingPdfDataType>{signingPdf}</altinn:signingPdfDataType>")
+        + "</altinn:signatureConfig>";
+
+    private async Task<JsonNode> GetDataType(string id) =>
+        JsonNode
+            .Parse(await File.ReadAllTextAsync(MetadataPath))["dataTypes"]
+            .AsArray()
+            .SingleOrDefault(dataType => dataType["id"].GetValue<string>() == id);
+
+    private static void AssertGeneratedDataType(JsonNode dataType, string taskId, string contentType)
+    {
+        Assert.NotNull(dataType);
+        Assert.Equal(taskId, dataType["taskId"].GetValue<string>());
+        Assert.Equal(contentType, Assert.Single(dataType["allowedContentTypes"].AsArray()).GetValue<string>());
+        Assert.Equal("app:owned", Assert.Single(dataType["allowedContributors"].AsArray()).GetValue<string>());
+        Assert.Equal(1, dataType["maxCount"].GetValue<int>());
+    }
+
+    private string PaymentRuleId(string taskId) =>
+        $"urn:altinn:resource:app_ttd_{_repository}:policyid:1:ruleid:{taskId}";
+
+    private static string[] RuleIds(string policy) =>
+        [.. XDocument.Parse(policy).Descendants(s_xacml + "Rule").Select(rule => (string)rule.Attribute("RuleId"))];
+
+    private XElement PaymentRule(XDocument policy, string taskId) =>
+        policy.Descendants(s_xacml + "Rule").Single(rule => (string)rule.Attribute("RuleId") == PaymentRuleId(taskId));
+
+    private void AssertPaymentRule(string policy, string taskId)
+    {
+        XElement rule = PaymentRule(XDocument.Parse(policy), taskId);
+        Assert.Equal(
+            $"Rule that defines that user with specified role(s) can pay, reject and confirm for ttd/{_repository} when it is in payment task",
+            (string)rule.Element(s_xacml + "Description")
+        );
+        Assert.Equal(
+            ["ttd", _repository, taskId, "read", "pay", "confirm", "reject"],
+            rule.Descendants(s_xacml + "AttributeValue").Select(value => value.Value)
+        );
+    }
 
     private static ProcessEditRequest CreateLayoutSet(ProcessState state, string layoutSetId) =>
         new()
