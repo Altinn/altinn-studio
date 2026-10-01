@@ -4,6 +4,7 @@ use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, St
 
 use super::{AgentRecord, SharedAgentStore};
 use crate::progress::{ProvisioningState, SandboxObserver};
+use crate::sandbox::responsiveness::stall_detail;
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
@@ -105,33 +106,11 @@ impl Reconciler {
         };
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
-            Err(error) => {
-                let failure = ReconcileFailure::classify(&error);
-                let message = error.to_string();
-                let status = Status::observed(
-                    record.agent.metadata.generation,
-                    record.agent.status.sandbox.clone(),
-                    vec![
-                        condition(
-                            Condition::READY,
-                            ConditionStatus::False,
-                            "SandboxReconcileFailed",
-                            &message,
-                        ),
-                        condition(
-                            Condition::SANDBOX_READY,
-                            ConditionStatus::False,
-                            "ReconcileFailed",
-                            &message,
-                        ),
-                    ],
-                );
-                // The failure class is stored before followers see the pass fail.
-                let stored = self.update_status(&record, status, Some(failure.kind)).await;
-                observer.failed(&failure);
-                stored?;
-                return Err(error);
+            Err(error @ Error::SandboxUnresponsive(_)) => {
+                let assignment = record.agent.status.sandbox.clone();
+                return self.record_unresponsive(&record, assignment, &observer, error).await;
             }
+            Err(error) => return self.record_ensure_failure(&record, &observer, error).await,
         };
 
         let provider = record
@@ -156,6 +135,10 @@ impl Reconciler {
         )];
         self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
+        conditions.insert(
+            1,
+            responsive_condition(self.sandboxes.reports_heartbeat(&ensured.sandbox.snapshot().id)),
+        );
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         // As on failure, readiness is stored before followers see the pass end.
@@ -176,13 +159,14 @@ impl Reconciler {
         conditions: &mut Vec<Condition>,
         observer: &SandboxObserver,
     ) -> Result<(), Error> {
+        let id = &sandbox.snapshot().id;
         if let Some(ssh) = &self.ssh {
-            let pass = ssh.reconcile(record, sandbox);
+            let pass = self.sandboxes.guard_guest(record, id, ssh.reconcile(record, sandbox));
             self.reconcile_access(SSH, pass, record, assignment, conditions, observer)
                 .await?;
         }
         if let Some(vnc) = &self.vnc {
-            let pass = vnc.reconcile(record, sandbox);
+            let pass = self.sandboxes.guard_guest(record, id, vnc.reconcile(record, sandbox));
             self.reconcile_access(VNC, pass, record, assignment, conditions, observer)
                 .await?;
         }
@@ -214,6 +198,11 @@ impl Reconciler {
                 Ok(())
             }
             Ok(false) => Ok(()),
+            Err(error @ Error::SandboxUnresponsive(_)) => {
+                conditions.clear();
+                self.record_unresponsive(record, Some(assignment.clone()), observer, error)
+                    .await
+            }
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 conditions.push(condition(
@@ -239,6 +228,77 @@ impl Reconciler {
                 Err(error)
             }
         }
+    }
+
+    /// Records a failed Sandbox ensure or setup as the Agent's `Ready=False` and returns `error`.
+    async fn record_ensure_failure(
+        &self,
+        record: &AgentRecord,
+        observer: &SandboxObserver,
+        error: Error,
+    ) -> Result<(), Error> {
+        let failure = ReconcileFailure::classify(&error);
+        let message = error.to_string();
+        let status = Status::observed(
+            record.agent.metadata.generation,
+            record.agent.status.sandbox.clone(),
+            vec![
+                condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    "SandboxReconcileFailed",
+                    &message,
+                ),
+                condition(
+                    Condition::SANDBOX_READY,
+                    ConditionStatus::False,
+                    "ReconcileFailed",
+                    &message,
+                ),
+            ],
+        );
+        // The failure class is stored before followers see the pass fail.
+        let stored = self.update_status(record, status, Some(failure.kind)).await;
+        observer.failed(&failure);
+        stored?;
+        Err(error)
+    }
+
+    /// Records that the Sandbox's guest stopped responding and returns `error`.
+    ///
+    /// A stall is only found in work after the Sandbox started, so the Sandbox
+    /// itself is running; only the guest inside it has stopped.
+    async fn record_unresponsive(
+        &self,
+        record: &AgentRecord,
+        assignment: Option<crate::sandbox::Assignment>,
+        observer: &SandboxObserver,
+        error: Error,
+    ) -> Result<(), Error> {
+        let failure = ReconcileFailure::classify(&error);
+        let mut conditions = vec![condition(
+            Condition::SANDBOX_READY,
+            ConditionStatus::True,
+            "SandboxRunning",
+            "",
+        )];
+        conditions.push(condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::False,
+            "HeartbeatStale",
+            &stall_detail(),
+        ));
+        conditions.push(condition(
+            Condition::READY,
+            ConditionStatus::False,
+            "SandboxUnresponsive",
+            &failure.message,
+        ));
+        let status = Status::observed(record.agent.metadata.generation, assignment, conditions);
+        let stored = self.update_status(record, status, Some(failure.kind)).await;
+        observer.failed(&failure);
+        stored?;
+        Err(error)
     }
 
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
@@ -357,6 +417,26 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
         reason: reason.into(),
         message: message.into(),
         last_transition_time: None,
+    }
+}
+
+/// Reports the guest's heartbeat after a pass whose guest work finished. A
+/// Sandbox that reports no heartbeat gives no evidence either way.
+fn responsive_condition(reports_heartbeat: bool) -> Condition {
+    if reports_heartbeat {
+        condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::True,
+            "HeartbeatAdvancing",
+            "",
+        )
+    } else {
+        condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::Unknown,
+            "HeartbeatNotObserved",
+            "",
+        )
     }
 }
 

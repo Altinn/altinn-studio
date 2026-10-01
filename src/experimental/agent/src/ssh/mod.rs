@@ -36,7 +36,7 @@ use crate::{
 
 pub use client_config::{
     CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
-    render_path, render_proxy_command, upsert_known_host,
+    render_path, render_proxy_command, resolves_through_agentctl, upsert_known_host,
 };
 pub use keys::KeyPair;
 
@@ -107,6 +107,41 @@ impl SshHome {
     }
 }
 
+/// The `Include` that makes the generated configuration apply to plain `ssh`,
+/// `sftp` and editors, and the user's own OpenSSH configuration it belongs in.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct UserInclude {
+    /// The user's `~/.ssh/config`.
+    pub user_config: PathBuf,
+    /// The complete `Include` line.
+    pub line: String,
+}
+
+impl UserInclude {
+    /// Locates the include for the generated configuration of `home`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the user's home directory is not set.
+    pub fn for_home(home: &ControlPlaneHome) -> Result<Self, Error> {
+        let user_home = crate::local::home::user_home_directory()
+            .ok_or_else(|| Error::Invalid("the user home directory is not set (HOME or USERPROFILE)".into()))?;
+        Ok(Self {
+            user_config: user_home.join(".ssh").join("config"),
+            line: render_include(&SshHome::new(home).config_path(), Some(&user_home)),
+        })
+    }
+
+    /// Adds the line at the top of the user's configuration unless it is there.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the configuration cannot be read or written.
+    pub fn install(&self) -> Result<IncludeOutcome, Error> {
+        install_include(&self.user_config, &self.line)
+    }
+}
+
 /// Stable machine-readable description of one Agent's SSH access.
 ///
 /// This is the seam an IDE integration consumes: everything needed to open a
@@ -133,6 +168,8 @@ pub struct AccessInfo {
     pub config_file: PathBuf,
     /// Complete `ProxyCommand` value dialing the Agent through `agentctl`.
     pub proxy_command: String,
+    /// Guest directory Sessions open in, which editors open as their folder.
+    pub working_directory: String,
 }
 
 /// Persists each Agent incarnation's SSH host key.
@@ -248,6 +285,7 @@ impl Access {
             known_hosts_file: self.home.known_hosts_path(),
             config_file: self.home.config_path(),
             proxy_command: render_proxy_command(&self.agentctl, name, CommandShell::host())?,
+            working_directory: platform::WORKING_DIRECTORY.into(),
         })
     }
 

@@ -26,6 +26,25 @@ pub const LOG_DIRECTIVES: &str = sandbox_microsandbox::LOG_DIRECTIVES;
 
 pub(super) const PROVIDER_ID: &str = "microsandbox";
 
+/// How long `agentd` keeps an image no Agent uses after its last use, so an Agent deleted and
+/// applied again, even after a weekend, does not download its image again.
+const UNUSED_IMAGE_RETENTION: std::time::Duration = std::time::Duration::from_hours(72);
+
+/// How often an idle `agentd` removes unused images.
+const UNUSED_IMAGE_SWEEP: std::time::Duration = std::time::Duration::from_hours(1);
+
+/// Removes unused images while `agentd` runs, so they go even when no Agent changes.
+async fn remove_unused_images_periodically(provider: std::rc::Weak<MicrosandboxProvider>) {
+    let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + UNUSED_IMAGE_SWEEP, UNUSED_IMAGE_SWEEP);
+    loop {
+        ticker.tick().await;
+        let Some(provider) = provider.upgrade() else {
+            return;
+        };
+        provider.remove_unused_images().await;
+    }
+}
+
 /// Sandbox-resolvable name of the Microsandbox Network Backend's host alias.
 ///
 /// The Backend's DNS answers this name with the per-Sandbox gateway address
@@ -55,9 +74,18 @@ impl Adapter {
         policy: Rc<AgentPolicyEngine>,
         platform_port: u16,
     ) -> Result<Self, Error> {
-        let provider = Rc::new(MicrosandboxProvider::open(home.join("microsandbox")).await?);
         let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()).with_secret_store(secret_store));
-        let service = SandboxService::new(provider).with_network_backend(network.clone());
+        let service = {
+            let provider = Rc::new(
+                MicrosandboxProvider::builder(home.join("microsandbox"))
+                    .remove_unused_images_after(UNUSED_IMAGE_RETENTION)
+                    .open()
+                    .await?,
+            );
+            tokio::task::spawn_local(remove_unused_images_periodically(Rc::downgrade(&provider)));
+            SandboxService::new(provider)
+        }
+        .with_network_backend(network.clone());
         policy.set_platform_endpoint(HOST_ALIAS, platform_port);
         Ok(Self {
             id: ProviderId::new(PROVIDER_ID)?,

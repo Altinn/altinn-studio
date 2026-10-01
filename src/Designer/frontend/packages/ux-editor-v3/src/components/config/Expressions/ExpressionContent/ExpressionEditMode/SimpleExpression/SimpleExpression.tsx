@@ -33,6 +33,7 @@ export const SimpleExpression = ({
             />
             {index !== expression.subExpressions.length - 1 && (
               <StudioToggleGroup
+                aria-label={t('right_menu.expressions_operator')}
                 onChange={(value) => onUpdateExpressionOperator(value as Operator)}
                 value={expression.operator || Operator.And}
               >

@@ -11,9 +11,8 @@ This is the Altinn 3 app frontend - a React application that renders dynamic for
 ### Core Commands
 
 - `yarn start` - Start development server
-- `yarn build` - Production build (runs schema copying after bundling)
+- `yarn build` - Production build, including schemas from the shared layout contract
 - `yarn gen` - Regenerate and format the tracked layout contract artifacts
-- `yarn copy-schemas` - Copy JSON schemas to dist
 
 ### Testing
 

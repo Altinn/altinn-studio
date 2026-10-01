@@ -10,7 +10,8 @@ import pytest
 from agents.altinn.resources.validator import ResourceValidator
 
 _SCHEMA_PATH = (
-    Path(__file__).resolve().parents[5] / "App/frontend/schemas/json/text-resources/text-resources.schema.v1.json"
+    Path(__file__).resolve().parents[5]
+    / "common/ts/layout-contract/schemas/json/text-resources/text-resources.schema.v1.json"
 )
 
 

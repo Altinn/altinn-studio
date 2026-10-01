@@ -26,6 +26,50 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
   });
 
 describe('PaymentDetailsComponent', () => {
+  it('refetches when a saved value inside an array dependency changes', async () => {
+    window.altinnAppGlobalData.ui.settings = {
+      ...window.altinnAppGlobalData.ui.settings,
+      autoSaveBehavior: 'onChangePage',
+    };
+    const { formDataMethods } = await render({
+      component: { refetchDependencies: { inventory: ['dataModel', 'items'] } },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: { type: 'object', properties: { price: { type: 'number' } } },
+                },
+              },
+            };
+            obj.dataModels[defaultDataTypeMock].initialData = { items: [{ price: 10 }] };
+          }),
+      },
+    });
+    await waitFor(() => expect(refetchOrderDetails).toHaveBeenCalledTimes(1));
+    refetchOrderDetails.mockClear();
+
+    await act(async () => {
+      formDataMethods.setLeafValue({
+        reference: { dataType: defaultDataTypeMock, field: 'items[0].price' },
+        newValue: 20,
+      });
+      formDataMethods.debounce('forced');
+    });
+    expect(refetchOrderDetails).not.toHaveBeenCalled();
+    await act(async () => {
+      formDataMethods.saveFinished({
+        savedData: { [defaultDataTypeMock]: { items: [{ price: 20 }] } },
+        newDataModels: [],
+        validationIssues: undefined,
+      });
+    });
+    await waitFor(() => expect(refetchOrderDetails).toHaveBeenCalledTimes(1));
+  });
+
   it('refetches after a saved data change alters the expression result, but not when the result stays equal', async () => {
     window.altinnAppGlobalData.ui.settings = {
       ...window.altinnAppGlobalData.ui.settings,

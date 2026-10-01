@@ -1,13 +1,16 @@
 #[cfg(unix)]
-use std::path::Path;
-#[cfg(unix)]
 use std::{
     fmt::Write as _,
     fs,
     os::unix::ffi::OsStrExt,
     os::unix::fs::{DirBuilderExt, MetadataExt},
 };
-use std::{future::Future, path::PathBuf, rc::Rc, sync::Arc};
+use std::{
+    future::Future,
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::Arc,
+};
 
 use microsandbox::LocalBackend;
 use sandbox::Error;
@@ -17,19 +20,18 @@ use tokio::sync::OnceCell;
 
 use crate::{backend::RuntimeBundle, error};
 
-// Published runtime bundle digests for Microsandbox 0.6.18-digdir.4. Update these
+// Published runtime bundle digests for Microsandbox 0.7.4-digdir.1. Update these
 // together with the pinned Microsandbox revisions in the workspace manifest.
-const LINUX_X86_64_RUNTIME_SHA256: &str = "8fea1982487406486644fc153e518dc549ac5e7cd99d41cf9d8502184500950f";
-const LINUX_AARCH64_RUNTIME_SHA256: &str = "d29f6bfeca66de92a93e646aa11eccb5ccbdfa6a74af4eabd7a63e60d44293b2";
-const MACOS_AARCH64_RUNTIME_SHA256: &str = "1ee5ffcc2ef807179bf76d360c30925314225cb526ddb3b46321b402b170ec9e";
-const WINDOWS_X86_64_RUNTIME_SHA256: &str = "be59e73aa0ce73905955fc10b507955e37a7c9624720fc7ceb5fe95d79d98ef8";
-const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "e540ffa28bc9f2439ada1fe56c6b335e4da099d882b87a7c0d4bbb6612edc52a";
+const LINUX_X86_64_RUNTIME_SHA256: &str = "cd713ee0ff5e2b8bf47031ad785c5d968c59de883e09ec711a16b185f935565c";
+const LINUX_AARCH64_RUNTIME_SHA256: &str = "61457ccc6d670329fb7b37e27a5d11769edc88b4f7a9d63cc19b53c9a3327955";
+const MACOS_AARCH64_RUNTIME_SHA256: &str = "b015064ece800b173c032d66e7042a208a3a880e065709cedb02128a85d91a65";
+const WINDOWS_X86_64_RUNTIME_SHA256: &str = "f4a399e4e75055ceaa090424a672057a778edf5befa44c25b47632cdad4647b5";
+const WINDOWS_AARCH64_RUNTIME_SHA256: &str = "50fecbf4ce166b07f748d4bcf019d5659ea98062ec4d2096c47b42c6af910e10";
 
 /// Keeps Microsandbox's thread-safe ownership model at the SDK boundary.
 #[derive(Clone)]
 pub(crate) struct Client {
     backend: Arc<LocalBackend>,
-    microsandbox_home: PathBuf,
     runtime_bundle: Option<RuntimeBundle>,
     installation: Rc<OnceCell<()>>,
 }
@@ -109,8 +111,10 @@ impl Client {
         let run_directory = run_directory(&microsandbox_home)?;
         #[cfg(not(unix))]
         let run_directory = microsandbox_home.join("run");
+        // The Client owns this home, so its user configuration lives there
+        // rather than in the process user's Microsandbox configuration.
         let mut builder = LocalBackend::builder()
-            .ignore_persisted_config()
+            .config_path(microsandbox_home.join("config.json"))
             .home(&microsandbox_home)
             .run_dir(run_directory)
             .disable_metrics_sample(true)
@@ -121,7 +125,6 @@ impl Client {
         let backend = builder.build().await.map_err(error::microsandbox)?;
         Ok(Self {
             backend: Arc::new(backend),
-            microsandbox_home,
             runtime_bundle,
             installation: Rc::new(OnceCell::new()),
         })
@@ -141,39 +144,61 @@ impl Client {
             .map_err(error::microsandbox)
     }
 
+    /// Installs the pinned host runtime into the Client's home, replacing any
+    /// other version the SDK would refuse to launch. Runtime path overrides
+    /// would bypass the pinned digest or embedded guest agent and are refused.
     pub(crate) async fn ensure_installed(&self) -> Result<(), Error> {
         self.installation
             .get_or_try_init(|| async {
-                if let Some(bundle) = &self.runtime_bundle {
-                    microsandbox::setup::Setup::builder()
-                        .base_dir(&self.microsandbox_home)
-                        .bundle_path(&bundle.path)
-                        .expected_bundle_sha256(&bundle.sha256)
-                        .allow_ci_local_bundle(false)
-                        .build()
-                        .install()
-                        .await
-                } else {
-                    let sha256 = released_runtime_sha256()
-                        .ok_or_else(|| Error::UnsupportedPlatform(sandbox::Platform::native("linux")))?;
-                    microsandbox::setup::Setup::builder()
-                        .base_dir(&self.microsandbox_home)
-                        .expected_bundle_sha256(sha256)
-                        .allow_ci_local_bundle(false)
-                        .build()
-                        .install()
-                        .await
+                let config = self.backend.config();
+                let paths = &config.paths;
+                if let Some(path) = [&paths.msb, &paths.libkrunfw, &paths.agentd]
+                    .into_iter()
+                    .flatten()
+                    .next()
+                {
+                    return Err(Error::Backend(format!(
+                        "Microsandbox runtime override {} is not supported",
+                        path.display()
+                    )));
                 }
+                if let Ok(runtime) = microsandbox::setup::resolve_runtime(config)
+                    && is_pinned_runtime(&runtime.msb_path)
+                {
+                    return Ok(());
+                }
+                let (source, sha256) = match &self.runtime_bundle {
+                    Some(bundle) => (
+                        microsandbox::setup::InstallSource::Archive(bundle.path.clone()),
+                        bundle.sha256.clone(),
+                    ),
+                    None => (
+                        microsandbox::setup::InstallSource::ReleaseDownload,
+                        released_runtime_sha256()
+                            .ok_or_else(|| Error::UnsupportedPlatform(sandbox::Platform::native("linux")))?
+                            .to_owned(),
+                    ),
+                };
+                microsandbox::setup::install_runtime(
+                    config,
+                    microsandbox::setup::InstallOptions {
+                        source,
+                        force: true,
+                        expected_archive_sha256: Some(sha256),
+                        ..Default::default()
+                    },
+                )
+                .await
+                .map(drop)
                 .map_err(error::microsandbox)
             })
             .await?;
         Ok(())
     }
 
-    /// Starts from Microsandbox's built-in sandbox defaults. Both
-    /// `Sandbox::builder` and `SandboxBuilder::new` overlay the process-global
-    /// Backend's `config.json` sandbox defaults, which this Client must not
-    /// inherit.
+    /// Builds a sandbox whose unset settings come from this Client's backend
+    /// when it is created inside [`Self::scope`], never from the process
+    /// user's Microsandbox configuration.
     pub(crate) fn sandbox_builder(
         name: impl Into<String>,
         image: impl Into<String>,
@@ -181,7 +206,7 @@ impl Client {
     ) -> Result<microsandbox::sandbox::SandboxBuilder, Error> {
         let root_filesystem_mode = resources.root_filesystem().mode();
         let resources = RuntimeResources::try_from(resources)?;
-        let builder = microsandbox::sandbox::SandboxBuilder::from_builtin_defaults(name)
+        let builder = microsandbox::sandbox::SandboxBuilder::new(name)
             .image(image.into())
             .cpus(resources.cpus)
             .memory(resources.memory_mib);
@@ -201,6 +226,22 @@ impl Client {
         let backend: Arc<dyn microsandbox::Backend> = self.backend.clone();
         microsandbox::with_backend(backend, future).await
     }
+}
+
+/// Builds within a Client whose home is private to the test, so neither the
+/// host user's Microsandbox configuration nor another test leaks in.
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+pub(crate) async fn build_in_client_scope(
+    builder: microsandbox::sandbox::SandboxBuilder,
+) -> microsandbox::sandbox::SandboxConfig {
+    let home = tempfile::tempdir().expect("temporary home should be created");
+    let client = Client::open(home.path().join("microsandbox"), None, None)
+        .await
+        .expect("Client should open");
+    Box::pin(client.scope(builder.build()))
+        .await
+        .expect("Sandbox configuration should build")
 }
 
 #[cfg(unix)]
@@ -245,6 +286,14 @@ fn run_directory(home: &Path) -> Result<PathBuf, Error> {
     Ok(path)
 }
 
+/// Whether an installed `msb` is the runtime this SDK build launches.
+fn is_pinned_runtime(msb: &Path) -> bool {
+    matches!(
+        microsandbox::setup::resolve_runtime_version(msb),
+        Ok(Some(version)) if version.to_string() == microsandbox::setup::InstallOptions::default().version
+    )
+}
+
 fn released_runtime_sha256() -> Option<&'static str> {
     runtime_sha256(std::env::consts::OS, std::env::consts::ARCH)
 }
@@ -261,7 +310,8 @@ pub(crate) fn runtime_sha256(os: &str, architecture: &str) -> Option<&'static st
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
+// Test Clients live for the whole test; tightening their drop adds nothing.
+#[allow(clippy::expect_used, clippy::significant_drop_tightening)]
 mod tests {
     use sandbox::{ByteQuantity, CpuQuantity, RootFilesystem, SandboxResources};
     #[cfg(unix)]
@@ -341,17 +391,38 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
+    async fn runtime_paths_outside_the_home_are_refused() {
+        let home = tempfile::tempdir().expect("temporary home should be created");
+        let microsandbox_home = home.path().join("microsandbox");
+        std::fs::create_dir_all(&microsandbox_home).expect("home should be created");
+        std::fs::write(
+            microsandbox_home.join("config.json"),
+            br#"{"paths":{"agentd":"/opt/other/agentd"}}"#,
+        )
+        .expect("configuration should be written");
+        let client = Client::open(microsandbox_home, None, None)
+            .await
+            .expect("Client should open");
+
+        let error = client
+            .ensure_installed()
+            .await
+            .expect_err("a configured guest agent should be refused");
+
+        assert!(error.to_string().contains("/opt/other/agentd"), "{error}");
+    }
+
+    #[tokio::test(flavor = "local")]
     async fn sandbox_builders_use_explicit_resources_without_ambient_defaults() {
         let resources = SandboxResources::new(
             "2".parse::<CpuQuantity>().expect("CPU should parse"),
             "768Mi".parse::<ByteQuantity>().expect("memory should parse"),
             RootFilesystem::layered("4Gi".parse::<ByteQuantity>().expect("root filesystem should parse")),
         );
-        let config = Client::sandbox_builder("sandbox", "alpine", resources)
-            .expect("resources should map to Microsandbox")
-            .build()
-            .await
-            .expect("Sandbox configuration should build");
+        let config = Box::pin(super::build_in_client_scope(
+            Client::sandbox_builder("sandbox", "alpine", resources).expect("resources should map to Microsandbox"),
+        ))
+        .await;
 
         assert_eq!(config.spec.resources.cpus, 2);
         assert_eq!(config.spec.resources.memory_mib, 768);
@@ -366,11 +437,10 @@ mod tests {
             "768Mi".parse::<ByteQuantity>().expect("memory should parse"),
             RootFilesystem::direct("4Gi".parse::<ByteQuantity>().expect("root filesystem should parse")),
         );
-        let config = Client::sandbox_builder("sandbox", "alpine", resources)
-            .expect("resources should map to Microsandbox")
-            .build()
-            .await
-            .expect("Sandbox configuration should build");
+        let config = Box::pin(super::build_in_client_scope(
+            Client::sandbox_builder("sandbox", "alpine", resources).expect("resources should map to Microsandbox"),
+        ))
+        .await;
 
         assert_eq!(
             config.spec.image.oci_root_disk(),

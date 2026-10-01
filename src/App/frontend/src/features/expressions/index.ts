@@ -263,14 +263,14 @@ export const ExprTypes: {
         return JSON.stringify(arg);
       }
 
-      // Always lowercase these values, to make comparisons case-insensitive
-      if (arg.toLowerCase() === 'null') {
+      // Always lowercase these string values, to make comparisons case-insensitive
+      if (typeof arg === 'string' && arg.toLowerCase() === 'null') {
         return null;
       }
-      if (arg.toLowerCase() === 'false') {
+      if (typeof arg === 'string' && arg.toLowerCase() === 'false') {
         return 'false';
       }
-      if (arg.toLowerCase() === 'true') {
+      if (typeof arg === 'string' && arg.toLowerCase() === 'true') {
         return 'true';
       }
 

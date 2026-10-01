@@ -18,6 +18,7 @@ use agent::{
 use clap::{Parser, Subcommand, ValueEnum};
 
 mod format;
+mod launch;
 mod progress;
 mod self_update;
 mod tui;
@@ -867,12 +868,17 @@ async fn ssh(
         .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
-    ssh.arg("-F").arg(&access.config_file).arg(&access.alias).args(command);
+    ssh.args(ssh_client_arguments(&access)).args(command);
     run_ssh_client(ssh)
 }
 
 fn ssh_client_executable() -> String {
     format!("ssh{}", std::env::consts::EXE_SUFFIX)
+}
+
+/// Arguments that point the OpenSSH client at an Agent's generated alias.
+fn ssh_client_arguments(access: &agent::ssh::AccessInfo) -> [&std::ffi::OsStr; 3] {
+    ["-F".as_ref(), access.config_file.as_os_str(), access.alias.as_ref()]
 }
 
 #[cfg(unix)]
@@ -889,12 +895,15 @@ fn run_ssh_client(mut ssh: ProcessCommand) -> CommandResult<ExitCode> {
 }
 
 fn ssh_client_error(error: &std::io::Error) -> CommandError {
+    CommandError::Message(ssh_client_failure(error))
+}
+
+/// Why the OpenSSH client could not be started.
+fn ssh_client_failure(error: &std::io::Error) -> String {
     if error.kind() == std::io::ErrorKind::NotFound {
-        CommandError::Message(
-            "the OpenSSH client `ssh` was not found on PATH; install OpenSSH to use `agentctl ssh`".into(),
-        )
+        "the OpenSSH client `ssh` was not found on PATH; install OpenSSH".into()
     } else {
-        CommandError::Message(format!("could not run the OpenSSH client: {error}"))
+        format!("could not run the OpenSSH client: {error}")
     }
 }
 
@@ -922,18 +931,11 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
 }
 
 fn install_ssh_config(home: &ControlPlaneHome) -> CommandResult<()> {
-    let user_home = agent::local::home::user_home_directory()
-        .ok_or_else(|| Error::Invalid("the user home directory is not set (HOME or USERPROFILE)".into()))?;
-    let user_config = user_home.join(".ssh").join("config");
-    let generated = agent::ssh::SshHome::new(home).config_path();
-    let include = agent::ssh::render_include(&generated, Some(&user_home));
-    match agent::ssh::install_include(&user_config, &include)? {
-        agent::ssh::IncludeOutcome::Installed => {
-            println!("added `{include}` at the top of {}", user_config.display());
-        }
-        agent::ssh::IncludeOutcome::AlreadyInstalled => {
-            println!("{} already contains `{include}`", user_config.display());
-        }
+    let include = agent::ssh::UserInclude::for_home(home)?;
+    let (line, user_config) = (&include.line, include.user_config.display());
+    match include.install()? {
+        agent::ssh::IncludeOutcome::Installed => println!("added `{line}` at the top of {user_config}"),
+        agent::ssh::IncludeOutcome::AlreadyInstalled => println!("{user_config} already contains `{line}`"),
     }
     Ok(())
 }
@@ -1012,11 +1014,7 @@ async fn vnc(
     let address = forward.local_address();
     // The image decides what its viewer port serves and where the root redirects, so the caller is
     // pointed at the root rather than a path this side would have to keep in step with it.
-    let url = if web {
-        format!("http://{address}/")
-    } else {
-        format!("vnc://{address}")
-    };
+    let url = launch::forward_url(address, guest_port);
     println!("Desktop of agent {agent:?} is at {url}");
     if web {
         println!("Open that address in a browser; nothing needs installing.");
@@ -1024,7 +1022,7 @@ async fn vnc(
         println!("Open it with any VNC viewer, for example `vncviewer {address}`, or pass --web for a browser.");
     }
     if open {
-        open_locally(&url);
+        open_locally(&url).await;
     }
     hold_forwards(std::slice::from_ref(&forward)).await
 }
@@ -1033,17 +1031,10 @@ async fn vnc(
 ///
 /// Best effort by design: there is no portable VNC viewer, the address is
 /// already printed, and a missing handler must not fail the forward.
-fn open_locally(url: &str) {
-    let opener = if cfg!(target_os = "macos") {
-        "open"
-    } else if cfg!(target_os = "windows") {
-        "explorer"
-    } else {
-        "xdg-open"
-    };
-    match ProcessCommand::new(opener).arg(url).spawn() {
-        Ok(_) => println!("Asked {opener} to open {url}."),
-        Err(error) => eprintln!("could not run {opener} to open {url}: {error}"),
+async fn open_locally(url: &str) {
+    match launch::open_url(url).await {
+        Ok(()) => println!("Asked {} to open {url}.", launch::opener()),
+        Err(error) => eprintln!("{error}"),
     }
 }
 

@@ -450,7 +450,16 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
-            let response = self.handle(request).await;
+            let response = if ends_with_its_client(&request.method) {
+                // A reply that is ready wins over a client that has half-closed.
+                tokio::select! {
+                    biased;
+                    response = self.handle(request) => response,
+                    () = disconnected(&mut stream) => return Ok(()),
+                }
+            } else {
+                self.handle(request).await
+            };
             write_response(stream.get_mut(), &response).await?;
         }
     }
@@ -769,6 +778,32 @@ const fn wait_policy(follow: bool) -> WaitPolicy {
         WaitPolicy::UntilReady
     } else {
         WaitPolicy::FirstPass
+    }
+}
+
+/// Whether a request waits and may stop when its client disconnects. Each
+/// only reads or waits, or, like `sessions.v1.ensure`, its writes are each
+/// complete on their own. Every other request runs to completion, so an
+/// interrupted command never leaves a change half made.
+fn ends_with_its_client(method: &str) -> bool {
+    matches!(
+        method,
+        METHOD_PROGRESS
+            | METHOD_RESOURCES_WATCH
+            | METHOD_EXECUTION_ENSURE
+            | METHOD_SESSION_ENSURE
+            | METHOD_SESSION_TURNS
+    )
+}
+
+/// Completes once the client has closed its end. A client sends nothing while
+/// it waits for a reply, so data here is a pipelined request, left for the
+/// next read.
+async fn disconnected<R: tokio::io::AsyncBufRead + Unpin>(reader: &mut R) {
+    use tokio::io::AsyncBufReadExt as _;
+    match reader.fill_buf().await {
+        Ok(buffer) if !buffer.is_empty() => std::future::pending().await,
+        Ok(_) | Err(_) => {}
     }
 }
 

@@ -39,6 +39,7 @@ export const textResourceTexts = (rowNumber: number): TextResourceInputTexts => 
   editValue: textResourceEditLabel(rowNumber),
   emptyTextResourceList: 'No text resources available',
   idLabel: 'ID:',
+  modeToggle: 'Mode',
   search: textResourceSearchLabel(rowNumber),
   textResourcePickerLabel: textResourcePickerLabel(rowNumber),
   noTextResourceOptionLabel: 'Ikke oppgitt',

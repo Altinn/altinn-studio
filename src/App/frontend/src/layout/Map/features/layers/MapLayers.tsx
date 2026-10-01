@@ -14,6 +14,7 @@ function OurTileLayer({ layer }: { layer: MapTileLayer }) {
       subdomains={layer.subdomains ?? []}
       minZoom={layer.minZoom ?? 0}
       maxZoom={layer.maxZoom ?? 18}
+      referrerPolicy='strict-origin-when-cross-origin'
     />
   );
 }

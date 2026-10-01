@@ -1586,7 +1586,7 @@ public sealed class ProcessEngineTest
             .ReturnsAsync([
                 CreateWorkflowStatusResponse(
                     workflowId,
-                    "Process next: acquire",
+                    "Process next: Mark instance as processing",
                     PersistentItemStatus.Completed,
                     collectionKey,
                     createdAt: acquiredAt

@@ -158,23 +158,27 @@ export function createZustandHooks<Store extends StoreApi<Type>, Type = ExtractF
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     deps?: any[],
     strictness?: Strictness,
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSReturn<DSConfig<Type, Mode, Strictness>> =>
     useDelayedSelector({
       store: useLaxStoreHook(),
       strictness: (strictness ?? SelectorStrictness.returnSymbolWhenNotProvided) as Strictness,
       mode,
       deps,
+      makeCacheKey,
     });
 
   const useDS = <Mode extends DSMode<Type>>(
     mode: Mode,
     deps?: unknown[],
+    makeCacheKey?: (args: unknown[]) => unknown[],
   ): DSReturn<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> =>
     useDelayedSelector({
       store: useStoreHook(),
       strictness: SelectorStrictness.throwWhenNotProvided,
       mode,
       deps,
+      makeCacheKey,
     });
 
   return {

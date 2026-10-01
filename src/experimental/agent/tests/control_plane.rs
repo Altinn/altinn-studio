@@ -17,11 +17,13 @@ use agent::{
     },
     progress::{OutputPosition, ProvisioningState, SandboxObserver},
     resources::Changes,
-    sandbox::{ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service},
+    sandbox::{
+        ExecutionService, PlatformAdapter, Provider, ProviderEnsureOutcome, ProviderId, Service, UNRESPONSIVE_AFTER,
+    },
 };
 use sandbox::{
-    EnsureSandboxRequest, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle, SandboxName,
-    SandboxPath, SandboxResources, SandboxService,
+    EnsureSandboxRequest, GuestHeartbeat, LocalFuture, Platform, RetentionPolicy, RootFilesystem, SandboxHandle,
+    SandboxName, SandboxPath, SandboxResources, SandboxService,
     backend::SandboxBackend as _,
     init::InitSystem,
     memory as sandbox_memory,
@@ -760,13 +762,19 @@ async fn reconcile_resolves_sources_and_reports_sandbox_ready() {
         .and_then(agent::sandbox::Assignment::id)
         .expect("sandbox id");
     assert_eq!(observed.status.observed_generation, 1);
-    assert_eq!(observed.status.conditions.len(), 2);
-    assert!(
+    assert_eq!(
         observed
             .status
             .conditions
             .iter()
-            .all(|condition| condition.status == ConditionStatus::True)
+            .map(|condition| (condition.kind.as_str(), condition.status))
+            .collect::<Vec<_>>(),
+        [
+            (agent::Condition::SANDBOX_READY, ConditionStatus::True),
+            // The memory backend reports no guest heartbeat.
+            (agent::Condition::SANDBOX_RESPONSIVE, ConditionStatus::Unknown),
+            (agent::Condition::READY, ConditionStatus::True),
+        ]
     );
     let sandbox = fixture.backend.find(&materialized_name).await.expect("sandbox");
     assert_eq!(&sandbox.id, sandbox_id);
@@ -1997,6 +2005,7 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
             .collect::<Vec<_>>(),
         [
             (agent::Condition::SANDBOX_READY, ConditionStatus::True),
+            (agent::Condition::SANDBOX_RESPONSIVE, ConditionStatus::Unknown),
             (agent::Condition::SSH_READY, ConditionStatus::True),
             (agent::Condition::READY, ConditionStatus::True),
         ]
@@ -2026,4 +2035,268 @@ async fn ssh_access_is_reported_underneath_ready_and_cleaned_up_on_deletion() {
             .expect("config")
             .contains("Host ")
     );
+}
+
+/// A Linux platform whose setup can be made to wait forever, as setup does
+/// when its guest stops answering Executions.
+#[derive(Default)]
+struct StallingPlatform {
+    stall: Cell<bool>,
+    /// Setup fails at once, as a command timing out inside the guest does.
+    fail: Cell<bool>,
+    setups: Cell<usize>,
+    started: Notify,
+}
+
+impl PlatformAdapter for StallingPlatform {
+    fn supports(&self, platform: &Platform) -> bool {
+        platform.os == "linux"
+    }
+
+    fn setup<'a>(
+        &'a self,
+        _record: &'a AgentRecord,
+        _sandbox: &'a SandboxHandle,
+        _harnesses: &'a [agent::Harness],
+        _steps: &'a sandbox::SandboxProgress,
+    ) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move {
+            self.setups.set(self.setups.get() + 1);
+            if self.fail.get() {
+                return Err(Error::SandboxSetup("`codex --version` did not finish within 5s".into()));
+            }
+            if self.stall.get() {
+                self.started.notify_one();
+                std::future::pending::<()>().await;
+            }
+            Ok(())
+        })
+    }
+}
+
+/// An Agent `worker` whose guest heartbeat and setup the test controls.
+struct Stalling {
+    store: Rc<memory::InMemoryAgentStore>,
+    backend: Rc<sandbox_memory::Provider>,
+    platform: Rc<StallingPlatform>,
+    reconciler: Rc<Reconciler>,
+    id: AgentId,
+}
+
+async fn stalling(changes: Changes) -> Stalling {
+    let store = Rc::new(memory::InMemoryAgentStore::with_changes(changes));
+    let backend = Rc::new(sandbox_memory::Provider::new());
+    let provider: Rc<dyn Provider> = Rc::new(MemoryProvider::new(backend.clone()));
+    let platform = Rc::new(StallingPlatform::default());
+    let sandboxes =
+        Rc::new(Service::new([provider], [platform.clone() as Rc<dyn PlatformAdapter>]).expect("Sandbox service"));
+    let reconciler = Rc::new(Reconciler::new(store.clone(), sandboxes, ProvisioningState::default()));
+    ControlPlane::new(store.clone(), Rc::new(NotificationCounter::default()))
+        .apply(apply_request("worker"))
+        .await
+        .expect("apply");
+    let id = store.get_by_name("worker").await.expect("stored Agent").id;
+    Stalling {
+        store,
+        backend,
+        platform,
+        reconciler,
+        id,
+    }
+}
+
+impl Stalling {
+    async fn record(&self) -> AgentRecord {
+        self.store.get(self.id).await.expect("stored Agent")
+    }
+
+    /// Reports `sequence` as the guest's heartbeat.
+    async fn beat(&self, sequence: u64) {
+        let record = self.record().await;
+        let sandbox = record
+            .agent
+            .status
+            .sandbox
+            .as_ref()
+            .and_then(agent::sandbox::Assignment::id)
+            .expect("materialized Sandbox");
+        self.backend
+            .set_guest_heartbeat(sandbox, Some(GuestHeartbeat::new(sequence)))
+            .expect("heartbeat should be set");
+    }
+}
+
+fn condition<'a>(status: &'a Status, kind: &str) -> &'a agent::Condition {
+    status
+        .conditions
+        .iter()
+        .find(|condition| condition.kind == kind)
+        .expect("the condition should be recorded")
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_stalled_guest_ends_setup_and_its_agent_reports_it_unresponsive() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    let status = fixture.record().await.agent.status;
+    assert!(status.is_ready());
+    assert_eq!(
+        condition(&status, agent::Condition::SANDBOX_RESPONSIVE).reason,
+        "HeartbeatNotObserved"
+    );
+    fixture.beat(1).await;
+    tokio::time::advance(Duration::from_secs(1)).await;
+    fixture.beat(2).await;
+
+    fixture.platform.stall.set(true);
+    let pass = tokio::task::spawn_local({
+        let reconciler = fixture.reconciler.clone();
+        let id = fixture.id;
+        async move { reconciler.reconcile(id).await }
+    });
+    fixture.platform.started.notified().await;
+
+    // The heartbeat stays at 2, so the pass's own inspections find the stall.
+    let result = pass.await.expect("the pass should not panic");
+    assert!(
+        matches!(result, Err(Error::SandboxUnresponsive(_))),
+        "the stalled pass should end as unresponsive, got {result:?}"
+    );
+    let status = fixture.record().await.agent.status;
+    let ready = condition(&status, agent::Condition::READY);
+    assert_eq!(
+        (ready.status, ready.reason.as_str()),
+        (ConditionStatus::False, "SandboxUnresponsive")
+    );
+    let responsive = condition(&status, agent::Condition::SANDBOX_RESPONSIVE);
+    assert_eq!(
+        (responsive.status, responsive.reason.as_str()),
+        (ConditionStatus::False, "HeartbeatStale")
+    );
+    assert_eq!(
+        condition(&status, agent::Condition::SANDBOX_READY).status,
+        ConditionStatus::True,
+        "the Sandbox lifecycle is unchanged"
+    );
+    assert_eq!(status.failure, Some(FailureKind::Transient));
+
+    // While the guest stays stalled, a pass does not reach into it.
+    let setups = fixture.platform.setups.get();
+    let result = fixture.reconciler.reconcile(fixture.id).await;
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+    assert_eq!(fixture.platform.setups.get(), setups);
+
+    // A heartbeat that advances again makes the Agent Ready.
+    fixture.platform.stall.set(false);
+    fixture.beat(3).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("recovered pass");
+    let status = fixture.record().await.agent.status;
+    assert!(status.is_ready());
+    let responsive = condition(&status, agent::Condition::SANDBOX_RESPONSIVE);
+    assert_eq!(
+        (responsive.status, responsive.reason.as_str()),
+        (ConditionStatus::True, "HeartbeatAdvancing")
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_failure_from_a_guest_that_stopped_beating_is_reported_as_the_stall() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.fail.set(true);
+
+    let result = fixture.reconciler.reconcile(fixture.id).await;
+
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+    let status = fixture.record().await.agent.status;
+    assert_eq!(
+        condition(&status, agent::Condition::READY).reason,
+        "SandboxUnresponsive"
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn a_failure_from_a_guest_that_still_beats_stands() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.fail.set(true);
+    let beating = tokio::task::spawn_local({
+        let fixture = Rc::new(fixture);
+        let pass = fixture.clone();
+        let beats = async move {
+            let mut sequence = 1;
+            loop {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                sequence += 1;
+                fixture.beat(sequence).await;
+            }
+        };
+        async move {
+            tokio::select! {
+                () = beats => unreachable!(),
+                result = pass.reconciler.reconcile(pass.id) => result,
+            }
+        }
+    });
+
+    let result = beating.await.expect("the pass should not panic");
+
+    assert!(
+        matches!(&result, Err(Error::SandboxSetup(message)) if message.contains("codex --version")),
+        "{result:?}"
+    );
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn an_agent_with_a_stalled_guest_can_still_be_deleted() {
+    let fixture = stalling(Changes::new()).await;
+    fixture.reconciler.reconcile(fixture.id).await.expect("first pass");
+    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
+    let result = fixture.reconciler.reconcile(fixture.id).await;
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+
+    ControlPlane::new(fixture.store.clone(), Rc::new(NotificationCounter::default()))
+        .delete("worker")
+        .await
+        .expect("delete request");
+    let sandbox = sandbox_name(&fixture.record().await);
+    fixture.reconciler.reconcile(fixture.id).await.expect("release");
+
+    assert!(matches!(fixture.store.get(fixture.id).await, Err(Error::NotFound)));
+    let retained = fixture.backend.find(&sandbox).await.expect("retained Sandbox");
+    assert_eq!(retained.state, sandbox::SandboxState::Stopped);
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn waiting_until_ready_ends_once_the_guest_is_recorded_unresponsive() {
+    let changes = Changes::new();
+    let fixture = stalling(changes.clone()).await;
+    let (controller, wakeup) = Controller::new(
+        fixture.store.clone(),
+        fixture.reconciler.clone(),
+        NO_BACKGROUND_PASSES,
+        Rc::new(|_, _| {}),
+    );
+    let task = tokio::task::spawn_local(controller.run());
+    let convergence = Convergence::new(wakeup, fixture.store.clone(), changes);
+    convergence
+        .converge(fixture.id, WaitPolicy::UntilReady)
+        .await
+        .expect("the healthy Agent should become Ready");
+    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
+
+    let started = tokio::time::Instant::now();
+    let result = convergence.converge(fixture.id, WaitPolicy::UntilReady).await;
+
+    assert!(matches!(result, Err(Error::SandboxUnresponsive(_))), "{result:?}");
+    let waited = started.elapsed();
+    assert!(
+        waited >= UNRESPONSIVE_AFTER && waited < UNRESPONSIVE_AFTER + Duration::from_secs(3),
+        "the wait ends with the pass that finds the stall, took {waited:?}"
+    );
+    task.abort();
 }
