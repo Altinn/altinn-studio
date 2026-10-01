@@ -10,15 +10,29 @@ namespace Designer.Tests.Services.GitOps.GitRepoGitOpsConfigurationManagerTests;
 
 public class DeleteLocalRepositoryTests : GitRepoGitOpsConfigurationManagerTestsBase<DeleteLocalRepositoryTests>
 {
+    private const string DeletionFailedMessage = "Failed to delete local repository directory";
+
     [Fact]
     public async Task WhenDirectoryDeletionFails_ShouldLogWarning()
     {
         Given.That.LocalRepositoryExists().And.MakeRepositoryDirectoryUndeletable();
+        var warningLogged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        MockLogger
+            .Setup(logger =>
+                logger.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(DeletionFailedMessage)),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()
+                )
+            )
+            .Callback(new InvocationAction(_ => warningLogged.TrySetResult()));
 
         await And.When.EnsureGitOpsConfigurationExistsCalled("tt02");
 
-        // Give some time for the background task to execute
-        await Task.Delay(100);
+        // Deletion continues in the background after the request returns.
+        await warningLogged.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         Then.LoggerShouldHaveLoggedWarning();
     }
@@ -62,7 +76,7 @@ public class DeleteLocalRepositoryTests : GitRepoGitOpsConfigurationManagerTests
                 x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to delete local repository directory")),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains(DeletionFailedMessage)),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception, string>>()
                 ),
