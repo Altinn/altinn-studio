@@ -159,14 +159,17 @@ async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
 
     // A paused VM refuses a graceful stop and a frozen one never answers it;
     // stopping either must still end it, and it starts again on its own disk.
-    assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
-        msb(&home, &["pause", runtime]);
-    })
-    .await;
-    assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
-        signal(&runtime_processes(runtime), "STOP");
-    })
-    .await;
+    // Finding and signalling the VM process reads the host's `/proc`.
+    if cfg!(target_os = "linux") {
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            msb(&home, &["pause", runtime]);
+        })
+        .await;
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            signal(&runtime_processes(runtime), "STOP");
+        })
+        .await;
+    }
 
     backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
 }
