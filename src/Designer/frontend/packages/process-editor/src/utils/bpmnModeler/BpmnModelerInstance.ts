@@ -1,3 +1,4 @@
+import { ReadOnlyCommandStack } from './ReadOnlyCommandStack';
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvider';
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
@@ -15,7 +16,6 @@ export class BpmnModelerInstance {
     }
   }
 
-  // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
   public static getInstance(canvasContainer?: HTMLDivElement): BpmnModeler {
     const shouldCreateNewInstance =
       !BpmnModelerInstance.instance && BpmnModelerInstance.currentRefContainer !== canvasContainer;
@@ -24,6 +24,7 @@ export class BpmnModelerInstance {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
         additionalModules: [
+          { commandStack: ['type', ReadOnlyCommandStack] },
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,
