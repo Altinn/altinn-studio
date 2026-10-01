@@ -1,7 +1,8 @@
-import { updateProcessState } from './mutations';
-import { put } from 'app-shared/utils/networking';
-import { processStatePath } from './paths';
+import { updateAppPolicy, updateProcessState } from './mutations';
+import { put, putWithRevision } from 'app-shared/utils/networking';
+import { appPolicyPath, processStatePath } from './paths';
 import type { ProcessChange, ProcessState } from '../types/api/ProcessState';
+import type { Policy } from '../types/Policy';
 import { app, org } from '@studio/testing/testids';
 
 jest.mock('app-shared/utils/networking');
@@ -32,5 +33,30 @@ describe('updateProcessState', () => {
     });
 
     expect(result).toEqual(saved);
+  });
+});
+
+describe('updateAppPolicy', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  const policy: Policy = {
+    revision: '"loaded-revision"',
+    rules: [],
+    requiredAuthenticationLevelEndUser: '3',
+    requiredAuthenticationLevelOrg: '3',
+  };
+
+  it('saves the application policy through the revision adapter', async () => {
+    await updateAppPolicy(org, app, policy);
+
+    expect(putWithRevision).toHaveBeenCalledTimes(1);
+    expect(putWithRevision).toHaveBeenCalledWith(appPolicyPath(org, app), policy);
+  });
+
+  it('returns the saved policy with its new revision', async () => {
+    const saved: Policy = { ...policy, revision: '"saved-revision"' };
+    jest.mocked(putWithRevision).mockResolvedValueOnce(saved);
+
+    expect(await updateAppPolicy(org, app, policy)).toEqual(saved);
   });
 });

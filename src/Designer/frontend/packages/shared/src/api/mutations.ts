@@ -1,4 +1,4 @@
-import { del, get, patch, post, put } from 'app-shared/utils/networking';
+import { del, get, patch, post, put, putWithRevision } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   branchesPath,
@@ -185,7 +185,7 @@ export const updateAppAttachmentMetadata = (org: string, app: string, payload: A
 export const updateFormLayoutName = (org: string, app: string, oldName: string, newName: string, layoutSetName: string) => post<void, string>(formLayoutNamePath(org, app, oldName, layoutSetName), JSON.stringify(newName), { headers: { 'Content-Type': 'application/json' } });
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
-export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
+export const updateAppPolicy = (org: string, app: string, payload: Policy) => putWithRevision<Policy>(appPolicyPath(org, app), payload);
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });

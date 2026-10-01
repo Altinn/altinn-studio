@@ -1,4 +1,4 @@
-import { get } from 'app-shared/utils/networking';
+import { get, getWithRevision } from 'app-shared/utils/networking';
 import {
   chatThreadsPath,
   chatMessagesPath,
@@ -223,7 +223,7 @@ export const getPages = (org: string, app: string, layoutSet: string) => get<Pag
 
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
-export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
+export const getAppPolicy = (org: string, app: string) => getWithRevision<Policy>(appPolicyPath(org, app));
 export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
