@@ -2,7 +2,12 @@ import { CommonExpressions, Expressions } from '@app/layout-contract/generated/e
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import {
+  useEvalExpression,
+  useEvalExpressionCallback,
+  useEvalOptionalText,
+  useEvalOptionalTrb,
+} from 'src/utils/layout/useEvalExpression';
 import type { IApplicationSettings } from 'src/types/shared';
 
 const mockInputs: {
@@ -184,4 +189,26 @@ it('subscribes to optional text dependencies as bindings are added and removed',
   await waitFor(() => expect(result.current).toBe('en'));
   rerender({ configured: false });
   await waitFor(() => expect(result.current).toBeUndefined());
+});
+
+it('reads fresh inputs when a callback is invoked after a rerender', () => {
+  const expression: ['language'] = ['language'];
+  const { result, rerender } = renderHook(() =>
+    useEvalExpressionCallback(expression, CommonExpressions.TRBLabel.title),
+  );
+  const evaluate = result.current;
+  mockInputs.currentLanguage = 'en';
+  rerender();
+  expect(evaluate()).toBe('en');
+});
+
+it('uses descriptor fallbacks for callback evaluation failures', () => {
+  const logError = vi.spyOn(window, 'logError').mockImplementation(() => undefined);
+  const expression: ['dataModel', string] = ['dataModel', 'unknownField'];
+  const { result } = renderHook(() =>
+    useEvalExpressionCallback(expression, Expressions.RepeatingGroup.edit.saveButton),
+  );
+  expect(logError).not.toHaveBeenCalled();
+  expect(result.current()).toBe(true);
+  expect(logError).toHaveBeenCalled();
 });
