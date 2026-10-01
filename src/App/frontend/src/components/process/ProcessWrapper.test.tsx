@@ -487,6 +487,8 @@ describe('ProcessWrapper workflow state machine', () => {
       expect(
         screen.getByText(`Prosessteget Task_Unsupported har typen ${altinnTaskType}, som appen ikke kan vise.`),
       ).toBeInTheDocument();
+      expect(screen.getByText(/hvis du har behov for assistanse kan du nå altinn/i)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: '+47 75 00 60 00' })).toBeInTheDocument();
       expect(screen.getByTestId('presentation')).toBeInTheDocument();
       expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
       expect(screen.queryByText(/ukjent feil/i)).not.toBeInTheDocument();

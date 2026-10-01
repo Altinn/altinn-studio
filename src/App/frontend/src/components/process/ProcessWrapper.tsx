@@ -322,6 +322,25 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
             params={[taskId ?? '', altinnTaskType]}
           />
         </div>
+        <div className={classes.failedDescription}>
+          <Lang
+            id='general.customer_service_error_message'
+            params={[
+              <Lang
+                key={0}
+                id='general.customer_service_phone_number'
+              />,
+              <Lang
+                key={1}
+                id='general.customer_service_email'
+              />,
+              <Lang
+                key={2}
+                id='general.customer_service_slack'
+              />,
+            ]}
+          />
+        </div>
       </Flex>
     </>
   );
