@@ -25,7 +25,7 @@ pub const OBSERVATION_INTERVAL: Duration = Duration::from_secs(2);
 #[must_use]
 pub fn stall_detail() -> String {
     format!(
-        "the guest has not reported progress for more than {}s",
+        "the guest has not reported progress for more than {}s; stopping and starting the Agent restarts it",
         UNRESPONSIVE_AFTER.as_secs()
     )
 }

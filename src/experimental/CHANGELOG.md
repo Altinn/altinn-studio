@@ -19,6 +19,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
   - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
   - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
 - `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl stop` and `agentctl start`, or `x` in `agentctl tui`, stop an Agent's VM and start it again on the same disk, also one that stopped responding. Its Sessions go Idle and resume when attached after the start, and re-applying keeps a stopped Agent stopped. ([#20807](https://github.com/Altinn/altinn-studio/issues/20807))
 
 ### Changed
 
@@ -30,6 +31,7 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
+- In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older. ([#20909](https://github.com/Altinn/altinn-studio/pull/20909))
 - Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - Interrupted commands that wait for an Agent, such as an editor retrying its SSH connection to an Agent that cannot start, no longer make `agentd` stop answering every other command. ([#20884](https://github.com/Altinn/altinn-studio/pull/20884))

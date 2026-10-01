@@ -164,8 +164,9 @@ impl Provider for Adapter {
                 }
             }
             let sandbox_name = record.sandbox_name()?;
+            // Ensure starts a stopped Sandbox, and restarts a running one to replace its environment.
             let runtime_restarted = match self.service.inspect(&sandbox_name).await {
-                Ok(sandbox) => sandbox.state == SandboxState::Running && sandbox.environment != environment,
+                Ok(sandbox) => sandbox.state == SandboxState::Stopped || sandbox.environment != environment,
                 Err(error) if error.is_not_found() => false,
                 Err(error) => return Err(error.into()),
             };
@@ -185,6 +186,10 @@ impl Provider for Adapter {
                 harnesses,
             })
         })
+    }
+
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.service.stop(&record.sandbox_name()?).await.map_err(Error::from) })
     }
 
     fn open<'a>(

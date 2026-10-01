@@ -10,13 +10,15 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { IData } from 'src/types/shared';
 
 export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): React.JSX.Element | null {
-  const { layoutSet, id } = useItemWhenType(targetBaseComponentId, 'Subform');
-  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
+  const config = useComponentConfig(targetBaseComponentId, 'Subform');
+  const id = useIndexedId(targetBaseComponentId);
+  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   const dataElements = useInstanceDataElements(dataType);
 
   return (
@@ -43,7 +45,7 @@ export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRender
 
 function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IData; baseComponentId: string }) {
   const id = dataElement.id;
-  const { tableColumns, summaryDelimiter = ' — ' } = useItemWhenType(baseComponentId, 'Subform');
+  const config = useComponentConfig(baseComponentId, 'Subform');
 
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
@@ -65,7 +67,7 @@ function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IDat
     );
   }
 
-  const content: (ReactNode | string)[] = tableColumns.map((entry, i) => (
+  const content: (ReactNode | string)[] = config.tableColumns.map((entry, i) => (
     <SubformCellContent
       key={i}
       cellContent={entry.cellContent}
@@ -87,7 +89,7 @@ function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IDat
         {content.map((entry, i) => (
           <React.Fragment key={`wrapper-${i}`}>
             {entry}
-            {!isLastEntry(i) && <span key={`delimiter-${i}`}>{summaryDelimiter}</span>}
+            {!isLastEntry(i) && <span key={`delimiter-${i}`}>{config.summaryDelimiter ?? ' — '}</span>}
           </React.Fragment>
         ))}
       </div>

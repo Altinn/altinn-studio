@@ -28,17 +28,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the `ApplicationLanguage` service class in `Altinn.App.Core.Internal.Language` is internal as well. Inject `IApplicationLanguage` instead; an app that constructed the class itself must use the interface from the container. `studioctl app upgrade v9` points out the references it finds.
 - `IAppMetadata` exposes the app's configuration as properties, since the files are in memory: `ApplicationMetadata`, `XacmlPolicy` and `ProcessDefinition`. The asynchronous `GetApplicationMetadata`, `GetApplicationXACMLPolicy` and `GetApplicationBPMNProcess` still work but are obsolete and return the property. The application metadata is parsed once per version of the file and shared, so treat it as read-only. A test that mocks the interface should set up the property getter (`Setup(m => m.ApplicationMetadata).Returns(...)`), since code in the libraries reads the property. An app that implements `IAppMetadata` itself must add the three properties; the built-in implementation is internal, so wrap the registered service instead of constructing it.
 - Breaking: the `ApplicationMetadata.Client.*` and `ApplicationMetadata.Service.*` trace spans are gone. They timed reads of the app's own files, which now come from memory, so there is nothing left to measure. Repoint any dashboard or query that filters on them.
+- Breaking: `AppSettings.RequiredValidation`, `ExpressionValidation` and `RemoveHiddenData` now default to `true`. Apps that are not ready can set each key to `false` under `AppSettings` in `appsettings.json`.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
 
 ### Fixed
 
+- The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 - PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too.
 - Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions.
 
 ### Removed
 
+- Breaking: remove unused `AppSettings.BaseResourceFolderContainer` and `AppSettings.DefaultBootstrapUrl`. Neither was read by the app libraries. Delete them from any `appsettings.json` that still lists them.
 - `AppSettings.AppBasePath`. The app files are always read relative to the content root of the host. A value left in `appsettings.json` is ignored; code that set the property must drop it.
 - The `AppSettings` folder and file name settings `ConfigurationFolder`, `OptionsFolder`, `UiFolder`, `ModelsFolder`, `TextFolder`, `ProcessFolder`, `AuthorizationFolder`, `FormLayoutSettingsFileName`, `FooterFileName`, `JsonSchemaFileName`, `ValidationConfigurationFileName`, `CalculationConfigurationFileName`, `ApplicationMetadataFileName`, `ApplicationXACMLPolicyFileName` and `ProcessFileName`, with the `JSON_SCHEMA_FILENAME`, `VALIDATION_CONFIG_FILENAME` and `CALCULATION_CONFIG_FILENAME` constants. The layout of an app folder is the one Studio creates and is not configurable. A value left in `appsettings.json` is ignored; code that read or set the properties must drop it.
 

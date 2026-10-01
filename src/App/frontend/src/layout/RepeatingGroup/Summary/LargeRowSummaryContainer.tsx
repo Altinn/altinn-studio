@@ -1,6 +1,7 @@
 import React from 'react';
 import type { JSX } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
@@ -8,12 +9,15 @@ import type { HeadingLevel } from '@app/layout-contract/generated/common.generat
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
+import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useComponentIdMutator, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 
 export interface IDisplayRepAsLargeGroup {
   baseComponentId: string;
@@ -36,29 +40,35 @@ export function LargeRowSummaryContainer({
   renderLayoutComponent,
   inExcludedChildren,
 }: IDisplayRepAsLargeGroup) {
-  const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const componentId = useIndexedId(baseComponentId);
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.RepeatingGroup.textResourceBindings.title,
+  );
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.RepeatingGroup.textResourceBindings.summaryTitle,
+  );
+
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const depth = getLayoutDepth(baseComponentId, layoutLookups);
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
 
-  const hiddenColumns = item.tableColumns
-    ? Object.entries(item.tableColumns)
-        .filter(([_, settings]) => settings.hidden === true)
-        .map(([id]) => id)
-    : [];
+  const hiddenColumns = useHiddenColumns(config.tableColumns);
 
-  const { title, summaryTitle } = item.textResourceBindings || {};
   const parent = layoutLookups.componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   const headingLevel = Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel;
   const headingSize = headingSizes[headingLevel];
   const legend = summaryTitle ?? title;
 
+  const resolvedPageBreak = useResolvedPageBreak(config.pageBreak);
   return (
     <Fieldset
-      className={cn(pageBreakStyles(item.pageBreak), classes.summary, {
+      className={cn(pageBreakStyles(resolvedPageBreak), classes.summary, {
         [classes.largeGroupContainer]: !isNested,
       })}
     >
@@ -71,7 +81,7 @@ export function LargeRowSummaryContainer({
         </Heading>
       </Fieldset.Legend>
       <div
-        id={id || item.id}
+        id={id || componentId}
         className={classes.largeGroupContainer}
       >
         {children.map((baseId) => {

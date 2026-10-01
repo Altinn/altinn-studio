@@ -77,7 +77,7 @@ __metadata:
     "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
   peerDependencies:
-    axios: 1.19.0
+    axios: 1.20.0
     classnames: 2.5.1
     react: 18.3.1
     react-dom: 18.3.1
@@ -2995,12 +2995,12 @@ __metadata:
   linkType: hard
 
 "@grpc/grpc-js@npm:^1.14.3":
-  version: 1.14.4
-  resolution: "@grpc/grpc-js@npm:1.14.4"
+  version: 1.14.5
+  resolution: "@grpc/grpc-js@npm:1.14.5"
   dependencies:
     "@grpc/proto-loader": "npm:^0.8.0"
     "@js-sdsl/ordered-map": "npm:^4.4.2"
-  checksum: 10/f9cdbd81e7388dc784c57274fcf6f4f4484da8968dd0975b97a14708d3fb117ae4a7bc2848e1bd1cc8b8ed9ee7a80ff131bfe728c85260da90a4e0b170e31ca9
+  checksum: 10/3be7fe0105c94e83e8a18b895fd534290cf3a26712940e95e0149b869da775a59551dafd60fd6c17213d3032b83fbfa64c6c2c9a0f569f6ef5968607174b7d79
   languageName: node
   linkType: hard
 
@@ -7748,7 +7748,7 @@ __metadata:
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
@@ -8007,7 +8007,7 @@ __metadata:
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
@@ -8073,7 +8073,7 @@ __metadata:
     ajv-formats: "npm:3.0.1"
     ajv-formats-draft2019: "npm:1.6.1"
     axe-core: "npm:4.13.0"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     babel-plugin-react-compiler: "npm:^19.1.0-rc.2"
     classnames: "npm:2.5.1"
     core-js: "npm:3.50.0"
@@ -8485,15 +8485,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.19.0":
-  version: 1.19.0
-  resolution: "axios@npm:1.19.0"
+"axios@npm:1.20.0":
+  version: 1.20.0
+  resolution: "axios@npm:1.20.0"
   dependencies:
     follow-redirects: "npm:^1.16.0"
     form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/d27e263b003f2dc1e6d0e2ab062dbc7c2b15668c25723e1e2072f139505c1fbd1f8cffef77d5ec05bb8e3cefa6fc5325c6446e747669fd95d85519529fa0db0b
+  checksum: 10/0376b6178baecbe0f5d36088f5b5f6c21362ce301e0731f77172f9c89be740bdee20d8ae6ab186340d7cb752020c6a4f1381290e5a5cd10f6f9003941615ac77
   languageName: node
   linkType: hard
 
@@ -8508,7 +8508,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-devops-mock@workspace:src/Designer/development/azure-devops-mock"
   dependencies:
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     cors: "npm:2.8.6"
     express: "npm:5.2.1"
     morgan: "npm:1.11.0"
@@ -8900,34 +8900,25 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^1.1.7":
-  version: 1.1.18
-  resolution: "brace-expansion@npm:1.1.18"
+  version: 1.1.21
+  resolution: "brace-expansion@npm:1.1.21"
   dependencies:
     balanced-match: "npm:^1.0.0"
     concat-map: "npm:0.0.1"
-  checksum: 10/b55a3c03239b8d2127c7cbb3408c9ad3a556a8c303bf3064df78bfb7c093160fc8f6e0a32e42a850a78eba12f29ccf6ef997690b9acf945d242c56c61c4aa977
+  checksum: 10/6c0ed34107cb3bd3f44c01d90ec8c01baa3ed75b7755617e2e5797b5908bbf20b313edf575612b200a783b84c7d1826aec2f7a2f03de9905bbfae5dc3dea6a95
   languageName: node
   linkType: hard
 
 "brace-expansion@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "brace-expansion@npm:2.0.2"
+  version: 2.1.7
+  resolution: "brace-expansion@npm:2.1.7"
   dependencies:
     balanced-match: "npm:^1.0.0"
-  checksum: 10/01dff195e3646bc4b0d27b63d9bab84d2ebc06121ff5013ad6e5356daa5a9d6b60fa26cf73c74797f2dc3fbec112af13578d51f75228c1112b26c790a87b0488
+  checksum: 10/4763be07b688136db4f98f71ab96c4a1a73b6785f69864c130c748f4429be961c6a9a4129c0a81aad4f9cfb08e31a3cf2809b2427509bf2990d1490b7b5dd2d0
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^5.0.5":
-  version: 5.0.6
-  resolution: "brace-expansion@npm:5.0.6"
-  dependencies:
-    balanced-match: "npm:^4.0.2"
-  checksum: 10/a7acf120fefa79e9d7c9c92898114f57c07596a3920197f3c5917e6a628b04220a5f7f9618c30bdd973a6576a32113b99f9c3f1c8245ccc399dd2a9a718d81d8
-  languageName: node
-  linkType: hard
-
-"brace-expansion@npm:^5.0.8":
+"brace-expansion@npm:^5.0.5, brace-expansion@npm:^5.0.8":
   version: 5.0.12
   resolution: "brace-expansion@npm:5.0.12"
   dependencies:

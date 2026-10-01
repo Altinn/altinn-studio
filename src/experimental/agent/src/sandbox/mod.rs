@@ -141,6 +141,10 @@ pub trait Provider {
         progress: ::sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
 
+    /// Idempotently stops the Sandbox and its Provider-specific host integration,
+    /// keeping both for a later [`Self::ensure`].
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>>;
+
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
     fn open<'a>(&'a self, record: &'a AgentRecord, id: &'a SandboxId) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
 
@@ -151,6 +155,7 @@ pub trait Provider {
 /// Provider result retaining lifecycle information needed by dependent Sessions.
 pub struct ProviderEnsureOutcome {
     pub sandbox: SandboxHandle,
+    /// The pass started the Sandbox's runtime, so harness processes from before are gone.
     pub runtime_restarted: bool,
     /// Harness installations this pass prepared.
     pub harnesses: Vec<crate::Harness>,
@@ -282,6 +287,23 @@ impl Service {
             sandbox,
             harnesses: outcome.harnesses,
         })
+    }
+
+    /// Stops the Agent's Sandbox, keeping its identity and storage for a later
+    /// [`Self::ensure`]. An Agent without an assigned Provider has nothing to stop.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the selected Provider is unavailable or the stop fails.
+    pub async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
+        let Some(assignment) = &record.agent.status.sandbox else {
+            return Ok(());
+        };
+        self.provider(assignment.provider())?.stop(record).await?;
+        if let Some(id) = assignment.id() {
+            self.responsiveness.forget(id);
+        }
+        Ok(())
     }
 
     /// Opens the persisted materialized Sandbox without lifecycle or setup effects.

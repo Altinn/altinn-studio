@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import {
@@ -8,7 +10,8 @@ import {
 } from 'src/layout/Summary2/CommonSummaryComponents/MultipleValueSummary';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function CheckboxesSummary({ targetBaseComponentId }: Summary2Props) {
@@ -20,9 +23,19 @@ export function CheckboxesSummary({ targetBaseComponentId }: Summary2Props) {
   const showAsList =
     summaryOverride?.displayType === 'list' ||
     (!summaryOverride?.displayType && displayData?.length >= maxStringLength);
-  const item = useItemWhenType(targetBaseComponentId, 'Checkboxes');
-  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
-  const required = item.required;
+  const config = useComponentConfig(targetBaseComponentId, 'Checkboxes');
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Checkboxes.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Checkboxes.textResourceBindings.title,
+  );
+  const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
+
+  const title = summaryTitle || resolvedTitle;
+
   const displayValues = useMultipleValuesForSummary(targetBaseComponentId);
 
   return (

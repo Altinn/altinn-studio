@@ -1,12 +1,12 @@
 import React from 'react';
 
 import { Button } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { ExprVal } from 'src/features/expressions/types';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
@@ -101,11 +101,7 @@ export function AppNavigationHeading({
 }: { showClose?: undefined; onClose?: undefined } | { showClose: boolean; onClose: () => void }) {
   const { langAsString } = useLanguage();
   const { navigationTitle: navigationTitleExpr } = usePageSettings();
-  const navigationTitle = useEvalExpression(navigationTitleExpr, {
-    returnType: ExprVal.String,
-    defaultValue: 'navigation.form_pages',
-    errorIntroText: 'Invalid expression for navigationTitle in Settings.json',
-  });
+  const navigationTitle = useEvalExpression(navigationTitleExpr, CommonExpressions.IPagesSettings.navigationTitle);
   return (
     <div
       id={appNavigationHeadingId}

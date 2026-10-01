@@ -52,6 +52,22 @@
       "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@playwright/cli"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Rust toolchain copies that cannot read rust-toolchain.toml: image build ARGs, the workspace rust-version and the cargo-deny container",
+      "managerFilePatterns": [
+        "/^Cargo\\.toml$/",
+        "/(^|/)Dockerfile$/",
+        "/^\\.github/workflows/rust-dependency-checks\\.yaml$/"
+      ],
+      "matchStrings": [
+        "ARG RUST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)",
+        "rust-version = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "rust-version: '(?<currentValue>\\d+\\.\\d+\\.\\d+)'"
+      ],
+      "datasourceTemplate": "rust-version",
+      "depNameTemplate": "rust"
     }
   ],
   "separateMultipleMajor": true,
@@ -289,6 +305,14 @@
       "description": "Manage all Rust dependencies manually",
       "matchManagers": ["cargo"],
       "enabled": false
+    },
+    {
+      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects. Comes after the manual-management rules so it also covers the experimental example images.",
+      "matchDatasources": ["rust-version"],
+      "matchPackageNames": ["rust"],
+      "groupName": "Rust toolchain",
+      "groupSlug": "rust-toolchain",
+      "enabled": true
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],

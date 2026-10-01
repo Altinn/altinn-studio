@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import deepEqual from 'fast-deep-equal';
 
 import { evalExpr } from 'src/features/expressions';
@@ -10,21 +11,34 @@ import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/Or
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericComponent<'PaymentDetails'>) {
   const orderDetails = useOrderDetails();
   const refetchOrderDetails = useRefetchOrderDetails();
-  const { refetchDependencies, textResourceBindings } = useItemWhenType(baseComponentId, 'PaymentDetails');
-  const { title, description, help } = textResourceBindings || {};
+  const config = useComponentConfig(baseComponentId, 'PaymentDetails');
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.PaymentDetails.textResourceBindings.title,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.PaymentDetails.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.PaymentDetails.textResourceBindings.help,
+  );
+
   const hasUnsavedChanges = FormStore.data.useHasUnsavedChanges();
 
-  const dataSources = useExpressionDataSources(refetchDependencies);
+  const dataSources = useExpressionDataSources(config.refetchDependencies);
   // Dependencies are compared locally, so preserve arrays and objects instead of coercing them into query strings.
   const resolvedDependencies = useShallowMemo(
-    refetchDependencies
-      ? Object.entries(refetchDependencies).reduce<Record<string, unknown>>((values, [key, expr]) => {
+    config.refetchDependencies
+      ? Object.entries(config.refetchDependencies).reduce<Record<string, unknown>>((values, [key, expr]) => {
           values[key] = evalExpr(expr, dataSources, {
             returnType: ExprVal.Any,
             defaultValue: null,
@@ -38,11 +52,15 @@ export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericCom
 
   // refetch data if we have configured refetch dependencies and their values have changed
   useEffect(() => {
-    if (!hasUnsavedChanges && refetchDependencies && !deepEqual(previousDependencies.current, resolvedDependencies)) {
+    if (
+      !hasUnsavedChanges &&
+      config.refetchDependencies &&
+      !deepEqual(previousDependencies.current, resolvedDependencies)
+    ) {
       refetchOrderDetails();
       previousDependencies.current = resolvedDependencies;
     }
-  }, [hasUnsavedChanges, refetchDependencies, resolvedDependencies, refetchOrderDetails]);
+  }, [hasUnsavedChanges, config.refetchDependencies, resolvedDependencies, refetchOrderDetails]);
 
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
