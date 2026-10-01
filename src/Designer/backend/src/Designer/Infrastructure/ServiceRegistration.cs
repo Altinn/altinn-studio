@@ -149,6 +149,7 @@ public static class ServiceRegistration
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IInstanceService, InstanceService>();
         services.AddTransient<IProcessModelingService, ProcessModelingService>();
+        services.AddTransient<IProcessEditingService, ProcessEditingService>();
         services.AddTransient<IImagesService, ImagesService>();
         services.AddTransient<ILayoutService, LayoutService>();
         services.AddTransient<IOrgTextsService, OrgTextsService>();

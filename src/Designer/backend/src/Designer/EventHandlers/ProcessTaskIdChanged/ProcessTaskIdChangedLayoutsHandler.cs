@@ -42,7 +42,8 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
                     referencesToUpdate,
                     cancellationToken
                 );
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }

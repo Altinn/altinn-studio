@@ -53,7 +53,8 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
                 }
 
                 return hasChanged;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 

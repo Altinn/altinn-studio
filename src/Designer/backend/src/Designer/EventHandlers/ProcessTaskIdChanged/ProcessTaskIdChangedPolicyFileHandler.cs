@@ -43,6 +43,11 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
                     notification.EditingContext.Repo,
                     null
                 );
+                if (xacmlPolicy is null)
+                {
+                    return false;
+                }
+
                 var resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
                 if (TryChangeTaskIds(resourcePolicy, notification.OldId, notification.NewId))
                 {
@@ -57,7 +62,8 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
                 }
 
                 return hasChanges;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 

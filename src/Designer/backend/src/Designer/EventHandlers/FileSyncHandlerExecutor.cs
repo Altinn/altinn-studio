@@ -21,9 +21,16 @@ public class FileSyncHandlerExecutor : IFileSyncHandlerExecutor
         AltinnRepoEditingContext editingContext,
         string errorCode,
         string sourcePath,
-        Func<Task<bool>> handlerFunction
+        Func<Task<bool>> handlerFunction,
+        bool publisherNotifies = false
     )
     {
+        if (publisherNotifies)
+        {
+            await handlerFunction();
+            return;
+        }
+
         var source = new Source(Path.GetFileName(sourcePath), sourcePath);
         try
         {
