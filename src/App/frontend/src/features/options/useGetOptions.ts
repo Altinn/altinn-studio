@@ -122,6 +122,8 @@ function hasDynamicOptionsConfig(config: CompExternalExact<CompWithBehavior<'can
 }
 
 export function useFetchOptions({ config }: FetchOptionsProps) {
+  const indexedId = useIndexedId(config.id);
+
   // Configuration cannot change during runtime, so breaking the rule of hooks here is acceptable. We do this to
   // avoid gathering lots of data for option sources we don't plan on using. It's always one of these
   // three (source, optionsId or static options).
@@ -150,7 +152,7 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const url = useOptionsUrl(config);
     if (!url) {
-      throw new Error(`Failed to fetch options for node ${config.id}: Unable to construct URL`);
+      throw new Error(`Failed to fetch options for node ${indexedId}: Unable to construct URL`);
     }
 
     // eslint-disable-next-line react-compiler/react-compiler
@@ -180,6 +182,7 @@ export function useFetchOptions({ config }: FetchOptionsProps) {
 
 // Log error if fetching options failed
 function useLogFetchError(error: Error | null, config: CompExternalExact<CompWithBehavior<'canHaveOptions'>>) {
+  const indexedId = useIndexedId(config.id);
   useEffect(() => {
     if (error) {
       const _optionsId = config.optionsId ? `\noptionsId: ${config.optionsId}` : '';
@@ -188,9 +191,9 @@ function useLogFetchError(error: Error | null, config: CompExternalExact<CompWit
         : '';
       const _secure = config.secure ? `\nsecure: ${config.secure}` : '';
 
-      window.logErrorOnce(`Failed to fetch options for node ${config.id}${_optionsId}${_queryParameters}${_secure}`);
+      window.logErrorOnce(`Failed to fetch options for node ${indexedId}${_optionsId}${_queryParameters}${_secure}`);
     }
-  }, [error, config]);
+  }, [error, config, indexedId]);
 }
 
 export function useFilteredAndSortedOptions({ unsorted, valueType, config }: FilteredAndSortedOptionsProps) {
