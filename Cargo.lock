@@ -3280,8 +3280,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -3323,6 +3323,7 @@ dependencies = [
  "serde_ignored",
  "serde_json",
  "sha2 0.11.0",
+ "sqlx",
  "tar",
  "tempfile",
  "thiserror 2.0.20",
@@ -3336,8 +3337,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-agent-client"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "bytes",
  "ciborium",
@@ -3355,8 +3356,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-control-client"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "microsandbox-protocol",
  "microsandbox-protocol-client",
@@ -3371,8 +3372,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-db"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "async-trait",
  "microsandbox-types",
@@ -3386,8 +3387,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-filesystem"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "bincode",
  "hex",
@@ -3405,8 +3406,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-image"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "astral-tokio-tar",
  "async-compression",
@@ -3436,8 +3437,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-metrics"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "chrono",
  "libc",
@@ -3447,8 +3448,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-migration"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "microsandbox-db",
  "sea-orm-migration",
@@ -3457,8 +3458,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-network"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -3500,8 +3501,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-protocol"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "bytes",
  "chrono",
@@ -3517,8 +3518,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-protocol-client"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "microsandbox-protocol",
  "serde",
@@ -3529,8 +3530,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-runtime"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "base64 0.23.1",
  "chrono",
@@ -3561,8 +3562,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-types"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "chrono",
  "hex",
@@ -3578,8 +3579,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-types-macros"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3588,8 +3589,8 @@ dependencies = [
 
 [[package]]
 name = "microsandbox-utils"
-version = "0.7.4-digdir.1"
-source = "git+https://github.com/martinothamar/microsandbox.git?rev=7dcc20301d97c0463ac8fd31dc1f592e4849db36#7dcc20301d97c0463ac8fd31dc1f592e4849db36"
+version = "0.7.4-digdir.2"
+source = "git+https://github.com/martinothamar/microsandbox.git?rev=c3a16753edba0ad4b21844ccd50ce7b615e43f84#c3a16753edba0ad4b21844ccd50ce7b615e43f84"
 dependencies = [
  "dirs",
  "libc",
