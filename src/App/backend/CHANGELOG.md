@@ -32,6 +32,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
 
+### Fixed
+
+- PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too.
+- Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions.
+
 ### Removed
 
 - `AppSettings.AppBasePath`. The app files are always read relative to the content root of the host. A value left in `appsettings.json` is ignored; code that set the property must drop it.

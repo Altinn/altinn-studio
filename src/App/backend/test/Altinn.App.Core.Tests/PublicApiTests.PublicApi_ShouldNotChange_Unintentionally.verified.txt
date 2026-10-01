@@ -5212,6 +5212,7 @@ namespace Altinn.App.Core.Models.Process
     {
         public ProcessStartRequest() { }
         public Altinn.Platform.Storage.Interface.Models.Instance Instance { get; set; }
+        public string? Language { get; set; }
         public System.Collections.Generic.Dictionary<string, string>? Prefill { get; set; }
         public string? StartEventId { get; set; }
         public System.Security.Claims.ClaimsPrincipal User { get; set; }

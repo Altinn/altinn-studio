@@ -347,6 +347,10 @@ public class ApiTestBase
             sp.GetRequiredService<Altinn.App.Core.Internal.WorkflowEngine.WorkflowCallbackStateService>()
         ));
 
+        // The engine calls back in requests of their own, so a callback must not see the request that enqueued it.
+        services.RemoveAll<Microsoft.AspNetCore.Http.IHttpContextAccessor>();
+        services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, WorkflowCallbackHttpContextAccessor>();
+
         // Mock the events client since it calls external services
         var eventsClientMock = new Mock<Altinn.App.Core.Internal.Events.IEventsClient>();
         eventsClientMock

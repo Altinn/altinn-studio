@@ -118,6 +118,7 @@ internal sealed class ProcessNextRequestFactory
     /// Creates a WorkflowEnqueueEnvelope from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
     /// collection key) that must be sent via URL path and HTTP headers.
+    /// <paramref name="language"/> is the language the instance was created with (see <see cref="ExtractActor"/>).
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateChainInitiating(
         Instance instance,
@@ -126,7 +127,8 @@ internal sealed class ProcessNextRequestFactory
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        string? language = null
     ) =>
         Create(
             instance,
@@ -135,6 +137,7 @@ internal sealed class ProcessNextRequestFactory
             state,
             isInstantiation,
             actor: null,
+            language,
             dependsOn: null,
             prefill,
             notification,
@@ -144,17 +147,19 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// Claims the instance before the callback computes and enqueues the transition's steps.
     /// Only the source task is known until acquisition succeeds and the callback computes the transition.
+    /// <paramref name="language"/> is the language process/next was called with (see <see cref="ExtractActor"/>).
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
         string? action,
         string state,
-        string idempotencyKey
+        string idempotencyKey,
+        string? language
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
-        Actor actor = await ExtractActor();
+        Actor actor = await ExtractActor(language);
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
@@ -211,6 +216,7 @@ internal sealed class ProcessNextRequestFactory
             state,
             isInstantiation: false,
             actor,
+            language: null,
             dependsOn,
             prefill: null,
             notification: null,
@@ -224,6 +230,7 @@ internal sealed class ProcessNextRequestFactory
         string? state,
         bool isInstantiation,
         Actor? actor,
+        string? language,
         IEnumerable<WorkflowRef>? dependsOn,
         Dictionary<string, string>? prefill,
         InstantiationNotification? notification,
@@ -248,7 +255,7 @@ internal sealed class ProcessNextRequestFactory
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
 
-        Actor resolvedActor = actor ?? await ExtractActor();
+        Actor resolvedActor = actor ?? await ExtractActor(language);
         InstanceIdentifier instanceId = new(instance);
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
@@ -527,23 +534,31 @@ internal sealed class ProcessNextRequestFactory
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
 
-    private async Task<Actor> ExtractActor()
+    /// <summary>
+    /// The actor the chain's callbacks run on behalf of, from the current request's authentication.
+    /// </summary>
+    /// <param name="language">
+    /// The language the caller chose in the app, sent with process/next or instantiation, or null when the request
+    /// has none. Every callback of the chain restores its data mutator in the actor's language, so the caller's
+    /// profile language (nb for anyone but a user) is only the fallback. Like the rest of the actor it
+    /// rides in the context, outside the engine's idempotency hash and the callback token's actor hash.
+    /// </param>
+    private async Task<Actor> ExtractActor(string? language)
     {
         Authenticated currentAuth = _authenticationContext.Current;
         if (currentAuth is Authenticated.User user)
         {
             Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);
-            string? userLanguage = await currentAuth.GetLanguage();
             return new Actor
             {
                 UserId = user.UserId,
                 AuthenticationLevel = user.AuthenticationLevel,
                 NationalIdentityNumber = details.Profile.Party.SSN,
-                Language = userLanguage,
+                Language = await currentAuth.GetLanguage(language),
             };
         }
 
-        string? resolvedLanguage = await currentAuth.GetLanguage();
+        string resolvedLanguage = await currentAuth.GetLanguage(language);
         return currentAuth switch
         {
             // Organization authentication currently emits an empty PlatformUser in process events.

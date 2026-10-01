@@ -310,70 +310,44 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         CompareResult<AppProcessState>(expectedString, content);
     }
 
-    [Fact]
-    public async Task RunProcessNextWithLang_VerifyPdfCallWithLanguage()
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    public async Task RunProcessNext_TaskEndGetsTheLanguageTheUserChose_OrTheirProfileLanguage(
+        string? language,
+        string expected
+    )
     {
-        var language = "es";
-        SendAsync = async message =>
+        var taskEnd = new LanguageCapturingTaskEndHandler();
+        OverrideServicesForThisTest = services =>
         {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-
-            var content = await message.Content!.ReadAsStringAsync();
-
-            OutputHelper.WriteLine("pdf request content:");
-            OutputHelper.WriteLine(content);
-            OutputHelper.WriteLine("");
-
-            using var document = JsonDocument.Parse(content);
-            document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
-
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("this is the binary pdf content"),
-            };
+            services.AddSingleton(SetupPdfGeneratorMock().Object);
+            services.AddSingleton<IOnTaskEndingHandler>(taskEnd);
         };
         using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
-        // both "?lang" and "?language" should work
-        var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?lang={language}",
+        string query = language is null ? "" : $"?language={language}";
+
+        using var nextResponse = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next{query}",
             null
         );
-        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        Assert.True(nextResponse.IsSuccessStatusCode, await nextResponse.Content.ReadAsStringAsync());
+        // The task end runs in a workflow-engine callback; user 1337's profile language is nn.
+        Assert.Equal(expected, taskEnd.Language);
     }
 
-    [Fact]
-    public async Task RunProcessNextWithLanguage_VerifyPdfCall()
+    private sealed class LanguageCapturingTaskEndHandler : IOnTaskEndingHandler
     {
-        var language = "es";
-        SendAsync = async message =>
+        public string? Language { get; private set; }
+
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HookResult> Execute(OnTaskEndingContext context)
         {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-
-            var content = await message.Content!.ReadAsStringAsync();
-
-            OutputHelper.WriteLine("pdf request content:");
-            OutputHelper.WriteLine(content);
-            OutputHelper.WriteLine("");
-
-            using var document = JsonDocument.Parse(content);
-            document.RootElement.GetProperty("url").GetString().Should().Contain($"lang={language}");
-
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("this is the binary pdf content"),
-            };
-        };
-        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
-        // both "?lang" and "?language" should work
-        var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?language={language}",
-            null
-        );
-        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+            Language = context.InstanceDataMutator.Language;
+            return Task.FromResult<HookResult>(HookResult.Success());
+        }
     }
 
     [Fact]
@@ -1657,6 +1631,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<bool>(),
                     It.IsAny<Dictionary<string, string>?>(),
                     It.IsAny<Altinn.App.Core.Models.Notifications.Future.InstantiationNotification?>(),
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )

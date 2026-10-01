@@ -16,6 +16,7 @@ using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 
 namespace Altinn.App.Api.Controllers;
@@ -286,7 +287,7 @@ public class ProcessController : ControllerBase
                 InstanceVersions = fetchedInstance.Metadata,
                 Action = processNext?.Action,
                 ActionOnBehalfOf = processNext?.ActionOnBehalfOf,
-                Language = language,
+                Language = language ?? GetLangQueryAlias(),
             };
 
             ProcessChangeResult result = await _processEngine.Next(processNextRequest, cancellationToken);
@@ -495,6 +496,7 @@ public class ProcessController : ControllerBase
 
         // do next until end event is reached or task cannot be completed.
         int counter = 0;
+        string? requestedLanguage = language ?? GetLangQueryAlias();
 
         while (
             instance.Process.EndEvent is null
@@ -512,7 +514,7 @@ public class ProcessController : ControllerBase
                     Action = Altinn.App.Core.Internal.Process.ProcessEngine.ConvertTaskTypeToAction(
                         instance.Process.CurrentTask.AltinnTaskType
                     ),
-                    Language = language,
+                    Language = requestedLanguage,
                     Mode = ProcessNextMode.CompleteProcess,
                 };
                 ProcessChangeResult result = await _processEngine.Next(request);
@@ -603,6 +605,15 @@ public class ProcessController : ControllerBase
             );
         }
     }
+
+    /// <summary>
+    /// The <c>lang</c> query parameter, which process/next and completeProcess honored as the language while PDFs were
+    /// generated inside these requests and the PDF service read either name from the query.
+    /// </summary>
+    private string? GetLangQueryAlias() =>
+        HttpContext is not null && HttpContext.Request.Query.TryGetValue("lang", out StringValues lang)
+            ? lang.ToString()
+            : null;
 
     private ActionResult GetResultForError(ProcessChangeResult result)
     {
