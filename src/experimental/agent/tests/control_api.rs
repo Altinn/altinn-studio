@@ -2,7 +2,11 @@
 
 mod support;
 
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+    time::Duration,
+};
 
 use agent::{
     Error,
@@ -67,7 +71,20 @@ impl VncAccessApi for FakeVncAccess {
         })
     }
 }
-struct FakeExecutions;
+/// Executions of Agent `worker`; an ensure for `stuck` waits until dropped.
+#[derive(Default)]
+struct FakeExecutions {
+    waiting: Rc<Cell<usize>>,
+}
+
+/// Counts one waiting ensure for as long as it lives.
+struct Waiting(Rc<Cell<usize>>);
+
+impl Drop for Waiting {
+    fn drop(&mut self) {
+        self.0.set(self.0.get() - 1);
+    }
+}
 /// One `sessions.v1.prompt` as the fake saw it: prompt, wait flag, timeout.
 type SentMessage = (String, bool, Option<std::time::Duration>);
 
@@ -260,6 +277,11 @@ impl ExecutionApi for FakeExecutions {
         _wait: WaitPolicy,
     ) -> LocalFuture<'a, Result<agent::sandbox::ExecutionTarget, Error>> {
         Box::pin(async move {
+            if name == "stuck" {
+                self.waiting.set(self.waiting.get() + 1);
+                let _waiting = Waiting(self.waiting.clone());
+                std::future::pending::<()>().await;
+            }
             if name != "worker" {
                 return Err(Error::NotFound);
             }
@@ -288,6 +310,8 @@ struct ScriptedConnector {
 struct ApiFixture {
     server: Rc<Server>,
     client: Client,
+    /// Execution ensures still waiting in the server.
+    waiting: Rc<Cell<usize>>,
     ensured: Rc<RefCell<Vec<agent::sessions::SessionRequest>>>,
     sent: Rc<RefCell<Vec<SentMessage>>>,
     changes: Changes,
@@ -341,10 +365,12 @@ fn api() -> ApiFixture {
     let upgrade_blockers = Rc::new(RefCell::new(Vec::new()));
     let upgrade_warnings = Rc::new(RefCell::new(Vec::new()));
     let upgrade_gates = Rc::new(UpgradeGates::default());
+    let executions = Rc::new(FakeExecutions::default());
+    let waiting = executions.waiting.clone();
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeExecutions),
+        executions,
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
             sent: sent.clone(),
@@ -363,6 +389,7 @@ fn api() -> ApiFixture {
     ApiFixture {
         server,
         client,
+        waiting,
         ensured,
         sent,
         changes,
@@ -527,6 +554,59 @@ async fn session_deletion_round_trips_and_reports_a_missing_session() {
         Error::Rpc(error) => assert_eq!(error.code, -32004),
         other => panic!("unexpected error: {other}"),
     }
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_wait_ends_when_its_client_goes_away() {
+    let fixture = api();
+    let interrupted = tokio::time::timeout(
+        Duration::from_millis(100),
+        fixture.client.ensure_execution("stuck", WaitPolicy::UntilReady),
+    )
+    .await;
+    assert!(interrupted.is_err(), "the wait never ends on its own");
+
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while fixture.waiting.get() > 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("the server stops waiting once its client has gone");
+}
+
+#[tokio::test(flavor = "local")]
+async fn an_interrupted_prompt_is_still_delivered() {
+    let fixture = api();
+    let gate = Rc::new(Notify::new());
+    fixture.upgrade_gates.prompt.replace(Some(gate.clone()));
+    let interrupted = tokio::time::timeout(Duration::from_millis(100), async {
+        let prompting = fixture.client.prompt_session(
+            "worker",
+            agent::sessions::SessionName::new("s1").expect("name"),
+            "go".into(),
+            false,
+            None,
+        );
+        tokio::select! {
+            result = prompting => result,
+            () = async {
+                fixture.upgrade_gates.prompt_started.notified().await;
+                std::future::pending::<()>().await;
+            } => unreachable!(),
+        }
+    })
+    .await;
+    assert!(interrupted.is_err(), "the delivery is still in progress");
+
+    gate.notify_one();
+    tokio::time::timeout(Duration::from_secs(1), async {
+        while fixture.upgrade_blockers.borrow().is_empty() {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("the delivery runs to completion without its client");
 }
 
 #[tokio::test(flavor = "local")]
