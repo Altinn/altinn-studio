@@ -164,7 +164,7 @@ public static class ServiceCollectionExtensions
 
         foreach (var serviceType in typesToRegister)
         {
-            services.TryAddSingleton(typeof(TMarker), serviceType);
+            services.TryAddEnumerable(ServiceDescriptor.Singleton(typeof(TMarker), serviceType));
         }
 
         return services;

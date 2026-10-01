@@ -29,6 +29,12 @@ public class AppVersionService : IAppVersionService
             altinnRepoEditingContext.Developer
         );
 
+        // Avoid searching the clone on every synchronization check.
+        string appProjectPath = Path.Combine(repository.RepositoryDirectory, "App", "App.csproj");
+        if (File.Exists(appProjectPath) && FindVersion([appProjectPath]) is { } appProjectVersion)
+        {
+            return appProjectVersion;
+        }
         return FindVersion(repository.FindFiles(["*.csproj"]));
     }
 

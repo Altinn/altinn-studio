@@ -14,6 +14,8 @@ using System.Xml.Linq;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Hubs.Sync;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -21,6 +23,7 @@ using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
+using Medallion.Threading;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +48,7 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
     private readonly Mock<ISyncClient> _syncClient = new();
     private ILayoutReferenceUpdater _layoutReferenceUpdater;
     private Exception _nextProcessDefinitionSaveException;
+    private ConcurrentEditProbe _concurrentEditProbe;
     private string _repository;
     private string Endpoint => $"/designer/api/ttd/{_repository}/process-modelling/process-state";
 
@@ -122,6 +126,13 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
                     );
                 return ActivatorUtilities.CreateInstance<ProcessEditingService>(provider, processModeling.Object);
             });
+        }
+        if (_concurrentEditProbe is { } probe)
+        {
+            services.AddSingleton<ILockService>(provider => new ObservedLockService(
+                ActivatorUtilities.CreateInstance<LockService>(provider),
+                probe
+            ));
         }
     }
 
@@ -280,6 +291,43 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
         Assert.Equal("process_state_conflict", body.RootElement.GetProperty("code").GetString());
         Assert.False(string.IsNullOrWhiteSpace(body.RootElement.GetProperty("message").GetString()));
         Assert.Equal(saved, await GetState());
+    }
+
+    [Fact]
+    public async Task Save_ConcurrentEditsWithTheSameVersion_AppliesOneAndRejectsTheOther()
+    {
+        // Hold the first edit until the second requests the lock or reaches the updater without serialization.
+        var probe = new ConcurrentEditProbe();
+        _layoutReferenceUpdater = probe;
+        _concurrentEditProbe = probe;
+        await CreateApp(withPolicy: false);
+        ProcessState initial = await GetState();
+        ProcessState added = await Save(Snapshot(initial, AddTask(initial.BpmnXml, "Confirmation_1", "confirmation")));
+        string removed = RemoveTask(added.BpmnXml, "Confirmation_1");
+        ProcessEditRequest[] requests =
+        [
+            Snapshot(added, removed.Replace("Utfylling", "First edit")),
+            Snapshot(added, removed.Replace("Utfylling", "Second edit")),
+        ];
+        probe.CountLockRequestsFromNow();
+
+        HttpResponseMessage[] responses = await Task.WhenAll(requests.Select(Put));
+
+        HttpStatusCode[] statusCodes = [.. responses.Select(response => response.StatusCode)];
+        Assert.Equal(new[] { HttpStatusCode.OK, HttpStatusCode.Conflict }, statusCodes.Order());
+        using JsonDocument conflict = JsonDocument.Parse(
+            await responses[Array.IndexOf(statusCodes, HttpStatusCode.Conflict)].Content.ReadAsStringAsync()
+        );
+        Assert.Equal("process_state_conflict", conflict.RootElement.GetProperty("code").GetString());
+        string savedXml = requests[Array.IndexOf(statusCodes, HttpStatusCode.OK)].BpmnXml;
+        Assert.Equal(savedXml, await File.ReadAllTextAsync(ProcessPath));
+        Assert.Equal(savedXml, (await GetState()).BpmnXml);
+        Assert.True(probe.ReleasedByTheOtherEdit);
+        Assert.Equal(1, probe.Updates);
+        foreach (HttpResponseMessage response in responses)
+        {
+            response.Dispose();
+        }
     }
 
     [Fact]
@@ -1288,6 +1336,67 @@ public sealed class ProcessEditingTests(WebApplicationFactory<Program> factory)
             List<Reference> referencesToUpdate,
             CancellationToken cancellationToken
         ) => throw exception;
+    }
+
+    private sealed class ConcurrentEditProbe : ILayoutReferenceUpdater
+    {
+        // A failed synchronization assertion must not leave the test hanging.
+        private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(20);
+
+        private readonly TaskCompletionSource _otherEditArrived = new(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
+        private int _lockRequests;
+        private int _updates;
+
+        public int Updates => Volatile.Read(ref _updates);
+
+        public bool ReleasedByTheOtherEdit { get; private set; }
+
+        public void CountLockRequestsFromNow() => Volatile.Write(ref _lockRequests, 0);
+
+        public void LockRequested()
+        {
+            if (Interlocked.Increment(ref _lockRequests) > 1)
+            {
+                _otherEditArrived.TrySetResult();
+            }
+        }
+
+        public async Task<bool> UpdateLayoutReferences(
+            AltinnRepoEditingContext editingContext,
+            List<Reference> referencesToUpdate,
+            CancellationToken cancellationToken
+        )
+        {
+            if (Interlocked.Increment(ref _updates) > 1)
+            {
+                _otherEditArrived.TrySetResult();
+                return false;
+            }
+            Task otherEditArrived = _otherEditArrived.Task;
+            ReleasedByTheOtherEdit = await Task.WhenAny(otherEditArrived, Task.Delay(s_timeout)) == otherEditArrived;
+            return false;
+        }
+    }
+
+    private sealed class ObservedLockService(ILockService lockService, ConcurrentEditProbe probe) : ILockService
+    {
+        public ValueTask<IDistributedSynchronizationHandle> AcquireOrgWideLockAsync(
+            AltinnOrgContext context,
+            TimeSpan? timeout = null,
+            CancellationToken cancellationToken = default
+        ) => lockService.AcquireOrgWideLockAsync(context, timeout, cancellationToken);
+
+        public ValueTask<IDistributedSynchronizationHandle> AcquireRepoUserWideLockAsync(
+            AltinnRepoEditingContext context,
+            TimeSpan? timeout = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            probe.LockRequested();
+            return lockService.AcquireRepoUserWideLockAsync(context, timeout, cancellationToken);
+        }
     }
 
     private string AppPath(string relativePath) => Path.Combine(TestRepoPath, "App", relativePath);
