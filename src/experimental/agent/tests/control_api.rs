@@ -28,8 +28,8 @@ use tokio::{
 use support::{IgnoreNotifications, agent};
 
 struct FakeAuthentication;
-/// Converges an Agent at once to what the Control Plane stores.
-struct FakeConvergence(Rc<ControlPlane>);
+/// Converges an Agent at once, except `stuck`, which never converges.
+struct FakeConvergence;
 struct FakeSshAccess;
 struct FakeVncAccess;
 
@@ -268,8 +268,13 @@ impl SessionApi for FakeSessions {
 }
 
 impl ConvergenceApi for FakeConvergence {
-    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::Agent, Error>> {
-        Box::pin(async move { self.0.get(name).await })
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move {
+            if name == "stuck" {
+                std::future::pending::<()>().await;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -374,9 +379,9 @@ fn api() -> ApiFixture {
     let executions = Rc::new(FakeExecutions::default());
     let waiting = executions.waiting.clone();
     let server = Rc::new(Server::new(
-        control_plane.clone(),
+        control_plane,
         Rc::new(FakeAuthentication),
-        Rc::new(FakeConvergence(control_plane)),
+        Rc::new(FakeConvergence),
         executions,
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
@@ -961,6 +966,27 @@ async fn resource_watch_neither_holds_nor_outlives_an_upgrade_drain() {
         .expect("a pending watch is not an admitted mutation");
     let released = watch.await.expect("watch task").expect("state on drain");
     assert_eq!(released.revision, current.revision);
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_converge_wait_ends_with_an_upgrade_drain() {
+    let fixture = api();
+    let waiter = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let wait = tokio::task::spawn_local(async move { waiter.converge("stuck").await });
+    tokio::task::yield_now().await;
+
+    fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect("a pending wait is not an admitted mutation");
+    let error = wait.await.expect("wait task").expect_err("the drain ends the wait");
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.message.contains("run the command again")),
+        "{error:?}"
+    );
 }
 
 #[tokio::test(flavor = "local")]

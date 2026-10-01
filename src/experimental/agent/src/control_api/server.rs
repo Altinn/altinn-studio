@@ -250,16 +250,12 @@ impl SessionApi for sessions::Service {
 pub trait ConvergenceApi {
     /// Waits until an Agent has its desired run state; see
     /// [`control_plane::Convergence::converge`].
-    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>>;
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
 }
 
 impl ConvergenceApi for control_plane::Convergence {
-    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>> {
-        Box::pin(async move {
-            self.converge(name, WaitPolicy::UntilConverged)
-                .await
-                .map(|record| record.agent)
-        })
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.converge(name, WaitPolicy::UntilConverged).await.map(drop) })
     }
 }
 
@@ -636,12 +632,29 @@ impl Server {
         )
     }
 
+    /// Waits until the Agent has its desired run state, then returns it as
+    /// `agents.v1.get` does. Draining ends the wait, so an upgrade is never held
+    /// by a waiter; the desired state is stored, so nothing is lost.
     async fn handle_converge(&self, id: u64, value: Value) -> Response {
         let params = match name_params(value) {
             Ok(params) => params,
             Err(response) => return response_with_id(id, response),
         };
-        result_response(id, self.convergence.converge(&params.name).await)
+        let converged = tokio::select! {
+            converged = self.convergence.converge(&params.name) => converged,
+            () = self.shutdown_requested() => {
+                return error_response(
+                    id,
+                    CODE_UPDATING,
+                    "Agent daemon is preparing for an upgrade; run the command again once it is back",
+                );
+            }
+        };
+        let agent = match converged {
+            Ok(()) => self.agents.get(&params.name).await,
+            Err(error) => Err(error),
+        };
+        result_response(id, agent)
     }
 
     async fn handle_run_state(&self, id: u64, value: Value, state: crate::RunState) -> Response {
