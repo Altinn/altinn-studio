@@ -49,6 +49,11 @@ impl agent::control_plane::SessionNotifier for SessionNotificationCounter {
     fn notify(&self, _id: AgentId) {
         self.0.set(self.0.get() + 1);
     }
+
+    fn settle(&self, id: AgentId) -> LocalFuture<'_, ()> {
+        self.notify(id);
+        Box::pin(async {})
+    }
 }
 
 struct NoopPlatform;

@@ -284,6 +284,10 @@ struct FakeRuntime {
     ready_without_report: Cell<bool>,
     fail_input_ready_once: Cell<bool>,
     launch_started: Notify,
+    /// Holds the next observation until `release_observe`, after `observe_started`.
+    hold_observe: Cell<bool>,
+    observe_started: Notify,
+    release_observe: Notify,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
     launches: RefCell<Vec<(Option<String>, Option<String>)>>,
@@ -309,6 +313,9 @@ impl Default for FakeRuntime {
             ready_without_report: Cell::new(false),
             fail_input_ready_once: Cell::new(false),
             launch_started: Notify::new(),
+            hold_observe: Cell::new(false),
+            observe_started: Notify::new(),
+            release_observe: Notify::new(),
             conversation: RefCell::default(),
             sent: RefCell::default(),
             launches: RefCell::default(),
@@ -342,15 +349,21 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         if self.fail_observe_once.replace(false) {
             return Box::pin(async { Err(Error::Session("injected observation failure".into())) });
         }
-        let observation = if self.present.get() {
-            agent::sessions::Observation::Alive {
-                attached: self.attached.get(),
-                idle_seconds: self.idle_seconds.get(),
+        let hold = self.hold_observe.replace(false);
+        Box::pin(async move {
+            if hold {
+                self.observe_started.notify_one();
+                self.release_observe.notified().await;
             }
-        } else {
-            agent::sessions::Observation::Missing
-        };
-        Box::pin(async move { Ok(observation) })
+            Ok(if self.present.get() {
+                agent::sessions::Observation::Alive {
+                    attached: self.attached.get(),
+                    idle_seconds: self.idle_seconds.get(),
+                }
+            } else {
+                agent::sessions::Observation::Missing
+            })
+        })
     }
 
     fn start<'a>(
@@ -3338,4 +3351,87 @@ async fn a_session_of_a_stopped_agent_goes_idle_and_the_next_attach_resumes_it()
         Some("native-0"),
         "the harness resumes its conversation"
     );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_pass_in_flight_across_a_stop_and_start_launches_no_harness() {
+    const TOKEN: &str = "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            Rc::new(agent::sessions::AgentSandboxes::new(
+                Rc::new(database.clone()),
+                sandboxes.clone(),
+            )),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, _| {}),
+    );
+    let agents = Rc::new(
+        agent::control_plane::Reconciler::new(
+            Rc::new(database.clone()),
+            sandboxes,
+            agent::progress::ProvisioningState::default(),
+        )
+        .with_session_notifier(Rc::new(agent::sessions::AgentNotifier::new(
+            session_store,
+            session_wakeup.clone(),
+            Rc::new(|_| {}),
+        ))),
+    );
+    let task = tokio::task::spawn_local(session_controller.run());
+    session_wakeup.reconcile(session.id).await.expect("startup pass");
+
+    // A pass observing the running harness is held while the Agent stops.
+    runtime.hold_observe.set(true);
+    session_wakeup.notify(session.id);
+    runtime.observe_started.notified().await;
+    set_worker_run_state(&database, agent::RunState::Stopped).await;
+    let stopping = tokio::task::spawn_local({
+        let agents = agents.clone();
+        let id = session.agent_id;
+        async move { agents.reconcile(id).await }
+    });
+    while !database
+        .get(session.agent_id)
+        .await
+        .expect("Agent")
+        .agent
+        .status
+        .is_stopped()
+    {
+        tokio::task::yield_now().await;
+    }
+    // The VM took the harness with it, and nothing launches into a stopped VM.
+    runtime.present.set(false);
+    runtime.fail_start.set(true);
+    // A start is asked for while the stop still waits for its Sessions.
+    set_worker_run_state(&database, agent::RunState::Running).await;
+    runtime.release_observe.notify_one();
+    stopping.await.expect("stop task").expect("stop pass");
+    runtime.fail_start.set(false);
+    let started = runtime.launch_tokens.borrow().len();
+    agents.reconcile(session.agent_id).await.expect("start pass");
+    session_wakeup
+        .reconcile(session.id)
+        .await
+        .expect("a pass after the start");
+
+    assert_eq!(
+        runtime.launch_tokens.borrow().len(),
+        started,
+        "a start launches no harness; the next attach does"
+    );
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Idle
+    );
+    task.abort();
 }

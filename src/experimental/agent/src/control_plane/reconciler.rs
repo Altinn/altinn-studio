@@ -10,6 +10,10 @@ use crate::sandbox::responsiveness::stall_detail;
 pub trait SessionNotifier {
     /// Wakes every durable Session owned by the Agent incarnation.
     fn notify(&self, id: crate::AgentId);
+
+    /// Reconciles every durable Session owned by the Agent incarnation and
+    /// completes once each has finished a pass that began after this call.
+    fn settle(&self, id: crate::AgentId) -> ::sandbox::LocalFuture<'_, ()>;
 }
 
 /// Converges one stored Agent generation without owning an API request.
@@ -315,12 +319,13 @@ impl Reconciler {
     /// that stopped responding cannot hold the stop up.
     async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
         let current = record.agent.status.observed_generation == record.agent.metadata.generation;
+        let already_stopped = current && record.agent.status.is_stopped();
         if !(current && recorded_by_stop(&record.agent.status)) {
             // Not Ready before the VM goes away, so Sessions are told and go Idle first.
             let stopping = not_ready(record, Condition::REASON_STOPPING, "");
             self.update_status(record, stopping, None).await?;
         }
-        let observer = if current && record.agent.status.is_stopped() {
+        let observer = if already_stopped {
             SandboxObserver::resync(record.id, self.provisioning.clone())
         } else {
             SandboxObserver::new(record.id, self.provisioning.clone())
@@ -354,6 +359,12 @@ impl Reconciler {
             ],
         );
         self.update_status(record, stopped, None).await?;
+        if !already_stopped && let Some(sessions) = &self.sessions {
+            // The next pass, such as a start, waits until every Session has seen
+            // the stop, so a Session pass that began before it cannot relaunch
+            // its harness in the started VM.
+            sessions.settle(record.id).await;
+        }
         observer.succeeded();
         Ok(())
     }
