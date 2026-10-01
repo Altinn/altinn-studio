@@ -38,7 +38,8 @@ public class LayoutSetIdChangedLayoutsHandler(
                     referencesToUpdate,
                     cancellationToken
                 );
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }

@@ -3,8 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Altinn.Studio.Designer.Models.Dto;
 
 /// <summary>
-/// A process edit in a v9 app: a complete BPMN snapshot and what it changes, made against the version of the
-/// process state the editor last loaded.
+/// A versioned v9 edit: a BPMN snapshot with metadata, one layout-set or data-type operation, or a subform PDF change.
 /// </summary>
 public sealed class ProcessEditRequest
 {
@@ -15,5 +14,14 @@ public sealed class ProcessEditRequest
     public required string ExpectedVersion { get; init; }
 
     public string? BpmnXml { get; init; }
+
+    /// <summary>
+    /// A task ID change requires <see cref="BpmnXml"/>; a subform PDF component change can be sent alone.
+    /// </summary>
     public ProcessDefinitionMetadata? Metadata { get; init; }
+
+    public LayoutSetPayload? LayoutSetCreation { get; init; }
+    public ProcessLayoutSetDeletion? LayoutSetDeletion { get; init; }
+    public ProcessLayoutSetRename? LayoutSetRename { get; init; }
+    public DataTypesChange? DataTypesChange { get; init; }
 }

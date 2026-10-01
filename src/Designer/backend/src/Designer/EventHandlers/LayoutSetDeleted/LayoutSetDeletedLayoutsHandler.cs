@@ -33,7 +33,8 @@ public class LayoutSetDeletedLayoutsHandler(
                     referencesToDelete,
                     cancellationToken
                 );
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }

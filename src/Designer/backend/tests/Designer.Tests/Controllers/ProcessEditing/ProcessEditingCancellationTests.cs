@@ -56,11 +56,68 @@ public sealed class ProcessEditingCancellationTests(WebApplicationFactory<Progra
         Assert.False(Directory.Exists(AppPath("ui/RenamedTask")));
     }
 
-    [Fact]
-    public async Task Save_CanceledOnceWritingHasStarted_CompletesTheEditInOrder()
+    [Theory]
+    [InlineData("layoutSetCreation")]
+    [InlineData("layoutSetDeletion")]
+    [InlineData("layoutSetRename")]
+    [InlineData("dataTypesChange")]
+    public async Task Save_OperationWithAlreadyCanceledToken_DoesNotChangeFiles(string operation)
     {
         AltinnRepoEditingContext context = await CreateApp();
-        string originalProcess = await File.ReadAllTextAsync(ProcessPath);
+        using WebApplicationFactory<Program> configuredFactory = CreateFactory();
+        using IServiceScope scope = configuredFactory.Services.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IProcessEditingService>();
+        ProcessState initial = service.GetState(context);
+        string metadata = await File.ReadAllTextAsync(AppPath("config/applicationmetadata.json"));
+        ProcessEditRequest request = operation switch
+        {
+            "layoutSetCreation" => new ProcessEditRequest
+            {
+                ExpectedVersion = initial.Version,
+                LayoutSetCreation = new LayoutSetPayload
+                {
+                    LayoutSetConfigDto = new LayoutSetConfigDto { Id = "CustomReceipt", DataType = "model" },
+                },
+            },
+            "layoutSetDeletion" => new ProcessEditRequest
+            {
+                ExpectedVersion = initial.Version,
+                LayoutSetDeletion = new ProcessLayoutSetDeletion("Task_1"),
+            },
+            "layoutSetRename" => new ProcessEditRequest
+            {
+                ExpectedVersion = initial.Version,
+                LayoutSetRename = new ProcessLayoutSetRename("Task_1", "RenamedTask"),
+            },
+            _ => new ProcessEditRequest
+            {
+                ExpectedVersion = initial.Version,
+                DataTypesChange = new DataTypesChange { ConnectedTaskId = "Task_1", NewDataTypes = ["subform-model"] },
+            },
+        };
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            service.Save(context, request, cancellation.Token)
+        );
+
+        Assert.Equal(initial, service.GetState(context));
+        Assert.True(Directory.Exists(AppPath("ui/Task_1")));
+        Assert.False(Directory.Exists(AppPath("ui/CustomReceipt")));
+        Assert.False(Directory.Exists(AppPath("ui/RenamedTask")));
+        Assert.Equal(metadata, await File.ReadAllTextAsync(AppPath("config/applicationmetadata.json")));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Save_CanceledAfterAncillaryWrite_CompletesTheEdit(bool renameLayoutSet)
+    {
+        AltinnRepoEditingContext context = await CreateApp();
+        // Normalize fixture line endings to match server-generated XML on every platform.
+        string originalProcess = (await File.ReadAllTextAsync(ProcessPath)).ReplaceLineEndings("\n");
+        await File.WriteAllTextAsync(ProcessPath, originalProcess);
         bool folderRenamedBeforeHandlers = false;
         bool processUnchangedAfterHandlers = false;
         using WebApplicationFactory<Program> configuredFactory = CreateFactory();
@@ -86,15 +143,22 @@ public sealed class ProcessEditingCancellationTests(WebApplicationFactory<Progra
             );
         var service = ActivatorUtilities.CreateInstance<ProcessEditingService>(scope.ServiceProvider, publisher.Object);
         ProcessState initial = service.GetState(context);
-        ProcessEditRequest request = Rename(initial);
+        ProcessEditRequest request = renameLayoutSet
+            ? new ProcessEditRequest
+            {
+                ExpectedVersion = initial.Version,
+                LayoutSetRename = new ProcessLayoutSetRename("Task_1", "RenamedTask"),
+            }
+            : Rename(initial);
+        string expectedProcess = originalProcess.Replace("\"Task_1\"", "\"RenamedTask\"");
 
         ProcessState saved = await service.Save(context, request, cancellation.Token);
 
         Assert.True(cancellation.IsCancellationRequested);
         Assert.True(folderRenamedBeforeHandlers);
         Assert.True(processUnchangedAfterHandlers);
-        Assert.Equal(request.BpmnXml, saved.BpmnXml);
-        Assert.Equal(request.BpmnXml, await File.ReadAllTextAsync(ProcessPath));
+        Assert.Equal(expectedProcess, saved.BpmnXml);
+        Assert.Equal(expectedProcess, await File.ReadAllTextAsync(ProcessPath));
         Assert.Equal(saved, service.GetState(context));
         Assert.False(Directory.Exists(AppPath("ui/Task_1")));
         Assert.True(Directory.Exists(AppPath("ui/RenamedTask")));

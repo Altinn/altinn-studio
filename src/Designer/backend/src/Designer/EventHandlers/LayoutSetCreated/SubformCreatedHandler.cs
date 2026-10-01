@@ -59,7 +59,8 @@ public class SubformCreatedHandler(
                     return true;
                 }
                 return false;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }

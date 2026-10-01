@@ -51,7 +51,8 @@ public class ProcessDataTypesChangedApplicationMetadataHandler : INotificationHa
                 }
 
                 return hasChanges;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 

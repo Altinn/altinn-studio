@@ -8,4 +8,7 @@ public class LayoutSetCreatedEvent : INotification
 {
     public LayoutSetConfig LayoutSet { get; set; }
     public AltinnRepoEditingContext EditingContext { get; set; }
+
+    /// <inheritdoc cref="ProcessTaskIdChangedEvent.PublisherNotifies"/>
+    public bool PublisherNotifies { get; set; }
 }

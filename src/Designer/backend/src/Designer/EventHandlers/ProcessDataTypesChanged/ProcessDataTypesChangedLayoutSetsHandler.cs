@@ -57,7 +57,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                 }
 
                 return hasChanges;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 

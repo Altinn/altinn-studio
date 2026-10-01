@@ -14,10 +14,33 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Creates a layout set folder with its initial layout and settings, and publishes
+    /// <see cref="Events.LayoutSetCreatedEvent"/>.
+    /// </summary>
+    /// <param name="editingContext">The repository to add the layout set to.</param>
+    /// <param name="newLayoutSet">The layout set to add.</param>
+    /// <param name="taskType">The type of the task the layout set belongs to, which decides its initial content.</param>
+    /// <param name="cancellationToken">Observes whether the operation is cancelled.</param>
+    /// <param name="publisherNotifies">
+    /// Whether the caller sends the sync notification once its whole edit has succeeded, see
+    /// <see cref="Events.LayoutSetCreatedEvent.PublisherNotifies"/>.
+    /// </param>
     public Task<IEnumerable<UiFolderLayoutSetDto>> AddLayoutSet(
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
         TaskType? taskType,
+        CancellationToken cancellationToken,
+        bool publisherNotifies = false
+    );
+
+    /// <summary>
+    /// Validates that a new layout set can be given this name: the name follows the naming policy for new layout
+    /// sets, and no layout set folder has it yet.
+    /// </summary>
+    public Task ValidateNewLayoutSetName(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetName,
         CancellationToken cancellationToken
     );
 
@@ -39,10 +62,22 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Deletes a layout set folder, disconnects its default data type from the task, and publishes
+    /// <see cref="Events.LayoutSetDeletedEvent"/>.
+    /// </summary>
+    /// <param name="editingContext">The repository to delete the layout set from.</param>
+    /// <param name="layoutSetToDeleteId">The name of the layout set to delete.</param>
+    /// <param name="cancellationToken">Observes whether the operation is cancelled.</param>
+    /// <param name="publisherNotifies">
+    /// Whether the caller sends the sync notification once its whole edit has succeeded, see
+    /// <see cref="Events.LayoutSetDeletedEvent.PublisherNotifies"/>.
+    /// </param>
     public Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        bool publisherNotifies = false
     );
 
     public Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSetsExtended(

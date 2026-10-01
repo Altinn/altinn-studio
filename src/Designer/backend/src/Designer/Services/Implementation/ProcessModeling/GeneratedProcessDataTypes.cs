@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 
 internal static class GeneratedProcessDataTypes
 {
-    private static readonly XNamespace s_altinn = "http://altinn.no/process";
+    private static readonly XNamespace s_altinn = ProcessDefinitionXml.AltinnNamespace;
 
     internal static readonly IReadOnlyList<string> Tags =
     [
