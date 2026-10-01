@@ -316,7 +316,7 @@ impl Reconciler {
     async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
         let current = record.agent.status.observed_generation == record.agent.metadata.generation;
         if !(current && recorded_by_stop(&record.agent.status)) {
-            // Not Ready before the VM goes away, so Sessions are held rather than lost with it.
+            // Not Ready before the VM goes away, so Sessions are told and go Idle first.
             let stopping = not_ready(record, Condition::REASON_STOPPING, "");
             self.update_status(record, stopping, None).await?;
         }

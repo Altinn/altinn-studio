@@ -85,8 +85,9 @@ An Agent's `spec.runState` is `Running`, the default, or `Stopped`. `agentctl st
 new generation; a manifest may set it, and `apply` of one that omits it keeps the current run state. For a stopped Agent
 the reconciler stops the Sandbox VM and its Network, killing a VM that does not stop gracefully, and keeps its root
 filesystem, Volumes, identity and Provider assignment. It reaches nothing in the guest and reports `Ready=False` and
-`SandboxReady=False` with reason `Stopped`. Commands that need the Sandbox fail at once and Sessions are held. A start
-is an ordinary pass on the same root filesystem, and Sessions resume their conversations.
+`SandboxReady=False` with reason `Stopped`. Commands that need the Sandbox fail at once, and its Sessions go Idle, as
+after inactivity. A start is an ordinary pass on the same root filesystem; it launches no harness, and the next attach
+to a Session resumes its conversation.
 
 Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
 value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each

@@ -156,7 +156,7 @@ enum Command {
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
         variant: Option<AgentVariantName>,
     },
-    /// Stop an Agent's Sandbox VM, keeping its disk, so a later start resumes its Sessions.
+    /// Stop an Agent's Sandbox VM, keeping its disk, so attaching to a Session after a start resumes it.
     ///
     /// Running harnesses are stopped with the VM. Applying the manifest again keeps the Agent stopped.
     Stop {

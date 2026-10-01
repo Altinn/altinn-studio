@@ -244,8 +244,8 @@ An Agent created from an image older than this feature reports that its image ca
 access; delete it and re-apply to pick up the current image.
 
 Stop the Agent's VM, for example to free its memory or recover a Sandbox that stopped responding, and start it again
-later. The disk is kept, so files and Session conversations survive, and running Sessions resume after the start.
-Applying the manifest again keeps a stopped Agent stopped:
+later. The disk is kept, so files and Session conversations survive. Its Sessions go Idle, and attaching to one after
+the start resumes it. Applying the manifest again keeps a stopped Agent stopped:
 
 ```sh
 agentctl stop agent/altinn-full

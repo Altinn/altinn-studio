@@ -3303,25 +3303,29 @@ async fn work_in_a_stopped_agent_is_refused_without_creating_a_session() {
 }
 
 #[tokio::test(flavor = "local")]
-async fn a_session_of_a_stopped_agent_is_held_and_resumes_once_it_starts() {
+async fn a_session_of_a_stopped_agent_goes_idle_and_the_next_attach_resumes_it() {
     const TOKEN: &str = "b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2";
     let directory = TempDir::new().expect("temporary directory");
     let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
     set_worker_run_state(&database, agent::RunState::Stopped).await;
 
-    reconciler.reconcile(session.id).await.expect("held");
-    let held = database.get_session(session.id).await.expect("Session");
-    assert_eq!(held.status.state, agent::sessions::State::Starting);
-    assert_eq!(
-        held.status.lifecycle.failure.as_deref(),
-        Some("Agent \"worker\" is stopped; run `agentctl start agent/worker`")
-    );
+    reconciler.reconcile(session.id).await.expect("idle");
+    let state = |database: persistence::Database| async move {
+        database.get_session(session.id).await.expect("Session").status.state
+    };
+    assert_eq!(state(database.clone()).await, agent::sessions::State::Idle);
     assert!(
         runtime.launch_tokens.borrow().is_empty(),
         "no harness launches in a stopped Agent"
     );
 
+    // A start alone launches nothing; the Session waits for its next attach.
     set_worker_run_state(&database, agent::RunState::Running).await;
+    reconciler.reconcile(session.id).await.expect("still idle");
+    assert_eq!(state(database.clone()).await, agent::sessions::State::Idle);
+    assert!(runtime.launch_tokens.borrow().is_empty());
+
+    database.activate_session(session.id).await.expect("attach");
     runtime.ready_without_report.set(true);
     reconciler.reconcile(session.id).await.expect("resumed");
     assert_eq!(runtime.launch_tokens.borrow().len(), 1);

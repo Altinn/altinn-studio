@@ -157,6 +157,12 @@ impl Reconciler {
             }
         }
         let agent = self.sandboxes.agent(session.agent_id).await?;
+        // A stopped Agent's harnesses stop with its VM. The Session is Idle, as after
+        // inactivity, so the next attach after a start resumes its conversation.
+        if agent.agent.spec.is_stopped() {
+            self.sessions.reset_session_launch_attempts(session.id).await?;
+            return Ok(Lifecycle::idle());
+        }
         if let Some(held) = launch_blocked(&agent, session) {
             return Ok(held);
         }
@@ -396,8 +402,6 @@ fn launch_blocked(agent: &crate::control_plane::AgentRecord, session: &Session) 
     let name = &agent.agent.metadata.name;
     let reason = if agent.agent.metadata.deletion_timestamp.is_some() {
         format!("Agent {name:?} is being deleted")
-    } else if agent.agent.spec.is_stopped() {
-        Error::Stopped(name.clone()).to_string()
     } else if !agent.agent.status.is_ready() {
         // Says why, such as a guest that stopped responding.
         agent.agent.status.ready_condition().map_or_else(

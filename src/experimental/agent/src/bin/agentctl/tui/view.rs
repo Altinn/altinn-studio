@@ -808,7 +808,9 @@ fn render_modal(frame: &mut Frame, area: Rect, app: &App, modal: &Modal, hit_map
             Form::new(" stop ", Color::Yellow, &CONFIRM_HINTS)
                 .row(Line::from(format!("Stop agent {agent}?")))
                 .row(note_line("Running harnesses stop with its VM."))
-                .row(note_line("Its disk is kept, and Sessions resume after a start."))
+                .row(note_line(
+                    "Its disk is kept; attaching after a start resumes a Session.",
+                ))
                 .render(frame, area, FORM_WIDTH, hit_map);
         }
         Modal::ConfirmDeleteSession { agent, session } => {
@@ -2106,7 +2108,7 @@ mod tests {
         assert!(text.contains("Stop agent agent-00?"), "{text}");
         assert!(text.contains("Running harnesses stop with its VM."), "{text}");
         assert!(
-            text.contains("Its disk is kept, and Sessions resume after a start."),
+            text.contains("Its disk is kept; attaching after a start resumes a Session."),
             "{text}"
         );
     }

@@ -211,12 +211,6 @@ impl Service {
                 State::WaitingForInput => true,
                 // An archive that has not stopped the harness yet leaves the turn to its own report.
                 State::Archiving => activity.phase == super::Phase::WaitingForInput,
-                // A Session held by its stopped Agent has no harness left to finish the turn.
-                State::Starting if self.sandboxes.agent(current.agent_id).await?.agent.spec.is_stopped() => {
-                    return Err(Error::Session(format!(
-                        "the Agent of Session \"{name}\" was stopped while waiting for turn completion"
-                    )));
-                }
                 State::Starting | State::Working => false,
             };
             if activity.turns > completed_before && waiting {
