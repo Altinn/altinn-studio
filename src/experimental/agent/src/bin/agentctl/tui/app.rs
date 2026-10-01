@@ -151,6 +151,17 @@ const AGENT_HINTS: [Hint; 12] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
+/// An Agent whose stop is not recorded yet: starting it now would cancel the stop.
+const STOPPING_AGENT_HINTS: [Hint; 7] = [
+    Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
 /// A stopped Agent runs nothing, so only what works without its Sandbox is offered.
 const STOPPED_AGENT_HINTS: [Hint; 8] = [
     Hint::key("x", "start", KeyCode::Char('x')),
@@ -206,8 +217,9 @@ const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))]
 
 /// Every hint set the tree shows for its selection. The footer is sized for
 /// the widest, so moving the selection never moves the tree.
-pub(crate) const SELECTION_HINTS: [&[Hint]; 7] = [
+pub(crate) const SELECTION_HINTS: [&[Hint]; 8] = [
     &AGENT_HINTS,
+    &STOPPING_AGENT_HINTS,
     &STOPPED_AGENT_HINTS,
     &SESSION_HINTS,
     &ARCHIVED_SESSION_HINTS,
@@ -501,6 +513,8 @@ pub(crate) struct Transcript {
     pub(crate) turns: Vec<Turn>,
     pub(crate) loading: bool,
     pub(crate) error: Option<String>,
+    /// The Session's Agent is stopped, so its turns, which live in the guest, are not read.
+    pub(crate) stopped: bool,
 }
 
 /// Text field of the new Session form that typing edits.
@@ -1689,6 +1703,8 @@ impl App {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
             }
+            // Starting before the stop is recorded would cancel it, so wait for it.
+            KeyCode::Char('x') if stop_pending(agent) => {}
             KeyCode::Char('x') if agent.spec.is_stopped() => {
                 return Action::SetRunState {
                     agent: name,
@@ -1960,6 +1976,10 @@ impl App {
             .iter()
             .find(|candidate| candidate.agent == *agent && candidate.name == *session)
             .map_or(0, |session| session.status.reported.activity.turns);
+        let stopped = self
+            .agents
+            .iter()
+            .any(|candidate| candidate.metadata.name == *agent && candidate.spec.is_stopped());
         let transcript = match &mut self.transcript {
             Some(transcript) if transcript.agent == *agent && transcript.session == *session => transcript,
             _ => self.transcript.insert(Transcript {
@@ -1969,9 +1989,11 @@ impl App {
                 turns: Vec::new(),
                 loading: true,
                 error: None,
+                stopped,
             }),
         };
-        if self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
+        transcript.stopped = stopped;
+        if stopped || self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
             return None;
         }
         transcript.requested_at = Some(turns);
@@ -2485,13 +2507,11 @@ impl App {
             return &FORWARD_VIEW_HINTS;
         }
         match self.selected_row() {
-            Some(Row::Agent(group)) => {
-                if self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped()) {
-                    &STOPPED_AGENT_HINTS
-                } else {
-                    &AGENT_HINTS
-                }
-            }
+            Some(Row::Agent(group)) => match self.group_agent(group) {
+                Some(agent) if stop_pending(agent) => &STOPPING_AGENT_HINTS,
+                Some(agent) if agent.spec.is_stopped() => &STOPPED_AGENT_HINTS,
+                _ => &AGENT_HINTS,
+            },
             Some(Row::Session { group, position }) => {
                 let archived = self.group_session(group, position).is_some_and(Session::is_archived);
                 let stopped = self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped());
@@ -2550,10 +2570,12 @@ fn agent_state(agent: &Agent) -> AgentState {
     let ready = agent.status.ready_condition();
     let entered = ready.and_then(|ready| ready.last_transition_time);
     let message = || ready.map_or_else(String::new, |ready| ready.detail().trim_end().to_owned());
-    let current = agent.status.observed_generation == agent.metadata.generation;
-    let failure = agent.status.failure.filter(|_| current);
+    let failure = agent
+        .status
+        .failure
+        .filter(|_| agent.status.observed_generation == agent.metadata.generation);
     let changing = if agent.spec.is_stopped() {
-        if current && agent.status.is_stopped() {
+        if !stop_pending(agent) {
             return state(Tone::Gray, "Stopped", String::new(), entered);
         }
         // A failed stop reads as Retrying below, like any other failed pass.
@@ -2589,6 +2611,13 @@ fn agent_state(agent: &Agent) -> AgentState {
             Some(_) => failed(Tone::Cyan, "Starting", message(), entered),
         },
     }
+}
+
+/// Whether the Agent was asked to stop and no pass for that generation has
+/// recorded it stopped yet.
+fn stop_pending(agent: &Agent) -> bool {
+    agent.spec.is_stopped()
+        && !(agent.status.observed_generation == agent.metadata.generation && agent.status.is_stopped())
 }
 
 /// When a pass started: before the phase in progress by the time its
@@ -4166,6 +4195,44 @@ mod tests {
         );
         app.on_key(key(KeyCode::Char('n')));
         assert!(app.modal.is_none(), "no Session is created in a stopped Agent");
+    }
+
+    #[test]
+    fn x_does_not_start_an_agent_whose_stop_is_not_recorded_yet() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![{
+                let mut agent = ready_agent("worker");
+                agent.spec.run_state = Some(RunState::Stopped);
+                agent
+            }],
+            Vec::new(),
+        );
+        app.select_index(0);
+        assert_eq!(app.hints(), &STOPPING_AGENT_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('x'))),
+            Action::None,
+            "starting would cancel the stop"
+        );
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn a_stopped_agents_session_turns_are_not_read() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![not_ready_agent(
+                "idle",
+                RunState::Stopped,
+                agent::Condition::REASON_STOPPED,
+            )],
+            vec![session("idle", "s1", "idle")],
+        );
+        app.side_panel = true;
+        app.select_index(1);
+        assert_eq!(app.transcript_request(), None, "its turns live in the stopped guest");
+        assert!(app.transcript.as_ref().is_some_and(|transcript| transcript.stopped));
     }
 
     #[test]

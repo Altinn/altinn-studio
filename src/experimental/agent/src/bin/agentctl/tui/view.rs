@@ -391,7 +391,12 @@ fn render_transcript(frame: &mut Frame, area: Rect, transcript: &super::app::Tra
         .border_style(Style::new().fg(Color::DarkGray));
     let inner = block.inner(area);
     let mut lines = crate::format::turn_lines(&transcript.turns);
-    if let Some(error) = &transcript.error {
+    if transcript.stopped {
+        lines = vec![format!(
+            "agent/{} is stopped; its turns are shown after a start.",
+            transcript.agent
+        )];
+    } else if let Some(error) = &transcript.error {
         lines.push(format!("Turns unavailable: {error}"));
     } else if lines.is_empty() {
         lines.push(
