@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types and task configuration at startup.
+/// Validates BPMN task types, the element each task is drawn as, and task configuration at startup.
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task implementations can use scoped services.
@@ -69,7 +69,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
             // Use the same lookup rules as task execution: prefer service tasks, then use the last exact
             // type match.
-            IProcessTask? task = serviceTasks.ResolveByTaskType(taskType) ?? processTasks.ResolveByTaskType(taskType);
+            IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
+            IProcessTask? task = serviceTask ?? processTasks.ResolveByTaskType(taskType);
             if (task is null)
             {
                 listRegisteredTypes = true;
@@ -84,6 +85,20 @@ internal sealed class ProcessTaskConfigurationValidationService(
                         )
                 );
                 continue;
+            }
+
+            // The frontend chooses how to show a task from its element, so the element must match the type.
+            // The task's own configuration is still validated, so one run reports every problem.
+            bool drawnAsServiceTask = bpmnTask is ServiceTask;
+            if (serviceTask is not null && !drawnAsServiceTask)
+            {
+                findings.Add(ElementMismatch(bpmnTask.Id, taskType, "a service task", "bpmn:task", "bpmn:serviceTask"));
+            }
+            else if (serviceTask is null && drawnAsServiceTask)
+            {
+                findings.Add(
+                    ElementMismatch(bpmnTask.Id, taskType, "not a service task", "bpmn:serviceTask", "bpmn:task")
+                );
             }
 
             try
@@ -132,4 +147,14 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private static string ElementMismatch(
+        string taskId,
+        string taskType,
+        string typeKind,
+        string drawnAs,
+        string requiredElement
+    ) =>
+        $"Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is {typeKind}, "
+        + $"but is drawn as <{drawnAs}>. Draw it as <{requiredElement}>.";
 }

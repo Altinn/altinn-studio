@@ -21,7 +21,9 @@ public class ProcessTaskConfigurationValidationServiceTests
     [InlineData(true)]
     public async Task StartAsync_DisposesScopedTaskDependenciesAfterValidation(bool invalidConfiguration)
     {
-        ServiceCollection services = CreateServices(ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn"));
+        ServiceCollection services = CreateServices(
+            ProcessTestUtils.SetupProcessReader("service-task-custom-type.bpmn")
+        );
         ScopedDependency? dependency = null;
         services.AddScoped(_ => dependency = new ScopedDependency());
         services.AddTransient<IServiceTask>(provider =>
@@ -141,7 +143,7 @@ public class ProcessTaskConfigurationValidationServiceTests
                     new TestTask("DATA", _ => throw new InvalidOperationException("different case"))
                 );
             },
-            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+            ProcessTestUtils.SetupProcessReader("service-task-custom-type.bpmn")
         );
 
         Assert.Null(exception);
@@ -248,16 +250,80 @@ public class ProcessTaskConfigurationValidationServiceTests
     }
 
     [Theory]
-    [InlineData("pdf-service-task.bpmn", "pdf")]
-    [InlineData("plain-task-custom-type.bpmn", "archive")]
-    public async Task StartAsync_RegisteredTaskType_PassesValidation(string bpmn, string taskType)
+    [InlineData("pdf-service-task.bpmn", "pdf", true)]
+    [InlineData("service-task-custom-type.bpmn", "archive", true)]
+    [InlineData("plain-task-custom-type.bpmn", "archive", false)]
+    public async Task StartAsync_RegisteredTaskTypeOnMatchingElement_PassesValidation(
+        string bpmn,
+        string taskType,
+        bool isServiceTask
+    )
     {
         var exception = await Validate(
-            s => s.AddSingleton<IServiceTask>(new SimpleTask(taskType)),
+            s =>
+            {
+                if (isServiceTask)
+                    s.AddSingleton<IServiceTask>(new SimpleTask(taskType));
+                else
+                    s.AddSingleton<IProcessTask>(new TestTask(taskType));
+            },
             ProcessTestUtils.SetupProcessReader(bpmn)
         );
 
         Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("plain-task-custom-type.bpmn", "Task_Custom", "archive", true, true)]
+    [InlineData("pdf-plain-task.bpmn", "Task_Pdf", "pdf", true, true)]
+    [InlineData("service-task-custom-type.bpmn", "Task_Custom", "archive", false, true)]
+    // CreateServices registers the data task, as the built-in registrations do.
+    [InlineData("data-service-task.bpmn", "Task_Data", "data", false, false)]
+    public async Task StartAsync_ElementDoesNotMatchTaskType_FailsValidation(
+        string bpmn,
+        string taskId,
+        string taskType,
+        bool isServiceTask,
+        bool register
+    )
+    {
+        var exception = await Validate(
+            s =>
+            {
+                if (!register)
+                    return;
+                if (isServiceTask)
+                    s.AddSingleton<IServiceTask>(new SimpleTask(taskType));
+                else
+                    s.AddSingleton<IProcessTask>(new TestTask(taskType));
+            },
+            ProcessTestUtils.SetupProcessReader(bpmn)
+        );
+
+        string expected = isServiceTask
+            ? $"  - Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is a service task, "
+                + "but is drawn as <bpmn:task>. Draw it as <bpmn:serviceTask>."
+            : $"  - Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is not a service task, "
+                + "but is drawn as <bpmn:serviceTask>. Draw it as <bpmn:task>.";
+        Assert.NotNull(exception);
+        string finding = Assert.Single(
+            exception.Message.Split(Environment.NewLine),
+            line => line.StartsWith("  - ", StringComparison.Ordinal)
+        );
+        Assert.Equal(expected, finding);
+    }
+
+    [Fact]
+    public async Task StartAsync_ElementMismatch_StillReportsTaskConfigurationFindings()
+    {
+        var exception = await Validate(
+            s => s.AddSingleton<IServiceTask>(new ValidatedServiceTask("archive", _ => ["missing archive settings"])),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains("but is drawn as <bpmn:task>", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("Task 'Task_Custom': missing archive settings", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
