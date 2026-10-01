@@ -31,10 +31,10 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ### Fixed
 
-- Windows Agents remain responsive after startup, so commands, SSH and Sessions keep working. Restart running Agents to apply the runtime update. ([martinothamar/microsandbox#9](https://github.com/martinothamar/microsandbox/pull/9))
-- Windows Agents can mount host directories. ([martinothamar/microsandbox#10](https://github.com/martinothamar/microsandbox/pull/10))
-- On Windows, files in shared directories remain accessible after their parent directory is renamed. ([martinothamar/microsandbox#14](https://github.com/martinothamar/microsandbox/pull/14))
-- On macOS and Linux, stopping an Agent no longer risks corrupting Sandbox state. ([martinothamar/microsandbox#12](https://github.com/martinothamar/microsandbox/pull/12))
+- Windows Agents remain responsive after startup, so commands, SSH and Sessions keep working. Restart running Agents to apply the runtime update. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#9](https://github.com/martinothamar/microsandbox/pull/9))
+- Windows Agents can mount host directories. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#10](https://github.com/martinothamar/microsandbox/pull/10))
+- On Windows, files in shared directories remain accessible after their parent directory is renamed. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#14](https://github.com/martinothamar/microsandbox/pull/14))
+- On macOS and Linux, stopping an Agent no longer risks corrupting Sandbox state. ([#20911](https://github.com/Altinn/altinn-studio/pull/20911), [martinothamar/microsandbox#12](https://github.com/martinothamar/microsandbox/pull/12))
 - In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older. ([#20909](https://github.com/Altinn/altinn-studio/pull/20909))
 - Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
 - An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
