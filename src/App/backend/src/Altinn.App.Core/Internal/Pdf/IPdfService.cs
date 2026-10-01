@@ -1,74 +1,54 @@
 using Altinn.App.Core.Features;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
-/// Generates PDFs of an instance with the PDF generator and returns them. The caller decides what to do with a PDF,
-/// such as adding it to the instance with a file name from <see cref="IPdfFileNameResolver"/>.
+/// Generates PDFs of an instance with the PDF generator and returns them. The PDF generator opens the app and renders
+/// the instance as it is stored, so changes that are not saved yet are not in the PDF. The caller decides what to do
+/// with a PDF, such as adding it to the instance with a file name from <see cref="IPdfFileNameResolver"/>.
 /// </summary>
 public interface IPdfService
 {
     /// <summary>
-    /// Generate a PDF of the current task.
+    /// Generate a PDF of a task. The task does not have to be the current task, so a PDF service task can be rendered
+    /// before the instance reaches it.
     /// </summary>
-    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
-    /// <param name="taskId">The id of the current task.</param>
+    /// <param name="instance">The instance to generate the PDF of.</param>
+    /// <param name="taskId">The task to render, such as the current task.</param>
     /// <param name="autoGeneratePdfForTaskIds">Tasks to render in the PDF as summaries of their main UI folders, instead of their PDF layouts. Ignored if the PDF task has a UI folder of its own.</param>
+    /// <param name="language">The language of the PDF, such as nb or en. If null, the language in the request's query is used, or else the user's language.</param>
+    /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GeneratePdf(
-        IInstanceDataAccessor dataAccessor,
+        Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds = null,
+        string? language = null,
+        bool isPreview = false,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Generate a PDF of one subform, as a subform PDF service task does.
+    /// Generate a PDF of one subform, as a subform PDF service task does. The instance does not have to have reached
+    /// the task.
     /// </summary>
-    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
-    /// <param name="taskId">The id of the current task, a subform PDF service task.</param>
+    /// <param name="instance">The instance to generate the PDF of.</param>
+    /// <param name="taskId">The subform PDF service task to render.</param>
     /// <param name="subformPdfContext">The subform to generate the PDF of.</param>
+    /// <param name="language">The language of the PDF, such as nb or en. If null, the language in the request's query is used, or else the user's language.</param>
+    /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
     Task<Stream> GenerateSubformPdf(
-        IInstanceDataAccessor dataAccessor,
+        Instance instance,
         string taskId,
         SubformPdfContext subformPdfContext,
+        string? language = null,
+        bool isPreview = false,
         StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Generate a preview of the PDF a task produces, marked as a preview in its footer. The task does not have to be
-    /// the current task, so a PDF service task can be previewed before the instance reaches it. The preview is in the
-    /// language of the data accessor, or in the user's language if it has none.
-    /// </summary>
-    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
-    /// <param name="taskId">The task to preview, such as the current task or a PDF service task.</param>
-    /// <param name="autoGeneratePdfForTaskIds">The tasks to auto-generate the PDF from, as configured on a PDF service task.</param>
-    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GeneratePreviewPdf(
-        IInstanceDataAccessor dataAccessor,
-        string taskId,
-        List<string>? autoGeneratePdfForTaskIds = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Generate a preview of the PDF a subform PDF service task produces for one subform, marked as a preview in its
-    /// footer. The instance does not have to have reached the task. The preview is in the language of the data
-    /// accessor, or in the user's language if it has none.
-    /// </summary>
-    /// <param name="dataAccessor">The instance data accessor to read the instance and its data from.</param>
-    /// <param name="taskId">The subform PDF service task to preview.</param>
-    /// <param name="subformPdfContext">The subform to preview.</param>
-    /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GenerateSubformPreviewPdf(
-        IInstanceDataAccessor dataAccessor,
-        string taskId,
-        SubformPdfContext subformPdfContext,
         CancellationToken cancellationToken = default
     );
 }

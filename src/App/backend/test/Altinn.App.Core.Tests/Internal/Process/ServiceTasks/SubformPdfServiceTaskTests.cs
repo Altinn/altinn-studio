@@ -5,7 +5,6 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Features.Process;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -33,9 +32,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock
             .Setup(x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -73,9 +74,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     "taskId",
                     It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
+                    null,
+                    false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -105,9 +108,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -130,11 +135,13 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(ctx =>
                         ctx.DataElementId == "data-element-1" || ctx.DataElementId == "data-element-2"
                     ),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -174,12 +181,14 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform =>
                         subform.ComponentId == SubformComponentId
                         && (subform.DataElementId == "data-element-1" || subform.DataElementId == "data-element-2")
                     ),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -343,9 +352,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock
             .Setup(x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -368,18 +379,22 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock
             .Setup(x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(
                 (
-                    IInstanceDataAccessor _,
+                    Instance _,
                     string _,
                     SubformPdfContext _,
+                    string? _,
+                    bool _,
                     StorageAuthenticationMethod? _,
                     CancellationToken _
                 ) =>
@@ -408,9 +423,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock
             .Setup(x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -438,9 +455,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-1"),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -450,9 +469,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-2"),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -462,9 +483,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform => subform.DataElementId == "data-element-3"),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -490,9 +513,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(ctx => ctx.DataElementId == "single-data-element"),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -516,9 +541,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -542,9 +569,11 @@ public class SubformPdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.Is<CancellationToken>(cancellationToken => cancellationToken == cts.Token)
                 ),

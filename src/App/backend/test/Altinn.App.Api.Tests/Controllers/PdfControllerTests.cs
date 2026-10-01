@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
@@ -21,7 +20,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -93,18 +91,6 @@ public class PdfControllerTests
                 )
             )
             .ReturnsAsync(() => _instance);
-        _instanceClientWithStorageMetadata
-            .Setup(a =>
-                a.GetInstanceWithStorageMetadata(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(() => new InstanceWithStorageMetadata(_instance, StorageVersionMetadata.Empty));
         _appMetadata.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata($"{_org}/{_app}"));
 
         _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
@@ -124,25 +110,23 @@ public class PdfControllerTests
             _logger.Object,
             _authenticationContext.Object,
             _translationService.Object,
-            _appResources.Object
+            _appResources.Object,
+            new InstanceDataUnitOfWorkInitializer(
+                _dataClientWithStorageMetadata.Object,
+                _mutationClient.Object,
+                _instanceClientWithStorageMetadata.Object,
+                _appMetadata.Object,
+                _translationService.Object,
+                new ModelSerializationService(_appModel.Object),
+                _appResources.Object,
+                Options.Create(new FrontEndSettings())
+            )
         );
         return pdfService;
     }
 
     private PdfController NewPdfController(IPdfService pdfService)
     {
-        var services = new ServiceCollection();
-        services.AddTransient<ModelSerializationService>();
-        services.AddTransient<InstanceDataUnitOfWorkInitializer>();
-        services.AddSingleton(Options.Create(new FrontEndSettings()));
-        services.AddSingleton(_instanceClientWithStorageMetadata.Object);
-        services.AddSingleton(_dataClientWithStorageMetadata.Object);
-        services.AddSingleton(_mutationClient.Object);
-        services.AddSingleton(_appMetadata.Object);
-        services.AddSingleton(_translationService.Object);
-        services.AddSingleton(_appResources.Object);
-        services.AddSingleton(_appModel.Object);
-
         return new PdfController(
             _instanceClient.Object,
             _pdfFormatter.Object,
@@ -150,8 +134,7 @@ public class PdfControllerTests
             _appModel.Object,
             _dataClient.Object,
             pdfService,
-            _processReader.Object,
-            services.BuildServiceProvider()
+            _processReader.Object
         );
     }
 

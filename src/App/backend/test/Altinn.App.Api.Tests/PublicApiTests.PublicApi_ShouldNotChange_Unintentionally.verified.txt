@@ -500,7 +500,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class PdfController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader, System.IServiceProvider serviceProvider) { }
+        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
             "id}/pdf/format")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]

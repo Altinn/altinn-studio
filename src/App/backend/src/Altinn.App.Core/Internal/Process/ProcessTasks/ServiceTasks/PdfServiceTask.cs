@@ -49,11 +49,11 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
 
         await using Stream pdf = await _pdfService.GeneratePdf(
-            dataMutator,
+            dataMutator.Instance,
             taskId,
             config.AutoPdfTaskIds,
-            StorageAuthenticationMethod.ServiceOwner(),
-            context.CancellationToken
+            authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken: context.CancellationToken
         );
         string fileName = await _pdfFileNameResolver.GetFileName(dataMutator, config.FilenameTextResourceKey);
         using var pdfBytes = new MemoryStream();

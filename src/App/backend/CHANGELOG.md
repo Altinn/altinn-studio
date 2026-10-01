@@ -33,7 +33,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - Breaking: `IPdfService` only generates PDFs and returns them as streams, so the caller decides where a PDF goes. `GenerateAndStorePdf` is removed. To add a PDF as before, call `GeneratePdf`, name it with the new `IPdfFileNameResolver`, and add it with `IInstanceDataMutator.AddBinaryDataElement` as `ref-data-as-pdf` with `generatedFromTask`, so it is removed when the task starts again.
-- Breaking: `IPdfService.GeneratePdf` takes an `IInstanceDataAccessor` instead of an `Instance`, and no longer has `isPreview`; use `GeneratePreviewPdf` for a preview. `GenerateSubformPdf` and `GenerateSubformPreviewPdf` are new, and no method has a default implementation.
+- Breaking: `IPdfService.GeneratePdf` has one overload, with the optional parameters `autoGeneratePdfForTaskIds`, `language`, `isPreview` and `authenticationMethod`, so pass `isPreview` and the cancellation token by name. It can render a task other than the current one. `GenerateSubformPdf` is new, and no method has a default implementation.
 - Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. PDF service tasks are traced by the `PdfService.GeneratePdf` span instead. Update queries, dashboards and alerts that use the old name.
 
 ### Removed

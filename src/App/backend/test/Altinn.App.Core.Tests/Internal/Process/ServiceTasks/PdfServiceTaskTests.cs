@@ -35,9 +35,11 @@ public class PdfServiceTaskTests
         _pdfServiceMock
             .Setup(x =>
                 x.GeneratePdf(
-                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.IsAny<List<string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -71,9 +73,11 @@ public class PdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GeneratePdf(
-                    instanceMutatorMock.Object,
+                    instanceMutatorMock.Object.Instance,
                     "taskId",
                     It.IsAny<List<string>?>(),
+                    null,
+                    false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -137,9 +141,11 @@ public class PdfServiceTaskTests
         _pdfServiceMock.Verify(
             x =>
                 x.GeneratePdf(
-                    instanceMutatorMock.Object,
+                    instanceMutatorMock.Object.Instance,
                     "pdfTask",
                     taskIds,
+                    null,
+                    false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),

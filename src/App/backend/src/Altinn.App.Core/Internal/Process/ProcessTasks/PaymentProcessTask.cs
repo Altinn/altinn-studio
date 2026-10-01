@@ -95,7 +95,7 @@ internal sealed class PaymentProcessTask : IProcessTask
             throw new PaymentException("The payment is not completed.");
 
         await using Stream pdfStream = await _pdfService.GeneratePdf(
-            dataMutator,
+            dataMutator.Instance,
             taskId,
             cancellationToken: cancellationToken
         );

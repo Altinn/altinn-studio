@@ -168,7 +168,7 @@ internal sealed class SigningProcessTask : IProcessTask
         if (signingPdfDataType is not null)
         {
             await using Stream pdfStream = await _pdfService.GeneratePdf(
-                dataMutator,
+                dataMutator.Instance,
                 taskId,
                 cancellationToken: cancellationToken
             );

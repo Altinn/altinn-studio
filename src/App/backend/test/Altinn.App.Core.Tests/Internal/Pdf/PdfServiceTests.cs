@@ -2,6 +2,7 @@ using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -13,7 +14,6 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
-using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
@@ -309,10 +309,8 @@ public class PdfServiceTests
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
 
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-
         // Act
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         // Asserts
         _pdfGeneratorClient.Verify(
@@ -404,11 +402,9 @@ public class PdfServiceTests
             Process = new() { CurrentTask = new() { ElementId = "Task_PDF" } },
         };
 
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-
         // Act
         await target.GeneratePdf(
-            dataAccessorMock.Object,
+            instance,
             "Task_PDF",
             autoGeneratePdfForTaskIds,
             cancellationToken: CancellationToken.None
@@ -460,10 +456,8 @@ public class PdfServiceTests
             Org = "digdir",
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-
         await target.GenerateSubformPdf(
-            dataAccessorMock.Object,
+            instance,
             "Task_1",
             new SubformPdfContext("subform-component", "subform-data-element")
         );
@@ -483,11 +477,44 @@ public class PdfServiceTests
         );
     }
 
-    private static Mock<IInstanceDataAccessor> CreateDataAccessorMock(Instance instance)
+    [Fact]
+    public async Task GeneratePdf_Preview_ShouldMarkTheFooterAsPreview_EvenWithoutDisplayFooter()
     {
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
-        dataAccessorMock.Setup(m => m.Instance).Returns(instance);
-        return dataAccessorMock;
+        _pdfGeneratorClient
+            .Setup(s =>
+                s.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MemoryStream());
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+        };
+
+        await target.GeneratePdf(instance, "Task_1", language: LanguageConst.En, isPreview: true);
+
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u => u.AbsoluteUri.Contains("lang=en")),
+                    It.Is<string?>(footer => footer != null && footer.Contains("The document is a preview")),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -535,8 +562,7 @@ public class PdfServiceTests
         };
 
         // Act
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         _pdfGeneratorClient.Verify(
             s =>
@@ -584,8 +610,7 @@ public class PdfServiceTests
         };
 
         // Act
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -634,8 +659,7 @@ public class PdfServiceTests
         };
 
         // Act
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -681,8 +705,7 @@ public class PdfServiceTests
         };
 
         // Act
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -729,8 +752,7 @@ public class PdfServiceTests
         };
 
         // Act
-        var dataAccessorMock = CreateDataAccessorMock(instance);
-        await target.GeneratePdf(dataAccessorMock.Object, "Task_1", cancellationToken: CancellationToken.None);
+        await target.GeneratePdf(instance, "Task_1", cancellationToken: CancellationToken.None);
 
         // Assert
         _pdfGeneratorClient.Verify(
@@ -768,7 +790,24 @@ public class PdfServiceTests
                 FakeLoggerXunit.Get<TranslationService>(_outputHelper)
             ),
             appResources?.Object ?? _appResources.Object,
+            CreateInstanceDataUnitOfWorkInitializer(appResources?.Object ?? _appResources.Object),
             telemetrySink?.Object
+        );
+    }
+
+    private static InstanceDataUnitOfWorkInitializer CreateInstanceDataUnitOfWorkInitializer(IAppResources appResources)
+    {
+        var appMetadata = new Mock<IAppMetadata>();
+        appMetadata.Setup(a => a.ApplicationMetadata).Returns(new ApplicationMetadata("digdir/not-really-an-app"));
+        return new InstanceDataUnitOfWorkInitializer(
+            Mock.Of<IDataClientWithStorageMetadata>(),
+            Mock.Of<IInstanceMutationClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            appMetadata.Object,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            appResources,
+            Options.Create(new FrontEndSettings())
         );
     }
 

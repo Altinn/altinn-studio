@@ -48,11 +48,11 @@ internal sealed class SubformPdfServiceTask(
 
             var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
             await using Stream pdf = await pdfService.GenerateSubformPdf(
-                dataMutator,
+                instance,
                 taskId,
                 subformPdfContext,
-                StorageAuthenticationMethod.ServiceOwner(),
-                context.CancellationToken
+                authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+                cancellationToken: context.CancellationToken
             );
             string fileName = await pdfFileNameResolver.GetFileName(
                 dataMutator,

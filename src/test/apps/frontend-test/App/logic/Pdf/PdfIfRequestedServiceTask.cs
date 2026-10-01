@@ -51,11 +51,11 @@ namespace Altinn.App.logic.Pdf
                 var pdfConfig = _processReader.GetAltinnTaskExtension(taskId)?.PdfConfiguration;
 
                 await using var pdf = await _pdfService.GeneratePdf(
-                    mutator,
+                    mutator.Instance,
                     taskId,
                     pdfConfig?.AutoPdfTaskIds,
-                    StorageAuthenticationMethod.ServiceOwner(),
-                    context.CancellationToken
+                    authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+                    cancellationToken: context.CancellationToken
                 );
                 var fileName = await _pdfFileNameResolver.GetFileName(mutator, pdfConfig?.FilenameTextResourceKey);
                 using var pdfBytes = new MemoryStream();
