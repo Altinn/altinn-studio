@@ -9,7 +9,7 @@ import type { Options as AxeOptions } from 'cypress-axe';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { getTargetUrl } from 'test/e2e/support/start-app-instance';
-import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 'test/e2e/support/global';
+import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport, ViewportName } from 'test/e2e/support/global';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { IFeatureToggles } from 'src/features/toggles';
@@ -349,7 +349,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
       // We need to manually resize the viewport to ensure that the snapshot is taken with the correct DOM. We sometimes
       // change the DOM based on the viewport size, and Percy only understands CSS media queries (not our React logic).
       const viewportSizes: Record<SnapshotViewport, { width: number; height: number }> = {
-        desktop: { width: 1280, height: 768 },
+        desktop: { width: 1536, height: 768 },
         tablet: { width: breakpoints.md - 5, height: 1024 },
         mobile: { width: 360, height: 768 },
       };
@@ -367,8 +367,14 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
 
       // Reset to original viewport
       cy.viewport(innerWidth, innerHeight);
-      const targetViewport =
-        innerWidth < breakpoints.sm ? 'mobile' : innerWidth < breakpoints.md ? 'tablet' : 'desktop';
+      const targetViewport: ViewportName =
+        innerWidth < breakpoints.sm
+          ? 'mobile'
+          : innerWidth < breakpoints.md
+            ? 'tablet'
+            : innerWidth < breakpoints.lg
+              ? 'laptop'
+              : 'desktop';
       cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });

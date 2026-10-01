@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
-import { useBrowserWidth, useIsMobile } from '@app/form-component';
+import { useIsLgUp, useIsMobile } from '@app/form-component';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -13,13 +13,13 @@ import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutS
 import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
-import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
+import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();
   const { expandedWidth } = useExpandedWidth();
-  const isScreenSmall = !useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) || expandedWidth;
+  const isScreenSmall = !useIsLgUp() || expandedWidth;
 
   if (!hasGroupedNavigation || !isScreenSmall) {
     return null;
