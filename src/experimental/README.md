@@ -94,7 +94,9 @@ value, so an observer that joins late or falls behind sees what one that saw eve
 Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
 durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
 with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
-drains.
+drains. Commands that wait for an Agent, such as `apply --wait`, `wait`, `start` and `stop`, call `agents.v1.converge`
+while they follow its progress. It wakes the Agent and returns once a pass for its generation recorded its desired run
+state, Ready or stopped, waiting through transient failures.
 
 `agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
 one Agent's provisioning, and derives each Agent's state from its conditions and failure class.

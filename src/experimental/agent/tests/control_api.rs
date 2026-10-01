@@ -11,7 +11,8 @@ use std::{
 use agent::{
     Error,
     control_api::{
-        AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
+        AuthenticationApi, Client, Connection, Connector, ConvergenceApi, ExecutionApi, Server, SessionApi,
+        SshAccessApi, VncAccessApi,
     },
     control_plane::WaitPolicy,
     control_plane::{ApplyRequest, ControlPlane, memory::InMemoryAgentStore},
@@ -27,6 +28,8 @@ use tokio::{
 use support::{IgnoreNotifications, agent};
 
 struct FakeAuthentication;
+/// Converges an Agent at once to what the Control Plane stores.
+struct FakeConvergence(Rc<ControlPlane>);
 struct FakeSshAccess;
 struct FakeVncAccess;
 
@@ -264,6 +267,12 @@ impl SessionApi for FakeSessions {
     }
 }
 
+impl ConvergenceApi for FakeConvergence {
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<agent::Agent, Error>> {
+        Box::pin(async move { self.0.get(name).await })
+    }
+}
+
 impl ExecutionApi for FakeExecutions {
     fn ensure<'a>(
         &'a self,
@@ -365,8 +374,9 @@ fn api() -> ApiFixture {
     let executions = Rc::new(FakeExecutions::default());
     let waiting = executions.waiting.clone();
     let server = Rc::new(Server::new(
-        control_plane,
+        control_plane.clone(),
         Rc::new(FakeAuthentication),
+        Rc::new(FakeConvergence(control_plane)),
         executions,
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
@@ -1015,6 +1025,7 @@ async fn stop_and_start_record_the_run_state_as_a_new_generation() {
         .await
         .expect("repeated stop");
     assert_eq!(again.metadata.generation, stopped.metadata.generation);
+    assert_eq!(client.converge("worker").await.expect("converge"), stopped);
 
     let started = client
         .set_run_state("worker", agent::RunState::Running)

@@ -2672,3 +2672,76 @@ async fn a_stop_recorded_while_a_wait_is_woken_ends_the_wait() {
     assert!(matches!(result, Err(Error::Stopped(_))), "{result:?}");
     task.abort();
 }
+
+#[tokio::test(flavor = "local")]
+async fn converging_the_run_state_waits_for_a_stop_and_for_a_start() {
+    let fixture = waiting([], NO_BACKGROUND_PASSES).await;
+    let convergence = Convergence::new(fixture.wakeup.clone(), fixture.store.clone(), Changes::new());
+    let control_plane = ControlPlane::new(fixture.store.clone(), Rc::new(fixture.wakeup.clone()));
+    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
+        .await
+        .expect("a new Agent converges")
+        .expect("Ready");
+    assert!(converged.status.is_ready());
+
+    control_plane
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
+        .await
+        .expect("a stop converges")
+        .expect("stopped");
+    assert!(converged.spec.is_stopped() && converged.status.is_stopped());
+    assert_eq!(converged.status.observed_generation, converged.metadata.generation);
+
+    control_plane
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    let converged = tokio::time::timeout(Duration::from_secs(1), convergence.converge_run_state("worker"))
+        .await
+        .expect("a start converges")
+        .expect("Ready");
+    assert!(converged.status.is_ready() && !converged.spec.is_stopped());
+
+    let error = convergence
+        .converge_run_state("missing")
+        .await
+        .expect_err("missing Agent");
+    assert!(matches!(error, Error::NotFound), "{error:?}");
+    fixture.task.abort();
+}
+
+#[tokio::test(flavor = "local", start_paused = true)]
+async fn converging_a_stopped_agent_is_not_ended_by_the_stall_it_was_stopped_for() {
+    let changes = Changes::new();
+    let fixture = stalling(changes.clone()).await;
+    let (controller, wakeup) = Controller::new(
+        fixture.store.clone(),
+        fixture.reconciler.clone(),
+        NO_BACKGROUND_PASSES,
+        Rc::new(|_, _| {}),
+    );
+    let task = tokio::task::spawn_local(controller.run());
+    let convergence = Convergence::new(wakeup, fixture.store.clone(), changes);
+    convergence.converge_run_state("worker").await.expect("Ready");
+    fixture.beat(1).await;
+    fixture.platform.stall.set(true);
+    let error = convergence
+        .converge_run_state("worker")
+        .await
+        .expect_err("a running Agent with a stalled guest cannot converge");
+    assert!(matches!(error, Error::SandboxUnresponsive(_)), "{error:?}");
+
+    ControlPlane::new(fixture.store.clone(), Rc::new(NotificationCounter::default()))
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    let stopped = convergence
+        .converge_run_state("worker")
+        .await
+        .expect("the stop converges");
+    assert!(stopped.status.is_stopped());
+    task.abort();
+}

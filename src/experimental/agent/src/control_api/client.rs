@@ -8,7 +8,7 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
+    METHOD_CONVERGE, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
     METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
     METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
@@ -230,6 +230,17 @@ impl Client {
     pub async fn delete(&self, name: &str) -> Result<(), Error> {
         let _result: serde_json::Value = self.call(METHOD_DELETE, NameParams { name: name.into() }).await?;
         Ok(())
+    }
+
+    /// Waits until an Agent has its desired run state, Ready or stopped, and
+    /// returns it as stored then; transient failures are waited through.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing, deleted, invalid or
+    /// unresponsive, or the call fails.
+    pub async fn converge(&self, name: &str) -> Result<Agent, Error> {
+        self.call(METHOD_CONVERGE, NameParams { name: name.into() }).await
     }
 
     /// Records whether an Agent's Sandbox runs and returns the Agent as stored;

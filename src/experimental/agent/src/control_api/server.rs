@@ -14,13 +14,13 @@ use crate::{
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
-    NameParams, PROTOCOL_VERSION, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response,
-    SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams,
-    error_response, read_message,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_CONVERGE, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH,
+    METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS,
+    METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams, ReadMessage, Request,
+    ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
+    SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -246,6 +246,19 @@ impl SessionApi for sessions::Service {
     }
 }
 
+/// Waiting for an Agent to converge, exposed through the local control API.
+pub trait ConvergenceApi {
+    /// Waits until an Agent has its desired run state; see
+    /// [`control_plane::Convergence::converge_run_state`].
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>>;
+}
+
+impl ConvergenceApi for control_plane::Convergence {
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { self.converge_run_state(name).await })
+    }
+}
+
 /// Transient Agent Execution target resolution exposed through the local control API.
 pub trait ExecutionApi {
     /// Converges an Agent and returns its exact ready Sandbox assignment.
@@ -368,6 +381,7 @@ impl Drop for ShutdownCheck<'_> {
 pub struct Server {
     agents: Rc<dyn AgentApi>,
     authentication: Rc<dyn AuthenticationApi>,
+    convergence: Rc<dyn ConvergenceApi>,
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
@@ -387,6 +401,7 @@ impl Server {
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
+        convergence: Rc<dyn ConvergenceApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
@@ -397,6 +412,7 @@ impl Server {
         Self {
             agents,
             authentication,
+            convergence,
             executions,
             sessions,
             ssh,
@@ -515,6 +531,7 @@ impl Server {
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_CONVERGE => self.handle_converge(request.id, request.params).await,
             METHOD_STOP => {
                 self.handle_run_state(request.id, request.params, crate::RunState::Stopped)
                     .await
@@ -613,6 +630,14 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    async fn handle_converge(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.convergence.converge(&params.name).await)
     }
 
     async fn handle_run_state(&self, id: u64, value: Value, state: crate::RunState) -> Response {
@@ -814,6 +839,7 @@ fn ends_with_its_client(method: &str) -> bool {
         method,
         METHOD_PROGRESS
             | METHOD_RESOURCES_WATCH
+            | METHOD_CONVERGE
             | METHOD_EXECUTION_ENSURE
             | METHOD_SESSION_ENSURE
             | METHOD_SESSION_TURNS

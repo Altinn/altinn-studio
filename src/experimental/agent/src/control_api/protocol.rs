@@ -17,6 +17,7 @@ pub(crate) const METHOD_EXECUTION_ENSURE: &str = "agents.v1.ensureExecution";
 pub(crate) const METHOD_DELETE: &str = "agents.v1.delete";
 pub(crate) const METHOD_STOP: &str = "agents.v1.stop";
 pub(crate) const METHOD_START: &str = "agents.v1.start";
+pub(crate) const METHOD_CONVERGE: &str = "agents.v1.converge";
 pub(crate) const METHOD_SSH_ACCESS: &str = "agents.v1.sshAccess";
 pub(crate) const METHOD_VNC_ACCESS: &str = "agents.v1.vncAccess";
 pub(crate) const METHOD_AUTH_LOGIN: &str = "authentication.v1.login";

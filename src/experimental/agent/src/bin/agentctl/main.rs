@@ -29,9 +29,6 @@ use sandbox::{execution::ExecutionEvent, terminal::TerminalAttachOutcome};
 use tokio::io::AsyncWriteExt as _;
 use tokio::runtime::LocalRuntime;
 
-/// Pause before following a stop again after agentd could not be reached.
-const STOP_RETRY_INTERVAL: Duration = Duration::from_millis(250);
-
 #[derive(Parser)]
 #[command(name = "agentctl", about = "Manage the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
@@ -542,12 +539,14 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             let applied = client.apply(request).await?;
             let name = applied.metadata.name;
             println!("agent/{name} applied");
-            if wait && applied.spec.is_stopped() {
-                wait_for_stopped(client, &name, applied.metadata.generation, timeout).await?;
-                println!("agent/{name} stopped");
-            } else if wait {
-                wait_for_ready(client, &name, timeout).await?;
-                println!("agent/{name} ready");
+            if wait {
+                let converged = wait_until_converged(client, &name, timeout).await?;
+                let outcome = if converged.spec.is_stopped() {
+                    "stopped"
+                } else {
+                    "ready"
+                };
+                println!("agent/{name} {outcome}");
             }
         }
         Command::Get {
@@ -1316,7 +1315,9 @@ async fn wait(
         return Err(Error::Invalid("only --for=condition=Ready is supported".into()).into());
     }
     let name = require_name(name, "Agent")?;
-    wait_for_ready(client, &name, timeout).await?;
+    if wait_until_converged(client, &name, timeout).await?.spec.is_stopped() {
+        return Err(Error::Stopped(name).into());
+    }
     println!("agent/{name} condition met");
     Ok(())
 }
@@ -1391,94 +1392,39 @@ fn inference_error(error: Error) -> CommandError {
     }
 }
 
-/// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
-async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
-    let wait = progress::Wait::start();
-    let waited = wait
-        .until(
-            client,
-            name,
-            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
-        )
+/// Follows an Agent's convergence with live progress until it has its desired
+/// run state, Ready or stopped, and returns it then; or until a terminal
+/// error, the timeout, or Ctrl-C.
+async fn wait_until_converged(client: &Client, name: &str, timeout: Duration) -> CommandResult<Agent> {
+    let waited = progress::Wait::start()
+        .until(client, name, tokio::time::timeout(timeout, client.converge(name)))
         .await;
-    match waited {
-        Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
-        Err(_elapsed) => {
-            let ready = match client.get(name).await {
-                Ok(agent) => agent.status.ready_condition().cloned(),
-                Err(_) => None,
-            };
-            Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
-        }
-    }
+    let Ok(converged) = waited else {
+        return Err(CommandError::Message(match client.get(name).await.ok() {
+            Some(agent) if agent.spec.is_stopped() => {
+                format!("timed out waiting for Agent {name:?} to stop; agentd keeps stopping it")
+            }
+            agent => wait_timeout_message(name, agent.as_ref().and_then(|agent| agent.status.ready_condition())),
+        }));
+    };
+    converged.map_err(CommandError::from)
 }
 
 /// Stops or starts an Agent and waits until it is stopped or Ready.
 async fn set_run_state(client: &Client, target: RunStateTarget, state: RunState) -> CommandResult<()> {
     let name = agent_reference(&target.resource, target.name)?;
-    let recorded = client.set_run_state(&name, state).await?;
-    match state {
-        RunState::Stopped => {
-            wait_for_stopped(client, &name, recorded.metadata.generation, target.timeout).await?;
-            println!("agent/{name} stopped");
-        }
-        RunState::Running => {
-            wait_for_ready(client, &name, target.timeout).await?;
-            println!("agent/{name} started");
+    client.set_run_state(&name, state).await?;
+    let converged = wait_until_converged(client, &name, target.timeout).await?;
+    match (state, converged.spec.run_state()) {
+        (RunState::Stopped, RunState::Stopped) => println!("agent/{name} stopped"),
+        (RunState::Running, RunState::Running) => println!("agent/{name} started"),
+        (_, current) => {
+            return Err(CommandError::Message(format!(
+                "Agent {name:?} was set to {current:?} again before it finished"
+            )));
         }
     }
     Ok(())
-}
-
-/// Follows a stop with live progress until a pass for `generation` or later
-/// records the Agent as stopped. agentd retries a transient failure, and a
-/// lost connection is retried here, so only a permanent failure, a start, a
-/// deletion, the timeout or Ctrl-C ends the wait early.
-async fn wait_for_stopped(client: &Client, name: &str, generation: u64, timeout: Duration) -> CommandResult<()> {
-    let stopped = async {
-        let mut after = None;
-        loop {
-            let progress = match client.agent_progress(name, after, None).await {
-                Ok(progress) => progress,
-                Err(Error::Rpc(error)) if error.is_not_found() => {
-                    return Err(CommandError::Message(format!(
-                        "Agent {name:?} was deleted before it stopped"
-                    )));
-                }
-                Err(_) => {
-                    // agentd may be restarting; it keeps stopping the Agent.
-                    tokio::time::sleep(STOP_RETRY_INTERVAL).await;
-                    after = None;
-                    continue;
-                }
-            };
-            after = Some(progress.revision);
-            let status = &progress.status;
-            if status.observed_generation < generation {
-                continue;
-            }
-            if status.is_stopped() {
-                return Ok(());
-            }
-            if let Some(message) = status.invalid() {
-                return Err(CommandError::Message(format!("Agent {name:?} cannot stop: {message}")));
-            }
-            // A later generation, such as an apply, may still be Stopped; a start is not.
-            if status.observed_generation > generation && !client.get(name).await?.spec.is_stopped() {
-                return Err(CommandError::Message(format!(
-                    "Agent {name:?} was started again before it stopped"
-                )));
-            }
-        }
-    };
-    let waited = progress::Wait::start()
-        .until(client, name, tokio::time::timeout(timeout, stopped))
-        .await;
-    waited.unwrap_or_else(|_elapsed| {
-        Err(CommandError::Message(format!(
-            "timed out waiting for Agent {name:?} to stop; agentd keeps stopping it"
-        )))
-    })
 }
 
 fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String {
