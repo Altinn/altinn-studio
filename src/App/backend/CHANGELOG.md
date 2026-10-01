@@ -36,7 +36,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `AppSettings.AppBasePath`. The app files are always read relative to the content root of the host. A value left in `appsettings.json` is ignored; code that set the property must drop it.
 - The `AppSettings` folder and file name settings `ConfigurationFolder`, `OptionsFolder`, `UiFolder`, `ModelsFolder`, `TextFolder`, `ProcessFolder`, `AuthorizationFolder`, `FormLayoutSettingsFileName`, `FooterFileName`, `JsonSchemaFileName`, `ValidationConfigurationFileName`, `CalculationConfigurationFileName`, `ApplicationMetadataFileName`, `ApplicationXACMLPolicyFileName` and `ProcessFileName`, with the `JSON_SCHEMA_FILENAME`, `VALIDATION_CONFIG_FILENAME` and `CALCULATION_CONFIG_FILENAME` constants. The layout of an app folder is the one Studio creates and is not configurable. A value left in `appsettings.json` is ignored; code that read or set the properties must drop it.
-- Breaking: remove the `POST .../process/start` endpoint. Instances are created with their process already started, so create them through the app's instantiation endpoints instead of starting a process on an instance created outside the app.
+- Breaking: remove the `POST .../process/start` endpoint. Instances are created with their process already started, so create them through the app's instantiation endpoints instead of starting a process on an instance created outside the app. ([#20903](https://github.com/Altinn/altinn-studio/pull/20903))
 
 ### Security
 
