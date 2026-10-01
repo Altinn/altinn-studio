@@ -1027,6 +1027,16 @@ internal class ProcessEngine : IProcessEngine
         public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
     };
 
+    /// <summary>
+    /// Returns the action that process/completeProcess performs on a task of the given type.
+    /// </summary>
+    /// <remarks>
+    /// This is deliberately not the table in <see cref="ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType"/>.
+    /// That table lists the actions that authorize a transition; this one picks the action that is performed, which
+    /// reaches user action handlers, gateway filters, the workflow engine and telemetry. A type without an entry,
+    /// including <c>payment</c> and <c>subformPdf</c>, is performed as its own name: mapping <c>payment</c> to
+    /// <c>pay</c> would run the payment action handler.
+    /// </remarks>
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {
         switch (actionOrTaskType)
