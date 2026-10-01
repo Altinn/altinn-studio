@@ -1315,7 +1315,10 @@ async fn wait(
         return Err(Error::Invalid("only --for=condition=Ready is supported".into()).into());
     }
     let name = require_name(name, "Agent")?;
-    if wait_until_converged(client, &name, timeout).await?.spec.is_stopped() {
+    // A stopped Agent is never Ready, also while its stop is still in progress.
+    if client.get(&name).await?.spec.is_stopped()
+        || wait_until_converged(client, &name, timeout).await?.spec.is_stopped()
+    {
         return Err(Error::Stopped(name).into());
     }
     println!("agent/{name} condition met");

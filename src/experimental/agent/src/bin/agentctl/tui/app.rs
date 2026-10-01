@@ -185,15 +185,34 @@ const ARCHIVED_SESSION_HINTS: [Hint; 7] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
+/// A stopped Agent's Session can only be put away or inspected until the Agent starts.
+const STOPPED_SESSION_HINTS: [Hint; 5] = [
+    Hint::key("a", "archive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+const STOPPED_ARCHIVED_SESSION_HINTS: [Hint; 5] = [
+    Hint::key("a", "unarchive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
 const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
 
 /// Every hint set the tree shows for its selection. The footer is sized for
 /// the widest, so moving the selection never moves the tree.
-pub(crate) const SELECTION_HINTS: [&[Hint]; 5] = [
+pub(crate) const SELECTION_HINTS: [&[Hint]; 7] = [
     &AGENT_HINTS,
     &STOPPED_AGENT_HINTS,
     &SESSION_HINTS,
     &ARCHIVED_SESSION_HINTS,
+    &STOPPED_SESSION_HINTS,
+    &STOPPED_ARCHIVED_SESSION_HINTS,
     &EMPTY_HINTS,
 ];
 
@@ -1704,6 +1723,12 @@ impl App {
         if session.is_archived() && matches!(key.code, KeyCode::Enter | KeyCode::Char('p')) {
             return Action::None;
         }
+        // Nothing runs in a stopped Agent until it is started.
+        if self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped())
+            && matches!(key.code, KeyCode::Enter | KeyCode::Char('p' | 'n' | 'o'))
+        {
+            return Action::None;
+        }
         match key.code {
             KeyCode::Enter => {
                 return Action::Attach {
@@ -2468,10 +2493,13 @@ impl App {
                 }
             }
             Some(Row::Session { group, position }) => {
-                if self.group_session(group, position).is_some_and(Session::is_archived) {
-                    &ARCHIVED_SESSION_HINTS
-                } else {
-                    &SESSION_HINTS
+                let archived = self.group_session(group, position).is_some_and(Session::is_archived);
+                let stopped = self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped());
+                match (stopped, archived) {
+                    (false, false) => &SESSION_HINTS,
+                    (false, true) => &ARCHIVED_SESSION_HINTS,
+                    (true, false) => &STOPPED_SESSION_HINTS,
+                    (true, true) => &STOPPED_ARCHIVED_SESSION_HINTS,
                 }
             }
             None => &EMPTY_HINTS,
@@ -4138,6 +4166,34 @@ mod tests {
         );
         app.on_key(key(KeyCode::Char('n')));
         assert!(app.modal.is_none(), "no Session is created in a stopped Agent");
+    }
+
+    #[test]
+    fn a_stopped_agents_session_offers_only_what_works_without_its_sandbox() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![not_ready_agent(
+                "idle",
+                RunState::Stopped,
+                agent::Condition::REASON_STOPPED,
+            )],
+            vec![session("idle", "s1", "idle")],
+        );
+        app.select_index(1);
+        assert_eq!(app.hints(), &STOPPED_SESSION_HINTS);
+        for code in [
+            KeyCode::Enter,
+            KeyCode::Char('p'),
+            KeyCode::Char('n'),
+            KeyCode::Char('o'),
+        ] {
+            assert_eq!(app.on_key(key(code)), Action::None, "{code:?}");
+            assert!(app.modal.is_none(), "{code:?} opens nothing");
+        }
+        assert!(matches!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived { archived: true, .. }
+        ));
     }
 
     #[test]
