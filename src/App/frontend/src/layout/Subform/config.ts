@@ -58,6 +58,7 @@ export const Config = new CG.component({
                 new CG.prop(
                   'value',
                   new CG.expr(ExprVal.String)
+                    .setFallback('')
                     .setTitle('The cell value', 'Celleverdi')
                     .setDescription(
                       'The cell value to display from an expression or static value',
@@ -162,7 +163,7 @@ export const Config = new CG.component({
         en: 'The text for the "Edit" button in the table rows',
         nb: 'Teksten på «Rediger»-knappen i tabellradene.',
       },
-    }),
+    }).setDefault('general.edit'),
   )
   .addSummaryOverrides((obj) => {
     obj.addProperty(

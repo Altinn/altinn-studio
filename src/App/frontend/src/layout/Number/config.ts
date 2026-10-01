@@ -30,6 +30,7 @@ export const Config = new CG.component({
     new CG.prop(
       'value',
       new CG.expr(ExprVal.Number)
+        .setFallback(NaN)
         .setTitle('Number value', 'Tallverdi')
         .setDescription('The number to display.', 'Tallet som skal vises.'),
     ),
