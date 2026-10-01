@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.App;
@@ -41,11 +42,29 @@ public class GetApplicationMetadataTests
         var response = await HttpClient.GetAsync(url);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Null(response.Headers.ETag);
         string responseContent = await response.Content.ReadAsStringAsync();
         string expectedJson = JsonSerializer.Serialize(
             JsonSerializer.Deserialize<ApplicationMetadata>(metadataFile, JsonSerializerOptions),
             JsonSerializerOptions
         );
         Assert.True(JsonUtils.DeepEquals(expectedJson, responseContent));
+    }
+
+    [Fact]
+    public async Task GetV9ApplicationMetadata_ReturnsAStableStrongEntityTag()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "app-with-layoutsets-v9", "testUser", targetRepository);
+        string url = VersionPrefix("ttd", targetRepository);
+
+        using HttpResponseMessage first = await HttpClient.GetAsync(url);
+        using HttpResponseMessage second = await HttpClient.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.NotNull(first.Headers.ETag);
+        Assert.False(first.Headers.ETag.IsWeak);
+        Assert.Equal(first.Headers.ETag, second.Headers.ETag);
+        Assert.DoesNotContain("revision", await first.Content.ReadAsStringAsync());
     }
 }

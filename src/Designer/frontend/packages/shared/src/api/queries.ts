@@ -224,7 +224,7 @@ export const getPages = (org: string, app: string, layoutSet: string) => get<Pag
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
 export const getAppPolicy = (org: string, app: string) => getWithRevision<Policy>(appPolicyPath(org, app));
-export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
+export const getAppMetadata = (org: string, app: string) => getWithRevision<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));

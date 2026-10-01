@@ -1,7 +1,8 @@
-import { getAppPolicy } from './queries';
+import { getAppMetadata, getAppPolicy } from './queries';
 import { getWithRevision } from 'app-shared/utils/networking';
-import { appPolicyPath } from './paths';
+import { appMetadataPath, appPolicyPath } from './paths';
 import type { Policy } from '../types/Policy';
+import type { ApplicationMetadata } from '../types/ApplicationMetadata';
 import { app, org } from '@studio/testing/testids';
 
 jest.mock('app-shared/utils/networking');
@@ -22,5 +23,19 @@ describe('getAppPolicy', () => {
 
     expect(getWithRevision).toHaveBeenCalledWith(appPolicyPath(org, app));
     expect(result).toEqual(policy);
+  });
+});
+
+describe('getAppMetadata', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('loads application metadata through the revision adapter', async () => {
+    const metadata: ApplicationMetadata = { id: `${org}/${app}`, org, revision: '"loaded-revision"' };
+    jest.mocked(getWithRevision).mockResolvedValueOnce(metadata);
+
+    const result = await getAppMetadata(org, app);
+
+    expect(getWithRevision).toHaveBeenCalledWith(appMetadataPath(org, app));
+    expect(result).toEqual(metadata);
   });
 });

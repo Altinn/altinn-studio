@@ -186,7 +186,7 @@ export const updateFormLayoutName = (org: string, app: string, oldName: string, 
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
 export const updateAppPolicy = (org: string, app: string, payload: Policy) => putWithRevision<Policy>(appPolicyPath(org, app), payload);
-export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
+export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => putWithRevision<ApplicationMetadata>(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form, { headers: { 'Content-Type': 'multipart/form-data' } });

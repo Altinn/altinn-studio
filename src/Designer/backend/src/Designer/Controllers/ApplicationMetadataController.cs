@@ -1,6 +1,8 @@
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,14 +20,20 @@ namespace Altinn.Studio.Designer.Controllers;
 public class ApplicationMetadataController : ControllerBase
 {
     private readonly IApplicationMetadataService _applicationMetadataService;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class.
     /// </summary>
     /// <param name="applicationMetadataService">The application metadata service</param>
-    public ApplicationMetadataController(IApplicationMetadataService applicationMetadataService)
+    /// <param name="appVersionService">The service that tells whether an app is a v9 app</param>
+    public ApplicationMetadataController(
+        IApplicationMetadataService applicationMetadataService,
+        IAppVersionService appVersionService
+    )
     {
         _applicationMetadataService = applicationMetadataService;
+        _appVersionService = appVersionService;
     }
 
     /// <summary>
@@ -34,6 +42,9 @@ public class ApplicationMetadataController : ControllerBase
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The application metadata</returns>
+    /// <remarks>
+    /// For a v9 app, the response has an <c>ETag</c> header. Send it back in <c>If-Match</c> to save the metadata.
+    /// </remarks>
     [HttpGet]
     [UseSystemTextJson]
     public async Task<ActionResult> GetApplicationMetadata(string org, string app)
@@ -47,6 +58,11 @@ public class ApplicationMetadataController : ControllerBase
             return NotFound();
         }
 
+        if (_appVersionService.IsV9App(HttpContext, org, app))
+        {
+            Response.Headers.ETag = EntityTagHelper.ComputeEntityTag(application);
+        }
+
         return Ok(application);
     }
 
@@ -57,6 +73,10 @@ public class ApplicationMetadataController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="applicationMetadata">The application metadata</param>
     /// <returns>The updated application metadata</returns>
+    /// <remarks>
+    /// V9 saves require the loaded ETag in <c>If-Match</c>: 428 if missing, 412 if stale.
+    /// Returns the saved metadata with its new <c>ETag</c>.
+    /// </remarks>
     [HttpPut]
     [UseSystemTextJson]
     public async Task<ActionResult> UpdateApplicationMetadata(
@@ -65,9 +85,30 @@ public class ApplicationMetadataController : ControllerBase
         [FromBody] ApplicationMetadata applicationMetadata
     )
     {
+        bool isV9App = _appVersionService.IsV9App(HttpContext, org, app);
+        if (isV9App)
+        {
+            // The v9 repository lock protects the version check and save.
+            ApplicationMetadata currentApplicationMetadata =
+                await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            ObjectResult? preconditionFailure = EntityTagHelper.CheckIfMatch(
+                Request,
+                EntityTagHelper.ComputeEntityTag(currentApplicationMetadata)
+            );
+            if (preconditionFailure is not null)
+            {
+                return preconditionFailure;
+            }
+        }
+
         await _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, applicationMetadata);
         ApplicationMetadata updatedApplicationMetadata =
             await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+        if (isV9App)
+        {
+            Response.Headers.ETag = EntityTagHelper.ComputeEntityTag(updatedApplicationMetadata);
+        }
+
         return Ok(updatedApplicationMetadata);
     }
 
