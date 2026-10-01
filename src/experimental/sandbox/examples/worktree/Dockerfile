@@ -131,8 +131,8 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
-ARG CODEX_VERSION=0.156.0
-ARG CLAUDE_CODE_VERSION=2.1.280
+ARG CODEX_VERSION=0.159.3
+ARG CLAUDE_CODE_VERSION=2.1.286
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
