@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A custom task type drawn as bpmn:serviceTask. Valid when the type is a service task, rejected when it is an IProcessTask. -->
+<!-- A custom task type on a bpmn:serviceTask element. Valid when the type is a service task, rejected when it is an IProcessTask. -->
 <bpmn:definitions id="Altinn_ServiceTaskCustomType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="ServiceTaskCustomTypeProcess" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">

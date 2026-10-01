@@ -302,9 +302,9 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         string expected = isServiceTask
             ? $"  - Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is a service task, "
-                + "but is drawn as <bpmn:task>. Draw it as <bpmn:serviceTask>."
+                + "but is a <bpmn:task> element. Change it to a <bpmn:serviceTask> element."
             : $"  - Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is not a service task, "
-                + "but is drawn as <bpmn:serviceTask>. Draw it as <bpmn:task>.";
+                + "but is a <bpmn:serviceTask> element. Change it to a <bpmn:task> element.";
         Assert.NotNull(exception);
         string finding = Assert.Single(
             exception.Message.Split(Environment.NewLine),
@@ -322,14 +322,14 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
 
         Assert.NotNull(exception);
-        Assert.Contains("but is drawn as <bpmn:task>", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("but is a <bpmn:task> element", exception.Message, StringComparison.Ordinal);
         Assert.Contains("Task 'Task_Custom': missing archive settings", exception.Message, StringComparison.Ordinal);
     }
 
     [Theory]
     [InlineData("plain-task-custom-type.bpmn", false)]
     [InlineData("service-task-custom-type.bpmn", true)]
-    public async Task StartAsync_ServiceTaskRegisteredOnlyAsProcessTask_MustBeDrawnAsTask(
+    public async Task StartAsync_ServiceTaskRegisteredOnlyAsProcessTask_IsValidatedAsProcessTask(
         string bpmn,
         bool expectMismatch
     )

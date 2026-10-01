@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The built-in data task drawn as bpmn:serviceTask. Startup must reject it. -->
+<!-- The built-in data task on a bpmn:serviceTask element. Startup must reject it. -->
 <bpmn:definitions id="Altinn_DataServiceTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="DataServiceTaskProcess" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">

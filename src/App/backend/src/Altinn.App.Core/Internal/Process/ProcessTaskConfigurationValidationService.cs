@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, the element each task is drawn as, and task configuration at startup.
+/// Validates BPMN task types, the BPMN element each task uses, and task configuration at startup.
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task implementations can use scoped services.
@@ -89,12 +89,12 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
             // The frontend chooses how to show a task from its element, so the element must match the type.
             // The task's own configuration is still validated, so one run reports every problem.
-            bool drawnAsServiceTask = bpmnTask is ServiceTask;
-            if (serviceTask is not null && !drawnAsServiceTask)
+            bool isServiceTaskElement = bpmnTask is ServiceTask;
+            if (serviceTask is not null && !isServiceTaskElement)
             {
                 findings.Add(ElementMismatch(bpmnTask.Id, taskType, "a service task", "bpmn:task", "bpmn:serviceTask"));
             }
-            else if (serviceTask is null && drawnAsServiceTask)
+            else if (serviceTask is null && isServiceTaskElement)
             {
                 findings.Add(
                     ElementMismatch(bpmnTask.Id, taskType, "not a service task", "bpmn:serviceTask", "bpmn:task")
@@ -152,9 +152,9 @@ internal sealed class ProcessTaskConfigurationValidationService(
         string taskId,
         string taskType,
         string typeKind,
-        string drawnAs,
+        string actualElement,
         string requiredElement
     ) =>
         $"Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is {typeKind}, "
-        + $"but is drawn as <{drawnAs}>. Draw it as <{requiredElement}>.";
+        + $"but is a <{actualElement}> element. Change it to a <{requiredElement}> element.";
 }

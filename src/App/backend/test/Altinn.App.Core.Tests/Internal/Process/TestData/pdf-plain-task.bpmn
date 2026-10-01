@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The built-in pdf service task drawn as bpmn:task. Startup must reject it. -->
+<!-- The built-in pdf service task on a bpmn:task element. Startup must reject it. -->
 <bpmn:definitions id="Altinn_PdfPlainTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="PdfPlainTaskProcess" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
