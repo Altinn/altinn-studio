@@ -138,8 +138,10 @@ internal static class PdfServiceTaskUtils
                 continue;
             }
 
-            var serviceTask = taskType.Ancestors().FirstOrDefault(a => a.Name == ProcessFile.ServiceTask);
-            if (serviceTask?.Attribute("id")?.Value is not { Length: > 0 } id)
+            // A pdf task drawn as a bpmn:task is reported by ProcessTaskElementAnalyzer, and is checked here as well,
+            // so redrawing it does not uncover more errors.
+            var task = ProcessFile.FindHostingTask(taskType);
+            if (task?.Attribute("id")?.Value is not { Length: > 0 } id)
             {
                 continue;
             }
@@ -156,7 +158,7 @@ internal static class PdfServiceTaskUtils
                     .ToList()
                 ?? [];
 
-            yield return new PdfServiceTask(id, serviceTask, autoPdfTaskIds);
+            yield return new PdfServiceTask(id, task, autoPdfTaskIds);
         }
     }
 
@@ -192,7 +194,9 @@ internal static class PdfServiceTaskUtils
     }
 
     /// <param name="Id">The service task's BPMN element id, which is also the name of its UI folder.</param>
-    /// <param name="Element">The <c>bpmn:serviceTask</c> element, which anchors the diagnostics.</param>
+    /// <param name="Element">
+    /// The <c>bpmn:serviceTask</c> or <c>bpmn:task</c> element, which anchors the diagnostics.
+    /// </param>
     /// <param name="AutoPdfTaskIds">The non-blank <c>autoPdfTaskIds</c> entries.</param>
     private sealed record PdfServiceTask(string Id, XElement Element, List<string> AutoPdfTaskIds);
 }

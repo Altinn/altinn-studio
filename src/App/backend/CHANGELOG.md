@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `StartupHelper.GetApplicationId(contentRootPath)` reads the app id from `config/applicationmetadata.json` in the given folder. `AddAltinnAppServices` uses it with the content root of the host, so an app that runs with a content root other than its working directory registers its Swagger endpoint and telemetry with the right id. The parameterless overload still reads the working directory.
 - Custom process tasks can validate their configuration at app startup by implementing `IProcessTask.ValidateConfiguration`. The hook receives the BPMN task id, hosting environment and application metadata.
 - The app logs a startup warning for each service task type it registers, such as your own `IServiceTask` or the one `AddFiksArkiv()` adds, that no `<altinn:taskType>` in `config/process/process.bpmn` uses. ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
+- Build check `ALTINNAPP1003` (error) reports a task in `process.bpmn` drawn as the wrong element for its type, such as a `pdf` task drawn as `<bpmn:task>`. It knows the built-in types, and your own task classes with a constant `Type`, assuming each is registered under the interface it implements. The PDF checks `ALTINNAPP1000`–`ALTINNAPP1002` now cover such a task too. ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
 
 ### Changed
 
