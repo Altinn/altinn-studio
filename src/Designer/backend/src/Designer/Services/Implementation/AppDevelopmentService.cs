@@ -93,6 +93,13 @@ public class AppDevelopmentService : IAppDevelopmentService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
+        if (
+            _appVersionService.IsV9App(altinnRepoEditingContext)
+            && !altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetName)
+        )
+        {
+            throw new FileNotFoundException("The layout set no longer exists. Reload the editor before saving.");
+        }
         bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
         if (appUsesLayoutSets && string.IsNullOrEmpty(layoutSetName))
         {
@@ -193,9 +200,14 @@ public class AppDevelopmentService : IAppDevelopmentService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
+        bool isV9App = _appVersionService.IsV9App(altinnRepoEditingContext);
+        if (isV9App && !altinnAppGitRepository.LayoutSetFolderExistsByExactName(layoutSetName))
+        {
+            throw new FileNotFoundException("The layout set no longer exists. Reload the editor before saving.");
+        }
         // Honor layoutSetName like the read path does. v9 apps use set folders without a
         // layout-sets.json, so AppUsesLayoutSets() alone would write to the wrong file.
-        if (_appVersionService.IsV9App(altinnRepoEditingContext) || altinnAppGitRepository.AppUsesLayoutSets())
+        if (isV9App || altinnAppGitRepository.AppUsesLayoutSets())
         {
             await altinnAppGitRepository.SaveLayoutSettings(layoutSetName, layoutSettings);
             return;
