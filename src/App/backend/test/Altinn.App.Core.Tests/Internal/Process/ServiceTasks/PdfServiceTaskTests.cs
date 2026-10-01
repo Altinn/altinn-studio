@@ -76,7 +76,7 @@ public class PdfServiceTaskTests
                     instanceMutatorMock.Object.Instance,
                     "taskId",
                     It.IsAny<List<string>?>(),
-                    null,
+                    "en",
                     false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
@@ -144,7 +144,7 @@ public class PdfServiceTaskTests
                     instanceMutatorMock.Object.Instance,
                     "pdfTask",
                     taskIds,
-                    null,
+                    "en",
                     false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
@@ -162,6 +162,7 @@ public class PdfServiceTaskTests
 
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        instanceMutatorMock.Setup(x => x.Language).Returns("en");
         return instanceMutatorMock;
     }
 

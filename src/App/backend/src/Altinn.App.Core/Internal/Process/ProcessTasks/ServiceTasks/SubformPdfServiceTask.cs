@@ -47,10 +47,12 @@ internal sealed class SubformPdfServiceTask(
             );
 
             var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
+            // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
             await using Stream pdf = await pdfService.GenerateSubformPdf(
                 instance,
                 taskId,
                 subformPdfContext,
+                dataMutator.Language,
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                 cancellationToken: context.CancellationToken
             );

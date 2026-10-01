@@ -11,10 +11,8 @@ using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
@@ -23,7 +21,6 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// </summary>
 internal sealed class PdfService : IPdfService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
     private readonly ILogger<PdfService> _logger;
@@ -40,7 +37,6 @@ internal sealed class PdfService : IPdfService
     /// Initializes a new instance of the <see cref="PdfService"/> class.
     /// </summary>
     public PdfService(
-        IHttpContextAccessor httpContextAccessor,
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<GeneralSettings> generalSettings,
@@ -52,7 +48,6 @@ internal sealed class PdfService : IPdfService
         Telemetry? telemetry = null
     )
     {
-        _httpContextAccessor = httpContextAccessor;
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
@@ -123,10 +118,9 @@ internal sealed class PdfService : IPdfService
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
-        string language =
-            requestedLanguage
-            ?? GetOverriddenLanguage(_httpContextAccessor.HttpContext?.Request.Query)
-            ?? await _authenticationContext.Current.GetLanguage();
+        string language = string.IsNullOrWhiteSpace(requestedLanguage)
+            ? await _authenticationContext.Current.GetLanguage()
+            : requestedLanguage;
 
         return await GeneratePdfContent(
             instance,
@@ -240,24 +234,6 @@ internal sealed class PdfService : IPdfService
         }
 
         return new Uri(url);
-    }
-
-    internal static string? GetOverriddenLanguage(IQueryCollection? queries)
-    {
-        if (queries is null)
-        {
-            return null;
-        }
-
-        if (
-            queries.TryGetValue("language", out StringValues queryLanguage)
-            || queries.TryGetValue("lang", out queryLanguage)
-        )
-        {
-            return queryLanguage.ToString();
-        }
-
-        return null;
     }
 
     private async Task<string> GetPreviewFooter(string language)

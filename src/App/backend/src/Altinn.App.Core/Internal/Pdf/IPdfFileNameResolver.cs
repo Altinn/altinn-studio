@@ -8,7 +8,8 @@ namespace Altinn.App.Core.Internal.Pdf;
 public interface IPdfFileNameResolver
 {
     /// <summary>
-    /// Get the file name for a PDF of the instance. The file name ends with .pdf.
+    /// Get the file name for a PDF of the instance, in the language of the data accessor, or nb if it has none. The
+    /// file name ends with .pdf.
     /// </summary>
     /// <param name="dataAccessor">The instance data accessor to fill in the variables of the file name's text resource from.</param>
     /// <param name="customFileNameTextResourceKey">A text resource key for the file name. If null, or no text resource has the key, a default file name is used.</param>

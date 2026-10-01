@@ -14,15 +14,12 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
-using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit.Abstractions;
 
@@ -34,7 +31,6 @@ public class PdfServiceTests
     private const string HostName = "at22.altinn.cloud";
 
     private readonly Mock<IAppResources> _appResources = new();
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
     private readonly Mock<IPdfGeneratorClient> _pdfGeneratorClient = new();
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
@@ -61,11 +57,6 @@ public class PdfServiceTests
         _appResources
             .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(resource);
-
-        DefaultHttpContext httpContext = new();
-        httpContext.Request.Protocol = "https";
-        httpContext.Request.Host = new(HostName);
-        _httpContextAccessor.Setup(s => s.HttpContext!).Returns(httpContext);
 
         _authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
     }
@@ -330,45 +321,6 @@ public class PdfServiceTests
         );
 
         await Verify(telemetrySink.GetSnapshot());
-    }
-
-    [Fact]
-    public void GetOverridenLanguage_ShouldReturnLanguageFromQuery()
-    {
-        // Arrange
-        var queries = new QueryCollection(new Dictionary<string, StringValues> { { "lang", LanguageConst.Nb } });
-
-        // Act
-        var language = PdfService.GetOverriddenLanguage(queries);
-
-        // Assert
-        language.Should().Be(LanguageConst.Nb);
-    }
-
-    [Fact]
-    public void GetOverridenLanguage_HttpContextIsNull_ShouldReturnNull()
-    {
-        // Arrange
-        QueryCollection? queries = null;
-
-        // Act
-        var language = PdfService.GetOverriddenLanguage(queries);
-
-        // Assert
-        language.Should().BeNull();
-    }
-
-    [Fact]
-    public void GetOverridenLanguage_NoLanguageInQuery_ShouldReturnNull()
-    {
-        // Arrange
-        IQueryCollection queries = new QueryCollection();
-
-        // Act
-        var language = PdfService.GetOverriddenLanguage(queries);
-
-        // Assert
-        language.Should().BeNull();
     }
 
     [Fact]
@@ -769,7 +721,6 @@ public class PdfServiceTests
 
     private PdfService SetupPdfService(
         Mock<IAppResources>? appResources = null,
-        Mock<IHttpContextAccessor>? httpContentAccessor = null,
         Mock<IPdfGeneratorClient>? pdfGeneratorClient = null,
         IOptions<PdfGeneratorSettings>? pdfGeneratorSettingsOptions = null,
         IOptions<GeneralSettings>? generalSettingsOptions = null,
@@ -778,7 +729,6 @@ public class PdfServiceTests
     )
     {
         return new PdfService(
-            httpContentAccessor?.Object ?? _httpContextAccessor.Object,
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,

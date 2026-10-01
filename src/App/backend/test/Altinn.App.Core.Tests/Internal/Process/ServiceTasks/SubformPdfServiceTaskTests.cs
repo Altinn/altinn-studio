@@ -77,7 +77,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<Instance>(),
                     "taskId",
                     It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
-                    null,
+                    "en",
                     false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
@@ -632,6 +632,7 @@ public class SubformPdfServiceTaskTests
     {
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        instanceMutatorMock.Setup(x => x.Language).Returns("en");
         return new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,

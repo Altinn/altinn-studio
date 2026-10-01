@@ -48,10 +48,12 @@ internal sealed class PdfServiceTask : IPdfServiceTask
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
 
+        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
         await using Stream pdf = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
             config.AutoPdfTaskIds,
+            dataMutator.Language,
             authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken: context.CancellationToken
         );

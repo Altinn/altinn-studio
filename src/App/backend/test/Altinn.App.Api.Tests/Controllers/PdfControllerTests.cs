@@ -9,7 +9,6 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -18,7 +17,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -97,13 +95,11 @@ public class PdfControllerTests
     }
 
     private PdfService NewPdfService(
-        Mock<IHttpContextAccessor> httpContextAccessor,
         PdfGeneratorClient pdfGeneratorClient,
         IOptions<GeneralSettings> generalSettingsOptions
     )
     {
         var pdfService = new PdfService(
-            httpContextAccessor.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
             generalSettingsOptions,
@@ -145,9 +141,6 @@ public class PdfControllerTests
             new() { HostName = "local.altinn.cloud" }
         );
 
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-
         var handler = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(handler.Object);
 
@@ -161,7 +154,7 @@ public class PdfControllerTests
             _platformSettingsOptions,
             authenticationTokenResolver.Object
         );
-        var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
+        var pdfService = NewPdfService(pdfGeneratorClient, generalSettingsOptions);
         var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
@@ -206,9 +199,6 @@ public class PdfControllerTests
             new() { HostName = "org.apps.tt02.altinn.no" }
         );
 
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-
         var handler = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(handler.Object);
 
@@ -222,7 +212,7 @@ public class PdfControllerTests
             _platformSettingsOptions,
             authenticationTokenResolver.Object
         );
-        var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
+        var pdfService = NewPdfService(pdfGeneratorClient, generalSettingsOptions);
         var pdfController = NewPdfController(pdfService);
 
         string? requestBody = null;
@@ -350,6 +340,7 @@ public class PdfControllerTests
     [Theory]
     [InlineData("en", "lang=en")]
     [InlineData(null, "lang=nn")]
+    [InlineData("", "lang=nn")]
     public async Task Preview_Should_Be_In_The_Requested_Language_Or_The_Users(string? language, string expected)
     {
         _authenticationContext
@@ -431,9 +422,6 @@ public class PdfControllerTests
             new() { HostName = "local.altinn.cloud" }
         );
 
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-
         var handler = new Mock<HttpMessageHandler>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             new Mock<ILogger<PdfGeneratorClient>>().Object,
@@ -442,9 +430,7 @@ public class PdfControllerTests
             _platformSettingsOptions,
             BuildAuthenticationTokenResolver().Object
         );
-        var pdfController = NewPdfController(
-            NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions)
-        );
+        var pdfController = NewPdfController(NewPdfService(pdfGeneratorClient, generalSettingsOptions));
 
         string? requestBody = null;
         using var mockResponse = new HttpResponseMessage()

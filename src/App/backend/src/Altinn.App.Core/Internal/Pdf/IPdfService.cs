@@ -17,7 +17,7 @@ public interface IPdfService
     /// <param name="instance">The instance to generate the PDF of.</param>
     /// <param name="taskId">The task to render, such as the current task.</param>
     /// <param name="autoGeneratePdfForTaskIds">Tasks to render in the PDF as summaries of their main UI folders, instead of their PDF layouts. Ignored if the PDF task has a UI folder of its own.</param>
-    /// <param name="language">The language of the PDF, such as nb or en. If null, the language in the request's query is used, or else the user's language.</param>
+    /// <param name="language">The language of the PDF, such as nb or en. If null, the authenticated user's language is used, or nb if a user isn't authenticated.</param>
     /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
@@ -38,7 +38,7 @@ public interface IPdfService
     /// <param name="instance">The instance to generate the PDF of.</param>
     /// <param name="taskId">The subform PDF service task to render.</param>
     /// <param name="subformPdfContext">The subform to generate the PDF of.</param>
-    /// <param name="language">The language of the PDF, such as nb or en. If null, the language in the request's query is used, or else the user's language.</param>
+    /// <param name="language">The language of the PDF, such as nb or en. If null, the authenticated user's language is used, or nb if a user isn't authenticated.</param>
     /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>

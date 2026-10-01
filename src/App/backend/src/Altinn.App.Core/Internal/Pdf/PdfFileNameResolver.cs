@@ -1,21 +1,15 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers.Extensions;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
-using Microsoft.AspNetCore.Http;
 
 namespace Altinn.App.Core.Internal.Pdf;
 
 /// <summary>
 /// Gets the file name for a PDF from the app's text resources.
 /// </summary>
-internal sealed class PdfFileNameResolver(
-    IHttpContextAccessor httpContextAccessor,
-    IAuthenticationContext authenticationContext,
-    ITranslationService translationService
-) : IPdfFileNameResolver
+internal sealed class PdfFileNameResolver(ITranslationService translationService) : IPdfFileNameResolver
 {
     /// <inheritdoc/>
     public async Task<string> GetFileName(
@@ -36,11 +30,11 @@ internal sealed class PdfFileNameResolver(
         }
         else
         {
-            // Fall back to simple translation without variable substitution, in the language of the PDF
-            string language =
-                PdfService.GetOverriddenLanguage(httpContextAccessor.HttpContext?.Request.Query)
-                ?? await authenticationContext.Current.GetLanguage();
-            fileName = await translationService.TranslateTextKey("backend.pdf_default_file_name", language);
+            // Fall back to simple translation without variable substitution
+            fileName = await translationService.TranslateTextKey(
+                "backend.pdf_default_file_name",
+                dataAccessor.Language
+            );
         }
 
         if (string.IsNullOrEmpty(fileName))

@@ -94,9 +94,11 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
+        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
         await using Stream pdfStream = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
+            language: dataMutator.Language,
             cancellationToken: cancellationToken
         );
         using var memoryStream = new MemoryStream();

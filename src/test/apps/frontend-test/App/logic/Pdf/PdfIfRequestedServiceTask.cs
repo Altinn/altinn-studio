@@ -54,6 +54,7 @@ namespace Altinn.App.logic.Pdf
                     mutator.Instance,
                     taskId,
                     pdfConfig?.AutoPdfTaskIds,
+                    mutator.Language,
                     authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
                     cancellationToken: context.CancellationToken
                 );

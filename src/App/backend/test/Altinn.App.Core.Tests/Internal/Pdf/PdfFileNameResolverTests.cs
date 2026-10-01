@@ -1,6 +1,5 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
@@ -10,7 +9,6 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit.Abstractions;
 
@@ -83,12 +81,7 @@ public class PdfFileNameResolverTests(ITestOutputHelper outputHelper)
 
     private PdfFileNameResolver CreateResolver(Mock<IAppResources> appResources)
     {
-        var authenticationContext = new Mock<IAuthenticationContext>();
-        authenticationContext.Setup(s => s.Current).Returns(TestAuthentication.GetUserAuthentication());
-
         return new PdfFileNameResolver(
-            Mock.Of<IHttpContextAccessor>(),
-            authenticationContext.Object,
             new TranslationService(
                 new AppIdentifier("digdir", "not-really-an-app"),
                 appResources.Object,
