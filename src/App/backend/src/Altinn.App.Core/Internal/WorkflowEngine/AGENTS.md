@@ -107,7 +107,7 @@ Defined in `WorkflowCommandSet.cs`; `ProcessNextRequestFactory.AssembleCommandSe
 
 `CreateChainInitiating` remains for instantiation, whose already-started process snapshot and complete sequence stay in one workflow with an acquire first and no acquire payload. `CreateDependent` also builds workflows that continue the process after a service task succeeds. Every dependent inherits `processing` and does not reacquire it.
 
-The sequence above forms the **Main workflow** — W2 for user-triggered `process/next`, or the single workflow for instantiation/start. Each enqueue batch contains one such workflow. The
+The sequence above forms the **Main workflow** — W2 for user-triggered `process/next`, or the single workflow for instantiation. Each enqueue batch contains one such workflow. The
 non-critical side-effect commands (`SideEffectCommands`) travel inside step 6's payload as a
 pre-assembled enqueue request; when that step executes — immediately after the commit — it submits
 them to the engine as separate **side-effects workflows, one single-step workflow per side effect**,
