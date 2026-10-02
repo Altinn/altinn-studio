@@ -97,6 +97,7 @@ describe('Person lookup component', () => {
       .findByText(/Ukjent feil. Vennligst prøv igjen senere./i)
       .should('exist');
 
+    cy.findByRole('radio', { name: 'Ja' }).check();
     cy.changeLayout((component) => {
       if (component.type === 'PersonLookup') {
         component.showValidations = ['All'];
