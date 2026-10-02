@@ -24,16 +24,19 @@ internal sealed class WorkflowEngineClient(
 
     /// <summary>
     /// Sends a request for the given upstream path (relative to the engine base URL, already
-    /// escaped) and returns the response with only the headers read.
+    /// escaped), with <paramref name="content"/> as its body when there is one, and returns the
+    /// response with only the headers read.
     /// </summary>
     public async Task<HttpResponseMessage> Send(
         HttpMethod method,
         string pathAndQuery,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        HttpContent? content = null
     )
     {
         var client = _httpClientFactory.CreateClient(HttpClientName);
         using var request = new HttpRequestMessage(method, new Uri(pathAndQuery, UriKind.Relative));
+        request.Content = content;
         return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
 }
