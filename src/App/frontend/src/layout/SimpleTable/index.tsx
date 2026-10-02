@@ -6,7 +6,7 @@ import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
 import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponent';
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
 import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { DataModelBindingValidationContext, PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
@@ -52,9 +52,10 @@ export class SimpleTable extends SimpleTableDef {
     return false;
   }
   renderSummary2(props: Summary2Props): React.JSX.Element | null {
-    const { externalApi, dataModelBindings } = useItemWhenType(props.targetBaseComponentId, 'SimpleTable');
+    const config = useComponentConfig(props.targetBaseComponentId, 'SimpleTable');
+    const dataModelBindings = useDataModelBindingsFor(props.targetBaseComponentId, 'SimpleTable');
 
-    if (externalApi) {
+    if (config.externalApi) {
       return <ApiTableSummary {...props} />;
     }
 
@@ -66,7 +67,8 @@ export class SimpleTable extends SimpleTableDef {
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
-      const { dataModelBindings, externalApi } = useItemWhenType(props.baseComponentId, 'SimpleTable');
+      const config = useComponentConfig(props.baseComponentId, 'SimpleTable');
+      const dataModelBindings = useDataModelBindingsFor(props.baseComponentId, 'SimpleTable');
       if (dataModelBindings) {
         return (
           <SimpleTableComponent
@@ -76,11 +78,11 @@ export class SimpleTable extends SimpleTableDef {
         );
       }
 
-      if (externalApi) {
+      if (config.externalApi) {
         return (
           <ApiTable
             {...props}
-            externalApi={externalApi}
+            externalApi={config.externalApi}
           />
         );
       }

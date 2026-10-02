@@ -20,10 +20,6 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: true,
-    displayData: false,
-  },
 })
   .addProperty(new CG.prop('rowsBefore', CG.common('GridRows').optional()))
   .addProperty(new CG.prop('rowsAfter', CG.common('GridRows').optional()))

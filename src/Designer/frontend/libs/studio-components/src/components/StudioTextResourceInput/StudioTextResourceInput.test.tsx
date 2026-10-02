@@ -19,6 +19,7 @@ const texts: TextResourceInputTexts = {
   emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
+  modeToggle: 'Modus',
   search: 'Søk',
   clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',

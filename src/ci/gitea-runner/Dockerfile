@@ -1,8 +1,8 @@
-FROM docker.io/gitea/runner:3.3.1@sha256:c8570d703deb1bbe53c7e203092cfc5a310ca074559dc7fe2e7ebe11dd066577 AS gitea-basic
+FROM docker.io/gitea/runner:3.5.0@sha256:66b7da94dc7dcadb2e076bec6928221336a9a637196399281c4b766fe1288242 AS gitea-basic
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 
-FROM docker.io/gitea/runner-images:ubuntu-latest@sha256:e77e2b1ebba51adb1c59d8eb185bc54e397b7e22442756aa7ea0e7b841fd2906 AS final
+FROM docker.io/gitea/runner-images:ubuntu-latest@sha256:0e62e56b382ebf485bff1e51a05cbe27c708545a2e91425467fd31eb3e249521 AS final
 
 # Install required packages for the runner
 RUN apt update && \

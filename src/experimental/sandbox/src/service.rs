@@ -930,6 +930,16 @@ impl SandboxService {
         self.release(name, RetentionPolicy::Delete).await
     }
 
+    /// Stops a named Sandbox and its Network if it exists, keeping its identity,
+    /// root filesystem, Volumes and Network attachment for a later [`Self::ensure`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when a lifecycle component fails.
+    pub async fn stop(&self, name: &SandboxName) -> Result<(), Error> {
+        self.release(name, RetentionPolicy::Retain).await
+    }
+
     /// Stops a Sandbox and retains or deletes its materialized resources.
     ///
     /// # Errors

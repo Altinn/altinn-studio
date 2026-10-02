@@ -19,6 +19,7 @@ export interface IAltinnPartyProps {
   showSubUnits: boolean;
   /** The party selected by user and is currently in flight*/
   pendingPartyId?: number;
+  initiallyExpanded?: boolean;
 }
 
 /** Selection state of a party. 'selectable' means it can be selected, 'submitting' means its selection is in flight, and 'blocked' means another party's selection is in flight. */
@@ -31,10 +32,16 @@ function getSelectionState(party: IParty, pendingPartyId: number | undefined): S
   return 'selectable';
 }
 
-export function AltinnParty({ party, onSelectParty, showSubUnits, pendingPartyId }: IAltinnPartyProps) {
+export function AltinnParty({
+  party,
+  onSelectParty,
+  showSubUnits,
+  pendingPartyId,
+  initiallyExpanded = false,
+}: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
-  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
+  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(initiallyExpanded);
   const isOrg = party.partyTypeName === PartyType.Organization;
   const selectionState = getSelectionState(party, pendingPartyId);
 

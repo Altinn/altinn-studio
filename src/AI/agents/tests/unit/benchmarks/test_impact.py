@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -313,7 +314,9 @@ class TestComponentCoverage:
         universe = components.universe()
         assert len(universe) > 40, "the component schemas were not found"
         assert "Datepicker" in universe
-        assert "FileUploadWithTag" in universe
+        assert "FileUpload" in universe
+        assert "FileUploadWithTag" not in universe
+        assert "LikertItem" not in universe
         assert not any(name.startswith("common-defs") for name in universe)
 
     def test_it_reports_what_the_items_exercise(self):
@@ -360,10 +363,20 @@ class TestComponentCoverage:
     def test_no_schemas_degrades_rather_than_crashing(self, monkeypatch):
         from benchmarks import components
 
-        monkeypatch.setattr(components, "SCHEMA_DIR", pathlib_path_that_does_not_exist())
+        monkeypatch.setattr(components, "LAYOUT_SCHEMA_PATH", pathlib_path_that_does_not_exist())
         assert components.universe() == ()
         coverage = components.Coverage(universe=(), by_dataset={}, unavailable=())
         assert "cannot be computed" in components.render(coverage)[0]
+
+    def test_new_components_are_discovered_from_the_layout_contract(self, monkeypatch, tmp_path):
+        from benchmarks import components
+
+        schema_path = tmp_path / "layout.schema.v1.json"
+        schema_path.write_text(
+            json.dumps({"definitions": {"AnyComponent": {"properties": {"type": {"enum": ["Input", "NewComponent"]}}}}})
+        )
+        monkeypatch.setattr(components, "LAYOUT_SCHEMA_PATH", schema_path)
+        assert components.universe() == ("Input", "NewComponent")
 
 
 def pathlib_path_that_does_not_exist():

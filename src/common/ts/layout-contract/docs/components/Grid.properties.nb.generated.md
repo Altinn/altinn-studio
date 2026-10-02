@@ -460,6 +460,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -668,6 +669,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>
@@ -864,6 +866,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           <span class="component-property-name" title="rows[].cells[].cellStyle.colSpan">rows[].cells[].cellStyle.colSpan</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required">Valgfri</span>
+            <span class="component-property-default">Standardverdi: <span class="component-property-value">1</span></span>
             <span class="component-property-type" title="number | expression&lt;number&gt;">Type: <span class="component-property-value">number | expression&lt;number&gt;</span></span>
           </span>
         </summary>

@@ -182,6 +182,10 @@ impl Provider for CountingProvider {
         })
     }
 
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.service.stop(&record.sandbox_name()?).await.map_err(Error::from) })
+    }
+
     fn release<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move {
             self.service
@@ -280,6 +284,10 @@ struct FakeRuntime {
     ready_without_report: Cell<bool>,
     fail_input_ready_once: Cell<bool>,
     launch_started: Notify,
+    /// Holds the next observation until `release_observe`, after `observe_started`.
+    hold_observe: Cell<bool>,
+    observe_started: Notify,
+    release_observe: Notify,
     conversation: RefCell<Vec<agent::sessions::Turn>>,
     sent: RefCell<Vec<String>>,
     launches: RefCell<Vec<(Option<String>, Option<String>)>>,
@@ -305,6 +313,9 @@ impl Default for FakeRuntime {
             ready_without_report: Cell::new(false),
             fail_input_ready_once: Cell::new(false),
             launch_started: Notify::new(),
+            hold_observe: Cell::new(false),
+            observe_started: Notify::new(),
+            release_observe: Notify::new(),
             conversation: RefCell::default(),
             sent: RefCell::default(),
             launches: RefCell::default(),
@@ -338,15 +349,21 @@ impl agent::sessions::SessionRuntime for FakeRuntime {
         if self.fail_observe_once.replace(false) {
             return Box::pin(async { Err(Error::Session("injected observation failure".into())) });
         }
-        let observation = if self.present.get() {
-            agent::sessions::Observation::Alive {
-                attached: self.attached.get(),
-                idle_seconds: self.idle_seconds.get(),
+        let hold = self.hold_observe.replace(false);
+        Box::pin(async move {
+            if hold {
+                self.observe_started.notify_one();
+                self.release_observe.notified().await;
             }
-        } else {
-            agent::sessions::Observation::Missing
-        };
-        Box::pin(async move { Ok(observation) })
+            Ok(if self.present.get() {
+                agent::sessions::Observation::Alive {
+                    attached: self.attached.get(),
+                    idle_seconds: self.idle_seconds.get(),
+                }
+            } else {
+                agent::sessions::Observation::Missing
+            })
+        })
     }
 
     fn start<'a>(
@@ -3242,4 +3259,179 @@ async fn a_prompt_wait_outlasts_an_archive_that_has_not_stopped_the_harness() {
         .expect("turn completed");
     waiting.await.expect("task").expect("the wait ends with the turn");
     harness.finish();
+}
+
+/// Records the run state of the Agent `worker` as `agentctl stop` and `start` do.
+async fn set_worker_run_state(database: &persistence::Database, state: agent::RunState) {
+    agent::control_plane::ControlPlane::new(Rc::new(database.clone()), Rc::new(support::IgnoreNotifications))
+        .set_run_state("worker", state)
+        .await
+        .expect("run state");
+}
+
+#[tokio::test(flavor = "local")]
+async fn work_in_a_stopped_agent_is_refused_without_creating_a_session() {
+    const TOKEN: &str = "a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1";
+    let directory = TempDir::new().expect("temporary directory");
+    let harness = ServiceHarness::start(&directory, TOKEN).await;
+    set_worker_run_state(&harness.database, agent::RunState::Stopped).await;
+    let stored = harness.database.get_by_name("worker").await.expect("Agent");
+    assert!(
+        stored.agent.spec.is_stopped(),
+        "the run state is stored with the desired state"
+    );
+    let s1 = SessionName::new("s1").expect("name");
+    let is_stopped = |error: &Error| matches!(error, Error::Stopped(name) if name == "worker");
+
+    let error = harness
+        .service
+        .prompt("worker", &s1, "hello", false, None)
+        .await
+        .expect_err("nothing runs to prompt");
+    assert!(is_stopped(&error), "{error:?}");
+    let error = harness
+        .service
+        .turns("worker", &s1, None)
+        .await
+        .expect_err("no guest to read");
+    assert!(is_stopped(&error), "{error:?}");
+    for name in ["s1", "s2"] {
+        let name = SessionName::new(name).expect("name");
+        let error = harness
+            .service
+            .ensure("worker", &name, SessionRequest::default(), WaitPolicy::UntilConverged)
+            .await
+            .expect_err("nothing runs to attach to");
+        assert!(is_stopped(&error), "{error:?}");
+    }
+    assert!(matches!(
+        harness
+            .database
+            .get_agent_session("worker", &SessionName::new("s2").expect("name"))
+            .await,
+        Err(Error::NotFound)
+    ));
+    assert!(harness.runtime.sent.borrow().is_empty());
+    harness.finish();
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_of_a_stopped_agent_goes_idle_and_the_next_attach_resumes_it() {
+    const TOKEN: &str = "b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, runtime, reconciler, session) = resume_fixture(&directory, TOKEN).await;
+    set_worker_run_state(&database, agent::RunState::Stopped).await;
+
+    reconciler.reconcile(session.id).await.expect("idle");
+    let state = |database: persistence::Database| async move {
+        database.get_session(session.id).await.expect("Session").status.state
+    };
+    assert_eq!(state(database.clone()).await, agent::sessions::State::Idle);
+    assert!(
+        runtime.launch_tokens.borrow().is_empty(),
+        "no harness launches in a stopped Agent"
+    );
+
+    // A start alone launches nothing; the Session waits for its next attach.
+    set_worker_run_state(&database, agent::RunState::Running).await;
+    reconciler.reconcile(session.id).await.expect("still idle");
+    assert_eq!(state(database.clone()).await, agent::sessions::State::Idle);
+    assert!(runtime.launch_tokens.borrow().is_empty());
+
+    database.activate_session(session.id).await.expect("attach");
+    runtime.ready_without_report.set(true);
+    reconciler.reconcile(session.id).await.expect("resumed");
+    assert_eq!(runtime.launch_tokens.borrow().len(), 1);
+    assert_eq!(
+        runtime
+            .launches
+            .borrow()
+            .last()
+            .and_then(|(resume, _)| resume.as_deref()),
+        Some("native-0"),
+        "the harness resumes its conversation"
+    );
+}
+
+#[tokio::test(flavor = "local")]
+async fn a_session_pass_in_flight_across_a_stop_and_start_launches_no_harness() {
+    const TOKEN: &str = "c3c3c3c3-c3c3-4c3c-8c3c-c3c3c3c3c3c3";
+    let directory = TempDir::new().expect("temporary directory");
+    let (database, sandboxes, session) = running_session(&directory, TOKEN, true).await;
+    let runtime = Rc::new(FakeRuntime::default());
+    let session_store: Rc<dyn agent::sessions::SessionStore> = Rc::new(database.clone());
+    let (session_controller, session_wakeup) = agent::sessions::Controller::new(
+        session_store.clone(),
+        Rc::new(agent::sessions::Reconciler::new(
+            session_store.clone(),
+            Rc::new(agent::sessions::AgentSandboxes::new(
+                Rc::new(database.clone()),
+                sandboxes.clone(),
+            )),
+            runtime.clone(),
+            "http://platform-api".into(),
+        )),
+        Duration::from_mins(1),
+        Rc::new(|_, _| {}),
+    );
+    let agents = Rc::new(
+        agent::control_plane::Reconciler::new(
+            Rc::new(database.clone()),
+            sandboxes,
+            agent::progress::ProvisioningState::default(),
+        )
+        .with_session_notifier(Rc::new(agent::sessions::AgentNotifier::new(
+            session_store,
+            session_wakeup.clone(),
+            Rc::new(|_| {}),
+        ))),
+    );
+    let task = tokio::task::spawn_local(session_controller.run());
+    session_wakeup.reconcile(session.id).await.expect("startup pass");
+
+    // A pass observing the running harness is held while the Agent stops.
+    runtime.hold_observe.set(true);
+    session_wakeup.notify(session.id);
+    runtime.observe_started.notified().await;
+    set_worker_run_state(&database, agent::RunState::Stopped).await;
+    let stopping = tokio::task::spawn_local({
+        let agents = agents.clone();
+        let id = session.agent_id;
+        async move { agents.reconcile(id).await }
+    });
+    while !database
+        .get(session.agent_id)
+        .await
+        .expect("Agent")
+        .agent
+        .status
+        .is_stopped()
+    {
+        tokio::task::yield_now().await;
+    }
+    // The VM took the harness with it, and nothing launches into a stopped VM.
+    runtime.present.set(false);
+    runtime.fail_start.set(true);
+    // A start is asked for while the stop still waits for its Sessions.
+    set_worker_run_state(&database, agent::RunState::Running).await;
+    runtime.release_observe.notify_one();
+    stopping.await.expect("stop task").expect("stop pass");
+    runtime.fail_start.set(false);
+    let started = runtime.launch_tokens.borrow().len();
+    agents.reconcile(session.agent_id).await.expect("start pass");
+    session_wakeup
+        .reconcile(session.id)
+        .await
+        .expect("a pass after the start");
+
+    assert_eq!(
+        runtime.launch_tokens.borrow().len(),
+        started,
+        "a start launches no harness; the next attach does"
+    );
+    assert_eq!(
+        database.get_session(session.id).await.expect("Session").status.state,
+        agent::sessions::State::Idle
+    );
+    task.abort();
 }

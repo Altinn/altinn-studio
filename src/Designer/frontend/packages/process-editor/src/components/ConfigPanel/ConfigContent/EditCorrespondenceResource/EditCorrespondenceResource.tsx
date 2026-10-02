@@ -1,25 +1,18 @@
 import type { ReactElement } from 'react';
-import { StudioToggleableTextfield } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
-import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
+import { EnvTextConfigField } from '../../EnvironmentConfig';
+import { useCorrespondenceResource } from './useCorrespondenceResource';
 
 export const EditCorrespondenceResource = (): ReactElement => {
   const { t } = useTranslation();
-  const updateCorrespondenceResource = useUpdateCorrespondenceResource();
-  const defaultCorrespondenceResource = useGetCorrespondenceResource();
-
-  const saveCorrespondenceResource = (correspondenceResource: string): void => {
-    updateCorrespondenceResource(correspondenceResource);
-  };
+  const { entries, updateEntries } = useCorrespondenceResource();
 
   return (
-    <StudioToggleableTextfield
-      onBlur={(event) => saveCorrespondenceResource(event.target.value)}
-      label={t('process_editor.configuration_panel.correspondence_resource')}
+    <EnvTextConfigField
       description={t('process_editor.configuration_panel.correspondence_resource_description')}
-      defaultValue={defaultCorrespondenceResource}
-      icon={null}
+      entries={entries}
+      label={t('process_editor.configuration_panel.correspondence_resource')}
+      onChange={updateEntries}
     />
   );
 };

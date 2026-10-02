@@ -22,7 +22,9 @@ use crate::{
     client::{Client, RuntimeResources},
     error,
     execution::ExecutionControls,
+    heartbeat,
     image::MicrosandboxImageBackend,
+    image_cache::ImageCache,
     network_endpoint, platform,
     state::{SandboxRecord, StateStore},
 };
@@ -36,9 +38,15 @@ const START_RUNTIME: &str = "Start Microsandbox VM";
 const UPDATE_RUNTIME_RESOURCES: &str = "Update Microsandbox VM resources";
 const UPDATE_RUNTIME_ENVIRONMENT: &str = "Update Microsandbox environment";
 
+/// How long a stopping runtime may take to shut its guest down before it is
+/// killed. Microsandbox's own `stop` waits indefinitely, so a wedged guest
+/// would otherwise block stopping and deleting the Sandbox.
+const STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
 /// Microsandbox Provider pairing its Sandbox Backend with its Image Backend.
 pub struct MicrosandboxProvider {
     pub(crate) client: Client,
+    images: ImageCache,
     image_backend: MicrosandboxImageBackend,
     pub(crate) state: StateStore,
     pub(crate) executions: ExecutionControls,
@@ -48,6 +56,7 @@ pub struct MicrosandboxProvider {
 pub struct MicrosandboxProviderBuilder {
     home: PathBuf,
     cache_directory: Option<PathBuf>,
+    unused_image_retention: Option<std::time::Duration>,
     registry_authentication: Option<sandbox::image::RegistryAuthentication>,
     runtime_bundle: Option<RuntimeBundle>,
 }
@@ -65,6 +74,7 @@ impl MicrosandboxProvider {
         MicrosandboxProviderBuilder {
             home: home.into(),
             cache_directory: None,
+            unused_image_retention: None,
             registry_authentication: None,
             runtime_bundle: None,
         }
@@ -83,6 +93,7 @@ impl MicrosandboxProvider {
     async fn open_configured(
         home: PathBuf,
         cache_directory: Option<PathBuf>,
+        unused_image_retention: Option<std::time::Duration>,
         registry_authentication: Option<sandbox::image::RegistryAuthentication>,
         runtime_bundle: Option<RuntimeBundle>,
     ) -> Result<Self, Error> {
@@ -91,6 +102,20 @@ impl MicrosandboxProvider {
         }
         if cache_directory.as_ref().is_some_and(|path| path.as_os_str().is_empty()) {
             return Err(Error::invalid("provider.cacheDirectory", "must not be empty"));
+        }
+        if let Some(retention) = unused_image_retention {
+            if cache_directory.is_some() {
+                return Err(Error::invalid(
+                    "provider.unusedImageRetention",
+                    "cannot be combined with a cache directory, which other Providers may share",
+                ));
+            }
+            if retention < crate::image_cache::MINIMUM_RETENTION {
+                return Err(Error::invalid(
+                    "provider.unusedImageRetention",
+                    "must be at least an hour, to cover the time between resolving an image and creating its Sandbox",
+                ));
+            }
         }
         if let Some(bundle) = &runtime_bundle {
             if !bundle.path.is_file() {
@@ -108,41 +133,147 @@ impl MicrosandboxProvider {
         }
         let state = StateStore::open(home.join("state")).await?;
         let client = Client::open(home.join("runtime"), cache_directory, runtime_bundle).await?;
-        let image_backend = MicrosandboxImageBackend::new(client.clone(), registry_authentication);
-        Ok(Self {
+        let images = ImageCache::new(client.clone(), state.clone(), unused_image_retention);
+        let image_backend = MicrosandboxImageBackend::new(client.clone(), images.clone(), registry_authentication);
+        let provider = Self {
             client,
+            images,
             image_backend,
             state,
             executions: Rc::new(RefCell::new(HashMap::new())),
-        })
+        };
+        if unused_image_retention.is_some() {
+            if let Err(error) = Box::pin(provider.migrate_images()).await {
+                tracing::warn!(%error, "failed to migrate the Microsandbox image catalog; retrying when the Provider next opens");
+            }
+            Box::pin(provider.images.remove_unused()).await;
+        }
+        Ok(provider)
+    }
+
+    /// Migrates a catalog recorded before Sandboxes held their images, while the Provider opens
+    /// and before anything else runs. Every Sandbox holds its image; one with a runtime whose
+    /// image the old catalog lost fetches it again by digest. Image versions nothing holds are
+    /// then removed, but only once every Sandbox's image is protected from that removal, which
+    /// a Sandbox that never started, or whose first start was interrupted, is not. Until then
+    /// each open tries again.
+    async fn migrate_images(&self) -> Result<(), Error> {
+        if !self.images.migration_pending().await {
+            return Ok(());
+        }
+        let mut every_image_pinned = true;
+        for record in self.state.sandbox_records().await? {
+            let held = if self.runtime_handle(&record.runtime_name).await?.is_some() {
+                match self.hold_image(&record).await {
+                    Ok(_) => true,
+                    Err(error) => {
+                        tracing::warn!(sandbox = %record.id, %error, "failed to hold a Sandbox's image");
+                        false
+                    }
+                }
+            } else {
+                self.images.hold(&record).await?.is_some()
+            };
+            every_image_pinned &= held && self.images.is_pinned(&record).await?;
+        }
+        if !every_image_pinned {
+            tracing::info!("keeping image versions from before this release until every Sandbox's image is protected");
+            return Ok(());
+        }
+        self.images.finish_migration().await
+    }
+
+    /// Makes a Sandbox hold its image and returns the name to create its runtime from. An image
+    /// no longer in the cache is fetched again from its registry by digest.
+    pub(crate) async fn hold_image(&self, record: &SandboxRecord) -> Result<String, Error> {
+        use sandbox::image::ImageBackend as _;
+
+        if let Some(entry) = self.images.hold(record).await? {
+            return Ok(entry);
+        }
+        let manifest_digest = &record.image.manifest_digest;
+        if let sandbox::image::ImageSource::Reference { reference } = &record.image.source {
+            let reference = reference
+                .parse::<microsandbox_image::Reference>()
+                .map_err(error::backend)?;
+            let pinned = microsandbox_image::Reference::with_digest(
+                reference.registry().to_string(),
+                reference.repository().to_string(),
+                manifest_digest.clone(),
+            );
+            self.image_backend
+                .resolve(&sandbox::image::ResolveRequest {
+                    source: sandbox::image::ImageSource::Reference {
+                        reference: pinned.to_string(),
+                    },
+                    platform: record.image.platform.clone(),
+                    root_filesystem_mode: record.resources.root_filesystem().mode(),
+                })
+                .await?;
+            if let Some(entry) = self.images.hold(record).await? {
+                return Ok(entry);
+            }
+        }
+        Err(Error::Backend(format!(
+            "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
+        )))
+    }
+
+    /// Removes unused images now, as the Provider also does when it opens, after each image is
+    /// resolved or imported and after each Sandbox is deleted. Only a Provider opened with
+    /// [`MicrosandboxProviderBuilder::remove_unused_images_after`] removes any.
+    pub async fn remove_unused_images(&self) {
+        self.images.remove_unused().await;
+    }
+
+    #[cfg(test)]
+    pub(crate) const fn images(&self) -> &ImageCache {
+        &self.images
     }
 
     async fn create_record(&self, request: CreateSandboxRequest) -> Result<Sandbox, Error> {
         platform::require_supported(&request.image.platform)?;
         RuntimeResources::try_from(request.resources)?;
-        if let Some(network) = &request.network
-            && !is_network_control(&network.endpoint)
-        {
-            return Err(Error::UnsupportedNetworkEndpoint(network.endpoint.clone()));
-        }
+        RuntimeNetwork::for_attachment(request.network.as_ref())?;
         match self.state.sandbox_by_name(&request.name).await {
             Ok(_) => return Err(Error::Backend(format!("Sandbox '{}' already exists", request.name))),
             Err(error) if error.is_not_found() => {}
             Err(error) => return Err(error),
         }
-        self.cached_image_reference(&request.image.manifest_digest).await?;
-
         let record = SandboxRecord::new(request);
         self.state.save_sandbox(&record).await?;
+        // The record comes first, so an image entry without a record is always a deleted
+        // Sandbox's, which removal passes clean up.
+        if let Err(error) = self.hold_image(&record).await {
+            if let Err(cleanup) = self.state.remove_sandbox(&record).await {
+                tracing::warn!(sandbox = %record.id, error = %cleanup, "failed to remove the record of a Sandbox without its image");
+            }
+            return Err(error);
+        }
         Ok(record.to_sandbox(SandboxState::Stopped))
     }
 
     async fn inspect_record(&self, record: &SandboxRecord) -> Result<Sandbox, Error> {
-        let state = self
-            .runtime_handle(&record.runtime_name)
-            .await?
-            .map_or(SandboxState::Stopped, |handle| map_state(handle.status_snapshot()));
-        Ok(record.to_sandbox(state))
+        let Some(handle) = self.runtime_handle(&record.runtime_name).await? else {
+            return Ok(record.to_sandbox(SandboxState::Stopped));
+        };
+        let status = handle.status_snapshot();
+        // A starting, draining or paused guest is not expected to beat, so its
+        // stale heartbeat is no evidence either way.
+        let guest_heartbeat = if status == SandboxStatus::Running {
+            heartbeat::read(&self.runtime_directory(&record.runtime_name)).await
+        } else {
+            None
+        };
+        Ok(Sandbox {
+            guest_heartbeat,
+            ..record.to_sandbox(map_state(status))
+        })
+    }
+
+    /// Host-side directory the runtime shares with its guest.
+    fn runtime_directory(&self, runtime_name: &str) -> PathBuf {
+        self.client.local().sandboxes_dir().join(runtime_name).join("runtime")
     }
 
     async fn update_sandbox_resources(
@@ -188,17 +319,39 @@ impl MicrosandboxProvider {
             }
             if config.spec.resources.memory_mib != desired.memory_mib {
                 modification = modification
-                    .memory_mib(desired.memory_mib)
-                    .max_memory_mib(config.spec.resources.max_memory_mib.max(desired.memory_mib));
+                    .memory(desired.memory_mib)
+                    .max_memory(config.spec.resources.max_memory_mib.max(desired.memory_mib));
                 runtime_change = true;
             }
             if current_root_filesystem_mib < desired.root_filesystem_mib {
-                modification = modification.root_disk_size_mib(desired.root_filesystem_mib);
+                modification = modification.root_disk_size(desired.root_filesystem_mib);
                 runtime_change = true;
             }
             if runtime_change {
+                self.prepare_runtime_network(&record)?;
                 let step = progress.start_step(UPDATE_RUNTIME_RESOURCES).await;
-                modification.restart().apply().await.map_err(error::microsandbox)?;
+                // A running VM is restarted here rather than by Microsandbox,
+                // whose restart stops without a deadline and relaunches with
+                // whatever runtime the home holds. The change is persisted for
+                // the next start first, so a rejected change leaves the VM
+                // running, and the root disk grows before that start boots.
+                // The runtime is installed first, since a resource change can
+                // come before the first start after an upgrade.
+                let running = map_state(handle.status_snapshot()) == SandboxState::Running;
+                if running {
+                    self.client.ensure_installed().await?;
+                    modification = modification.next_start();
+                }
+                modification.apply().await.map_err(error::microsandbox)?;
+                if running {
+                    stop_runtime(&handle, &record.runtime_name).await?;
+                    self.runtime_handle(&record.runtime_name)
+                        .await?
+                        .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, &record.id))?
+                        .start_detached()
+                        .await
+                        .map_err(error::microsandbox)?;
+                }
                 step.complete().await;
             }
         }
@@ -244,17 +397,11 @@ impl MicrosandboxProvider {
     }
 
     async fn start_sandbox(&self, id: &SandboxId, progress: &SandboxProgress) -> Result<(), Error> {
+        let record = self.state.sandbox_by_id(id).await?;
+        self.prepare_runtime_network(&record)?;
         let step = progress.start_step(INSTALL_RUNTIME).await;
         self.client.ensure_installed().await?;
         step.complete().await;
-        let record = self.state.sandbox_by_id(id).await?;
-        self.client.local().set_network_controlled(
-            &record.runtime_name,
-            record
-                .network
-                .as_ref()
-                .is_some_and(|network| is_network_control(&network.endpoint)),
-        );
         let _running = match self.runtime_handle(&record.runtime_name).await? {
             Some(handle) if map_state(handle.status_snapshot()) == SandboxState::Running => return Ok(()),
             Some(handle) => {
@@ -273,7 +420,7 @@ impl MicrosandboxProvider {
         if let Some(handle) = self.runtime_handle(&record.runtime_name).await?
             && map_state(handle.status_snapshot()) == SandboxState::Running
         {
-            handle.stop().await.map_err(error::microsandbox)?;
+            stop_runtime(&handle, &record.runtime_name).await?;
         }
         self.executions
             .borrow_mut()
@@ -288,7 +435,24 @@ impl MicrosandboxProvider {
             handle.remove().await.map_err(error::microsandbox)?;
         }
         self.client.local().set_network_controlled(&record.runtime_name, false);
-        self.state.remove_sandbox(&record).await
+        // Releasing first keeps a removal pass from taking the image as left behind before its
+        // cache entry is refreshed.
+        self.images.release(&record).await;
+        self.state.remove_sandbox(&record).await?;
+        self.images.remove_unused().await;
+        Ok(())
+    }
+
+    /// Tells Microsandbox whether this runtime must start under host network
+    /// control. Call it before every operation that can start the runtime: the
+    /// setting lives only in this process, while a runtime can outlive the
+    /// process that started it.
+    fn prepare_runtime_network(&self, record: &SandboxRecord) -> Result<RuntimeNetwork, Error> {
+        let network = RuntimeNetwork::for_attachment(record.network.as_ref())?;
+        self.client
+            .local()
+            .set_network_controlled(&record.runtime_name, network == RuntimeNetwork::Controlled);
+        Ok(network)
     }
 
     async fn runtime_handle(&self, name: &str) -> Result<Option<microsandbox::sandbox::SandboxHandle>, Error> {
@@ -312,9 +476,15 @@ impl MicrosandboxProvider {
         record: &SandboxRecord,
         progress: &SandboxProgress,
     ) -> Result<microsandbox::Sandbox, Error> {
+        // Applying the attachment here, not trusting a caller's decision, keeps
+        // a runtime from being created with the controlled network policy but
+        // without host network control.
+        let network = self.prepare_runtime_network(record)?;
         let step = progress.start_step(RESOLVE_RUNTIME_INPUTS).await;
         let mounts = self.resolve_mounts(&record.mounts).await?;
-        let image = self.cached_image_reference(&record.image.manifest_digest).await?;
+        // Holding the image again also covers a record saved before it held its image, and an
+        // image the cache no longer has.
+        let image = self.hold_image(record).await?;
         step.complete().await;
         if record.resources.root_filesystem().mode() == RootFilesystemMode::Direct {
             let step = progress.start_step(MATERIALIZE_DIRECT_ROOT_IMAGE).await;
@@ -325,11 +495,7 @@ impl MicrosandboxProvider {
             .pull_policy(PullPolicy::Never)
             .hostname(record.hostname().as_str());
         builder = builder.envs(record.environment.clone());
-        if record
-            .network
-            .as_ref()
-            .is_some_and(|network| is_network_control(&network.endpoint))
-        {
+        if network == RuntimeNetwork::Controlled {
             builder =
                 builder.network(|network| network.policy(microsandbox::NetworkPolicy::allow_all()).tls(|tls| tls));
         }
@@ -345,21 +511,6 @@ impl MicrosandboxProvider {
             .map_err(error::microsandbox)?;
         step.complete().await;
         Ok(runtime)
-    }
-
-    async fn cached_image_reference(&self, manifest_digest: &str) -> Result<String, Error> {
-        let images = microsandbox::Image::list_local(self.client.local())
-            .await
-            .map_err(error::microsandbox)?;
-        images
-            .iter()
-            .find(|image| image.manifest_digest() == Some(manifest_digest))
-            .map(|image| image.reference().to_string())
-            .ok_or_else(|| {
-                Error::Backend(format!(
-                    "image manifest digest {manifest_digest} is not present in this Microsandbox cache"
-                ))
-            })
     }
 
     // Image resolution prepares Microsandbox's layered cache, while a direct root
@@ -434,6 +585,18 @@ impl MicrosandboxProviderBuilder {
         self
     }
 
+    /// Removes cached images no Sandbox uses once `retention`, at least an hour, has passed
+    /// since each was last resolved, imported or released by a deleted Sandbox. A Sandbox keeps
+    /// its image until it is deleted, running or not.
+    ///
+    /// Enable this only for the Provider that owns its home. It cannot be combined with
+    /// [`Self::cache_directory`], since another Provider may use a shared cache.
+    #[must_use]
+    pub const fn remove_unused_images_after(mut self, retention: std::time::Duration) -> Self {
+        self.unused_image_retention = Some(retention);
+        self
+    }
+
     /// Supplies transient credentials used to resolve OCI registry references.
     #[must_use]
     pub fn registry_authentication(mut self, authentication: sandbox::image::RegistryAuthentication) -> Self {
@@ -464,6 +627,7 @@ impl MicrosandboxProviderBuilder {
         MicrosandboxProvider::open_configured(
             self.home,
             self.cache_directory,
+            self.unused_image_retention,
             self.registry_authentication,
             self.runtime_bundle,
         )
@@ -567,14 +731,12 @@ impl SandboxBackend for MicrosandboxProvider {
     ) -> LocalFuture<'a, Result<network::NetworkEndpoint, Error>> {
         Box::pin(async move {
             let record = self.state.sandbox_by_id(id).await?;
-            match record.network {
-                Some(attachment) if is_network_control(&attachment.endpoint) => {
-                    self.client.local().set_network_controlled(&record.runtime_name, true);
+            match self.prepare_runtime_network(&record)? {
+                RuntimeNetwork::Controlled => {
                     let controller = self.client.bind_network_controller(&record.runtime_name).await?;
                     network_endpoint::open(controller).map(network::NetworkEndpoint::Control)
                 }
-                Some(attachment) => Err(Error::UnsupportedNetworkEndpoint(attachment.endpoint)),
-                None => Err(Error::invalid("network", "Sandbox has no attachment")),
+                RuntimeNetwork::Unattached => Err(Error::invalid("network", "Sandbox has no attachment")),
             }
         })
     }
@@ -658,6 +820,7 @@ impl SandboxRecord {
             hostname: self.hostname(),
             resources: self.resources,
             state,
+            guest_heartbeat: None,
             mounts: self.mounts.clone(),
             environment: self.environment.clone(),
             network: self.network.clone(),
@@ -706,6 +869,22 @@ impl RuntimeMount {
     }
 }
 
+/// Stops a running VM gracefully within [`STOP_TIMEOUT`], and kills it when
+/// that fails. A guest that stopped responding, a halted guest and a paused VM
+/// cannot take the shutdown request, so the stop still ends with the VM gone.
+async fn stop_runtime(handle: &microsandbox::sandbox::SandboxHandle, name: &str) -> Result<(), Error> {
+    match handle.stop_with_timeout(STOP_TIMEOUT).await {
+        Ok(()) => Ok(()),
+        Err(graceful) => {
+            tracing::warn!(sandbox = %name, error = %graceful, "Microsandbox VM did not stop gracefully; killing it");
+            handle
+                .kill()
+                .await
+                .map_err(|kill| error::backend(format!("{kill}, after a graceful stop failed: {graceful}")))
+        }
+    }
+}
+
 const fn map_state(status: SandboxStatus) -> SandboxState {
     match status {
         SandboxStatus::Starting | SandboxStatus::Running | SandboxStatus::Draining | SandboxStatus::Paused => {
@@ -715,31 +894,151 @@ const fn map_state(status: SandboxStatus) -> SandboxState {
     }
 }
 
-fn is_network_control(selection: &network::NetworkEndpointSelection) -> bool {
-    matches!(
-        selection,
-        network::NetworkEndpointSelection::Control(protocol)
-            if protocol.as_str() == microsandbox_network::control::NETWORK_CONTROL_PROTOCOL
-    )
+/// How a runtime's network is wired, decided once from the Sandbox's immutable
+/// Network attachment.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum RuntimeNetwork {
+    /// No Network Backend is attached; the runtime keeps Microsandbox's own network.
+    Unattached,
+    /// The attached Network Backend authorizes traffic through the control
+    /// protocol this build implements.
+    Controlled,
+}
+
+impl RuntimeNetwork {
+    /// Refuses every attachment this build cannot enforce. Microsandbox only
+    /// offers its own control protocol, so any other recorded endpoint, such as
+    /// a control protocol from a different version, would otherwise start
+    /// without host network control.
+    fn for_attachment(attachment: Option<&network::NetworkAttachment>) -> Result<Self, Error> {
+        match attachment.map(|attachment| &attachment.endpoint) {
+            None => Ok(Self::Unattached),
+            Some(network::NetworkEndpointSelection::Control(protocol))
+                if protocol.as_str() == microsandbox_network::control::NETWORK_CONTROL_PROTOCOL =>
+            {
+                Ok(Self::Controlled)
+            }
+            Some(endpoint) => Err(Error::UnsupportedNetworkEndpoint(endpoint.clone())),
+        }
+    }
 }
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use microsandbox::sandbox::VolumeMount;
+    use std::{collections::BTreeMap, path::PathBuf};
 
-    use super::RuntimeMount;
+    use microsandbox::sandbox::VolumeMount;
+    use sandbox::{
+        ByteQuantity, CpuQuantity, Error, Hostname, Platform, RootFilesystem, SandboxId, SandboxName, SandboxResources,
+        backend::{CreateSandboxRequest, SandboxBackend as _},
+        image,
+        init::InitSystem,
+        network::{
+            NetworkAttachment, NetworkBackendId, NetworkControlProtocolId, NetworkEndpointSelection, PacketMedium,
+        },
+    };
+
+    use super::{MicrosandboxProvider, RuntimeMount, RuntimeNetwork};
+    use crate::state::SandboxRecord;
+
+    fn record_with_network(id: &str, endpoint: NetworkEndpointSelection) -> SandboxRecord {
+        SandboxRecord::new(CreateSandboxRequest {
+            id: id.parse::<SandboxId>().expect("test Sandbox ID should be a UUID"),
+            name: SandboxName::new("worker").expect("test Sandbox name should be valid"),
+            hostname: Hostname::new("worker").expect("test hostname should be valid"),
+            image: image::ResolvedImage {
+                source: image::ImageSource::Reference {
+                    reference: "docker.io/library/alpine:3.22".to_string(),
+                },
+                platform: Platform::new("linux", "amd64"),
+                manifest_digest: "sha256:1234".to_string(),
+            },
+            resources: SandboxResources::new(
+                "1".parse::<CpuQuantity>().expect("test CPU should be valid"),
+                "512Mi".parse::<ByteQuantity>().expect("test memory should be valid"),
+                RootFilesystem::layered(
+                    "4Gi"
+                        .parse::<ByteQuantity>()
+                        .expect("test root filesystem should be valid"),
+                ),
+            ),
+            init_system: InitSystem::Backend,
+            mounts: Vec::new(),
+            environment: BTreeMap::new(),
+            network: Some(NetworkAttachment {
+                backend: NetworkBackendId::new("microsandbox"),
+                endpoint,
+            }),
+        })
+    }
+
+    #[test]
+    fn only_an_absent_attachment_or_this_builds_control_protocol_is_accepted() {
+        assert_eq!(
+            RuntimeNetwork::for_attachment(None).ok(),
+            Some(RuntimeNetwork::Unattached)
+        );
+        let controlled = record_with_network(
+            "00000000-0000-4000-8000-000000000010",
+            NetworkEndpointSelection::Control(NetworkControlProtocolId::new(
+                microsandbox_network::control::NETWORK_CONTROL_PROTOCOL,
+            )),
+        );
+        assert_eq!(
+            RuntimeNetwork::for_attachment(controlled.network.as_ref()).ok(),
+            Some(RuntimeNetwork::Controlled)
+        );
+    }
+
+    // A persisted attachment that this build cannot enforce must never reach
+    // the runtime, where it would start without host network control.
+    #[tokio::test(flavor = "local")]
+    async fn start_refuses_a_recorded_endpoint_this_build_cannot_control() {
+        let home = tempfile::tempdir().expect("temporary home should be created");
+        let provider = MicrosandboxProvider::open(PathBuf::from(home.path()).join("microsandbox"))
+            .await
+            .expect("Provider should open without starting a VM");
+        let endpoints = [
+            NetworkEndpointSelection::Control(NetworkControlProtocolId::new("microsandbox.network-control.v0")),
+            NetworkEndpointSelection::Packet(PacketMedium::Ethernet),
+            NetworkEndpointSelection::Intercepted,
+        ];
+        for (index, endpoint) in endpoints.into_iter().enumerate() {
+            let mut record =
+                record_with_network(&format!("00000000-0000-4000-8000-00000000000{}", index + 1), endpoint);
+            record.name = SandboxName::new(format!("worker-{index}")).expect("test Sandbox name should be valid");
+            provider
+                .state
+                .save_sandbox(&record)
+                .await
+                .expect("record should be saved");
+
+            let result = provider.start(&record.id).await;
+
+            let expected = &record
+                .network
+                .as_ref()
+                .expect("record should have an attachment")
+                .endpoint;
+            assert!(
+                matches!(&result, Err(Error::UnsupportedNetworkEndpoint(actual)) if actual == expected),
+                "starting a Sandbox recorded with {expected:?} should be refused, got {result:?}"
+            );
+        }
+        drop(provider);
+    }
 
     #[tokio::test(flavor = "local")]
     async fn tmpfs_capacity_maps_to_microsandbox() {
-        let config = RuntimeMount::Tmpfs {
-            target: "/tmp".to_string(),
-            capacity_mib: 4096,
-        }
-        .apply(microsandbox::sandbox::SandboxBuilder::new("sandbox").image("alpine"))
-        .build()
-        .await
-        .expect("Sandbox configuration should build");
+        let config = Box::pin(crate::client::build_in_client_scope(
+            RuntimeMount::Tmpfs {
+                target: "/tmp".to_string(),
+                capacity_mib: 4096,
+            }
+            .apply(microsandbox::sandbox::SandboxBuilder::new("sandbox").image("alpine")),
+        ))
+        .await;
 
         assert!(matches!(
             config.spec.mounts.as_slice(),

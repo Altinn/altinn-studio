@@ -9,7 +9,7 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {

@@ -38,6 +38,7 @@ export const WithId: Story = {
       editValue: 'Rediger verdi',
       emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
       idLabel: 'ID:',
+      modeToggle: 'Modus',
       search: 'Søk',
       textResourcePickerLabel: 'Velg tekstressurs',
       noTextResourceOptionLabel: 'Ikke oppgitt',

@@ -38,6 +38,7 @@ spec:
     - source: ../skills/computer-use
     # Repository-wide Skills live where Claude Code discovers them in a plain checkout, and the
     # manifests reach across so every harness in an Agent gets them too.
+    - source: ../../.claude/skills/changelog
     - source: ../../.claude/skills/tekstforfatter-docs
     - source: ../../.claude/skills/text-content-review
   harnesses:

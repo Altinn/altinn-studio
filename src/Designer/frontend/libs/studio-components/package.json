@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p ./"
   },
   "dependencies": {
+    "@app/layout-contract": "workspace:*",
     "@digdir/designsystemet-css": "1.23.0",
     "@digdir/designsystemet-react": "1.23.0",
     "@studio/hooks": "workspace:^",

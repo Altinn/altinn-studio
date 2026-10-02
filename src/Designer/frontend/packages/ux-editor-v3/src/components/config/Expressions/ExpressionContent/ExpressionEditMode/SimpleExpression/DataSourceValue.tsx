@@ -119,6 +119,11 @@ export const DataSourceValue = ({
     case DataSource.Boolean:
       return (
         <StudioToggleGroup
+          aria-label={
+            isComparableValue
+              ? t('right_menu.expressions_data_source_comparable_value')
+              : t('right_menu.expressions_data_source_value')
+          }
           onChange={(value) => specifyDataSourceValue(value, isComparableValue)}
           value={selectedValueForDisplayIfBoolean}
           data-size='sm'

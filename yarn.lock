@@ -38,6 +38,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@altinn/process-editor-v8@workspace:src/Designer/frontend/packages/process-editor-v8":
+  version: 0.0.0-use.local
+  resolution: "@altinn/process-editor-v8@workspace:src/Designer/frontend/packages/process-editor-v8"
+  dependencies:
+    "@studio/ui-test": "workspace:^"
+    "@types/bpmn-moddle": "npm:9.0.1"
+    bpmn-js: "npm:18.22.1"
+    bpmn-moddle: "npm:9.0.4"
+    jest: "npm:29.7.0"
+  peerDependencies:
+    react: 18.3.1
+    react-dom: 18.3.1
+    typescript: 6.0.3
+  languageName: unknown
+  linkType: soft
+
 "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/process-editor@workspace:src/Designer/frontend/packages/process-editor"
@@ -61,7 +77,7 @@ __metadata:
     "@studio/ui-test": "workspace:^"
     jest: "npm:29.7.0"
   peerDependencies:
-    axios: 1.19.0
+    axios: 1.20.0
     classnames: 2.5.1
     react: 18.3.1
     react-dom: 18.3.1
@@ -132,8 +148,8 @@ __metadata:
   dependencies:
     "@app/language": "workspace:0.1.0"
     "@chromatic-com/storybook": "npm:5.3.1"
-    "@digdir/designsystemet-css": "npm:1.21.0"
-    "@digdir/designsystemet-react": "npm:1.21.0"
+    "@digdir/designsystemet-css": "npm:1.23.0"
+    "@digdir/designsystemet-react": "npm:1.23.0"
     "@eslint/compat": "npm:2.1.1"
     "@eslint/js": "npm:10.0.1"
     "@navikt/aksel-icons": "npm:8.16.2"
@@ -146,7 +162,7 @@ __metadata:
     "@testing-library/react": "npm:16.3.3"
     "@testing-library/user-event": "npm:14.6.7"
     "@types/react": "npm:19.2.18"
-    "@types/react-dom": "npm:19.2.5"
+    "@types/react-dom": "npm:19.2.7"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -185,7 +201,7 @@ __metadata:
     vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:5.0.1"
   peerDependencies:
-    "@digdir/designsystemet-react": 1.21.0
+    "@digdir/designsystemet-react": 1.23.0
     "@navikt/aksel-icons": 8.16.2
     react: 19.2.8
     react-dom: 19.2.8
@@ -201,7 +217,7 @@ __metadata:
     "@testing-library/react": "npm:16.3.3"
     "@testing-library/user-event": "npm:14.6.7"
     "@types/react": "npm:19.2.18"
-    "@types/react-dom": "npm:19.2.5"
+    "@types/react-dom": "npm:19.2.7"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -239,9 +255,12 @@ __metadata:
   resolution: "@app/layout-contract@workspace:src/common/ts/layout-contract"
   dependencies:
     "@eslint/js": "npm:^10.0.1"
+    "@types/node": "npm:24.13.6"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
+    ajv: "npm:8.20.0"
+    ajv-formats: "npm:3.0.1"
     eslint: "npm:10.8.1"
     globals: "npm:17.9.0"
     prettier: "npm:3.9.8"
@@ -2044,40 +2063,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-css@npm:1.21.0":
-  version: 1.21.0
-  resolution: "@digdir/designsystemet-css@npm:1.21.0"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:1.21.0"
-  checksum: 10/1d434d1d83464050861f4dd69eddaffbb3f674424f5ea94c31e9ab518bdf39413d1b0d8f9b174ccb0d0222bb1232810ad1e871f0ce217c1b4df34ba6b6938169
-  languageName: node
-  linkType: hard
-
 "@digdir/designsystemet-css@npm:1.23.0":
   version: 1.23.0
   resolution: "@digdir/designsystemet-css@npm:1.23.0"
   dependencies:
     "@digdir/designsystemet-types": "npm:1.23.0"
   checksum: 10/e9f6b17825952240f0d7522be842104abfa733b0d7e1725c23a089e1a18bd3f714ae673623930cb864ed381d7cb7c82a9898493392f406f2c53eaecaa6bf5082
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-react@npm:1.21.0":
-  version: 1.21.0
-  resolution: "@digdir/designsystemet-react@npm:1.21.0"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:1.21.0"
-    "@digdir/designsystemet-web": "npm:1.21.0"
-    "@floating-ui/dom": "npm:^1.8.0"
-    "@floating-ui/react": "npm:0.26.23"
-    "@navikt/aksel-icons": "npm:^8.16.1"
-    "@radix-ui/react-slot": "npm:^1.3.3"
-    "@tanstack/react-virtual": "npm:^3.14.10"
-    clsx: "npm:^2.1.1"
-  peerDependencies:
-    react: ">=18.3.1 || ^19.0.0"
-    react-dom: ">=18.3.1 || ^19.0.0"
-  checksum: 10/694acee0097b14256c9322d3329e874f470c6016ed409f96d764a0205167ee0e67e78791f2efd9a998cd97143a06c2c8bfb57d47f4a3cf5e94649110f9a7e994
   languageName: node
   linkType: hard
 
@@ -2100,30 +2091,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-types@npm:1.21.0":
-  version: 1.21.0
-  resolution: "@digdir/designsystemet-types@npm:1.21.0"
-  checksum: 10/6a7aa18921ec106b7411c5b77177bbc70d68cede130aa95168280da85869d319f6176987fb950e5a4fa4172571765f8a3598209465366a6962be22cb96ec9aa5
-  languageName: node
-  linkType: hard
-
 "@digdir/designsystemet-types@npm:1.23.0":
   version: 1.23.0
   resolution: "@digdir/designsystemet-types@npm:1.23.0"
   checksum: 10/3805a00e1e9ecdd9d0774d8ee1070015fab636d732dcc64ab05463778468e84da015f3c4c44bf191b45a368e78617335323960560b67da55f2ee8bd912fd6207
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-web@npm:1.21.0":
-  version: 1.21.0
-  resolution: "@digdir/designsystemet-web@npm:1.21.0"
-  dependencies:
-    "@floating-ui/dom": "npm:^1.8.0"
-    "@u-elements/u-combobox": "npm:^2.1.3"
-    "@u-elements/u-datalist": "npm:^2.0.3"
-    "@u-elements/u-details": "npm:^1.0.0"
-    "@u-elements/u-tabs": "npm:^1.0.4"
-  checksum: 10/28cb0feba1d24b8710b86c62b04ffa6bed7d9e537c5e65bde0330d31d887f48825a68ff2bd9ba6aaafacd5de89c2aaa8a04d6a2fde93d0a559127ba9c717e8ca
   languageName: node
   linkType: hard
 
@@ -3024,12 +2995,12 @@ __metadata:
   linkType: hard
 
 "@grpc/grpc-js@npm:^1.14.3":
-  version: 1.14.4
-  resolution: "@grpc/grpc-js@npm:1.14.4"
+  version: 1.14.5
+  resolution: "@grpc/grpc-js@npm:1.14.5"
   dependencies:
     "@grpc/proto-loader": "npm:^0.8.0"
     "@js-sdsl/ordered-map": "npm:^4.4.2"
-  checksum: 10/f9cdbd81e7388dc784c57274fcf6f4f4484da8968dd0975b97a14708d3fb117ae4a7bc2848e1bd1cc8b8ed9ee7a80ff131bfe728c85260da90a4e0b170e31ca9
+  checksum: 10/3be7fe0105c94e83e8a18b895fd534290cf3a26712940e95e0149b869da775a59551dafd60fd6c17213d3032b83fbfa64c6c2c9a0f569f6ef5968607174b7d79
   languageName: node
   linkType: hard
 
@@ -3827,13 +3798,6 @@ __metadata:
   version: 7.40.0
   resolution: "@navikt/aksel-icons@npm:7.40.0"
   checksum: 10/3aa95caee5484355b8e1bbe06fa3f4c1dd2f5db48c3c27e445f8ce53438e3571949f957178b2dbc81163c148f5c5c000222e67afe60556955419ad06ce505fab
-  languageName: node
-  linkType: hard
-
-"@navikt/aksel-icons@npm:^8.16.1":
-  version: 8.16.1
-  resolution: "@navikt/aksel-icons@npm:8.16.1"
-  checksum: 10/7b90c92406d6ed6ba7c4116e7468c60af9eda2cab42984b7633d2da861b027fd199d9af4b32ab177d43e2ce25fd24a944ee10ff0386a8c4f9b9b68416bb27dc2
   languageName: node
   linkType: hard
 
@@ -5913,6 +5877,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:src/Designer/frontend/libs/studio-components"
   dependencies:
+    "@app/layout-contract": "workspace:*"
     "@chromatic-com/storybook": "npm:^5.0.1"
     "@digdir/designsystemet-css": "npm:1.23.0"
     "@digdir/designsystemet-react": "npm:1.23.0"
@@ -6289,18 +6254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.14.10":
-  version: 3.14.10
-  resolution: "@tanstack/react-virtual@npm:3.14.10"
-  dependencies:
-    "@tanstack/virtual-core": "npm:3.17.8"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/2cfb17980499f927c783d0e1dbd2a080433338db358e2cbef5db37fc953207255b88aaa78592081ec9c1c1a6a1e86158e45cb80f3d82700128b8ce292136b534
-  languageName: node
-  linkType: hard
-
 "@tanstack/react-virtual@npm:^3.14.12":
   version: 3.14.13
   resolution: "@tanstack/react-virtual@npm:3.14.13"
@@ -6317,13 +6270,6 @@ __metadata:
   version: 3.17.11
   resolution: "@tanstack/virtual-core@npm:3.17.11"
   checksum: 10/836b4287ad4968e70aedb1a93618e4480218dc01f0e2d85e16003b2c1c69a7422f17b2b434eb53faedeaa4906aea76a05dd584626e898a73f95d9d2f72bc7352
-  languageName: node
-  linkType: hard
-
-"@tanstack/virtual-core@npm:3.17.8":
-  version: 3.17.8
-  resolution: "@tanstack/virtual-core@npm:3.17.8"
-  checksum: 10/b115caa01ccc748b97b5f1df7ee26e32fe82586da25d900630dc91297d35acaf90709cb5bf7fc0b85a86124aeb640cec7ac1a59ff6de9a6d25b7f53ddfce6a41
   languageName: node
   linkType: hard
 
@@ -6852,6 +6798,15 @@ __metadata:
   peerDependencies:
     "@types/react": ^19.2.0
   checksum: 10/e6b752ad923b70638a44bb537d2866bed98f08bba973bc2199365875c003abe1e5f0e5a6d73ba8778e97f13eca36fdb2ab47f530793238eff92e4df04df18f70
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:19.2.7":
+  version: 19.2.7
+  resolution: "@types/react-dom@npm:19.2.7"
+  peerDependencies:
+    "@types/react": ^19.2.0
+  checksum: 10/84079ed3b5470b7fafe4478c9180c2b0f19f8c5aebe666091e1ee5bc15464acb248909553769bd338de5f508afe96fec353997aed0457bb0d3a1e6246bcafcb8
   languageName: node
   linkType: hard
 
@@ -7423,13 +7378,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@u-elements/u-combobox@npm:^2.1.3":
-  version: 2.1.3
-  resolution: "@u-elements/u-combobox@npm:2.1.3"
-  checksum: 10/e405c3c4dda7fbcc9533d418916043cdb848cb30966614fc4b0dc614d919ec0110b1b632fa01a0e32227affacd334c003d9d54890c96a258dfa959010b2f0362
-  languageName: node
-  linkType: hard
-
 "@u-elements/u-combobox@npm:^2.1.5":
   version: 2.1.5
   resolution: "@u-elements/u-combobox@npm:2.1.5"
@@ -7800,7 +7748,7 @@ __metadata:
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
@@ -8059,7 +8007,7 @@ __metadata:
     "@studio/pure-functions": "workspace:^"
     "@studio/ui-test": "workspace:^"
     "@typescript/native": "npm:typescript@7.0.2"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     classnames: "npm:2.5.1"
     i18next: "npm:25.10.10"
     jest: "npm:29.7.0"
@@ -8088,8 +8036,8 @@ __metadata:
     "@babel/runtime": "npm:7.29.7"
     "@babel/runtime-corejs3": "npm:7.29.7"
     "@date-fns/tz": "npm:1.5.0"
-    "@digdir/designsystemet-css": "npm:1.21.0"
-    "@digdir/designsystemet-react": "npm:1.21.0"
+    "@digdir/designsystemet-css": "npm:1.23.0"
+    "@digdir/designsystemet-react": "npm:1.23.0"
     "@eslint/compat": "npm:2.1.1"
     "@eslint/js": "npm:^10.0.1"
     "@lhci/cli": "npm:^0.15.1"
@@ -8114,7 +8062,7 @@ __metadata:
     "@types/leaflet-draw": "npm:1.0.13"
     "@types/node": "npm:24.13.6"
     "@types/react": "npm:19.2.18"
-    "@types/react-dom": "npm:19.2.5"
+    "@types/react-dom": "npm:19.2.7"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
@@ -8125,7 +8073,7 @@ __metadata:
     ajv-formats: "npm:3.0.1"
     ajv-formats-draft2019: "npm:1.6.1"
     axe-core: "npm:4.13.0"
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     babel-plugin-react-compiler: "npm:^19.1.0-rc.2"
     classnames: "npm:2.5.1"
     core-js: "npm:3.50.0"
@@ -8537,15 +8485,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.19.0":
-  version: 1.19.0
-  resolution: "axios@npm:1.19.0"
+"axios@npm:1.20.0":
+  version: 1.20.0
+  resolution: "axios@npm:1.20.0"
   dependencies:
     follow-redirects: "npm:^1.16.0"
     form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10/d27e263b003f2dc1e6d0e2ab062dbc7c2b15668c25723e1e2072f139505c1fbd1f8cffef77d5ec05bb8e3cefa6fc5325c6446e747669fd95d85519529fa0db0b
+  checksum: 10/0376b6178baecbe0f5d36088f5b5f6c21362ce301e0731f77172f9c89be740bdee20d8ae6ab186340d7cb752020c6a4f1381290e5a5cd10f6f9003941615ac77
   languageName: node
   linkType: hard
 
@@ -8560,7 +8508,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-devops-mock@workspace:src/Designer/development/azure-devops-mock"
   dependencies:
-    axios: "npm:1.19.0"
+    axios: "npm:1.20.0"
     cors: "npm:2.8.6"
     express: "npm:5.2.1"
     morgan: "npm:1.11.0"
@@ -8952,34 +8900,25 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^1.1.7":
-  version: 1.1.18
-  resolution: "brace-expansion@npm:1.1.18"
+  version: 1.1.21
+  resolution: "brace-expansion@npm:1.1.21"
   dependencies:
     balanced-match: "npm:^1.0.0"
     concat-map: "npm:0.0.1"
-  checksum: 10/b55a3c03239b8d2127c7cbb3408c9ad3a556a8c303bf3064df78bfb7c093160fc8f6e0a32e42a850a78eba12f29ccf6ef997690b9acf945d242c56c61c4aa977
+  checksum: 10/6c0ed34107cb3bd3f44c01d90ec8c01baa3ed75b7755617e2e5797b5908bbf20b313edf575612b200a783b84c7d1826aec2f7a2f03de9905bbfae5dc3dea6a95
   languageName: node
   linkType: hard
 
 "brace-expansion@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "brace-expansion@npm:2.0.2"
+  version: 2.1.7
+  resolution: "brace-expansion@npm:2.1.7"
   dependencies:
     balanced-match: "npm:^1.0.0"
-  checksum: 10/01dff195e3646bc4b0d27b63d9bab84d2ebc06121ff5013ad6e5356daa5a9d6b60fa26cf73c74797f2dc3fbec112af13578d51f75228c1112b26c790a87b0488
+  checksum: 10/4763be07b688136db4f98f71ab96c4a1a73b6785f69864c130c748f4429be961c6a9a4129c0a81aad4f9cfb08e31a3cf2809b2427509bf2990d1490b7b5dd2d0
   languageName: node
   linkType: hard
 
-"brace-expansion@npm:^5.0.5":
-  version: 5.0.6
-  resolution: "brace-expansion@npm:5.0.6"
-  dependencies:
-    balanced-match: "npm:^4.0.2"
-  checksum: 10/a7acf120fefa79e9d7c9c92898114f57c07596a3920197f3c5917e6a628b04220a5f7f9618c30bdd973a6576a32113b99f9c3f1c8245ccc399dd2a9a718d81d8
-  languageName: node
-  linkType: hard
-
-"brace-expansion@npm:^5.0.8":
+"brace-expansion@npm:^5.0.5, brace-expansion@npm:^5.0.8":
   version: 5.0.12
   resolution: "brace-expansion@npm:5.0.12"
   dependencies:
@@ -10069,28 +10008,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress-plugin-tab@npm:2.0.0":
-  version: 2.0.0
-  resolution: "cypress-plugin-tab@npm:2.0.0"
-  peerDependencies:
-    cypress: ">=10"
-  checksum: 10/be7236fdd793675f19c4fd60abf7023671703c27e9a451906113cdea545c07d5e1b79ce76f279dc35208e14c2da35121e48fd0e4f68e5b914852d87556c8c523
-  languageName: node
-  linkType: hard
-
-"cypress-studio@workspace:src/Designer/frontend/testing/cypress":
-  version: 0.0.0-use.local
-  resolution: "cypress-studio@workspace:src/Designer/frontend/testing/cypress"
-  dependencies:
-    "@testing-library/cypress": "npm:10.1.3"
-    axe-core: "npm:4.13.0"
-    cypress: "npm:15.20.0"
-    cypress-axe: "npm:1.7.0"
-    cypress-plugin-tab: "npm:2.0.0"
-    eslint: "npm:10.8.1"
-  languageName: unknown
-  linkType: soft
-
 "cypress-terminal-report@npm:^7.2.1":
   version: 7.3.3
   resolution: "cypress-terminal-report@npm:7.3.3"
@@ -10119,54 +10036,6 @@ __metadata:
   version: 3.0.2
   resolution: "cypress-wait-until@npm:3.0.2"
   checksum: 10/0fdf0515c03422b64a99066ab5aa9e1f1e61c28a2eaed5d52f8a26b283107cb9d973ea2ef24814527278a7a4b72513b3059ef1fa88a4becdbb0b07a876652a31
-  languageName: node
-  linkType: hard
-
-"cypress@npm:15.20.0":
-  version: 15.20.0
-  resolution: "cypress@npm:15.20.0"
-  dependencies:
-    "@cypress/request": "npm:^4.0.0"
-    "@cypress/xvfb": "npm:^1.2.4"
-    "@types/sinonjs__fake-timers": "npm:8.1.1"
-    "@types/sizzle": "npm:^2.3.2"
-    "@types/tmp": "npm:^0.2.3"
-    arch: "npm:^3.0.0"
-    blob-util: "npm:^2.0.2"
-    bluebird: "npm:^3.7.2"
-    buffer: "npm:^5.7.1"
-    cachedir: "npm:^2.4.0"
-    chalk: "npm:^4.1.0"
-    ci-info: "npm:^4.1.0"
-    cli-table3: "npm:0.6.1"
-    commander: "npm:^6.2.1"
-    common-tags: "npm:^1.8.0"
-    dayjs: "npm:^1.10.4"
-    debug: "npm:^4.3.4"
-    eventemitter2: "npm:6.4.7"
-    execa: "npm:4.1.0"
-    executable: "npm:^4.1.1"
-    fs-extra: "npm:^9.1.0"
-    hasha: "npm:5.2.2"
-    is-installed-globally: "npm:~0.4.0"
-    listr2: "npm:^9.0.5"
-    lodash: "npm:^4.17.23"
-    log-symbols: "npm:^4.0.0"
-    minimist: "npm:^1.2.8"
-    ospath: "npm:^1.2.2"
-    pretty-bytes: "npm:^5.6.0"
-    process: "npm:^0.11.10"
-    proxy-from-env: "npm:1.0.0"
-    request-progress: "npm:^3.0.0"
-    supports-color: "npm:^8.1.1"
-    systeminformation: "npm:^5.31.1"
-    tmp: "npm:~0.2.4"
-    tree-kill: "npm:1.2.2"
-    untildify: "npm:^4.0.0"
-    yauzl: "npm:^3.3.1"
-  bin:
-    cypress: bin/cypress
-  checksum: 10/210643f3cd8d2f49df7166f94ab6dcfb3d8b256ad5b337fcb03ad58b12fd3a183afa357f8e4f754417b747bb24bdb38784690e6d569497769a24cb1837b764db
   languageName: node
   linkType: hard
 
@@ -13595,10 +13464,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-address@npm:^10.0.1":
-  version: 10.5.0
-  resolution: "ip-address@npm:10.5.0"
-  checksum: 10/239645a11ae56f1f8721df22fa852dec51039a0add5371a474ad858810a6b6a4924c9346e467821c4e614bc9b8c8947a58ba1fdfb155a7a30437a440072ffbf5
+"ip-address@npm:^10.1.1":
+  version: 10.7.2
+  resolution: "ip-address@npm:10.7.2"
+  checksum: 10/3a051cb5234cff142bb527e8b40bf0f9dd895b0334161b1ffe0256700a50a49f4d3b94ef72a809f086b2bd6489d4f7a4a52025b03db9c2e9e83a5f9e4d4bdb60
   languageName: node
   linkType: hard
 
@@ -19608,12 +19477,12 @@ __metadata:
   linkType: hard
 
 "socks@npm:^2.8.3":
-  version: 2.8.7
-  resolution: "socks@npm:2.8.7"
+  version: 2.8.10
+  resolution: "socks@npm:2.8.10"
   dependencies:
-    ip-address: "npm:^10.0.1"
+    ip-address: "npm:^10.1.1"
     smart-buffer: "npm:^4.2.0"
-  checksum: 10/d19366c95908c19db154f329bbe94c2317d315dc933a7c2b5101e73f32a555c84fb199b62174e1490082a593a4933d8d5a9b297bde7d1419c14a11a965f51356
+  checksum: 10/05ea32c55a4428babaab97f5419e130d2aec4836bc36a1505cd2d5c36ecf447609f5bbe95243b5e0cba46b4b2fea9d8d2b5031cc13005b3146da53f86b5e1128
   languageName: node
   linkType: hard
 

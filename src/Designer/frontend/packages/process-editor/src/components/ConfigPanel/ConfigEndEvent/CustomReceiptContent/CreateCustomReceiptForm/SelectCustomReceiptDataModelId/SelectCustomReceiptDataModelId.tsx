@@ -42,7 +42,7 @@ export const SelectCustomReceiptDataModelId = ({
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      selected={selectedValue || undefined}
+      selected={selectedValue || null}
       onSelectedChange={handleSelectedChange}
     >
       {allDataModelIds.map((option) => (

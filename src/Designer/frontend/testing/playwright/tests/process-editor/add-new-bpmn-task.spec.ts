@@ -96,7 +96,6 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 
   const newlyAddedTask: string = await bpmnJSQuery.getTaskByIdAndType(randomGeneratedId, 'g');
   await processEditorPage.clickOnTaskInBpmnEditor(newlyAddedTask);
-  // await processEditorPage.clickOnNewlyAddedElement(`Altinn ${dataTask} task`);
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(dataTask);
 
   await processEditorPage.clickOnConnectionArrow();
