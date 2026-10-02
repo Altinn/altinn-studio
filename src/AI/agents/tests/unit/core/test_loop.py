@@ -14,6 +14,7 @@ from agents.core import (
     AssistantMessage,
     CompactionConfig,
     LoopContext,
+    Message,
     TerminationReason,
     TextBlock,
     ToolRegistry,
@@ -33,6 +34,15 @@ from .conftest import (
     SourcedTool,
     tool_use,
 )
+
+
+def _tool_results(message: Message) -> list[ToolResultBlock]:
+    """The tool results of a loop message. Fail when the message holds other content."""
+    assert isinstance(message.content, list)
+    results = [block for block in message.content if isinstance(block, ToolResultBlock)]
+    assert len(results) == len(message.content)
+    return results
+
 
 # ---------------------------------------------------------------------------
 # Termination
@@ -507,7 +517,7 @@ class TestToolDispatch:
             ctx=ctx,
         )
         assert result.reason is TerminationReason.COMPLETED
-        [tr] = result.messages[2].content
+        [tr] = _tool_results(result.messages[2])
         assert tr.is_error
         assert "nope" in tr.content
         assert "echo" in tr.content  # lists known tools
@@ -529,7 +539,7 @@ class TestToolDispatch:
             adapter=adapter,
             ctx=ctx,
         )
-        [tr] = result.messages[2].content
+        [tr] = _tool_results(result.messages[2])
         assert tr.is_error
         assert "Invalid args" in tr.content
 
@@ -549,7 +559,7 @@ class TestToolDispatch:
             adapter=adapter,
             ctx=ctx,
         )
-        [tr] = result.messages[2].content
+        [tr] = _tool_results(result.messages[2])
         assert tr.is_error
         assert "boom: kaboom" in tr.content
 
@@ -569,7 +579,7 @@ class TestToolDispatch:
             adapter=adapter,
             ctx=ctx,
         )
-        [tr] = result.messages[2].content
+        [tr] = _tool_results(result.messages[2])
         assert tr.is_error
         assert "denied" in tr.content
         assert "nope" in tr.content
@@ -595,7 +605,7 @@ class TestToolDispatch:
             adapter=adapter,
             ctx=ctx,
         )
-        results = result.messages[2].content
+        results = _tool_results(result.messages[2])
         # Results should line up with the original tool_use order.
         assert [r.content for r in results] == ["first", "second", "third"]
         assert [r.tool_use_id for r in results] == [c.id for c in calls]
@@ -834,7 +844,7 @@ class TestResultCapping:
             ctx=ctx,
             compaction=config,
         )
-        [tr] = result.messages[2].content
+        [tr] = _tool_results(result.messages[2])
         # Capped to 100 chars of body + a truncation marker.
         assert tr.content.startswith("x" * 100)
         assert "truncated" in tr.content

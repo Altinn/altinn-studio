@@ -13,7 +13,7 @@ from agents.core import (
     ToolResult,
 )
 
-from .conftest import BoomTool, EchoTool
+from .conftest import BoomTool, EchoArgs, EchoTool
 
 
 class TestRegisterAndLookup:
@@ -62,6 +62,7 @@ class TestPrepareCall:
         registry.register(EchoTool())
         prepared = registry.prepare_call("echo", {"text": "hi"})
         assert prepared.tool.name == "echo"
+        assert isinstance(prepared.args, EchoArgs)
         assert prepared.args.text == "hi"
 
     def test_unknown_tool_raises(self):
@@ -82,7 +83,7 @@ class _StubArgs(BaseModel):
     pass
 
 
-class _MinimalGoodTool(Tool):
+class _MinimalGoodTool(Tool[_StubArgs]):
     name = "minimal"
     description = "ok"
     input_schema = _StubArgs

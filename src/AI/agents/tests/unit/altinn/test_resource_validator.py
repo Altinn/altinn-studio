@@ -50,4 +50,5 @@ def test_rejects_a_variable_key_that_does_not_match_the_pattern(validator: Resou
 
 
 def _pattern(validator: ResourceValidator) -> str:
+    assert validator.schema is not None
     return validator.schema["definitions"]["variable"]["properties"]["key"]["pattern"]

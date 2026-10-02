@@ -39,17 +39,18 @@ cp .env.example .env
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ```
 
-### Lint, format and test
+### Lint, format, type check and test
 
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
 
 ruff check .          # lint (add --fix to correct the problems)
 ruff format .         # format
+pyright               # type check
 python -m pytest      # unit tests
 ```
 
-CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check` and `pytest`. Then it starts the server and examines `/health`.
+CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check`, `pyright` and `pytest`. Then it starts the server and examines `/health`.
 
 ## API
 
