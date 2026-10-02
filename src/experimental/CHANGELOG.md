@@ -12,6 +12,8 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+## [0.1.0-preview.9] - 2026-10-02
+
 ### Added
 
 - `agentctl tui` opens an Agent with `o`:
