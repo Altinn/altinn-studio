@@ -158,7 +158,7 @@ class ResourceValidator(BaseValidator):
                 patterns["simple"] += 1
 
         # Return most common pattern
-        return max(patterns, key=patterns.get)
+        return max(patterns, key=lambda pattern: patterns[pattern])
 
     def _suggest_next_id(self, resource_ids: list[str]) -> str:
         """Suggest next resource ID based on pattern"""
@@ -209,7 +209,7 @@ def resource_validator_tool(
         # Create validator and run validation
         validator = ResourceValidator()
 
-        context = {"language": language}
+        context: dict[str, Any] = {"language": language}
         if layout_files:
             context["layout_files"] = layout_files
         if repo_path:

@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import classNames from 'classnames';
 import type { IGridStyling } from '@app/layout-contract/generated/common.generated';
 
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
-import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useHandleFocusComponent } from 'src/layout/focusComponent';
@@ -19,17 +19,17 @@ import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { EvalExprOptions } from 'src/features/expressions';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { GenericComponentOverrideDisplay, IFormComponentContext } from 'src/layout/FormComponentContext';
 import type { PropsFromGenericComponent } from 'src/layout/index';
-import type { CompInternal, CompTypes } from 'src/layout/layout';
+import type { CompExternal, CompTypes } from 'src/layout/layout';
 import type { AnyComponent } from 'src/layout/LayoutComponent';
 
 export interface IGenericComponentProps<Type extends CompTypes> {
   baseComponentId: string;
-  overrideItemProps?: Partial<Omit<CompInternal<Type>, 'id'>>;
+  overrideItemProps?: Partial<Omit<ExprResolved<CompExternal<Type>>, 'id'>>;
   overrideDisplay?: GenericComponentOverrideDisplay;
 }
 
@@ -52,7 +52,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
 
   return (
     <ComponentErrorBoundary nodeId={nodeId}>
-      <ActualGenericComponent<Type>
+      <GenericComponentWithContext<Type>
         baseComponentId={baseComponentId}
         overrideItemProps={overrideItemProps}
         overrideDisplay={overrideDisplay}
@@ -64,12 +64,36 @@ const MemoGenericComponent = React.memo(NonMemoGenericComponent);
 MemoGenericComponent.displayName = 'GenericComponent';
 export const GenericComponent = MemoGenericComponent as typeof NonMemoGenericComponent;
 
-function ActualGenericComponent<Type extends CompTypes = CompTypes>({
+function GenericComponentWithContext<Type extends CompTypes = CompTypes>({
   baseComponentId,
   overrideItemProps,
   overrideDisplay,
 }: IGenericComponentProps<Type>) {
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
+  const grid = overrideItemProps?.grid ?? component.grid;
+  const formComponentContext = useMemo<IFormComponentContext>(
+    () => ({ grid, baseComponentId, overrideItemProps, overrideDisplay }),
+    [grid, baseComponentId, overrideItemProps, overrideDisplay],
+  );
+
+  return (
+    <FormComponentContextProvider value={formComponentContext}>
+      <ActualGenericComponent<Type>
+        baseComponentId={baseComponentId}
+        overrideItemProps={overrideItemProps}
+        overrideDisplay={overrideDisplay}
+        component={component}
+      />
+    </FormComponentContextProvider>
+  );
+}
+
+function ActualGenericComponent<Type extends CompTypes = CompTypes>({
+  baseComponentId,
+  overrideItemProps,
+  overrideDisplay,
+  component,
+}: IGenericComponentProps<Type> & { component: CompExternal }) {
   const grid = overrideItemProps?.grid ?? component?.grid;
   const renderAsSummary =
     overrideItemProps && 'renderAsSummary' in overrideItemProps && overrideItemProps.renderAsSummary !== undefined
@@ -78,13 +102,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         ? component.renderAsSummary
         : undefined;
   const pageBreakUnresolved = component?.pageBreak;
-  const options: EvalExprOptions<ExprVal.String> = {
-    returnType: ExprVal.String,
-    defaultValue: '',
-    errorIntroText: `Invalid expression for component ${baseComponentId}`,
-  };
-  const breakBefore = useEvalExpression(pageBreakUnresolved?.breakBefore, options);
-  const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, options);
+
+  const breakBefore = useEvalExpression(pageBreakUnresolved?.breakBefore, CommonExpressions.IPageBreak.breakBefore);
+  const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, CommonExpressions.IPageBreak.breakAfter);
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const nodeId = useIndexedId(baseComponentId);
   const containerDivRef = React.useRef<HTMLDivElement | null>(null);
@@ -116,16 +136,6 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
       addError(error, nodeId, 'node');
     }
   }, [addError, baseComponentId, component.type, layoutComponent, nodeId]);
-
-  const formComponentContext = useMemo<IFormComponentContext>(
-    () => ({
-      grid,
-      baseComponentId,
-      overrideItemProps,
-      overrideDisplay,
-    }),
-    [grid, baseComponentId, overrideItemProps, overrideDisplay],
-  );
 
   if (hiddenState.hidden) {
     return null;
@@ -163,35 +173,31 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
 
   if (overrideDisplay?.directRender || layoutComponent.directRender()) {
     return (
-      <FormComponentContextProvider value={formComponentContext}>
-        <AppLanguageTranslatorProvider>
-          <RenderComponent
-            {...componentProps}
-            ref={focusContainerRef}
-          />
-        </AppLanguageTranslatorProvider>
-      </FormComponentContextProvider>
+      <AppLanguageTranslatorProvider>
+        <RenderComponent
+          {...componentProps}
+          ref={focusContainerRef}
+        />
+      </AppLanguageTranslatorProvider>
     );
   }
 
   return (
-    <FormComponentContextProvider value={formComponentContext}>
-      <Flex
-        data-componentbaseid={baseComponentId}
-        data-componentid={nodeId}
-        data-componenttype={component.type}
-        ref={focusContainerRef}
-        item
-        container
-        size={grid}
-        key={`grid-${nodeId}`}
-        className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
-      >
-        <AppLanguageTranslatorProvider>
-          <RenderComponent {...componentProps} />
-        </AppLanguageTranslatorProvider>
-      </Flex>
-    </FormComponentContextProvider>
+    <Flex
+      data-componentbaseid={baseComponentId}
+      data-componentid={nodeId}
+      data-componenttype={component.type}
+      ref={focusContainerRef}
+      item
+      container
+      size={grid}
+      key={`grid-${nodeId}`}
+      className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
+    >
+      <AppLanguageTranslatorProvider>
+        <RenderComponent {...componentProps} />
+      </AppLanguageTranslatorProvider>
+    </Flex>
   );
 }
 

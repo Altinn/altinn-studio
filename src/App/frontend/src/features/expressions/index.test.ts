@@ -1,57 +1,77 @@
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
-import { evalExpr } from 'src/features/expressions/index';
+import { evalExpr, exprCastValue } from 'src/features/expressions/index';
 import { ExprVal } from 'src/features/expressions/types';
 import type { AnyFuncDef } from 'src/features/expressions/expression-functions';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 
+const dataSources: ExpressionDataSources = {
+  currentDataModelPath: undefined,
+  langToolsSelector: () => {
+    throw new Error('not used');
+  },
+  markExpressionEvaluated: () => {},
+  track: () => {},
+  getDependencies: () => [],
+  context: {
+    currentLanguage: () => 'nb',
+    currentPage: () => undefined,
+    currentDataModelPath: () => undefined,
+    assertDataSourceSupported: () => {},
+  },
+  application: {
+    getSettings: () => ({}),
+  },
+  formData: {
+    defaultDataType: () => undefined,
+    hasDataType: () => false,
+    read: () => undefined,
+  },
+  layout: {
+    getLookups: () => undefined,
+  },
+  options: {
+    getStaticOptions: () => undefined,
+  },
+  instance: {
+    countDataElements: () => 0,
+    getDataSources: () => null,
+    getProcess: () => undefined,
+  },
+  externalApi: {
+    getAll: () => ({ data: {}, errors: {} }),
+  },
+  displayValue: {
+    get: () => undefined,
+  },
+};
+
 describe('Expressions', () => {
   it('should return default value if expression evaluates to null', () => {
     expect(
-      evalExpr(
-        ['frontendSettings', 'whatever'],
-        {
-          currentDataModelPath: undefined,
-          langToolsSelector: () => {
-            throw new Error('not used');
-          },
-          markExpressionEvaluated: () => {},
-          track: () => {},
-          getDependencies: () => [],
-          context: {
-            currentLanguage: () => 'nb',
-            currentPage: () => undefined,
-            currentDataModelPath: () => undefined,
-            assertDataSourceSupported: () => {},
-          },
-          application: {
-            getSettings: () => ({}),
-          },
-          formData: {
-            defaultDataType: () => undefined,
-            hasDataType: () => false,
-            read: () => undefined,
-          },
-          layout: {
-            getLookups: () => undefined,
-          },
-          options: {
-            getStaticOptions: () => undefined,
-          },
-          instance: {
-            countDataElements: () => 0,
-            getDataSources: () => null,
-            getProcess: () => undefined,
-          },
-          externalApi: {
-            getAll: () => ({ data: {}, errors: {} }),
-          },
-          displayValue: {
-            get: () => undefined,
-          },
-        } as ExpressionDataSources,
-        { returnType: ExprVal.String, defaultValue: 'hello world' },
-      ),
+      evalExpr(['frontendSettings', 'whatever'], dataSources, {
+        returnType: ExprVal.String,
+        defaultValue: 'hello world',
+      }),
     ).toEqual('hello world');
+  });
+
+  it.each([
+    { value: ['first', 'second'], expected: 'first,second' },
+    { value: { field: 'value' }, expected: '[object Object]' },
+    { value: 'TRUE', expected: 'true' },
+    { value: 'FALSE', expected: 'false' },
+    { value: 'NULL', expected: null },
+    { value: 42, expected: '42' },
+    { value: true, expected: 'true' },
+  ])('casts $value to a string without assuming a string input', ({ value, expected }) => {
+    expect(
+      exprCastValue(value, ExprVal.String, {
+        expr: ['dataModel'],
+        path: [],
+        callbacks: {},
+        dataSources,
+      }),
+    ).toEqual(expected);
   });
 
   describe('all function definitions should be valid', () => {

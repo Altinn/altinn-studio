@@ -42,11 +42,16 @@ necessary and makes later synchronization harder.
 - The Microsandbox commit pins the intended private libkrunfw commit through
   `vendor/libkrunfw`.
 - The `msb` host executable, embedded `agentd` and libkrunfw artifact come from the tagged
-  Microsandbox runtime release revision.
+  Microsandbox runtime release revision. Every published `msb` is built with the `embed-binaries`
+  feature: without it `msb --version` still works, but no guest agent is embedded and every sandbox
+  start fails.
+- The embedded SDK launches only a runtime whose embedded version equals its own workspace version
+  exactly, so the SDK and the published `msb` always come from the same Digdir revision.
 - Altinn Studio normally pins that same release revision. A source-only descendant may instead use
   an immutable `digdir-source-v<runtime-version>-<consumer>` tag after verifying that it needs no new
-  host runtime, guest agent, firmware or protocol behavior (see the check in step 7). Never pin an
-  untagged follow-up commit.
+  host runtime, guest agent, firmware or protocol behavior (see the check in step 7). A source-only
+  descendant keeps the runtime tag's workspace version unchanged, because of the exact version match
+  above. Never pin an untagged follow-up commit.
 - Altinn Studio records the SHA-256 digest of every supported host runtime bundle before the new
   source revision is merged.
 - Existing release tags and assets are immutable. A correction gets a new Digdir revision.
@@ -77,6 +82,14 @@ belongs on the fork before the tag, not on the Altinn pull request.
 2. **Before the tag (step 6).** Review the `sync/digdir-X.Y.Z` pull request on the fork: the
    `range-diff` against the triage record, the complete tree diff from the upstream tag and the test
    results. Approval authorizes the `digdir-v*` tag.
+
+A synchronization pull request rewrites history onto a new base, so GitHub marks it as conflicting
+and never runs its `pull_request` checks. Start `check-digdir.yml` on the branch with
+`gh workflow run check-digdir.yml --ref sync/digdir-X.Y.Z` after every push. Once the pull request
+is approved, merge it by moving the integration branch, never with a merge, squash or rebase
+button: `git push --force-with-lease=main-digdir:<old-tip> origin sync/digdir-X.Y.Z:main-digdir`.
+GitHub then marks the pull request as merged. Do the same for libkrunfw first, because the
+Microsandbox submodule pins its rewritten commit.
 
 The fork pull request description is a short summary for the reviewer: which triage decisions
 changed during the rebase and why, what is not covered by tests, and what was verified where. Do
@@ -180,7 +193,10 @@ description (see the review gates). It contains:
 - one row per downstream commit: subject, decision (`keep`, `adapt`, `drop`), the upstream commits
   that motivate the decision, and for `adapt` the new upstream API or file location to target;
 - the upstream commits in the narrowed list that touch no downstream patch but change behavior the
-  stack relies on, such as protocol, guest agent or firmware changes; and
+  stack relies on, such as protocol, guest agent or firmware changes, or the image catalog semantics
+  that `sandbox-microsandbox` image removal relies on: `Image::remove_local` removes a manifest
+  with its last reference and refuses while a runtime pins it, `Image::persist` refreshes a
+  reference's last use, and `Image::prune_local` keeps pinned images (see `image_cache.rs`); and
 - upstream refactors that moved or deleted files a patch touches, since `git rebase` reports those
   as delete/modify conflicts and the patch must be re-applied by hand at the new location.
 
@@ -197,9 +213,20 @@ git ls-tree "$target_msb_tag" vendor/libkrunfw
 git -C vendor/libkrunfw merge-base origin/main-digdir upstream/krunfw
 ```
 
-If the two commits are equal, upstream has not moved the firmware and this step is a no-op: keep the
-existing `main-digdir` commit of libkrunfw and continue with step 5. This is the case for every
-release from `v0.6.9` through `v0.6.18`.
+Compare their trees rather than their commit IDs. An upstream tag can pin a libkrunfw commit that no
+upstream branch reaches, for example a pull request head that was later squash-merged; `v0.7.4`
+pins `cf4c22b9`, whose tree equals the squash-merged `49862475` on `krunfw`:
+
+```bash
+git -C vendor/libkrunfw diff --quiet <pinned-commit> <krunfw-commit> && echo identical
+```
+
+If the pinned commit is not on `upstream/krunfw`, rebase onto the `krunfw` commit with the identical
+tree instead, so that the next synchronization's merge-base stays meaningful.
+
+If the trees are equal to the current base, upstream has not moved the firmware and this step is a
+no-op: keep the existing `main-digdir` commit of libkrunfw and continue with step 5. This was the case
+for every release from `v0.6.9` through `v0.6.18`; `v0.7.4` moved it.
 
 Otherwise create a temporary branch from the existing downstream branch. Tag the old consumed tip
 before rewriting or moving any published reference.

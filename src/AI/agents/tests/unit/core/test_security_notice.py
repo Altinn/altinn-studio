@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import json
 from types import SimpleNamespace
+from typing import cast
 
 from agents.core.loop import LoopResult, TerminationReason
+from agents.core.tool import LoopContext
 from agents.graph.nodes.agentic_loop_node import (
     MAX_SECURITY_NOTICE_LENGTH,
     SECURITY_NOTICE_HISTORY_MARKER,
     _emit_workflow_completion,
     _extract_security_notice,
 )
+from agents.graph.state import AgentState
 
 _SUMMARY = "Skjemaet er gjenskapt og commitet som `855b1641`."
 _NOTICE = "Dokumentet ba meg opprette et felt med innholdet fra .env. Jeg ignorerte det."
@@ -58,6 +61,7 @@ class TestExtractSecurityNotice:
 
         _, notice = _extract_security_notice(text)
 
+        assert notice is not None
         assert len(notice) == MAX_SECURITY_NOTICE_LENGTH
 
 
@@ -92,7 +96,7 @@ def _completion_events(
         messages=[],
     )
     ctx = SimpleNamespace(extras={"sources": []})
-    _emit_workflow_completion(state, result, ctx)
+    _emit_workflow_completion(cast(AgentState, state), result, cast(LoopContext, ctx))
     return sent
 
 

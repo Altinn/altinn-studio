@@ -1,59 +1,74 @@
 # Agent skills
 
-Each subdirectory is one skill: a `SKILL.md` with a one-line
-`description` in the frontmatter and a markdown body of curated domain
-knowledge. The loop surfaces only the descriptions (via the system
-prompt listing); the body loads when the model calls the `skill` tool.
+Each subdirectory is one skill. A skill has a `SKILL.md` file with two parts:
 
-See `agents/core/skills.py` for the loader and
-`agents/core/tools/skill_tool.py` for the tool.
+- a frontmatter with a `description` of one line
+- a markdown body with curated domain knowledge.
+
+The system prompt of the loop lists only the descriptions. The body loads when the
+model calls the `skill` tool.
+
+The loader is in `agents/core/skills.py`. The tool is in
+`agents/core/tools/skill_tool.py`.
 
 ## These files are the canonical source
 
-The skills ARE the single source of truth for Altinn domain knowledge.
-Edit them directly.
+The skills are the single source of truth for Altinn domain knowledge. Edit them
+directly.
 
-| Skill              | Covers                                                            |
-| ------------------ | ----------------------------------------------------------------- |
-| altinn-datamodel   | Data models: JSON Schema conventions, C# generation, bindings     |
-| altinn-policy      | Authorization policy (policy.xml): rules, roles, actions          |
-| altinn-resources   | Text resources: key naming, locales, layout references            |
-| altinn-prefill     | Prefill: registry data → form fields                              |
-| altinn-expressions | Dynamic expressions: array-shaped hidden/required/readOnly logic  |
-| altinn-planning    | Planning an app change: files per task type, ordering, validation |
-| altinn-docs        | Navigating docs.altinn.studio via the curated llms.txt index      |
+| Skill              | Contents                                                              |
+| ------------------ | --------------------------------------------------------------------- |
+| altinn-datamodel   | Data models: JSON Schema conventions, C# generation, bindings         |
+| altinn-policy      | Authorization policy (policy.xml): rules, roles, actions              |
+| altinn-resources   | Text resources: key names, locales, references from layouts           |
+| altinn-prefill     | Prefill: data from registries into form fields                        |
+| altinn-expressions | Dynamic expressions: array expressions for hidden, required, readOnly |
+| altinn-planning    | Plan an app change: files for each task type, sequence, validation    |
+| altinn-docs        | Find pages on docs.altinn.studio with the curated llms.txt index      |
 
-## Adding a skill
+## Add a skill
 
-1. `mkdir agents/skills/<kebab-name>`
+1. Make the directory: `mkdir agents/skills/<kebab-name>`.
 2. Write `SKILL.md`:
 
    ```markdown
    ---
-   description: One sentence on what this covers and when to load it.
+   description: One sentence about the contents and when to load the skill.
+   title: Display title for the source chip in the chat UI
+   docs_url: https://docs.altinn.studio/...
    ---
 
    # Title
 
-   The full instructions/reference content.
+   The full instructions or reference content.
    ```
 
-3. Discovery is automatic at session start. Keep the description under
-   250 chars; the body can be as long as it needs to be (it only costs
-   tokens when actually loaded).
+3. Keep the description shorter than 250 characters. The listing cuts longer
+   descriptions. The body can have the length that is necessary. It costs tokens
+   only when the model loads it.
 
-Reference files (indexes, data) live next to SKILL.md and are inlined
-into the loaded body via a frontmatter `include:` list (comma-separated
-sibling file names). They must travel inside the body — the loop's
-`read_file` is repo-scoped and cannot reach the skill directory.
+The agent finds the skills automatically when the session starts.
 
-Text that applies to one app version only goes in a sibling `v8.md` or
-`v9.md`. The loader adds the file for the app's version right after the
-body, before the included files.
+`description` is the only necessary field. The optional fields are:
+
+- `when_to_use`: The listing adds this text after the description.
+- `title`: The chat UI shows this text on the source chip.
+- `docs_url`: The chat UI links the source chip to this page. Use only a page that
+  you know is available.
+
+Put reference files, for example indexes and data, in the same directory as
+`SKILL.md`. To add them to the loaded body, write their file names in the
+frontmatter field `include:`. Use commas between the names. The files must be in
+the body, because the `read_file` tool of the loop can only read the repository. It
+cannot read the skill directory.
+
+Put text for one app version only in a file `v8.md` or `v9.md` in the same
+directory. The loader adds the file for the version of the app immediately after the
+body. The included files come after it.
 
 ## External installation
 
-These skills are usable outside the agent: any Claude Code / Cursor /
-Windsurf user can install them from this public repo (clone + symlink
-into their skills directory, or via the skills CLI). Keep frontmatter
-descriptions client-agnostic for that reason.
+You can use these skills outside the agent. Users of Claude Code, Cursor or Windsurf
+can install them from this public repository. They can clone the repository and
+make a symbolic link in their skills directory, or they can use the skills CLI. For
+this reason, do not write frontmatter descriptions for one client only.

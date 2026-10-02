@@ -538,6 +538,16 @@ internal sealed class MailboxRelay
 
         List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
 
+        var receiveWorkflow = new WorkflowRequest
+        {
+            OperationId = $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · {operationIdSuffix}",
+            Steps = receiveSteps,
+            Mailbox = new MailboxReference { Id = mailboxId },
+            State = PublishedState(request),
+            IsHead = true,
+            DependsOnHeads = true,
+        };
+
         // Token minted at this hop; with the re-signed blob this binds each hop to current app code.
         var receiveContext = new AppWorkflowContext
         {
@@ -546,26 +556,18 @@ internal sealed class MailboxRelay
             App = request.AppId.App,
             InstanceOwnerPartyId = request.InstanceId.InstanceOwnerPartyId,
             InstanceGuid = request.InstanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(request.InstanceId.InstanceGuid),
+            CallbackToken = _callbackTokenGenerator.GenerateToken(
+                request.InstanceId.InstanceGuid,
+                request.Payload.Actor,
+                [receiveWorkflow]
+            ),
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest
         {
             Labels = CreateSuccessorLabels(request),
             Context = JsonSerializer.SerializeToElement(receiveContext),
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId =
-                        $"{ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix} {taskId} · {operationIdSuffix}",
-                    Steps = receiveSteps,
-                    Mailbox = new MailboxReference { Id = mailboxId },
-                    State = PublishedState(request),
-                    IsHead = true,
-                    DependsOnHeads = true,
-                },
-            ],
+            Workflows = [receiveWorkflow],
         };
 
         await _workflowEngineClient.EnqueueWorkflows(
@@ -599,6 +601,19 @@ internal sealed class MailboxRelay
             .. handover.Plan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType),
         ];
 
+        var continuationWorkflow = new WorkflowRequest
+        {
+            // Named for the item it follows: with an opening stage ending a run too, an exchange's
+            // opening index no longer tells two continuations apart.
+            OperationId =
+                $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {taskId} · after "
+                + handover.AfterItemIndex.ToString(CultureInfo.InvariantCulture),
+            Steps = steps,
+            State = PublishedState(request),
+            IsHead = true,
+            DependsOnHeads = true,
+        };
+
         // Minted at this hop, exactly as a successor receiver's is.
         var continuationContext = new AppWorkflowContext
         {
@@ -607,28 +622,18 @@ internal sealed class MailboxRelay
             App = request.AppId.App,
             InstanceOwnerPartyId = request.InstanceId.InstanceOwnerPartyId,
             InstanceGuid = request.InstanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(request.InstanceId.InstanceGuid),
+            CallbackToken = _callbackTokenGenerator.GenerateToken(
+                request.InstanceId.InstanceGuid,
+                request.Payload.Actor,
+                [continuationWorkflow]
+            ),
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest
         {
             Labels = CreateSuccessorLabels(request),
             Context = JsonSerializer.SerializeToElement(continuationContext),
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    // Named for the item it follows: with an opening stage ending a run too, an exchange's
-                    // opening index no longer tells two continuations apart.
-                    OperationId =
-                        $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {taskId} · after "
-                        + handover.AfterItemIndex.ToString(CultureInfo.InvariantCulture),
-                    Steps = steps,
-                    State = PublishedState(request),
-                    IsHead = true,
-                    DependsOnHeads = true,
-                },
-            ],
+            Workflows = [continuationWorkflow],
         };
 
         await _workflowEngineClient.EnqueueWorkflows(

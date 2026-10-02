@@ -8,7 +8,6 @@ using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;

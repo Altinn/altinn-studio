@@ -284,7 +284,7 @@ class ModelMetadataToCsharpConverter:
                 min_limit, max_limit = RestrictionMapper.get_range_limits(element.XsdValueType)
                 lines.append(f"{self._indent(2)}[Range({min_limit}, {max_limit})]")
 
-    def _format_range_value(self, value: str, base_type: BaseValueType) -> str:
+    def _format_range_value(self, value: str, base_type: BaseValueType | None) -> str:
         """Format range value for C# Range attribute."""
         is_decimal = "." in value or "," in value
 

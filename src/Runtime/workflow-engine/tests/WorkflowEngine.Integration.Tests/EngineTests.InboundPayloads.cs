@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 // CA1305: StringBuilder interpolation locale — plaintext HTTP output, not locale-sensitive

@@ -3,13 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -640,6 +644,24 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
                 };
 
+                if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
+                {
+                    // What the engine does with a 401: a client error, so the step fails without retrying.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            $"The app rejected the callback token for command '{appCommandData.CommandKey}'.",
+                            (int)HttpStatusCode.Unauthorized,
+                            WasRetryable: false
+                        )
+                    );
+                    step.Status = PersistentItemStatus.Failed;
+                    step.UpdatedAt = DateTimeOffset.UtcNow;
+                    workflow.Status = PersistentItemStatus.Failed;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                    return;
+                }
+                controller.HttpContext.User = principal;
                 IActionResult result = await controller.ExecuteCommand(
                     workflow.Context.Org,
                     workflow.Context.App,
@@ -901,6 +923,29 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             step.Status = PersistentItemStatus.Enqueued;
             step.UpdatedAt = DateTimeOffset.UtcNow;
         }
+    }
+
+    /// <summary>
+    /// Authenticates a callback with the app's own validator, as the callback scheme does for a real request,
+    /// so the controller sees the principal the engine's replayed token would give it. <c>null</c> when the app
+    /// would answer 401.
+    /// </summary>
+    private async Task<ClaimsPrincipal?> AuthenticateCallback(AppWorkflowContext context, string commandKey)
+    {
+        ValidatedWorkflowCallbackToken? validated = await _serviceProvider
+            .GetRequiredService<IWorkflowCallbackTokenValidator>()
+            .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey);
+        if (validated is null)
+            return null;
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [
+                    new Claim(JwtClaimTypes.JwtId, context.InstanceGuid.ToString()),
+                    new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
+                ],
+                WorkflowEngineCallbackDefaults.AuthenticationScheme
+            )
+        );
     }
 
     private static bool IsAltinnEventCommand(string commandKey) =>

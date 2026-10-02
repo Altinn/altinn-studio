@@ -366,7 +366,10 @@ public class MailboxRelayFrontierTests
 
         return new MailboxRelay(
             collection,
-            Mock.Of<IWorkflowCallbackTokenGenerator>(g => g.GenerateToken(It.IsAny<Guid>()) == "callback-token"),
+            Mock.Of<IWorkflowCallbackTokenGenerator>(g =>
+                g.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+                == "callback-token"
+            ),
             new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
             processEngine.Object
         );

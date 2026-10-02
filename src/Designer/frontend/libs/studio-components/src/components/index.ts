@@ -52,6 +52,7 @@ export * from './StudioIconViewer';
 export * from './StudioInlineTextField';
 export * from './StudioLabel';
 export * from './StudioLabelAsParagraph';
+export * from './StudioLabelWrapper';
 export * from './StudioLanguagePicker';
 export * from './StudioLibraryElement';
 export * from './StudioLink';

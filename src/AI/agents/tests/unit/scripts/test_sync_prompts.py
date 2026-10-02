@@ -14,6 +14,7 @@ from benchmarks.lf_api import LangfuseApi
 
 SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "sync_prompts.py"
 _spec = importlib.util.spec_from_file_location("sync_prompts", SCRIPT)
+assert _spec is not None and _spec.loader is not None
 sync_prompts = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(sync_prompts)
 
@@ -41,7 +42,7 @@ class _Langfuse:
         self.patched = []
         self.deleted = []
         self.pages_read = 0
-        self.get_error = None
+        self.get_error: Exception | None = None
 
     def _get(self, path, **params):
         if self.get_error is not None:

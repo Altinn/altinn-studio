@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from langfuse import Evaluation
@@ -9,6 +10,9 @@ from langfuse import Evaluation
 from .evaluators import Score
 
 SCORES_KEY = "scores"
+
+# An item-level evaluator. Each one returns its scores at once, and `run_experiment` accepts it.
+ItemEvaluator = Callable[..., list[Evaluation]]
 
 
 def as_evaluation(score: Score) -> Evaluation:

@@ -265,6 +265,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
+
         // All source writers must finish first, including generated data processors and their Program.cs
         // registrations. Detection keeps the v8 view; spelling decisions use the actual upgraded project.
         await FinalizeGeneratedTypeReferencesAsync(
@@ -1596,6 +1599,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Fiks Arkiv settings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 13: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
+    /// to allowedContributors, the only spelling the application metadata schema accepts.
+    /// </summary>
+    static async Task<int> MigrateAllowedContributors(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("allowedContributors spelling");
+        try
+        {
+            var result = await AllowedContributorsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No allowedContributers to rename",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error renaming allowedContributers", ex);
         }
     }
 

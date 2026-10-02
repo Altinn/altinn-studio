@@ -35,7 +35,7 @@ class WebFetchArgs(BaseModel):
     url: str = Field(description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio.")
 
 
-class WebFetchTool(Tool):
+class WebFetchTool(Tool[WebFetchArgs]):
     """Fetch an allowlisted documentation page as readable text."""
 
     name = "web_fetch"

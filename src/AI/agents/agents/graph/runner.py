@@ -269,7 +269,7 @@ def _mark_as_experiment_item(state: AgentState, root_span) -> None:
         span.set_attribute(key, value)
 
 
-async def run_once(state: AgentState, event_sink: EventSink = None):
+async def run_once(state: AgentState, event_sink: EventSink | None = None):
     """Run one complete workflow loop with unified tracing"""
     if event_sink is None:
         event_sink = sink
@@ -379,7 +379,7 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
     return final_state
 
 
-def run_in_background(state: AgentState, event_sink: EventSink = None):
+def run_in_background(state: AgentState, event_sink: EventSink | None = None):
     """Start workflow in background task"""
     import logging
 

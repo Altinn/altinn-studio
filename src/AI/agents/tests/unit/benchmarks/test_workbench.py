@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 
 import pytest
 
 from benchmarks import diff, manifest, provenance, report, report_html, runstore
+from benchmarks.lf_api import LangfuseApi
 from benchmarks.provenance import Code, Provenance
 from benchmarks.runstore import BehaviorResult, ItemResult, Run
 
@@ -268,7 +270,8 @@ class TestTheReportShowsWhatWasMeasured:
         }
 
         assert rows["declined-in-the-wrong-language"].said == "declined in nb, expected en"
-        assert '"decline_language": "en"' in rows["declined-in-english"].expected
+        expected = rows["declined-in-english"].expected
+        assert expected is not None and '"decline_language": "en"' in expected
 
     def test_an_answer_is_shown_without_its_transport(self):
         """Tasks wrap the answer in an envelope carrying the model and prompt
@@ -276,6 +279,7 @@ class TestTheReportShowsWhatWasMeasured:
         wrapped = json.dumps({"text": json.dumps({"in_scope": True, "reason": "app work"}), "model": "m"})
 
         shown = report.readable(wrapped, unwrap=True)
+        assert shown is not None
 
         assert '"in_scope": true' in shown
         assert '"reason": "app work"' in shown
@@ -286,6 +290,7 @@ class TestTheReportShowsWhatWasMeasured:
         wrapped = json.dumps({"tool_calls": [{"name": "t"}], "stop_reason": "tool_use"})
 
         shown = report.readable(wrapped, unwrap=True)
+        assert shown is not None
 
         assert "tool_calls" in shown and "stop_reason" in shown
 
@@ -295,6 +300,7 @@ class TestTheReportShowsWhatWasMeasured:
         wrapped = json.dumps({"text": '{"in_scope": true}', "verdict": {"in_scope": True}})
 
         shown = report.readable(wrapped, unwrap=True)
+        assert shown is not None
 
         assert '"in_scope": true' in shown
         assert "text" not in shown
@@ -311,12 +317,14 @@ class TestTheReportShowsWhatWasMeasured:
         wrapped = json.dumps({"model": "m", "spec": {"title": "t"}, "text": "raw"})
 
         shown = report.readable(wrapped, unwrap=True)
+        assert shown is not None
 
         assert '"title": "t"' in shown and "raw" not in shown
 
     def test_an_expectation_keeps_the_name_of_what_is_expected(self):
         """Unwrapping an expectation would turn decline_language en into just en."""
         shown = report.readable('{"decline_language": "en"}')
+        assert shown is not None
 
         assert '"decline_language": "en"' in shown
 
@@ -365,6 +373,7 @@ class TestTheReportShowsWhatWasMeasured:
         assert not view.floor_applies
         assert view.coarse
         said = view.sensitivity()
+        assert said is not None
         assert "2 items" in said
         assert "steps of 0.500" in said
         assert "25.0 times" in said
@@ -458,7 +467,9 @@ class TestTheReportShowsWhatWasMeasured:
     def test_the_detail_survives_a_round_trip_to_disk(self, tmp_path):
         run = self._run_with_items(tmp_path)
         reloaded = runstore.load(run.name, directory=tmp_path)
-        item = reloaded.behavior("scope.declines-in-users-language").item("declined-in-english")
+        behavior = reloaded.behavior("scope.declines-in-users-language")
+        assert behavior is not None
+        item = behavior.item("declined-in-english")
 
         assert item is not None
         assert item.comments["gate_decline_language"] == "declined in en, expected en"
@@ -529,7 +540,8 @@ class TestTheJudgeReviewSurvivesARerender:
         page = report_html.render(built, judge_note="VERDICT\n\nIt held.")
 
         assert "No score on this page comes from a model" in page
-        assert built.current.provenance.judge in page or "a model" in page
+        judge = built.current.provenance.judge
+        assert (judge is not None and judge in page) or "a model" in page
 
     def test_a_run_round_trips_its_note(self, tmp_path):
         run = _run("20260909T100000Z-judged", "judged", HOLDING)
@@ -1550,7 +1562,7 @@ class TestReadingARunBackFromLangfuse:
                     }
                 return {"data": items, "meta": {}}
 
-        return _Api()
+        return cast(LangfuseApi, _Api())
 
     def _metadata(self):
         return {
