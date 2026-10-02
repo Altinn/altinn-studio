@@ -226,10 +226,13 @@ can disagree.
 `.github/workflows/assistant-evals.yaml`, one job: **it checks whether the change
 invalidates the baseline, and never runs the bench.**
 
-It reads the diff, matches it against the declaration below, and fails when a change moves
-what is measured without carrying a new `BASELINE.json`. It needs no secrets, installs
-nothing (the check is stdlib only, so a broken dependency cannot silence the one gate that
-always runs), and finishes in seconds.
+It reads the diff and matches it against the declaration below. It also computes the
+`actor_prompt` and `tools` digests of the checkout and compares them with the digests in
+`BASELINE.json`. It fails when a change moves what is measured without a new
+`BASELINE.json`, or when the digests of the checkout are not equal to the baseline. It needs
+no secrets. It installs `requirements.txt`, because the digests import the agent code. If a
+digest fails, the gate fails, so a broken dependency cannot make the gate pass. The gate
+writes the error of a failed digest to the job log.
 
 Three reasons the pipeline does not run the bench.
 
@@ -257,7 +260,7 @@ You changed what the harness measures with. Every score the current baseline
 holds was produced by a different instrument, so no comparison against it
 means anything from here on, whatever the agent does.
 
-BASELINE.json still points at: <check id>
+BASELINE.json points at: <check id>
   adopted because: <the reason it was adopted>
 
 CI does not run the bench, and cannot decide this for you. Record it yourself:
@@ -268,7 +271,7 @@ CI does not run the bench, and cannot decide this for you. Record it yourself:
   3. python -m benchmarks.runner baseline <check id> --why "<why>"
   4. commit benchmarks/BASELINE.json in this pull request
 
-If you did not mean to change the yardstick, revert the file above instead.
+If you did not mean to change the yardstick, revert that change instead.
 ```
 
 Run the same check before pushing, so CI never surprises you:
@@ -293,13 +296,31 @@ python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline 
 | --- | --- | --- |
 | `benchmarks/datasets/*` | dataset | **re-baseline**, the items every score is computed over |
 | `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators | **re-baseline**, how something is scored |
-| `agents/core/context.py` | actor_prompt | **re-baseline**, the actor's system prompt |
 | `agents/prompts/*` | prompts | **re-baseline**, a published prompt |
-| `agents/core/tools/*`, `agents/core/registry.py` | tools | **re-baseline**, the schemas the actor is shown |
+| any file that changes the `actor_prompt` digest | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
+| any file that changes the `tools` digest | tools | **re-baseline**, the tool schemas the actor is shown, and the skill text |
 | `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*` | code | check, the baseline stays valid |
 | `shared/config/base_config.py` | models | check, the baseline stays valid |
 | `benchmarks/manifest.py` | manifest | check, declaring a behavior changes no score |
 | anything else, and all tests | | nothing |
+
+No path rule is necessary for `actor_prompt` and `tools`. The gate calls
+`provenance.digests()`, which `runner check` also records. Then it compares the result with
+the digests in `BASELINE.json`. Thus the gate and `runner check` cannot disagree, whichever
+file moves a digest. The `actor_prompt` digest hashes what `build_system_prompt` returns for
+each app version profile, in write mode and in read-only mode, with the skill listing. The
+session values, such as the goal and the date, are fixed placeholders. Thus each section and
+template of the system prompt counts. The `tools` digest hashes the tool
+schemas, and the skill text for each app version. A digest that fails, or that the baseline
+did not record, is not equal. The difference can come from this change, or from an earlier
+change on main. In both cases `runner check` refuses the comparison, so the gate fails.
+
+For the path rules, the gate compares the Python AST of a changed `.py` file with the file at
+the merge base of HEAD and the base ref. The base ref is `origin/main`, or the `--against`
+value. CI gives the base of the pull request, so a pull request that targets another branch is
+compared with that branch. If only module or function docstrings, comments or formatting
+change, the file moves no axis. A change to a class docstring moves the axis, because pydantic copies it
+into the input schema of a tool.
 
 A test asserts every declared path still exists, so a rule cannot rot into one that
 silently matches nothing. Another asserts every yardstick axis is one a comparison actually
