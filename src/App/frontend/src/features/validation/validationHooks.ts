@@ -16,6 +16,7 @@ import { FrontendValidationSource, ValidationMask } from 'src/features/validatio
 import {
   buildDerivedValidationState,
   emptyBreakdown,
+  getComponentValidationKey,
   getNodeRefValidations,
   getValidationDescendantIds,
   getValidationsForNode,
@@ -268,14 +269,28 @@ export function usePageHasVisibleRequiredValidations(pageKey: string | undefined
  */
 export function usePruneValidationMasks() {
   const derived = useCompleteValidationSnapshot();
-  const [formMask, pageMasks, rowMasks] = FormStore.raw.useShallowSelector((state) => [
+  const [formMask, pageMasks, rowMasks, components] = FormStore.raw.useShallowSelector((state) => [
     state.validation.formMask,
     state.validation.pageMasks,
     state.validation.rowMasks,
+    state.validation.components,
   ]);
   const setFormMask = FormStore.validation.useSetFormValidationMask();
   const setPageMask = FormStore.validation.useSetPageValidationMask();
   const setRowMask = FormStore.validation.useSetRowValidationMask();
+
+  const setComponentMask = FormStore.raw.useStaticSelector((state) => state.validation.setComponentMask);
+  const removeComponent = FormStore.raw.useStaticSelector((state) => state.validation.removeComponent);
+  const nodesByKey = new Map(derived.nodes.map((node) => [getComponentValidationKey(node.baseId, node.rowIds), node]));
+  const missingComponents = useShallowMemo(Object.keys(components).filter((key) => !nodesByKey.has(key)));
+  const staleComponents = useShallowMemo(
+    Object.entries(components)
+      .filter(([key, component]) => {
+        const node = nodesByKey.get(key);
+        return node && component.mask && !getValidationsForNode(derived, node.id, component.mask, 'error').length;
+      })
+      .map(([key]) => key),
+  );
 
   const hasFormErrors =
     !formMask || derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
@@ -306,5 +321,19 @@ export function usePruneValidationMasks() {
     }
     stalePages.forEach((pageKey) => setPageMask(pageKey, undefined));
     staleRows.forEach((rowId) => setRowMask(rowId, undefined));
-  }, [formMask, hasFormErrors, setFormMask, setPageMask, setRowMask, stalePages, staleRows]);
+    staleComponents.forEach((key) => setComponentMask(key, undefined));
+    missingComponents.forEach(removeComponent);
+  }, [
+    formMask,
+    hasFormErrors,
+    setFormMask,
+    setPageMask,
+    setRowMask,
+    stalePages,
+    staleRows,
+    staleComponents,
+    missingComponents,
+    setComponentMask,
+    removeComponent,
+  ]);
 }

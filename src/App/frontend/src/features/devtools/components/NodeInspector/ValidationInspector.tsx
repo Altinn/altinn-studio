@@ -123,6 +123,7 @@ const CategoryVisibility = ({ visibility }: { visibility: ValidationVisibilityBr
           visibility.form & category ? 'skjema' : undefined,
           visibility.page & category ? 'side' : undefined,
           visibility.row & category ? 'rad' : undefined,
+          visibility.component & category ? 'komponent' : undefined,
         ].filter(Boolean);
         return (
           <div

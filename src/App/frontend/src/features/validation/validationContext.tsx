@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { Draft } from 'immer';
 
 import { useGetCachedInitialValidations, useRefetchInitialValidations } from 'src/core/queries/backendValidation';
+import { useQueryClient } from 'src/core/queries/reactQuery';
 import { hasPendingAttachments, waitForAttachments } from 'src/features/attachments/utils';
 import { FormStore } from 'src/features/form/FormContext';
 import { useInstanceDataQuery, useSelectFromInstanceData } from 'src/features/instance/InstanceContext';
@@ -61,6 +61,31 @@ export function createValidationSlice(
     formMask: 0,
     pageMasks: {},
     rowMasks: {},
+    components: {},
+    setComponentValidations: (key, update) =>
+      set((state) => {
+        const component = state.validation.components[key] ?? { validations: [], mask: 0 };
+        component.validations = update(component.validations);
+        if (component.validations.length || component.mask) {
+          state.validation.components[key] = component;
+        } else {
+          delete state.validation.components[key];
+        }
+      }),
+    setComponentMask: (key, mask) =>
+      set((state) => {
+        const component = state.validation.components[key] ?? { validations: [], mask: 0 };
+        component.mask = mask ?? 0;
+        if (component.validations.length || component.mask) {
+          state.validation.components[key] = component;
+        } else {
+          delete state.validation.components[key];
+        }
+      }),
+    removeComponent: (key) =>
+      set((state) => {
+        delete state.validation.components[key];
+      }),
     setFormMask: (mask) =>
       set((state) => {
         state.validation.formMask = mask ?? 0;
