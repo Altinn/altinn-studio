@@ -38,6 +38,7 @@ describe('ConfigSequenceFlow', () => {
     await user.clear(input);
     const edited = '["equals",["gatewayAction"],"anotherAction"]';
     await user.paste(edited);
+    await user.click(screen.getByRole('button', { name: textMock('general.save') }));
     expect(JSON.parse(flow.businessObject.conditionExpression.body)).toEqual(JSON.parse(edited));
     expect(flow.businessObject.name).toBe('Existing branch name');
   });

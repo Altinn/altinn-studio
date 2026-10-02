@@ -175,7 +175,7 @@ export function nb() {
     'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
-      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
+      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><ul><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
     'general.delete': 'Slett',
     'general.download': 'Nedlasting {0}',
     'general.disabled': 'Deaktivert',
@@ -220,6 +220,9 @@ export function nb() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
     'general.invalid_task_id': 'Denne delen av skjemaet finnes ikke.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikke vises.',
+    'general.unsupported_task_type_details':
+      'Prosessteget {0} har typen {1}, som appen ikke kan vise.',
     'general.navigate_to_current_process': 'Gå til riktig prosessteg',
     'group.row_error':
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',

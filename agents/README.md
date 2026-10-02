@@ -167,12 +167,29 @@ ssh agentctl-altinn-full
 sftp agentctl-altinn-full
 ```
 
-`agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want
-them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a Session; the server's
-hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init is systemd, as the
-published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the loopback-only server
-policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
-SSH access; delete it and re-apply to pick up the current image.
+`agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths, proxy command and the directory editors open,
+for tools that want them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a
+Session; the server's hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init
+is systemd, as the published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the
+loopback-only server policy and systemd unit. An Agent created from an image older than this feature reports that its
+image cannot provide SSH access; delete it and re-apply to pick up the current image.
+
+In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or over SSH, or to copy its SSH alias.
+When OpenSSH does not reach the Agent through that configuration, the TUI offers to add the `Include` above before it
+opens an editor, and can open the editor without it. Editors open only where the TUI can show windows; set
+`AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong.
+
+### Visual Studio Code
+
+To view the agent's workspace in Visual Studio Code, use the extension **Remote - SSH** from Microsoft. This extension reads the OpenSSH
+configuration that `agentctl ssh-config install` writes.
+
+1. Run `agentctl ssh-config install` one time.
+2. In Visual Studio Code, install the extension Remote - SSH.
+3. Push `F1` and select **Remote-SSH: Connect to Host...**.
+4. Select the alias of the Agent, for example `agentctl-altinn-full`. If Visual Studio Code asks for the platform,
+   select **Linux**.
+5. Select **File > Open Folder** and open `/home/agent/code`.
 
 ## Desktop access
 
@@ -220,8 +237,22 @@ forward you just opened. `access` decides what the platform offers rather than w
 do in its own Sandbox: the Agent has `sudo` and could turn the same units on itself. You share the
 Agent's keyboard and pointer, so agree with it about who is driving before you start clicking.
 
+In `agentctl tui`, `o` then `w` opens the desktop in the browser and `o` then `v` in a VNC client. The forward
+closes when the TUI quits; `q` asks first.
+
 An Agent created from an image older than this feature reports that its image cannot provide VNC
 access; delete it and re-apply to pick up the current image.
+
+Stop the Agent's VM, for example to free its memory or recover a Sandbox that stopped responding, and start it again
+later. The disk is kept, so files and Session conversations survive. Its Sessions go Idle, and attaching to one after
+the start resumes it. Applying the manifest again keeps a stopped Agent stopped:
+
+```sh
+agentctl stop agent/altinn-full
+agentctl start agent/altinn-full
+```
+
+In `agentctl tui`, `x` stops the selected Agent after asking, and starts a stopped one.
 
 Delete the Agent and its Sandbox:
 

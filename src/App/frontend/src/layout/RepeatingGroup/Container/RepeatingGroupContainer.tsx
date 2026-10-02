@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect } from 'react';
 import type { JSX } from 'react';
 
 import { Button, ConditionalWrapper, Fieldset, Flex, FullWidthWrapper } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { PlusIcon } from '@navikt/aksel-icons';
 import type { ButtonPosition } from '@app/layout-contract/generated/common.generated';
 
@@ -23,13 +24,13 @@ import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const baseComponentId = useRepeatingGroupComponentId();
-  const mode = useExternalItem(baseComponentId, 'RepeatingGroup').edit?.mode;
+  const mode = useComponentConfig(baseComponentId, 'RepeatingGroup').edit?.mode;
 
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
   const id = useIndexedId(baseComponentId);
@@ -108,7 +109,7 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const isNested = parent?.type === 'node';
 
   const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup').group;
-  const grid = useExternalItem(baseComponentId, 'RepeatingGroup').grid;
+  const grid = useComponentConfig(baseComponentId, 'RepeatingGroup').grid;
   const rowIndex = RepGroupHooks.useAllBaseRows(baseComponentId).find((r) => r.uuid === editingId)?.index;
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
@@ -153,7 +154,7 @@ function ModeShowAll() {
   const lastIndex = rowsToDisplay[numRows - 1];
 
   const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup').group;
-  const grid = useExternalItem(baseComponentId, 'RepeatingGroup').grid;
+  const grid = useComponentConfig(baseComponentId, 'RepeatingGroup').grid;
   const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({
     baseComponentId,
     overrideDisplay: undefined,
@@ -218,20 +219,30 @@ function AddButton() {
     currentlyAddingRow: state.addingIds.length > 0,
   }));
 
-  const item = useItemWhenType(baseComponentId, 'RepeatingGroup');
-  const { textResourceBindings, id, edit, addButton } = item;
-  const { addButton: addButtonText, addButtonFull } = textResourceBindings || {};
+  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
+  const componentId = useIndexedId(baseComponentId);
+  const addButton = useEvalExpression(
+    config.textResourceBindings?.addButton,
+    Expressions.RepeatingGroup.textResourceBindings.addButton,
+  );
+  const addButtonFull = useEvalExpression(
+    config.textResourceBindings?.addButtonFull,
+    Expressions.RepeatingGroup.textResourceBindings.addButtonFull,
+  );
+  const editAddButton = useEvalExpression(config.edit?.addButton, Expressions.RepeatingGroup.edit.addButton);
+
+  const addButtonText = addButton;
 
   const numRows = visibleRows.length;
-  const tooManyRows = 'maxCount' in item && typeof item.maxCount == 'number' && numRows >= item.maxCount;
-  const forceShow = editingAll || editingNone || edit?.alwaysShowAddButton === true;
+  const tooManyRows = 'maxCount' in config && typeof config.maxCount == 'number' && numRows >= config.maxCount;
+  const forceShow = editingAll || editingNone || config.edit?.alwaysShowAddButton === true;
 
   // Making sure the default width for the add button is full:
-  const fullWidth = addButton?.fullWidth === undefined ? true : addButton?.fullWidth;
+  const fullWidth = config.addButton?.fullWidth === undefined ? true : config.addButton?.fullWidth;
 
-  const size = addButton?.size === undefined ? 'md' : addButton?.size;
+  const size = config.addButton?.size === undefined ? 'md' : config.addButton?.size;
 
-  if (edit?.addButton === false) {
+  if (editAddButton === false) {
     return null;
   }
 
@@ -246,11 +257,11 @@ function AddButton() {
   return (
     <Button
       ref={registerAddButton}
-      textAlign={addButton?.textAlign}
+      textAlign={config.addButton?.textAlign}
       fullWidth={fullWidth}
-      id={`add-button-${id}`}
+      id={`add-button-${componentId}`}
       size={size}
-      style={addButton?.position ? { ...alignStyle(addButton?.position) } : {}}
+      style={config.addButton?.position ? { ...alignStyle(config.addButton?.position) } : {}}
       onClick={async () => {
         const newRow = await addRow();
         newRow.index !== undefined && triggerFocus(newRow.index);

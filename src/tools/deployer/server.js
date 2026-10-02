@@ -97,7 +97,11 @@ const STUDIO_WORKFLOWS = [
   'deploy-studio-ssl-cert.yaml',
 ];
 // Deployed to Studio prod only (override-default-studio-environments: prod).
-const STUDIO_PROD_WORKFLOWS = ['deploy-github-runners.yaml', 'deploy-sandbox-node.yaml'];
+const STUDIO_PROD_WORKFLOWS = [
+  'deploy-github-runners.yaml',
+  'deploy-sandbox-node.yaml',
+  'deploy-studio-victoriametrics-operator.yaml',
+];
 const ADMIN_WORKFLOWS = [
   'deploy-admin-syncroot.yaml',
   'deploy-admin-workflow-engine-db.yaml',

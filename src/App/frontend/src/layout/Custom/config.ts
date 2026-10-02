@@ -18,9 +18,6 @@ export const Config = new CG.component({
     renderInCardsMedia: true,
     renderInTabs: true,
   },
-  functionality: {
-    customExpressions: false,
-  },
 })
   .addDataModelBinding(
     new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForCustom'),

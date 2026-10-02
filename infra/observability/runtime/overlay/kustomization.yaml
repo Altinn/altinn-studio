@@ -12,6 +12,7 @@ patches:
   - path: patches/network-policy-labels.yaml
   - path: patches/gateway-config.yaml
   - path: patches/gateway-secrets.yaml
+  - path: patches/gateway-victoria-volumes.yaml
   # Rename cluster-scoped resources to avoid conflicts with other deployments
   - target:
       group: rbac.authorization.k8s.io

@@ -10,6 +10,7 @@ import {
   OptionalIndicator,
   RequiredIndicator,
 } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Field, Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { queryOptions, useQuery } from '@tanstack/react-query';
@@ -25,8 +26,10 @@ import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper'
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
 import { validateOrganizationLookupResponse, validateOrgnr } from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import { httpGet } from 'src/utils/network/networking';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 
@@ -76,14 +79,17 @@ export function OrganizationLookupComponent({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'OrganizationLookup'>) {
-  const { id, dataModelBindings, required, readOnly, labelSettings } = useItemWhenType(
-    baseComponentId,
-    'OrganizationLookup',
-  );
+  const config = useComponentConfig(baseComponentId, 'OrganizationLookup');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'OrganizationLookup');
+  const componentId = useIndexedId(baseComponentId);
+  const required = useEvalExpression(config.required, Expressions.OrganizationLookup.required);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.OrganizationLookup.readOnly);
+
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({
     baseComponentId,
     overrideDisplay,
   });
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
   const [statusMessage, setStatusMessage] = useState('');
@@ -196,7 +202,7 @@ export function OrganizationLookupComponent({
         <div className={classes.componentWrapper}>
           <div className={classes.orgnrLabel}>
             <Label
-              htmlFor={`${id}_orgnr`}
+              htmlFor={`${componentId}_orgnr`}
               label={langAsString('organization_lookup.orgnr_label')}
               required={required}
               requiredIndicator={<RequiredIndicator required={required} />}
@@ -211,7 +217,7 @@ export function OrganizationLookupComponent({
                 hasSuccessfullyFetched ? (
                   <Description
                     description={langAsString('organization_lookup.from_registry_description')}
-                    componentId={`${id}_orgnr`}
+                    componentId={`${componentId}_orgnr`}
                   />
                 ) : undefined
               }
@@ -219,8 +225,8 @@ export function OrganizationLookupComponent({
           </div>
           <Field className={classes.orgnr}>
             <NumericInput
-              id={`${id}_orgnr`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_orgnr`) : undefined}
+              id={`${componentId}_orgnr`}
+              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_orgnr`) : undefined}
               aria-label={langAsString('organization_lookup.orgnr_label')}
               value={hasSuccessfullyFetched ? orgnr : tempOrgNr}
               required={required}

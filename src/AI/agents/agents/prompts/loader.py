@@ -60,7 +60,7 @@ def load_prompt(prompt_name: str) -> dict[str, Any]:
     }
 
 
-def _system_message(compiled: Any) -> str | None:
+def compiled_system_message(compiled: Any) -> str | None:
     """The system half of a compiled prompt."""
     if isinstance(compiled, str):
         return compiled or None
@@ -81,7 +81,7 @@ def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) ->
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
         try:
-            content = _system_message(lf_prompt.compile())
+            content = compiled_system_message(lf_prompt.compile())
             if content:
                 return content, lf_prompt
             log.warning(f"Langfuse prompt '{prompt_name}' has no system message; using local file")

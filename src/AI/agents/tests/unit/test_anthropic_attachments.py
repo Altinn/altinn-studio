@@ -10,9 +10,19 @@ from __future__ import annotations
 from base64 import b64encode
 from pathlib import Path
 
+from langchain_core.messages import HumanMessage
+
 from agents.services.llm.llm_client import LLMClient, _build_anthropic_user_content
 from shared.models.attachments import AgentAttachment
 from shared.utils.spotlight import ATTACHMENT_TAG, close_delimiter, open_delimiter
+
+
+def _content_blocks(message: HumanMessage) -> list[dict]:
+    """The content blocks of a multimodal message. Fail when the content is plain text."""
+    assert isinstance(message.content, list)
+    blocks = [block for block in message.content if isinstance(block, dict)]
+    assert len(blocks) == len(message.content)
+    return blocks
 
 
 def _make_attachment(tmp_path: Path, name: str, mime: str, payload: bytes) -> AgentAttachment:
@@ -124,11 +134,12 @@ class TestBuildHumanMessage:
         client.model = "test-model"
 
         message = client._build_human_message("Extract fields", [att])
+        blocks = _content_blocks(message)
 
-        types = [block["type"] for block in message.content]
+        types = [block["type"] for block in blocks]
         assert types == ["text", "text", "file", "text"]
-        assert message.content[1]["text"] == open_delimiter(ATTACHMENT_TAG)
-        assert message.content[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
+        assert blocks[1]["text"] == open_delimiter(ATTACHMENT_TAG)
+        assert blocks[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
 
     def test_no_attachments_leaves_the_prompt_untouched(self):
         client = LLMClient.__new__(LLMClient)
@@ -162,10 +173,11 @@ class TestHostileFilename:
         client.model = "test-model"
 
         message = client._build_human_message("Extract fields", [att])
+        blocks = _content_blocks(message)
 
-        body = message.content[2]["text"]
+        body = blocks[2]["text"]
         assert "</attachment_content>" not in body
-        assert message.content[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
+        assert blocks[-1]["text"] == close_delimiter(ATTACHMENT_TAG)
 
     def test_a_document_title_cannot_close_the_attachment_block(self, tmp_path: Path):
         payload = b"%PDF-1.4 payload"
@@ -200,8 +212,9 @@ class TestHostileFilename:
         client.model = "test-model"
 
         message = client._build_human_message("Extract fields", [att])
+        blocks = _content_blocks(message)
 
-        files = [block for block in message.content if block.get("type") == "file"]
+        files = [block for block in blocks if block.get("type") == "file"]
         assert files, "a payload-backed PDF should produce a native file block"
         assert "</attachment_content>" not in files[0]["file"]["filename"]
 
@@ -213,6 +226,7 @@ class TestHostileFilename:
         client.model = "test-model"
 
         message = client._build_human_message("Extract fields", [att])
+        blocks = _content_blocks(message)
 
-        file_block = next(b for b in message.content if b.get("type") == "file")["file"]
+        file_block = next(b for b in blocks if b.get("type") == "file")["file"]
         assert file_block["file_data"].endswith(b64encode(payload).decode("ascii"))

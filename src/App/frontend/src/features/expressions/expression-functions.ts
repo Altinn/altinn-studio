@@ -153,6 +153,10 @@ export const ExprFunctionDefinitions = {
     args: args(required(ExprVal.String)),
     returns: ExprVal.String,
   },
+  gatewayAction: {
+    args: args(),
+    returns: ExprVal.String,
+  },
   frontendSettings: {
     args: args(required(ExprVal.String)),
     returns: ExprVal.Any,
@@ -407,6 +411,9 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
 
     const instanceDataSources = this.dataSources.instance.getDataSources();
     return (instanceDataSources && instanceDataSources[key]) || null;
+  },
+  gatewayAction() {
+    throw new ExprRuntimeError(this.expr, this.path, 'gatewayAction can only be evaluated on the backend');
   },
   frontendSettings(key) {
     if (key === null) {

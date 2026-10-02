@@ -74,6 +74,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        string? language = null,
         CancellationToken cancellationToken = default
     ) =>
         EnqueueAndWaitForWorkflow(
@@ -86,7 +87,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     state,
                     isInstantiation,
                     prefill,
-                    notification
+                    notification,
+                    language
                 ),
             cancellationToken
         );
@@ -96,6 +98,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         StorageVersionMetadata instanceVersions,
         string state,
         string? action,
+        string? language,
         CancellationToken cancellationToken = default
     ) =>
         EnqueueAndWaitForWorkflow(
@@ -105,7 +108,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     instance,
                     action,
                     state,
-                    CreateProcessNextIdempotencyKey(instance, instanceVersions)
+                    CreateProcessNextIdempotencyKey(instance, instanceVersions),
+                    language
                 ),
             cancellationToken
         );
@@ -472,7 +476,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? state = null,
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        InstantiationNotification? notification = null,
+        string? language = null
     ) =>
         _processNextRequestFactory.CreateChainInitiating(
             instance,
@@ -481,7 +486,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             state,
             isInstantiation: isInstantiation,
             prefill: prefill,
-            notification: notification
+            notification: notification,
+            language: language
         );
 
     private async Task<(Guid WorkflowId, string? CollectionKey)> EnqueueWorkflowEnvelope(

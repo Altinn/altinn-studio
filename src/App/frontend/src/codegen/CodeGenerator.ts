@@ -3,6 +3,7 @@ import type { JSONSchema7, JSONSchema7Type } from 'json-schema';
 
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { ComponentCatalogContext } from 'src/codegen/ComponentCatalogContext';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 export interface JsonSchemaExt<T> {
   title: LocalizedText | undefined;
@@ -94,6 +95,10 @@ export abstract class CodeGenerator<T> {
   abstract toJsonSchema(): JSONSchema7;
   abstract toTypeScript(): string;
   abstract toComponentCatalog(): PropertyValueDefinition;
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return [];
+  }
 }
 
 export abstract class MaybeSymbolizedCodeGenerator<T> extends CodeGenerator<T> {

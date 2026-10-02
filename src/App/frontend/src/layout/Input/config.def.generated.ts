@@ -1,31 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class InputDef extends FormComponent<'Input'> implements DisplayData {
   protected readonly type = 'Input';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'Input'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +17,4 @@ export abstract class InputDef extends FormComponent<'Input'> implements Display
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: fbb901b165c67297f23c07d6a260218cf38177cfcb1b6316c4cfff965f109e6a
+// Source hash: 04dd3699d1a5d7eca7d41a55349c777228d27b6c34955826a0ef597a55a3af78

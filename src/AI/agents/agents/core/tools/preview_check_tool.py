@@ -36,7 +36,7 @@ class PreviewRenderCheckArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class PreviewRenderCheckTool(WriteToolMixin):
+class PreviewRenderCheckTool(WriteToolMixin[PreviewRenderCheckArgs]):
     name = "preview_render_check"
     description = (
         "Render every ordered page of the app in Studio's app preview "

@@ -10,6 +10,8 @@ from typing import Any
 
 from langfuse import Evaluation
 
+from .experiment import ItemEvaluator
+
 ASSETS_DIR = Path(__file__).parent / "assets"
 
 LABEL_MATCH_CHARS = 24
@@ -101,7 +103,7 @@ def spec_field_count(*, output: Any = None, expected_output: Any = None, **_: An
     ]
 
 
-ITEM_EVALUATORS = [
+ITEM_EVALUATORS: list[ItemEvaluator] = [
     spec_parses,
     spec_label_coverage,
     spec_field_count,

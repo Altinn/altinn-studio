@@ -71,6 +71,8 @@ def render_input(dataset: Dataset, item: dict[str, Any]) -> dict[str, Any]:
         return item["input"]
     if dataset.kind == "prompt" and item["input"].get("user_message"):
         return item["input"]
+    if dataset.prompt is None:
+        raise ValueError(f"{dataset.name}: items without a user_message need a prompt to build one")
     build = MESSAGE_BUILDERS[dataset.prompt]
     return {**item["input"], "user_message": build(item)}
 

@@ -912,6 +912,7 @@ const ISelectionComponent = {
         en: 'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
         nb: 'Filtrerer listen med alternativer ved hjelp av et uttrykk. Uttrykket skal returnere true for å beholde alternativet og false for å fjerne det. Bruk ["value"] for verdien og ["value", "label"] for tekstressurs-ID-en. Tilsvarende gjelder «description» og «helpText».',
       },
+      default: true,
       required: false,
     },
   },
@@ -1321,6 +1322,7 @@ const IGridColumnProperties = {
         en: 'Number of columns this cell should span. Defaults to 1 if not set.',
         nb: 'Antall kolonner cellen skal spenne over. Standardverdien er 1.',
       },
+      default: 1,
       required: false,
     },
   },
@@ -1722,9 +1724,10 @@ const NumberFormatProps = {
         { type: 'boolean', expression: true },
         { type: 'string', expression: true },
       ],
+      default: false,
       required: false,
     },
-    decimalSeparator: { type: 'string', expression: true, required: false },
+    decimalSeparator: { type: 'string', expression: true, default: '.', required: false },
     allowedDecimalSeparators: {
       type: 'array',
       items: { type: 'string' },
@@ -4869,6 +4872,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -4966,6 +4970,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -5539,6 +5544,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -5660,6 +5666,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -5942,6 +5949,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -6157,6 +6165,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -6260,6 +6269,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -6836,6 +6846,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -6945,6 +6956,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -7341,6 +7353,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -7525,6 +7538,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -7692,6 +7706,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -7827,6 +7842,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -8274,6 +8290,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -8814,6 +8831,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -8966,6 +8984,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -9259,6 +9278,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -9929,6 +9949,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -10086,6 +10107,7 @@ const generatedContract = {
                 en: 'The text for the "Edit" button in the table rows',
                 nb: 'Teksten på «Rediger»-knappen i tabellradene.',
               },
+              default: 'general.edit',
               required: false,
             },
           },
@@ -10521,6 +10543,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {
@@ -10630,6 +10653,7 @@ const generatedContract = {
             en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
             nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
           },
+          default: true,
           required: false,
         },
         dataModelBindings: {

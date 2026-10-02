@@ -61,6 +61,9 @@ describe('SupportedPaletteProvider', () => {
         const [receivedEvent, shape] = start.mock.lastCall;
         expect(receivedEvent).toBe(event);
         expect(shape.type).toBe(type);
+        expect(shape.businessObject.name).toBe(
+          textMock(`process_editor.default_task_name.${id.replaceAll('-', '_')}`, { lng: 'nb' }),
+        );
         const extension = shape.businessObject.extensionElements.values[0];
         expect(extension.taskType).toBe(taskType);
         const { xml } = await moddle.toXML(shape.businessObject);

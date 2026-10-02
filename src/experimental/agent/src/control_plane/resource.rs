@@ -75,6 +75,18 @@ impl AgentRecord {
             .map_err(|error| Error::Database(format!("Agent ID cannot identify its Sandbox: {error}")))
     }
 
+    /// Refuses work that needs the Sandbox running while the Agent is stopped.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Stopped`] when the Agent's run state is Stopped.
+    pub fn reject_stopped(&self) -> Result<(), Error> {
+        if self.agent.spec.is_stopped() {
+            return Err(Error::Stopped(self.agent.metadata.name.clone()));
+        }
+        Ok(())
+    }
+
     /// Derives the hostname the Sandbox reports: the Agent name.
     ///
     /// # Errors

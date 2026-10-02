@@ -33,6 +33,9 @@
     -->
     <ProjectReference Include="../../src/Altinn.App.Api/Altinn.App.Api.csproj" />
 
+    <!-- Ships the built-in fiksArkiv task, which BuiltInTaskTypesTests pins the analyzer's task types to. -->
+    <ProjectReference Include="../../src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj" />
+
     <ProjectReference Include="../../src/Altinn.App.Analyzers/Altinn.App.Analyzers.csproj" />
     <ProjectReference Include="../../src/Altinn.App.Internal.Analyzers/Altinn.App.Internal.Analyzers.csproj" />
   </ItemGroup>

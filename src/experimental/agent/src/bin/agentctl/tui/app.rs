@@ -6,13 +6,14 @@ use std::{
 };
 
 use agent::{
-    Agent, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection,
+    Agent, Condition, ConditionStatus, Effort, FailureKind, Harness, HarnessSpec, Model, ModelSelection, RunState,
     sessions::{Session, SessionName, State, Turn},
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use sandbox::progress::{OperationStatus, Progress};
 use time::OffsetDateTime;
 
+use super::open::{Environment, MenuEntry, OpenMenu, OpenTarget, SshSetup};
 use crate::{format, forward::ForwardSpec};
 
 /// Output lines of a failed pass the Agent side panel shows.
@@ -76,7 +77,7 @@ pub(crate) const CREATE_AGENT_HINTS: [Hint; 4] = [
     Hint::key("esc", "cancel", KeyCode::Esc),
 ];
 
-pub(crate) const CONFIRM_DELETE_HINTS: [Hint; 2] = [
+pub(crate) const CONFIRM_HINTS: [Hint; 2] = [
     Hint::key("y", "confirm", KeyCode::Char('y')),
     Hint::key("n", "cancel", KeyCode::Char('n')),
 ];
@@ -93,6 +94,28 @@ pub(crate) const FILTER_HINTS: [Hint; 2] = [
     Hint::key("esc", "clear", KeyCode::Esc),
 ];
 
+/// Key hints of the open menu, shared by the modal and the footer.
+pub(crate) const OPEN_HINTS: [Hint; 3] = [
+    Hint::key("enter", "open", KeyCode::Enter),
+    Hint::display("↑/↓", "select"),
+    Hint::key("esc", "cancel", KeyCode::Esc),
+];
+
+/// Adding the line takes Enter, not `y`: in the open menu `y` copies the alias,
+/// so a repeated `y` must not write the user's configuration.
+pub(crate) const CONFIRM_SSH_SETUP_HINTS: [Hint; 2] = [
+    Hint::key("enter", "add", KeyCode::Enter),
+    Hint::key("esc", "back", KeyCode::Esc),
+];
+
+/// The SSH setup question for something waiting to open, which can also open
+/// without the line: an editor may reach Agents through a configuration of its own.
+pub(crate) const CONFIRM_SSH_SETUP_THEN_HINTS: [Hint; 3] = [
+    Hint::key("enter", "add", KeyCode::Enter),
+    Hint::key("o", "open anyway", KeyCode::Char('o')),
+    Hint::key("esc", "back", KeyCode::Esc),
+];
+
 pub(crate) const PORT_FORWARD_HINTS: [Hint; 3] = [
     Hint::key("enter", "forward", KeyCode::Enter),
     Hint::key("tab", "field", KeyCode::Tab),
@@ -104,7 +127,8 @@ const DETAIL_HINTS: [Hint; 2] = [
     Hint::key("q", "back", KeyCode::Char('q')),
 ];
 
-const FORWARD_VIEW_HINTS: [Hint; 3] = [
+const FORWARD_VIEW_HINTS: [Hint; 4] = [
+    Hint::key("o", "open", KeyCode::Char('o')),
     Hint::key("e", "edit", KeyCode::Char('e')),
     Hint::modified("ctrl-d", "delete", KeyCode::Char('d'), KeyModifiers::CONTROL),
     Hint::key("q", "back", KeyCode::Char('q')),
@@ -112,11 +136,24 @@ const FORWARD_VIEW_HINTS: [Hint; 3] = [
 
 // Selection hints come most used first, so a footer too narrow for all of
 // them drops the rarest.
-const AGENT_HINTS: [Hint; 10] = [
+const AGENT_HINTS: [Hint; 12] = [
     Hint::key("enter", "fold", KeyCode::Enter),
     Hint::key("n", "new session", KeyCode::Char('n')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("e", "exec", KeyCode::Char('e')),
     Hint::key("f", "forward", KeyCode::Char('f')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("x", "stop", KeyCode::Char('x')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+/// An Agent whose stop is not recorded yet: starting it now would cancel the stop.
+const STOPPING_AGENT_HINTS: [Hint; 7] = [
+    Hint::key("enter", "fold", KeyCode::Enter),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("p", "provisioning", KeyCode::Char('p')),
     Hint::key("s", "describe", KeyCode::Char('s')),
@@ -125,9 +162,22 @@ const AGENT_HINTS: [Hint; 10] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
-const SESSION_HINTS: [Hint; 8] = [
+/// A stopped Agent runs nothing, so only what works without its Sandbox is offered.
+const STOPPED_AGENT_HINTS: [Hint; 8] = [
+    Hint::key("x", "start", KeyCode::Char('x')),
+    Hint::key("enter", "fold", KeyCode::Enter),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("p", "provisioning", KeyCode::Char('p')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("z", "all", KeyCode::Char('z')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+const SESSION_HINTS: [Hint; 9] = [
     Hint::key("enter", "attach", KeyCode::Enter),
     Hint::key("p", "prompt", KeyCode::Char('p')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("a", "archive", KeyCode::Char('a')),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("s", "describe", KeyCode::Char('s')),
@@ -136,8 +186,9 @@ const SESSION_HINTS: [Hint; 8] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
-const ARCHIVED_SESSION_HINTS: [Hint; 6] = [
+const ARCHIVED_SESSION_HINTS: [Hint; 7] = [
     Hint::key("a", "unarchive", KeyCode::Char('a')),
+    Hint::key("o", "open…", KeyCode::Char('o')),
     Hint::key("d", "delete", KeyCode::Char('d')),
     Hint::key("s", "describe", KeyCode::Char('s')),
     Hint::key("y", "yaml", KeyCode::Char('y')),
@@ -145,11 +196,37 @@ const ARCHIVED_SESSION_HINTS: [Hint; 6] = [
     Hint::key("c", "new agent", KeyCode::Char('c')),
 ];
 
+/// A stopped Agent's Session can only be put away or inspected until the Agent starts.
+const STOPPED_SESSION_HINTS: [Hint; 5] = [
+    Hint::key("a", "archive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
+const STOPPED_ARCHIVED_SESSION_HINTS: [Hint; 5] = [
+    Hint::key("a", "unarchive", KeyCode::Char('a')),
+    Hint::key("d", "delete", KeyCode::Char('d')),
+    Hint::key("s", "describe", KeyCode::Char('s')),
+    Hint::key("y", "yaml", KeyCode::Char('y')),
+    Hint::key("c", "new agent", KeyCode::Char('c')),
+];
+
 const EMPTY_HINTS: [Hint; 1] = [Hint::key("c", "new agent", KeyCode::Char('c'))];
 
 /// Every hint set the tree shows for its selection. The footer is sized for
 /// the widest, so moving the selection never moves the tree.
-pub(crate) const SELECTION_HINTS: [&[Hint]; 4] = [&AGENT_HINTS, &SESSION_HINTS, &ARCHIVED_SESSION_HINTS, &EMPTY_HINTS];
+pub(crate) const SELECTION_HINTS: [&[Hint]; 8] = [
+    &AGENT_HINTS,
+    &STOPPING_AGENT_HINTS,
+    &STOPPED_AGENT_HINTS,
+    &SESSION_HINTS,
+    &ARCHIVED_SESSION_HINTS,
+    &STOPPED_SESSION_HINTS,
+    &STOPPED_ARCHIVED_SESSION_HINTS,
+    &EMPTY_HINTS,
+];
 
 pub(crate) const HELP_HINTS: [Hint; 1] = [Hint::key("esc", "close", KeyCode::Esc)];
 
@@ -177,6 +254,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
             "Views and forms",
             &[
                 ("j / k", "scroll a detail view"),
+                ("o", "open, in forwards"),
                 ("q / esc", "back, or close a form"),
                 ("ctrl-b d", "detach from a Session"),
             ],
@@ -189,8 +267,10 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "follow provisioning"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session"),
+                ("o", "open in editor, desktop…"),
                 ("e", "shell in its Sandbox"),
                 ("f", "forward a port"),
+                ("x", "stop, or start"),
                 ("d", "delete"),
             ],
         ),
@@ -200,6 +280,7 @@ pub(crate) const HELP: [&[HelpSection]; 2] = [
                 ("p", "prompt without attaching"),
                 ("s / y", "describe, or show YAML"),
                 ("n", "new Session on its Agent"),
+                ("o", "open its Agent"),
                 ("a", "archive, or unarchive"),
                 ("d", "delete"),
             ],
@@ -249,6 +330,19 @@ pub(crate) struct App {
     pub(crate) notice: Option<(String, Instant)>,
     pub(crate) discovering: bool,
     pub(crate) queued_candidates: Option<Vec<ManifestCandidate>>,
+    /// Editors and whether the terminal is remote, which the open menu depends on.
+    pub(crate) environment: Environment,
+    /// Whether OpenSSH reaches Agents through the generated configuration, as
+    /// it resolved the alias of the Agent checked last.
+    pub(crate) ssh_setup: SshSetup,
+    /// Whether the SSH setup is to be checked again once an Agent can be.
+    pub(crate) ssh_check_due: bool,
+    /// Whether an SSH setup check is running.
+    pub(crate) ssh_checking: bool,
+    /// The `Include` SSH setup adds, when the user's home is known.
+    pub(crate) ssh_include: Option<agent::ssh::UserInclude>,
+    /// Opens waiting in the background, at most one per Agent and target.
+    pub(crate) opening: Vec<(String, OpenTarget)>,
 }
 
 /// Display state of one process-owned port forward.
@@ -258,13 +352,29 @@ pub(crate) struct ForwardEntry {
     pub(crate) local: String,
     pub(crate) guest_port: u16,
     pub(crate) status: Option<String>,
+    /// The forward stopped serving, so its address no longer works.
+    pub(crate) finished: bool,
 }
 
 impl ForwardEntry {
     /// Renders the mapping as `LOCAL:GUEST`, keeping a non-loopback address.
-    fn mapping(&self) -> String {
+    pub(crate) fn mapping(&self) -> String {
         let local = self.local.strip_prefix("127.0.0.1:").unwrap_or(&self.local);
-        format!("{local}:{}", self.guest_port)
+        let mapping = format!("{local}:{}", self.guest_port);
+        match self.label() {
+            Some(label) => format!("{label} {mapping}"),
+            None => mapping,
+        }
+    }
+
+    /// Names a forward to the desktop.
+    pub(crate) const fn label(&self) -> Option<&'static str> {
+        crate::launch::forward_label(self.guest_port)
+    }
+
+    /// The address that opens the forward: a VNC client for the RFB port, a browser otherwise.
+    pub(crate) fn url(&self) -> String {
+        crate::launch::forward_url(&self.local, self.guest_port)
     }
 }
 
@@ -331,14 +441,33 @@ impl Detail {
 }
 
 pub(crate) enum Modal {
-    ConfirmDelete { agent: String, sessions: usize },
-    ConfirmDeleteSession { agent: String, session: SessionName },
+    ConfirmDelete {
+        agent: String,
+        sessions: usize,
+    },
+    ConfirmStop {
+        agent: String,
+    },
+    ConfirmDeleteSession {
+        agent: String,
+        session: SessionName,
+    },
     NewSession(SessionForm),
     CreateAgent(CreateForm),
     PortForward(ForwardForm),
     Filter,
     Prompt(PromptForm),
     Help,
+    Open(OpenMenu),
+    /// Asks before quitting closes the forwards this TUI holds open.
+    ConfirmQuit,
+    /// Asks before adding `include` to the user's OpenSSH configuration, then
+    /// opens `then` in `agent`.
+    ConfirmSshSetup {
+        agent: String,
+        include: agent::ssh::UserInclude,
+        then: Option<OpenTarget>,
+    },
 }
 
 /// A prompt for a running Session, sent without attaching to it.
@@ -384,6 +513,8 @@ pub(crate) struct Transcript {
     pub(crate) turns: Vec<Turn>,
     pub(crate) loading: bool,
     pub(crate) error: Option<String>,
+    /// The Session's Agent is stopped, so its turns, which live in the guest, are not read.
+    pub(crate) stopped: bool,
 }
 
 /// Text field of the new Session form that typing edits.
@@ -903,8 +1034,13 @@ pub(crate) enum MouseAction {
     FocusSessionField(SessionField),
     SelectHarness(usize),
     FocusCreateField(CreateField),
-    SelectCreate { field: CreateField, delta: isize },
+    SelectCreate {
+        field: CreateField,
+        delta: isize,
+    },
     FocusForwardField(ForwardField),
+    /// Chooses the open menu's item at this index.
+    ChooseOpen(usize),
 }
 
 /// A rendered row whose selection is owned by the application.
@@ -971,6 +1107,10 @@ pub(crate) enum Action {
     Delete {
         agent: String,
     },
+    SetRunState {
+        agent: String,
+        state: RunState,
+    },
     DeleteSession {
         agent: String,
         session: SessionName,
@@ -988,6 +1128,17 @@ pub(crate) enum Action {
     DeleteForward {
         id: u64,
     },
+    Open {
+        agent: String,
+        target: OpenTarget,
+    },
+    /// Adds `include`, then opens `then`.
+    SetUpSsh {
+        include: agent::ssh::UserInclude,
+        then: Option<(String, OpenTarget)>,
+    },
+    /// Opens an address on this machine.
+    OpenUrl(String),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1057,6 +1208,12 @@ impl App {
             notice: None,
             discovering: false,
             queued_candidates: None,
+            environment: Environment::default(),
+            ssh_setup: SshSetup::Unknown,
+            ssh_check_due: true,
+            ssh_checking: false,
+            ssh_include: None,
+            opening: Vec::new(),
         }
     }
 
@@ -1316,9 +1473,18 @@ impl App {
     fn error_key(&mut self, key: KeyEvent) -> Action {
         match key.code {
             KeyCode::Esc | KeyCode::Enter => self.error = None,
-            KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Char('q') => return self.quit(),
             _ => {}
         }
+        Action::None
+    }
+
+    /// Quits, asking first while forwards would close with the TUI.
+    fn quit(&mut self) -> Action {
+        if self.forwards.is_empty() {
+            return Action::Quit;
+        }
+        self.modal = Some(Modal::ConfirmQuit);
         Action::None
     }
 
@@ -1394,6 +1560,21 @@ impl App {
                 }
                 Action::None
             }
+            MouseAction::ChooseOpen(index) => {
+                let Some(Modal::Open(menu)) = self.modal.take() else {
+                    return Action::None;
+                };
+                let chosen = menu
+                    .items
+                    .get(index)
+                    .filter(|item| item.unavailable.is_none())
+                    .map(|item| item.entry);
+                if let Some(entry) = chosen {
+                    return self.choose(menu.agent, entry);
+                }
+                self.modal = Some(Modal::Open(menu));
+                Action::None
+            }
         }
     }
 
@@ -1422,7 +1603,7 @@ impl App {
                 self.filter.clear();
                 self.rebuild();
             }
-            KeyCode::Esc | KeyCode::Char('q') => return Action::Quit,
+            KeyCode::Esc | KeyCode::Char('q') => return self.quit(),
             KeyCode::Char('/') => self.modal = Some(Modal::Filter),
             KeyCode::Char('?') => self.modal = Some(Modal::Help),
             KeyCode::Tab => self.select_next_needing_input(),
@@ -1431,8 +1612,8 @@ impl App {
             KeyCode::Char('z') => self.toggle_all(),
             KeyCode::Char('A') => {
                 self.show_archived = !self.show_archived;
-                // Every notice is about archiving, so showing or hiding
-                // archived Sessions answers it, "A to show" included.
+                // Showing or hiding archived Sessions answers a notice about
+                // archiving, "A to show" included; any other is short-lived.
                 self.notice = None;
                 self.rebuild();
             }
@@ -1458,6 +1639,11 @@ impl App {
             KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
                 if let Some(entry) = self.forwards.get(self.forward_selected) {
                     return Action::DeleteForward { id: entry.id };
+                }
+            }
+            KeyCode::Char('o') => {
+                if let Some(entry) = self.forwards.get(self.forward_selected) {
+                    return Action::OpenUrl(entry.url());
                 }
             }
             KeyCode::Char('e') => {
@@ -1489,6 +1675,10 @@ impl App {
             return Action::None;
         };
         let name = agent.metadata.name.clone();
+        // Nothing runs in a stopped Agent until it is started.
+        if agent.spec.is_stopped() && matches!(key.code, KeyCode::Char('n' | 'o' | 'e' | 'f')) {
+            return Action::None;
+        }
         match key.code {
             KeyCode::Enter | KeyCode::Char(' ') => self.toggle_fold(&name),
             KeyCode::Right => {
@@ -1513,7 +1703,17 @@ impl App {
                 let sessions = self.groups.get(group).map_or(0, |group| group.sessions.len());
                 self.modal = Some(Modal::ConfirmDelete { agent: name, sessions });
             }
+            // Starting before the stop is recorded would cancel it, so wait for it.
+            KeyCode::Char('x') if stop_pending(agent) => {}
+            KeyCode::Char('x') if agent.spec.is_stopped() => {
+                return Action::SetRunState {
+                    agent: name,
+                    state: RunState::Running,
+                };
+            }
+            KeyCode::Char('x') => self.modal = Some(Modal::ConfirmStop { agent: name }),
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('o') => self.open_menu(&name),
             KeyCode::Char('e') => return Action::Exec { agent: name },
             KeyCode::Char('f') => {
                 self.modal = Some(Modal::PortForward(ForwardForm {
@@ -1537,6 +1737,12 @@ impl App {
         };
         // An archived Session cannot be attached or prompted until it is unarchived.
         if session.is_archived() && matches!(key.code, KeyCode::Enter | KeyCode::Char('p')) {
+            return Action::None;
+        }
+        // Nothing runs in a stopped Agent until it is started.
+        if self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped())
+            && matches!(key.code, KeyCode::Enter | KeyCode::Char('p' | 'n' | 'o'))
+        {
             return Action::None;
         }
         match key.code {
@@ -1573,6 +1779,10 @@ impl App {
                 });
             }
             KeyCode::Char('n') => self.open_new_session(group),
+            KeyCode::Char('o') => {
+                let agent = session.agent.clone();
+                self.open_menu(&agent);
+            }
             KeyCode::Char('p') => {
                 self.modal = Some(Modal::Prompt(PromptForm {
                     agent: session.agent.clone(),
@@ -1616,6 +1826,17 @@ impl App {
                     Action::None
                 }
             },
+            Some(Modal::ConfirmStop { agent }) => match key.code {
+                KeyCode::Char('y') => Action::SetRunState {
+                    agent,
+                    state: RunState::Stopped,
+                },
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmStop { agent });
+                    Action::None
+                }
+            },
             Some(Modal::ConfirmDeleteSession { agent, session }) => match key.code {
                 KeyCode::Char('y') => Action::DeleteSession { agent, session },
                 KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
@@ -1651,6 +1872,18 @@ impl App {
                 }
                 self.modal = Some(Modal::Prompt(form));
                 Action::None
+            }
+            Some(Modal::Open(menu)) => self.open_menu_key(menu, key),
+            Some(Modal::ConfirmQuit) => match key.code {
+                KeyCode::Char('y') => Action::Quit,
+                KeyCode::Esc | KeyCode::Char('n' | 'q') => Action::None,
+                _ => {
+                    self.modal = Some(Modal::ConfirmQuit);
+                    Action::None
+                }
+            },
+            Some(Modal::ConfirmSshSetup { agent, include, then }) => {
+                self.confirm_ssh_setup_key(agent, include, then, key)
             }
             Some(Modal::Filter) => {
                 match key.code {
@@ -1743,6 +1976,10 @@ impl App {
             .iter()
             .find(|candidate| candidate.agent == *agent && candidate.name == *session)
             .map_or(0, |session| session.status.reported.activity.turns);
+        let stopped = self
+            .agents
+            .iter()
+            .any(|candidate| candidate.metadata.name == *agent && candidate.spec.is_stopped());
         let transcript = match &mut self.transcript {
             Some(transcript) if transcript.agent == *agent && transcript.session == *session => transcript,
             _ => self.transcript.insert(Transcript {
@@ -1752,9 +1989,11 @@ impl App {
                 turns: Vec::new(),
                 loading: true,
                 error: None,
+                stopped,
             }),
         };
-        if self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
+        transcript.stopped = stopped;
+        if stopped || self.turns_loading.is_some() || transcript.requested_at == Some(turns) {
             return None;
         }
         transcript.requested_at = Some(turns);
@@ -1844,6 +2083,18 @@ impl App {
                     .map(|line| line.text.as_str()),
             ));
         }
+        lines.extend([String::new(), "Connect · o open…".to_owned()]);
+        let desktop = self
+            .forwards
+            .iter()
+            .find(|entry| entry.agent == name && entry.label().is_some() && !entry.finished)
+            .map(ForwardEntry::url);
+        lines.extend(super::open::connect_lines(
+            agent,
+            &self.environment,
+            self.ssh_setup,
+            desktop.as_deref(),
+        ));
         lines
     }
 
@@ -1863,6 +2114,192 @@ impl App {
             detail.lines = lines;
             // The next draw measures the new lines.
             detail.scroll_limit.set(None);
+        }
+    }
+
+    /// Applies one key to the open menu: moving, choosing by row or by the item's own key.
+    fn open_menu_key(&mut self, mut menu: OpenMenu, key: KeyEvent) -> Action {
+        let chosen = match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => return Action::None,
+            KeyCode::Enter => menu.chosen(),
+            KeyCode::Down | KeyCode::Char('j') | KeyCode::Tab => {
+                menu.move_selection(1);
+                None
+            }
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::BackTab => {
+                menu.move_selection(-1);
+                None
+            }
+            KeyCode::Char(character) => menu.by_key(character),
+            _ => None,
+        };
+        if let Some(entry) = chosen {
+            return self.choose(menu.agent, entry);
+        }
+        self.modal = Some(Modal::Open(menu));
+        Action::None
+    }
+
+    /// Applies one key to the SSH setup question; declining returns to the
+    /// menu, and `o` opens what waits without the line.
+    fn confirm_ssh_setup_key(
+        &mut self,
+        agent: String,
+        include: agent::ssh::UserInclude,
+        then: Option<OpenTarget>,
+        key: KeyEvent,
+    ) -> Action {
+        match (key.code, then) {
+            (KeyCode::Enter, then) => Action::SetUpSsh {
+                include,
+                then: then.map(|target| (agent, target)),
+            },
+            (KeyCode::Char('o'), Some(target)) => Action::Open { agent, target },
+            (KeyCode::Esc | KeyCode::Char('n' | 'q'), _) => {
+                self.open_menu(&agent);
+                Action::None
+            }
+            _ => {
+                self.modal = Some(Modal::ConfirmSshSetup { agent, include, then });
+                Action::None
+            }
+        }
+    }
+
+    /// Opens the open menu for the named Agent, and checks the SSH setup
+    /// again, since the user may have changed their configuration since.
+    fn open_menu(&mut self, agent: &str) {
+        if let Some(agent) = self.agents.iter().find(|candidate| candidate.metadata.name == agent) {
+            self.modal = Some(Modal::Open(OpenMenu::new(agent, &self.environment, self.ssh_setup)));
+            self.ssh_check_due = true;
+        }
+    }
+
+    /// The Agent whose alias the SSH setup is to be checked with next, when a
+    /// check is due and none is running: the open menu's Agent, or else any
+    /// Agent with SSH access, since OpenSSH resolves only aliases it has.
+    pub(crate) fn ssh_check_request(&mut self) -> Option<String> {
+        if self.ssh_checking || !self.ssh_check_due {
+            return None;
+        }
+        let menu = match &self.modal {
+            Some(Modal::Open(menu)) => Some(menu.agent.as_str()),
+            _ => None,
+        };
+        let agent = self
+            .agents
+            .iter()
+            .filter(|agent| agent.spec.ssh_access())
+            .min_by_key(|agent| Some(agent.metadata.name.as_str()) != menu)?
+            .metadata
+            .name
+            .clone();
+        self.ssh_check_due = false;
+        self.ssh_checking = true;
+        Some(agent)
+    }
+
+    /// Records how OpenSSH resolved `agent`'s alias, and updates the open
+    /// menu, whose SSH setup row follows it.
+    pub(crate) fn ssh_checked(&mut self, agent: &str, setup: SshSetup) {
+        self.ssh_checking = false;
+        self.ssh_setup = setup;
+        let Some(Modal::Open(menu)) = &self.modal else {
+            return;
+        };
+        if menu.agent != agent {
+            return;
+        }
+        let chosen = menu.chosen();
+        let Some(listed) = self.agents.iter().find(|candidate| candidate.metadata.name == agent) else {
+            return;
+        };
+        let mut rebuilt = OpenMenu::new(listed, &self.environment, setup);
+        if let Some(index) = rebuilt
+            .items
+            .iter()
+            .position(|item| Some(item.entry) == chosen && item.unavailable.is_none())
+        {
+            rebuilt.selected = index;
+        }
+        self.modal = Some(Modal::Open(rebuilt));
+    }
+
+    /// Chooses `entry` for `agent`, asking first for the SSH setup the entry
+    /// needs while it is missing. Setup is only ever missing once the
+    /// include is known, so there is always a line to ask about.
+    fn choose(&mut self, agent: String, entry: MenuEntry) -> Action {
+        let (target, missing) = match entry {
+            MenuEntry::SetUpSsh => (None, true),
+            MenuEntry::Open(target) => (
+                Some(target),
+                target.needs_include() && self.ssh_setup == SshSetup::Missing,
+            ),
+        };
+        match (target, self.ssh_include.clone().filter(|_| missing)) {
+            (target, Some(include)) => {
+                self.modal = Some(Modal::ConfirmSshSetup {
+                    agent,
+                    include,
+                    then: target,
+                });
+                Action::None
+            }
+            (Some(target), None) => Action::Open { agent, target },
+            (None, None) => Action::None,
+        }
+    }
+
+    /// Records the SSH setup's outcome, the configuration it wrote or why it
+    /// could not, and continues to what it was set up for.
+    pub(crate) fn ssh_set_up(
+        &mut self,
+        result: Result<PathBuf, String>,
+        then: Option<(String, OpenTarget)>,
+        now: Instant,
+    ) -> Option<Action> {
+        match result {
+            Ok(user_config) => {
+                self.ssh_setup = SshSetup::Installed;
+                // A check still running began before the line was added.
+                self.ssh_check_due = true;
+                self.notice = Some((format!("SSH set up in {}", user_config.display()), now));
+                then.map(|(agent, target)| Action::Open { agent, target })
+            }
+            Err(error) => {
+                self.error = Some(error);
+                None
+            }
+        }
+    }
+
+    /// Starts waiting for `target` in `agent`, unless it already waits.
+    pub(crate) fn start_opening(&mut self, agent: &str, target: OpenTarget, now: Instant) -> bool {
+        if self
+            .opening
+            .iter()
+            .any(|(listed, waiting)| listed == agent && *waiting == target)
+        {
+            self.notice = Some((format!("already opening {} on {agent}", target.name()), now));
+            return false;
+        }
+        self.opening.push((agent.to_owned(), target));
+        true
+    }
+
+    /// Shows how a background open ended, ending the wait for what it opened.
+    pub(crate) fn opened(
+        &mut self,
+        waiting: Option<(String, OpenTarget)>,
+        result: Result<String, String>,
+        now: Instant,
+    ) {
+        if let Some(waiting) = waiting {
+            self.opening.retain(|listed| *listed != waiting);
+        }
+        match result {
+            Ok(notice) => self.notice = Some((notice, now)),
+            Err(error) => self.error = Some(error),
         }
     }
 
@@ -2019,6 +2456,15 @@ impl App {
                     let session = self.group_session(group, position)?;
                     let (tone, marker, state) = session_state(session.status.state);
                     let harness = harness_label(session.harness);
+                    let identity = session
+                        .model_selection
+                        .model_str()
+                        .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}"));
+                    // A Session held or failed says why, such as an Agent whose guest stalled.
+                    let detail = match (&session.status.state, &session.status.lifecycle.failure) {
+                        (State::Starting | State::Failed, Some(reason)) => format!("{identity} · {reason}"),
+                        _ => identity,
+                    };
                     Some(RowView {
                         agent: false,
                         attention: needs_you(session),
@@ -2027,10 +2473,7 @@ impl App {
                         state,
                         tone,
                         since: session.status.state_since.map_or_else(String::new, format::format_age),
-                        detail: session
-                            .model_selection
-                            .model_str()
-                            .map_or_else(|| harness.to_owned(), |model| format!("{harness} · {model}")),
+                        detail,
                         detail_keeps_end: false,
                         age: format::format_age(session.created_at),
                     })
@@ -2042,13 +2485,19 @@ impl App {
     pub(crate) fn hints(&self) -> &'static [Hint] {
         if let Some(modal) = &self.modal {
             return match modal {
-                Modal::ConfirmDelete { .. } | Modal::ConfirmDeleteSession { .. } => &CONFIRM_DELETE_HINTS,
+                Modal::ConfirmDelete { .. }
+                | Modal::ConfirmStop { .. }
+                | Modal::ConfirmDeleteSession { .. }
+                | Modal::ConfirmQuit => &CONFIRM_HINTS,
                 Modal::NewSession(_) => &NEW_SESSION_HINTS,
                 Modal::CreateAgent { .. } => &CREATE_AGENT_HINTS,
                 Modal::PortForward { .. } => &PORT_FORWARD_HINTS,
                 Modal::Filter => &FILTER_HINTS,
                 Modal::Prompt(_) => &PROMPT_HINTS,
                 Modal::Help => &HELP_HINTS,
+                Modal::Open(_) => &OPEN_HINTS,
+                Modal::ConfirmSshSetup { then: Some(_), .. } => &CONFIRM_SSH_SETUP_THEN_HINTS,
+                Modal::ConfirmSshSetup { then: None, .. } => &CONFIRM_SSH_SETUP_HINTS,
             };
         }
         if self.detail.is_some() {
@@ -2058,12 +2507,19 @@ impl App {
             return &FORWARD_VIEW_HINTS;
         }
         match self.selected_row() {
-            Some(Row::Agent(_)) => &AGENT_HINTS,
+            Some(Row::Agent(group)) => match self.group_agent(group) {
+                Some(agent) if stop_pending(agent) => &STOPPING_AGENT_HINTS,
+                Some(agent) if agent.spec.is_stopped() => &STOPPED_AGENT_HINTS,
+                _ => &AGENT_HINTS,
+            },
             Some(Row::Session { group, position }) => {
-                if self.group_session(group, position).is_some_and(Session::is_archived) {
-                    &ARCHIVED_SESSION_HINTS
-                } else {
-                    &SESSION_HINTS
+                let archived = self.group_session(group, position).is_some_and(Session::is_archived);
+                let stopped = self.group_agent(group).is_some_and(|agent| agent.spec.is_stopped());
+                match (stopped, archived) {
+                    (false, false) => &SESSION_HINTS,
+                    (false, true) => &ARCHIVED_SESSION_HINTS,
+                    (true, false) => &STOPPED_SESSION_HINTS,
+                    (true, true) => &STOPPED_ARCHIVED_SESSION_HINTS,
                 }
             }
             None => &EMPTY_HINTS,
@@ -2118,6 +2574,25 @@ fn agent_state(agent: &Agent) -> AgentState {
         .status
         .failure
         .filter(|_| agent.status.observed_generation == agent.metadata.generation);
+    let changing = if agent.spec.is_stopped() {
+        if !stop_pending(agent) {
+            return state(Tone::Gray, "Stopped", String::new(), entered);
+        }
+        // A failed stop reads as Retrying below, like any other failed pass.
+        failure.is_none().then_some("Stopping")
+    } else {
+        ready
+            .is_some_and(|ready| ready.reason == Condition::REASON_STARTING)
+            .then_some("Starting")
+    };
+    if let Some(label) = changing {
+        let detail = provisioning(agent).map_or_else(String::new, progress_summary);
+        return state(Tone::Cyan, label, detail, entered);
+    }
+    // Retried like any transient failure, but nothing reaches the guest until it responds again.
+    if agent.status.unresponsive().is_some() {
+        return failed(Tone::Red, "Unresponsive", message(), entered);
+    }
     match (failure, provisioning(agent)) {
         (Some(FailureKind::Invalid), _) => failed(Tone::Red, "Failed", message(), entered),
         (Some(FailureKind::Transient), Some(progress)) => {
@@ -2136,6 +2611,13 @@ fn agent_state(agent: &Agent) -> AgentState {
             Some(_) => failed(Tone::Cyan, "Starting", message(), entered),
         },
     }
+}
+
+/// Whether the Agent was asked to stop and no pass for that generation has
+/// recorded it stopped yet.
+fn stop_pending(agent: &Agent) -> bool {
+    agent.spec.is_stopped()
+        && !(agent.status.observed_generation == agent.metadata.generation && agent.status.is_stopped())
 }
 
 /// When a pass started: before the phase in progress by the time its
@@ -3028,6 +3510,7 @@ mod tests {
                 local: "127.0.0.1:8000".into(),
                 guest_port: 80,
                 status: None,
+                finished: false,
             },
             ForwardEntry {
                 id: 20,
@@ -3035,6 +3518,7 @@ mod tests {
                 local: "127.0.0.1:9000".into(),
                 guest_port: 90,
                 status: None,
+                finished: false,
             },
         ]);
 
@@ -3576,6 +4060,210 @@ mod tests {
     }
 
     #[test]
+    fn a_held_session_says_why() {
+        let mut held = session("worker", "s1", "starting");
+        held.status.lifecycle.failure = Some("Agent \"worker\" is not ready: the guest stalled".into());
+        let mut app = App::new();
+        app.apply_snapshot(vec![ready_agent("worker")], vec![held]);
+        let rows = app.render_rows();
+        assert_eq!(
+            rows[1].detail,
+            "Claude Code · Agent \"worker\" is not ready: the guest stalled"
+        );
+    }
+
+    #[test]
+    fn a_stalled_guest_is_shown_as_unresponsive_even_while_a_pass_retries() {
+        let mut stalled = provisioning_agent("stalled", Some(FailureKind::Transient));
+        stalled.status.conditions = vec![
+            agent::Condition {
+                kind: agent::Condition::SANDBOX_RESPONSIVE.into(),
+                status: ConditionStatus::False,
+                reason: "HeartbeatStale".into(),
+                message: "the guest has not reported progress for more than 15s".into(),
+                last_transition_time: None,
+            },
+            agent::Condition {
+                kind: "Ready".into(),
+                status: ConditionStatus::False,
+                reason: "SandboxUnresponsive".into(),
+                message: "Agent Sandbox is not responding: the guest has not reported progress for more than 15s"
+                    .into(),
+                last_transition_time: None,
+            },
+        ];
+        let mut app = App::new();
+        app.apply_snapshot(vec![stalled], Vec::new());
+        let rows = app.render_rows();
+        assert_eq!(
+            (rows[0].state, rows[0].tone, rows[0].detail.as_str()),
+            (
+                "Unresponsive",
+                Tone::Red,
+                "Agent Sandbox is not responding: the guest has not reported progress for more than 15s"
+            )
+        );
+    }
+
+    fn not_ready_agent(name: &str, run_state: RunState, reason: &str) -> Agent {
+        let mut agent = agent(name);
+        agent.spec.run_state = Some(run_state);
+        agent.status.conditions.push(agent::Condition {
+            kind: agent::Condition::READY.into(),
+            status: ConditionStatus::False,
+            reason: reason.into(),
+            message: String::new(),
+            last_transition_time: None,
+        });
+        agent
+    }
+
+    #[test]
+    fn a_stopped_agent_reads_stopped_and_one_changing_reads_stopping_or_starting() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![
+                not_ready_agent("a-stopped", RunState::Stopped, agent::Condition::REASON_STOPPED),
+                not_ready_agent("b-stopping", RunState::Stopped, agent::Condition::REASON_STOPPING),
+                // Asked to stop, but the last pass still recorded it Ready.
+                {
+                    let mut agent = ready_agent("c-asked");
+                    agent.spec.run_state = Some(RunState::Stopped);
+                    agent
+                },
+                not_ready_agent("d-starting", RunState::Running, agent::Condition::REASON_STARTING),
+            ],
+            Vec::new(),
+        );
+        let states = app
+            .render_rows()
+            .into_iter()
+            .map(|row| (row.name, row.state, row.tone))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            states,
+            [
+                ("a-stopped".into(), "Stopped", Tone::Gray),
+                ("b-stopping".into(), "Stopping", Tone::Cyan),
+                ("c-asked".into(), "Stopping", Tone::Cyan),
+                ("d-starting".into(), "Starting", Tone::Cyan),
+            ]
+        );
+    }
+
+    #[test]
+    fn x_stops_an_agent_once_confirmed_and_starts_a_stopped_one_at_once() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![
+                not_ready_agent("idle", RunState::Stopped, agent::Condition::REASON_STOPPED),
+                ready_agent("worker"),
+            ],
+            Vec::new(),
+        );
+
+        app.select_index(1);
+        assert_eq!(app.hints(), &AGENT_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('x'))), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::ConfirmStop { agent }) if agent == "worker"));
+        assert_eq!(app.hints(), &CONFIRM_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None, "declined");
+        assert!(app.modal.is_none());
+        app.on_key(key(KeyCode::Char('x')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::SetRunState {
+                agent: "worker".into(),
+                state: RunState::Stopped,
+            }
+        );
+
+        app.select_index(0);
+        assert_eq!(app.hints(), &STOPPED_AGENT_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('x'))),
+            Action::SetRunState {
+                agent: "idle".into(),
+                state: RunState::Running,
+            },
+            "a start interrupts nothing, so it is not confirmed"
+        );
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('e'))),
+            Action::None,
+            "nothing runs in a stopped Agent"
+        );
+        app.on_key(key(KeyCode::Char('n')));
+        assert!(app.modal.is_none(), "no Session is created in a stopped Agent");
+    }
+
+    #[test]
+    fn x_does_not_start_an_agent_whose_stop_is_not_recorded_yet() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![{
+                let mut agent = ready_agent("worker");
+                agent.spec.run_state = Some(RunState::Stopped);
+                agent
+            }],
+            Vec::new(),
+        );
+        app.select_index(0);
+        assert_eq!(app.hints(), &STOPPING_AGENT_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('x'))),
+            Action::None,
+            "starting would cancel the stop"
+        );
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn a_stopped_agents_session_turns_are_not_read() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![not_ready_agent(
+                "idle",
+                RunState::Stopped,
+                agent::Condition::REASON_STOPPED,
+            )],
+            vec![session("idle", "s1", "idle")],
+        );
+        app.side_panel = true;
+        app.select_index(1);
+        assert_eq!(app.transcript_request(), None, "its turns live in the stopped guest");
+        assert!(app.transcript.as_ref().is_some_and(|transcript| transcript.stopped));
+    }
+
+    #[test]
+    fn a_stopped_agents_session_offers_only_what_works_without_its_sandbox() {
+        let mut app = App::new();
+        app.apply_snapshot(
+            vec![not_ready_agent(
+                "idle",
+                RunState::Stopped,
+                agent::Condition::REASON_STOPPED,
+            )],
+            vec![session("idle", "s1", "idle")],
+        );
+        app.select_index(1);
+        assert_eq!(app.hints(), &STOPPED_SESSION_HINTS);
+        for code in [
+            KeyCode::Enter,
+            KeyCode::Char('p'),
+            KeyCode::Char('n'),
+            KeyCode::Char('o'),
+        ] {
+            assert_eq!(app.on_key(key(code)), Action::None, "{code:?}");
+            assert!(app.modal.is_none(), "{code:?} opens nothing");
+        }
+        assert!(matches!(
+            app.on_key(key(KeyCode::Char('a'))),
+            Action::SetArchived { archived: true, .. }
+        ));
+    }
+
+    #[test]
     fn time_in_state_is_readys_for_failures_and_the_passs_while_provisioning() {
         let entered = OffsetDateTime::now_utc() - time::Duration::minutes(5);
         let mut retrying = provisioning_agent("retrying", Some(FailureKind::Transient));
@@ -3696,6 +4384,7 @@ mod tests {
             local: "127.0.0.1:9090".into(),
             guest_port: 80,
             status: None,
+            finished: false,
         }]);
         app.on_key(key(KeyCode::Char('F')));
         assert_eq!(app.view, View::Forwards);
@@ -3781,6 +4470,7 @@ mod tests {
                 local: "127.0.0.1:9090".into(),
                 guest_port: 80,
                 status: None,
+                finished: false,
             },
             ForwardEntry {
                 id: 2,
@@ -3788,6 +4478,7 @@ mod tests {
                 local: "0.0.0.0:80".into(),
                 guest_port: 80,
                 status: None,
+                finished: false,
             },
         ]);
         let views = app.render_rows();
@@ -3911,5 +4602,363 @@ mod tests {
         assert_eq!(detail.title, "session/builder/b1 yaml");
         assert!(detail.lines.iter().any(|line| line.contains("harness: claudeCode")));
         assert!(detail.lines.iter().any(|line| line.contains("name: b1")));
+    }
+
+    fn ssh_app(setup: SshSetup) -> App {
+        let mut worker = ready_agent("worker");
+        worker.spec.access = vec![agent::AccessSpec::Ssh {}];
+        let mut app = App::new();
+        app.ssh_setup = setup;
+        app.ssh_include = Some(agent::ssh::UserInclude {
+            user_config: "/tmp/user/.ssh/config".into(),
+            line: "Include ~/.agent/ssh/config".into(),
+        });
+        app.apply_snapshot(vec![worker], vec![session("worker", "main", "working")]);
+        app
+    }
+
+    #[test]
+    fn o_opens_the_menu_of_the_selected_agent_or_of_a_sessions_agent() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        assert_eq!(app.on_key(key(KeyCode::Char('o'))), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::Open(menu)) if menu.agent == "worker"));
+        assert_eq!(app.hints(), &OPEN_HINTS);
+
+        app.modal = None;
+        app.selection = Some(TreeRowId::Session {
+            agent: "worker".into(),
+            session: SessionName::new("main").expect("name"),
+        });
+        app.on_key(key(KeyCode::Char('o')));
+        assert!(matches!(&app.modal, Some(Modal::Open(menu)) if menu.agent == "worker"));
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(app.modal.is_none());
+    }
+
+    #[test]
+    fn choosing_an_item_opens_it_in_the_agent() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('c'))),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::Editor(crate::launch::Editor::VsCode),
+            }
+        );
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Enter)),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::Shell,
+            },
+            "the shell is selected first"
+        );
+    }
+
+    #[test]
+    fn an_editor_asks_for_the_missing_ssh_setup_and_then_opens() {
+        let mut app = ssh_app(SshSetup::Missing);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(app.on_key(key(KeyCode::Char('c'))), Action::None);
+        let editor = OpenTarget::Editor(crate::launch::Editor::VsCode);
+        assert!(matches!(&app.modal, Some(Modal::ConfirmSshSetup { then: Some(target), .. }) if *target == editor));
+        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_THEN_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('y'))),
+            Action::None,
+            "y never writes the file"
+        );
+
+        // Declining returns to the menu, which still offers the setup.
+        assert_eq!(app.on_key(key(KeyCode::Esc)), Action::None);
+        assert!(matches!(&app.modal, Some(Modal::Open(menu))
+            if menu.items.iter().any(|item| item.entry == MenuEntry::SetUpSsh)));
+
+        app.on_key(key(KeyCode::Char('c')));
+        let then = Some(("worker".to_owned(), editor));
+        let Action::SetUpSsh { include, then: next } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected SetUpSsh");
+        };
+        assert_eq!(include.line, "Include ~/.agent/ssh/config");
+        assert_eq!(next, then);
+        assert_eq!(
+            app.ssh_set_up(Ok(include.user_config), next, Instant::now()),
+            Some(Action::Open {
+                agent: "worker".into(),
+                target: editor,
+            })
+        );
+        assert_eq!(app.ssh_setup, SshSetup::Installed);
+        assert_eq!(
+            app.notice.as_ref().map(|(text, _)| text.as_str()),
+            Some("SSH set up in /tmp/user/.ssh/config")
+        );
+
+        // Once set up, the editor opens directly.
+        app.on_key(key(KeyCode::Char('o')));
+        assert!(matches!(app.on_key(key(KeyCode::Char('c'))), Action::Open { .. }));
+    }
+
+    #[test]
+    fn setting_up_ssh_from_its_own_entry_opens_nothing_after() {
+        let mut app = ssh_app(SshSetup::Missing);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        let Some(Modal::Open(menu)) = &app.modal else {
+            panic!("expected the open menu");
+        };
+        let setup = menu
+            .items
+            .iter()
+            .position(|item| item.entry == MenuEntry::SetUpSsh)
+            .expect("setup entry");
+        app.on_mouse(MouseAction::ChooseOpen(setup));
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { then: None, .. })));
+        assert_eq!(app.hints(), &CONFIRM_SSH_SETUP_HINTS);
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::None,
+            "nothing waits to open"
+        );
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { then: None, .. })));
+        let Action::SetUpSsh { include, then } = app.on_key(key(KeyCode::Enter)) else {
+            panic!("expected SetUpSsh");
+        };
+        assert_eq!(then, None);
+        assert_eq!(app.ssh_set_up(Ok(include.user_config), then, Instant::now()), None);
+    }
+
+    #[test]
+    fn what_waits_on_the_ssh_setup_opens_without_it_on_request() {
+        let mut app = ssh_app(SshSetup::Missing);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        app.on_key(key(KeyCode::Char('y')));
+        assert!(matches!(app.modal, Some(Modal::ConfirmSshSetup { .. })));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::Open {
+                agent: "worker".into(),
+                target: OpenTarget::CopyAlias,
+            }
+        );
+        assert!(app.modal.is_none());
+        assert_eq!(app.ssh_setup, SshSetup::Missing, "nothing was written");
+    }
+
+    #[test]
+    fn the_ssh_setup_is_checked_with_an_agent_openssh_knows_and_again_on_each_menu() {
+        let mut app = App::new();
+        app.apply_snapshot(vec![ready_agent("builder")], Vec::new());
+        assert_eq!(app.ssh_check_request(), None, "no Agent has an alias to resolve");
+
+        let mut app = ssh_app(SshSetup::Unknown);
+        let mut other = ready_agent("alpha");
+        other.spec.access = vec![agent::AccessSpec::Ssh {}];
+        let worker = app.agents[0].clone();
+        app.apply_snapshot(vec![other, worker], Vec::new());
+        assert_eq!(app.ssh_check_request().as_deref(), Some("alpha"));
+        assert_eq!(app.ssh_check_request(), None, "one check at a time");
+        app.ssh_checked("alpha", SshSetup::Missing);
+        assert_eq!(app.ssh_setup, SshSetup::Missing);
+        assert_eq!(app.ssh_check_request(), None, "checked until a menu opens");
+
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        assert_eq!(
+            app.ssh_check_request().as_deref(),
+            Some("worker"),
+            "the menu's Agent first"
+        );
+    }
+
+    #[test]
+    fn a_finished_ssh_check_updates_the_open_menu_and_keeps_its_selection() {
+        let mut app = ssh_app(SshSetup::Unknown);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        app.on_key(key(KeyCode::Down));
+        let setup_offered = |app: &App| {
+            matches!(&app.modal, Some(Modal::Open(menu))
+                if menu.items.iter().any(|item| item.entry == MenuEntry::SetUpSsh))
+        };
+        assert!(!setup_offered(&app));
+
+        assert_eq!(app.ssh_check_request().as_deref(), Some("worker"));
+        app.ssh_checked("worker", SshSetup::Missing);
+        assert!(setup_offered(&app));
+        let Some(Modal::Open(menu)) = &app.modal else {
+            panic!("expected the open menu");
+        };
+        assert_eq!(
+            menu.chosen(),
+            Some(MenuEntry::Open(OpenTarget::Editor(crate::launch::Editor::VsCode)))
+        );
+
+        app.ssh_checked("worker", SshSetup::Installed);
+        assert!(!setup_offered(&app));
+    }
+
+    #[test]
+    fn clicking_an_unavailable_item_keeps_the_menu_open() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.selection = Some(TreeRowId::Agent("worker".into()));
+        app.on_key(key(KeyCode::Char('o')));
+        let Some(Modal::Open(menu)) = &app.modal else {
+            panic!("expected the open menu");
+        };
+        let zed = menu
+            .items
+            .iter()
+            .position(|item| item.unavailable.is_some())
+            .expect("Zed has no launcher in tests");
+        assert_eq!(app.on_mouse(MouseAction::ChooseOpen(zed)), Action::None);
+        assert!(matches!(app.modal, Some(Modal::Open(_))));
+    }
+
+    #[test]
+    fn a_failed_ssh_setup_is_reported_and_opens_nothing() {
+        let mut app = ssh_app(SshSetup::Missing);
+        let then = Some(("worker".to_owned(), OpenTarget::CopyAlias));
+
+        assert_eq!(
+            app.ssh_set_up(Err("read-only file system".into()), then, Instant::now()),
+            None
+        );
+        assert_eq!(app.error.as_deref(), Some("read-only file system"));
+        assert_eq!(app.ssh_setup, SshSetup::Missing);
+    }
+
+    #[test]
+    fn the_agent_panel_shows_how_to_connect() {
+        let app = ssh_app(SshSetup::Missing);
+        let lines = app.agent_panel_lines("worker");
+        let connect = lines
+            .iter()
+            .position(|line| line == "Connect · o open…")
+            .expect("Connect section");
+        assert_eq!(lines[connect + 1], "  shell      in this terminal");
+        assert!(lines.contains(&"  ! SSH not set up; o offers it".to_owned()));
+        assert_eq!(lines.last().map(String::as_str), Some("  ssh alias  agentctl-worker"));
+        assert!(
+            lines.iter().all(|line| !line.contains("agentctl ")),
+            "the panel offers keys, not commands: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn one_open_waits_per_agent_and_target_and_ends_in_a_notice_or_an_error() {
+        let mut app = ssh_app(SshSetup::Installed);
+        let now = Instant::now();
+        let vs_code = OpenTarget::Editor(crate::launch::Editor::VsCode);
+        assert!(app.start_opening("worker", vs_code, now));
+        assert!(
+            !app.start_opening("worker", vs_code, now),
+            "a repeat waits for the first"
+        );
+        assert_eq!(
+            app.notice.as_ref().map(|(text, _)| text.as_str()),
+            Some("already opening VS Code on worker")
+        );
+        assert!(app.start_opening("worker", OpenTarget::Editor(crate::launch::Editor::Zed), now));
+
+        app.opened(
+            Some(("worker".into(), vs_code)),
+            Ok("opening VS Code on worker".into()),
+            now,
+        );
+        assert_eq!(
+            app.notice.as_ref().map(|(text, _)| text.as_str()),
+            Some("opening VS Code on worker")
+        );
+        app.opened(
+            Some(("worker".into(), OpenTarget::Editor(crate::launch::Editor::Zed))),
+            Err("zed failed".into()),
+            now,
+        );
+        assert_eq!(app.error.as_deref(), Some("zed failed"));
+        assert!(app.opening.is_empty());
+    }
+
+    fn desktop_forward(id: u64, agent: &str, guest_port: u16) -> ForwardEntry {
+        ForwardEntry {
+            id,
+            agent: agent.into(),
+            local: format!("127.0.0.1:{}", 50000 + id),
+            guest_port,
+            status: None,
+            finished: false,
+        }
+    }
+
+    #[test]
+    fn quitting_asks_first_while_forwards_would_close() {
+        let mut app = ssh_app(SshSetup::Installed);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::Quit, "nothing to lose");
+
+        app.set_forwards(vec![desktop_forward(1, "worker", 6080)]);
+        assert_eq!(app.on_key(key(KeyCode::Char('q'))), Action::None);
+        assert!(matches!(app.modal, Some(Modal::ConfirmQuit)));
+        assert_eq!(app.hints(), &CONFIRM_HINTS);
+        assert_eq!(app.on_key(key(KeyCode::Char('n'))), Action::None);
+        assert!(app.modal.is_none(), "n stays");
+        app.on_key(key(KeyCode::Esc));
+        assert_eq!(app.on_key(key(KeyCode::Char('y'))), Action::Quit);
+    }
+
+    #[test]
+    fn a_forward_opens_in_the_application_for_its_port() {
+        let mut app = ssh_app(SshSetup::Installed);
+        app.set_forwards(vec![
+            desktop_forward(1, "worker", 6080),
+            desktop_forward(2, "worker", agent::vnc::GUEST_PORT),
+        ]);
+        app.view = View::Forwards;
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::OpenUrl("http://127.0.0.1:50001/".into())
+        );
+        app.on_key(key(KeyCode::Char('j')));
+        assert_eq!(
+            app.on_key(key(KeyCode::Char('o'))),
+            Action::OpenUrl("vnc://127.0.0.1:50002".into())
+        );
+    }
+
+    #[test]
+    fn labeled_forwards_name_themselves_and_the_panel_shows_the_open_desktop() {
+        let mut app = ssh_app(SshSetup::Installed);
+        let mut desktop = ready_agent("desk");
+        desktop.spec.access = vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}];
+        let mut agents = std::mem::take(&mut app.agents);
+        agents.push(desktop);
+        let sessions = std::mem::take(&mut app.sessions);
+        app.apply_snapshot(agents, sessions);
+        app.set_forwards(vec![desktop_forward(1, "desk", 6080)]);
+
+        let desk = app
+            .render_rows()
+            .into_iter()
+            .find(|row| row.name == "desk")
+            .expect("desk row");
+        assert!(desk.detail.contains("ports: desktop 50001:6080"), "{}", desk.detail);
+        assert!(
+            app.agent_panel_lines("desk")
+                .contains(&"  desktop    open at http://127.0.0.1:50001/".to_owned())
+        );
+
+        let mut stopped = desktop_forward(1, "desk", 6080);
+        stopped.finished = true;
+        app.set_forwards(vec![stopped]);
+        assert!(
+            app.agent_panel_lines("desk")
+                .contains(&"  desktop    browser · VNC client".to_owned()),
+            "a stopped forward's address no longer opens anything"
+        );
     }
 }

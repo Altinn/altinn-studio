@@ -16,7 +16,7 @@ import { StaticOptionSet } from 'src/features/formBootstrap/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { ILayout } from 'src/layout/layout';
@@ -36,7 +36,7 @@ interface RenderProps {
 }
 
 function TestOptions({ baseComponentId }: { baseComponentId: string }) {
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
   const { options, setData, selectedValues } = useGetOptions(
     baseComponentId,
     component.type === 'Dropdown' ? 'single' : 'multi',

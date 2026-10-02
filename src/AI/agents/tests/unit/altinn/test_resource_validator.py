@@ -10,7 +10,8 @@ import pytest
 from agents.altinn.resources.validator import ResourceValidator
 
 _SCHEMA_PATH = (
-    Path(__file__).resolve().parents[5] / "App/frontend/schemas/json/text-resources/text-resources.schema.v1.json"
+    Path(__file__).resolve().parents[5]
+    / "common/ts/layout-contract/schemas/json/text-resources/text-resources.schema.v1.json"
 )
 
 
@@ -49,4 +50,5 @@ def test_rejects_a_variable_key_that_does_not_match_the_pattern(validator: Resou
 
 
 def _pattern(validator: ResourceValidator) -> str:
+    assert validator.schema is not None
     return validator.schema["definitions"]["variable"]["properties"]["key"]["pattern"]
