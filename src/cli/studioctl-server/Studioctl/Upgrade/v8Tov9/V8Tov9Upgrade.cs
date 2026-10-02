@@ -101,6 +101,7 @@ internal static class V8Tov9Upgrade
             : await CreateSourceScanner(projectFolder, projectFile, options);
 
         var returnCode = 0;
+        string? appPackageVersion = null;
         options.CancellationToken.ThrowIfCancellationRequested();
         if (!options.SkipCsprojUpgrade)
         {
@@ -123,6 +124,7 @@ internal static class V8Tov9Upgrade
                         options.CancellationToken
                     );
                     returnCode = await UpgradeProjectFile(projectFile, targetVersion, options.TargetFramework);
+                    appPackageVersion = targetVersion;
                 }
             }
 
@@ -272,6 +274,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
 
         // All source writers must finish first, including generated data processors and their Program.cs
         // registrations. Detection keeps the v8 view; spelling decisions use the actual upgraded project.
@@ -1704,6 +1709,47 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error renaming allowedContributers", ex);
+        }
+    }
+
+    /// <summary>
+    /// Points the app's schema references at the app frontend distribution matching the Altinn.App package
+    /// version this run set in the project file. A run that set none (a rerun, or project references) warns instead.
+    /// </summary>
+    static async Task<int> MigrateSchemaRefs(string projectFolder, string? appPackageVersion)
+    {
+        UpgradeConsole.BeginStep("Schema references");
+        if (appPackageVersion is null)
+        {
+            UpgradeConsole.Warning(
+                "Kept schema references: no Altinn.App package version was set in this run. Point any $schema still "
+                    + "on altinncdn.no at https://altinn.studio/designer/app-dist/<version>/schemas/json/... manually."
+            );
+            return ExitSuccess;
+        }
+
+        try
+        {
+            var result = await SchemaRefMigration.Migrate(projectFolder, appPackageVersion);
+            if (result.ReferencesUpdated > 0)
+            {
+                UpgradeConsole.Ok(
+                    $"Updated {result.ReferencesUpdated} schema reference(s) to {SchemaRefMigration.AppDistUrl(appPackageVersion)}"
+                );
+            }
+            else if (result.Warnings.Count == 0)
+            {
+                UpgradeConsole.Skip("No altinncdn.no schema references to update");
+            }
+
+            foreach (var warning in result.Warnings)
+                UpgradeConsole.Warning(warning);
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error updating schema references", ex);
         }
     }
 
