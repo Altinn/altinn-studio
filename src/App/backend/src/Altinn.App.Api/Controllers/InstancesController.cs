@@ -1663,7 +1663,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state,
@@ -1688,7 +1687,6 @@ public class InstancesController : ControllerBase
         {
             return WorkflowInitializationProblem.Create(
                 _logger,
-                WorkflowInitializationFlow.Instantiation,
                 exception,
                 message,
                 state: WorkflowInitializationState.WorkflowFailed,
@@ -1703,7 +1701,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state: WorkflowInitializationState.WorkflowFailed,

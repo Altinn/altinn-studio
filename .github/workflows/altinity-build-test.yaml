@@ -45,6 +45,10 @@ jobs:
       working-directory: src/AI/agents
       run: ruff format --check .
 
+    - name: Type check
+      working-directory: src/AI/agents
+      run: pyright
+
     - name: Run Altinity unit tests
       working-directory: src/AI/agents
       run: python -m pytest

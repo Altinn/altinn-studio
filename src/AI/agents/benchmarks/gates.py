@@ -8,7 +8,10 @@ from typing import Any
 
 from langfuse import Evaluation
 
+from agents.prompts.loader import compiled_system_message
 from agents.services.llm.intent_parser import MINIMUM_INTENT_CONFIDENCE
+
+from .experiment import ItemEvaluator
 
 CONFIDENCE_THRESHOLD = MINIMUM_INTENT_CONFIDENCE
 ABOVE = "at_or_above_threshold"
@@ -153,7 +156,7 @@ def required_keys(*, output: Any = None, expected_output: Any = None, **_: Any) 
     ]
 
 
-ITEM_EVALUATORS = [gate_verdict, decline_language, required_keys]
+ITEM_EVALUATORS: list[ItemEvaluator] = [gate_verdict, decline_language, required_keys]
 
 
 @dataclass
@@ -185,12 +188,7 @@ class GateTask:
         if not system:
             prompt = get_client().get_prompt(self.prompt_name, label=self.label)
             version = prompt.version
-            compiled = prompt.compile(user_message=message)
-            system = (
-                compiled
-                if isinstance(compiled, str)
-                else next((m["content"] for m in compiled if m.get("role") == "system"), "")
-            )
+            system = compiled_system_message(prompt.compile(user_message=message)) or ""
 
         adapter = adapter_for(self.model, self.max_tokens)
         reply = await adapter.chat(messages=[_user(message)], system_prompt=system, tool_schemas=[])

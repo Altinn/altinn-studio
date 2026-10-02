@@ -38,6 +38,7 @@ class TestTheConfigResolvesTheKey:
         import importlib.util
 
         spec = importlib.util.spec_from_file_location("_base_config_probe", base_config.__file__)
+        assert spec is not None and spec.loader is not None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module.BaseConfig
@@ -85,7 +86,7 @@ class TestBothAnthropicClientsUseTheSameKey:
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
         client._init_anthropic_client("planner", "claude-opus-4-8", None)
 
-        assert client.anthropic_client.api_key == "anthropic-resource-key"
+        assert client._require_anthropic_client().api_key == "anthropic-resource-key"
 
     def test_it_falls_back_to_the_azure_key(self, config, monkeypatch):
         from agents.services.llm import llm_client
@@ -95,7 +96,7 @@ class TestBothAnthropicClientsUseTheSameKey:
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
         client._init_anthropic_client("planner", "claude-opus-4-8", None)
 
-        assert client.anthropic_client.api_key == "openai-resource-key"
+        assert client._require_anthropic_client().api_key == "openai-resource-key"
 
     def test_a_missing_key_names_the_variable(self, config, monkeypatch):
         from agents.services.llm import llm_client

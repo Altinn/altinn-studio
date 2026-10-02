@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import aliases from './studio.alias.js';
 import type { UserConfig } from 'vite';
 import colors from 'picocolors';
