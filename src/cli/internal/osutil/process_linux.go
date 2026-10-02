@@ -72,7 +72,7 @@ func processZombie(pid int) (bool, error) {
 // the command name. The command name can contain spaces and parentheses, so the fields start after the last ')'.
 const procStatStartTimeIndex = 19
 
-func processStartTime(pid int) (uint64, error) {
+func readProcessStartTime(pid int) (uint64, error) {
 	stat, err := os.ReadFile("/proc/" + strconv.Itoa(pid) + "/stat")
 	if err != nil {
 		return 0, fmt.Errorf("read process stat: %w", err)

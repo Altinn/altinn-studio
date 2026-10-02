@@ -66,7 +66,6 @@ func TestReadStudioctlServerState_AcceptsServerProcess(t *testing.T) {
 	}
 }
 
-// startSleepProcess starts "sleep 60" and returns its PID.
 func startSleepProcess(t *testing.T) int {
 	t.Helper()
 

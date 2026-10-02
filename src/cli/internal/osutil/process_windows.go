@@ -72,7 +72,7 @@ func windowsProcessID(pid int) (uint32, error) {
 	return uint32(pid), nil
 }
 
-func processStartTime(pid int) (startTime uint64, err error) {
+func readProcessStartTime(pid int) (startTime uint64, err error) {
 	processID, err := windowsProcessID(pid)
 	if err != nil {
 		return 0, err

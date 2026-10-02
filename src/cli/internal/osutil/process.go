@@ -69,12 +69,12 @@ func KillProcess(pid int) error {
 	return nil
 }
 
-// ProcessStartTime returns a value that identifies when pid started. Compare it only for equality.
+// GetProcessStartTime returns a value that identifies when pid started. Compare it only for equality.
 // A process keeps its start time when its executable is moved or deleted, and a new process that gets
 // the same PID has a different start time.
-func ProcessStartTime(pid int) (uint64, error) {
+func GetProcessStartTime(pid int) (uint64, error) {
 	if pid <= 0 {
 		return 0, fmt.Errorf("%w: %d", errInvalidPID, pid)
 	}
-	return processStartTime(pid)
+	return readProcessStartTime(pid)
 }

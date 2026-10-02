@@ -73,10 +73,8 @@ type runtimeState struct {
 	StartTime uint64 `json:"startTime"`
 }
 
-// newRuntimeState reads the start time of pid. If the OS cannot give it, StartTime is 0 and no process matches it,
-// so the next read treats the server as not running and the CLI never stops an unknown process.
 func newRuntimeState(pid int, start startConfig) runtimeState {
-	startTime, err := osutil.ProcessStartTime(pid)
+	startTime, err := osutil.GetProcessStartTime(pid)
 	if err != nil {
 		startTime = 0
 	}
@@ -1020,7 +1018,7 @@ func isStudioctlServerProcess(state runtimeState) (bool, error) {
 	}
 
 	// A process that cannot be identified is not the server, so the CLI never kills it.
-	startTime, err := osutil.ProcessStartTime(state.PID)
+	startTime, err := osutil.GetProcessStartTime(state.PID)
 	return err == nil && state.StartTime != 0 && startTime == state.StartTime, nil
 }
 

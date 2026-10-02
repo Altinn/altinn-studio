@@ -13,7 +13,7 @@ const microsecondsPerSecond = 1_000_000
 
 var errInvalidProcessStartTime = errors.New("invalid process start time")
 
-func processStartTime(pid int) (uint64, error) {
+func readProcessStartTime(pid int) (uint64, error) {
 	info, err := unix.SysctlKinfoProc("kern.proc.pid", pid)
 	if err != nil {
 		return 0, fmt.Errorf("read process info: %w", err)
