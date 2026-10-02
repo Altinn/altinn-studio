@@ -1,7 +1,7 @@
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
-const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
+const EnvOrder = ['tt02', 'prod', 'yt01', 'at22', 'at23', 'at24', 'gitea'];
 
 const setLastChangedDate = (resource: ResourceListItem): Date | null => {
   return resource.lastChanged === null && resource.environments.includes('gitea')

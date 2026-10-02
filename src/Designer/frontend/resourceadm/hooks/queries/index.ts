@@ -1,6 +1,7 @@
 export { useOrganizationsQuery } from './useOrganizationsQuery';
 export { useResourcePolicyQuery } from './useResourcePolicyQuery';
 export { useResourcePolicyPublishStatusQuery } from './useResourcePolicyPublishStatusQuery';
+export { useGetResourceEnvironmentsQuery } from './useGetResourceEnvironmentsQuery';
 export { useGetResourceListQuery } from './useGetResourceListQuery';
 export { useSingleResourceQuery } from './useSingleResourceQuery';
 export { useValidatePolicyQuery } from './useValidatePolicyQuery';
