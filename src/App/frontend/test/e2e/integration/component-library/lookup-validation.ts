@@ -57,203 +57,229 @@ const scenarios = [
   },
 ] as const;
 
-for (const scenario of scenarios) {
-  describe(`${scenario.type} validation gates`, () => {
-    function start() {
-      cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-      cy.gotoNavPage(scenario.page);
-    }
+describe('Lookup validation', { testIsolation: false }, () => {
+  before(() => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('PersonLookupPage');
+    cy.findByRole('radio', { name: 'Nei' }).should('be.checked');
+  });
 
-    function fill() {
-      cy.findByRole('textbox', { name: scenario.numberLabel }).type(scenario.number);
-      if (scenario.type === 'PersonLookup') {
-        cy.findByRole('textbox', { name: /Etternavn/i }).type('Forelder');
+  for (const scenario of scenarios) {
+    describe(`${scenario.type} validation gates`, () => {
+      beforeEach(() => {
+        cy.gotoNavPage(scenario.page);
+        // Keep one instance, but reset the model, pending drafts and layout between cases.
+        cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).uncheck();
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.get(`[data-componentid="${scenario.id}-group"]`).then(($group) => {
+          const count = $group.find('button').filter((_, button) => button.textContent?.includes('Slett')).length;
+          for (let row = 0; row < count; row++) {
+            cy.get(`[data-componentid="${scenario.id}-group"]`)
+              .findAllByRole('button', { name: /Slett/ })
+              .first()
+              .click();
+          }
+        });
+        cy.get(`[data-componentid="${scenario.id}"]`).then(($lookup) => {
+          if ($lookup.find('button').filter((_, button) => button.textContent?.includes('Fjern')).length) {
+            cy.get(`[data-componentid="${scenario.id}"]`).findByRole('button', { name: /Fjern/ }).click();
+          }
+        });
+        cy.waitUntilSaved();
+        cy.changeLayout((component) => {
+          if (component.type === scenario.type) {
+            component.showValidations = undefined;
+          }
+        });
+      });
+
+      function fill() {
+        cy.findByRole('textbox', { name: scenario.numberLabel }).type(scenario.number);
+        if (scenario.type === 'PersonLookup') {
+          cy.findByRole('textbox', { name: /Etternavn/i }).type('Forelder');
+        }
       }
-    }
 
-    it('changes required validation using the radio buttons', () => {
-      start();
-      cy.findByRole('radio', { name: 'Nei' }).should('be.checked');
-      cy.findByRole('radio', { name: 'Ja' }).check();
-      cy.get(`[data-componentid="${scenario.id}"]`)
-        .findByRole('textbox', { name: scenario.numberLabel })
-        .should('have.attr', 'required');
-      cy.findByRole('button', { name: 'Neste' }).click();
-      cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('be.visible');
-      cy.findByRole('radio', { name: 'Nei' }).check();
-      cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('not.exist');
-      cy.get(`[data-componentid="${scenario.id}"]`)
-        .findByRole('textbox', { name: scenario.numberLabel })
-        .should('not.have.attr', 'required');
-      cy.findByRole('button', { name: 'Neste' }).click();
-      cy.get(`[data-componentid="${scenario.id}"]`).should('not.exist');
-    });
-
-    it('validates required lookups when saving a row and permits empty optional rows', () => {
-      start();
-      cy.findByRole('radio', { name: 'Ja' }).check();
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-        cy.findByText(scenario.required).should('be.visible');
-        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+      it('changes required validation using the radio buttons', () => {
+        cy.findByRole('radio', { name: 'Nei' }).should('be.checked');
+        cy.findByRole('radio', { name: 'Ja' }).check();
+        cy.get(`[data-componentid="${scenario.id}"]`)
+          .findByRole('textbox', { name: scenario.numberLabel })
+          .should('have.attr', 'required');
+        cy.findByRole('button', { name: 'Neste' }).click();
+        cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('be.visible');
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('not.exist');
+        cy.get(`[data-componentid="${scenario.id}"]`)
+          .findByRole('textbox', { name: scenario.numberLabel })
+          .should('not.have.attr', 'required');
+        cy.findByRole('button', { name: 'Neste' }).click();
+        cy.get(`[data-componentid="${scenario.id}"]`).should('not.exist');
       });
-      // The row gate must not reveal required errors on the standalone lookup.
-      cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('not.exist');
-      cy.findByRole('radio', { name: 'Nei' }).check();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        cy.findByText(scenario.required).should('not.exist');
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-      });
-      cy.get('[data-testid="group-edit-container"]').should('not.exist');
-    });
 
-    for (const repeated of [false, true]) {
-      it(`shows backend errors for every binding after ${repeated ? 'a row' : 'a standalone'} lookup`, () => {
-        start();
-        cy.intercept(scenario.method, scenario.url, scenario.success).as('lookup');
-        // The lookup's own gate must reveal errors without showValidations configuration.
+      it('validates required lookups when saving a row and permits empty optional rows', () => {
+        cy.findByRole('radio', { name: 'Ja' }).check();
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+          cy.findByText(scenario.required).should('be.visible');
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+        });
+        // The row gate must not reveal required errors on the standalone lookup.
+        cy.get(`[data-componentid="${scenario.id}"]`).findByText(scenario.required).should('not.exist');
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByText(scenario.required).should('not.exist');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        });
+        cy.get('[data-testid="group-edit-container"]').should('not.exist');
+      });
+
+      for (const repeated of [false, true]) {
+        it(`shows backend errors for every binding after ${repeated ? 'a row' : 'a standalone'} lookup`, () => {
+          cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.success).as('lookup');
+          // The lookup's own gate must reveal errors without showValidations configuration.
+          cy.changeLayout((component) => {
+            if (component.type === scenario.type) {
+              component.showValidations = [];
+            }
+          });
+          if (repeated) {
+            cy.findByRole('button', { name: /Legg til ny/ }).click();
+          }
+          cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).check();
+          cy.waitUntilSaved();
+          cy.intercept({ method: 'PATCH', url: '**/instances/*/*/data*', times: 1 }).as('saveLookup');
+          const componentId = repeated ? `${scenario.id}-repeated-0` : scenario.id;
+          cy.get(`[data-componentid="${componentId}"]`).within(() => {
+            fill();
+            cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+            cy.wait('@lookup');
+            cy.wait<IDataModelMultiPatchRequest, IDataModelMultiPatchResponse>('@saveLookup').then(({ response }) => {
+              const fields = response?.body.validationIssues.flatMap((group) =>
+                group.issues.map((issue) => issue.field),
+              );
+              const prefix = repeated ? `${scenario.rows}[0]` : scenario.model;
+              for (const field of scenario.fields) {
+                expect(fields).to.include(`${prefix}.${field}`);
+              }
+            });
+            for (const field of scenario.fields) {
+              cy.findByText(backendMessages[field]).should('be.visible');
+            }
+            cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+            cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
+          });
+          if (repeated) {
+            cy.get('[data-testid="group-edit-container"]').within(() => {
+              cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+              cy.findByText(backendMessages[scenario.fields[0]]).should('be.visible');
+            });
+          }
+          cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).uncheck();
+          cy.waitUntilSaved();
+          cy.get(`[data-componentid="${componentId}"]`).within(() => {
+            for (const field of scenario.fields) {
+              cy.findByText(backendMessages[field]).should('not.exist');
+            }
+            cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'false');
+          });
+          if (repeated) {
+            cy.get('[data-testid="group-edit-container"]')
+              .findByRole('button', { name: /Lagre og lukk/ })
+              .click();
+            cy.get('[data-testid="group-edit-container"]').should('not.exist');
+          }
+        });
+      }
+
+      it('validates optional search inputs at row save and before requesting a lookup', () => {
+        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.success).as('lookup');
         cy.changeLayout((component) => {
           if (component.type === scenario.type) {
             component.showValidations = [];
           }
         });
-        if (repeated) {
-          cy.findByRole('button', { name: /Legg til ny/ }).click();
-        }
-        cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).check();
-        cy.waitUntilSaved();
-        cy.intercept({ method: 'PATCH', url: '**/instances/*/*/data*', times: 1 }).as('saveLookup');
-        const componentId = repeated ? `${scenario.id}-repeated-0` : scenario.id;
-        cy.get(`[data-componentid="${componentId}"]`).within(() => {
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+          cy.get('@lookup.all').should('have.length', 0);
+
+          cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          cy.get('@lookup.all').should('have.length', 0);
+
+          cy.findByRole('textbox', { name: scenario.numberLabel }).type('{moveToEnd}{backspace}{backspace}{backspace}');
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
+          fill();
+          cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('not.exist');
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          cy.wait('@lookup');
+          cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        });
+        cy.get('[data-testid="group-edit-container"]').should('not.exist');
+        cy.get('@lookup.all').should('have.length', 1);
+      });
+
+      it('keeps pending lookup errors with their row when an earlier row is deleted', () => {
+        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.failure).as('lookup');
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        });
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
           fill();
           cy.findByRole('button', { name: /Hent opplysninger/i }).click();
           cy.wait('@lookup');
-          cy.wait<IDataModelMultiPatchRequest, IDataModelMultiPatchResponse>('@saveLookup').then(({ response }) => {
-            const fields = response?.body.validationIssues.flatMap((group) => group.issues.map((issue) => issue.field));
-            const prefix = repeated ? `${scenario.rows}[0]` : scenario.model;
-            for (const field of scenario.fields) {
-              expect(fields).to.include(`${prefix}.${field}`);
-            }
-          });
-          for (const field of scenario.fields) {
-            cy.findByText(backendMessages[field]).should('be.visible');
-          }
-          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
-          cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
+          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+            'be.visible',
+          );
         });
-        if (repeated) {
-          cy.get('[data-testid="group-edit-container"]').within(() => {
-            cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-            cy.findByText(backendMessages[scenario.fields[0]]).should('be.visible');
-          });
-        }
-        cy.findByRole('checkbox', { name: 'Vis feil fra serveren' }).uncheck();
-        cy.waitUntilSaved();
-        cy.get(`[data-componentid="${componentId}"]`).within(() => {
-          for (const field of scenario.fields) {
-            cy.findByText(backendMessages[field]).should('not.exist');
-          }
-          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'false');
+
+        cy.get(`#group-${scenario.id}-group-table-body > tr[data-row-num="0"]`)
+          .findByRole('button', { name: /Slett/ })
+          .click();
+        cy.get(`[data-componentid="${scenario.id}-repeated-0"]`).within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
+          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+            'be.visible',
+          );
         });
-        if (repeated) {
-          cy.get('[data-testid="group-edit-container"]')
-            .findByRole('button', { name: /Lagre og lukk/ })
-            .click();
-          cy.get('[data-testid="group-edit-container"]').should('not.exist');
-        }
-      });
-    }
 
-    it('validates optional search inputs at row save and before requesting a lookup', () => {
-      start();
-      cy.intercept(scenario.method, scenario.url, scenario.success).as('lookup');
-      cy.changeLayout((component) => {
-        if (component.type === scenario.type) {
-          component.showValidations = [];
-        }
-      });
-      cy.findByRole('radio', { name: 'Nei' }).check();
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
-        cy.get('@lookup.all').should('have.length', 0);
-
-        cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
-        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
-        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-        cy.get('@lookup.all').should('have.length', 0);
-
-        cy.findByRole('textbox', { name: scenario.numberLabel }).type('{moveToEnd}{backspace}{backspace}{backspace}');
-        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
-        fill();
-        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('not.exist');
-        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-        cy.wait('@lookup');
-        cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-      });
-      cy.get('[data-testid="group-edit-container"]').should('not.exist');
-      cy.get('@lookup.all').should('have.length', 1);
-    });
-
-    it('keeps pending lookup errors with their row when an earlier row is deleted', () => {
-      start();
-      cy.intercept(scenario.method, scenario.url, scenario.failure).as('lookup');
-      cy.findByRole('radio', { name: 'Nei' }).check();
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-      });
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        fill();
-        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-        cy.wait('@lookup');
-        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-          'be.visible',
-        );
+        cy.get(`[data-componentid="${scenario.id}-group"]`).findByRole('button', { name: /Slett/ }).click();
+        cy.get('[data-testid="group-edit-container"]').should('not.exist');
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
+          cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+            'not.exist',
+          );
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        });
+        cy.get('[data-testid="group-edit-container"]').should('not.exist');
+        cy.get('@lookup.all').should('have.length', 1);
       });
 
-      cy.get(`#group-${scenario.id}-group-table-body > tr[data-row-num="0"]`)
-        .findByRole('button', { name: /Slett/ })
-        .click();
-      cy.get(`[data-componentid="${scenario.id}-repeated-0"]`).within(() => {
-        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
-        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-          'be.visible',
-        );
-      });
-
-      cy.get(`[data-componentid="${scenario.id}-group"]`).findByRole('button', { name: /Slett/ }).click();
-      cy.get('[data-testid="group-edit-container"]').should('not.exist');
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
-        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
-          'not.exist',
-        );
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-      });
-      cy.get('[data-testid="group-edit-container"]').should('not.exist');
-      cy.get('@lookup.all').should('have.length', 1);
-    });
-
-    it('prevents saving a failed optional lookup', () => {
-      start();
-      cy.intercept(scenario.method, scenario.url, scenario.failure).as('lookup');
-      cy.findByRole('radio', { name: 'Nei' }).check();
-      cy.findByRole('button', { name: /Legg til ny/ }).click();
-      cy.get('[data-testid="group-edit-container"]').within(() => {
-        fill();
-        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-        cy.wait('@lookup');
-        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
-        cy.findByRole('button', { name: /Hent opplysninger/i }).should('be.visible');
+      it('prevents saving a failed optional lookup', () => {
+        cy.intercept({ method: scenario.method, url: scenario.url, times: 1 }, scenario.failure).as('lookup');
+        cy.findByRole('radio', { name: 'Nei' }).check();
+        cy.findByRole('button', { name: /Legg til ny/ }).click();
+        cy.get('[data-testid="group-edit-container"]').within(() => {
+          fill();
+          cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+          cy.wait('@lookup');
+          cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+          cy.findByRole('button', { name: /Hent opplysninger/i }).should('be.visible');
+        });
       });
     });
-  });
-}
+  }
+});
