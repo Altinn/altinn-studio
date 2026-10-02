@@ -70,7 +70,7 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should return error when getLayoutSets fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to fetch layout sets';
 
     const { result } = renderHook({
@@ -85,7 +85,7 @@ describe('usePreviewLayoutMetadata', () => {
   });
 
   it('should return error when getFormLayoutSettings fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const errorMessage = 'Failed to fetch layout settings';
 
     const { result } = renderHook({
