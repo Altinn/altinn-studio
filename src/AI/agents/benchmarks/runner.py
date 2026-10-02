@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import manifest, preview_check, runstore
+from . import impact, manifest, preview_check, runstore
 from .lf_api import LangfuseApi
 from .rubric import build_rubric_from_dir
 
@@ -322,8 +322,6 @@ def cmd_impact(args: argparse.Namespace) -> None:
     """What a change means for the baseline, from a git diff."""
     import subprocess
 
-    from . import impact
-
     changed = list(args.paths)
     if not changed:
         diff = subprocess.run(
@@ -557,7 +555,7 @@ def _parser() -> argparse.ArgumentParser:
 
     impact_parser = sub.add_parser("impact", help=_describe("impact"))
     impact_parser.add_argument("paths", nargs="*", help="changed paths, default a git diff")
-    impact_parser.add_argument("--against", default="origin/main", help="the base ref")
+    impact_parser.add_argument("--against", default=impact.DEFAULT_BASE_REF, help="the base ref")
     impact_parser.add_argument("--strict", action="store_true", help="exit non-zero when a re-baseline is missing")
     impact_parser.set_defaults(func=cmd_impact)
 

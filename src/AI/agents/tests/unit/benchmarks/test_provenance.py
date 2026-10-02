@@ -36,18 +36,17 @@ class TestDigestsCoverEveryAppVersion:
     """A change to the v9 prompt text or to a skill file must change a digest."""
 
     def test_the_v9_prompt_text_moves_the_actor_prompt_digest(self, monkeypatch):
-        before = provenance._actor_prompt_digest()
+        before = provenance._hash_actor_prompt()
         changed = replace(app_version.V9_PROFILE, version_rules_prompt="changed")
         monkeypatch.setattr(app_version, "APP_VERSION_PROFILES", (app_version.V8_PROFILE, changed))
 
-        assert before is not None
-        assert provenance._actor_prompt_digest() != before
+        assert provenance._hash_actor_prompt() != before
 
     def test_a_skill_description_moves_the_actor_prompt_digest(self, monkeypatch):
-        before = provenance._actor_prompt_digest()
+        before = provenance._hash_actor_prompt()
         monkeypatch.setattr(skills, "format_skill_listing", lambda _skills: "changed")
 
-        assert provenance._actor_prompt_digest() != before
+        assert provenance._hash_actor_prompt() != before
 
     def test_the_skill_text_for_one_app_version_moves_the_tools_digest(self, tmp_path, monkeypatch):
         skill_dir = tmp_path / "altinn-example"
@@ -55,19 +54,40 @@ class TestDigestsCoverEveryAppVersion:
         (skill_dir / "SKILL.md").write_text("---\ndescription: An example.\n---\nBody.\n")
         (skill_dir / "v9.md").write_text("Old v9 text.\n")
         monkeypatch.setattr(skills, "_DEFAULT_SKILLS_DIR", tmp_path)
-        before = provenance._tools_digest()
+        before = provenance._hash_tools()
         (skill_dir / "v9.md").write_text("New v9 text.\n")
 
-        assert before is not None
-        assert provenance._tools_digest() != before
+        assert provenance._hash_tools() != before
 
     def test_the_tool_list_moves_the_tools_digest(self, monkeypatch):
         """The tool list is in the graph node, which is not a tools file."""
         from agents.graph.nodes import agentic_loop_node
 
-        before = provenance._tools_digest()
+        before = provenance._hash_tools()
         all_tools = agentic_loop_node._internal_tools
         monkeypatch.setattr(agentic_loop_node, "_internal_tools", lambda skills: all_tools(skills)[1:])
 
-        assert before is not None
-        assert provenance._tools_digest() != before
+        assert provenance._hash_tools() != before
+
+
+class TestAFailedDigest:
+    """A run records a failed digest as missing. The gate needs the error too."""
+
+    def _fail(self):
+        raise ImportError("no module named 'agents.core.skills'")
+
+    def test_a_failed_digest_is_none(self, monkeypatch):
+        monkeypatch.setitem(provenance.DIGEST_HASHERS, "tools", self._fail)
+
+        measured = provenance.digests()
+
+        assert measured["tools"] is None
+        assert measured["actor_prompt"] is not None
+
+    def test_the_caller_gets_the_error_of_a_failed_digest(self, monkeypatch):
+        monkeypatch.setitem(provenance.DIGEST_HASHERS, "tools", self._fail)
+        failures = []
+
+        provenance.digests(on_failure=lambda axis, error: failures.append((axis, str(error))))
+
+        assert failures == [("tools", "no module named 'agents.core.skills'")]

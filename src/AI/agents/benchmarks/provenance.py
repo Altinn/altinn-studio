@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import subprocess
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -158,43 +159,51 @@ def _sampling_value(value: object) -> str:
     return "model default" if value is None else str(value)
 
 
-def _actor_prompt_digest() -> str | None:
+def _hash_actor_prompt() -> str:
     """A hash of the actor's static system prompt, for every app version, and the skill listing."""
-    try:
-        from agents.altinn.app_version import APP_VERSION_PROFILES
-        from agents.core.context import stable_prefix_sections
-        from agents.core.skills import discover_skills, format_skill_listing
+    from agents.altinn.app_version import APP_VERSION_PROFILES
+    from agents.core.context import stable_prefix_sections
+    from agents.core.skills import discover_skills, format_skill_listing
 
-        sections = [section for profile in APP_VERSION_PROFILES for section in stable_prefix_sections(profile)]
-        sections.append(format_skill_listing(discover_skills()))
-    except Exception:
-        return None
+    sections = [section for profile in APP_VERSION_PROFILES for section in stable_prefix_sections(profile)]
+    sections.append(format_skill_listing(discover_skills()))
     payload = "\n\n".join(sections).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 
-def _tools_digest() -> str | None:
+def _hash_tools() -> str:
     """A hash of every tool schema the actor is shown, and of the skill text for every app version."""
-    try:
-        from agents.altinn.app_version import APP_VERSION_PROFILES
-        from agents.core.skills import discover_skills
-        from agents.graph.nodes.agentic_loop_node import _build_registry
+    from agents.altinn.app_version import APP_VERSION_PROFILES
+    from agents.core.skills import discover_skills
+    from agents.graph.nodes.agentic_loop_node import _build_registry
 
-        skills = discover_skills()
-        schema = _build_registry(skills).to_schema()
-        skill_text = {
-            profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
-            for profile in APP_VERSION_PROFILES
-        }
-    except Exception:
-        return None
+    skills = discover_skills()
+    schema = _build_registry(skills).to_schema()
+    skill_text = {
+        profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
+        for profile in APP_VERSION_PROFILES
+    }
     payload = json.dumps({"schema": schema, "skills": skill_text}, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 
-def digests() -> dict[str, str | None]:
+DIGEST_HASHERS: dict[str, Callable[[], str]] = {
+    "actor_prompt": _hash_actor_prompt,
+    "tools": _hash_tools,
+}
+
+
+def digests(*, on_failure: Callable[[str, Exception], None] | None = None) -> dict[str, str | None]:
     """The axes that this checkout can hash without a run. A None value means that the digest failed."""
-    return {"actor_prompt": _actor_prompt_digest(), "tools": _tools_digest()}
+    measured: dict[str, str | None] = {}
+    for axis, hash_axis in DIGEST_HASHERS.items():
+        try:
+            measured[axis] = hash_axis()
+        except Exception as error:
+            measured[axis] = None
+            if on_failure:
+                on_failure(axis, error)
+    return measured
 
 
 def _environment() -> str:

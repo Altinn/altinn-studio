@@ -5,11 +5,16 @@ from __future__ import annotations
 import ast
 import fnmatch
 import subprocess
+import sys
+import traceback
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
+
+# The ref that a change is compared with, when the caller does not give one.
+DEFAULT_BASE_REF = "origin/main"
 
 # Takes an agents-relative path. Returns None when the file does not exist.
 SourceReader = Callable[[str], str | None]
@@ -177,7 +182,7 @@ class Impact:
                 lines.append(f"  {drift.axis}  baseline {drift.baseline}, this checkout {current}: {drift.because}")
             if any(drift.current is None for drift in self.drift):
                 lines.append(
-                    "A digest failed, so the gate cannot compare it. Install requirements.txt. "
+                    "A digest failed, so the gate cannot compare it. The error is in the log. "
                     "The digests are in benchmarks/provenance.py."
                 )
             lines.append(
@@ -269,7 +274,12 @@ def current_digests() -> dict[str, str | None]:
     """The digests of this checkout. They import the agent code, so they need requirements.txt."""
     from benchmarks import provenance
 
-    return provenance.digests()
+    return provenance.digests(on_failure=print_digest_failure)
+
+
+def print_digest_failure(axis: str, error: Exception) -> None:
+    print(f"The {axis} digest failed:", file=sys.stderr)
+    traceback.print_exception(error, file=sys.stderr)
 
 
 def compare_digests(recorded: dict[str, str], current: dict[str, str | None]) -> tuple[Drift, ...]:
@@ -372,17 +382,21 @@ def _git(*args: str, strip: bool = True) -> str | None:
 
 def _main() -> int:
     """The CI entry point. The digests import the agent code, so CI installs requirements.txt."""
-    import sys
+    import argparse
 
-    args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    strict = "--strict" in sys.argv
-    if args:
-        changed = args
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("paths", nargs="*", help="changed paths, default stdin or a git diff")
+    parser.add_argument("--against", default=DEFAULT_BASE_REF, help="the base ref of the change")
+    parser.add_argument("--strict", action="store_true", help="exit non-zero when a re-baseline is missing")
+    args = parser.parse_args()
+
+    if args.paths:
+        changed = args.paths
     elif not sys.stdin.isatty():
         changed = [line.strip() for line in sys.stdin if line.strip()]
     else:
         diff = subprocess.run(
-            ("git", "diff", "--name-only", "origin/main...HEAD"),
+            ("git", "diff", "--name-only", f"{args.against}...HEAD"),
             capture_output=True,
             text=True,
             check=False,
@@ -390,12 +404,12 @@ def _main() -> int:
         if diff.returncode != 0:
             print(
                 "Could not work out what changed, so this gate proves nothing:\n"
-                + (diff.stderr.strip() or "git diff origin/main...HEAD failed"),
+                + (diff.stderr.strip() or f"git diff {args.against}...HEAD failed"),
                 file=sys.stderr,
             )
             return 1
         changed = [line for line in diff.stdout.splitlines() if line.strip()]
-    return report(changed, strict=strict, before=git_reader("origin/main"))
+    return report(changed, strict=args.strict, before=git_reader(args.against))
 
 
 if __name__ == "__main__":

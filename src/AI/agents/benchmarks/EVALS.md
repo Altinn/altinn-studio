@@ -231,7 +231,8 @@ It reads the diff and matches it against the declaration below. It also computes
 `BASELINE.json`. It fails when a change moves what is measured without a new
 `BASELINE.json`, or when the digests of the checkout are not equal to the baseline. It needs
 no secrets. It installs `requirements.txt`, because the digests import the agent code. If a
-digest fails, the gate fails, so a broken dependency cannot make the gate pass.
+digest fails, the gate fails, so a broken dependency cannot make the gate pass. The gate
+writes the error of a failed digest to the job log.
 
 Three reasons the pipeline does not run the bench.
 
@@ -313,8 +314,10 @@ did not record, is not equal. The difference can come from this change, or from 
 change on main. In both cases `runner check` refuses the comparison, so the gate fails.
 
 For the path rules, the gate compares the Python AST of a changed `.py` file with the file at
-the merge base. If only module or function docstrings, comments or formatting change, the
-file moves no axis. A change to a class docstring moves the axis, because pydantic copies it
+the merge base of HEAD and the base ref. The base ref is `origin/main`, or the `--against`
+value. CI gives the base of the pull request, so a pull request that targets another branch is
+compared with that branch. If only module or function docstrings, comments or formatting
+change, the file moves no axis. A change to a class docstring moves the axis, because pydantic copies it
 into the input schema of a tool.
 
 A test asserts every declared path still exists, so a rule cannot rot into one that

@@ -147,7 +147,7 @@ class TestTheDigestsDecideForThePromptAndTheTools:
         code, said = self._report(capsys, {**self.RECORDED, "actor_prompt": None})
         assert code == 1
         assert "actor_prompt  baseline aaaaaaaaaaaa, this checkout failed" in said
-        assert "Install requirements.txt" in said
+        assert "The error is in the log" in said
 
     def test_a_digest_the_baseline_did_not_record_is_not_equal(self):
         """`runner check` refuses an axis that one side did not record."""
@@ -508,6 +508,23 @@ def test_a_judge_prompt_in_a_subdirectory_still_moves_the_axis():
     assert [h.axis for h in hits] == ["prompts"]
 
 
+def test_the_gate_writes_the_error_of_a_failed_digest(monkeypatch, capsys):
+    """Without the error, the job log does not say why the digest failed."""
+    from benchmarks import provenance
+
+    def fail():
+        raise ImportError("cannot import name '_build_registry'")
+
+    monkeypatch.setitem(provenance.DIGEST_HASHERS, "tools", fail)
+
+    measured = provenance.digests(on_failure=impact.print_digest_failure)
+
+    error = capsys.readouterr().err
+    assert measured["tools"] is None
+    assert "The tools digest failed:" in error
+    assert "ImportError: cannot import name '_build_registry'" in error
+
+
 def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
     """xargs split a long list across several runs, so each saw part of the change."""
     import io
@@ -518,6 +535,33 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
 
     assert impact._main() == 1
     assert "evaluators" in capsys.readouterr().out
+
+
+def test_the_gate_reads_old_files_at_the_given_base_ref(monkeypatch):
+    """A pull request that targets another branch must not be compared with main."""
+    import io
+
+    used = []
+    monkeypatch.setattr("sys.argv", ["impact", "--strict", "--against", "feature-a"])
+    monkeypatch.setattr(impact, "git_reader", lambda against: used.append(against))
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/README.md\n"))
+
+    impact._main()
+
+    assert used == ["feature-a"]
+
+
+def test_the_gate_reads_old_files_at_origin_main_by_default(monkeypatch):
+    import io
+
+    used = []
+    monkeypatch.setattr("sys.argv", ["impact"])
+    monkeypatch.setattr(impact, "git_reader", lambda against: used.append(against))
+    monkeypatch.setattr("sys.stdin", io.StringIO("src/AI/agents/README.md\n"))
+
+    impact._main()
+
+    assert used == [impact.DEFAULT_BASE_REF]
 
 
 class TestOnlyTheCodeTheActorSeesCounts:
