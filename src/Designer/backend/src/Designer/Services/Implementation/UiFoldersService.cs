@@ -636,12 +636,20 @@ public class UiFoldersService : IUiFoldersService
             sourceLayoutSetId,
             cancellationToken
         );
-        List<PageLayout> sourcePages = await GetPageLayouts(
-            altinnAppGitRepository,
-            sourceLayoutSetId,
-            sourceLayoutSettings,
-            cancellationToken
-        );
+        List<PageLayout> sourcePages;
+        try
+        {
+            sourcePages = await GetPageLayouts(
+                altinnAppGitRepository,
+                sourceLayoutSetId,
+                sourceLayoutSettings,
+                cancellationToken
+            );
+        }
+        catch (FileNotFoundException)
+        {
+            sourcePages = [];
+        }
         JsonObject sourceComponent =
             sourcePages
                 .SelectMany(GetSubformComponentsOnPage)
