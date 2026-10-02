@@ -31,22 +31,30 @@ describe('Person lookup component', () => {
     // Type invalid SSN
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).type('123456789');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.findByText(/fødselsnummeret\/d-nummeret er ugyldig./i).should('exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(/fødselsnummeret\/d-nummeret er ugyldig./i)
+      .should('exist');
 
     // Type valid SSN
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).clear();
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).type('08829698278');
     cy.findByRole('textbox', { name: /Fødselsnummer/i }).blur();
-    cy.findByText(/fødselsnummeret\/d-nummeret er ugyldig./i).should('not.exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(/fødselsnummeret\/d-nummeret er ugyldig./i)
+      .should('not.exist');
 
     // Try to get info without setting a surname
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
-    cy.findByText(/Etternavn kan ikke være tomt/i).should('exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(/Etternavn kan ikke være tomt/i)
+      .should('exist');
 
     // Type valid surname
     cy.findByRole('textbox', { name: /Etternavn/i }).type('Test');
     cy.findByRole('textbox', { name: /Etternavn/i }).blur();
-    cy.findByText(/Etternavn kan ikke være tomt/i).should('not.exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(/Etternavn kan ikke være tomt/i)
+      .should('not.exist');
 
     // Fetch person successfully
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
@@ -68,9 +76,11 @@ describe('Person lookup component', () => {
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.wait('@failedToGetPerson');
 
-    cy.findByText(
-      /Ingen person er registrert med denne kombinasjonen av fødselsnummer\/D-nummer og navn. Vennligst kontroller feltene og prøv igjen./i,
-    ).should('exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(
+        /Ingen person er registrert med denne kombinasjonen av fødselsnummer\/D-nummer og navn. Vennligst kontroller feltene og prøv igjen./i,
+      )
+      .should('exist');
 
     cy.findByText(/Merk: Etter 3 feilforsøk kan søkemuligheten bli midlertidig sperret./i).should('exist');
 
@@ -83,7 +93,9 @@ describe('Person lookup component', () => {
     cy.findByRole('textbox', { name: /Etternavn/i }).type('{Enter}');
     cy.wait('@forbidden');
 
-    cy.findByText(/Ukjent feil. Vennligst prøv igjen senere./i).should('exist');
+    cy.get('[data-componentid="personLookup"]')
+      .findByText(/Ukjent feil. Vennligst prøv igjen senere./i)
+      .should('exist');
 
     cy.changeLayout((component) => {
       if (component.type === 'PersonLookup') {
