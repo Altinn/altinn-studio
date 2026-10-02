@@ -121,9 +121,30 @@ internal sealed class BootstrapGlobalService(
                 return null;
             case Authenticated.User user:
             {
-                var details = await user.LoadDetails(validateSelectedParty: true);
-                if (details.CanRepresent is null)
-                    throw new Exception("Couldn't validate selected party");
+                // The selected party comes from a cookie the user controls. Only return it once the user is confirmed
+                // to represent it, so the page never carries details of a party the user has no access to. Without a
+                // selected party, the party selection page tells the user to choose a party they can represent.
+                Authenticated.User.Details details;
+                try
+                {
+                    details = await user.LoadDetails(validateSelectedParty: true);
+                }
+                catch (AuthenticationContextException e)
+                {
+                    _logger.LogWarning(e, "Could not load the selected party {PartyId}", user.SelectedPartyId);
+                    return null;
+                }
+
+                if (details.CanRepresent is not true)
+                {
+                    _logger.LogWarning(
+                        "User {UserId} is not confirmed to represent the selected party {PartyId}",
+                        user.UserId,
+                        user.SelectedPartyId
+                    );
+                    return null;
+                }
+
                 return details.SelectedParty;
             }
             case Authenticated.Org org:

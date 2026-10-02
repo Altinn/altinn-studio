@@ -247,16 +247,17 @@ public class HomeController : Controller
             return null;
         }
 
-        // Don't redirect if the user is already on a party-selection or instance route
+        // Don't redirect if the user is already on a party-selection route
         var path = HttpContext.Request.Path.Value ?? "";
         if (
             path.Contains("/party-selection/", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith("/party-selection", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/instance/", StringComparison.OrdinalIgnoreCase)
         )
         {
             return null;
         }
+
+        var isInstanceRoute = path.Contains("/instance/", StringComparison.OrdinalIgnoreCase);
 
         ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
@@ -284,6 +285,12 @@ public class HomeController : Controller
         if (details.CanRepresent is null or false)
         {
             return Redirect($"/{_appId.Org}/{_appId.App}/party-selection/403");
+        }
+
+        // An instance already belongs to a party, so there is no party to choose for it
+        if (isInstanceRoute)
+        {
+            return null;
         }
 
         // If no valid parties, redirect to party-selection error

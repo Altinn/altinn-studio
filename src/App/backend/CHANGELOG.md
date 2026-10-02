@@ -36,6 +36,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
+- Opening an app, or a link to an instance, while the selected party is one you cannot represent now always leads to the party selection page, which no longer shows that party's name. ([#17580](https://github.com/Altinn/altinn-studio/issues/17580))
 
 ### Removed
 
