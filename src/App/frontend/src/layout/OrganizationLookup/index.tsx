@@ -1,12 +1,13 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import type { ComponentValidationContext, PropsFromGenericComponent } from '..';
+import type { ComponentValidationContext, PropsFromGenericComponent, ValidateComponent } from '..';
 
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { OrganizationLookupDef } from 'src/layout/OrganizationLookup/config.def.generated';
 import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 import { OrganizationLookupSummary } from 'src/layout/OrganizationLookup/OrganizationLookupSummary';
+import { validateOrganizationLookup } from 'src/layout/OrganizationLookup/validation';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
@@ -15,7 +16,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class OrganizationLookup extends OrganizationLookupDef {
+export class OrganizationLookup extends OrganizationLookupDef implements ValidateComponent<'OrganizationLookup'> {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'OrganizationLookup'>>(
     function LayoutComponentOrganizationLookupRender(props, _): JSX.Element | null {
       return <OrganizationLookupComponent {...props} />;
@@ -41,6 +42,10 @@ export class OrganizationLookup extends OrganizationLookupDef {
 
   validateEmptyField(ctx: ComponentValidationContext<'OrganizationLookup'>): ComponentValidation[] {
     return validateEmptyFieldOnlyOneBinding(ctx, 'orgnr', 'organization_lookup.error_required');
+  }
+
+  validateComponent(ctx: ComponentValidationContext<'OrganizationLookup'>): ComponentValidation[] {
+    return validateOrganizationLookup(ctx);
   }
 
   validateDataModelBindings(

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import {
   Button,
@@ -12,81 +12,25 @@ import {
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Field } from '@digdir/designsystemet-react';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { queryOptions, useQuery } from '@tanstack/react-query';
 
+import { usePersonLookup } from 'src/core/queries/lookup';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useLookupInput } from 'src/features/lookup/LookupStore';
 import { ValidationMask } from 'src/features/validation';
 import { useOnComponentValidation } from 'src/features/validation/callbacks/onComponentValidation';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { lookupValidation } from 'src/layout/lookupValidation';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
-import { validatePersonLookupInput, validatePersonLookupResponse } from 'src/layout/PersonLookup/validation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { httpPost } from 'src/utils/network/networking';
-import { appPath } from 'src/utils/urls/appUrlHelper';
+import type { Person } from 'src/core/queries/lookup';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-const personLookupQueries = {
-  lookup: (ssn: string, name: string) =>
-    queryOptions({
-      queryKey: [{ scope: 'personLookup', ssn, name }],
-      queryFn: () => fetchPerson(ssn, name),
-      enabled: false,
-      gcTime: 0,
-    }),
-};
-
-export type Person = {
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  ssn: string;
-};
-export type PersonLookupResponse = { success: false; personDetails: null } | { success: true; personDetails: Person };
-
-async function fetchPerson(
-  ssn: string,
-  name: string,
-): Promise<{ person: Person; error: null } | { person: null; error: string }> {
-  if (!ssn || !name) {
-    throw new Error('Missing ssn or name');
-  }
-  const body = { socialSecurityNumber: ssn, lastName: name };
-  const url = `${appPath}/api/v1/lookup/person`;
-
-  try {
-    const response = await httpPost(url, undefined, body);
-    const data = response.data;
-
-    if (!validatePersonLookupResponse(data)) {
-      return { person: null, error: 'person_lookup.validation_invalid_response_from_server' };
-    }
-
-    if (!data.success) {
-      return { person: null, error: 'person_lookup.validation_error_not_found' };
-    }
-
-    return { person: data.personDetails, error: null };
-  } catch (error) {
-    if (error.response?.status === 403) {
-      return { person: null, error: 'person_lookup.validation_error_forbidden' };
-    }
-    if (error.response?.status === 429) {
-      return { person: null, error: 'person_lookup.validation_error_too_many_requests' };
-    }
-
-    return { person: null, error: 'person_lookup.unknown_error' };
-  }
-}
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
   const config = useComponentConfig(baseComponentId, 'PersonLookup');
@@ -99,9 +43,10 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     baseComponentId,
     overrideDisplay,
   });
-  const [tempSsn, setTempSsn] = useState('');
-  const [tempName, setTempName] = useState('');
-  const { updateValidations, validate } = useOnComponentValidation(baseComponentId);
+  const { input, setInput, clearInput } = useLookupInput(componentId);
+  const tempSsn = input?.type === 'PersonLookup' ? input.ssn : '';
+  const tempName = input?.type === 'PersonLookup' ? input.lastName : '';
+  const validate = useOnComponentValidation(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const ssnValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey === 'ssn');
   const nameValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey !== 'ssn');
@@ -113,43 +58,44 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
-  const { refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
+  const { lookup: performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
 
   async function handleSubmit() {
     if (readOnly || isFetching || ssn) {
       return;
     }
-    updateValidations(() => validatePersonLookupInput(tempSsn, tempName));
+    setInput({ type: 'PersonLookup', ssn: tempSsn, lastName: tempName });
     // Result bindings are still empty. Only validate the search inputs before the request.
     if ((await validate(ValidationMask.Component)).length) {
       return;
     }
 
-    const { data } = await performLookup();
-    if (data?.person) {
+    const { data, failure } = await performLookup();
+    if (data) {
       if (dataModelBindings.ssn) {
-        setValue('ssn', data.person.ssn);
+        setValue('ssn', data.ssn);
       }
       if (dataModelBindings.firstName) {
-        setValue('firstName', data.person.firstName);
+        setValue('firstName', data.firstName);
       }
       if (dataModelBindings.lastName) {
-        setValue('lastName', data.person.lastName);
+        setValue('lastName', data.lastName);
       }
       if (dataModelBindings.middleName) {
-        setValue('middleName', data.person.middleName || '');
+        setValue('middleName', data.middleName || '');
       }
       if (dataModelBindings.fullName) {
-        setValue('fullName', composeFullName(data.person));
+        setValue('fullName', composeFullName(data));
       }
+      clearInput();
       await validate();
-    } else if (data?.error) {
-      updateValidations(() => [lookupValidation(data.error)]);
+    } else {
+      setInput({ type: 'PersonLookup', ssn: tempSsn, lastName: tempName, failure });
       await validate(ValidationMask.Component);
     }
   }
 
-  function composeFullName({ firstName, middleName, lastName }) {
+  function composeFullName({ firstName, middleName, lastName }: Person) {
     return middleName ? `${firstName} ${middleName} ${lastName}` : `${firstName} ${lastName}`;
   }
 
@@ -170,9 +116,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
       setValue('fullName', '');
     }
 
-    setTempName('');
-    setTempSsn('');
-    updateValidations(() => []);
+    clearInput();
   }
 
   const displayName = useMemo(() => {
@@ -225,8 +169,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalidSsn}
               onValueChange={(e) => {
-                setTempSsn(e.value);
-                updateValidations((errors) => errors.filter((error) => error.bindingKey && error.bindingKey !== 'ssn'));
+                if (!e.value && !tempName) {
+                  clearInput();
+                } else {
+                  setInput({ type: 'PersonLookup', ssn: e.value, lastName: tempName });
+                }
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -273,8 +220,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalidName}
               onChange={(e) => {
-                setTempName(e.target.value);
-                updateValidations((errors) => errors.filter((error) => error.bindingKey === 'ssn'));
+                if (!tempSsn && !e.target.value) {
+                  clearInput();
+                } else {
+                  setInput({ type: 'PersonLookup', ssn: tempSsn, lastName: e.target.value });
+                }
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {

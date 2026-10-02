@@ -5,6 +5,7 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
+import { validatePersonLookup } from 'src/layout/PersonLookup/validation';
 import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
@@ -12,12 +13,13 @@ import type {
   ComponentValidationContext,
   DataModelBindingValidationContext,
   PropsFromGenericComponent,
+  ValidateComponent,
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
-export class PersonLookup extends PersonLookupDef {
+export class PersonLookup extends PersonLookupDef implements ValidateComponent<'PersonLookup'> {
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'PersonLookup');
     if (!formData) {
@@ -72,6 +74,10 @@ export class PersonLookup extends PersonLookupDef {
 
   validateEmptyField(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
     return validateEmptyFieldOnlyOneBinding(ctx, 'ssn');
+  }
+
+  validateComponent(ctx: ComponentValidationContext<'PersonLookup'>): ComponentValidation[] {
+    return validatePersonLookup(ctx);
   }
 
   validateDataModelBindings(

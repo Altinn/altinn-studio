@@ -61,30 +61,14 @@ export function createValidationSlice(
     formMask: 0,
     pageMasks: {},
     rowMasks: {},
-    components: {},
-    setComponentValidations: (key, update) =>
+    componentMasks: {},
+    setComponentValidationMask: (indexedId, mask) =>
       set((state) => {
-        const component = state.validation.components[key] ?? { validations: [], mask: 0 };
-        component.validations = update(component.validations);
-        if (component.validations.length || component.mask) {
-          state.validation.components[key] = component;
+        if (mask === undefined) {
+          delete state.validation.componentMasks[indexedId];
         } else {
-          delete state.validation.components[key];
+          state.validation.componentMasks[indexedId] = mask;
         }
-      }),
-    setComponentMask: (key, mask) =>
-      set((state) => {
-        const component = state.validation.components[key] ?? { validations: [], mask: 0 };
-        component.mask = mask ?? 0;
-        if (component.validations.length || component.mask) {
-          state.validation.components[key] = component;
-        } else {
-          delete state.validation.components[key];
-        }
-      }),
-    removeComponent: (key) =>
-      set((state) => {
-        delete state.validation.components[key];
       }),
     setFormMask: (mask) =>
       set((state) => {
@@ -348,6 +332,8 @@ export const validationHooks = {
   useSetFormValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setFormMask),
   useSetPageValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setPageMask),
   useSetRowValidationMask: () => FormStore.raw.useStaticSelector((state) => state.validation.setRowMask),
+  useSetComponentValidationMask: () =>
+    FormStore.raw.useStaticSelector((state) => state.validation.setComponentValidationMask),
   useUpdateBackendValidations: () =>
     FormStore.raw.useStaticSelector((state) => state.validation.updateBackendValidations),
 };

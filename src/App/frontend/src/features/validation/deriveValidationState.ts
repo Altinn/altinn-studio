@@ -213,10 +213,6 @@ function getRawValidationsForNode(
     makeComponentValidationContext(node, item, state, dataSources, instanceData, taskId),
   );
 
-  validations.push(
-    ...(state.validation.components?.[getComponentValidationKey(node.baseId, node.rowIds)]?.validations ?? emptyArray),
-  );
-
   for (const [bindingKey, reference] of bindings) {
     const dataModel = state.data.models[reference.dataType];
     if (!dataModel) {
@@ -254,7 +250,7 @@ function getVisibilityBreakdown(
     row |= state.validation.rowMasks[rowId] ?? 0;
   }
 
-  const component = state.validation.components?.[getComponentValidationKey(node.baseId, node.rowIds)]?.mask ?? 0;
+  const component = state.validation.componentMasks[node.id] ?? 0;
   return {
     initial,
     form,
@@ -263,11 +259,6 @@ function getVisibilityBreakdown(
     component,
     effective: initial | form | page | row | component,
   };
-}
-
-/** Uses row IDs so validation state follows its row when another row is removed. */
-export function getComponentValidationKey(baseId: string, rowIds: string[]): string {
-  return JSON.stringify([baseId, ...rowIds]);
 }
 
 function addToIndex(index: Map<string, string[]>, key: string, nodeId: string) {

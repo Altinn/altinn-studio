@@ -11,77 +11,30 @@ import {
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Field, Paragraph } from '@digdir/designsystemet-react';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { useOrganizationLookup } from 'src/core/queries/lookup';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useLookupInput } from 'src/features/lookup/LookupStore';
 import { ValidationMask } from 'src/features/validation';
 import { useOnComponentValidation } from 'src/features/validation/callbacks/onComponentValidation';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { lookupValidation } from 'src/layout/lookupValidation';
 import classes from 'src/layout/OrganizationLookup/OrganizationLookupComponent.module.css';
-import {
-  validateOrganizationLookupInput,
-  validateOrganizationLookupResponse,
-} from 'src/layout/OrganizationLookup/validation';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { httpGet } from 'src/utils/network/networking';
-import { appPath } from 'src/utils/urls/appUrlHelper';
-
-const orgLookupQueries = {
-  lookup: (orgNr: string) =>
-    queryOptions({
-      queryKey: [{ scope: 'organizationLookup', orgNr }],
-      queryFn: () => fetchOrg(orgNr),
-      enabled: false,
-      gcTime: 0,
-    }),
-};
 
 const LIVE_REGION_RESET_DELAY_MS = 100;
-
-export type Organization = {
-  orgNr: string;
-  name: string;
-};
-export type OrganizationLookupResponse =
-  { success: false; organisationDetails: null } | { success: true; organisationDetails: Organization };
-
-async function fetchOrg(orgNr: string): Promise<{ org: Organization; error: null } | { org: null; error: string }> {
-  if (!orgNr) {
-    throw new Error('orgNr is required');
-  }
-  const url = `${appPath}/api/v1/lookup/organisation/${orgNr}`;
-
-  try {
-    const response = await httpGet(url);
-
-    if (!validateOrganizationLookupResponse(response)) {
-      return { org: null, error: 'organization_lookup.validation_invalid_response_from_server' };
-    }
-
-    if (!response.success || !response.organisationDetails) {
-      return { org: null, error: 'organization_lookup.validation_error_not_found' };
-    }
-
-    return { org: response.organisationDetails, error: null };
-  } catch {
-    return { org: null, error: 'organization_lookup.unknown_error' };
-  }
-}
 
 export function OrganizationLookupComponent({
   baseComponentId,
@@ -97,8 +50,9 @@ export function OrganizationLookupComponent({
     baseComponentId,
     overrideDisplay,
   });
-  const [tempOrgNr, setTempOrgNr] = useState('');
-  const { updateValidations, validate } = useOnComponentValidation(baseComponentId);
+  const { input, setInput, clearInput } = useLookupInput(componentId);
+  const tempOrgNr = input?.type === 'OrganizationLookup' ? input.orgNr : '';
+  const validate = useOnComponentValidation(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const [statusMessage, setStatusMessage] = useState('');
   const statusRef = useRef<HTMLDivElement>(null);
@@ -113,7 +67,7 @@ export function OrganizationLookupComponent({
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const pickFormValue = FormStore.data.useCurrentSelector();
 
-  const { refetch: performLookup, isFetching } = useQuery(orgLookupQueries.lookup(tempOrgNr));
+  const { lookup: performLookup, isFetching } = useOrganizationLookup(tempOrgNr);
 
   function announceStatusMessage(message: string) {
     setStatusMessage('');
@@ -157,31 +111,31 @@ export function OrganizationLookupComponent({
     if (readOnly || isFetching || orgnr) {
       return;
     }
-    updateValidations(() => validateOrganizationLookupInput(tempOrgNr));
+    setInput({ type: 'OrganizationLookup', orgNr: tempOrgNr });
     const errors = await validate(ValidationMask.Component);
     if (errors.length) {
       announceStatusMessage(errors.map((error) => langAsString(error.message.key)).join(' '));
       return;
     }
 
-    const { data } = await performLookup();
-    if (data?.org) {
-      setValue('orgnr', data.org.orgNr);
-      dataModelBindings.name && setValue('name', data.org.name);
+    const { data, failure } = await performLookup();
+    if (data) {
+      setValue('orgnr', data.orgNr);
+      dataModelBindings.name && setValue('name', data.name);
+      clearInput();
       await validate();
-      announceOrgDetails(data.org.orgNr);
-    } else if (data?.error) {
-      updateValidations(() => [lookupValidation(data.error)]);
-      await validate(ValidationMask.Component);
-      announceStatusMessage(langAsString(data.error));
+      announceOrgDetails(data.orgNr);
+    } else {
+      setInput({ type: 'OrganizationLookup', orgNr: tempOrgNr, failure });
+      const errors = await validate(ValidationMask.Component);
+      announceStatusMessage(errors.map((error) => langAsString(error.message.key)).join(' '));
     }
   }
 
   function handleClear() {
     setValue('orgnr', '');
     dataModelBindings.name && setValue('name', '');
-    setTempOrgNr('');
-    updateValidations(() => []);
+    clearInput();
     setStatusMessage('');
   }
 
@@ -225,8 +179,11 @@ export function OrganizationLookupComponent({
               readOnly={hasSuccessfullyFetched || isFetching || readOnly}
               error={invalid}
               onValueChange={(e) => {
-                setTempOrgNr(e.value);
-                updateValidations(() => []);
+                if (e.value) {
+                  setInput({ type: 'OrganizationLookup', orgNr: e.value });
+                } else {
+                  clearInput();
+                }
                 setStatusMessage('');
               }}
               onKeyDown={async (ev) => {

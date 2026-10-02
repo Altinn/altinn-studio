@@ -1,39 +1,8 @@
-import { Ajv, type JSONSchemaType } from 'ajv';
-import adderrors from 'ajv-errors';
-
+import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { lookupValidation } from 'src/layout/lookupValidation';
+import type { LookupFailure } from 'src/core/queries/lookup';
 import type { ComponentValidation } from 'src/features/validation';
-import type {
-  Organization,
-  OrganizationLookupResponse,
-} from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
-
-const ajv = new Ajv({ allErrors: true });
-adderrors(ajv);
-
-ajv.addKeyword({
-  keyword: 'isValidOrgNr',
-  type: 'string',
-  validate: (_, data: string) => {
-    if (typeof data !== 'string') {
-      return false;
-    }
-
-    return checkValidOrgnNr(data);
-  },
-});
-
-const orgNrSchema: JSONSchemaType<Pick<Organization, 'orgNr'>> = {
-  type: 'object',
-  properties: {
-    orgNr: {
-      type: 'string',
-      isValidOrgNr: true,
-      errorMessage: 'organization_lookup.validation_error_orgnr',
-    },
-  },
-  required: ['orgNr'],
-};
+import type { ComponentValidationContext } from 'src/layout';
 
 export function checkValidOrgnNr(orgNr: string): boolean {
   if (orgNr.length !== 9 || !/^\d{9}$/.test(orgNr)) {
@@ -55,40 +24,34 @@ export function checkValidOrgnNr(orgNr: string): boolean {
   return calculated_k1 === k1;
 }
 
-export const validateOrgnr = ajv.compile(orgNrSchema);
-
 const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
-const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupResponse> = {
-  type: 'object',
-  oneOf: [
-    {
-      properties: {
-        success: { const: false },
-        organisationDetails: { type: 'null' },
-      },
-      required: ['success', 'organisationDetails'],
-    },
-    {
-      properties: {
-        success: { const: true },
-        organisationDetails: {
-          type: 'object',
-          properties: {
-            orgNr: { type: 'string' },
-            name: { type: 'string' },
-          },
-          required: ['orgNr', 'name'],
-        },
-      },
-      required: ['success', 'organisationDetails'],
-    },
-  ],
-  required: ['success', 'organisationDetails'],
+const failureMessages: Record<LookupFailure, string> = {
+  notFound: 'organization_lookup.validation_error_not_found',
+  invalidResponse: 'organization_lookup.validation_invalid_response_from_server',
+  forbidden: 'organization_lookup.unknown_error',
+  tooManyRequests: 'organization_lookup.unknown_error',
+  unknown: 'organization_lookup.unknown_error',
 };
 
-export const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);
+export function validateOrganizationLookup(
+  ctx: ComponentValidationContext<'OrganizationLookup'>,
+): ComponentValidation[] {
+  const bindings = ctx.component.dataModelBindings;
+  const savedOrgNr = readDataFromState(ctx.formState, bindings?.orgnr);
+  const validations: ComponentValidation[] = [];
+  if (savedOrgNr && !checkValidOrgnNr(String(savedOrgNr))) {
+    validations.push(lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr'));
+  }
 
-export function validateOrganizationLookupInput(orgNr: string): ComponentValidation[] {
-  return checkValidOrgnNr(orgNr) ? [] : [lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr')];
+  const input = ctx.formState.lookup.inputs[ctx.indexedId];
+  if (input?.type === 'OrganizationLookup' && !savedOrgNr) {
+    if (!checkValidOrgnNr(input.orgNr)) {
+      validations.push(lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr'));
+    }
+    if (input.failure) {
+      validations.push(lookupValidation(failureMessages[input.failure]));
+    }
+  }
+  return validations;
 }
