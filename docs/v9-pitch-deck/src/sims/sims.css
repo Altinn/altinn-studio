@@ -1,0 +1,467 @@
+/* ---------------------------------------------------------------
+   Scenarios. Every size is ABSOLUTE px on the 1920x1080 canvas
+   (see src/styles/tokens.css) — the Stage transform does the rest.
+
+   One template: the same accident told side by side, v8 on the left
+   and v9 on the right, each column holding the phone Kari is holding
+   and the list of what happens to her. One press lands the next line
+   on both sides; a last press shows the two outcomes.
+
+   Colours come only from design tokens. Every tone is *mixed against
+   the theme's own ink* (`--text-100`), so one rule set reads correctly
+   on a dark ground and on a light one. No literals, no glows, no
+   shadows.
+   --------------------------------------------------------------- */
+
+/* ===== Tone palette =========================================== */
+/* Components carry a `--<tone>` class suffix; these scoped substring
+   selectors hand them a local colour set. Scoped to `.sim` so they can
+   never reach into slide or deck components.                         */
+
+.sim {
+  --ink: var(--text-100);
+  --ink-2: var(--text-200);
+  --ink-3: var(--text-300);
+  --ink-4: var(--text-400);
+
+  /* Height of one row in the action list. */
+  --alog-row: 66px;
+}
+
+.sim [class*='--neutral'] {
+  --t: var(--ink);
+  --t-bg: color-mix(in srgb, var(--ink) 7%, transparent);
+  --t-line: color-mix(in srgb, var(--ink) 24%, transparent);
+  --t-soft: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.sim [class*='--muted'] {
+  --t: var(--ink-4);
+  --t-bg: color-mix(in srgb, var(--ink) 4%, transparent);
+  --t-line: color-mix(in srgb, var(--ink) 14%, transparent);
+  --t-soft: color-mix(in srgb, var(--ink-4) 60%, transparent);
+}
+
+.sim [class*='--accent'] {
+  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--blue-500) 13%, transparent);
+  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
+  --t-soft: color-mix(in srgb, var(--t) 62%, transparent);
+}
+
+.sim [class*='--success'] {
+  --t: color-mix(in srgb, var(--success) 76%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--success) 14%, transparent);
+  --t-line: color-mix(in srgb, var(--success) 50%, transparent);
+  --t-soft: color-mix(in srgb, var(--t) 62%, transparent);
+}
+
+.sim [class*='--warning'] {
+  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--warning) 15%, transparent);
+  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
+  --t-soft: color-mix(in srgb, var(--t) 62%, transparent);
+}
+
+.sim [class*='--danger'] {
+  --t: color-mix(in srgb, var(--danger) 76%, var(--ink));
+  --t-bg: color-mix(in srgb, var(--danger) 15%, transparent);
+  --t-line: color-mix(in srgb, var(--danger) 52%, transparent);
+  --t-soft: color-mix(in srgb, var(--t) 62%, transparent);
+}
+
+/* Blue belongs to v9. A busy screen on the left is just busy, so the left
+   column spends the accent tone as plain ink — otherwise the eye reads «the
+   good path» on the wrong side of the stage. */
+.sim .pane--v8 [class*='--accent'] {
+  --t: var(--ink-3);
+  --t-bg: color-mix(in srgb, var(--ink) 7%, transparent);
+  --t-line: color-mix(in srgb, var(--ink) 26%, transparent);
+  --t-soft: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+/* ===== Frame ================================================== */
+
+.sim {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  height: 100%;
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+/* ---- Both tellings, side by side ---- */
+
+.scn__body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.scn__pair {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+}
+
+.scn__col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 26px 30px;
+  border-radius: var(--r-md);
+  border: 3px solid var(--t-line);
+  background: color-mix(in srgb, var(--t) 5%, transparent);
+}
+
+.scn__col--v8 {
+  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
+  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
+}
+
+.scn__col--v9 {
+  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
+  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
+}
+
+.scn__col-title {
+  font-size: 34px;
+  font-weight: var(--fw-bold);
+  color: var(--t);
+}
+
+.scn__col-body {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+
+/* The phone and the rows are smaller than the one-column stage: two of each
+   share the width now. */
+.scn__col .scr {
+  width: 250px;
+  height: 400px;
+}
+
+.scn__col .scr__body {
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.scn__col .scr__glyph {
+  width: 50px;
+  height: 50px;
+}
+
+.scn__col .scr__head {
+  font-size: 26px;
+}
+
+.scn__col .scr__sub {
+  font-size: 20px;
+}
+
+.scn__col .scr__btn {
+  font-size: 21px;
+  padding: 6px 20px;
+}
+
+.scn__col .alist {
+  gap: 10px;
+}
+
+.scn__col .arow {
+  flex-basis: 58px;
+  column-gap: 12px;
+  padding: 0 14px 0 12px;
+  border-left-width: 5px;
+}
+
+.scn__col .arow__text {
+  font-size: 24px;
+}
+
+.scn__col .arow__spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 3px;
+}
+
+/* ===== The phone ============================================== */
+
+.scr {
+  display: flex;
+  flex-direction: column;
+  width: 480px;
+  height: 560px;
+  border: 3px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.scr__chrome {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
+  border-bottom: 2px solid var(--line-soft);
+  background: var(--surface-2);
+  color: var(--ink-4);
+  font-size: 21px;
+  font-weight: var(--fw-semibold);
+}
+
+.scr__url {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scr__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 28px 36px;
+  text-align: center;
+}
+
+.scr__glyph {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-sm);
+  border: 2px solid var(--t-line);
+  background: var(--t-bg);
+  color: var(--t);
+}
+
+.scr__head {
+  font-size: 38px;
+  font-weight: var(--fw-bold);
+  line-height: 1.15;
+  letter-spacing: var(--tracking-snug);
+  color: var(--t);
+  text-wrap: balance;
+}
+
+.scr__sub {
+  font-size: 27px;
+  line-height: 1.25;
+  color: var(--ink-4);
+  text-wrap: pretty;
+}
+
+.scr__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.scr__spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 4px solid color-mix(in srgb, var(--t) 30%, transparent);
+  border-top-color: var(--t);
+  animation: sim-spin 0.9s linear infinite;
+}
+
+@keyframes sim-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* SOLID on purpose: «Send inn» is the one solid blue block on slide 1, and the
+   room has to read this as the button Kari presses, not as a label. */
+.scr__btn {
+  margin-top: 8px;
+  padding: 10px 36px;
+  border-radius: var(--r-sm);
+  background: var(--blue-500);
+  color: var(--text-on-dark);
+  font-size: 28px;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+/* ===== The action list ======================================== */
+
+.alist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.arow {
+  flex: 0 0 var(--alog-row);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 18px;
+  padding: 0 20px 0 16px;
+  border-radius: var(--r-sm);
+  border-left: 6px solid var(--t-line);
+  background: var(--t-bg);
+}
+
+.arow__mark {
+  display: grid;
+  place-items: center;
+  color: var(--t);
+}
+
+.arow__text {
+  min-width: 0;
+  font-size: 34px;
+  font-weight: var(--fw-medium);
+  line-height: 1.15;
+  color: var(--t);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arow.is-ok .arow__text,
+.arow.is-fail .arow__text {
+  font-weight: var(--fw-semibold);
+}
+
+.arow__spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 4px solid color-mix(in srgb, var(--t) 30%, transparent);
+  border-top-color: var(--t);
+  animation: sim-spin 0.9s linear infinite;
+}
+
+/* A row that was running when it landed, once a later beat has moved past it. */
+.arow__past {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--t-soft);
+}
+
+/* ===== The comparison ========================================= */
+
+.scn__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100%;
+}
+
+.scn__cmp {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.scn__card {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 36px;
+  row-gap: 18px;
+  padding: 26px 30px;
+  border-radius: var(--r-md);
+  border: 3px solid var(--t-line);
+  background: color-mix(in srgb, var(--t) 6%, transparent);
+}
+
+.scn__card--v8 {
+  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
+  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
+}
+
+.scn__card--v9 {
+  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
+  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
+}
+
+.scn__card-title {
+  grid-column: 1 / -1;
+  font-size: 34px;
+  font-weight: var(--fw-bold);
+  color: var(--t);
+}
+
+/* The phone again, smaller: the room has already seen it full size. */
+.scn__card .scr {
+  width: 300px;
+  height: 380px;
+}
+
+.scn__card .scr__head {
+  font-size: 28px;
+}
+
+.scn__card .scr__sub {
+  font-size: 21px;
+}
+
+.scn__card .scr__btn {
+  font-size: 22px;
+  padding: 6px 22px;
+}
+
+.scn__card-outcome {
+  align-self: center;
+  font-size: 36px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.scn__takeaway {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 36px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+.scn__takeaway.is-placeholder {
+  visibility: hidden;
+}
+
+.scn__takeaway-rule {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 6px;
+  border-radius: var(--r-sm);
+  background: var(--blue-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arow__spinner,
+  .scr__spinner {
+    animation: none;
+  }
+}
