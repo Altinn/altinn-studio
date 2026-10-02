@@ -9,6 +9,12 @@ namespace Altinn.Studio.Gateway.Api.Authentication;
 
 internal static class MaskinportenAuthenticationExtensions
 {
+    /// <summary>
+    /// Naming convention for the per-metadata-address JWT bearer schemes: the prefix followed
+    /// by the index of the metadata address that backs the scheme.
+    /// </summary>
+    internal const string SchemeNamePrefix = "Maskinporten_";
+
     private const string ScopeClaimType = "scope";
 
     public static WebApplicationBuilder AddMaskinportenAuthentication(this WebApplicationBuilder builder)
@@ -38,7 +44,7 @@ internal static class MaskinportenAuthenticationExtensions
         for (var i = 0; i < settings.MetadataAddresses.Length; i++)
         {
             var metadataAddress = settings.MetadataAddresses[i];
-            var schemeName = $"Maskinporten_{i}";
+            var schemeName = $"{SchemeNamePrefix}{i}";
             schemeNames.Add(schemeName);
 
             var requireHttpsMetadata = !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
