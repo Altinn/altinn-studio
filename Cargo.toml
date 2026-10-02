@@ -26,11 +26,11 @@ futures-util = "0.3.34"
 flate2 = "1.1.9"
 ignore = "0.4.33"
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
-# Microsandbox fork commit from `main-digdir`, tagged `digdir-source-v0.7.4-digdir.1-altinn` on top of the
-# `digdir-v0.7.4-digdir.1` runtime release; update all three revisions together.
-microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "7dcc20301d97c0463ac8fd31dc1f592e4849db36", default-features = false, features = ["local", "net"] }
-microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "7dcc20301d97c0463ac8fd31dc1f592e4849db36", package = "microsandbox-image" }
-microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "7dcc20301d97c0463ac8fd31dc1f592e4849db36", package = "microsandbox-network" }
+# Microsandbox fork commit from `main-digdir`, tagged `digdir-v0.7.4-digdir.2`.
+# Update all three revisions together with the runtime bundle digests.
+microsandbox = { git = "https://github.com/martinothamar/microsandbox.git", rev = "c3a16753edba0ad4b21844ccd50ce7b615e43f84", default-features = false, features = ["local", "net"] }
+microsandbox-image = { git = "https://github.com/martinothamar/microsandbox.git", rev = "c3a16753edba0ad4b21844ccd50ce7b615e43f84", package = "microsandbox-image" }
+microsandbox-network = { git = "https://github.com/martinothamar/microsandbox.git", rev = "c3a16753edba0ad4b21844ccd50ce7b615e43f84", package = "microsandbox-network" }
 mimalloc = "0.1.52"
 ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["json"] }
