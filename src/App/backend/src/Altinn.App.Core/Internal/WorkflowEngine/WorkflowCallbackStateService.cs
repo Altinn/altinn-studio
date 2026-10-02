@@ -155,6 +155,8 @@ internal sealed class WorkflowCallbackStateService
             byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(entry.Data);
             object model = _modelSerializationService.DeserializeJson(jsonBytes, modelType);
             IFormDataWrapper wrapper = FormDataWrapperFactory.Create(model, dataType, dataElement);
+            // The carried state may come from before a deploy that changed a fixed value
+            wrapper.RestoreFixedValues();
 
             (ReadOnlyMemory<byte> storageBytes, _) = _modelSerializationService.SerializeToStorage(
                 model,

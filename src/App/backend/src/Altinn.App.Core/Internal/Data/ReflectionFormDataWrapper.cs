@@ -114,6 +114,12 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     }
 
     /// <inheritdoc />
+    public IReadOnlyList<FixedValueError> RestoreFixedValues()
+    {
+        return ObjectUtils.RestoreFixedValues(_dataModel);
+    }
+
+    /// <inheritdoc />
     public void PrepareModelForXmlStorage()
     {
         ObjectUtils.PrepareModelForXmlStorage(_dataModel);
