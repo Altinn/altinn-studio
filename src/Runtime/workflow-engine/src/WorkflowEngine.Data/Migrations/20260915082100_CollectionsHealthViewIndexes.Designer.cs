@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Context;
@@ -11,9 +12,11 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    partial class EngineDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915082100_CollectionsHealthViewIndexes")]
+    partial class CollectionsHealthViewIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -482,10 +485,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<int>("ReclaimCount")
                         .HasColumnType("integer")
                         .HasColumnName("reclaim_count");
-
-                    b.Property<DateTimeOffset?>("ResumedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("resumed_at");
 
                     b.Property<DateTimeOffset?>("StartAt")
                         .HasColumnType("timestamp with time zone")
