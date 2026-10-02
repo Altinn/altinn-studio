@@ -1,19 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
-using Altinn.Studio.Gateway.Contracts.Deploy;
 
 namespace Altinn.Studio.Gateway.Api.Application;
 
 internal static class HelmReleaseMapping
 {
-    public static bool TryCreateAppDeployment(
+    public static bool TryGetDeploymentMetadata(
         HelmRelease helmRelease,
-        string targetEnvironment,
-        [NotNullWhen(true)] out AppDeployment? deployment,
+        [NotNullWhen(true)] out DeploymentMetadata? metadata,
         [NotNullWhen(false)] out string? error
     )
     {
-        deployment = null;
+        metadata = null;
         error = null;
 
         var labels = helmRelease.GetLabels();
@@ -29,14 +27,9 @@ internal static class HelmReleaseMapping
             return false;
         }
 
-        var imageTag = helmRelease.GetImageTag();
-        if (imageTag is null)
-        {
-            error = "HelmRelease is missing image tag.";
-            return false;
-        }
-
-        deployment = new AppDeployment(org, targetEnvironment, app, sourceEnv, buildId, imageTag);
+        metadata = new DeploymentMetadata(org, app, sourceEnv, buildId);
         return true;
     }
+
+    internal sealed record DeploymentMetadata(string Org, string App, string SourceEnvironment, string BuildId);
 }
