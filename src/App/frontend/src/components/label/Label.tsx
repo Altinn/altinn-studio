@@ -12,6 +12,7 @@ import classes from 'src/components/label/Label.module.css';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import type { LabelContentProps } from 'src/components/label/LabelContent';
@@ -53,7 +54,7 @@ export function LabelInner(props: LabelInnerProps) {
   } = props;
 
   const overrideItemProps = useFormComponentCtx()?.overrideItemProps;
-  const required = useEvalExpression(
+  const evaluatedRequired = useEvalExpression(
     overrideItemProps && 'required' in overrideItemProps
       ? overrideItemProps.required
       : 'required' in config
@@ -61,6 +62,7 @@ export function LabelInner(props: LabelInnerProps) {
         : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const required = getRequired(config.type, evaluatedRequired);
   const readOnly = useEvalExpression(
     overrideItemProps && 'readOnly' in overrideItemProps
       ? overrideItemProps.readOnly

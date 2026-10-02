@@ -6,6 +6,7 @@ import {
   ILikertColumnProperties,
   ISelectionComponent,
   ISummaryOverridesCommon,
+  LabeledComponentProps,
   SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -16,6 +17,7 @@ export interface CompLikertExternal
     SummarizableComponentProps,
     ISelectionComponent,
     FormComponentProps,
+    LabeledComponentProps,
     ILikertColumnProperties {
   type: 'Likert';
   textResourceBindings?: {
@@ -66,4 +68,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: f186d9c471a8af1f0fedfad7fe2c371cd2341cb8abcc088c70538f3c59406473
+// Source hash: 668578f964b13d41565f2d14c88597527531375c74c01291295ac62cb32fb40d

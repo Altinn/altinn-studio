@@ -36,14 +36,25 @@ describe('LabelContent', () => {
     expect(screen.getByText('Required')).toBeInTheDocument();
   });
 
-  it('marks the label as optional when showOptionalMarking is set', () => {
-    render({ showOptionalMarking: true });
-    expect(screen.getByText('(Optional)')).toBeInTheDocument();
+  it('marks the label as optional by default when not required', () => {
+    render({ required: false });
+    expect(screen.getByText('Optional')).toBeInTheDocument();
+  });
+
+  it('hides the optional marking when disabled', () => {
+    render({ required: false, showOptionalMarking: false });
+    expect(screen.queryByText('Optional')).not.toBeInTheDocument();
   });
 
   it('does not mark a read-only label as optional', () => {
-    render({ showOptionalMarking: true, readOnly: true });
-    expect(screen.queryByText('(Optional)')).not.toBeInTheDocument();
+    render({ required: false, readOnly: true });
+    expect(screen.queryByText('Optional')).not.toBeInTheDocument();
+  });
+
+  it('shows neither marking when the component has no notion of being required', () => {
+    render();
+    expect(screen.queryByText('Required')).not.toBeInTheDocument();
+    expect(screen.queryByText('Optional')).not.toBeInTheDocument();
   });
 
   it('renders the help text in a tooltip', async () => {
