@@ -25,7 +25,7 @@ class LayoutPropsArgs(BaseModel):
     )
 
 
-class LayoutPropsTool(Tool):
+class LayoutPropsTool(Tool[LayoutPropsArgs]):
     """Canonical property list for a layout component type."""
 
     name = "altinn_layout_props"
@@ -74,7 +74,7 @@ class DatamodelSyncArgs(BaseModel):
     )
 
 
-class DatamodelSyncTool(Tool):
+class DatamodelSyncTool(Tool[DatamodelSyncArgs]):
     """Generate XSD + C# from a JSON Schema model (Altinn Studio parity)."""
 
     name = "altinn_datamodel_sync"

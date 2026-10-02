@@ -157,19 +157,6 @@ export default [
     },
   },
   {
-    files: ['testing/cypress/src/**/*.js', 'testing/cypress/src/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: false,
-        tsconfigRootDir: __dirname,
-      },
-    },
-    rules: {
-      '@typescript-eslint/consistent-type-exports': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
-    },
-  },
-  {
     files: ['libs/studio-components/.storybook/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {

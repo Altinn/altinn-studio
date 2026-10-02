@@ -27,8 +27,8 @@ pub use harness::{Effort, Harness, HarnessAuthMode, HarnessSpec, Model, ModelSel
 pub use manifest::{
     API_VERSION, AccessSpec, Agent, AgentVariant, AgentVariantName, Condition, ConditionStatus, EnvironmentSpec,
     HomeSpec, InstructionsSpec, KIND, Metadata, MountSpec, NetworkAllow, NetworkMode, NetworkSpec,
-    PlatformManifestSpec, Provenance, ResolvedManifest, SandboxManifestSpec, SecretSpec, SkillSpec, Spec, Status,
-    VARIANT_KIND,
+    PlatformManifestSpec, Provenance, ResolvedManifest, RunState, SandboxManifestSpec, SecretSpec, SkillSpec, Spec,
+    Status, VARIANT_KIND,
 };
 
 /// Version embedded in a matched `agentctl`/`agentd` build.
@@ -76,6 +76,10 @@ pub enum Error {
     /// controller keeps observing it.
     #[error("Agent Sandbox is not responding: {0}")]
     SandboxUnresponsive(String),
+    /// The named Agent is stopped, so nothing runs in its Sandbox until it is
+    /// started. Desired state must change, so waiters fail fast.
+    #[error("Agent {0:?} is stopped; run `agentctl start agent/{0}`")]
+    Stopped(String),
     /// A generic Sandbox operation failed.
     #[error("Sandbox operation failed: {0}")]
     Sandbox(#[from] ::sandbox::Error),

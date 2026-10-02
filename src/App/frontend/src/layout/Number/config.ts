@@ -19,9 +19,6 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .makeSummarizable()
   .extendTextResources(CG.common('TRBLabel'))
@@ -30,6 +27,7 @@ export const Config = new CG.component({
     new CG.prop(
       'value',
       new CG.expr(ExprVal.Number)
+        .setFallback(NaN)
         .setTitle('Number value', 'Tallverdi')
         .setDescription('The number to display.', 'Tallet som skal vises.'),
     ),

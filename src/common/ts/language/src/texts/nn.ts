@@ -221,6 +221,9 @@ export function nn() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikkje tilgjengeleg. Du kan ikkje gjere endringar her no',
     'general.invalid_task_id': 'Denne delen av skjemaet finst ikkje.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikkje visast.',
+    'general.unsupported_task_type_details':
+      'Steget {0} i prosessen har typen {1}, som appen ikkje kan vise.',
     'general.navigate_to_current_process': 'Gå til rett prosesstrinn',
     'group.row_error':
       'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',

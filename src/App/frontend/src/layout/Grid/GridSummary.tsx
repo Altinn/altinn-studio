@@ -3,6 +3,7 @@ import type { JSX, PropsWithChildren } from 'react';
 
 import { useIsMobile } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading, Table, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
@@ -46,27 +47,33 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
-import type { CompTypes, ITextResourceBindings } from 'src/layout/layout';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const indexedId = useIndexedId(targetBaseComponentId);
-  const { rows, textResourceBindings } = useItemWhenType(targetBaseComponentId, 'Grid');
-  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
+  const config = useComponentConfig(targetBaseComponentId, 'Grid');
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Grid.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Grid.textResourceBindings.title,
+  );
 
+  const title = summaryTitle || resolvedTitle;
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
-
   const isSmall = isMobile && !pdfModeActive;
-
   const tableSections: JSX.Element[] = [];
   let currentHeaderRow: GridRow | undefined = undefined;
   let currentBodyRows: GridRow[] = [];
-
-  rows.forEach((row, index) => {
+  config.rows.forEach((row, index) => {
     if (row.header) {
       // If there are accumulated body rows, push them into a tbody
       if (currentBodyRows.length > 0) {
@@ -110,11 +117,10 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
       currentBodyRows.push(row);
     }
   });
-
   // Push remaining body rows if any
   if (currentBodyRows.length > 0) {
     tableSections.push(
-      <tbody key={`tbody-${rows.length}`}>
+      <tbody key={`tbody-${config.rows.length}`}>
         {currentBodyRows.map((bodyRow, bodyIndex) => (
           <EmptyChildrenBoundary
             key={bodyIndex}
@@ -131,7 +137,6 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
       </tbody>,
     );
   }
-
   return (
     <SummaryFlexForContainer
       hideWhen={hideEmptyFields}
@@ -270,10 +275,20 @@ function SummaryCell(props: CellProps) {
 
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
-  const item = useItemFor(props.labelFrom);
-  const required = 'required' in item ? item.required : false;
-  const title =
-    item.textResourceBindings && 'title' in item.textResourceBindings ? item.textResourceBindings.title : undefined;
+  const config = useComponentConfig(props.labelFrom);
+  const evaluatedRequired = useEvalExpression(
+    'required' in config ? config.required : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+  const title = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+
+  const required = 'required' in config ? evaluatedRequired : false;
+
   const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
   const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
 
@@ -401,11 +416,16 @@ function SummaryCellWithComponent({
   const errors = validationsOfSeverity(validations, 'error');
   const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const item = useItemFor(baseComponentId);
-  const textResourceBindings = item.textResourceBindings;
-  const required = 'required' in item ? item.required : false;
+  const config = useComponentConfig(baseComponentId);
+  const required2 = useEvalExpression(
+    'required' in config ? config.required : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+
+  const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
+  const required = 'required' in config ? required2 : false;
   const indexedId = useIndexedId(baseComponentId);
-  const content = getComponentCellData(baseComponentId, item.type, displayData, textResourceBindings);
+  const content = getComponentCellData(baseComponentId, config.type, displayData, title);
 
   const isEmpty = typeof content === 'string' && content.trim() === '';
   useReportSummaryRender(
@@ -487,12 +507,19 @@ function SummaryCellWithLabel({
   headerTitle,
   isSmall,
 }: CellWithLabelProps) {
-  const refItem = useItemFor(cell.labelFrom);
+  const config = useComponentConfig(cell.labelFrom);
+  const title2 = useEvalExpression(
+    config.textResourceBindings && 'title' in config.textResourceBindings
+      ? config.textResourceBindings.title
+      : undefined,
+    CommonExpressions.TRBLabel.title,
+  );
+  const required3 = useEvalExpression(
+    'required' in config ? config.required : undefined,
+    CommonExpressions.FormComponentProps.required,
+  );
+
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const trb = (refItem && 'textResourceBindings' in refItem ? refItem.textResourceBindings : {}) as
-    ITextResourceBindings | undefined;
-  const title = trb && 'title' in trb ? trb.title : undefined;
-  const required = (refItem && 'required' in refItem && refItem.required) ?? false;
 
   const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
 
@@ -504,8 +531,8 @@ function SummaryCellWithLabel({
     >
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
-        label={title}
-        required={required}
+        label={title2}
+        required={required3}
       />
     </CellComponent>
   );
@@ -515,14 +542,14 @@ function getComponentCellData<T extends CompTypes>(
   baseComponentId: string,
   type: T,
   displayData: string,
-  textResourceBindings?: ITextResourceBindings,
+  title: string | undefined,
 ) {
   if (type === 'Custom') {
     return <ComponentSummary targetBaseComponentId={baseComponentId} />;
   } else if (implementsDisplayData(getComponentDef(type))) {
     return displayData || '';
-  } else if (textResourceBindings && 'title' in textResourceBindings) {
-    return <Lang id={textResourceBindings.title} />;
+  } else if (title !== undefined) {
+    return <Lang id={title} />;
   } else {
     return (
       <GenericComponent

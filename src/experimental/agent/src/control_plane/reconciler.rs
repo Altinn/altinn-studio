@@ -10,6 +10,10 @@ use crate::sandbox::responsiveness::stall_detail;
 pub trait SessionNotifier {
     /// Wakes every durable Session owned by the Agent incarnation.
     fn notify(&self, id: crate::AgentId);
+
+    /// Reconciles every durable Session owned by the Agent incarnation and
+    /// completes once each has finished a pass that began after this call.
+    fn settle(&self, id: crate::AgentId) -> ::sandbox::LocalFuture<'_, ()>;
 }
 
 /// Converges one stored Agent generation without owning an API request.
@@ -75,6 +79,9 @@ impl Reconciler {
         if record.agent.metadata.deletion_timestamp.is_some() {
             return self.release(&record).await;
         }
+        if record.agent.spec.is_stopped() {
+            return self.stop(&record).await;
+        }
 
         if record.agent.status.sandbox.is_none() {
             let provider = match self.sandboxes.resolve(&record).await {
@@ -96,6 +103,11 @@ impl Reconciler {
                 )],
             );
             record.agent.status = self.update_status(&record, status, None).await?;
+        }
+
+        if recorded_by_stop(&record.agent.status) {
+            let starting = not_ready(&record, Condition::REASON_STARTING, "");
+            record.agent.status = self.update_status(&record, starting, None).await?;
         }
 
         let status = &record.agent.status;
@@ -301,6 +313,62 @@ impl Reconciler {
         Err(error)
     }
 
+    /// Stops the Sandbox of an Agent whose run state is Stopped and records it
+    /// as stopped. The Sandbox keeps its identity, storage and assignment, so a
+    /// start boots the same disk. Nothing reaches into the guest, so a guest
+    /// that stopped responding cannot hold the stop up.
+    async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
+        let current = record.agent.status.observed_generation == record.agent.metadata.generation;
+        let already_stopped = current && record.agent.status.is_stopped();
+        if !(current && recorded_by_stop(&record.agent.status)) {
+            // Not Ready before the VM goes away, so Sessions are told and go Idle first.
+            let stopping = not_ready(record, Condition::REASON_STOPPING, "");
+            self.update_status(record, stopping, None).await?;
+        }
+        let observer = if already_stopped {
+            SandboxObserver::resync(record.id, self.provisioning.clone())
+        } else {
+            SandboxObserver::new(record.id, self.provisioning.clone())
+        };
+        let phase = observer.reporter().start_phase(crate::progress::SANDBOX_STOP).await;
+        if let Err(error) = self.sandboxes.stop(record).await {
+            let failure = ReconcileFailure::classify(&error);
+            let stored = self.record_failure(record, Condition::REASON_STOPPING, &failure).await;
+            observer.failed(&failure);
+            stored?;
+            return Err(error);
+        }
+        phase.complete().await;
+        let hint = format!("run `agentctl start agent/{}` to start it", record.agent.metadata.name);
+        let stopped = Status::observed(
+            record.agent.metadata.generation,
+            record.agent.status.sandbox.clone(),
+            vec![
+                condition(
+                    Condition::SANDBOX_READY,
+                    ConditionStatus::False,
+                    Condition::REASON_STOPPED,
+                    "",
+                ),
+                condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    Condition::REASON_STOPPED,
+                    &hint,
+                ),
+            ],
+        );
+        self.update_status(record, stopped, None).await?;
+        if !already_stopped && let Some(sessions) = &self.sessions {
+            // The next pass, such as a start, waits until every Session has seen
+            // the stop, so a Session pass that began before it cannot relaunch
+            // its harness in the started VM.
+            sessions.settle(record.id).await;
+        }
+        observer.succeeded();
+        Ok(())
+    }
+
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
         self.sandboxes.release(record).await?;
         if let Some(ssh) = &self.ssh {
@@ -323,22 +391,9 @@ impl Reconciler {
         reason: &str,
         failure: &ReconcileFailure,
     ) -> Result<(), Error> {
-        self.update_status(
-            record,
-            Status::observed(
-                record.agent.metadata.generation,
-                record.agent.status.sandbox.clone(),
-                vec![condition(
-                    Condition::READY,
-                    ConditionStatus::False,
-                    reason,
-                    &failure.message,
-                )],
-            ),
-            Some(failure.kind),
-        )
-        .await
-        .map(drop)
+        self.update_status(record, not_ready(record, reason, &failure.message), Some(failure.kind))
+            .await
+            .map(drop)
     }
 
     /// Records the pass's observed status and failure class and returns it as stored.
@@ -440,8 +495,25 @@ fn responsive_condition(reports_heartbeat: bool) -> Condition {
     }
 }
 
+/// A status with only `Ready=False` for `reason`, keeping the record's Sandbox assignment.
+fn not_ready(record: &AgentRecord, reason: &str, message: &str) -> Status {
+    Status::observed(
+        record.agent.metadata.generation,
+        record.agent.status.sandbox.clone(),
+        vec![condition(Condition::READY, ConditionStatus::False, reason, message)],
+    )
+}
+
+/// Whether `status` was recorded by a pass that stopped, or tried to stop, the Sandbox.
+fn recorded_by_stop(status: &Status) -> bool {
+    status
+        .ready_condition()
+        .is_some_and(|ready| ready.reason == Condition::REASON_STOPPED || ready.reason == Condition::REASON_STOPPING)
+}
+
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
+        || recorded_by_stop(previous) != recorded_by_stop(current)
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
         || previous

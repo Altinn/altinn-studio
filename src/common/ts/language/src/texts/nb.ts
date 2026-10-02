@@ -221,6 +221,9 @@ export function nb() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
     'general.invalid_task_id': 'Denne delen av skjemaet finnes ikke.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikke vises.',
+    'general.unsupported_task_type_details':
+      'Prosessteget {0} har typen {1}, som appen ikke kan vise.',
     'general.navigate_to_current_process': 'Gå til riktig prosessteg',
     'group.row_error':
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',

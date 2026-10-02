@@ -15,14 +15,16 @@ from agents.graph.state import FormSpec, FormSpecField, FormSpecOption, FormSpec
 
 class TestFormSpecOptionCoercion:
     def test_accepts_label_value_objects(self):
-        field = FormSpecField(
-            id="sokertype",
-            label="Type søknad",
-            field_type="radio",
-            options=[
-                {"label": "Ny bevilling", "value": "ny-bevilling"},
-                {"label": "Fornyelse", "value": "fornyelse"},
-            ],
+        field = FormSpecField.model_validate(
+            {
+                "id": "sokertype",
+                "label": "Type søknad",
+                "field_type": "radio",
+                "options": [
+                    {"label": "Ny bevilling", "value": "ny-bevilling"},
+                    {"label": "Fornyelse", "value": "fornyelse"},
+                ],
+            }
         )
         assert field.options is not None
         assert all(isinstance(o, FormSpecOption) for o in field.options)
@@ -32,22 +34,23 @@ class TestFormSpecOptionCoercion:
     def test_lifts_legacy_bare_strings_with_slug_fallback(self):
         # Older prompts and existing tests may still emit plain strings.
         # The coercion must slugify Norwegian extras (æøå) too.
-        field = FormSpecField(
-            id="lang",
-            label="Språk",
-            field_type="dropdown",
-            options=["Bokmål", "Nynorsk", "English"],
+        field = FormSpecField.model_validate(
+            {"id": "lang", "label": "Språk", "field_type": "dropdown", "options": ["Bokmål", "Nynorsk", "English"]}
         )
+        assert field.options is not None
         assert [o.label for o in field.options] == ["Bokmål", "Nynorsk", "English"]
         assert [o.value for o in field.options] == ["bokmaal", "nynorsk", "english"]
 
     def test_mixed_shapes_are_normalised(self):
-        field = FormSpecField(
-            id="x",
-            label="X",
-            field_type="radio",
-            options=["Bare string", {"label": "Object", "value": "obj"}],
+        field = FormSpecField.model_validate(
+            {
+                "id": "x",
+                "label": "X",
+                "field_type": "radio",
+                "options": ["Bare string", {"label": "Object", "value": "obj"}],
+            }
         )
+        assert field.options is not None
         assert field.options[0].value == "bare-string"
         assert field.options[1].value == "obj"
 
@@ -60,11 +63,8 @@ class TestFormSpecOptionCoercion:
         # don't silently fabricate a value from the label, since that's
         # exactly what callers asked the model to provide explicitly.
         with pytest.raises(ValidationError):
-            FormSpecField(
-                id="x",
-                label="X",
-                field_type="radio",
-                options=[{"label": "Foo"}],
+            FormSpecField.model_validate(
+                {"id": "x", "label": "X", "field_type": "radio", "options": [{"label": "Foo"}]}
             )
 
 
@@ -85,8 +85,8 @@ class TestFormSpecSummary:
                             label="Type søknad",
                             field_type="radio",
                             options=[
-                                {"label": "Ny bevilling", "value": "ny-bevilling"},
-                                {"label": "Fornyelse", "value": "fornyelse"},
+                                FormSpecOption(label="Ny bevilling", value="ny-bevilling"),
+                                FormSpecOption(label="Fornyelse", value="fornyelse"),
                             ],
                         )
                     ],

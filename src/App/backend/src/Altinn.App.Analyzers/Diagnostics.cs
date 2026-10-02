@@ -157,6 +157,18 @@ public static class Diagnostics
             "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
                 + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
         );
+
+        // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the
+        // types this rule cannot see: those from packages, and a Type that is not a constant. Reported once the
+        // whole compilation is analyzed, since a task's type can be declared by any class in it.
+        public static readonly DiagnosticDescriptor TaskUsesWrongElement = Error(
+            "ALTINNAPP1003",
+            Category.Process,
+            "Task uses the wrong BPMN element",
+            "Task '{0}' declares <altinn:taskType>{1}</altinn:taskType>, which is {2}, but is a <{3}> element. "
+                + "Change it to a <{4}> element.",
+            WellKnownDiagnosticTags.CompilationEnd
+        );
     }
 
     internal static class Deprecations
@@ -182,16 +194,32 @@ public static class Diagnostics
     private static DiagnosticDescriptor Warning(string id, string category, string title, string messageFormat) =>
         Create(id, title, messageFormat, category, DiagnosticSeverity.Warning);
 
-    private static DiagnosticDescriptor Error(string id, string category, string title, string messageFormat) =>
-        Create(id, title, messageFormat, category, DiagnosticSeverity.Error);
+    private static DiagnosticDescriptor Error(
+        string id,
+        string category,
+        string title,
+        string messageFormat,
+        params string[] customTags
+    ) => Create(id, title, messageFormat, category, DiagnosticSeverity.Error, customTags);
 
     private static DiagnosticDescriptor Create(
         string id,
         string title,
         string messageFormat,
         string category,
-        DiagnosticSeverity severity
-    ) => new(id, title, messageFormat, category, severity, true, helpLinkUri: RulesRoot + id.ToLowerInvariant());
+        DiagnosticSeverity severity,
+        params string[] customTags
+    ) =>
+        new(
+            id,
+            title,
+            messageFormat,
+            category,
+            severity,
+            true,
+            helpLinkUri: RulesRoot + id.ToLowerInvariant(),
+            customTags: customTags
+        );
 
     private static class Category
     {

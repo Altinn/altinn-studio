@@ -7,6 +7,7 @@ GoalRejected, and the read-only decline delivered as a normal chat turn.
 
 import asyncio
 import threading
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -30,7 +31,7 @@ from agents.services.llm.scope_checker import (
 
 
 def _state(**overrides) -> AgentState:
-    base = {
+    base: dict[str, Any] = {
         "session_id": "sess-1",
         "user_goal": "hjelp meg planlegge min japanreise",
         "repo_path": "/tmp/repo",

@@ -11,10 +11,11 @@ use std::{
 use agent::{
     Error,
     control_api::{
-        AuthenticationApi, Client, Connection, Connector, ExecutionApi, Server, SessionApi, SshAccessApi, VncAccessApi,
+        AuthenticationApi, Client, Connection, Connector, ConvergenceApi, ExecutionApi, Server, SessionApi,
+        SshAccessApi, VncAccessApi,
     },
     control_plane::WaitPolicy,
-    control_plane::{ApplyRequest, ControlPlane, Notifier, memory::InMemoryAgentStore},
+    control_plane::{ApplyRequest, ControlPlane, memory::InMemoryAgentStore},
     harness::ImportedAuthentication,
     resources::Changes,
 };
@@ -24,11 +25,11 @@ use tokio::{
     sync::Notify,
 };
 
-use support::agent;
-
-struct IgnoreNotifications;
+use support::{IgnoreNotifications, agent};
 
 struct FakeAuthentication;
+/// Converges an Agent at once, except `stuck`, which never converges.
+struct FakeConvergence;
 struct FakeSshAccess;
 struct FakeVncAccess;
 
@@ -125,10 +126,6 @@ fn answered_turn(prompt: &str, answer: &str) -> agent::sessions::Turn {
             },
         ],
     }
-}
-
-impl Notifier for IgnoreNotifications {
-    fn notify(&self, _id: agent::AgentId) {}
 }
 
 impl AuthenticationApi for FakeAuthentication {
@@ -270,6 +267,17 @@ impl SessionApi for FakeSessions {
     }
 }
 
+impl ConvergenceApi for FakeConvergence {
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move {
+            if name == "stuck" {
+                std::future::pending::<()>().await;
+            }
+            Ok(())
+        })
+    }
+}
+
 impl ExecutionApi for FakeExecutions {
     fn ensure<'a>(
         &'a self,
@@ -281,6 +289,9 @@ impl ExecutionApi for FakeExecutions {
                 self.waiting.set(self.waiting.get() + 1);
                 let _waiting = Waiting(self.waiting.clone());
                 std::future::pending::<()>().await;
+            }
+            if name == "stopped" {
+                return Err(Error::Stopped(name.into()));
             }
             if name != "worker" {
                 return Err(Error::NotFound);
@@ -370,6 +381,7 @@ fn api() -> ApiFixture {
     let server = Rc::new(Server::new(
         control_plane,
         Rc::new(FakeAuthentication),
+        Rc::new(FakeConvergence),
         executions,
         Rc::new(FakeSessions {
             ensured: ensured.clone(),
@@ -561,7 +573,7 @@ async fn a_wait_ends_when_its_client_goes_away() {
     let fixture = api();
     let interrupted = tokio::time::timeout(
         Duration::from_millis(100),
-        fixture.client.ensure_execution("stuck", WaitPolicy::UntilReady),
+        fixture.client.ensure_execution("stuck", WaitPolicy::UntilConverged),
     )
     .await;
     assert!(interrupted.is_err(), "the wait never ends on its own");
@@ -957,6 +969,27 @@ async fn resource_watch_neither_holds_nor_outlives_an_upgrade_drain() {
 }
 
 #[tokio::test(flavor = "local")]
+async fn a_converge_wait_ends_with_an_upgrade_drain() {
+    let fixture = api();
+    let waiter = Client::new(Rc::new(InProcessConnector {
+        server: fixture.server.clone(),
+    }));
+    let wait = tokio::task::spawn_local(async move { waiter.converge("stuck").await });
+    tokio::task::yield_now().await;
+
+    fixture
+        .client
+        .shutdown_for_upgrade()
+        .await
+        .expect("a pending wait is not an admitted mutation");
+    let error = wait.await.expect("wait task").expect_err("the drain ends the wait");
+    assert!(
+        matches!(&error, Error::Rpc(error) if error.message.contains("run the command again")),
+        "{error:?}"
+    );
+}
+
+#[tokio::test(flavor = "local")]
 async fn agent_progress_returns_the_status_then_waits_for_the_next_change() {
     let fixture = api();
     fixture.client.apply(request("worker")).await.expect("apply");
@@ -994,10 +1027,64 @@ async fn a_frame_that_is_not_the_response_fails_the_call() {
     };
     let client = Client::new(Rc::new(notification));
     let error = client
-        .ensure_execution("worker", WaitPolicy::UntilReady)
+        .ensure_execution("worker", WaitPolicy::UntilConverged)
         .await
         .expect_err("a notification is not a response");
     assert!(matches!(error, Error::Json(_)), "unexpected error: {error}");
+}
+
+#[tokio::test(flavor = "local")]
+async fn stop_and_start_record_the_run_state_as_a_new_generation() {
+    let fixture = api();
+    let client = &fixture.client;
+    let applied = client.apply(request("worker")).await.expect("apply");
+
+    let stopped = client
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("stop");
+    assert_eq!(stopped.spec.run_state, Some(agent::RunState::Stopped));
+    assert_eq!(stopped.metadata.generation, applied.metadata.generation + 1);
+    assert_eq!(client.get("worker").await.expect("get"), stopped);
+    let again = client
+        .set_run_state("worker", agent::RunState::Stopped)
+        .await
+        .expect("repeated stop");
+    assert_eq!(again.metadata.generation, stopped.metadata.generation);
+    assert_eq!(client.converge("worker").await.expect("converge"), stopped);
+
+    let started = client
+        .set_run_state("worker", agent::RunState::Running)
+        .await
+        .expect("start");
+    assert_eq!(started.spec.run_state, None);
+    assert_eq!(started.metadata.generation, stopped.metadata.generation + 1);
+
+    let error = client
+        .set_run_state("missing", agent::RunState::Stopped)
+        .await
+        .expect_err("missing Agent");
+    assert!(matches!(error, Error::Rpc(error) if error.is_not_found()));
+}
+
+#[tokio::test(flavor = "local")]
+async fn work_in_a_stopped_agent_is_refused_with_how_to_start_it() {
+    let fixture = api();
+    let error = fixture
+        .client
+        .ensure_execution("stopped", WaitPolicy::UntilConverged)
+        .await
+        .expect_err("a stopped Agent runs nothing");
+    match error {
+        Error::Rpc(error) => {
+            assert!(error.is_invalid_params(), "agentctl prints it as the whole story");
+            assert_eq!(
+                error.message,
+                "Agent \"stopped\" is stopped; run `agentctl start agent/stopped`"
+            );
+        }
+        other => panic!("unexpected error: {other}"),
+    }
 }
 
 #[tokio::test(flavor = "local")]
