@@ -14,6 +14,7 @@ import type { AttachmentsSliceState } from 'src/features/attachments/Attachments
 import type { PageNavigationSliceState } from 'src/features/form/layout/PageNavigationContext';
 import type { FormBootstrapBase, FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import type { FormDataMethods, FormDataSliceState } from 'src/features/formData/FormDataWriteStateMachine';
+import type { LookupSliceState } from 'src/features/lookup/LookupStore';
 import type { ValidationSliceState } from 'src/features/validation';
 import type { ValidationInternals } from 'src/features/validation/validationContext';
 import type { ILayoutCollection } from 'src/layout/layout';
@@ -79,6 +80,7 @@ export interface FormStoreState {
 
   data: FormDataSliceState & FormDataMethods;
   attachments: AttachmentsSliceState;
+  lookup: LookupSliceState;
   validation: ValidationSliceState & ValidationInternals;
   layoutDiagnostics: LayoutDiagnosticsSliceState;
   pageNavigation: PageNavigationSliceState;
