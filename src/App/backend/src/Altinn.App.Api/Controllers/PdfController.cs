@@ -72,6 +72,7 @@ public class PdfController : ControllerBase
     /// <param name="taskId">The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.</param>
     /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
     /// <param name="language">The language of the preview, such as nb or en. Defaults to the user's language.</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
@@ -86,10 +87,10 @@ public class PdfController : ControllerBase
         [FromRoute] Guid instanceGuid,
         [FromQuery] string? taskId = null,
         [FromQuery] Guid? dataElementId = null,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
-        CancellationToken cancellationToken = HttpContext?.RequestAborted ?? CancellationToken.None;
         Instance instance = await _instanceClient.GetInstance(
             app,
             org,
