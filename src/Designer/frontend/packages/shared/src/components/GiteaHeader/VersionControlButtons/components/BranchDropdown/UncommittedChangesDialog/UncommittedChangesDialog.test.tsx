@@ -81,7 +81,7 @@ describe('UncommittedChangesDialog', () => {
 
   it('should display a browser confirm alert when pressing discard changes button', async () => {
     const user = userEvent.setup();
-    const confirm = jest.spyOn(window, 'confirm').mockImplementation();
+    const confirm = jest.spyOn(window, 'confirm').mockImplementation(() => undefined);
     renderUncommittedChangesDialog();
 
     const discardChangesButton = getDiscardChangesButton();

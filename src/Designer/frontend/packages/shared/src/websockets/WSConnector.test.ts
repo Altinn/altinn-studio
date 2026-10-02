@@ -11,11 +11,13 @@ jest.mock('@microsoft/signalr', () => {
     ...jest.requireActual('@microsoft/signalr'),
     __mockConnection: connection,
     HubConnection: jest.fn().mockReturnValue(connection),
-    HubConnectionBuilder: jest.fn(() => ({
-      withUrl: jest.fn().mockReturnThis(),
-      withAutomaticReconnect: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue(connection),
-    })),
+    HubConnectionBuilder: jest.fn(function () {
+      return {
+        withUrl: jest.fn().mockReturnThis(),
+        withAutomaticReconnect: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue(connection),
+      };
+    }),
   };
 });
 

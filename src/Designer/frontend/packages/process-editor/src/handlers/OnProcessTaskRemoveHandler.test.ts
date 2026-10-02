@@ -18,9 +18,11 @@ import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioMo
 import type { Element } from 'bpmn-js/lib/model/Types';
 
 jest.mock('@altinn/process-editor/utils/bpmnModeler/StudioModeler', () => ({
-  StudioModeler: jest.fn().mockImplementation(() => ({
-    getElementsByType: (type: BpmnTypeEnum) => (type === BpmnTypeEnum.Task ? signingTasks : []),
-  })),
+  StudioModeler: jest.fn().mockImplementation(function () {
+    return {
+      getElementsByType: (type: BpmnTypeEnum) => (type === BpmnTypeEnum.Task ? signingTasks : []),
+    };
+  }),
 }));
 
 const currentPolicyMock: Policy = {

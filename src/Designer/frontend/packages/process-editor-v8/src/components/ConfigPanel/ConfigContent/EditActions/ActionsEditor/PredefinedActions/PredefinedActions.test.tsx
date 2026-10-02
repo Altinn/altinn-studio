@@ -58,11 +58,13 @@ describe('PredefinedActions', () => {
       handleOnActionChange: handeOnActionChangeMock,
     }));
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      actionElements: {
-        action: [{ action: 'reject' }],
-      },
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        actionElements: {
+          action: [{ action: 'reject' }],
+        },
+      };
+    });
 
     renderPredefinedActions();
 

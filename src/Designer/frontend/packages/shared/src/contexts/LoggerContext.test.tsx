@@ -3,10 +3,12 @@ import { render, waitFor } from '@testing-library/react';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 jest.mock('@microsoft/applicationinsights-web', () => ({
-  ApplicationInsights: jest.fn().mockImplementation(() => ({
-    loadAppInsights: jest.fn(),
-    trackException: jest.fn(),
-  })),
+  ApplicationInsights: jest.fn().mockImplementation(function () {
+    return {
+      loadAppInsights: jest.fn(),
+      trackException: jest.fn(),
+    };
+  }),
 }));
 
 jest.mock('./EnvironmentConfigContext', () => ({
@@ -81,7 +83,7 @@ describe('LoggerContextProvider', () => {
 async function expectGracefulFailureWhenSdkThrows(
   mockImplementation: () => unknown,
 ): Promise<void> {
-  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
   mockEnvironmentConfig({ aiConnectionString: mockConnectionString });
 
   (ApplicationInsights as jest.Mock).mockImplementation(mockImplementation);

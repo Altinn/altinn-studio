@@ -120,7 +120,7 @@ describe('StudioTextResourceInput', () => {
     await user.type(picker, newResource.value);
     const option = await screen.findByText(newResource.value);
     await user.click(option);
-    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+    await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);
