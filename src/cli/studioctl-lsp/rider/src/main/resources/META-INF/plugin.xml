@@ -1,0 +1,61 @@
+<idea-plugin>
+    <id>studio.altinn.lsp</id>
+    <name>Altinn Studio Language Server</name>
+    <vendor url="https://altinn.studio">Altinn Studio</vendor>
+    <description><![CDATA[
+        Validation and language support for <a href="https://altinn.studio">Altinn Studio</a> apps.
+        <br/>
+        Requires <a href="https://docs.altinn.studio/en/altinn-studio/v8/reference/cli/install/">studioctl</a> to be installed.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.redhat.devtools.lsp4ij</depends>
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server id="altinnStudioLanguageServer"
+                name="Altinn Studio Language Server"
+                factoryClass="studio.altinn.lsp.AltinnLanguageServerFactory">
+            <description><![CDATA[
+                Altinn Studio language server.
+            ]]></description>
+        </server>
+        <fileNamePatternMapping patterns="*.json;*.jsonc"
+                                serverId="altinnStudioLanguageServer"
+                                languageId="json"
+                                documentMatcher="studio.altinn.lsp.AltinnAppDocumentMatcher"/>
+        <fileNamePatternMapping patterns="*.xml;*.bpmn"
+                                serverId="altinnStudioLanguageServer"
+                                languageId="xml"
+                                documentMatcher="studio.altinn.lsp.AltinnAppDocumentMatcher"/>
+        <fileNamePatternMapping patterns="*.cs"
+                                serverId="altinnStudioLanguageServer"
+                                languageId="csharp"
+                                documentMatcher="studio.altinn.lsp.AltinnAppModelCsDocumentMatcher"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable parentId="tools"
+                                 id="studio.altinn.lsp.settings"
+                                 displayName="Altinn Studio Language Server"
+                                 instance="studio.altinn.lsp.settings.AltinnLspConfigurable"/>
+        <notificationGroup id="Altinn Studio Language Server" displayType="STICKY_BALLOON"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener class="studio.altinn.lsp.FileWatchForwarder"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    </applicationListeners>
+
+    <actions>
+        <action id="studio.altinn.lsp.restart"
+                class="studio.altinn.lsp.actions.RestartServerAction"
+                text="Restart Altinn Studio Language Server"
+                description="Stop and restart the Altinn app-config language server for the current project">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="altinnAppConfig.showReferences"
+                class="studio.altinn.lsp.actions.ShowAltinnReferencesAction"
+                text="Show Altinn Studio Language Server References"
+                description="Show the locations reported by an Altinn app-config code lens"/>
+    </actions>
+</idea-plugin>

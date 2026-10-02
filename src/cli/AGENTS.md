@@ -57,6 +57,10 @@ Invariants:
 - `STUDIOCTL_IMAGE_*` pins one reference for a session. It replaced a home-directory override file,
   which an update deletes.
 
+### Language server
+
+`studioctl app lsp` and its VS Code and JetBrains clients live in [`studioctl-lsp/`](studioctl-lsp/AGENTS.md).
+
 ### Releases
 
 - Releases are changelog-promotion PRs: move `[Unreleased]` into a new `## [<version>] - <date>`
@@ -64,6 +68,9 @@ Invariants:
   `.github/workflows/release-studioctl.yaml`. Use `src/tools/releaser`
   (`go run . prepare -component studioctl -version vX.Y.Z-preview.N`) or promote manually,
   and validate with `go run . validate-changelog` / `resolve-version`.
+- The editor extensions are separate release components (`studioctl-vscode`, `studioctl-rider`) with
+  their own changelogs and `release/<component>` labels; see
+  [`studioctl-lsp/AGENTS.md`](studioctl-lsp/AGENTS.md).
 
 ### Local dev flows (build/serve from source)
 

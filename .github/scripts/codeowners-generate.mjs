@@ -94,6 +94,8 @@ const GROUPS = [
     ],
     extraPaths: [
       '.github/workflows/cli-build-test.yaml',
+      '.github/workflows/cli-rider-plugin.yaml',
+      '.github/workflows/cli-vscode-extension.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
       '.github/workflows/deploy-github-runners.yaml',
@@ -118,6 +120,8 @@ const GROUPS = [
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
       '.github/workflows/observability-proxy-build-test.yaml',
+      '.github/workflows/release-studioctl-rider.yaml',
+      '.github/workflows/release-studioctl-vscode.yaml',
       '.github/workflows/release-studioctl.yaml',
       '.github/workflows/releaser-build-test.yml',
       '.github/workflows/repositories-scan.yml',

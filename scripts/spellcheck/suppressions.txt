@@ -161,6 +161,11 @@ authorisation
 @paths src/cli/**/Upgrade/**
 Organisation
 
+# v8 layout binding names and component type the validator matches in order to report them
+@paths src/cli/common/dotnet/Altinn.Studio.AppConfig/Validation/Rules/Shape/LegacyBindingNameRule.cs
+Organisation
+organisation
+
 # official English name of a Norwegian ministry, used as sample table data
 @paths **/StudioTable*Pagination/**
 Labour
