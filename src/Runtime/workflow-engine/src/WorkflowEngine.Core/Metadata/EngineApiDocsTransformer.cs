@@ -76,9 +76,9 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
     {
         ["key"] =
             "Annotate mode: report health for these collection keys (repeatable; duplicates are deduplicated). "
-            + "Mutually exclusive with cursor and failures (400). Requests with more distinct keys than the maximum "
-            + "page size are rejected with 400, never truncated. Keys without a collection row are reported in "
-            + "unmatchedKeys.",
+            + "Mutually exclusive with cursor and failures (400). Requests with more distinct keys than "
+            + "pagination.maxAnnotateKeys (default 100) are rejected with 400, never truncated. Keys without a "
+            + "collection row are reported in unmatchedKeys.",
         ["failures"] =
             "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
             + "DependencyFailed; Abandoned never matches). 'visible' restricts to failures the head frontier can "
