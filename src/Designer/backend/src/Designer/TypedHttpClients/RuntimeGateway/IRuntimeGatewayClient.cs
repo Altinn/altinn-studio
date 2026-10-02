@@ -151,15 +151,31 @@ public interface IRuntimeGatewayClient
     );
 
     /// <summary>
-    /// Abandons an unsuccessful terminal workflow through the runtime gateway's workflow pass-through.
+    /// Nudges a parked (<c>Requeued</c>/<c>Waiting</c>) workflow through the runtime gateway's workflow
+    /// pass-through, so the engine re-executes it on its next fetch instead of when the backoff elapses.
     /// The gateway/engine response is returned unmodified, whatever its status code; the caller
     /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
     /// </summary>
-    Task<HttpResponseMessage> AbandonWorkflowAsync(
+    Task<HttpResponseMessage> NudgeWorkflowAsync(
         string org,
         string app,
         AltinnEnvironment environment,
         Guid workflowId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Fails a parked (<c>Requeued</c>/<c>Waiting</c>) workflow through the runtime gateway's workflow
+    /// pass-through, recording <paramref name="reason"/> as the parked step's final error entry.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> FailWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        string reason,
         CancellationToken cancellationToken
     );
 }
