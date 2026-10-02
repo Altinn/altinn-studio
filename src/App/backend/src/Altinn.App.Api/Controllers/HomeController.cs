@@ -247,17 +247,21 @@ public class HomeController : Controller
             return null;
         }
 
-        // Don't redirect if the user is already on a party-selection route
+        // Match routes directly beneath the app, so that text in the catch-all part of an instance route
+        // (e.g. .../instance/{partyId}/{instanceGuid}/party-selection/403) cannot pass for another route
+        var appPath = $"/{_appId.Org}/{_appId.App}";
         var path = HttpContext.Request.Path.Value ?? "";
-        if (
-            path.Contains("/party-selection/", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith("/party-selection", StringComparison.OrdinalIgnoreCase)
-        )
+        bool IsRoute(string segment) =>
+            path.Equals($"{appPath}/{segment}", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith($"{appPath}/{segment}/", StringComparison.OrdinalIgnoreCase);
+
+        // Don't redirect if the user is already on a party-selection route
+        if (IsRoute("party-selection"))
         {
             return null;
         }
 
-        var isInstanceRoute = path.Contains("/instance/", StringComparison.OrdinalIgnoreCase);
+        var isInstanceRoute = IsRoute("instance");
 
         ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 

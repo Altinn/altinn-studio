@@ -476,6 +476,31 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
     }
 
     [Fact]
+    public async Task Index_InstanceRouteEndingInPartySelection_InvalidParty_RedirectsToPartySelection403()
+    {
+        // Arrange: an instance link whose catch-all part looks like the party selection route
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync(
+            $"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/party-selection/403"
+        );
+
+        // Assert: the selected party is still validated, and the user is sent to the real party selection route
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+        OutputHelper.WriteLine($"Location: {response.Headers.Location}");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal($"/{Org}/{App}/party-selection/403", response.Headers.Location?.ToString());
+    }
+
+    [Fact]
     public async Task Index_InstanceRoute_MultipleValidParties_NoRedirect()
     {
         // Arrange: a user with several parties opens an instance link while representing themselves
