@@ -18,7 +18,8 @@ internal sealed record DashboardStepDto(
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,
     DateTimeOffset? UpdatedAt,
-    bool StateChanged
+    bool StateChanged,
+    Dictionary<string, string>? Labels
 );
 
 /// <summary>
@@ -118,7 +119,8 @@ internal static class DashboardMapper
             step.CreatedAt,
             step.ExecutionStartedAt,
             step.UpdatedAt,
-            stateChanged
+            stateChanged,
+            step.Labels
         );
 
     internal static DashboardWorkflowDto MapWorkflow(Workflow workflow)

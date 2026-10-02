@@ -80,6 +80,13 @@ public abstract class Authenticated
     }
 
     /// <summary>
+    /// The language a request runs in: <paramref name="requestedLanguage"/>, the one the client chose in the app, or
+    /// <see cref="GetLanguage()"/> when it chose none. A blank value counts as none.
+    /// </summary>
+    internal async Task<string> GetLanguage(string? requestedLanguage) =>
+        string.IsNullOrWhiteSpace(requestedLanguage) ? await GetLanguage() : requestedLanguage;
+
+    /// <summary>
     /// Type to indicate that the current request is not authenticated.
     /// </summary>
     public sealed class None : Authenticated

@@ -8,34 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Helpers;
 
 /// <summary>
-/// Identifies which runtime flow produced a workflow-initialization failure, so that the
-/// generated problem details (title and detail text) match the caller's context. Both flows
-/// emit the same <see cref="WorkflowInitializationProblemDetails"/> contract.
-/// </summary>
-internal enum WorkflowInitializationFlow
-{
-    /// <summary>
-    /// A new instance is being created (instantiation or copy).
-    /// </summary>
-    Instantiation,
-
-    /// <summary>
-    /// The process is being started for an already existing instance.
-    /// </summary>
-    ProcessStart,
-}
-
-/// <summary>
 /// Builds the <see cref="WorkflowInitializationProblemDetails"/> response returned when the workflow
-/// engine rejects or fails the initial process workflow. Shared by instance creation
-/// (<see cref="WorkflowInitializationFlow.Instantiation"/>) and process start for existing instances
-/// (<see cref="WorkflowInitializationFlow.ProcessStart"/>) so both endpoints expose the same contract.
+/// engine rejects or fails the initial process workflow of a new instance.
 /// </summary>
 internal static class WorkflowInitializationProblem
 {
     public static ObjectResult Create(
         ILogger logger,
-        WorkflowInitializationFlow flow,
         Exception exception,
         string message,
         WorkflowInitializationState state,
@@ -58,13 +37,9 @@ internal static class WorkflowInitializationProblem
 
         var problem = new WorkflowInitializationProblemDetails
         {
-            Title =
-                flow == WorkflowInitializationFlow.ProcessStart
-                    ? "Process start failed."
-                    : "Instance initialization failed.",
+            Title = "Instance initialization failed.",
             Status = statusCode,
             Detail = CreateDetail(
-                flow,
                 state,
                 recommendedAction,
                 instanceDeleted,
@@ -102,34 +77,6 @@ internal static class WorkflowInitializationProblem
     }
 
     private static string CreateDetail(
-        WorkflowInitializationFlow flow,
-        WorkflowInitializationState state,
-        WorkflowRecommendedAction recommendedAction,
-        bool? instanceDeleted,
-        bool? workflowAccepted,
-        bool processStateChanged,
-        WorkflowFailure? workflowFailure,
-        HttpStatusCode? submissionStatusCode
-    ) =>
-        flow == WorkflowInitializationFlow.ProcessStart
-            ? CreateProcessStartDetail(
-                state,
-                workflowAccepted,
-                processStateChanged,
-                workflowFailure,
-                submissionStatusCode
-            )
-            : CreateInstantiationDetail(
-                state,
-                recommendedAction,
-                instanceDeleted,
-                workflowAccepted,
-                processStateChanged,
-                workflowFailure,
-                submissionStatusCode
-            );
-
-    private static string CreateInstantiationDetail(
         WorkflowInitializationState state,
         WorkflowRecommendedAction recommendedAction,
         bool? instanceDeleted,
@@ -171,29 +118,5 @@ internal static class WorkflowInitializationProblem
             (WorkflowInitializationState.WorkflowFailed, _, _, true, _, _, _) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed before instance initialization completed. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             _ => "Runtime could not complete instance initialization. Inspect the response details before retrying.",
-        };
-
-    private static string CreateProcessStartDetail(
-        WorkflowInitializationState state,
-        bool? workflowAccepted,
-        bool processStateChanged,
-        WorkflowFailure? workflowFailure,
-        HttpStatusCode? submissionStatusCode
-    ) =>
-        (state, workflowAccepted, processStateChanged, workflowFailure?.Kind, submissionStatusCode) switch
-        {
-            (_, true, false, WorkflowFailureKind.AcquireConflict, _) =>
-                "The process start could not acquire the captured instance version. The instance was left unchanged and the failed workflow was written off. Refresh the instance and try again.",
-            (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, HttpStatusCode.Conflict) =>
-                "Another process transition was submitted from the same instance version with different content. Refresh the instance before trying again.",
-            (WorkflowInitializationState.WorkflowNotAccepted, _, _, _, _) =>
-                "The workflow engine did not accept the process start. The existing instance was not modified, so the client can retry starting the process.",
-            (WorkflowInitializationState.WorkflowAcceptanceUnknown, _, _, _, _) =>
-                "Runtime submitted the process start workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying.",
-            (WorkflowInitializationState.WorkflowFailed, true, true, _, _) =>
-                "The workflow engine accepted the process start, but the workflow failed after process state may have been updated in Storage. Do not start the process again; resolve the workflow failure and call the resume endpoint.",
-            (WorkflowInitializationState.WorkflowFailed, true, _, _, _) =>
-                "The workflow engine accepted the process start, but the workflow failed before the process finished starting. Do not start the process again; resolve the workflow failure and call the resume endpoint.",
-            _ => "Runtime could not start the process. Inspect the response details before retrying.",
         };
 }
