@@ -556,6 +556,7 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
 Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.log('Changing current layout');
   cy.window().then((win) => {
+    const previousPresentations = Array.from(win.document.querySelectorAll('[data-testid="presentation"]'));
     win.changeLayouts((current) => {
       const nextLayouts = structuredClone(current);
       const layouts = Object.fromEntries(
@@ -579,6 +580,12 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
       }
 
       return nextLayouts;
+    });
+
+    // LayoutRevisionBoundary remounts the form. Wait for the previous presentation to detach before
+    // checking the new one, so subsequent commands cannot type into a form that is about to unmount.
+    cy.wrap(previousPresentations, { log: false }).should((presentations) => {
+      expect(Array.from(presentations).some((presentation) => !presentation.isConnected)).to.equal(true);
     });
   });
 
