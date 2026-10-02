@@ -59,6 +59,7 @@ export * from './StudioLink';
 export * from './StudioLinkButton';
 export * from './StudioList';
 export * from './StudioManualExpression';
+export * from './StudioMarkdownEditor';
 export * from './StudioNotFoundPage';
 export * from './StudioPaginatedContent';
 export * from './StudioPageError';

@@ -1,0 +1,51 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-1);
+  padding: var(--ds-size-1);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.group {
+  display: flex;
+  gap: var(--ds-size-1);
+}
+
+.group + .group {
+  padding-left: var(--ds-size-1);
+  border-left: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.button[aria-pressed='true'] {
+  background-color: var(--ds-color-accent-surface-active);
+}
+
+.textIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25em;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.boldIcon {
+  font-weight: 800;
+}
+
+.italicIcon {
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
+.strikethroughIcon {
+  text-decoration: line-through;
+}
+
+.quoteIcon {
+  font-family: Georgia, serif;
+  font-size: 1.5em;
+  line-height: 0.5;
+  padding-top: 0.3em;
+}
