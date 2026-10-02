@@ -19,16 +19,16 @@ class LangfuseApi:
         host = host or os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
         public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY")
         secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY")
-        missing = [
-            name
-            for name, value in [
-                ("LANGFUSE_HOST (or LANGFUSE_BASE_URL)", host),
-                ("LANGFUSE_PUBLIC_KEY", public_key),
-                ("LANGFUSE_SECRET_KEY", secret_key),
+        if not (host and public_key and secret_key):
+            missing = [
+                name
+                for name, value in [
+                    ("LANGFUSE_HOST (or LANGFUSE_BASE_URL)", host),
+                    ("LANGFUSE_PUBLIC_KEY", public_key),
+                    ("LANGFUSE_SECRET_KEY", secret_key),
+                ]
+                if not value
             ]
-            if not value
-        ]
-        if missing:
             raise SystemExit(
                 "Missing Langfuse configuration: "
                 + ", ".join(missing)

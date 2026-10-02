@@ -91,7 +91,7 @@ class ToolResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class Tool(ABC):
+class Tool[ArgsT: BaseModel](ABC):
     """Base class for all tools.
 
     Subclasses declare class attributes (name, description, input_schema,
@@ -115,29 +115,29 @@ class Tool(ABC):
 
     name: str
     description: str
-    input_schema: type[BaseModel]
+    input_schema: type[ArgsT]
     is_concurrency_safe: bool = False
     is_read_only: bool = False
 
-    def concurrency_safe_for(self, args: BaseModel) -> bool:
+    def concurrency_safe_for(self, args: ArgsT) -> bool:
         """Whether this specific call can run in parallel with other
         concurrency-safe calls.  Default: the class attribute, which
         treats safety as a property of the tool rather than the input.
         Override when safety is per-input."""
         return self.is_concurrency_safe
 
-    def read_only_for(self, args: BaseModel) -> bool:
+    def read_only_for(self, args: ArgsT) -> bool:
         """Whether this specific call mutates any external state.
         Default: the class attribute.  Override when read/write status
         is per-input (e.g. a shell tool where `ls` is read-only and
         `rm` is not)."""
         return self.is_read_only
 
-    async def check_permission(self, args: BaseModel, ctx: LoopContext) -> PermissionResult:
+    async def check_permission(self, args: ArgsT, ctx: LoopContext) -> PermissionResult:
         return PermissionResult.allow()
 
     @abstractmethod
-    async def run(self, args: BaseModel, ctx: LoopContext) -> ToolResult:
+    async def run(self, args: ArgsT, ctx: LoopContext) -> ToolResult:
         """Execute the tool. Must not raise on user-visible failures —
         return `ToolResult(is_error=True, content=...)` so the model can
         see and react to the error.  Unexpected exceptions are caught by

@@ -15,7 +15,7 @@ class JsonSchemaToMetamodelConverter:
     MAX_MAX_OCCURS = 99999
 
     def __init__(self):
-        self.model_metadata: ModelMetadata | None = None
+        self.model_metadata = ModelMetadata()
         self.schema: dict | None = None
         self.required_properties: dict[str, list[str]] = {}
         self.model_name: str = ""
@@ -152,8 +152,8 @@ class JsonSchemaToMetamodelConverter:
         if isinstance(schema_type, list):
             context["is_nillable"] = "null" in schema_type
             non_null_types = [t for t in schema_type if t != "null"]
-            if non_null_types:
-                schema_type = non_null_types[0]
+            # A list with only "null" gets the default string type.
+            schema_type = non_null_types[0] if non_null_types else "string"
 
         # Map to SchemaValueType
         type_map = {

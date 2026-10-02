@@ -56,7 +56,7 @@ class CommitSessionBranchArgs(BaseModel):
     )
 
 
-class CommitSessionBranchTool(WriteToolMixin):
+class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
     name = "commit_session_branch"
     description = (
         "Commit all changes on disk to the session branch and push it to the "

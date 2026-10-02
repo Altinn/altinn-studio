@@ -40,6 +40,7 @@ def test_every_component_resolves_to_a_symbol_that_exists():
 
 def test_every_pinned_behavior_names_a_live_eval():
     for behavior in manifest.pinned():
+        assert behavior.eval, behavior.id
         found = registry.by_name(behavior.eval)
         assert found.status == "live", f"{behavior.id}: {behavior.eval} is {found.status}"
 
