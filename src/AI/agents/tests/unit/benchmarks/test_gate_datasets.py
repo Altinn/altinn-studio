@@ -176,8 +176,8 @@ class TestTheDatasetTabStaysLegible:
         assert retired
         for entry in retired:
             description = entry.langfuse_description()
-            assert entry.status in description or entry.note.split(".")[0] in description
             assert entry.note, entry.name
+            assert entry.status in description or entry.note.split(".")[0] in description
 
     def test_the_orphan_says_where_it_comes_from(self):
         from benchmarks import registry
@@ -196,7 +196,8 @@ class TestTheDatasetTabStaysLegible:
             pinned = [b for b in manifest.for_eval(entry.name) if b.is_pinned]
             if pinned:
                 assert "Holds:" in description, entry.name
-                assert pinned[0].evaluator in description, entry.name
+                evaluator = pinned[0].evaluator
+                assert evaluator and evaluator in description, entry.name
             else:
                 assert "prove nothing" in description or "No behavior" in description, entry.name
 

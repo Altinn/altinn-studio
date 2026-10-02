@@ -11,7 +11,7 @@ use microsandbox_network::control::{
     RuntimeMessage, SecretMaterial as RuntimeSecretMaterial,
 };
 use microsandbox_network::secrets::config::{
-    HostPattern, SecretEntry, SecretInjection, SecretSource, SecretsConfig, ViolationAction,
+    HostPattern, SecretEntry, SecretSource, SecretSubstitution, SecretViolationAction, SecretsConfig,
 };
 use sandbox::{
     Error, LocalFuture, ResourceKind, SandboxId, SandboxName,
@@ -272,9 +272,16 @@ impl SecretBinding {
                 reference: self.environment.clone(),
             }),
             placeholder: self.placeholder.clone(),
+            // The host controller decides per request where the secret is
+            // substituted (`SecretUse`), so every host is eligible here.
             allowed_hosts: vec![HostPattern::Any],
-            injection: SecretInjection::default(),
-            on_violation: Some(ViolationAction::Block),
+            substitution: SecretSubstitution::default(),
+            // The placeholder is inert text that also reaches requests the
+            // secret is not substituted into, such as a conversation history
+            // sent in a model request body. Forwarding it unchanged exposes no
+            // secret; blocking it would fail every later request in the session.
+            passthrough_hosts: vec![HostPattern::Any],
+            violation_action: Some(SecretViolationAction::Block),
             require_tls_identity: true,
         }
     }
@@ -348,7 +355,8 @@ async fn handle_runtime_message(
                 protocol,
                 secrets: SecretsConfig {
                     secrets: secret_bindings.iter().map(SecretBinding::runtime_entry).collect(),
-                    on_violation: ViolationAction::Block,
+                    violation_action: SecretViolationAction::Block,
+                    passthrough_hosts: None,
                 },
             }))
         }

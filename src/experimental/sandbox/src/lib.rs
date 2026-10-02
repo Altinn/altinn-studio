@@ -24,7 +24,7 @@ mod service;
 pub mod terminal;
 pub mod volume;
 
-pub use backend::{LocalFuture, Sandbox, SandboxId, SandboxResources, SandboxState};
+pub use backend::{GuestHeartbeat, LocalFuture, Sandbox, SandboxId, SandboxResources, SandboxState};
 pub use feature::{SandboxCapabilities, SandboxFeature, SandboxFeatureSet};
 pub use name::{Hostname, InvalidHostname, InvalidSandboxName, MAX_SANDBOX_NAME_BYTES, SandboxName};
 pub use path::SandboxPath;

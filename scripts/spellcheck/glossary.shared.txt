@@ -17,6 +17,7 @@ bankid
 buypass
 commfides
 digdir
+eformidling
 entraid
 figma
 gitea
@@ -25,6 +26,7 @@ grafana
 maskinporten
 minid
 studioctl
+svarut
 
 # Products and registries named by the Gitea UI translation
 codebasehq

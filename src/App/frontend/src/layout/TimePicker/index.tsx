@@ -8,7 +8,7 @@ import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';
 import { TimePickerComponent } from 'src/layout/TimePicker/TimePickerComponent';
 import { TimePickerSummary } from 'src/layout/TimePicker/TimePickerSummary';
 import { validateTimePicker } from 'src/layout/TimePicker/useTimePickerValidation';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { BaseValidation, ComponentValidation } from 'src/features/validation';
@@ -21,7 +21,7 @@ import type {
   ValidationFilterFunction,
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class TimePicker extends TimePickerDef implements ValidateComponent<'TimePicker'>, ValidationFilter {
@@ -80,13 +80,5 @@ export class TimePicker extends TimePickerDef implements ValidateComponent<'Time
     const [errors] = [validation[0] ?? []];
 
     return errors;
-  }
-
-  evalExpressions(props: ExprResolver<'TimePicker'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      minTime: props.evalStr(props.item.minTime, ''),
-      maxTime: props.evalStr(props.item.maxTime, ''),
-    };
   }
 }

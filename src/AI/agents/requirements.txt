@@ -6,6 +6,8 @@ pydantic>=2.12.5
 
 # HTTP client
 httpx>=0.28.1
+# Security floor for Requests' transitive dependency (CVE-2026-97687, CVE-2026-97689)
+urllib3>=2.8.0
 
 # Configuration
 python-dotenv>=1.2.2
@@ -29,3 +31,5 @@ PyYAML>=6.0
 
 # Altinn domain library (agents/altinn)
 jsonschema>=4.18
+# ECMA-262 regex syntax (\p{L}) in JSON Schema patterns
+regex>=2026.5.9

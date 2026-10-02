@@ -154,14 +154,24 @@ internal sealed class ProcessNextRequestFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
+        Actor actor = await ExtractActor();
+        List<WorkflowRequest> workflows =
+        [
+            new WorkflowRequest
+            {
+                OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
+                Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
+                State = state,
+            },
+        ];
         var context = new AppWorkflowContext
         {
-            Actor = await ExtractActor(),
+            Actor = actor,
             Org = _appIdentifier.Org,
             App = _appIdentifier.App,
             InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
             InstanceGuid = instanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid),
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
         };
         var labels = new Dictionary<string, string>(StringComparer.Ordinal);
         if (CreateProcessNextId(instance.Process?.CurrentTask) is { } sourceId)
@@ -173,15 +183,7 @@ internal sealed class ProcessNextRequestFactory
         {
             Labels = labels,
             Context = JsonSerializer.SerializeToElement(context),
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId = $"{MainOperationIdPrefix} acquire",
-                    Steps = [CreateCommand(AcquireProcessingStatus.Key, new AcquireProcessingStatusPayload(action))],
-                    State = state,
-                },
-            ],
+            Workflows = workflows,
         };
         return new WorkflowEnqueueEnvelope(
             request,
@@ -249,23 +251,11 @@ internal sealed class ProcessNextRequestFactory
         Actor resolvedActor = actor ?? await ExtractActor();
         InstanceIdentifier instanceId = new(instance);
 
-        var context = new AppWorkflowContext
-        {
-            Actor = resolvedActor,
-            Org = _appIdentifier.Org,
-            App = _appIdentifier.App,
-            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
-            InstanceGuid = instanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid),
-        };
-
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
         string? collectionKey = CreateCollectionKey(instanceId);
         Dictionary<string, string> labels =
             CreateProcessNextLabels(processStateChange) ?? new Dictionary<string, string>(StringComparer.Ordinal);
         labels[ProcessNextInstanceGuidLabel] = instanceId.InstanceGuid.ToString("N", CultureInfo.InvariantCulture);
-
-        JsonElement serializedContext = JsonSerializer.SerializeToElement(context);
 
         // The Main workflow's step sequence: everything through the CommitProcessState
         // commit, then - when the transition has side effects - the EnqueueSideEffectsWorkflow
@@ -305,20 +295,31 @@ internal sealed class ProcessNextRequestFactory
         }
         mainSteps.AddRange(commands.CriticalPostCommit);
 
+        List<WorkflowRequest> workflows =
+        [
+            new WorkflowRequest
+            {
+                OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                Steps = mainSteps,
+                State = state,
+                DependsOn = dependsOn,
+            },
+        ];
+        var context = new AppWorkflowContext
+        {
+            Actor = resolvedActor,
+            Org = _appIdentifier.Org,
+            App = _appIdentifier.App,
+            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
+            InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, resolvedActor, workflows),
+        };
+
         var request = new WorkflowEnqueueRequest
         {
             Labels = labels,
-            Context = serializedContext,
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
-                    Steps = mainSteps,
-                    State = state,
-                    DependsOn = dependsOn,
-                },
-            ],
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows = workflows,
         };
 
         return new WorkflowEnqueueEnvelope(request, ns, idempotencyKey, collectionKey);

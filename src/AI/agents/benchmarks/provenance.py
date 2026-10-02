@@ -247,7 +247,8 @@ def collect(
 ) -> Provenance:
     """Everything knowable without a network call, plus what the caller knows."""
     models, sampling = _models_and_sampling()
-    agent_roles = tuple(sorted(r for r in (agent_models or {}) if r in LIVE_ROLES))
+    agent_models = agent_models or {}
+    agent_roles = tuple(sorted(r for r in agent_models if r in LIVE_ROLES))
     if agent_roles:
         models = {**models, **{r: agent_models[r] for r in agent_roles}}
     provenance = Provenance(

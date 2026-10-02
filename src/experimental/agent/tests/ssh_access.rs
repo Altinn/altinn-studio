@@ -651,6 +651,7 @@ async fn descriptor_json_is_the_documented_shape() {
         "knownHostsFile",
         "configFile",
         "proxyCommand",
+        "workingDirectory",
     ];
     expected.sort_unstable();
     assert_eq!(object.keys().map(String::as_str).collect::<Vec<_>>(), expected);
@@ -660,6 +661,7 @@ async fn descriptor_json_is_the_documented_shape() {
     assert_eq!(value["alias"], "agentctl-worker");
     assert_eq!(value["user"], "agent");
     assert_eq!(value["proxyCommand"], format!("{AGENTCTL} ssh-proxy agent/worker"));
+    assert_eq!(value["workingDirectory"], "/home/agent/code");
     let decoded: ssh::AccessInfo = serde_json::from_value(value).expect("round trip");
     assert_eq!(decoded, info);
 }

@@ -2,10 +2,11 @@
 
 import asyncio
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_openai.chat_models.base import BaseChatOpenAI
 from langfuse import get_client
 
 from agents.prompts import get_prompt_with_langfuse
@@ -19,6 +20,9 @@ from shared.utils.spotlight import (
     defang_delimiter,
     open_delimiter,
 )
+
+if TYPE_CHECKING:
+    from anthropic import Anthropic
 
 log = get_logger(__name__)
 config = get_config()
@@ -115,7 +119,8 @@ class LLMClient:
         self.model = model
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
-        self.anthropic_client = None
+        self.anthropic_client: Anthropic | None = None
+        self.llm: BaseChatOpenAI | None = None
         self.is_reasoning_model = _is_reasoning_model(model)
 
         # Set max_tokens based on role and model type
@@ -139,7 +144,7 @@ class LLMClient:
                 f"Using Azure OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
             )
 
-            llm_params = {
+            llm_params: dict[str, Any] = {
                 "azure_endpoint": config.AZURE_OPENAI_ENDPOINT,
                 "api_key": config.AZURE_API_KEY,
                 "api_version": config.AZURE_API_VERSION,
@@ -163,7 +168,7 @@ class LLMClient:
             log.info(
                 f"Using OpenAI for LLM operations (role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
             )
-            chat_kwargs = {
+            chat_kwargs: dict[str, Any] = {
                 "api_key": config.OPENAI_API_KEY,
                 "model": model,
             }
@@ -179,7 +184,6 @@ class LLMClient:
             self.llm = ChatOpenAI(**chat_kwargs)
         else:
             log.warning("No LLM API key configured - LLM features will be limited")
-            self.llm = None
 
         self.supports_vision: bool = getattr(config, "LLM_SUPPORTS_VISION", True) and not self.use_anthropic
 
@@ -209,7 +213,11 @@ class LLMClient:
         )
 
         self.use_anthropic = True
-        self.llm = None  # Not using LangChain for Anthropic
+
+    def _require_anthropic_client(self) -> "Anthropic":
+        if self.anthropic_client is None:
+            raise ValueError("Anthropic client not initialized")
+        return self.anthropic_client
 
     def _extract_anthropic_text(self, response: Any) -> str:
         """Extract text content from Anthropic API response"""
@@ -238,7 +246,7 @@ class LLMClient:
                 self.model,
             )
         if attachments:
-            content = [{"type": "text", "text": user_prompt}]
+            content: list[str | dict] = [{"type": "text", "text": user_prompt}]
             content.append({"type": "text", "text": open_delimiter(ATTACHMENT_TAG)})
             for attachment in attachments:
                 content.extend(_defang_attachment_blocks(attachment.to_content_blocks()))
@@ -286,9 +294,10 @@ class LLMClient:
 
                 if self.use_anthropic:
                     user_content = _build_anthropic_user_content(user_prompt, attachments)
+                    anthropic_client = self._require_anthropic_client()
 
                     def _call_anthropic():
-                        return self.anthropic_client.messages.create(
+                        return anthropic_client.messages.create(
                             model=self.model,
                             system=system_prompt.strip() if system_prompt else "",
                             messages=[{"role": "user", "content": user_content}],
@@ -314,7 +323,7 @@ class LLMClient:
                     response = await asyncio.wait_for(
                         loop.run_in_executor(None, self.llm.invoke, messages), timeout=timeout
                     )
-                    response_text = response.content.strip()
+                    response_text = response.text.strip()
                     if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
                         usage = response.response_metadata["token_usage"]
                         usage_details = {
@@ -356,10 +365,8 @@ class LLMClient:
     def get_model_metadata(self) -> dict:
         """Get model metadata for tracing"""
         try:
-            model_name = self.model or (
-                self.llm.deployment_name
-                if hasattr(self.llm, "deployment_name")
-                else getattr(self.llm, "model_name", "unknown")
+            model_name = (
+                self.model or getattr(self.llm, "deployment_name", None) or getattr(self.llm, "model_name", "unknown")
             )
 
             llm_temp = getattr(self.llm, "temperature", None)
@@ -427,7 +434,7 @@ class LLMClient:
 
                     call_start = time.time()
                     try:
-                        response = self.anthropic_client.messages.create(
+                        response = self._require_anthropic_client().messages.create(
                             model=self.model,
                             system=system_message.strip() if system_message else "",
                             messages=[{"role": "user", "content": user_content}],
@@ -452,6 +459,14 @@ class LLMClient:
                         raise
 
                     response_text = self._extract_anthropic_text(response)
+                    usage_details = {}
+                    usage = getattr(response, "usage", None)
+                    if usage:
+                        usage_details = {
+                            "input_tokens": getattr(usage, "input_tokens", 0),
+                            "output_tokens": getattr(usage, "output_tokens", 0),
+                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
+                        }
                 elif self.llm is None:
                     raise ValueError("LLM client not initialized")
                 else:
@@ -460,33 +475,23 @@ class LLMClient:
                         self._build_human_message(user_message, attachments),
                     ]
 
-                    response = self.llm.invoke(messages)
-                    response_text = response.content
+                    llm_response = self.llm.invoke(messages)
+                    response_text = llm_response.text
 
                     # Detect empty/filtered responses
                     if not response_text or not response_text.strip():
                         finish_reason = None
-                        if hasattr(response, "response_metadata"):
-                            finish_reason = response.response_metadata.get("finish_reason")
+                        if hasattr(llm_response, "response_metadata"):
+                            finish_reason = llm_response.response_metadata.get("finish_reason")
                         log.warning(
                             f"⚠️ LLM returned empty response (role={self.role}, model={self.model}, "
                             f"finish_reason={finish_reason}, "
-                            f"metadata={getattr(response, 'response_metadata', {})})"
+                            f"metadata={getattr(llm_response, 'response_metadata', {})})"
                         )
 
-                # Set outputs and usage details
-                usage_details = {}
-                if self.use_anthropic:
-                    usage = getattr(response, "usage", None)
-                    if usage:
-                        usage_details = {
-                            "input_tokens": getattr(usage, "input_tokens", 0),
-                            "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
-                        }
-                elif hasattr(response, "response_metadata"):
-                    if "token_usage" in response.response_metadata:
-                        usage = response.response_metadata["token_usage"]
+                    usage_details = {}
+                    if hasattr(llm_response, "response_metadata") and "token_usage" in llm_response.response_metadata:
+                        usage = llm_response.response_metadata["token_usage"]
                         usage_details = {
                             "input_tokens": usage.get("prompt_tokens", 0),
                             "output_tokens": usage.get("completion_tokens", 0),
@@ -516,7 +521,7 @@ class LLMClient:
 
 
 # Global client cache to reuse instances
-_clients: dict[tuple[str, ...], LLMClient] = {}
+_clients: dict[str, LLMClient] = {}
 _client_keys: dict[str, tuple[str, ...]] = {}
 
 

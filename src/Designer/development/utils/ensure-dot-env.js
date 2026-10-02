@@ -9,7 +9,6 @@ const randomPass = () =>
     .concat(Math.floor(Math.random() * 10).toString());
 
 const defaultEnvVars = {
-  CYPRESS_TEST_APP: 'autodeploy-v3',
   DEVELOP_APP_DEVELOPMENT: 0,
   DEVELOP_RESOURCE_ADMIN: 0,
   DEVELOP_BACKEND: 0,

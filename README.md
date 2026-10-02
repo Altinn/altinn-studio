@@ -153,9 +153,9 @@ More about developing frontend [can be found here](frontend/README.md).
 
 ## End-to-end tests
 
-Altinn Studio has two sets of automated end-to-end tests; regression tests and usecase tests. [The regression tests][16] are created with Playwright and run on every pull request. [The usecase tests][17] are created with Cypress and run periodically.
+Altinn Studio has automated end-to-end regression tests. [The regression tests][16] are created with Playwright and run on every pull request.
 
-For more information about testing, please refer to the following resources: [Playwright](frontend/testing/playwright/README.md) and [Cypress](frontend/testing/cypress/README.md).
+For more information about testing, please refer to the [Playwright README](src/Designer/frontend/testing/playwright/README.md).
 
 ## Deployment
 
@@ -207,8 +207,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 [13]: https://github.com/Altinn/altinn-studio
 [14]: https://gitea.io/
 [15]: http://studio.localhost
-[16]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
-[17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
+[16]: https://github.com/Altinn/altinn-studio/tree/main/src/Designer/frontend/testing/playwright
 [18]: https://reactjs.org/
 [19]: https://docs.microsoft.com/en-us/dotnet/core/
 [20]: https://docs.microsoft.com/en-us/dotnet/csharp/

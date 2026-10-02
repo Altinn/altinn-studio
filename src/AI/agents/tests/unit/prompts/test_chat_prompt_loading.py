@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from agents.prompts import loader
-from agents.prompts.loader import _system_message, get_prompt_with_langfuse
+from agents.prompts.loader import compiled_system_message, get_prompt_with_langfuse
 
 SYSTEM = "You are the safety gate."
 
@@ -20,7 +20,7 @@ class _Prompt:
 
 class TestSystemMessageExtraction:
     def test_a_text_prompt_is_its_own_content(self):
-        assert _system_message(SYSTEM) == SYSTEM
+        assert compiled_system_message(SYSTEM) == SYSTEM
 
     def test_a_chat_prompt_yields_its_system_message(self):
         compiled = [
@@ -28,22 +28,22 @@ class TestSystemMessageExtraction:
             {"role": "user", "content": "{{user_message}}"},
         ]
 
-        assert _system_message(compiled) == SYSTEM
+        assert compiled_system_message(compiled) == SYSTEM
 
     def test_the_user_message_is_not_returned(self):
         """Production builds its own user message; taking the template's would send
         a literal '{{user_message}}' to the model."""
         compiled = [{"role": "user", "content": "{{user_message}}"}]
 
-        assert _system_message(compiled) is None
+        assert compiled_system_message(compiled) is None
 
     def test_an_empty_prompt_is_none(self):
-        assert _system_message("") is None
-        assert _system_message([]) is None
+        assert compiled_system_message("") is None
+        assert compiled_system_message([]) is None
 
     @pytest.mark.parametrize("compiled", [None, 42, {"role": "system"}])
     def test_an_unexpected_shape_is_none(self, compiled):
-        assert _system_message(compiled) is None
+        assert compiled_system_message(compiled) is None
 
 
 class TestFallbackToTheLocalFile:

@@ -4,11 +4,16 @@ use crate::{Condition, ConditionStatus, Error, FailureKind, ReconcileFailure, St
 
 use super::{AgentRecord, SharedAgentStore};
 use crate::progress::{ProvisioningState, SandboxObserver};
+use crate::sandbox::responsiveness::stall_detail;
 
 /// Receives low-latency hints when an Agent transition affects its Sessions.
 pub trait SessionNotifier {
     /// Wakes every durable Session owned by the Agent incarnation.
     fn notify(&self, id: crate::AgentId);
+
+    /// Reconciles every durable Session owned by the Agent incarnation and
+    /// completes once each has finished a pass that began after this call.
+    fn settle(&self, id: crate::AgentId) -> ::sandbox::LocalFuture<'_, ()>;
 }
 
 /// Converges one stored Agent generation without owning an API request.
@@ -74,6 +79,9 @@ impl Reconciler {
         if record.agent.metadata.deletion_timestamp.is_some() {
             return self.release(&record).await;
         }
+        if record.agent.spec.is_stopped() {
+            return self.stop(&record).await;
+        }
 
         if record.agent.status.sandbox.is_none() {
             let provider = match self.sandboxes.resolve(&record).await {
@@ -97,6 +105,11 @@ impl Reconciler {
             record.agent.status = self.update_status(&record, status, None).await?;
         }
 
+        if recorded_by_stop(&record.agent.status) {
+            let starting = not_ready(&record, Condition::REASON_STARTING, "");
+            record.agent.status = self.update_status(&record, starting, None).await?;
+        }
+
         let status = &record.agent.status;
         let observer = if status.is_ready() && status.observed_generation == record.agent.metadata.generation {
             SandboxObserver::resync(record.id, self.provisioning.clone())
@@ -105,33 +118,11 @@ impl Reconciler {
         };
         let ensured = match self.sandboxes.ensure(&record, observer.reporter()).await {
             Ok(ensured) => ensured,
-            Err(error) => {
-                let failure = ReconcileFailure::classify(&error);
-                let message = error.to_string();
-                let status = Status::observed(
-                    record.agent.metadata.generation,
-                    record.agent.status.sandbox.clone(),
-                    vec![
-                        condition(
-                            Condition::READY,
-                            ConditionStatus::False,
-                            "SandboxReconcileFailed",
-                            &message,
-                        ),
-                        condition(
-                            Condition::SANDBOX_READY,
-                            ConditionStatus::False,
-                            "ReconcileFailed",
-                            &message,
-                        ),
-                    ],
-                );
-                // The failure class is stored before followers see the pass fail.
-                let stored = self.update_status(&record, status, Some(failure.kind)).await;
-                observer.failed(&failure);
-                stored?;
-                return Err(error);
+            Err(error @ Error::SandboxUnresponsive(_)) => {
+                let assignment = record.agent.status.sandbox.clone();
+                return self.record_unresponsive(&record, assignment, &observer, error).await;
             }
+            Err(error) => return self.record_ensure_failure(&record, &observer, error).await,
         };
 
         let provider = record
@@ -156,6 +147,10 @@ impl Reconciler {
         )];
         self.reconcile_declared_access(&record, &ensured.sandbox, &assignment, &mut conditions, &observer)
             .await?;
+        conditions.insert(
+            1,
+            responsive_condition(self.sandboxes.reports_heartbeat(&ensured.sandbox.snapshot().id)),
+        );
         conditions.push(condition(Condition::READY, ConditionStatus::True, "SandboxReady", ""));
         let status = Status::observed(record.agent.metadata.generation, Some(assignment), conditions);
         // As on failure, readiness is stored before followers see the pass end.
@@ -176,13 +171,14 @@ impl Reconciler {
         conditions: &mut Vec<Condition>,
         observer: &SandboxObserver,
     ) -> Result<(), Error> {
+        let id = &sandbox.snapshot().id;
         if let Some(ssh) = &self.ssh {
-            let pass = ssh.reconcile(record, sandbox);
+            let pass = self.sandboxes.guard_guest(record, id, ssh.reconcile(record, sandbox));
             self.reconcile_access(SSH, pass, record, assignment, conditions, observer)
                 .await?;
         }
         if let Some(vnc) = &self.vnc {
-            let pass = vnc.reconcile(record, sandbox);
+            let pass = self.sandboxes.guard_guest(record, id, vnc.reconcile(record, sandbox));
             self.reconcile_access(VNC, pass, record, assignment, conditions, observer)
                 .await?;
         }
@@ -214,6 +210,11 @@ impl Reconciler {
                 Ok(())
             }
             Ok(false) => Ok(()),
+            Err(error @ Error::SandboxUnresponsive(_)) => {
+                conditions.clear();
+                self.record_unresponsive(record, Some(assignment.clone()), observer, error)
+                    .await
+            }
             Err(error) => {
                 let failure = ReconcileFailure::classify(&error);
                 conditions.push(condition(
@@ -241,6 +242,133 @@ impl Reconciler {
         }
     }
 
+    /// Records a failed Sandbox ensure or setup as the Agent's `Ready=False` and returns `error`.
+    async fn record_ensure_failure(
+        &self,
+        record: &AgentRecord,
+        observer: &SandboxObserver,
+        error: Error,
+    ) -> Result<(), Error> {
+        let failure = ReconcileFailure::classify(&error);
+        let message = error.to_string();
+        let status = Status::observed(
+            record.agent.metadata.generation,
+            record.agent.status.sandbox.clone(),
+            vec![
+                condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    "SandboxReconcileFailed",
+                    &message,
+                ),
+                condition(
+                    Condition::SANDBOX_READY,
+                    ConditionStatus::False,
+                    "ReconcileFailed",
+                    &message,
+                ),
+            ],
+        );
+        // The failure class is stored before followers see the pass fail.
+        let stored = self.update_status(record, status, Some(failure.kind)).await;
+        observer.failed(&failure);
+        stored?;
+        Err(error)
+    }
+
+    /// Records that the Sandbox's guest stopped responding and returns `error`.
+    ///
+    /// A stall is only found in work after the Sandbox started, so the Sandbox
+    /// itself is running; only the guest inside it has stopped.
+    async fn record_unresponsive(
+        &self,
+        record: &AgentRecord,
+        assignment: Option<crate::sandbox::Assignment>,
+        observer: &SandboxObserver,
+        error: Error,
+    ) -> Result<(), Error> {
+        let failure = ReconcileFailure::classify(&error);
+        let mut conditions = vec![condition(
+            Condition::SANDBOX_READY,
+            ConditionStatus::True,
+            "SandboxRunning",
+            "",
+        )];
+        conditions.push(condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::False,
+            "HeartbeatStale",
+            &stall_detail(),
+        ));
+        conditions.push(condition(
+            Condition::READY,
+            ConditionStatus::False,
+            "SandboxUnresponsive",
+            &failure.message,
+        ));
+        let status = Status::observed(record.agent.metadata.generation, assignment, conditions);
+        let stored = self.update_status(record, status, Some(failure.kind)).await;
+        observer.failed(&failure);
+        stored?;
+        Err(error)
+    }
+
+    /// Stops the Sandbox of an Agent whose run state is Stopped and records it
+    /// as stopped. The Sandbox keeps its identity, storage and assignment, so a
+    /// start boots the same disk. Nothing reaches into the guest, so a guest
+    /// that stopped responding cannot hold the stop up.
+    async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
+        let current = record.agent.status.observed_generation == record.agent.metadata.generation;
+        let already_stopped = current && record.agent.status.is_stopped();
+        if !(current && recorded_by_stop(&record.agent.status)) {
+            // Not Ready before the VM goes away, so Sessions are told and go Idle first.
+            let stopping = not_ready(record, Condition::REASON_STOPPING, "");
+            self.update_status(record, stopping, None).await?;
+        }
+        let observer = if already_stopped {
+            SandboxObserver::resync(record.id, self.provisioning.clone())
+        } else {
+            SandboxObserver::new(record.id, self.provisioning.clone())
+        };
+        let phase = observer.reporter().start_phase(crate::progress::SANDBOX_STOP).await;
+        if let Err(error) = self.sandboxes.stop(record).await {
+            let failure = ReconcileFailure::classify(&error);
+            let stored = self.record_failure(record, Condition::REASON_STOPPING, &failure).await;
+            observer.failed(&failure);
+            stored?;
+            return Err(error);
+        }
+        phase.complete().await;
+        let hint = format!("run `agentctl start agent/{}` to start it", record.agent.metadata.name);
+        let stopped = Status::observed(
+            record.agent.metadata.generation,
+            record.agent.status.sandbox.clone(),
+            vec![
+                condition(
+                    Condition::SANDBOX_READY,
+                    ConditionStatus::False,
+                    Condition::REASON_STOPPED,
+                    "",
+                ),
+                condition(
+                    Condition::READY,
+                    ConditionStatus::False,
+                    Condition::REASON_STOPPED,
+                    &hint,
+                ),
+            ],
+        );
+        self.update_status(record, stopped, None).await?;
+        if !already_stopped && let Some(sessions) = &self.sessions {
+            // The next pass, such as a start, waits until every Session has seen
+            // the stop, so a Session pass that began before it cannot relaunch
+            // its harness in the started VM.
+            sessions.settle(record.id).await;
+        }
+        observer.succeeded();
+        Ok(())
+    }
+
     async fn release(&self, record: &AgentRecord) -> Result<(), Error> {
         self.sandboxes.release(record).await?;
         if let Some(ssh) = &self.ssh {
@@ -263,22 +391,9 @@ impl Reconciler {
         reason: &str,
         failure: &ReconcileFailure,
     ) -> Result<(), Error> {
-        self.update_status(
-            record,
-            Status::observed(
-                record.agent.metadata.generation,
-                record.agent.status.sandbox.clone(),
-                vec![condition(
-                    Condition::READY,
-                    ConditionStatus::False,
-                    reason,
-                    &failure.message,
-                )],
-            ),
-            Some(failure.kind),
-        )
-        .await
-        .map(drop)
+        self.update_status(record, not_ready(record, reason, &failure.message), Some(failure.kind))
+            .await
+            .map(drop)
     }
 
     /// Records the pass's observed status and failure class and returns it as stored.
@@ -360,8 +475,45 @@ fn condition(kind: &str, status: ConditionStatus, reason: &str, message: &str) -
     }
 }
 
+/// Reports the guest's heartbeat after a pass whose guest work finished. A
+/// Sandbox that reports no heartbeat gives no evidence either way.
+fn responsive_condition(reports_heartbeat: bool) -> Condition {
+    if reports_heartbeat {
+        condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::True,
+            "HeartbeatAdvancing",
+            "",
+        )
+    } else {
+        condition(
+            Condition::SANDBOX_RESPONSIVE,
+            ConditionStatus::Unknown,
+            "HeartbeatNotObserved",
+            "",
+        )
+    }
+}
+
+/// A status with only `Ready=False` for `reason`, keeping the record's Sandbox assignment.
+fn not_ready(record: &AgentRecord, reason: &str, message: &str) -> Status {
+    Status::observed(
+        record.agent.metadata.generation,
+        record.agent.status.sandbox.clone(),
+        vec![condition(Condition::READY, ConditionStatus::False, reason, message)],
+    )
+}
+
+/// Whether `status` was recorded by a pass that stopped, or tried to stop, the Sandbox.
+fn recorded_by_stop(status: &Status) -> bool {
+    status
+        .ready_condition()
+        .is_some_and(|ready| ready.reason == Condition::REASON_STOPPED || ready.reason == Condition::REASON_STOPPING)
+}
+
 fn session_relevant_transition(previous: &Status, current: &Status) -> bool {
     previous.is_ready() != current.is_ready()
+        || recorded_by_stop(previous) != recorded_by_stop(current)
         || previous.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
             != current.sandbox.as_ref().and_then(crate::sandbox::Assignment::id)
         || previous

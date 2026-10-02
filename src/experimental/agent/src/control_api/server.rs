@@ -14,12 +14,13 @@ use crate::{
 use super::protocol::{
     CODE_IMMUTABLE, CODE_INTERNAL, CODE_INVALID_PARAMS, CODE_INVALID_REQUEST, CODE_METHOD_NOT_FOUND, CODE_NOT_FOUND,
     CODE_PARSE_ERROR, CODE_UPDATING, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams,
-    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST,
-    METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
-    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION,
-    ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams,
-    SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, error_response, read_message,
+    METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_CONVERGE, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET,
+    METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS, METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH,
+    METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE, METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST,
+    METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS, METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS,
+    METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS, NameParams, PROTOCOL_VERSION, ProgressParams, ReadMessage, Request,
+    ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams, SessionPromptParams,
+    SessionTurnsParams, ShutdownParams, error_response, read_message,
 };
 
 /// Quiet period after a change before a progress reply, so a burst of byte
@@ -53,6 +54,9 @@ pub trait AgentApi {
     /// Requests asynchronous deletion.
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
 
+    /// Records whether an Agent's Sandbox runs; see [`control_plane::ControlPlane::set_run_state`].
+    fn set_run_state<'a>(&'a self, name: &'a str, state: crate::RunState) -> LocalFuture<'a, Result<Agent, Error>>;
+
     /// Reads an Agent's stored status and its latest pass's progress, with
     /// only the output after `output` when it names the same pass.
     fn progress<'a>(
@@ -85,6 +89,10 @@ impl AgentApi for control_plane::ControlPlane {
 
     fn delete<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
         Box::pin(async move { Self::delete(self, name).await })
+    }
+
+    fn set_run_state<'a>(&'a self, name: &'a str, state: crate::RunState) -> LocalFuture<'a, Result<Agent, Error>> {
+        Box::pin(async move { Self::set_run_state(self, name, state).await })
     }
 
     fn progress<'a>(
@@ -238,6 +246,19 @@ impl SessionApi for sessions::Service {
     }
 }
 
+/// Waiting for an Agent to converge, exposed through the local control API.
+pub trait ConvergenceApi {
+    /// Waits until an Agent has its desired run state; see
+    /// [`control_plane::Convergence::converge`].
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>>;
+}
+
+impl ConvergenceApi for control_plane::Convergence {
+    fn converge<'a>(&'a self, name: &'a str) -> LocalFuture<'a, Result<(), Error>> {
+        Box::pin(async move { self.converge(name, WaitPolicy::UntilConverged).await.map(drop) })
+    }
+}
+
 /// Transient Agent Execution target resolution exposed through the local control API.
 pub trait ExecutionApi {
     /// Converges an Agent and returns its exact ready Sandbox assignment.
@@ -360,6 +381,7 @@ impl Drop for ShutdownCheck<'_> {
 pub struct Server {
     agents: Rc<dyn AgentApi>,
     authentication: Rc<dyn AuthenticationApi>,
+    convergence: Rc<dyn ConvergenceApi>,
     executions: Rc<dyn ExecutionApi>,
     sessions: Rc<dyn SessionApi>,
     ssh: Rc<dyn SshAccessApi>,
@@ -379,6 +401,7 @@ impl Server {
     pub fn new(
         agents: Rc<dyn AgentApi>,
         authentication: Rc<dyn AuthenticationApi>,
+        convergence: Rc<dyn ConvergenceApi>,
         executions: Rc<dyn ExecutionApi>,
         sessions: Rc<dyn SessionApi>,
         ssh: Rc<dyn SshAccessApi>,
@@ -389,6 +412,7 @@ impl Server {
         Self {
             agents,
             authentication,
+            convergence,
             executions,
             sessions,
             ssh,
@@ -450,7 +474,16 @@ impl Server {
                     return Err(Error::Json(error));
                 }
             };
-            let response = self.handle(request).await;
+            let response = if ends_with_its_client(&request.method) {
+                // A reply that is ready wins over a client that has half-closed.
+                tokio::select! {
+                    biased;
+                    response = self.handle(request) => response,
+                    () = disconnected(&mut stream) => return Ok(()),
+                }
+            } else {
+                self.handle(request).await
+            };
             write_response(stream.get_mut(), &response).await?;
         }
     }
@@ -498,6 +531,15 @@ impl Server {
             METHOD_RESOLVE_DIRECTORY => self.handle_resolve_directory(request.id, request.params).await,
             METHOD_EXECUTION_ENSURE => self.handle_execution_ensure(request.id, request.params).await,
             METHOD_DELETE => self.handle_delete(request.id, request.params).await,
+            METHOD_CONVERGE => self.handle_converge(request.id, request.params).await,
+            METHOD_STOP => {
+                self.handle_run_state(request.id, request.params, crate::RunState::Stopped)
+                    .await
+            }
+            METHOD_START => {
+                self.handle_run_state(request.id, request.params, crate::RunState::Running)
+                    .await
+            }
             METHOD_SSH_ACCESS => self.handle_ssh_access(request.id, request.params).await,
             METHOD_VNC_ACCESS => self.handle_vnc_access(request.id, request.params).await,
             METHOD_AUTH_LOGIN => self.handle_auth_login(request.id, request.params).await,
@@ -588,6 +630,39 @@ impl Server {
             id,
             self.agents.delete(&params.name).await.map(|()| serde_json::json!({})),
         )
+    }
+
+    /// Waits until the Agent has its desired run state, then returns it as
+    /// `agents.v1.get` does. Draining ends the wait, so an upgrade is never held
+    /// by a waiter; the desired state is stored, so nothing is lost.
+    async fn handle_converge(&self, id: u64, value: Value) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        let converged = tokio::select! {
+            converged = self.convergence.converge(&params.name) => converged,
+            () = self.shutdown_requested() => {
+                return error_response(
+                    id,
+                    CODE_UPDATING,
+                    "Agent daemon is preparing for an upgrade; run the command again once it is back",
+                );
+            }
+        };
+        let agent = match converged {
+            Ok(()) => self.agents.get(&params.name).await,
+            Err(error) => Err(error),
+        };
+        result_response(id, agent)
+    }
+
+    async fn handle_run_state(&self, id: u64, value: Value, state: crate::RunState) -> Response {
+        let params = match name_params(value) {
+            Ok(params) => params,
+            Err(response) => return response_with_id(id, response),
+        };
+        result_response(id, self.agents.set_run_state(&params.name, state).await)
     }
 
     async fn handle_ssh_access(&self, id: u64, value: Value) -> Response {
@@ -766,9 +841,36 @@ impl Server {
 
 const fn wait_policy(follow: bool) -> WaitPolicy {
     if follow {
-        WaitPolicy::UntilReady
+        WaitPolicy::UntilConverged
     } else {
         WaitPolicy::FirstPass
+    }
+}
+
+/// Whether a request waits and may stop when its client disconnects. Each
+/// only reads or waits, or, like `sessions.v1.ensure`, its writes are each
+/// complete on their own. Every other request runs to completion, so an
+/// interrupted command never leaves a change half made.
+fn ends_with_its_client(method: &str) -> bool {
+    matches!(
+        method,
+        METHOD_PROGRESS
+            | METHOD_RESOURCES_WATCH
+            | METHOD_CONVERGE
+            | METHOD_EXECUTION_ENSURE
+            | METHOD_SESSION_ENSURE
+            | METHOD_SESSION_TURNS
+    )
+}
+
+/// Completes once the client has closed its end. A client sends nothing while
+/// it waits for a reply, so data here is a pipelined request, left for the
+/// next read.
+async fn disconnected<R: tokio::io::AsyncBufRead + Unpin>(reader: &mut R) {
+    use tokio::io::AsyncBufReadExt as _;
+    match reader.fill_buf().await {
+        Ok(buffer) if !buffer.is_empty() => std::future::pending().await,
+        Ok(_) | Err(_) => {}
     }
 }
 
@@ -777,6 +879,8 @@ fn is_mutating(method: &str) -> bool {
         method,
         METHOD_APPLY
             | METHOD_DELETE
+            | METHOD_STOP
+            | METHOD_START
             | METHOD_EXECUTION_ENSURE
             | METHOD_AUTH_LOGIN
             | METHOD_SESSION_ENSURE
@@ -814,6 +918,7 @@ fn result_response<T: Serialize>(id: u64, result: Result<T, Error>) -> Response 
         Err(Error::Immutable(field)) => error_response(id, CODE_IMMUTABLE, Error::Immutable(field).to_string()),
         Err(Error::Conflict) => error_response(id, CODE_IMMUTABLE, Error::Conflict.to_string()),
         Err(Error::Invalid(message)) => error_response(id, CODE_INVALID_PARAMS, message),
+        Err(error @ Error::Stopped(_)) => error_response(id, CODE_INVALID_PARAMS, error.to_string()),
         Err(error) => error_response(id, CODE_INTERNAL, error.to_string()),
     }
 }

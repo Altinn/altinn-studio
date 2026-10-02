@@ -1,14 +1,16 @@
 # Dataset items
 
-The items every score is computed over, version controlled so a case is reviewable in a
-diff and reproducible on any clone. [../EVALS.md](../EVALS.md) is the entry point;
-`../registry.py` declares which file backs which dataset.
+This directory contains the items for all scores. The items are under version control. Thus, you can
+examine each case in a diff, and you can get the same result on each clone.
+[../EVALS.md](../EVALS.md) is the entry point. `../registry.py` tells which file supplies which
+dataset.
 
-Editing anything in this folder invalidates the baseline, because it changes what is
-measured. `python -m benchmarks.runner impact` says so, and CI fails the pull request
-unless it carries a new `BASELINE.json`.
+A change to a file in this directory makes the baseline incorrect, because it changes what the
+harness measures. `python -m benchmarks.runner impact` shows this. CI runs
+`python -m benchmarks.impact --strict` with the changed files on stdin. CI fails the pull request if
+the pull request does not have a new `BASELINE.json`. Without `--strict`, the report exits with 0.
 
-## Item shape
+## Item structure
 
 ```json
 {
@@ -19,39 +21,47 @@ unless it carries a new `BASELINE.json`.
 }
 ```
 
-`id` is the upsert key, so editing a case updates it in place and a sync is idempotent.
+`id` is the upsert key. Thus, when you edit a case, the sync updates the same item. You can do a
+sync many times, and the result is the same. A sync also archives the remote items that are not in
+the file.
 
-`note` is required. A case whose purpose is not written down gets deleted by the next
-person who cannot tell what it was for.
+`note` is necessary. Write why the case exists. If the reason is not written, the next person
+cannot understand the case, and deletes it.
 
-`pairs_with` marks a pair sharing a subject and differing only in the verb, which is the
-discrimination a gate gets wrong first: asking for travel advice is out of scope, while
-building a field that asks where you are traveling is not. A test asserts both halves
-expect opposite verdicts, because a pair that agrees proves nothing.
+`pairs_with` connects two cases with the same subject and a different verb. A gate makes this
+mistake first. For example, a request for travel advice is out of scope. A request for a field
+that asks for the travel destination is in scope. A test makes sure that the two cases of a pair
+expect opposite verdicts. A pair with the same verdict proves nothing.
 
-## The user message is rendered, not stored
+## The code renders the user message
 
-Neither gate puts its user message in the Langfuse prompt. `scope_checker` and
-`llm_client` build it in Python and the prompt holds only the system half, so an
-experiment handed just the goal would test framing production never sends.
+The gates do not keep their user message in the Langfuse prompt. `scope_checker` and `llm_client`
+make it in Python. The prompt has only the system part. Thus, an experiment with only the goal
+does not test the text that production sends.
 
-The files hold the readable fields, and `dataset_sync` renders `user_message` from the
-same builders production calls: `build_scope_check_message` and
-`build_intent_parse_message`. Nothing is duplicated, so nothing can drift, and a test
-asserts the rendered message equals what the builder returns.
+For the gate datasets, the files have the fields that people read. `dataset_sync` renders
+`user_message` with the same functions that production calls: `build_scope_check_message` and
+`build_intent_parse_message`. There is no copy of the text, so the two cannot become different. A
+test makes sure that the rendered message is the same as the result of the function.
 
-## Harvested items
+## Items from production traces
 
-`loop_traces.jsonl` is rebuilt from production traces rather than written by hand, with
-`python -m benchmarks.harvest`. `harvest_spec.json` names the source traces and
-`loop_traces.prompts.json` holds each session's own recorded system prompt, so a replay
-sends what the session actually sent. Prefer harvesting to authoring: three defects in
-this harness came from items that encoded a wrong assumption about production.
+`python -m benchmarks.harvest` makes `loop_traces.jsonl` from production traces. Nobody writes
+this file by hand.
 
-## Syncing
+- `harvest_spec.json` gives the source traces.
+- `loop_traces.prompts.json` has the recorded system prompt of each session. Thus, a replay sends
+  the same text that the session sent.
+- `harvest --planner` makes `planner_intake.jsonl` from the same traces.
+- `harvest --list TRACE_ID` shows the decisions in one trace.
+
+Get items from traces when possible. Do not write them by hand. Three defects in this harness came
+from items with an incorrect assumption about production.
+
+## Sync
 
 ```bash
 python -m benchmarks.dataset_sync --check          # validate the files, no network
-python -m benchmarks.dataset_sync                  # upsert all of them
+python -m benchmarks.dataset_sync                  # upsert all files, archive orphans, describe the other evals
 python -m benchmarks.dataset_sync --dataset Gates/scope
 ```

@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from agents.core.tool import LoopContext, PermissionResult, Tool
 
 
-class WriteToolMixin(Tool):
+class WriteToolMixin[ArgsT: BaseModel](Tool[ArgsT]):
     """Adds the standard `allow_app_changes` permission check.
 
     Subclasses inherit `check_permission` and implement `run`.  This
@@ -21,7 +21,7 @@ class WriteToolMixin(Tool):
     tool in the MRO; subclasses still declare name/description/schema.
     """
 
-    async def check_permission(self, args: BaseModel, ctx: LoopContext) -> PermissionResult:
+    async def check_permission(self, args: ArgsT, ctx: LoopContext) -> PermissionResult:
         if not ctx.allow_app_changes:
             return PermissionResult.deny(
                 "Write tools are disabled in this session (read-only mode).",

@@ -1,5 +1,8 @@
 FROM archlinux:base@sha256:b0deabeb3d283da2c7f7dbf0eea051b7b2cd0554e0b737cc457fd21683bdcdd1
 
+# The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
+# this ARG together with it. The agent user (uid 1000, created below) owns RUSTUP_HOME, so a
+# checkout pinned ahead of this image installs its toolchain on first use instead of failing.
 ARG RUST_VERSION=1.97.1
 
 ENV CARGO_HOME=/usr/local/cargo
@@ -32,7 +35,8 @@ RUN pacman -Syu --noconfirm --needed \
     && pacman -Scc --noconfirm \
     && rustup set profile minimal \
     && rustup default "${RUST_VERSION}" \
-    && rustup component add clippy rustfmt
+    && rustup component add clippy rustfmt \
+    && chown -R 1000:1000 /usr/local/rustup
 
 ARG TARGETARCH
 ARG DOTNET_VERSION=10.0.302
@@ -131,8 +135,8 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     && corepack install --global "yarn@${YARN_VERSION}" \
     && chmod -R a+rX "${COREPACK_HOME}"
 
-ARG CODEX_VERSION=0.156.0
-ARG CLAUDE_CODE_VERSION=2.1.280
+ARG CODEX_VERSION=0.159.3
+ARG CLAUDE_CODE_VERSION=2.1.286
 
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
@@ -140,8 +144,6 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
     npm install --global "@openai/codex@${CODEX_VERSION}" \
     && npm install --global --allow-scripts=@anthropic-ai/claude-code \
         "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
-
-ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
 RUN { getent group docker >/dev/null || groupadd --system docker; } \
     && { getent group kvm >/dev/null || groupadd --system kvm; } \

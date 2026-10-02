@@ -256,7 +256,7 @@ fn assert_published_skills(agent: &Agent, directory: &str) {
     if directory == "desktop" {
         expected.push("computer-use");
     }
-    expected.extend(["tekstforfatter-docs", "text-content-review"]);
+    expected.extend(["changelog", "tekstforfatter-docs", "text-content-review"]);
     assert_eq!(
         agent
             .spec
