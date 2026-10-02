@@ -8,17 +8,11 @@ namespace Altinn.App.Core.Features;
 
 partial class Telemetry
 {
-    internal Activity? StartGetPartyListActivity(int userId)
-    {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetPartyList");
-        activity?.SetUserId(userId);
-        return activity;
-    }
+    internal Activity? StartGetPartyListActivity() => ActivitySource.StartActivity($"{Prefix}.GetPartyList");
 
-    internal Activity? StartValidateSelectedPartyActivity(int userId, int partyId)
+    internal Activity? StartValidateSelectedPartyActivity(int partyId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
-        activity?.SetUserId(userId);
         activity?.SetInstanceOwnerPartyId(partyId);
         return activity;
     }

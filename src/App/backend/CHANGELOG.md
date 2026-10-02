@@ -32,6 +32,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
+- Party selection now lists the parties from Access Management's `enduser/authorizedparties` API. A party the user can only reach through a single delegated instance, for example to sign it, can no longer be chosen, but the instance can still be opened. Update localtest to run locally. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
+- Breaking: `GetPartyList` and `ValidateSelectedParty` on `IAuthorizationClient` and `IAuthorizationService` no longer take a `userId`, and always use the authenticated user. Remove the argument from your calls. ([#20637](https://github.com/Altinn/altinn-studio/issues/20637))
 
 ### Fixed
 

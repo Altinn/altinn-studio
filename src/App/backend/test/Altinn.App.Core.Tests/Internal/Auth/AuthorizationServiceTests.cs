@@ -112,19 +112,19 @@ public class AuthorizationServiceTests
         List<Party> partyList = new List<Party>();
         fixture
             .Mock<IAuthorizationClient>()
-            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .Setup(a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(partyList);
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
-        List<Party>? result = await authorizationService.GetPartyList(userId);
+        List<Party>? result = await authorizationService.GetPartyList();
 
         // Assert
         result.Should().BeSameAs(partyList);
         fixture
             .Mock<IAuthorizationClient>()
             .Verify(
-                a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
+                a => a.GetPartyList(It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
                 Times.Once
             );
 
@@ -144,7 +144,6 @@ public class AuthorizationServiceTests
             .Mock<IAuthorizationClient>()
             .Setup(a =>
                 a.ValidateSelectedParty(
-                    userId,
                     partyId,
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
@@ -154,7 +153,7 @@ public class AuthorizationServiceTests
         AuthorizationService authorizationService = fixture.AuthorizationService;
 
         // Act
-        bool? result = await authorizationService.ValidateSelectedParty(userId, partyId);
+        bool? result = await authorizationService.ValidateSelectedParty(partyId);
 
         // Assert
         result.Should().BeTrue();
@@ -163,7 +162,6 @@ public class AuthorizationServiceTests
             .Verify(
                 a =>
                     a.ValidateSelectedParty(
-                        userId,
                         partyId,
                         It.IsAny<StorageAuthenticationMethod?>(),
                         It.IsAny<CancellationToken>()
