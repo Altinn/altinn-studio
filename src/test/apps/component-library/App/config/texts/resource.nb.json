@@ -366,6 +366,34 @@
     {
       "id": "ParagraphPage",
       "value": "Avsnitt"
+    },
+    {
+      "id": "lookup.required",
+      "value": "Skal oppslagene være obligatoriske?"
+    },
+    {
+      "id": "lookup.required.yes",
+      "value": "Ja"
+    },
+    {
+      "id": "lookup.required.no",
+      "value": "Nei"
+    },
+    {
+      "id": "lookup.person.group",
+      "value": "Personer"
+    },
+    {
+      "id": "lookup.organization.group",
+      "value": "Virksomheter"
+    },
+    {
+      "id": "lookup.person.description",
+      "value": "Her legger du inn etternavn og fødselsnummer. I localtest kan du bruke fødselsnummer 08829698278 og etternavn Forelder. Oppslag krever innlogging på nivå 2 eller høyere."
+    },
+    {
+      "id": "lookup.organization.description",
+      "value": "Her legger du inn organisasjonsnummer. I localtest kan du bruke 043871668 for Skog og Fjell Consulting."
     }
   ]
 }

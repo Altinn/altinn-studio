@@ -188,6 +188,90 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("Geometries")]
     public List<Geometries>? Geometries { get; set; }
 
+    [XmlElement("LookupRequired", Order = 35)]
+    [JsonProperty("LookupRequired")]
+    [JsonPropertyName("LookupRequired")]
+    public string? LookupRequired { get; set; }
+
+    [XmlElement("PersonLookup", Order = 36)]
+    [JsonProperty("PersonLookup")]
+    [JsonPropertyName("PersonLookup")]
+    public PersonLookupData? PersonLookup { get; set; }
+
+    [XmlElement("OrganizationLookup", Order = 37)]
+    [JsonProperty("OrganizationLookup")]
+    [JsonPropertyName("OrganizationLookup")]
+    public OrganizationLookupData? OrganizationLookup { get; set; }
+
+    [XmlElement("PersonLookups", Order = 38)]
+    [JsonProperty("PersonLookups")]
+    [JsonPropertyName("PersonLookups")]
+    public List<PersonLookupData>? PersonLookups { get; set; }
+
+    [XmlElement("OrganizationLookups", Order = 39)]
+    [JsonProperty("OrganizationLookups")]
+    [JsonPropertyName("OrganizationLookups")]
+    public List<OrganizationLookupData>? OrganizationLookups { get; set; }
+
+  }
+
+  public class PersonLookupData
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("Ssn", Order = 1)]
+    [JsonProperty("Ssn")]
+    [JsonPropertyName("Ssn")]
+    public string? Ssn { get; set; }
+
+    [XmlElement("FullName", Order = 2)]
+    [JsonProperty("FullName")]
+    [JsonPropertyName("FullName")]
+    public string? FullName { get; set; }
+
+    [XmlElement("FirstName", Order = 3)]
+    [JsonProperty("FirstName")]
+    [JsonPropertyName("FirstName")]
+    public string? FirstName { get; set; }
+
+    [XmlElement("MiddleName", Order = 4)]
+    [JsonProperty("MiddleName")]
+    [JsonPropertyName("MiddleName")]
+    public string? MiddleName { get; set; }
+
+    [XmlElement("LastName", Order = 5)]
+    [JsonProperty("LastName")]
+    [JsonPropertyName("LastName")]
+    public string? LastName { get; set; }
+
+  }
+
+  public class OrganizationLookupData
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("OrgNr", Order = 1)]
+    [JsonProperty("OrgNr")]
+    [JsonPropertyName("OrgNr")]
+    public string? OrgNr { get; set; }
+
+    [XmlElement("Name", Order = 2)]
+    [JsonProperty("Name")]
+    [JsonPropertyName("Name")]
+    public string? Name { get; set; }
+
   }
 
   public class GridExample

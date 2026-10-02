@@ -8,18 +8,49 @@
         "type": "NavigationBar"
       },
       {
+        "id": "personLookup-required",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "LookupRequired"
+        },
+        "textResourceBindings": {
+          "title": "lookup.required"
+        },
+        "options": [
+          {
+            "label": "lookup.required.yes",
+            "value": "yes"
+          },
+          {
+            "label": "lookup.required.no",
+            "value": "no"
+          }
+        ],
+        "preselectedOptionIndex": 0
+      },
+      {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
-          "ssn": "GridExample.ExampleInputTwo",
-          "fullName": "street"
+          "ssn": "PersonLookup.Ssn",
+          "fullName": "PersonLookup.FullName",
+          "firstName": "PersonLookup.FirstName",
+          "middleName": "PersonLookup.MiddleName",
+          "lastName": "PersonLookup.LastName"
         },
         "textResourceBindings": {
           "title": "Legg til person",
-          "description": "Her legger du inn etternavn og fødselsnummer",
+          "description": "lookup.person.description",
           "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "required": true
+        "required": [
+          "equals",
+          [
+            "dataModel",
+            "LookupRequired"
+          ],
+          "yes"
+        ]
       },
       {
         "id": "PersonLookup-Header-Summary2",
@@ -38,11 +69,57 @@
         }
       },
       {
+        "id": "personLookup-group",
+        "type": "RepeatingGroup",
+        "children": [
+          "personLookup-repeated"
+        ],
+        "dataModelBindings": {
+          "group": "PersonLookups"
+        },
+        "textResourceBindings": {
+          "title": "lookup.person.group"
+        },
+        "validateOnSaveRow": [
+          "All"
+        ]
+      },
+      {
+        "id": "personLookup-repeated",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "ssn": "PersonLookups.Ssn",
+          "fullName": "PersonLookups.FullName",
+          "firstName": "PersonLookups.FirstName",
+          "middleName": "PersonLookups.MiddleName",
+          "lastName": "PersonLookups.LastName"
+        },
+        "textResourceBindings": {
+          "title": "Legg til person",
+          "description": "lookup.person.description",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
+        },
+        "required": [
+          "equals",
+          [
+            "dataModel",
+            "LookupRequired"
+          ],
+          "yes"
+        ]
+      },
+      {
         "id": "PersonLookupPage-NavigationButtons",
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste",
           "back": "Forrige"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
         }
       }
     ]

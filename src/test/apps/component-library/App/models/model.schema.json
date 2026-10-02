@@ -165,6 +165,37 @@
           "type": "boolean"
         }
       }
+    },
+    "PersonLookupData": {
+      "type": "object",
+      "properties": {
+        "Ssn": {
+          "type": "string"
+        },
+        "FullName": {
+          "type": "string"
+        },
+        "FirstName": {
+          "type": "string"
+        },
+        "MiddleName": {
+          "type": "string"
+        },
+        "LastName": {
+          "type": "string"
+        }
+      }
+    },
+    "OrganizationLookupData": {
+      "type": "object",
+      "properties": {
+        "OrgNr": {
+          "type": "string"
+        },
+        "Name": {
+          "type": "string"
+        }
+      }
     }
   },
   "properties": {
@@ -408,6 +439,27 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/Geometries"
+      }
+    },
+    "LookupRequired": {
+      "type": "string"
+    },
+    "PersonLookup": {
+      "$ref": "#/$defs/PersonLookupData"
+    },
+    "OrganizationLookup": {
+      "$ref": "#/$defs/OrganizationLookupData"
+    },
+    "PersonLookups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PersonLookupData"
+      }
+    },
+    "OrganizationLookups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/OrganizationLookupData"
       }
     }
   }

@@ -360,6 +360,34 @@
     {
       "id": "ParagraphPage",
       "value": "Paragraph"
+    },
+    {
+      "id": "lookup.required",
+      "value": "Should the lookups be required?"
+    },
+    {
+      "id": "lookup.required.yes",
+      "value": "Yes"
+    },
+    {
+      "id": "lookup.required.no",
+      "value": "No"
+    },
+    {
+      "id": "lookup.person.group",
+      "value": "People"
+    },
+    {
+      "id": "lookup.organization.group",
+      "value": "Organisations"
+    },
+    {
+      "id": "lookup.person.description",
+      "value": "Enter a surname and national identity number. In localtest, use 08829698278 and the surname Forelder. Lookups require authentication level 2 or higher."
+    },
+    {
+      "id": "lookup.organization.description",
+      "value": "Enter an organisation number. In localtest, use 043871668 for Skog og Fjell Consulting."
     }
   ]
 }

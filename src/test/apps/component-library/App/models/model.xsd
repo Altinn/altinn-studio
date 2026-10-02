@@ -5,6 +5,21 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
+  <xs:complexType name="PersonLookupData">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Ssn" type="xs:string" />
+      <xs:element minOccurs="0" name="FullName" type="xs:string" />
+      <xs:element minOccurs="0" name="FirstName" type="xs:string" />
+      <xs:element minOccurs="0" name="MiddleName" type="xs:string" />
+      <xs:element minOccurs="0" name="LastName" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="OrganizationLookupData">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="OrgNr" type="xs:string" />
+      <xs:element minOccurs="0" name="Name" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="GridExample">
     <xs:sequence>
       <xs:element minOccurs="0" name="ExampleDate" type="xs:string" />
@@ -188,6 +203,11 @@
         <xs:element minOccurs="0" name="DatepickerMaxDateExample" type="xs:string" />
         <xs:element minOccurs="0" name="DatepickerMinDateExample" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="Geometries" type="Geometries" />
+        <xs:element minOccurs="0" name="LookupRequired" type="xs:string" />
+        <xs:element minOccurs="0" name="PersonLookup" type="PersonLookupData" />
+        <xs:element minOccurs="0" name="OrganizationLookup" type="OrganizationLookupData" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="PersonLookups" type="PersonLookupData" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="OrganizationLookups" type="OrganizationLookupData" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
