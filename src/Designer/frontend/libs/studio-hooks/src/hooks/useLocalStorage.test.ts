@@ -15,7 +15,7 @@ describe('useLocalStorage', () => {
     const key = 'someKey';
     const getItemSpy = jest
       .spyOn(window.Storage.prototype, 'getItem')
-      .mockImplementation(() => undefined);
+      .mockImplementation(() => null);
     const { rerender } = renderHook(() => useLocalStorage(key));
     rerender();
     expect(getItemSpy).toHaveBeenCalledTimes(1);

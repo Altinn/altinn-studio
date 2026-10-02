@@ -174,7 +174,7 @@ describe('MakeCopyModal', () => {
     const copyButton = screen.getByRole('button', { name: textMock('dashboard.make_copy') });
     await user.click(copyButton);
 
-    expect(copyRepoMock).rejects.toEqual({ response: { status: 409 } });
+    await expect(copyRepoMock).rejects.toEqual({ response: { status: 409 } });
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });

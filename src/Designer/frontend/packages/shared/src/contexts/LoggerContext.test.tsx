@@ -1,6 +1,7 @@
 import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { render, waitFor } from '@testing-library/react';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
+import { useEnvironmentConfig } from './EnvironmentConfigContext';
 
 jest.mock('@microsoft/applicationinsights-web', () => ({
   ApplicationInsights: jest.fn().mockImplementation(function () {
@@ -15,12 +16,10 @@ jest.mock('./EnvironmentConfigContext', () => ({
   useEnvironmentConfig: jest.fn(),
 }));
 
-const { useEnvironmentConfig } = require('./EnvironmentConfigContext');
-
 const mockConnectionString = 'my-unit-test-connection-string';
 
 function mockEnvironmentConfig(environment: { aiConnectionString?: string } | null = {}): void {
-  useEnvironmentConfig.mockReturnValue({
+  (useEnvironmentConfig as jest.Mock).mockReturnValue({
     environment,
     isLoading: false,
     error: null,
