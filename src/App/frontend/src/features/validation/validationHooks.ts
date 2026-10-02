@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useGetCachedInstanceData } from 'src/core/queries/instance';
@@ -13,6 +13,7 @@ import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { createValidationStateDeriver } from 'src/features/validation/createValidationStateDeriver';
 import {
   buildDerivedValidationState,
   emptyBreakdown,
@@ -43,16 +44,31 @@ function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
 }
 
+function useValidationStateDeriver() {
+  const navigationParams = useAllNavigationParams();
+  const deriver = useRef<ReturnType<typeof createValidationStateDeriver>>(undefined);
+  deriver.current ??= createValidationStateDeriver();
+  const derive = deriver.current;
+
+  return useCallback(
+    (state: Parameters<typeof derive>[0], inputs: Parameters<typeof derive>[1]) =>
+      derive(state, inputs, [navigationParams]),
+    [derive, navigationParams],
+  );
+}
+
 function useCompleteValidationSnapshot(enabled: boolean) {
   const state = FormStore.raw.useSelector((state) => (enabled ? state : undefined));
   const inputs = useDerivedValidationStateInputs();
-  return state ? buildDerivedValidationState(state, inputs) : undefined;
+  const derive = useValidationStateDeriver();
+  return state ? derive(state, inputs) : undefined;
 }
 
 function usePageScopedValidationSnapshot(pageKeys: string[]) {
   const state = FormStore.raw.useSelector((state) => state);
   const inputs = useDerivedValidationStateInputs();
-  return buildDerivedValidationState(state, { ...inputs, includedPageKeys: pageKeys });
+  const derive = useValidationStateDeriver();
+  return derive(state, { ...inputs, includedPageKeys: pageKeys });
 }
 
 function usePageScopedNodeValidationSelection<T>(
@@ -61,9 +77,10 @@ function usePageScopedNodeValidationSelection<T>(
   select: (derived: ReturnType<typeof buildDerivedValidationState>, indexedId: string | undefined) => T,
 ) {
   const inputs = useDerivedValidationStateInputs();
+  const derive = useValidationStateDeriver();
   return FormStore.raw.useMemoSelector((state) => {
     const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
-    const derived = buildDerivedValidationState(state, {
+    const derived = derive(state, {
       ...inputs,
       includedPageKeys: pageKey ? [pageKey] : undefined,
       includedNodeIds: indexedId ? [indexedId] : emptyArray,
@@ -148,9 +165,10 @@ export function useVisibleValidationsDeep(
   severity?: ValidationSeverity,
 ): NodeRefValidation[] {
   const inputs = useDerivedValidationStateInputs();
+  const derive = useValidationStateDeriver();
   return FormStore.raw.useMemoSelector((state) => {
     const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
-    const derived = buildDerivedValidationState(state, {
+    const derived = derive(state, {
       ...inputs,
       includedPageKeys: pageKey ? [pageKey] : undefined,
       descendantScope: { nodeId: indexedId, includeSelf, restriction },
@@ -191,8 +209,9 @@ export function useAllValidations(
   includeHidden = false,
 ): NodeRefValidation[] {
   const inputs = useDerivedValidationStateInputs();
+  const derive = useValidationStateDeriver();
   return FormStore.raw.useMemoSelector((state) => {
-    const derived = buildDerivedValidationState(state, inputs);
+    const derived = derive(state, inputs);
     return derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity, includeHidden));
   });
 }
@@ -236,12 +255,13 @@ export function useGetNodesWithErrors() {
 /** Indicates whether a page currently contains a visible required-field validation. */
 export function usePageHasVisibleRequiredValidations(pageKey: string | undefined) {
   const inputs = useDerivedValidationStateInputs();
+  const derive = useValidationStateDeriver();
   return FormStore.raw.useMemoSelector((state) => {
     if (!pageKey) {
       return false;
     }
 
-    const derived = buildDerivedValidationState(state, { ...inputs, includedPageKeys: [pageKey] });
+    const derived = derive(state, { ...inputs, includedPageKeys: [pageKey] });
     return (derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some((nodeId) =>
       getValidationsForNode(derived, nodeId, 'visible', 'error').some(
         (validation) => validation.source === FrontendValidationSource.EmptyField,
