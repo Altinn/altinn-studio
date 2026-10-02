@@ -5,7 +5,7 @@ import colors from 'picocolors';
 
 export default {
   optimizeDeps: {
-    include: ['react-dom', 'posthog-js'],
+    include: ['react-dom', 'react/jsx-runtime', 'posthog-js'],
     exclude: ['@digdir/designsystemet-react'],
   },
   css: {
