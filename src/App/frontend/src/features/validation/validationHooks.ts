@@ -55,21 +55,6 @@ function usePageScopedValidationSnapshot(pageKeys: string[]) {
   return buildDerivedValidationState(state, { ...inputs, includedPageKeys: pageKeys });
 }
 
-function usePageScopedValidationSelection<T>(
-  baseComponentId: string,
-  select: (derived: ReturnType<typeof buildDerivedValidationState>) => T,
-) {
-  const inputs = useDerivedValidationStateInputs();
-  return FormStore.raw.useMemoSelector((state) => {
-    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
-    const derived = buildDerivedValidationState(state, {
-      ...inputs,
-      includedPageKeys: pageKey ? [pageKey] : undefined,
-    });
-    return select(derived);
-  });
-}
-
 function usePageScopedNodeValidationSelection<T>(
   baseComponentId: string,
   indexedId: string | undefined,
@@ -162,12 +147,15 @@ export function useVisibleValidationsDeep(
   restriction?: number,
   severity?: ValidationSeverity,
 ): NodeRefValidation[] {
-  return usePageScopedValidationSelection(baseComponentId, (derived) => {
-    const nodeIds = [
-      ...(includeSelf ? [indexedId] : emptyArray),
-      ...getValidationDescendantIds(derived, indexedId, restriction),
-    ];
-    return nodeIds.flatMap((nodeId) => getNodeRefValidations(derived, nodeId, mask, severity));
+  const inputs = useDerivedValidationStateInputs();
+  return FormStore.raw.useMemoSelector((state) => {
+    const pageKey = state.bootstrap.layoutLookups.componentToPage[baseComponentId];
+    const derived = buildDerivedValidationState(state, {
+      ...inputs,
+      includedPageKeys: pageKey ? [pageKey] : undefined,
+      descendantScope: { nodeId: indexedId, includeSelf, restriction },
+    });
+    return derived.nodes.flatMap((node) => getNodeRefValidations(derived, node.id, mask, severity));
   });
 }
 
