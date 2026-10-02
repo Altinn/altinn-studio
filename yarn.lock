@@ -5531,6 +5531,7 @@ __metadata:
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.8.1"
     eslint-plugin-storybook: "npm:10.5.7"
+    highlight.js: "npm:11.12.0"
     jest: "npm:^29.7.0"
     jest-environment-jsdom: "npm:^29.7.0"
     react-dnd: "npm:16.0.1"
@@ -12473,6 +12474,13 @@ __metadata:
   dependencies:
     hermes-estree: "npm:0.25.1"
   checksum: 10/805efc05691420f236654349872c70731121791fa54de521c7ee51059eae34f84dd19f22ee846741dcb60372f8fb5335719b96b4ecb010d2aed7d872f2eff9cc
+  languageName: node
+  linkType: hard
+
+"highlight.js@npm:11.12.0":
+  version: 11.12.0
+  resolution: "highlight.js@npm:11.12.0"
+  checksum: 10/1aecfae8aaf230bc38daa81b91fdd3b3e2765b5d18fd1d83dbc85513552336028e71f0e827417ebec2b88ac2e6c903ac6ccfca0772a471768d9236a99f3f540d
   languageName: node
   linkType: hard
 
