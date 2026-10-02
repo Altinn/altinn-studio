@@ -22,3 +22,4 @@ ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry referen
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
 ALTINNAPP1001 | Process | Error | PDF service task has a UI folder without pdfLayoutName
 ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
+ALTINNAPP1003 | Process | Error | Task uses the wrong BPMN element

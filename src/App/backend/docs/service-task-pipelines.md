@@ -45,6 +45,8 @@ Two things about that check are worth knowing:
 
 - **The element must match the type.** A task whose type resolves to a service task must be a
   `<bpmn:serviceTask>` element, and every other task a `<bpmn:task>`; the app refuses to start on a mismatch.
+  The build reports the same mismatch as `ALTINNAPP1003` for the built-in types and for task classes in the
+  app whose `Type` returns a constant, assuming each is registered under the interface it implements.
 - **The type is matched exactly, including case.** `<altinn:taskType>PDF</altinn:taskType>` does not reach
   a task whose `Type` is `pdf`.
 
