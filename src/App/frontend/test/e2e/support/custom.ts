@@ -129,30 +129,63 @@ Cypress.Commands.add('gotoNavPage', (page: string) => {
 });
 
 Cypress.Commands.add('numberFormatClear', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
-  cy.log('Clearing number formatted input field');
-  if (!subject?.length) {
-    throw new Error('Subject is undefined');
-  }
-
-  // Prefer id over subject.selector — findByRole() sets a non-CSS selector that cy.get cannot parse.
-  const id = subject.attr('id');
-  const selector = id ? `#${id}` : subject.selector;
-
-  if (!selector) {
-    throw new Error('numberFormatClear requires cy.get("#id") or an element with an id attribute');
-  }
-
-  // Since we cannot use {selectall} on number formatted input fields, because react-number-format messes with
-  // our selection, we need to delete the content by moving to the start of the input field and deleting one
-  // character at a time. Each delete is a separate command so React re-renders do not detach the subject mid-type.
-  cy.get(selector).type('{moveToStart}{moveToStart}{moveToStart}{moveToStart}{moveToStart}');
-  cy.get(selector).then(($input) => {
-    const strLength = $input.val()?.toString().length ?? 0;
-    for (let i = 0; i < strLength; i++) {
-      cy.get(selector).type('{del}', { delay: 0 });
-    }
-  });
+  cy.wrap(subject).numberFormatReplace('');
 });
+
+Cypress.Commands.add(
+  'numberFormatReplace',
+  { prevSubject: true },
+  (subject: JQueryWithSelector | undefined, value: string) => {
+    cy.log(value ? `Replacing number formatted input with ${value}` : 'Clearing number formatted input field');
+    if (!subject?.length) {
+      throw new Error('Subject is undefined');
+    }
+
+    // Prefer id over subject.selector: findByRole() sets a non-CSS selector that cy.get cannot parse.
+    const id = subject.attr('id');
+    const selector = id ? `#${id}` : subject.selector;
+
+    if (!selector) {
+      throw new Error('Number formatting commands require cy.get("#id") or an element with an id attribute');
+    }
+
+    const deadline = Date.now() + Cypress.config('defaultCommandTimeout');
+    const expectedKeys = value.length || 1;
+
+    const typeValue = () => {
+      cy.get<HTMLInputElement>(selector).then(($input) => {
+        if (!value && $input.val() === '') {
+          return;
+        }
+
+        const input = $input[0];
+        let receivedKeys = 0;
+        const onKeyDown = (event: KeyboardEvent) => {
+          if (event.key.length === 1 || event.key === 'Backspace') {
+            receivedKeys++;
+          }
+        };
+        input.addEventListener('keydown', onKeyDown);
+
+        // Full selection is preserved by react-number-format. Replacing directly avoids saving an empty
+        // integer as zero. Delayed status announcements can steal focus during Cypress's keyboard command,
+        // so retry the whole action if this input missed keys or was replaced during typing.
+        cy.get(selector).type(`{selectall}${value || '{backspace}'}`, { delay: 0 });
+        cy.then(() => {
+          input.removeEventListener('keydown', onKeyDown);
+          if (receivedKeys < expectedKeys || !input.isConnected) {
+            if (Date.now() >= deadline) {
+              throw new Error(`Could not deliver the number formatting keyboard command to ${selector}`);
+            }
+            typeValue();
+          }
+        });
+      });
+    };
+
+    typeValue();
+  },
+);
 
 interface KnownViolation extends Pick<axe.Result, 'id'> {
   spec: string;
