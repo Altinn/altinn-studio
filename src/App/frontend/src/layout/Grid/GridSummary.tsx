@@ -281,6 +281,10 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
   const title = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -289,7 +293,6 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   );
 
   const required = getRequired(config.type, evaluatedRequired);
-  const readOnly = 'readOnly' in config ? config.readOnly : undefined;
   const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
@@ -528,7 +531,12 @@ function SummaryCellWithLabel({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
   const required = getRequired(config.type, evaluatedRequired);
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
@@ -544,6 +552,8 @@ function SummaryCellWithLabel({
         id={useIndexedId(cell.labelFrom)}
         label={title2}
         required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
       />
     </CellComponent>
   );

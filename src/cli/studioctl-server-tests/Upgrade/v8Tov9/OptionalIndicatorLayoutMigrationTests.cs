@@ -138,6 +138,32 @@ public sealed class OptionalIndicatorLayoutMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task SkipsMalformedFilesAndWarnsInsteadOfFailing()
+    {
+        const string malformed = """
+            { "data": { "layout": [{ "id": "a", "type": "Input", "labelSettings": { "optionalIndicator": true } }
+            """;
+        const string valid = """
+            {
+              "data": {
+                "layout": [{ "id": "b", "type": "Input", "labelSettings": { "optionalIndicator": true } }]
+              }
+            }
+            """;
+        _app.Write("ui/Task_1/layouts/Broken.json", malformed);
+        _app.Write("ui/Task_1/layouts/Side1.json", valid);
+
+        var result = await OptionalIndicatorLayoutMigration.Migrate(_app.Root);
+
+        Assert.Equal(1, result.FilesChanged);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("Broken.json", warning, StringComparison.Ordinal);
+        Assert.Contains("not valid JSON", warning, StringComparison.Ordinal);
+        Assert.Equal(malformed, _app.Read("ui/Task_1/layouts/Broken.json"));
+        Assert.DoesNotContain("optionalIndicator", _app.Read("ui/Task_1/layouts/Side1.json"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task PreservesUtf8BomAndIsIdempotent()
     {
         const string layout =

@@ -39,13 +39,28 @@ internal static class OptionalIndicatorLayoutMigration
         foreach (var layoutFile in FindLayoutFiles(uiDirectory))
         {
             var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(layoutFile));
-            var root = JsonNode.Parse(
-                decoded.Text,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-            );
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(
+                    decoded.Text,
+                    new JsonNodeOptions { PropertyNameCaseInsensitive = false },
+                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+                );
+            }
+            catch (JsonException exception)
+            {
+                warnings.Add(
+                    $"{Path.GetFileName(layoutFile)}: left untouched because it is not valid JSON ({exception.Message})."
+                );
+                continue;
+            }
+
             if (root is null)
-                throw new JsonException($"Layout file does not contain JSON: {layoutFile}");
+            {
+                warnings.Add($"{Path.GetFileName(layoutFile)}: left untouched because it does not contain JSON.");
+                continue;
+            }
 
             var removedInFile = RemoveRedundantOptionalIndicators(root);
             if (removedInFile == 0)

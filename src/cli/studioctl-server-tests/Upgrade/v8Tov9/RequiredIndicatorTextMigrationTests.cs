@@ -127,6 +127,23 @@ public sealed class RequiredIndicatorTextMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task SkipsMalformedFilesAndWarnsInsteadOfFailing()
+    {
+        const string malformed = """
+            { "language": "nb", "resources": [{ "id": "form_filler.required_label", "value": "*" }
+            """;
+        _app.Write("config/texts/resource.nb.json", malformed);
+
+        var result = await RequiredIndicatorTextMigration.Migrate(_app.Root);
+
+        Assert.Equal(0, result.FilesChanged);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("resource.nb.json", warning, StringComparison.Ordinal);
+        Assert.Contains("not valid JSON", warning, StringComparison.Ordinal);
+        Assert.Equal(malformed, _app.Read("config/texts/resource.nb.json"));
+    }
+
+    [Fact]
     public async Task ReturnsEmptyResultWhenThereIsNoTextsDirectory()
     {
         var result = await RequiredIndicatorTextMigration.Migrate(_app.Root);

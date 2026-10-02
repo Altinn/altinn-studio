@@ -54,11 +54,21 @@ internal static class RequiredIndicatorTextMigration
         {
             var fileName = Path.GetFileName(resourceFile);
             var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(resourceFile));
-            var root = JsonNode.Parse(
-                decoded.Text,
-                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
-            );
+            JsonNode? root;
+            try
+            {
+                root = JsonNode.Parse(
+                    decoded.Text,
+                    new JsonNodeOptions { PropertyNameCaseInsensitive = false },
+                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+                );
+            }
+            catch (JsonException exception)
+            {
+                warnings.Add($"{fileName}: left untouched because it is not valid JSON ({exception.Message}).");
+                continue;
+            }
+
             if (root?["resources"] is not JsonArray resources)
                 continue;
 
