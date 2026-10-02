@@ -6,11 +6,7 @@ import type {
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { orderedSteps } from 'admin/features/apps/utils/workflowTriage';
-import {
-  groupStepsByPhase,
-  parseTransition,
-  phaseElementId,
-} from 'admin/features/apps/utils/workflowPhases';
+import { groupStepsByElement, parseTransition } from 'admin/features/apps/utils/workflowPhases';
 
 import classes from './WorkflowStepStrip.module.css';
 
@@ -44,8 +40,8 @@ export type WorkflowStepStripProps = {
 };
 
 /**
- * A workflow's steps as one row of dots, in processing order, in runs by the phase of the
- * transition they belong to: ending one task, starting the next. The runs are spaced apart, so which
+ * A workflow's steps as one row of dots, in processing order, in runs by the task they belong to:
+ * the task the transition ends, then the one it starts. The runs are spaced apart, so which
  * side of a transition a workflow stopped on shows without opening it. The dots are for a sighted
  * reader scanning the list; the strip as a whole reads as one sentence to assistive technology.
  */
@@ -68,10 +64,10 @@ export const WorkflowStepStrip = ({ workflow }: WorkflowStepStripProps): ReactEl
 
   return (
     <span className={classes.dots} role='img' aria-label={label}>
-      {groupStepsByPhase(steps).map((group) => {
-        const groupLabel = group.phase && phaseElementId(group.phase, transition);
+      {groupStepsByElement(steps, transition).map((group) => {
+        const groupLabel = group.elementId;
         return (
-          <span key={group.steps[0].databaseId} className={classes.group} data-phase={group.phase}>
+          <span key={group.steps[0].databaseId} className={classes.group}>
             {group.steps.map((step) => (
               <span
                 key={step.databaseId}

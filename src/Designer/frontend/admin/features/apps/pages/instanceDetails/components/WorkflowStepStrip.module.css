@@ -9,8 +9,9 @@
   min-height: 1.5rem;
 }
 
-/* One run of steps: a phase of the transition, or steps that belong to none. The runs are told
-   apart by the space between them, twice the space between two dots of the same run. */
+/* One run of steps: the steps of one element — the task left or entered, or the end event — or
+   steps that belong to none. The runs are told apart by the space between them, twice the space
+   between two dots of the same run. */
 .group {
   display: inline-flex;
   align-items: center;

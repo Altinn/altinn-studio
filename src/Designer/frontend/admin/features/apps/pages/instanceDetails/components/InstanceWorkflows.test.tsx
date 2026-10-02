@@ -328,6 +328,53 @@ describe('InstanceWorkflows', () => {
       ]);
     });
 
+    it('heads each step by the element the app runtime labels it with', async () => {
+      const user = userEvent.setup();
+      const labeled = (operationId: string, processingOrder: number, element: string) => ({
+        ...stepOf(operationId, processingOrder),
+        labels: { processNextElement: element },
+      });
+      respondWith([
+        transition(
+          'wf-form-verify',
+          'Process next: Form -> Verify',
+          '2026-09-21T13:29:56.000Z',
+          '2026-09-21T13:29:56.300Z',
+          [
+            labeled('EndTask', 0, 'Form'),
+            labeled('SomeNewTaskEndingCommand', 1, 'Form'),
+            stepOf('MutateProcessState', 2),
+            labeled('StartTask', 3, 'Verify'),
+            stepOf('CommitProcessState', 4),
+          ],
+        ),
+      ]);
+      renderInstanceWorkflows();
+
+      await user.click(await screen.findByTitle('Process next: Form -> Verify'));
+      const [, body] = within(screen.getByRole('table')).getAllByRole('rowgroup');
+      const firstCells = within(body)
+        .getAllByRole('row')
+        .flatMap((row) => within(row).queryAllByRole('cell').slice(0, 1))
+        .map((cell) => cell.textContent);
+      expect(firstCells).toEqual([
+        'Form',
+        'EndTask',
+        'SomeNewTaskEndingCommand',
+        'MutateProcessState',
+        'Verify',
+        'StartTask',
+        'CommitProcessState',
+      ]);
+      // Set in under the Form heading by its label alone: the command-name map does not know it.
+      expect(within(body).getByRole('cell', { name: 'SomeNewTaskEndingCommand' })).toHaveClass(
+        'groupedCell',
+      );
+      expect(within(body).getByRole('cell', { name: 'MutateProcessState' })).not.toHaveClass(
+        'groupedCell',
+      );
+    });
+
     it('names the transition first, the kind of workflow after it, and the whole id as a tooltip', async () => {
       respondWith([
         transition(

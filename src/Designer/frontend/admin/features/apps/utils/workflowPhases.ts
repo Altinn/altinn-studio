@@ -45,22 +45,59 @@ export function parseTransition(workflow: WorkflowStatus): Transition | undefine
   return match ? { from: match[1], to: match[2] } : undefined;
 }
 
+/**
+ * The step label the app runtime puts on every step of a task's lifecycle: the id of the BPMN
+ * element the step runs for — the task being left, the task being entered, or the end event the
+ * process ends at. The steps of the transition itself, a service task's work and the side effects
+ * carry none: they belong to no element.
+ */
+export const PROCESS_ELEMENT_LABEL = 'processNextElement';
+
 export type StepGroup = {
-  /** The phase the run of steps belongs to, if any. */
-  phase?: StepPhase;
+  /**
+   * What the run of steps has in common; absent for steps that belong to no element. A label and a
+   * guess from the command name never share a key, so the two never merge into one run.
+   */
+  key?: string;
+  /** The BPMN element the run belongs to, by its id in the process, when it is known. */
+  elementId?: string;
   steps: WorkflowStepStatus[];
 };
 
-/** The steps in order, cut into runs of the same phase. Steps of no phase make runs of their own. */
-export function groupStepsByPhase(steps: WorkflowStepStatus[]): StepGroup[] {
+/**
+ * Which element a step runs for. The app runtime's own label wins: it names the element outright,
+ * whatever the command is called. Without one — a workflow enqueued before the label existed, or
+ * by an app on older app libraries — the command name says which end of the transition the step
+ * sits at, and the transition names the element there.
+ */
+function groupOf(
+  step: WorkflowStepStatus,
+  transition: Transition | undefined,
+): Omit<StepGroup, 'steps'> {
+  const element = step.labels?.[PROCESS_ELEMENT_LABEL];
+  if (element) {
+    return { key: `element:${element}`, elementId: element };
+  }
+  const phase = stepPhase(step);
+  return phase ? { key: `phase:${phase}`, elementId: phaseElementId(phase, transition) } : {};
+}
+
+/**
+ * The steps in order, cut into runs of the same element: the task a run of a transition ends or
+ * starts, or the end event. Steps of no element make runs of their own.
+ */
+export function groupStepsByElement(
+  steps: WorkflowStepStatus[],
+  transition: Transition | undefined,
+): StepGroup[] {
   const groups: StepGroup[] = [];
   for (const step of steps) {
-    const phase = stepPhase(step);
+    const group = groupOf(step, transition);
     const current = groups.at(-1);
-    if (current && current.phase === phase) {
+    if (current && current.key === group.key) {
       current.steps.push(step);
     } else {
-      groups.push({ phase, steps: [step] });
+      groups.push({ ...group, steps: [step] });
     }
   }
   return groups;
