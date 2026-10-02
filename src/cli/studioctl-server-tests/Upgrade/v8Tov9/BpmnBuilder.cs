@@ -59,7 +59,7 @@ internal static class BpmnBuilder
     /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
     public static string PdfServiceTask(string id) =>
         $"""
-                <bpmn:serviceTask id="{id}" name="Generate PDF">
+                <bpmn:serviceTask id="{id}" name="Lag PDF">
                   <bpmn:extensionElements>
                     <altinn:taskExtension>
                       <altinn:taskType>pdf</altinn:taskType>

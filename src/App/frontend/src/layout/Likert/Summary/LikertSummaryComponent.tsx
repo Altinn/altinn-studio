@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -14,10 +16,9 @@ import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { typedBoolean } from 'src/utils/typing';
-import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -27,7 +28,20 @@ export function LikertSummaryComponent({
   targetBaseComponentId,
   overrides,
 }: SummaryRendererProps) {
-  const targetItem = useItemWhenType(targetBaseComponentId, 'Likert');
+  const config = useComponentConfig(targetBaseComponentId, 'Likert');
+  const summaryAccessibleTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryAccessibleTitle,
+    Expressions.Likert.textResourceBindings.summaryAccessibleTitle,
+  );
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Likert.textResourceBindings.summaryTitle,
+  );
+  const titleTrb = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Likert.textResourceBindings.title,
+  );
+
   const excludedChildren = overrides?.excludedChildren;
   const display = overrides?.display;
   const { lang, langAsString } = useLanguage();
@@ -39,11 +53,8 @@ export function LikertSummaryComponent({
   const groupHasErrors = hasValidationErrors(groupValidations);
 
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Likert');
-  const textBindings = targetItem.textResourceBindings as ITextResourceBindings;
-  const summaryAccessibleTitleTrb =
-    textBindings && 'summaryAccessibleTitle' in textBindings ? textBindings.summaryAccessibleTitle : undefined;
-  const summaryTitleTrb = textBindings && 'summaryTitle' in textBindings ? textBindings.summaryTitle : undefined;
-  const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
+  const summaryAccessibleTitleTrb = summaryAccessibleTitle;
+  const summaryTitleTrb = summaryTitle;
   const title = lang(summaryTitleTrb ?? titleTrb);
   const ariaLabel = langAsString(summaryTitleTrb ?? summaryAccessibleTitleTrb ?? titleTrb);
   const indexedId = useIndexedId(targetBaseComponentId);
@@ -159,7 +170,7 @@ interface RowProps extends Pick<SummaryRendererProps, 'onChangeClick' | 'changeT
 function Row({ row, inExcludedChildren, onChangeClick, changeText, targetBaseComponentId }: RowProps) {
   const childId = makeLikertChildId(targetBaseComponentId);
   const indexedId = useIndexedId(childId);
-  const component = useExternalItem(childId);
+  const component = useComponentConfig(childId);
   const isHidden = useIsHidden(childId);
 
   if (inExcludedChildren(indexedId, childId)) {

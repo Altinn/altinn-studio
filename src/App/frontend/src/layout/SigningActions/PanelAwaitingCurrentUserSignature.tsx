@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { Button, FullWidthWrapper, LiveValidationMessage, Panel, Spinner } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Checkbox, Heading } from '@digdir/designsystemet-react';
 
 import { useRequestFocus } from 'src/core/contexts/ElementFocusProvider';
@@ -19,7 +20,8 @@ import { OnBehalfOfChooser } from 'src/layout/SigningActions/OnBehalfOfChooser';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type AwaitingCurrentUserSignaturePanelProps = {
   baseComponentId: string;
@@ -38,13 +40,29 @@ export function AwaitingCurrentUserSignaturePanel({
   const canWrite = isAuthorized('write');
 
   const currentUserPartyId = useProfile()?.partyId;
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
+  const config = useComponentConfig(baseComponentId, 'SigningActions');
+  const awaitingSignaturePanelTitle = useEvalOptionalText(
+    config.textResourceBindings?.awaitingSignaturePanelTitle,
+    Expressions.SigningActions.textResourceBindings.awaitingSignaturePanelTitle,
+  );
+  const resolvedCheckboxLabel = useEvalOptionalText(
+    config.textResourceBindings?.checkboxLabel,
+    Expressions.SigningActions.textResourceBindings.checkboxLabel,
+  );
+  const checkboxDescription = useEvalOptionalText(
+    config.textResourceBindings?.checkboxDescription,
+    Expressions.SigningActions.textResourceBindings.checkboxDescription,
+  );
+  const signingButton = useEvalOptionalText(
+    config.textResourceBindings?.signingButton,
+    Expressions.SigningActions.textResourceBindings.signingButton,
+  );
+
   const { langAsString } = useLanguage();
 
-  const title = textResourceBindings?.awaitingSignaturePanelTitle ?? 'signing.awaiting_signature_panel_title';
-  const checkboxLabel = textResourceBindings?.checkboxLabel ?? 'signing.checkbox_label';
-  const checkboxDescription = textResourceBindings?.checkboxDescription;
-  const signingButtonText = textResourceBindings?.signingButton ?? 'signing.sign_button';
+  const title = awaitingSignaturePanelTitle ?? 'signing.awaiting_signature_panel_title';
+  const checkboxLabel = resolvedCheckboxLabel ?? 'signing.checkbox_label';
+  const signingButtonText = signingButton ?? 'signing.sign_button';
 
   const [confirmReadDocuments, setConfirmReadDocuments] = useState(false);
   const [onBehalfOf, setOnBehalfOf] = useState<string | null>(null);

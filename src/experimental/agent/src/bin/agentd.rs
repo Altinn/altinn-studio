@@ -124,6 +124,10 @@ async fn open_sandboxes(
     ))
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "wires every daemon subsystem explicitly, as the Control API server's dependencies are"
+)]
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
@@ -182,13 +186,14 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_store,
         agent_sandboxes,
         session_runtime,
-        convergence,
+        convergence.clone(),
         session_wakeup,
     ));
     agent::upgrade::consume_pending_session_relaunch(&home, &sessions).await?;
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
+        Rc::new(convergence.clone()),
         executions,
         sessions,
         ssh,

@@ -12,6 +12,8 @@ dependencies = [
 
     # HTTP client
     "httpx>=0.28.1",
+    # Security floor for Requests' transitive dependency (CVE-2026-97687, CVE-2026-97689)
+    "urllib3>=2.8.0",
 
     # Configuration
     "python-dotenv>=1.2.2",

@@ -122,9 +122,13 @@ impl Service {
         wait: WaitPolicy,
     ) -> Result<AttachTarget, Error> {
         let (owner, session) = self.prepare(agent, name, request).await?;
-        self.convergence.converge(owner.id, wait).await?;
+        let converged = self.convergence.converge(agent, wait).await?;
+        if converged.id != owner.id {
+            // The Agent was deleted and its name reused while this request waited.
+            return Err(Error::Conflict);
+        }
+        converged.reject_stopped()?;
         // On a brand-new Agent this is the first moment the answer exists.
-        let converged = self.sandboxes.agent_by_name(agent).await?;
         Self::reject_omitted_optional_harness(&converged, session.harness)?;
         self.wakeup.reconcile(session.id).await?;
         self.store.session_attach_target(session.id).await
@@ -267,6 +271,7 @@ impl Service {
     pub async fn turns(&self, agent: &str, name: &SessionName, last: Option<usize>) -> Result<Vec<Turn>, Error> {
         let session = self.visible(agent, name).await?;
         let owner = self.sandboxes.agent(session.agent_id).await?;
+        owner.reject_stopped()?;
         let sandbox = self.sandboxes.open(&owner).await?;
         let session = self.store.get_session(session.id).await?;
         self.runtime.turns(&session, &sandbox, last).await
@@ -277,10 +282,11 @@ impl Service {
         if session.is_archived() {
             return Err(session.archived_error());
         }
+        let owner = self.sandboxes.agent(session.agent_id).await?;
+        owner.reject_stopped()?;
         if session.status.lifecycle.state != LifecycleState::Running {
             return Err(session.not_running_error());
         }
-        let owner = self.sandboxes.agent(session.agent_id).await?;
         let sandbox = self.sandboxes.open(&owner).await?;
         Ok((session, sandbox))
     }
@@ -320,6 +326,7 @@ impl Service {
         if owner.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
+        owner.reject_stopped()?;
         if let Some(harness) = request.harness
             && owner.agent.spec.harness(harness).is_none()
         {

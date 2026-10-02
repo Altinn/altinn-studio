@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useIsMobile, useIsTablet } from '@app/form-component';
+import { useIsDesktop, useIsLaptop, useIsMobile, useIsTablet } from '@app/form-component';
 import { rightToLeftISOLanguageCodes } from '@app/language';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -9,6 +9,8 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 export const ViewportWrapper = ({ children }: PropsWithChildren) => {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
+  const isLaptop = useIsLaptop();
+  const isDesktop = useIsDesktop();
   const selectedLanguage = useCurrentLanguage();
 
   const isRtl = rightToLeftISOLanguageCodes.includes(selectedLanguage);
@@ -23,8 +25,9 @@ export const ViewportWrapper = ({ children }: PropsWithChildren) => {
 
     const documentClasses = {
       'viewport-is-mobile': isMobile,
-      'viewport-is-tablet': isTablet && !isMobile,
-      'viewport-is-desktop': !isTablet && !isMobile,
+      'viewport-is-tablet': isTablet,
+      'viewport-is-laptop': isLaptop,
+      'viewport-is-desktop': isDesktop,
     };
 
     for (const [key, value] of Object.entries(documentClasses)) {
@@ -34,7 +37,7 @@ export const ViewportWrapper = ({ children }: PropsWithChildren) => {
         document.documentElement.classList.remove(key);
       }
     }
-  }, [direction, isMobile, isTablet, selectedLanguage]);
+  }, [direction, isDesktop, isLaptop, isMobile, isTablet, selectedLanguage]);
 
   return (
     <div

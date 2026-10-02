@@ -157,6 +157,14 @@ impl Reconciler {
             }
         }
         let agent = self.sandboxes.agent(session.agent_id).await?;
+        // A stopped Agent's harnesses stop with its VM. The Session is Idle, as after
+        // inactivity, so the next attach after a start resumes its conversation.
+        // A recorded stop counts too: a start may already be asked for while the
+        // stop waits for its Sessions to see it.
+        if agent.agent.spec.is_stopped() || agent.agent.status.is_stopped() {
+            self.sessions.reset_session_launch_attempts(session.id).await?;
+            return Ok(Lifecycle::idle());
+        }
         if let Some(held) = launch_blocked(&agent, session) {
             return Ok(held);
         }
@@ -393,8 +401,15 @@ fn launch_blocked(agent: &crate::control_plane::AgentRecord, session: &Session) 
         .sandbox
         .as_ref()
         .and_then(crate::sandbox::Assignment::installed_harnesses);
-    let reason = if agent.agent.metadata.deletion_timestamp.is_some() || !agent.agent.status.is_ready() {
-        format!("Agent {:?} is not ready", agent.agent.metadata.name)
+    let name = &agent.agent.metadata.name;
+    let reason = if agent.agent.metadata.deletion_timestamp.is_some() {
+        format!("Agent {name:?} is being deleted")
+    } else if !agent.agent.status.is_ready() {
+        // Says why, such as a guest that stopped responding.
+        agent.agent.status.ready_condition().map_or_else(
+            || format!("Agent {name:?} is not ready"),
+            |ready| format!("Agent {name:?} is not ready: {}", ready.detail().trim_end()),
+        )
     } else if !installed.is_some_and(|installed| installed.contains(&session.harness)) {
         format!(
             "Agent {:?} does not carry harness {:?}; sign in on the host and the next Agent \
