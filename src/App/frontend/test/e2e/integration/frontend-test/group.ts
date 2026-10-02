@@ -837,8 +837,8 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.editContainer).find('input').first().should('have.value', 'NOK 80 323');
 
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
 
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
@@ -909,13 +909,14 @@ describe('Group', () => {
       // Make sure we don't have any rows open for editing before hiding them
       cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
-      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-      cy.get(appFrontend.group.hideRepeatingGroupRow).type('0');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('0');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 0');
     }
 
     function showSomeRows() {
-      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-      cy.get(appFrontend.group.hideRepeatingGroupRow).type('1000');
+      // Replacing the value avoids a save that normalizes an empty integer to zero during typing.
+      cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('1000');
+      cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 1 000');
     }
 
     showSomeRows();
