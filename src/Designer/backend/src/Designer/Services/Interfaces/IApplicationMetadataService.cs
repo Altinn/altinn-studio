@@ -85,7 +85,7 @@ public interface IApplicationMetadataService
     public bool ApplicationMetadataExistsInRepository(string org, string app);
 
     /// <summary>
-    /// update  metadata for attachment
+    /// Adds a data type for an attachment component. File scanning is enabled unless the payload sets <c>enableFileScan</c>.
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>

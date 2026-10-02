@@ -223,6 +223,30 @@ describe('useUpdateFormComponentMutation', () => {
     );
   });
 
+  it('Keeps enableFileScan from the old data type when updating the id of a FileUpload component', async () => {
+    const oldId = componentMocks[ComponentType.FileUpload].id;
+    const newId = 'newId';
+    renderAndWaitForData();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: oldId, enableFileScan: false }],
+    });
+    const updateFormComponentResult = renderHookWithProviders(() =>
+      useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+    ).result;
+
+    await updateFormComponentResult.current.mutateAsync({
+      id: oldId,
+      updatedComponent: { ...componentMocks[ComponentType.FileUpload], id: newId },
+    });
+
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      expect.objectContaining({ id: newId, enableFileScan: false }),
+    );
+  });
+
   describe('Updating dataType for fileupload components in repeating groups', () => {
     it('Does not update maxCount and minCount when maxCount decreases', async () => {
       renderAndWaitForData();

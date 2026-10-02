@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -26,6 +27,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </summary>
 public class ApplicationMetadataService : IApplicationMetadataService
 {
+    private const string EnableFileScanPropertyName = "enableFileScan";
+
     private readonly ILogger<ApplicationMetadataService> _logger;
     private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -193,26 +196,42 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <inheritdoc/>
     public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
     {
-        DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
+        DataType attachmentDataType = DeserializeNewAttachmentDataType(applicationMetadata);
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-        existingApplicationMetadata.DataTypes.Add(formMetadata);
+        existingApplicationMetadata.DataTypes.Add(attachmentDataType);
 
         await UpdateApplicationMetaDataLocally(org, app, existingApplicationMetadata);
+    }
+
+    private static DataType DeserializeNewAttachmentDataType(string attachmentMetadataJson)
+    {
+        JObject attachmentMetadata = JObject.Parse(attachmentMetadataJson);
+
+        // Checked by key rather than value so an explicit false is preserved.
+        if (attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase) == null)
+        {
+            attachmentMetadata[EnableFileScanPropertyName] = true;
+        }
+
+        return attachmentMetadata.ToObject<DataType>();
     }
 
     /// <inheritdoc/>
     public async Task UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
     {
-        dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
-        string attachmentId = attachmentMetadata.GetValue("id").Value;
+        JObject attachmentMetadata =
+            JsonConvert.DeserializeObject<JObject>(applicationMetadata)
+            ?? throw new JsonException("Attachment metadata could not be deserialized to a JSON object.");
+        string attachmentId = attachmentMetadata.GetValue("id")!.Value<string>();
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
         DataType applicationForm =
-            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
+            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId)
+            ?? new DataType { EnableFileScan = true };
         applicationForm.AllowedContentTypes = new List<string>();
 
         if (attachmentMetadata.GetValue("fileType") != null)
         {
-            string fileTypes = attachmentMetadata.GetValue("fileType").Value;
+            string fileTypes = attachmentMetadata.GetValue("fileType")!.Value<string>();
             string[] fileType = fileTypes.Split(",");
 
             foreach (string type in fileType)
@@ -221,10 +240,10 @@ public class ApplicationMetadataService : IApplicationMetadataService
             }
         }
 
-        applicationForm.Id = attachmentMetadata.GetValue("id").Value;
-        applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
-        applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
-        applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+        applicationForm.Id = attachmentMetadata.GetValue("id")!.Value<string>();
+        applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount")!.Value<string>());
+        applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount")!.Value<string>());
+        applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize")!.Value<string>());
 
         await DeleteMetadataForAttachment(org, app, attachmentId);
         string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
