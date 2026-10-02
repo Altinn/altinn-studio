@@ -14,7 +14,7 @@ AGENTS_ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture(autouse=True)
 def _digests_match_the_baseline(monkeypatch):
-    """The digest tests below set their own values. The path tests must not depend on the real digests."""
+    """The path tests get the digests in BASELINE.json, so the real digests have no effect on them."""
     from benchmarks import baseline
 
     pointer = baseline.read()
@@ -131,8 +131,8 @@ class TestTheDigestsDecideForThePromptAndTheTools:
         assert code == 0
         assert "Nothing in this change" in said
 
-    def test_a_changed_digest_fails_whatever_file_moved_it(self, capsys):
-        """No path rule matches `agentic_loop_node.py`, but it decides which tools the actor gets."""
+    def test_a_changed_digest_fails_also_without_a_path_rule(self, capsys):
+        """No path rule matches `agentic_loop_node.py`. But this file sets the tools that the actor gets."""
         code, said = self._report(
             capsys,
             {**self.RECORDED, "tools": "cccccccccccc"},
@@ -144,13 +144,13 @@ class TestTheDigestsDecideForThePromptAndTheTools:
         assert "INVALIDATES THE BASELINE" in said
 
     def test_a_failed_digest_fails(self, capsys):
-        """A broken dependency must stop the gate, not let it pass."""
+        """If a dependency is broken, the gate must fail. It must not pass."""
         code, said = self._report(capsys, {**self.RECORDED, "actor_prompt": None})
         assert code == 1
         assert "actor_prompt  baseline aaaaaaaaaaaa, this checkout failed" in said
         assert "The error is in the log" in said
 
-    def test_a_digest_the_baseline_did_not_record_is_not_equal(self):
+    def test_a_digest_that_the_baseline_did_not_record_is_not_equal(self):
         """`runner check` refuses an axis that one side did not record."""
         drift = impact.compare_digests(
             {"actor_prompt": impact.NOT_RECORDED, "tools": "b"}, {"actor_prompt": "a", "tools": "b"}
@@ -171,20 +171,20 @@ class TestTheDigestsDecideForThePromptAndTheTools:
         )
         assert code == 0
 
-    def test_without_a_baseline_there_is_nothing_to_compare(self, monkeypatch, capsys):
+    def test_without_a_baseline_the_gate_compares_no_digest(self, monkeypatch, capsys):
         from benchmarks import baseline
 
         monkeypatch.setattr(baseline, "read", lambda **_kwargs: None)
         code, _said = self._report(capsys, {"actor_prompt": None, "tools": None})
         assert code == 0
 
-    def test_the_gate_compares_the_digests_a_run_records(self):
+    def test_the_gate_compares_the_digests_that_a_run_records(self):
         from benchmarks.provenance import BLOCKING_AXES, digests
 
         measured = digests()
         assert set(measured) == {axis for axis, _because in impact.DIGESTS}
         assert set(measured) <= set(BLOCKING_AXES)
-        assert None not in measured.values(), "a digest fails in the test environment, so it fails in CI"
+        assert None not in measured.values(), "a digest fails in the test environment, so it also fails in CI"
 
 
 def test_every_declared_pattern_matches_something_that_exists():
@@ -221,8 +221,8 @@ class TestTheFailureTellsYouWhatToDo:
     """CI shows a job log and nothing else, so the message has to carry it all."""
 
     @pytest.fixture(autouse=True)
-    def _paths_alone_decide(self, monkeypatch):
-        """The paths are unchanged in this checkout, so a source comparison finds nothing."""
+    def _only_the_paths_decide(self, monkeypatch):
+        """The paths did not change in this checkout, so a source comparison finds no change."""
         monkeypatch.setattr(impact, "git_reader", lambda _against: None)
 
     def _run_impact(self, paths, tmp_path, strict=True):
@@ -552,7 +552,7 @@ def test_the_file_list_can_arrive_on_stdin(monkeypatch, capsys):
 
 
 def test_the_gate_reads_old_files_at_the_given_base_ref(monkeypatch):
-    """A pull request that targets another branch must not be compared with main."""
+    """The gate must not compare a pull request that targets another branch with main."""
     import io
 
     used = []
@@ -578,7 +578,7 @@ def test_the_gate_reads_old_files_at_origin_main_by_default(monkeypatch):
     assert used == [impact.DEFAULT_BASE_REF]
 
 
-class TestOnlyTheCodeTheActorSeesCounts:
+class TestOnlyACodeChangeMovesAnAxis:
     """A docstring, a comment or a format change must not require a check."""
 
     PATH = "agents/core/tools/file_tool.py"
@@ -589,7 +589,7 @@ from pydantic import BaseModel
 
 
 class Args(BaseModel):
-    """Copied into the input schema."""
+    """Pydantic copies this text into the input schema."""
 
     path: str
 
@@ -624,7 +624,7 @@ def run(args):
 
     def test_a_class_docstring_change_moves_the_axis(self):
         """Pydantic copies a class docstring into the tool's input schema."""
-        found = self._analyze(self.SOURCE.replace("Copied into the input schema.", "New text."))
+        found = self._analyze(self.SOURCE.replace("Pydantic copies this text into the input schema.", "New text."))
         assert found.axes == ("code",)
 
     def test_a_code_change_moves_the_axis(self):
@@ -648,7 +648,7 @@ def run(args):
         )
         assert not found.needs_check
 
-    def test_a_markdown_file_is_never_compared_as_code(self):
+    def test_the_gate_never_compares_a_markdown_file_as_code(self):
         found = impact.analyze(
             ["agents/prompts/scope_check.md"],
             before=lambda _path: "same",

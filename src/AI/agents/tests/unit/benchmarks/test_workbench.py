@@ -919,7 +919,7 @@ def test_a_changed_actor_prompt_refuses_a_comparison():
 
 
 def test_the_actor_prompt_digest_tracks_what_the_agent_sends(monkeypatch):
-    """Digesting a copy of the prompt would drift; it digests the function the agent calls."""
+    """A copy of the prompt can become different from the prompt. Thus the digest uses the function that the agent calls."""
     from agents.core import context
 
     before = provenance.collect().actor_prompt
