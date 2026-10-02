@@ -6,7 +6,7 @@ import {
 } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import type { ComponentValidationContext } from 'src/layout';
 
-const unusedTitle = ['displayValue', 'unrelated'] as const;
+const unusedTitle: ['displayValue', string] = ['displayValue', 'unrelated'];
 const unusedHelp = ['displayValue', 'help'] as const;
 
 function context(required: boolean, value: unknown, bindings: Record<string, unknown> = { title: unusedTitle }) {
@@ -24,6 +24,30 @@ function context(required: boolean, value: unknown, bindings: Record<string, unk
     taskId: undefined,
     expressionDataSources: { markExpressionEvaluated: vi.fn() },
   } as unknown as ComponentValidationContext<'Input'>;
+}
+
+function groupContext(
+  required: boolean,
+  rows: { checked: boolean }[],
+  bindings: ComponentValidationContext<'Checkboxes'>['component']['textResourceBindings'] = { title: unusedTitle },
+  withCheckedBinding = false,
+): ComponentValidationContext<'Checkboxes'> {
+  return {
+    ...context(required, rows),
+    component: {
+      id: 'group',
+      type: 'Checkboxes',
+      required,
+      dataModelBindings: {
+        simpleBinding: { dataType: 'model', field: 'SelectedValues' },
+        group: { dataType: 'model', field: 'Value' },
+        ...(withCheckedBinding ? { checked: { dataType: 'model', field: 'Value.checked' } } : {}),
+      },
+      textResourceBindings: bindings,
+    },
+    baseComponentId: 'group',
+    indexedId: 'group',
+  };
 }
 
 beforeEach(() => vi.restoreAllMocks());
@@ -98,18 +122,18 @@ it('does not evaluate labels when required is true but there is no binding', () 
 });
 
 it.each([
-  [false, ''],
-  [true, 'populated'],
+  [false, []],
+  [true, [{ checked: true }]],
 ] as const)('does not evaluate irrelevant group text for required=%s', (required, value) => {
   const evalSpy = vi.spyOn(expressions, 'evalExpr');
-  const ctx = context(required, value);
-  expect(validateGroupIsEmpty(ctx as unknown as ComponentValidationContext<'Checkboxes'>)).toEqual([]);
+  const ctx = groupContext(required, [...value]);
+  expect(validateGroupIsEmpty(ctx)).toEqual([]);
   expect(evalSpy.mock.calls.some(([expression]) => Object.is(expression, unusedTitle))).toBe(false);
 });
 
 it('preserves the group validator nullish custom-message fallback', () => {
-  const ctx = context(true, '', { requiredValidation: '', shortName: 'group.name', title: unusedTitle });
-  expect(validateGroupIsEmpty(ctx as unknown as ComponentValidationContext<'Checkboxes'>)[0].message).toEqual({
+  const ctx = groupContext(true, [], { requiredValidation: '', shortName: 'group.name', title: unusedTitle });
+  expect(validateGroupIsEmpty(ctx)[0].message).toEqual({
     key: '',
     params: [{ key: 'group.name', makeLowerCase: true }],
   });
@@ -132,9 +156,22 @@ it('uses generated descriptor fallbacks and diagnostics for invalid required-mes
 
 it('preserves the generated undefined fallback for an invalid group required-message binding', () => {
   vi.spyOn(window, 'logError').mockImplementation(() => undefined);
-  const ctx = context(true, '', { requiredValidation: ['invalidFunction'], shortName: 'group.name' });
-  expect(validateGroupIsEmpty(ctx as unknown as ComponentValidationContext<'Checkboxes'>)[0].message).toEqual({
+  const bindings = { shortName: 'group.name' };
+  Reflect.set(bindings, 'requiredValidation', ['invalidFunction']);
+  const ctx = groupContext(true, [], bindings);
+  expect(validateGroupIsEmpty(ctx)[0].message).toEqual({
     key: 'form_filler.error_required',
     params: [{ key: 'group.name', makeLowerCase: true }],
   });
+});
+
+it('requires a checked row when the group has a checked binding', () => {
+  const bindings = { shortName: 'group.name', title: unusedTitle };
+  const evalSpy = vi.spyOn(expressions, 'evalExpr');
+  expect(validateGroupIsEmpty(groupContext(true, [{ checked: false }], bindings, true))[0].message).toEqual({
+    key: 'form_filler.error_required',
+    params: [{ key: 'group.name', makeLowerCase: true }],
+  });
+  expect(validateGroupIsEmpty(groupContext(true, [{ checked: true }], bindings, true))).toEqual([]);
+  expect(evalSpy.mock.calls.some(([expression]) => Object.is(expression, unusedTitle))).toBe(false);
 });
