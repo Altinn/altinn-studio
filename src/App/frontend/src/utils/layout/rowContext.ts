@@ -36,6 +36,11 @@ export function applyRowContextToComponentId(baseId: string, rowContexts: RowCon
   return rowContexts.length === 0 ? baseId : `${baseId}-${rowContexts.map((row) => row.rowIndex).join('-')}`;
 }
 
+/** Identifies component state by its parent row IDs, which survive row deletion and reordering. */
+export function getComponentStateKey(baseId: string, rowIds: string[]): string {
+  return JSON.stringify([baseId, ...rowIds]);
+}
+
 export function rowContextsToIdMutators(rowContexts: RowContext[]): ((id: string) => string)[] {
   return rowContexts.map(
     ({ rowIndex }) =>

@@ -8,6 +8,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { getDataModelLocationForIndexedNode } from 'src/utils/layout/hierarchy';
 import {
   applyRowContextToComponentId,
+  getComponentStateKey,
   getCurrentDataModelPath,
   rowContextsToIdMutators,
 } from 'src/utils/layout/rowContext';
@@ -39,9 +40,10 @@ interface LocationProps {
 
 export function DataModelLocationProvider({ groupBinding, rowIndex, children }: PropsWithChildren<LocationProps>) {
   const parentCtx = useCtx();
+  const rowId = FormStore.data.useFreshRowUuid(groupBinding, rowIndex);
   const rowContexts: RowContext[] = useMemo(
-    () => [...(parentCtx?.rowContexts ?? []), { groupBinding, rowIndex, rowId: '' }],
-    [groupBinding, parentCtx?.rowContexts, rowIndex],
+    () => [...(parentCtx?.rowContexts ?? []), { groupBinding, rowIndex, rowId: rowId ?? '' }],
+    [groupBinding, parentCtx?.rowContexts, rowIndex, rowId],
   );
   const value = useMemo(
     () => ({
@@ -76,6 +78,14 @@ export function DataModelLocationProviderFromNode({ nodeId, children }: PropsWit
     >
       {children}
     </DataModelLocationProvider>
+  );
+}
+
+/** State keys use row IDs; indexed IDs remain the identifiers for runtime nodes and DOM elements. */
+export function useComponentStateKey(baseId: string): string {
+  return getComponentStateKey(
+    baseId,
+    useCurrentRowContexts().map((row) => row.rowId),
   );
 }
 
