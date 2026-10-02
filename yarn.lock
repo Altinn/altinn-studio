@@ -5763,7 +5763,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:1.15.47, @swc/core@npm:^1.15.46":
+"@swc/core@npm:1.15.47":
   version: 1.15.47
   resolution: "@swc/core@npm:1.15.47"
   dependencies:
@@ -7035,19 +7035,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-swc@npm:^4.0.0":
-  version: 4.3.3
-  resolution: "@vitejs/plugin-react-swc@npm:4.3.3"
-  dependencies:
-    "@rolldown/pluginutils": "npm:^1.0.1"
-    "@swc/core": "npm:^1.15.46"
-  peerDependencies:
-    vite: ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: 10/0976947413fbeb18be2f8ba32a012a890a56eb4041f919a8656dd8e30311b5820029b8635c34f34fd5bea518b4082a4042cadbf68278c69f6772fbb9b89689d2
-  languageName: node
-  linkType: hard
-
-"@vitejs/plugin-react@npm:6.0.5, @vitejs/plugin-react@npm:^6.0.0":
+"@vitejs/plugin-react@npm:6.0.5":
   version: 6.0.5
   resolution: "@vitejs/plugin-react@npm:6.0.5"
   dependencies:
@@ -19511,8 +19499,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
-    "@vitejs/plugin-react": "npm:^6.0.0"
-    "@vitejs/plugin-react-swc": "npm:^4.0.0"
+    "@vitejs/plugin-react": "npm:6.0.5"
     ajv: "npm:8.20.0"
     ajv-formats: "npm:3.0.1"
     chart.js: "npm:4.5.1"

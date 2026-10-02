@@ -1,11 +1,11 @@
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import aliases from './studio.alias.js';
 import type { UserConfig } from 'vite';
 import colors from 'picocolors';
 
 export default {
   optimizeDeps: {
-    include: ['react-dom', 'react/jsx-runtime', 'posthog-js'],
+    include: ['react-dom', 'posthog-js'],
     exclude: ['@digdir/designsystemet-react'],
   },
   css: {
