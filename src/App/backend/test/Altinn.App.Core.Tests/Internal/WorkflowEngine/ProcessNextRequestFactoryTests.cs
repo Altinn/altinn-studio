@@ -227,7 +227,13 @@ public class ProcessNextRequestFactoryTests
                         CurrentTask = new ProcessElementInfo { ElementId = fromTaskId, AltinnTaskType = "data" },
                     },
                 },
-                new InstanceEvent { EventType = InstanceEventType.process_EndEvent.ToString() },
+                // ProcessEngine stamps every event with the process state it produced, so the end
+                // event's ProcessInfo carries the ended state: no current task, EndEvent set.
+                new InstanceEvent
+                {
+                    EventType = InstanceEventType.process_EndEvent.ToString(),
+                    ProcessInfo = new ProcessState { CurrentTask = null, EndEvent = endEvent },
+                },
             ],
         };
     }
@@ -304,6 +310,35 @@ public class ProcessNextRequestFactoryTests
 
     private static List<string> ExtractCommandKeys(WorkflowEnqueueEnvelope bundle) =>
         ExtractCommandKeys(bundle.Request.Workflows[0]);
+
+    /// <summary>
+    /// Each app step's command key paired with the BPMN element label it carries, null where the step
+    /// carries none. Asserting the pair rather than the label alone keeps the sequence and the labeling
+    /// in one expectation, so a step that moves between the two lifecycle groups cannot keep a stale
+    /// element while still passing.
+    /// </summary>
+    private static List<(string CommandKey, string? Element)> ExtractCommandElements(WorkflowRequest workflow)
+    {
+        var pairs = new List<(string, string?)>();
+
+        foreach (StepRequest step in workflow.Steps)
+        {
+            if (step.Command.Type != "app" || step.Command.Data is not { } data)
+                continue;
+            if (JsonSerializer.Deserialize<AppCommandData>(data)?.CommandKey is not { } key)
+                continue;
+
+            string? element =
+                step.Labels is { } labels
+                && labels.TryGetValue(ProcessNextRequestFactory.ProcessNextElementLabel, out string? value)
+                    ? value
+                    : null;
+
+            pairs.Add((key, element));
+        }
+
+        return pairs;
+    }
 
     private static List<string> ExtractCommandKeys(WorkflowRequest workflow)
     {
@@ -545,6 +580,110 @@ public class ProcessNextRequestFactoryTests
         // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
         Assert.Single(bundle.Request.Workflows);
         Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
+    }
+
+    [Fact]
+    public async Task Create_TaskToTaskTransition_LabelsLifecycleStepsWithTheElementTheyRunFor()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToTaskTransition();
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert
+        List<(string CommandKey, string? Element)> expected =
+        [
+            // Task end commands run for the task being left.
+            (EndTask.Key, "Task_1"),
+            (CommonTaskFinalization.Key, "Task_1"),
+            (OnTaskEndingHook.Key, "Task_1"),
+            (LockTaskData.Key, "Task_1"),
+            // The transition's own steps belong to neither element.
+            (MutateProcessState.Key, null),
+            // Task start commands run for the task being entered.
+            (UnlockTaskData.Key, "Task_2"),
+            (CleanupGeneratedFromTask.Key, "Task_2"),
+            (OnTaskStartingHook.Key, "Task_2"),
+            (CommonTaskInitialization.Key, "Task_2"),
+            (StartTask.Key, "Task_2"),
+            (CommitProcessState.Key, null),
+            (EnqueueSideEffectsWorkflow.Key, null),
+        ];
+        Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
+
+        // Side effects are their own workflows and name no element either.
+        Assert.All(
+            ExtractSideEffectsWorkflows(bundle),
+            wf => Assert.All(ExtractCommandElements(wf), pair => Assert.Null(pair.Element))
+        );
+    }
+
+    [Fact]
+    public async Task Create_TaskToEndTransition_LabelsProcessEndStepsWithTheEndEvent()
+    {
+        // Arrange
+        var factory = CreateFactory();
+        var stateChange = CreateTaskToEndTransition();
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert
+        List<(string CommandKey, string? Element)> expected =
+        [
+            (EndTask.Key, "Task_1"),
+            (CommonTaskFinalization.Key, "Task_1"),
+            (OnTaskEndingHook.Key, "Task_1"),
+            (LockTaskData.Key, "Task_1"),
+            (MutateProcessState.Key, null),
+            // A process end has no current task, so the end event is the element these steps run for.
+            (OnProcessEndingHook.Key, "EndEvent_1"),
+            (EndProcessLegacyHook.Key, "EndEvent_1"),
+            (CommitProcessState.Key, null),
+            (EnqueueSideEffectsWorkflow.Key, null),
+        ];
+        Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
+    }
+
+    [Fact]
+    public async Task Create_ServiceTask_LeavesPostCommitStepsUnlabeled()
+    {
+        // Arrange
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
+        var stateChange = CreateTaskToTaskTransition(toAltinnTaskType: "signing");
+
+        // Act
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        // Assert: ExecuteServiceTask runs for the entering task but stays unlabeled, because it sits
+        // after CommitProcessState — labeling it would draw that task's name a second time, after the
+        // commit, around work the pre-commit bracket already named.
+        List<(string CommandKey, string? Element)> pairs = ExtractCommandElements(bundle.Request.Workflows[0]);
+        Assert.Equal((ExecuteServiceTask.Key, null), pairs[^1]);
+        Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == StartTask.Key).Element);
     }
 
     [Fact]
