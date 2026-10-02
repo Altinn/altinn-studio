@@ -39,7 +39,6 @@ COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/fro
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
-COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
 COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY src/common/ts/package.json ./src/common/ts/

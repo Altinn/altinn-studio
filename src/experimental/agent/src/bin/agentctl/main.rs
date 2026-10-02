@@ -6,7 +6,7 @@ use std::{
 };
 
 use agent::{
-    Agent, AgentVariantName, Error,
+    Agent, AgentVariantName, Error, RunState,
     control_api::Client,
     control_plane::ApplyRequest,
     control_plane::WaitPolicy,
@@ -152,6 +152,18 @@ enum Command {
         /// Select the closest Agent by its applied leaf variant.
         #[arg(long, value_parser = parse_variant_name, conflicts_with = "agent")]
         variant: Option<AgentVariantName>,
+    },
+    /// Stop an Agent's Sandbox VM, keeping its disk, so attaching to a Session after a start resumes it.
+    ///
+    /// Running harnesses are stopped with the VM. Applying the manifest again keeps the Agent stopped.
+    Stop {
+        #[command(flatten)]
+        target: RunStateTarget,
+    },
+    /// Start a stopped Agent's Sandbox VM on its kept disk and wait until the Agent is Ready.
+    Start {
+        #[command(flatten)]
+        target: RunStateTarget,
     },
     /// Archive a Session: stop its harness and hide it from listings, keeping its name and conversation.
     Archive {
@@ -313,6 +325,18 @@ enum Command {
 enum Resource {
     Agent,
     Session,
+}
+
+/// The Agent `stop` or `start` acts on: `agent/NAME` or `agent NAME`, and how long to wait.
+#[derive(clap::Args)]
+struct RunStateTarget {
+    /// Agent resource, optionally combined with its name (for example `agent/worker`).
+    resource: String,
+    /// Optional Agent name when it is not part of `resource`.
+    name: Option<String>,
+    /// Maximum wait, written as seconds, minutes, or hours (for example `2m`).
+    #[arg(long, default_value = "10m", value_parser = parse_duration)]
+    timeout: Duration,
 }
 
 /// The Session a verb acts on: `session/NAME` or `session NAME`, plus its owning Agent.
@@ -516,8 +540,13 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
             let name = applied.metadata.name;
             println!("agent/{name} applied");
             if wait {
-                wait_for_ready(client, &name, timeout).await?;
-                println!("agent/{name} ready");
+                let converged = wait_until_converged(client, &name, timeout).await?;
+                let outcome = if converged.spec.is_stopped() {
+                    "stopped"
+                } else {
+                    "ready"
+                };
+                println!("agent/{name} {outcome}");
             }
         }
         Command::Get {
@@ -549,6 +578,8 @@ async fn execute(command: Command, home: &ControlPlaneHome, client: &Client) -> 
                 println!("session/{agent}/{name} deleted");
             }
         }
+        Command::Stop { target } => set_run_state(client, target, RunState::Stopped).await?,
+        Command::Start { target } => set_run_state(client, target, RunState::Running).await?,
         Command::Archive { target } => set_archived(client, target, true).await?,
         Command::Unarchive { target } => set_archived(client, target, false).await?,
         Command::Attach {
@@ -718,7 +749,7 @@ async fn attach(
         .until(
             client,
             &agent,
-            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilReady),
+            client.ensure_session(&agent, session, selection.request(None), WaitPolicy::UntilConverged),
         )
         .await?;
     agent::sessions::attach(home.path(), &target).await?;
@@ -745,7 +776,11 @@ async fn exec_command(
     }
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, command, tty)?;
     let status = if stdin && tty {
@@ -806,7 +841,11 @@ async fn port_forward(
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     let mut forwards = Vec::new();
     for spec in specs {
@@ -864,8 +903,12 @@ async fn ssh(
 ) -> CommandResult<ExitCode> {
     let agent = resolve_execution_agent(client, resource, agent, variant).await?;
     let wait = progress::Wait::start();
-    wait.until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
-        .await?;
+    wait.until(
+        client,
+        &agent,
+        client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+    )
+    .await?;
     let access = client.ssh_access(&agent).await?;
     let mut ssh = ProcessCommand::new(ssh_client_executable());
     ssh.args(ssh_client_arguments(&access)).args(command);
@@ -915,7 +958,11 @@ async fn ssh_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let agent = resolve_execution_agent(client, Some(resource), None, None).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -988,7 +1035,11 @@ async fn vnc(
     client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     // Read again now the Agent is Ready: which ports its image offers is something a
     // reconciliation pass observes, so before converging the browser viewer's port is unknown
@@ -1047,7 +1098,11 @@ async fn vnc_proxy(home: &ControlPlaneHome, client: &Client, resource: String) -
     let access = client.vnc_access(&agent).await?;
     let wait = progress::Wait::start();
     let target = wait
-        .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            &agent,
+            client.ensure_execution(&agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     forward::relay_guest_port(
         home.path(),
@@ -1121,7 +1176,7 @@ async fn create_session(
         &agent,
         tokio::time::timeout_at(
             deadline,
-            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilReady),
+            client.ensure_session(&agent, session.clone(), request, WaitPolicy::UntilConverged),
         ),
     )
     .await
@@ -1284,9 +1339,23 @@ async fn wait(
         return Err(Error::Invalid("only --for=condition=Ready is supported".into()).into());
     }
     let name = require_name(name, "Agent")?;
-    wait_for_ready(client, &name, timeout).await?;
+    // A stopped Agent is never Ready, also while its stop is still in progress.
+    if client.get(&name).await?.spec.is_stopped()
+        || wait_until_converged(client, &name, timeout).await?.spec.is_stopped()
+    {
+        return Err(Error::Stopped(name).into());
+    }
     println!("agent/{name} condition met");
     Ok(())
+}
+
+/// Resolves `agent/NAME` or `agent NAME` for a verb that acts only on Agents.
+fn agent_reference(resource: &str, name: Option<String>) -> Result<String, Error> {
+    let (resource, name) = resource_reference(resource, name)?;
+    if resource != Resource::Agent {
+        return Err(Error::Invalid("this command requires an Agent resource".into()));
+    }
+    require_name(name, "Agent")
 }
 
 fn resource_reference(resource: &str, name: Option<String>) -> Result<(Resource, Option<String>), Error> {
@@ -1350,26 +1419,39 @@ fn inference_error(error: Error) -> CommandError {
     }
 }
 
-/// Follows Agent convergence with live progress until Ready, a terminal error, the timeout, or Ctrl-C.
-async fn wait_for_ready(client: &Client, name: &str, timeout: Duration) -> CommandResult<()> {
-    let wait = progress::Wait::start();
-    let waited = wait
-        .until(
-            client,
-            name,
-            tokio::time::timeout(timeout, client.ensure_execution(name, WaitPolicy::UntilReady)),
-        )
+/// Follows an Agent's convergence with live progress until it has its desired
+/// run state, Ready or stopped, and returns it then; or until a terminal
+/// error, the timeout, or Ctrl-C.
+async fn wait_until_converged(client: &Client, name: &str, timeout: Duration) -> CommandResult<Agent> {
+    let waited = progress::Wait::start()
+        .until(client, name, tokio::time::timeout(timeout, client.converge(name)))
         .await;
-    match waited {
-        Ok(result) => result.map(|_target| ()).map_err(CommandError::from),
-        Err(_elapsed) => {
-            let ready = match client.get(name).await {
-                Ok(agent) => agent.status.ready_condition().cloned(),
-                Err(_) => None,
-            };
-            Err(CommandError::Message(wait_timeout_message(name, ready.as_ref())))
+    let Ok(converged) = waited else {
+        return Err(CommandError::Message(match client.get(name).await.ok() {
+            Some(agent) if agent.spec.is_stopped() => {
+                format!("timed out waiting for Agent {name:?} to stop; agentd keeps stopping it")
+            }
+            agent => wait_timeout_message(name, agent.as_ref().and_then(|agent| agent.status.ready_condition())),
+        }));
+    };
+    converged.map_err(CommandError::from)
+}
+
+/// Stops or starts an Agent and waits until it is stopped or Ready.
+async fn set_run_state(client: &Client, target: RunStateTarget, state: RunState) -> CommandResult<()> {
+    let name = agent_reference(&target.resource, target.name)?;
+    client.set_run_state(&name, state).await?;
+    let converged = wait_until_converged(client, &name, target.timeout).await?;
+    match (state, converged.spec.run_state()) {
+        (RunState::Stopped, RunState::Stopped) => println!("agent/{name} stopped"),
+        (RunState::Running, RunState::Running) => println!("agent/{name} started"),
+        (_, current) => {
+            return Err(CommandError::Message(format!(
+                "Agent {name:?} was set to {current:?} again before it finished"
+            )));
         }
     }
+    Ok(())
 }
 
 fn wait_timeout_message(name: &str, ready: Option<&agent::Condition>) -> String {

@@ -356,10 +356,10 @@
             "type": "string"
           }
         },
-        "allowedContributers": {
+        "allowedContributors": {
           "type": "array",
-          "title": "Allowed contributers",
-          "description": "A list of allowed contributers. Value should be preceded by an approved key. If null or empty no contributer restrictions are set.",
+          "title": "Allowed contributors",
+          "description": "A list of allowed contributors. Value should be preceded by an approved key. If null or empty no contributor restrictions are set.",
           "items": {
             "type": "string"
           }

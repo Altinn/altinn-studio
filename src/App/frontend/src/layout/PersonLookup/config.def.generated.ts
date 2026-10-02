@@ -1,36 +1,10 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class PersonLookupDef extends FormComponent<'PersonLookup'> implements DisplayData {
   protected readonly type = 'PersonLookup';
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'PersonLookup'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
-
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'PersonLookup'>) {
-    return this.evalDefaultExpressions(props);
-  }
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -43,4 +17,4 @@ export abstract class PersonLookupDef extends FormComponent<'PersonLookup'> impl
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 78f08bc4fbe532b4f4ce6e9a6558876afefa607f93531a922b097a1ad2f32595
+// Source hash: 7ac6cb1f2e37ee4038c4cb8a1ba4ff0ac707ca6dff50c4c27a32b4d59b20daf9

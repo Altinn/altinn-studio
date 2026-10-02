@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 
 import { useIsValid } from 'src/features/validation/selectors/isValid';
@@ -9,12 +10,16 @@ import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerL
 import { Map } from 'src/layout/Map/Map';
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function MapComponent({ baseComponentId }: PropsFromGenericComponent<'Map'>) {
   const isValid = useIsValid(baseComponentId);
-  const { readOnly, dataModelBindings } = useItemWhenType(baseComponentId, 'Map');
+  const config = useComponentConfig(baseComponentId, 'Map');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Map.readOnly);
+
   const indexedId = useIndexedId(baseComponentId);
 
   return (

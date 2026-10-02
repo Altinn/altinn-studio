@@ -47,7 +47,7 @@ const RETRY_INTERVAL: Duration = Duration::from_millis(250);
 /// ```ignore
 /// let wait = Wait::start();
 /// let target = wait
-///     .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilReady))
+///     .until(client, &agent, client.ensure_execution(&agent, WaitPolicy::UntilConverged))
 ///     .await?;
 /// ```
 pub(crate) struct Wait {

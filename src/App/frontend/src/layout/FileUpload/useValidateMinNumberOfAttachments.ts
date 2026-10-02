@@ -34,7 +34,7 @@ export function validateMinNumberOfAttachmentsForNode(
     defaultValue: 0,
   });
   const attachments = attachmentSelector(
-    makeAttachmentNode(ctx.baseComponentId, ctx.component),
+    makeAttachmentNode({ ...ctx.component, indexedId: ctx.indexedId }),
     ctx.formState,
     ctx.instanceData,
     getApplicationMetadata(),

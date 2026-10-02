@@ -10,7 +10,7 @@ import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { DropdownSummary } from 'src/layout/Dropdown/DropdownSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsSimple } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type {
@@ -19,7 +19,7 @@ import type {
   PropsFromGenericComponent,
 } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Dropdown extends DropdownDef {
@@ -43,13 +43,6 @@ export class Dropdown extends DropdownDef {
     }
 
     return getSelectedValueToText(value, langTools, options) || '';
-  }
-
-  evalExpressions(props: ExprResolver<'Dropdown'>) {
-    return {
-      ...this.evalDefaultExpressions(props),
-      alertOnChange: props.evalBool(props.item.alertOnChange, false),
-    };
   }
 
   renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {

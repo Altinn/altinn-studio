@@ -8,10 +8,7 @@ namespace Altinn.App.Core.Configuration
         public string? AppFrontendAssetBaseUrl { get; set; }
         public string AppOidcProvider { get; set; }
         public string AppVersion { get; set; }
-        [System.Obsolete("This is not used, and will be removed in the next major version")]
-        public string BaseResourceFolderContainer { get; set; }
         public int CacheResourceLifeTimeInSeconds { get; set; }
-        public string DefaultBootstrapUrl { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
         public bool EnforceDataTypeTaskId { get; set; }

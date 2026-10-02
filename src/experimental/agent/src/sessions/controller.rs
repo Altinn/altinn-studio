@@ -63,6 +63,21 @@ impl crate::control_plane::SessionNotifier for AgentNotifier {
             }
         });
     }
+
+    fn settle(&self, id: crate::AgentId) -> ::sandbox::LocalFuture<'_, ()> {
+        Box::pin(async move {
+            let sessions = match self.store.list_all_sessions().await {
+                Ok(sessions) => sessions,
+                Err(error) => return (self.on_error)(&error),
+            };
+            let passes = sessions
+                .into_iter()
+                .filter(|session| session.agent_id == id)
+                .map(|session| self.wakeup.reconcile(session.id));
+            // A failed pass is reported by the controller and retried; it still ends the wait.
+            futures_util::future::join_all(passes).await;
+        })
+    }
 }
 
 impl Controller {

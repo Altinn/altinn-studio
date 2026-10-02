@@ -24,9 +24,10 @@ pub enum WaitPolicy {
     /// Returns after one reconciliation pass with that pass's outcome.
     FirstPass,
     /// Keeps waiting through transient failures, which the background controller
-    /// retries, until the Agent is Ready or its desired state is invalid. A
-    /// guest recorded as unresponsive ends the wait instead.
-    UntilReady,
+    /// retries, until the Agent has its desired run state or that state is
+    /// invalid. A running Agent's guest recorded as unresponsive ends the wait
+    /// instead.
+    UntilConverged,
 }
 
 /// Wakes Agent convergence and lets a request wait for it.
@@ -44,59 +45,84 @@ impl Convergence {
         Self { wakeup, store, changes }
     }
 
-    /// Wakes convergence of one Agent and waits according to `wait`.
+    /// Wakes convergence of the named Agent, waits according to `wait`, and
+    /// returns the Agent as stored when the wait ended. Converged means its
+    /// desired run state was recorded for its generation: Ready when it runs,
+    /// stopped when it is stopped. A caller that needs the Sandbox running
+    /// refuses a stopped Agent itself, before and after converging.
     ///
     /// # Errors
     ///
     /// Returns `Error::Invalid` when desired state must change, the first pass's
     /// failure under [`WaitPolicy::FirstPass`], `Error::SandboxUnresponsive`
-    /// when the Agent's guest is unresponsive under [`WaitPolicy::UntilReady`],
-    /// `Error::Conflict` when the Agent is deleted while waited on, or a storage error.
-    pub async fn converge(&self, id: AgentId, wait: WaitPolicy) -> Result<(), Error> {
-        match (wait, self.wakeup.reconcile(id).await) {
-            (_, Ok(())) => return Ok(()),
+    /// when a running Agent's guest is unresponsive, `Error::Conflict` when the
+    /// Agent is being or was deleted, `Error::NotFound` when it does not exist,
+    /// or a storage error.
+    pub async fn converge(&self, name: &str, wait: WaitPolicy) -> Result<super::AgentRecord, Error> {
+        let record = self.store.get_by_name(name).await?;
+        if record.agent.metadata.deletion_timestamp.is_some() {
+            return Err(Error::Conflict);
+        }
+        let id = record.id;
+        let woken = self.wakeup.reconcile(id).await;
+        let record = self.get(id).await?;
+        match (wait, woken) {
+            (WaitPolicy::FirstPass, Ok(())) => return Ok(record),
             (WaitPolicy::FirstPass, Err(failure)) => {
                 // A stalled guest is reported as the stall, not as a daemon failure.
-                let stalled = self.store.get(id).await.ok().and_then(|record| {
-                    record
-                        .agent
-                        .status
-                        .unresponsive()
-                        .map(|stalled| Error::SandboxUnresponsive(stalled.detail()))
-                });
-                return Err(stalled.unwrap_or_else(|| failure.into()));
+                return Err(record.agent.status.unresponsive().map_or_else(
+                    || failure.into(),
+                    |stalled| Error::SandboxUnresponsive(stalled.detail()),
+                ));
             }
-            (WaitPolicy::UntilReady, Err(failure)) if failure.kind == FailureKind::Invalid => {
+            (WaitPolicy::UntilConverged, Err(failure)) if failure.kind == FailureKind::Invalid => {
                 return Err(failure.into());
             }
-            (WaitPolicy::UntilReady, Err(_)) => {}
+            (WaitPolicy::UntilConverged, _) => {}
         }
         loop {
             let revision = self.changes.revision();
-            let record = match self.store.get(id).await {
-                Ok(record) => record,
-                Err(Error::NotFound) => return Err(Error::Conflict),
-                Err(error) => return Err(error),
-            };
-            let status = &record.agent.status;
-            if status.observed_generation == record.agent.metadata.generation {
-                if status.is_ready() {
-                    return Ok(());
-                }
-                if let Some(message) = status.invalid() {
-                    return Err(ReconcileFailure {
-                        kind: FailureKind::Invalid,
-                        message,
-                    }
-                    .into());
-                }
-            }
-            if let Some(stalled) = status.unresponsive() {
-                return Err(Error::SandboxUnresponsive(stalled.detail()));
+            let record = self.get(id).await?;
+            if let Some(outcome) = outcome(&record) {
+                return outcome.map(|()| record);
             }
             self.changes
                 .changed_since(Some(revision), SETTLE, RECHECK_INTERVAL)
                 .await;
         }
     }
+
+    /// Reads the waited-on Agent, which must still exist.
+    async fn get(&self, id: AgentId) -> Result<super::AgentRecord, Error> {
+        match self.store.get(id).await {
+            Ok(record) if record.agent.metadata.deletion_timestamp.is_none() => Ok(record),
+            Ok(_) | Err(Error::NotFound) => Err(Error::Conflict),
+            Err(error) => Err(error),
+        }
+    }
+}
+
+/// Ends a wait on `record`: `Ok` once a pass for its generation recorded its
+/// desired run state, an error when it cannot get there without a change, and
+/// `None` while it still may.
+fn outcome(record: &super::AgentRecord) -> Option<Result<(), Error>> {
+    let status = &record.agent.status;
+    let stopped = record.agent.spec.is_stopped();
+    if status.observed_generation == record.agent.metadata.generation {
+        if (stopped && status.is_stopped()) || (!stopped && status.is_ready()) {
+            return Some(Ok(()));
+        }
+        if let Some(message) = status.invalid() {
+            return Some(Err(ReconcileFailure {
+                kind: FailureKind::Invalid,
+                message,
+            }
+            .into()));
+        }
+    }
+    // A stopped Agent reaches nothing in its guest, so a stall recorded before it stopped is stale.
+    if !stopped && let Some(stalled) = status.unresponsive() {
+        return Some(Err(Error::SandboxUnresponsive(stalled.detail())));
+    }
+    None
 }

@@ -869,19 +869,19 @@ impl RuntimeMount {
     }
 }
 
-/// Stops a running VM gracefully, killing it after [`STOP_TIMEOUT`].
+/// Stops a running VM gracefully within [`STOP_TIMEOUT`], and kills it when
+/// that fails. A guest that stopped responding, a halted guest and a paused VM
+/// cannot take the shutdown request, so the stop still ends with the VM gone.
 async fn stop_runtime(handle: &microsandbox::sandbox::SandboxHandle, name: &str) -> Result<(), Error> {
     match handle.stop_with_timeout(STOP_TIMEOUT).await {
         Ok(()) => Ok(()),
-        Err(microsandbox::MicrosandboxError::StopTimeout { .. }) => {
-            tracing::warn!(
-                sandbox = %name,
-                timeout = ?STOP_TIMEOUT,
-                "Microsandbox VM did not stop in time; killing it"
-            );
-            handle.kill().await.map_err(error::microsandbox)
+        Err(graceful) => {
+            tracing::warn!(sandbox = %name, error = %graceful, "Microsandbox VM did not stop gracefully; killing it");
+            handle
+                .kill()
+                .await
+                .map_err(|kill| error::backend(format!("{kill}, after a graceful stop failed: {graceful}")))
         }
-        Err(error) => Err(error::microsandbox(error)),
     }
 }
 

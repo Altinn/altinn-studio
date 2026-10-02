@@ -281,6 +281,11 @@ pub(crate) async fn run(home: &ControlPlaneHome, client: &Client) -> CommandResu
                     app.error = Some(error.to_string());
                 }
             }
+            Action::SetRunState { agent, state } => {
+                if let Err(error) = client.set_run_state(&agent, state).await {
+                    app.error = Some(error.to_string());
+                }
+            }
             Action::OpenCreate => {
                 if !app.discovering {
                     app.discovering = true;
@@ -584,7 +589,7 @@ fn spawn_open(
                     launcher,
                 } => {
                     client
-                        .ensure_execution(&agent, WaitPolicy::UntilReady)
+                        .ensure_execution(&agent, WaitPolicy::UntilConverged)
                         .await
                         .map_err(|error| error.to_string())?;
                     let access = client.ssh_access(&agent).await.map_err(|error| error.to_string())?;
@@ -689,7 +694,7 @@ async fn desktop_forward(
     viewer: DesktopViewer,
 ) -> Result<PortForward, String> {
     let target = client
-        .ensure_execution(agent, WaitPolicy::UntilReady)
+        .ensure_execution(agent, WaitPolicy::UntilConverged)
         .await
         .map_err(|error| error.to_string())?;
     let access = client.vnc_access(agent).await.map_err(|error| error.to_string())?;
@@ -978,7 +983,7 @@ async fn attach(
         .until(
             client,
             agent,
-            client.ensure_session(agent, session, request, WaitPolicy::UntilReady),
+            client.ensure_session(agent, session, request, WaitPolicy::UntilConverged),
         )
         .await?;
     agent::sessions::attach(home.path(), &target).await
@@ -987,7 +992,11 @@ async fn attach(
 async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(), Error> {
     let wait = Wait::start();
     let target = wait
-        .until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
+        .until(
+            client,
+            agent,
+            client.ensure_execution(agent, WaitPolicy::UntilConverged),
+        )
         .await?;
     let command = ["bash".to_owned(), "-l".to_owned()];
     let spec = agent::sandbox::platform::execution_spec(&target.operating_system, &command, true)?;
@@ -1011,8 +1020,12 @@ async fn exec(home: &ControlPlaneHome, client: &Client, agent: &str) -> Result<(
 /// process, which is the TUI's.
 async fn ssh_shell(client: &Client, agent: &str) -> Result<(), Error> {
     let wait = Wait::start();
-    wait.until(client, agent, client.ensure_execution(agent, WaitPolicy::UntilReady))
-        .await?;
+    wait.until(
+        client,
+        agent,
+        client.ensure_execution(agent, WaitPolicy::UntilConverged),
+    )
+    .await?;
     let access = client.ssh_access(agent).await?;
     // Awaited, not waited on: the TUI's forwards and watch share this thread.
     let status = tokio::process::Command::new(crate::ssh_client_executable())

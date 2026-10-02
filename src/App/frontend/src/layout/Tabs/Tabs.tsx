@@ -7,16 +7,16 @@ import { FormStore } from 'src/features/form/FormContext';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => {
-  const { size, defaultTab, tabs } = useExternalItem(baseComponentId, 'Tabs');
+  const config = useComponentConfig(baseComponentId, 'Tabs');
   const { componentId, innerGrid, validationGrid, showValidationMessages } = useComponentStructureData(baseComponentId);
-  const [activeTab, setActiveTab] = useState<string | undefined>(defaultTab ?? tabs.at(0)?.id);
+  const [activeTab, setActiveTab] = useState<string | undefined>(config.defaultTab ?? config.tabs.at(0)?.id);
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const focusRequest = useFocusComponentRequest();
 
@@ -30,7 +30,7 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
     let parent = layoutLookups.componentToParent[targetBaseComponentId];
     while (parent?.type === 'node') {
       if (parent.id === baseComponentId) {
-        const targetTabId = tabs.find((tab) =>
+        const targetTabId = config.tabs.find((tab) =>
           tab.children.some((childBaseId) => childBaseId === targetBaseComponentId),
         )?.id;
         if (targetTabId) {
@@ -40,9 +40,9 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
       }
       parent = layoutLookups.componentToParent[parent.id];
     }
-  }, [baseComponentId, focusRequest, layoutLookups.componentToParent, tabs]);
+  }, [baseComponentId, focusRequest, layoutLookups.componentToParent, config.tabs]);
 
-  const layoutTabs: TabsLayoutTab[] = tabs.map((tab) => ({
+  const layoutTabs: TabsLayoutTab[] = config.tabs.map((tab) => ({
     id: tab.id,
     title: tab.title,
     icon: tab.icon,
@@ -60,7 +60,7 @@ export const Tabs = ({ baseComponentId }: PropsFromGenericComponent<'Tabs'>) => 
 
   return (
     <TabsLayout
-      size={size ?? 'medium'}
+      size={config.size ?? 'medium'}
       tabs={layoutTabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}

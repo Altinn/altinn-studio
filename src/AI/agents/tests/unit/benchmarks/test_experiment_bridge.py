@@ -9,6 +9,8 @@ from benchmarks.experiment import (
     structural_evaluator,
 )
 
+from .conftest import comment_of
+
 PAGES = Score("bench_pages", 1.0, "BOOLEAN", "expected 3, found 3")
 COVERAGE = Score("bench_field_coverage", 0.9302, "NUMERIC", "40/43 titles")
 
@@ -19,7 +21,7 @@ class TestScoreAdaptation:
 
         assert evaluation.name == "bench_field_coverage"
         assert evaluation.value == 0.9302
-        assert "40/43" in evaluation.comment
+        assert "40/43" in comment_of(evaluation)
 
     def test_an_item_replays_every_score_the_task_produced(self):
         assert len(structural_evaluator(output={"scores": [PAGES, COVERAGE]})) == 2

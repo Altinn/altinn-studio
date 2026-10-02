@@ -243,6 +243,17 @@ closes when the TUI quits; `q` asks first.
 An Agent created from an image older than this feature reports that its image cannot provide VNC
 access; delete it and re-apply to pick up the current image.
 
+Stop the Agent's VM, for example to free its memory or recover a Sandbox that stopped responding, and start it again
+later. The disk is kept, so files and Session conversations survive. Its Sessions go Idle, and attaching to one after
+the start resumes it. Applying the manifest again keeps a stopped Agent stopped:
+
+```sh
+agentctl stop agent/altinn-full
+agentctl start agent/altinn-full
+```
+
+In `agentctl tui`, `x` stops the selected Agent after asking, and starts a stopped one.
+
 Delete the Agent and its Sandbox:
 
 ```sh
