@@ -26,7 +26,7 @@ BLOCKING_AXES = (
 
 ENVIRONMENTS = ("local", "dev", "prod", "ci")
 
-# The session date in the actor_prompt digest. A real date would change the digest every day.
+# The actor_prompt digest uses this session date. With the real date, the digest changes every day.
 DIGEST_SESSION_DATE = date(2000, 1, 1)
 
 LIVE_ROLES = ("actor", "planner", "default")
@@ -163,10 +163,10 @@ def _sampling_value(value: object) -> str:
 
 
 def _hash_actor_prompt() -> str:
-    """A hash of the actor's system prompt, for every app version and both session modes.
+    """Hash the system prompt of the actor, for each app version and each session mode.
 
-    It hashes what `build_system_prompt` returns, so every section and template counts. The
-    session values are fixed placeholders, because they change in every session.
+    The hash uses the output of `build_system_prompt`, so each section and template counts.
+    The session values are fixed placeholders, because the real values change in each session.
     """
     from agents.altinn.app_version import APP_VERSION_PROFILES
     from agents.core.context import SessionContext, build_system_prompt
@@ -194,7 +194,7 @@ def _hash_actor_prompt() -> str:
 
 
 def _hash_tools() -> str:
-    """A hash of every tool schema the actor is shown, and of the skill text for every app version."""
+    """Hash each tool schema that the actor gets, and the skill text for each app version."""
     from agents.altinn.app_version import APP_VERSION_PROFILES
     from agents.core.skills import discover_skills
     from agents.graph.nodes.agentic_loop_node import _build_registry
@@ -216,7 +216,7 @@ DIGEST_HASHERS: dict[str, Callable[[], str]] = {
 
 
 def digests(*, on_failure: Callable[[str, Exception], None] | None = None) -> dict[str, str | None]:
-    """The axes that this checkout can hash without a run. A None value means that the digest failed."""
+    """Hash the axes that do not need a run. A None value means that the digest failed."""
     measured: dict[str, str | None] = {}
     for axis, hash_axis in DIGEST_HASHERS.items():
         try:

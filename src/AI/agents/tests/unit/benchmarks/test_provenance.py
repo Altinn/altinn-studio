@@ -1,4 +1,4 @@
-"""The models axis, the actor prompt and tools digests, and what the agent ran against."""
+"""Tests for the models axis, the actor_prompt and tools digests, and the provenance of a run."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ class TestDigestsCoverEveryAppVersion:
         assert provenance._hash_actor_prompt() != before
 
     def test_the_date_of_today_does_not_move_the_actor_prompt_digest(self, monkeypatch):
-        """A digest that changes every day compares nothing."""
+        """If the digest changes every day, it cannot compare two runs."""
         from datetime import date
 
         from agents.core import context
@@ -104,7 +104,7 @@ class TestDigestsCoverEveryAppVersion:
 
 
 class TestAFailedDigest:
-    """A run records a failed digest as missing. The gate needs the error too."""
+    """A run records a failed digest as None. The gate also needs the error."""
 
     def _fail(self):
         raise ImportError("no module named 'agents.core.skills'")

@@ -13,26 +13,26 @@ from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
 
-# The ref that a change is compared with, when the caller does not give one.
+# The gate compares a change with this ref if the caller gives no ref.
 DEFAULT_BASE_REF = "origin/main"
 
-# Takes an agents-relative path. Returns None when the file does not exist.
+# Gets an agents-relative path. Returns None if the file does not exist.
 SourceReader = Callable[[str], str | None]
 
 # Returns the digest of each axis in DIGESTS. A None value means that the digest failed.
 Measure = Callable[[], dict[str, str | None]]
 
-# The axes that the gate measures directly. `runner check` compares the same digests.
+# The gate measures these axes directly. `runner check` compares the same digests.
 DIGESTS: tuple[tuple[str, str], ...] = (
     ("actor_prompt", "the actor's system prompt for every app version and session mode, with the skill listing"),
     ("tools", "the tool schemas the actor is shown, and the skill text for every app version"),
 )
 
-# The value in BASELINE.json when a run did not record an axis.
+# BASELINE.json has this value for an axis that a run did not record.
 NOT_RECORDED = "not recorded"
 
-# Agents-relative; first match wins. No path rule is necessary for actor_prompt or tools:
-# the gate compares their digests with BASELINE.json, see DIGESTS.
+# The paths are agents-relative. The first rule that matches applies. actor_prompt and tools
+# have no path rule, because the gate compares their digests with BASELINE.json (see DIGESTS).
 YARDSTICK: tuple[tuple[str, str, str], ...] = (
     (
         "benchmarks/datasets/*",
@@ -130,7 +130,7 @@ class Hit:
 class Drift:
     axis: str
     baseline: str
-    # None when the digest failed.
+    # None if the digest failed.
     current: str | None
     because: str
 
@@ -138,7 +138,7 @@ class Drift:
 @dataclass(frozen=True)
 class Impact:
     hits: tuple[Hit, ...]
-    # Python files that match a rule, but where only docstrings, comments or formatting changed.
+    # Python files that match a rule. In these files, only docstrings, comments or formatting changed.
     docs_only: tuple[str, ...] = field(default_factory=tuple)
     # Digests of this checkout that are not equal to the digests in BASELINE.json.
     drift: tuple[Drift, ...] = field(default_factory=tuple)
@@ -283,7 +283,10 @@ def print_digest_failure(axis: str, error: Exception) -> None:
 
 
 def compare_digests(recorded: dict[str, str], current: dict[str, str | None]) -> tuple[Drift, ...]:
-    """The digests that are not equal to the baseline. A failed or unrecorded digest is not equal."""
+    """Find the digests that are not equal to the baseline.
+
+    A digest that failed, or that the baseline did not record, is not equal.
+    """
     drift: list[Drift] = []
     for axis, because in DIGESTS:
         baseline = recorded.get(axis, NOT_RECORDED)
@@ -299,10 +302,10 @@ def analyze(
     before: SourceReader | None = None,
     after: SourceReader | None = None,
 ) -> Impact:
-    """What a set of changed paths means for the baseline.
+    """Find the effect of the changed paths on the baseline.
 
-    Without `before`, the paths alone decide. With `before`, a Python file
-    moves no axis when only its docstrings, comments or formatting change.
+    Without `before`, only the paths decide. With `before`, a Python file moves
+    no axis if only its docstrings, comments or formatting change.
     """
     prefix = "src/AI/agents/"
     hits: list[Hit] = []
@@ -338,10 +341,10 @@ def _is_docs_only_change(path: str, before: SourceReader, after: SourceReader) -
 
 
 def _code_without_docstrings(source: str) -> str | None:
-    """The AST dump of the source, without module and function docstrings.
+    """Dump the AST of the source, without module and function docstrings.
 
-    The dump has no comments, no formatting and no line numbers. Class
-    docstrings stay, because pydantic copies them into a tool's input schema.
+    The dump has no comments, no formatting and no line numbers. The class
+    docstrings stay, because pydantic copies them into the input schema of a tool.
     """
     try:
         tree = ast.parse(source)
@@ -363,7 +366,7 @@ def read_working_tree(path: str) -> str | None:
 
 
 def git_reader(against: str) -> SourceReader | None:
-    """Reads a file as it was where this branch left `against`."""
+    """Read a file at the merge base of `against` and HEAD."""
     merge_base = _git("merge-base", against, "HEAD")
     if merge_base is None:
         return None
