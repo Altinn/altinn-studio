@@ -42,6 +42,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 - An eFormidling task whose `<altinn:disabled>` is neither `true` nor `false` now stops startup with an error naming the field and the environment, instead of an unexplained parse failure. Leaving it out or blank still enables eFormidling. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
+- PDFs from PDF, subform PDF, signing and payment tasks are now in the language the user selected in the app, not always Norwegian bokmål. Service tasks, process hooks and gateways that run when an instance is created or moves to the next task get that language in `IInstanceDataAccessor.Language` too. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
+- Creating an instance no longer fails with an internal server error when the start event leads straight to an exclusive gateway with conditions. ([#20910](https://github.com/Altinn/altinn-studio/pull/20910))
 
 ### Removed
 

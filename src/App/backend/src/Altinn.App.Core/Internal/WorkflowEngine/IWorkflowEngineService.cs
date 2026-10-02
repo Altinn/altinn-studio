@@ -8,6 +8,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 internal interface IWorkflowEngineService
 {
+    /// <summary>
+    /// Enqueues the workflow that starts the process of a new instance and waits for it to settle.
+    /// <paramref name="language"/> is the language the instance was created with, which the workflow's actor
+    /// carries to every callback; null leaves it to the caller's profile language.
+    /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForInitialProcessState(
         Instance instance,
         StorageVersionMetadata instanceVersions,
@@ -16,14 +21,21 @@ internal interface IWorkflowEngineService
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        string? language = null,
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>
+    /// Enqueues the acquire workflow of a user-triggered process next and waits for the transition to settle.
+    /// <paramref name="language"/> is the language process/next was called with, which the workflow's actor carries
+    /// to every callback; null leaves it to the caller's profile language.
+    /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         string state,
         string? action,
+        string? language,
         CancellationToken cancellationToken = default
     );
 

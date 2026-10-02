@@ -21,6 +21,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Auth;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -445,6 +446,32 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task EveryEnqueue_MintsItsTokenForTheActorAndCommandsItCarries()
     {
+        var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
+        var transition = CreateTaskToTaskTransition();
+        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
+
+        var acquire = await factory.CreateAcquire(
+            instance,
+            action: null,
+            SignedTestState,
+            "acquire-key",
+            language: null
+        );
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            transition,
+            "saved-state",
+            new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+
+        AssertTokenBindsItsRequest(acquire);
+        AssertTokenBindsItsRequest(dependent);
+    }
+
+    private static WorkflowCallbackTokenGenerator CreateSigningTokenGenerator()
+    {
         var secretProvider = new Mock<IWorkflowCallbackSecretProvider>();
         secretProvider
             .Setup(x => x.GetSigningSecret())
@@ -457,22 +484,7 @@ public class ProcessNextRequestFactoryTests
                     ExpiresAt = DateTimeOffset.UtcNow.AddDays(1),
                 }
             );
-        var factory = CreateFactory(callbackTokenGenerator: new WorkflowCallbackTokenGenerator(secretProvider.Object));
-        var transition = CreateTaskToTaskTransition();
-        var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-
-        var acquire = await factory.CreateAcquire(instance, action: null, SignedTestState, "acquire-key");
-        var dependent = await factory.CreateDependent(
-            TestInstance,
-            transition,
-            "saved-state",
-            new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
-        );
-
-        AssertTokenBindsItsRequest(acquire);
-        AssertTokenBindsItsRequest(dependent);
+        return new WorkflowCallbackTokenGenerator(secretProvider.Object);
     }
 
     /// <summary>
@@ -502,7 +514,7 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory();
         var transition = CreateTaskToTaskTransition();
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key");
+        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key", language: null);
         var workflow = Assert.Single(acquire.Request.Workflows);
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
@@ -535,6 +547,160 @@ public class ProcessNextRequestFactoryTests
         Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
         Assert.DoesNotContain(AcquireProcessingStatus.Key, ExtractCommandKeys(dependent));
     }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    [InlineData("", "nn")]
+    [InlineData(" ", "nn")]
+    public async Task CreateAcquire_UserActor_CarriesTheRequestedLanguage_OrTheProfileLanguageWithoutOne(
+        string? requested,
+        string expected
+    )
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            action: null,
+            SignedTestState,
+            "acquire-key",
+            requested
+        );
+
+        Assert.Equal(expected, GetActor(acquire).Language);
+    }
+
+    [Theory]
+    [InlineData(AuthenticationTypes.Org, "en", "en")]
+    [InlineData(AuthenticationTypes.Org, null, "nb")]
+    [InlineData(AuthenticationTypes.ServiceOwner, "en", "en")]
+    [InlineData(AuthenticationTypes.ServiceOwner, null, "nb")]
+    [InlineData(AuthenticationTypes.SystemUser, "en", "en")]
+    [InlineData(AuthenticationTypes.SystemUser, null, "nb")]
+    public async Task CreateAcquire_ActorOtherThanAUser_CarriesTheRequestedLanguage_OrNbWithoutOne(
+        AuthenticationTypes kind,
+        string? requested,
+        string expected
+    )
+    {
+        Authenticated authentication = kind switch
+        {
+            AuthenticationTypes.Org => TestAuthentication.GetOrgAuthentication(),
+            AuthenticationTypes.ServiceOwner => TestAuthentication.GetServiceOwnerAuthentication(),
+            AuthenticationTypes.SystemUser => TestAuthentication.GetSystemUserAuthentication(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+        var factory = CreateFactory(authentication: authentication);
+
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            action: null,
+            SignedTestState,
+            "acquire-key",
+            requested
+        );
+
+        Assert.Equal(expected, GetActor(acquire).Language);
+    }
+
+    [Fact]
+    public async Task CreateAcquire_RequestsDifferingOnlyInLanguage_AreOneRequestToTheEngineAndTheToken()
+    {
+        // A process/next retried in another language must reach the engine as the same W1, not as an idempotency
+        // conflict, and its token must bind the same actor: the engine hashes the body without its context, and
+        // the actor hash leaves the language out.
+        var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
+        Instance instance = CreateTask1Instance();
+
+        var english = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "en");
+        var bokmal = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "nb");
+
+        Assert.Equal("en", GetActor(english).Language);
+        Assert.Equal("nb", GetActor(bokmal).Language);
+        Assert.Equal(english.IdempotencyKey, bokmal.IdempotencyKey);
+        Assert.Equal(
+            JsonSerializer.Serialize(english.Request with { Context = null }),
+            JsonSerializer.Serialize(bokmal.Request with { Context = null })
+        );
+        Assert.Equal(GetActorHashClaim(english), GetActorHashClaim(bokmal));
+        AssertTokenBindsItsRequest(english);
+        AssertTokenBindsItsRequest(bokmal);
+    }
+
+    [Fact]
+    public async Task CreateDependent_KeepsTheLanguageOfTheActorItContinues()
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+        var acquire = await factory.CreateAcquire(
+            CreateTask1Instance(),
+            action: null,
+            SignedTestState,
+            "acquire-key",
+            "en"
+        );
+
+        // W2 is built in W1's callback from the actor the engine echoes, not from the callback's authentication.
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToTaskTransition(),
+            "saved-state",
+            GetActor(acquire),
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "dependent-key"
+        );
+
+        Assert.Equal("en", GetActor(dependent).Language);
+    }
+
+    [Theory]
+    [InlineData("en", "en")]
+    [InlineData(null, "nn")]
+    [InlineData(" ", "nn")]
+    public async Task CreateChainInitiating_ActorCarriesTheInstantiationLanguage_OrTheProfileLanguageWithoutOne(
+        string? language,
+        string expected
+    )
+    {
+        var factory = CreateFactory(
+            authentication: TestAuthentication.GetUserAuthentication(
+                profileSettingPreference: new ProfileSettingPreference { Language = "nn" }
+            )
+        );
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "initiating-key",
+            SignedTestState,
+            isInstantiation: true,
+            language: language
+        );
+
+        Assert.Equal(expected, GetActor(bundle).Language);
+    }
+
+    private static Instance CreateTask1Instance() =>
+        new() { Id = TestInstance.Id, Process = CreateTaskToTaskTransition().OldProcessState };
+
+    private static AppWorkflowContext GetContext(WorkflowEnqueueEnvelope envelope) =>
+        JsonSerializer.Deserialize<AppWorkflowContext>(envelope.Request.Context!.Value)!;
+
+    private static Actor GetActor(WorkflowEnqueueEnvelope envelope) => GetContext(envelope).Actor;
+
+    private static string? GetActorHashClaim(WorkflowEnqueueEnvelope envelope) =>
+        new JsonWebTokenHandler()
+            .ReadJsonWebToken(GetContext(envelope).CallbackToken)
+            .GetClaim(JwtClaimTypes.WorkflowCallback.ActorHash)
+            .Value;
 
     [Fact]
     public async Task Create_TaskToTaskTransition_ProducesCorrectCommandSequence()
