@@ -7,8 +7,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 internal sealed record SchemaRefMigrationResult(int ReferencesUpdated, IReadOnlyList<string> Warnings);
 
 /// <summary>
-/// Points the <c>$schema</c> of every JSON file in the app from the altinncdn.no copies of the app frontend
-/// schemas, versioned or unversioned, to the ones published on app-dist at the Altinn.App package version.
+/// Points the <c>$schema</c> of every JSON file in the app from altinncdn.no to app-dist, at the Altinn.App
+/// package version, for every schema app-dist publishes. Others, such as prefill, stay on altinncdn.no.
 /// The URL alone decides the rewrite, so a file's location does not matter.
 /// </summary>
 internal static partial class SchemaRefMigration
