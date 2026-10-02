@@ -40,7 +40,7 @@ describe('usePublishCodeListMutation', () => {
     expect(onStart).not.toHaveBeenCalled();
 
     result.current.mutate(payload);
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
 
     expect(onStart).toHaveBeenCalledTimes(1);
     expect(onStart).toHaveBeenCalledWith(payload.title);

@@ -93,10 +93,12 @@ describe('ActionsEditor', () => {
     const user = userEvent.setup();
     const deleteActionFromTaskMock = jest.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      deleteActionFromTask: deleteActionFromTaskMock,
-      getTypeForAction: jest.fn(),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        deleteActionFromTask: deleteActionFromTaskMock,
+        getTypeForAction: jest.fn(),
+      };
+    });
 
     renderActionsEditor({ mode: 'edit' });
 
@@ -128,10 +130,12 @@ describe('ActionsEditor', () => {
     const user = userEvent.setup();
     const deleteActionFromTaskMock = jest.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      deleteActionFromTask: deleteActionFromTaskMock,
-      getTypeForAction: jest.fn(),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        deleteActionFromTask: deleteActionFromTaskMock,
+        getTypeForAction: jest.fn(),
+      };
+    });
     renderActionsEditor({ mode: 'edit' });
 
     const deleteButton = screen.getByRole('button', {
@@ -147,10 +151,12 @@ describe('ActionsEditor', () => {
     const user = userEvent.setup();
     const deleteActionFromTaskMock = jest.fn();
 
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      deleteActionFromTask: deleteActionFromTaskMock,
-      getTypeForAction: jest.fn(),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        deleteActionFromTask: deleteActionFromTaskMock,
+        getTypeForAction: jest.fn(),
+      };
+    });
     renderActionsEditor({
       actionElement: { ...actionElementMock, action: undefined },
       mode: 'edit',
@@ -165,9 +171,11 @@ describe('ActionsEditor', () => {
 
   it('should be possible to toggle between predefined and custom actions', async () => {
     const user = userEvent.setup();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      getTypeForAction: () => 'serverAction',
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        getTypeForAction: () => 'serverAction',
+      };
+    });
 
     renderActionsEditor({ mode: 'edit' });
 
@@ -192,9 +200,11 @@ describe('ActionsEditor', () => {
   });
 
   it('should display custom action view when action is of type custom', () => {
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      getTypeForAction: () => 'serverAction',
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        getTypeForAction: () => 'serverAction',
+      };
+    });
 
     renderActionsEditor({
       actionElement: { ...actionElementMock, action: 'my-custom-action' },
