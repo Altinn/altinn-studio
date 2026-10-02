@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -537,6 +538,67 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.DoesNotContain($"{selectedPartyId}", html);
+    }
+
+    [Fact]
+    public async Task Index_StatelessAnonymousApp_InstanceRoute_InvalidParty_RedirectsToPartySelection403()
+    {
+        // Arrange: a stateless app that allows anonymous users, where a logged-in user opens an instance link
+        // with a selected party that validation rejects
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        OverrideServicesForThisTest = ConfigureStatelessAnonymousApp;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/Task_1/form");
+
+        // Assert
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+        OutputHelper.WriteLine($"Location: {response.Headers.Location}");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("party-selection/403", response.Headers.Location?.ToString() ?? "");
+    }
+
+    [Fact]
+    public async Task Index_StatelessAnonymousApp_InvalidParty_NoRedirect()
+    {
+        // Arrange: the anonymous stateless form itself is shown without asking for a party
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        StubOrgData();
+        OverrideServicesForThisTest = ConfigureStatelessAnonymousApp;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/");
+        var html = await response.Content.ReadAsStringAsync();
+
+        // Assert: no redirect, and still no details of the party the user has no access to
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain($"{selectedPartyId}", html);
+    }
+
+    private static void ConfigureStatelessAnonymousApp(IServiceCollection services)
+    {
+        services.AddSingleton(
+            AppFilesMutationHook.ApplicationMetadata(appMetadata =>
+            {
+                appMetadata.OnEntry = new OnEntry { Show = "Task_1" };
+                appMetadata.DataTypes.Find(d => d.Id == "default")!.AppLogic!.AllowAnonymousOnStateless = true;
+            })
+        );
     }
 
     private void StubOrgData()

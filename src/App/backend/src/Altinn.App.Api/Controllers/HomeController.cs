@@ -261,7 +261,8 @@ public class HomeController : Controller
 
         ApplicationMetadata application = _appMetadata.ApplicationMetadata;
 
-        if (IsStatelessApp(application))
+        // Anonymous stateless forms have no party to choose, but an instance still needs a valid selected party
+        if (!isInstanceRoute && IsStatelessApp(application))
         {
             DataType? dataType = GetStatelessDataType(application);
             if (dataType?.AppLogic?.AllowAnonymousOnStateless == true)
