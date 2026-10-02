@@ -6,6 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler';
@@ -71,9 +72,7 @@ describe('ConfigSubformPdfServiceTask', () => {
 
       expect(getComponentIdField()).toHaveValue(componentId);
       expect(saveBpmn).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `<altinn:subformComponentId>${componentId}</altinn:subformComponentId>`,
-        ),
+        expect.any(Promise),
         {
           subformPdfComponentChange: {
             taskId,
@@ -81,8 +80,13 @@ describe('ConfigSubformPdfServiceTask', () => {
             sourceLayoutSetId: original.layoutSetId,
           },
         },
+        { addsOrRemovesTasks: false },
       );
-      expect(saveBpmn.mock.calls[0][0]).toContain(
+      const savedXml = await saveBpmn.mock.calls[0][0];
+      expect(savedXml).toContain(
+        `<altinn:subformComponentId>${componentId}</altinn:subformComponentId>`,
+      );
+      expect(savedXml).toContain(
         `<altinn:subformDataTypeId>${subformDataTypeId}</altinn:subformDataTypeId>`,
       );
       expect(saveSubformPdfComponent).not.toHaveBeenCalled();
@@ -103,13 +107,33 @@ describe('ConfigSubformPdfServiceTask', () => {
       await clickComponentOption(user, componentId);
       await act(async () => emitCommandStackChanged());
 
-      expect(saveBpmn).toHaveBeenCalledWith(expect.any(String), {
-        subformPdfComponentChange: {
-          taskId,
-          componentId,
-          sourceLayoutSetId: original.layoutSetId,
-          previousComponentId,
+      expect(saveBpmn).toHaveBeenCalledWith(
+        expect.any(Promise),
+        {
+          subformPdfComponentChange: {
+            taskId,
+            componentId,
+            sourceLayoutSetId: original.layoutSetId,
+            previousComponentId,
+          },
         },
+        { addsOrRemovesTasks: false },
+      );
+    });
+
+    it('ignores component changes while the command stack is read-only', async () => {
+      const user = userEvent.setup();
+      const { saveBpmn, emitCommandStackChanged, commandStack, modeling } =
+        renderConfigSubformPdfServiceTask();
+      commandStack.readOnly = true;
+
+      await selectComponent(user, componentId);
+      expect(modeling.updateModdleProperties).not.toHaveBeenCalled();
+
+      commandStack.readOnly = false;
+      await act(async () => emitCommandStackChanged());
+      expect(saveBpmn).toHaveBeenCalledWith(expect.any(Promise), null, {
+        addsOrRemovesTasks: false,
       });
     });
 
@@ -132,11 +156,19 @@ describe('ConfigSubformPdfServiceTask', () => {
       await user.tab();
       await act(async () => emitCommandStackChanged());
 
-      expect(saveBpmn).toHaveBeenCalledWith(expect.any(String), {
-        subformPdfComponentChange: { taskId, componentId: null, previousComponentId: componentId },
-      });
-      expect(saveBpmn.mock.calls[0][0]).not.toContain('<altinn:subformComponentId>');
-      expect(saveBpmn.mock.calls[0][0]).not.toContain('<altinn:subformDataTypeId>');
+      expect(saveBpmn).toHaveBeenCalledWith(
+        expect.any(Promise),
+        {
+          subformPdfComponentChange: {
+            taskId,
+            componentId: null,
+            previousComponentId: componentId,
+          },
+        },
+        { addsOrRemovesTasks: false },
+      );
+      await expect(saveBpmn.mock.calls[0][0]).resolves.not.toContain('<altinn:subformComponentId>');
+      await expect(saveBpmn.mock.calls[0][0]).resolves.not.toContain('<altinn:subformDataTypeId>');
       expect(saveSubformPdfComponent).not.toHaveBeenCalled();
     });
 
@@ -248,7 +280,8 @@ describe('ConfigSubformPdfServiceTask', () => {
         }),
       );
 
-      expect(saveSubformPdfComponent).toHaveBeenCalledWith(org, app, taskId, {
+      expect(saveSubformPdfComponent).toHaveBeenCalledWith({
+        taskId,
         componentId,
         sourceLayoutSetId: original.layoutSetId,
       });
@@ -263,7 +296,8 @@ describe('ConfigSubformPdfServiceTask', () => {
 
       await user.click(getCreateComponentCopyButton());
 
-      expect(saveSubformPdfComponent).toHaveBeenCalledWith(org, app, taskId, {
+      expect(saveSubformPdfComponent).toHaveBeenCalledWith({
+        taskId,
         componentId,
         sourceLayoutSetId: original.layoutSetId,
       });
@@ -278,6 +312,28 @@ describe('ConfigSubformPdfServiceTask', () => {
 
       await user.click(getCreateComponentCopyButton());
 
+      expect(await screen.findByRole('button', { name: designTaskButtonName })).toBeInTheDocument();
+      expect(screen.queryByText(componentCopyMissingText)).not.toBeInTheDocument();
+    });
+
+    it('hides copy status while components are refetched', async () => {
+      let finishRefresh: (components: SubformComponent[]) => void;
+      const getSubformComponents = jest.fn(
+        () => new Promise<SubformComponent[]>((resolve) => (finishRefresh = resolve)),
+      );
+      const { queryClient } = renderConfigSubformPdfServiceTask({
+        subformPdfConfig: { subformComponentId: componentId, subformDataTypeId },
+        queries: { getSubformComponents },
+      });
+      expect(screen.getByText(componentCopyMissingText)).toBeInTheDocument();
+
+      act(() => void queryClient.invalidateQueries({ queryKey: [QueryKey.SubformComponents] }));
+      await waitFor(() =>
+        expect(screen.queryByText(componentCopyMissingText)).not.toBeInTheDocument(),
+      );
+      expect(screen.queryByRole('button', { name: designTaskButtonName })).not.toBeInTheDocument();
+
+      await act(async () => finishRefresh([original, copyOnTaskPages]));
       expect(await screen.findByRole('button', { name: designTaskButtonName })).toBeInTheDocument();
       expect(screen.queryByText(componentCopyMissingText)).not.toBeInTheDocument();
     });
@@ -380,6 +436,7 @@ type RenderProps = {
   savedSubformComponents?: SubformComponent[];
   layoutSets?: LayoutSets;
   pendingApiOperations?: boolean;
+  queries?: Partial<ServicesContextProps>;
 };
 
 const renderConfigSubformPdfServiceTask = ({
@@ -388,12 +445,18 @@ const renderConfigSubformPdfServiceTask = ({
   savedSubformComponents = subformComponents,
   layoutSets = [dataTaskPages, taskPages],
   pendingApiOperations = false,
+  queries,
 }: RenderProps = {}) => {
-  const saveBpmn = jest.fn().mockResolvedValue(undefined);
+  const saveBpmn = jest.fn();
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.SubformComponents, org, app], subformComponents);
+  const saveSubformPdfComponent = jest.fn(() => {
+    queryClient.setQueryData([QueryKey.SubformComponents, org, app], savedSubformComponents);
+  });
   const fixture = createBpmnTestModeler(
     'bpmn:ServiceTask',
     { id: taskId },
-    { layoutSets, pendingApiOperations, saveBpmn },
+    { layoutSets, pendingApiOperations, saveBpmn, saveSubformPdfComponent },
   );
   const { moddle, businessObject, Wrapper } = fixture;
   businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
@@ -404,19 +467,16 @@ const renderConfigSubformPdfServiceTask = ({
       }),
     ],
   });
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.SubformComponents, org, app], subformComponents);
-  const saveSubformPdfComponent = jest.fn().mockResolvedValue(savedSubformComponents);
 
   const { unmount } = renderWithProviders(
     <Wrapper>
       <ConfigSubformPdfServiceTask />
     </Wrapper>,
     {
-      queries: { saveSubformPdfComponent },
+      queries,
       queryClient,
     },
   );
 
-  return { ...fixture, saveBpmn, saveSubformPdfComponent, unmount };
+  return { ...fixture, saveBpmn, saveSubformPdfComponent, unmount, queryClient };
 };

@@ -5,10 +5,7 @@ import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMo
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import userEvent from '@testing-library/user-event';
 
-const updateLayoutSetIdMock = jest.fn();
-jest.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
-  useUpdateLayoutSetId: () => updateLayoutSetIdMock,
-}));
+const mutateLayoutSetIdMock = jest.fn();
 
 const existingLayoutSetNameMock = 'existingLayoutSetName';
 
@@ -34,7 +31,7 @@ describe('EditLayoutSetName', () => {
     );
   });
 
-  it('should call updateLayoutSetId when changing name', async () => {
+  it('renames the layout set using the current and new IDs', async () => {
     const user = userEvent.setup();
     const newLayoutSetName = 'newLayoutSetName';
     renderEditLayoutSetName();
@@ -48,11 +45,14 @@ describe('EditLayoutSetName', () => {
     await user.clear(inputNewLayoutSetName);
     await user.type(inputNewLayoutSetName, newLayoutSetName);
     await user.tab();
-    expect(updateLayoutSetIdMock).toHaveBeenCalledTimes(1);
-    expect(updateLayoutSetIdMock).toHaveBeenCalledWith(existingLayoutSetNameMock, newLayoutSetName);
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledTimes(1);
+    expect(mutateLayoutSetIdMock).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: existingLayoutSetNameMock,
+      newLayoutSetId: newLayoutSetName,
+    });
   });
 
-  it('should not call updateLayoutSetId when changing name to original', async () => {
+  it('skips the mutation when the name is unchanged', async () => {
     const user = userEvent.setup();
     renderEditLayoutSetName();
     const editLayoutSetName = screen.getByRole('button', {
@@ -65,7 +65,7 @@ describe('EditLayoutSetName', () => {
     await user.clear(inputNewLayoutSetName);
     await user.type(inputNewLayoutSetName, existingLayoutSetNameMock);
     await user.tab();
-    expect(updateLayoutSetIdMock).not.toHaveBeenCalled();
+    expect(mutateLayoutSetIdMock).not.toHaveBeenCalled();
   });
 });
 
@@ -74,7 +74,13 @@ const renderEditLayoutSetName = (
   existingLayoutSetName = existingLayoutSetNameMock,
 ) => {
   render(
-    <BpmnApiContext.Provider value={{ ...mockBpmnApiContextValue, ...bpmnApiContextValue }}>
+    <BpmnApiContext.Provider
+      value={{
+        ...mockBpmnApiContextValue,
+        mutateLayoutSetId: mutateLayoutSetIdMock,
+        ...bpmnApiContextValue,
+      }}
+    >
       <EditLayoutSetName existingLayoutSetName={existingLayoutSetName} />
     </BpmnApiContext.Provider>,
   );

@@ -83,7 +83,6 @@ export const taskNavigationGroupPath = (org, app) => `${uiFoldersPath(org, app)}
 export const uiFoldersPath = (org, app) => `${apiBasePath}/${org}/${app}/ui-folders`;
 export const uiFoldersLayoutSetsPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets`; // Post
 export const uiFoldersLayoutSetPath = (org, app, layoutSetId) => `${uiFoldersPath(org, app)}/layout-sets/${layoutSetId}`; // Put, Delete
-export const subformPdfComponentPath = (org, app, layoutSetId) => `${uiFoldersLayoutSetPath(org, app, layoutSetId)}/subform-pdf-component`; // Post, Delete
 export const subformComponentsPath = (org, app) => `${uiFoldersPath(org, app)}/subform-components`; // Get
 export const validationOnNavigationPath = (org, app) => `${uiFoldersPath(org, app)}/settings/validation-on-navigation`; // Get, Post, Delete
 export const layoutSetsExtendedPath = (org, app) => `${uiFoldersPath(org, app)}/layout-sets/extended`; // Get
@@ -218,6 +217,7 @@ export const processEditorPath = (org, app) => `${apiBasePath}/${org}/${app}/pro
 export const processEditorDataTypesChangePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/data-types`; // Put
 export const processTaskTypePath = (org, app, taskId) => `${apiBasePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId, allowedContentTypes) => `${apiBasePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId, allowedContentTypes }, { arrayFormat: 'repeat' })}`; // Post, Delete
+export const processStatePath = (org, app) => `${apiBasePath}/${org}/${app}/process-modelling/process-state`; // Get, Put
 
 // Env
 export const envFilePath = () => `${basePath}/config/env.json`;

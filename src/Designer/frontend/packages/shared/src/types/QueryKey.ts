@@ -46,6 +46,7 @@ export enum QueryKey {
   SharedResources = 'SharedResources',
   OrgTextResources = 'OrgTextResources',
   OrgList = 'OrgList',
+  ProcessState = 'ProcessState',
   ProcessTaskDataType = 'ProcessTaskDataType',
   PublishedResources = 'PublishedResources',
   RepoMetadata = 'RepoMetadata',

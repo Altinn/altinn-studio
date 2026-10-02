@@ -64,6 +64,39 @@ describe('SyncSuccessQueriesInvalidator', () => {
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(3);
   });
 
+  it('invalidates process dependencies after a process-state sync', async () => {
+    const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
+
+    queriesInvalidator.invalidateQueriesByFileLocation('process-state');
+    expect(queryClientMock.invalidateQueries).not.toHaveBeenCalled();
+
+    await waitFor(() =>
+      expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [QueryKey.FetchBpmn, org, app],
+      }),
+    );
+    const expectedKeys = [
+      QueryKey.FetchBpmn,
+      QueryKey.AppValidation,
+      QueryKey.AppMetadata,
+      QueryKey.AppMetadataModelIds,
+      QueryKey.AppPolicy,
+      QueryKey.LayoutSets,
+      QueryKey.LayoutSetsExtended,
+      QueryKey.SubformComponents,
+      QueryKey.FormLayouts,
+      QueryKey.FormLayoutSettings,
+      QueryKey.Pages,
+    ];
+    expectedKeys.forEach((key) =>
+      expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({ queryKey: [key, org, app] }),
+    );
+    expect(queryClientMock.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: [QueryKey.ProcessState, org, app],
+    });
+    expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(expectedKeys.length);
+  });
+
   it('should invalidate AppValidation when process.bpmn is synced', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 

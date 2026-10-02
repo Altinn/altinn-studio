@@ -1,4 +1,4 @@
-import { get } from 'app-shared/utils/networking';
+import { get, getWithRevision } from 'app-shared/utils/networking';
 import {
   chatThreadsPath,
   chatMessagesPath,
@@ -34,6 +34,7 @@ import {
   accessListMemberPath,
   appValidationPath,
   processEditorPath,
+  processStatePath,
   releasesPath,
   repoMetaPath,
   repoPullPath,
@@ -151,6 +152,7 @@ import type { StudioctlAuthRequest } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 import type { BotAccount, BotAccountApiKey } from 'app-shared/types/BotAccount';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
+import type { ProcessState } from 'app-shared/types/api/ProcessState';
 
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
@@ -221,8 +223,8 @@ export const getPages = (org: string, app: string, layoutSet: string) => get<Pag
 
 // Settings modal
 export const getAppConfig = (org: string, app: string) => get<AppConfig>(serviceConfigPath(org, app));
-export const getAppPolicy = (org: string, app: string) => get<Policy>(appPolicyPath(org, app));
-export const getAppMetadata = (org: string, app: string) => get<ApplicationMetadata>(appMetadataPath(org, app));
+export const getAppPolicy = (org: string, app: string) => getWithRevision<Policy>(appPolicyPath(org, app));
+export const getAppMetadata = (org: string, app: string) => getWithRevision<ApplicationMetadata>(appMetadataPath(org, app));
 
 // Resourceadm
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
@@ -247,6 +249,7 @@ export const getConsentTemplates = (org: string) => get<ConsentTemplate[]>(conse
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
 export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);
+export const getProcessState = (org: string, app: string) => get<ProcessState>(processStatePath(org, app));
 
 // Contact Page
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());

@@ -10,4 +10,7 @@ public class ProcessDataTypesChangedEvent : INotification
     public List<string> NewDataTypes { get; set; }
     public string ConnectedTaskId { get; set; }
     public AltinnRepoEditingContext EditingContext { get; set; }
+
+    /// <inheritdoc cref="ProcessTaskIdChangedEvent.PublisherNotifies"/>
+    public bool PublisherNotifies { get; set; }
 }

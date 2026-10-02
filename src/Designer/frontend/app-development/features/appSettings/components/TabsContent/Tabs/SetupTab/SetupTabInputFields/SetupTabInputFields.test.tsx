@@ -19,7 +19,7 @@ const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunct
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
   mutate: updateAppMetadataMutation,
-} as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
+} as unknown as UseMutationResult<ApplicationMetadata, Error, ApplicationMetadata, unknown>);
 
 describe('SetupTabInputFields', () => {
   afterEach(jest.clearAllMocks);

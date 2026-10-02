@@ -1,6 +1,8 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export interface ApplicationMetadata {
+  /** Opaque v9 ETag; send unchanged in If-Match, never in the document body. */
+  revision?: string;
   autoDeleteOnProcessEnd?: boolean;
   copyInstanceSettings?: CopyInstanceSettings;
   created?: string;

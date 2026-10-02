@@ -63,7 +63,8 @@ public class ProcessDataTypesChangedLayoutSettingsHandler : INotificationHandler
                 layoutSettings.DefaultDataType = newDataType;
                 await repository.SaveLayoutSettings(notification.ConnectedTaskId, layoutSettings);
                 return true;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }

@@ -83,6 +83,15 @@ describe('UpdateTaskIdCommandHandler', () => {
       expect(mockModeling.updateProperties).toHaveBeenCalledWith(element, { id: 'newTaskId' });
     });
 
+    it('records the previous ID for rename undo and redo', () => {
+      const element = createTaskElement('oldTaskId');
+      const context = createContext(element, 'newTaskId');
+
+      handler.preExecute(context);
+
+      expect(context).toEqual({ element, newId: 'newTaskId', oldId: 'oldTaskId' });
+    });
+
     it('should call updateAutoPdfTaskIds with old and new ids', () => {
       const element = createTaskElement('task_1');
       const context = createContext(element);

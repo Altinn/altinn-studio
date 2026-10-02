@@ -10,6 +10,9 @@ public interface IAppVersionService
     /// (e.g. when the app uses a project reference instead of a package reference).
     /// Callers must guard against a null return value.
     /// </summary>
+    /// <remarks>
+    /// Prefers <c>App/App.csproj</c>; falls back to other projects when it is missing or has no app-lib reference.
+    /// </remarks>
     SemanticVersion GetAppLibVersion(AltinnRepoEditingContext altinnRepoEditingContext);
 
     /// <summary>

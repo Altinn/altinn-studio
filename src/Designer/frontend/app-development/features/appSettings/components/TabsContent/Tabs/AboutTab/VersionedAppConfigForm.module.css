@@ -1,0 +1,10 @@
+.alert {
+  margin-inline: var(--inline-spacing-size);
+}
+
+.form {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}

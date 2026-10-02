@@ -75,6 +75,18 @@ public interface IProcessModelingService
     );
 
     /// <summary>
+    /// Removes unused generated data types and clears or transfers ownership by deleted tasks.
+    /// Retains other data-type settings.
+    /// </summary>
+    Task ReconcileRemovedTaskDataTypes(
+        AltinnRepoEditingContext editingContext,
+        IReadOnlyCollection<string> removedTaskIds,
+        IReadOnlyCollection<string> deletedDataTypeIds,
+        IReadOnlyDictionary<string, string> retainedDataTypeOwners,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the task type from a process definition.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

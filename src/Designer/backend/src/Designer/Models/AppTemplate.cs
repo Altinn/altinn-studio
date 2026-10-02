@@ -9,6 +9,8 @@ namespace Altinn.Studio.Designer.Models;
 /// </summary>
 public class AppTemplate
 {
+    public const string V9Id = "v9";
+
     private const string AppFolderName = "App";
     private const string DeploymentFolderName = "deployment";
 

@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { useRef, type ReactElement } from 'react';
 import {
   PolicyEditor as PolicyEditorImpl,
   mergeActionsFromPolicyWithActionOptions,
@@ -19,14 +19,17 @@ import {
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { HttpResponseUtils } from 'app-shared/utils/httpResponseUtils';
+import { VersionedPolicyEditor } from './VersionedPolicyEditor';
 
 export function PolicyTab(): ReactElement {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
 
   return (
     <TabPageWrapper>
       <TabPageHeader text={t('app_settings.policy_tab_heading')} />
-      <PolicyTabContent />
+      <PolicyTabContent key={`${org}/${app}`} />
     </TabPageWrapper>
   );
 }
@@ -37,6 +40,8 @@ function PolicyTabContent(): ReactElement {
     status: policyStatus,
     data: policyData,
     error: policyError,
+    isFetching: isFetchingPolicy,
+    refetch: refetchPolicy,
   } = useAppPolicyQuery(org, app);
   const {
     status: actionStatus,
@@ -54,9 +59,28 @@ function PolicyTabContent(): ReactElement {
     error: accessPackageError,
   } = useResourceAccessPackagesQuery(org, app);
 
-  const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
+  const { mutate: updateAppPolicyMutation, mutateAsync: saveVersionedPolicy } =
+    useAppPolicyMutation(org, app, { hideDefaultError: HttpResponseUtils.isPreconditionFailed });
 
-  switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus, accessPackageStatus)) {
+  // Wait for the mount refetch before capturing a draft. Keep the editor mounted if a later refetch fails.
+  const isVersionedPolicyShown = useRef(false);
+  if (
+    !isVersionedPolicyShown.current &&
+    policyData?.revision &&
+    policyStatus === 'success' &&
+    !isFetchingPolicy &&
+    actionData &&
+    subjectData &&
+    accessPackageData
+  ) {
+    isVersionedPolicyShown.current = true;
+  }
+
+  switch (
+    isVersionedPolicyShown.current
+      ? 'success'
+      : mergeQueryStatuses(policyStatus, actionStatus, subjectStatus, accessPackageStatus)
+  ) {
     case 'pending': {
       return <LoadingTabData />;
     }
@@ -75,6 +99,9 @@ function PolicyTabContent(): ReactElement {
       );
     }
     case 'success': {
+      if (policyData.revision && !isVersionedPolicyShown.current) {
+        return <LoadingTabData />; // The cached policy is being refetched.
+      }
       // Merge the list of actions from the policy with the list of options to make sure
       // that "old" options are also added to the options list
       const mergedActionList = mergeActionsFromPolicyWithActionOptions(
@@ -87,6 +114,22 @@ function PolicyTabContent(): ReactElement {
         policyData.rules,
         subjectData,
       );
+
+      if (policyData.revision) {
+        return (
+          <VersionedPolicyEditor
+            key={`${org}/${app}`}
+            policy={policyData}
+            actions={mergedActionList}
+            subjects={mergedSubjectList}
+            accessPackages={accessPackageData}
+            onSave={saveVersionedPolicy}
+            onReload={async () => (await refetchPolicy({ throwOnError: true })).data}
+            showAllErrors
+            usageType='app'
+          />
+        );
+      }
 
       return (
         <PolicyEditorImpl

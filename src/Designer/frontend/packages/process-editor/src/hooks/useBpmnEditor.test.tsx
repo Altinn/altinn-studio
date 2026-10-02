@@ -9,7 +9,10 @@ import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import {
+  StudioRecommendedNextActionContextProvider,
+  useStudioRecommendedNextActionContext,
+} from '@studio/components';
 import {
   BpmnConfigPanelFormContextProvider,
   useBpmnConfigPanelFormContext,
@@ -23,14 +26,13 @@ import type {
 } from '../types/BpmnBusinessObjectEditor';
 import { BpmnTypeEnum } from '../enum/BpmnTypeEnum';
 import type { BpmnTaskType } from '../types/BpmnTaskType';
-import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
+import type { UpdateTaskIdContext } from '../commandHandlers/UpdateTaskIdCommandHandler';
 
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
   bpmnXml: undefined,
 };
-const savedXml = '<savedxml></savedxml>';
 const taskIdChange = { oldId: 'Task_1', newId: 'Task_2' };
 const layoutSetId = 'someLayoutSetId';
 const layoutSets: LayoutSets = [
@@ -52,9 +54,7 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
   mutateLayoutSetId: jest.fn(),
   mutateDataTypes: jest.fn(),
   saveBpmn: jest.fn(),
-  getSavedBpmn: jest.fn(),
-  onProcessTaskAdd: jest.fn(),
-  onProcessTaskRemove: jest.fn(),
+  saveSubformPdfComponent: jest.fn(),
 };
 const taskType: BpmnTaskType = 'data';
 const extensionElements: BpmnExtensionElementsEditor = {
@@ -117,8 +117,12 @@ const saveXML = jest.fn().mockImplementation(() => Promise.resolve({ xml }));
 
 const eventListeners = new EventListeners<EventMap>();
 
+type UpdateTaskIdEvent = { context: UpdateTaskIdContext };
+
 type EventMap = {
   ['commandStack.changed']: () => void;
+  ['commandStack.updateTaskId.executed']: (event: UpdateTaskIdEvent) => void;
+  ['commandStack.updateTaskId.reverted']: (event: UpdateTaskIdEvent) => void;
   ['shape.added']: (taskEvent: TaskEvent) => void;
   ['shape.remove']: (taskEvent: TaskEvent) => void;
   ['selection.changed']: (selectionChangedEvent: SelectionChangedEvent) => void;
@@ -127,6 +131,8 @@ type EventMap = {
 
 const modelerEventNames: Array<keyof EventMap> = [
   'commandStack.changed',
+  'commandStack.updateTaskId.executed',
+  'commandStack.updateTaskId.reverted',
   'shape.added',
   'shape.remove',
   'selection.changed',
@@ -138,39 +144,94 @@ describe('useBpmnEditor', () => {
     eventListeners.clear();
   });
 
-  it('Calls saveBpmn with correct data when the "commandStack.changed" event is triggered', async () => {
+  it('saves the XML snapshot and metadata when the command stack changes', async () => {
     const saveBpmn = jest.fn();
     await setup({ bpmnApiContextProps: { saveBpmn } });
     eventListeners.triggerEvent('commandStack.changed');
     await waitFor(expect(saveBpmn).toHaveBeenCalled);
     expect(saveBpmn).toHaveBeenCalledTimes(1);
-    expect(saveBpmn).toHaveBeenCalledWith(xml, null);
+    expect(saveBpmn).toHaveBeenCalledWith(expect.any(Promise), null, {
+      addsOrRemovesTasks: false,
+    });
+    await expect(saveBpmn.mock.lastCall[0]).resolves.toBe(xml);
   });
 
-  it('Calls onProcessTaskAdd with correct data when the "shape.added" event is triggered', async () => {
-    const onProcessTaskAdd = jest.fn();
-    const taskEvent: TaskEvent = { element } as TaskEvent;
-    await setup({ bpmnApiContextProps: { onProcessTaskAdd } });
+  it('captures rename metadata from executed commands', async () => {
+    const saveBpmn = jest.fn();
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+    const context = renameContext('Task_1', 'NamedTask');
 
-    act(() => eventListeners.triggerEvent('shape.added', taskEvent)); // Need to use act here because this event also triggers the addAction function from useStudioRecommendedNextActionContext, which in turn triggers another state update
-    await waitFor(expect(onProcessTaskAdd).toHaveBeenCalled);
+    act(() => {
+      eventListeners.triggerEvent('commandStack.updateTaskId.executed', { context });
+      eventListeners.triggerEvent('commandStack.changed');
+    });
 
-    const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
-    expect(onProcessTaskAdd).toHaveBeenCalledTimes(1);
-    expect(onProcessTaskAdd).toHaveBeenCalledWith(expectedInput);
+    expect(saveBpmn).toHaveBeenCalledWith(
+      expect.any(Promise),
+      { taskIdChange: { oldId: 'Task_1', newId: 'NamedTask' } },
+      { addsOrRemovesTasks: false },
+    );
   });
 
-  it('Calls onProcessTaskRemove with correct data when the "shape.remove" event is triggered', async () => {
-    const onProcessTaskRemove = jest.fn();
-    const taskEvent: TaskEvent = { element } as TaskEvent;
-    await setup({ bpmnApiContextProps: { onProcessTaskRemove } });
+  it('captures reverse rename metadata from undone commands', async () => {
+    const saveBpmn = jest.fn();
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+    const context = renameContext('Task_1', 'NamedTask');
 
-    eventListeners.triggerEvent('shape.remove', taskEvent);
-    await waitFor(expect(onProcessTaskRemove).toHaveBeenCalled);
+    act(() => {
+      eventListeners.triggerEvent('commandStack.updateTaskId.reverted', { context });
+      eventListeners.triggerEvent('commandStack.changed');
+    });
 
-    const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
-    expect(onProcessTaskRemove).toHaveBeenCalledTimes(1);
-    expect(onProcessTaskRemove).toHaveBeenCalledWith(expectedInput);
+    expect(saveBpmn).toHaveBeenCalledWith(
+      expect.any(Promise),
+      { taskIdChange: { oldId: 'NamedTask', newId: 'Task_1' } },
+      { addsOrRemovesTasks: false },
+    );
+  });
+
+  it('tracks task additions and removals separately for each save', async () => {
+    const saveBpmn = jest.fn();
+    await setup({ bpmnApiContextProps: { saveBpmn } });
+    const startEvent = {
+      element: { id: 'StartEvent_1', businessObject: { $type: BpmnTypeEnum.StartEvent } },
+    } as TaskEvent;
+
+    act(() => {
+      eventListeners.triggerEvent('shape.added', taskEventFor('data'));
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    act(() => eventListeners.triggerEvent('commandStack.changed'));
+    act(() => {
+      eventListeners.triggerEvent('shape.remove', { element } as TaskEvent);
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+    act(() => {
+      eventListeners.triggerEvent('shape.added', startEvent);
+      eventListeners.triggerEvent('commandStack.changed');
+    });
+
+    expect(saveBpmn.mock.calls.map(([, , options]) => options)).toEqual([
+      { addsOrRemovesTasks: true },
+      { addsOrRemovesTasks: false },
+      { addsOrRemovesTasks: true },
+      { addsOrRemovesTasks: false },
+    ]);
+  });
+
+  it.each<BpmnTaskType>(['data', 'payment', 'signing'])(
+    'suggests naming a new %s task',
+    async (newTaskType) => {
+      const { result } = await setupWithBpmnContext();
+      act(() => eventListeners.triggerEvent('shape.added', taskEventFor(newTaskType)));
+      expect(result.current.shouldDisplayAction(element.id)).toBe(true);
+    },
+  );
+
+  it('does not suggest naming a new task of another type', async () => {
+    const { result } = await setupWithBpmnContext();
+    act(() => eventListeners.triggerEvent('shape.added', taskEventFor('pdf')));
+    expect(result.current.shouldDisplayAction(element.id)).toBe(false);
   });
 
   it('Updates BPMN details with selected object when "selection.changed" event is triggered with new selection', async () => {
@@ -222,7 +283,7 @@ describe('useBpmnEditor', () => {
     }
   });
 
-  it('Calls only the most recent saveBpmn function when the "commandStack.changed" event is triggered', async () => {
+  it('saves through the latest callback after rerendering', async () => {
     const saveBpmn1 = jest.fn();
     const saveBpmn2 = jest.fn();
     const bpmnApiContextProps: Partial<BpmnApiContextProps> = {
@@ -239,88 +300,24 @@ describe('useBpmnEditor', () => {
     expect(saveBpmn2).toHaveBeenCalledTimes(1);
   });
 
-  it('Does not reload the process when a task id change is saved', async () => {
-    const saveBpmn = jest.fn().mockResolvedValue(undefined);
-    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
-    const { result } = await setupWithBpmnContext({
-      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
-    });
-    result.current.metadataFormRef.current = { taskIdChange };
-
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange }));
-    expect(getSavedBpmn).not.toHaveBeenCalled();
-    expect(importXML).toHaveBeenCalledTimes(1);
-  });
-
-  it('Reloads the process as it is saved and clears the selection when a task id change is rejected', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
-    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
-    const { result } = await setupWithBpmnContext({
-      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
-    });
-    act(() =>
-      eventListeners.triggerEvent('selection.changed', {
-        oldSelection: [],
-        newSelection: [element],
-      }),
-    );
-    result.current.metadataFormRef.current = { taskIdChange };
-
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
-    expect(importXML).toHaveBeenLastCalledWith(savedXml);
-    expect(result.current.bpmnContext.bpmnDetails).toBeNull();
-  });
-
-  it('Does not reload the process when a save without a task id change fails', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Server error'));
-    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
-    await setup({ bpmnApiContextProps: { saveBpmn, getSavedBpmn } });
-
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, null));
-    expect(getSavedBpmn).not.toHaveBeenCalled();
-    expect(importXML).toHaveBeenCalledTimes(1);
-  });
-
-  it('Keeps the editor as it is when the saved process cannot be fetched', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
-    const getSavedBpmn = jest.fn().mockRejectedValue(new Error('Network error'));
-    const { result } = await setupWithBpmnContext({
-      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
-    });
-    result.current.metadataFormRef.current = { taskIdChange };
-
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(getSavedBpmn).toHaveBeenCalled());
-    expect(importXML).toHaveBeenCalledTimes(1);
-  });
-
-  it('Does not treat the shapes removed and re-added by the reload as task removals or additions', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
-    const getSavedBpmn = jest.fn().mockResolvedValue(savedXml);
-    const onProcessTaskAdd = jest.fn();
-    const onProcessTaskRemove = jest.fn();
-    const { result } = await setupWithBpmnContext({
-      bpmnApiContextProps: { saveBpmn, getSavedBpmn, onProcessTaskAdd, onProcessTaskRemove },
-    });
-    result.current.metadataFormRef.current = { taskIdChange };
-    importXML.mockImplementationOnce(async () => {
+  it('ignores shape changes while importing saved BPMN', async () => {
+    const saveBpmn = jest.fn();
+    const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
+    result.current.bpmnContext.isReloadingRef.current = true;
+    act(() => {
       eventListeners.triggerEvent('shape.remove', { element } as TaskEvent);
       eventListeners.triggerEvent('shape.added', { element } as TaskEvent);
-      return { warnings: [] };
+      eventListeners.triggerEvent('commandStack.changed');
     });
+    expect(saveBpmn).not.toHaveBeenCalled();
+    expect(result.current.shouldDisplayAction(element.id)).toBe(false);
 
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
-    expect(onProcessTaskRemove).not.toHaveBeenCalled();
-    expect(onProcessTaskAdd).not.toHaveBeenCalled();
+    result.current.bpmnContext.isReloadingRef.current = false;
+    act(() => eventListeners.triggerEvent('commandStack.changed'));
+    expect(saveBpmn).toHaveBeenCalledTimes(1);
+    expect(saveBpmn).toHaveBeenCalledWith(expect.any(Promise), null, {
+      addsOrRemovesTasks: false,
+    });
   });
 
   it('captures save metadata before serialization and preserves metadata for the next edit', async () => {
@@ -346,7 +343,12 @@ describe('useBpmnEditor', () => {
     result.current.metadataFormRef.current = nextMetadata;
     await act(async () => finishSerialization({ xml }));
 
-    await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange }));
+    expect(saveBpmn).toHaveBeenCalledWith(
+      expect.any(Promise),
+      { taskIdChange },
+      { addsOrRemovesTasks: false },
+    );
+    await expect(saveBpmn.mock.lastCall[0]).resolves.toBe(xml);
     expect(result.current.metadataFormRef.current).toBe(nextMetadata);
   });
 
@@ -410,11 +412,7 @@ async function setupWithBpmnContext(
   return utils;
 }
 
-/**
- * The modeler is initialized before the event listeners are registered, so waiting for the
- * registrations is what guarantees that an event triggered right after setup is received.
- * All of them are awaited so that no test depends on the order the listeners are registered in.
- */
+// Initialization finishes before subscriptions, so await every listener before emitting events.
 async function waitForEventListenerRegistration(): Promise<void> {
   await waitFor(() =>
     modelerEventNames.forEach((eventName) =>
@@ -427,11 +425,24 @@ type UseBpmnEditorAndContextResult = {
   bpmnEditor: UseBpmnEditorResult;
   bpmnContext: Partial<BpmnContextProps>;
   metadataFormRef: React.MutableRefObject<MetadataForm>;
+  shouldDisplayAction: (actionId: string) => boolean;
 };
 
 const useBpmnEditorAndContext = (): UseBpmnEditorAndContextResult => {
   const bpmnEditor = useBpmnEditor();
   const bpmnContext = useBpmnContext();
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
-  return { bpmnEditor, bpmnContext, metadataFormRef };
+  const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
+  return { bpmnEditor, bpmnContext, metadataFormRef, shouldDisplayAction };
 };
+
+function renameContext(oldId: string, newId: string): UpdateTaskIdContext {
+  return { element: element as unknown as UpdateTaskIdContext['element'], newId, oldId };
+}
+
+function taskEventFor(newTaskType: BpmnTaskType): TaskEvent {
+  const values = [{ $type: 'altinn:TaskExtension', taskType: newTaskType }];
+  return {
+    element: { ...element, businessObject: { ...businessObject, extensionElements: { values } } },
+  } as TaskEvent;
+}

@@ -26,6 +26,7 @@ export const useAppPolicyQuery = (org: string, app: string): UseQueryResult<Poli
 };
 const mapAppPolicyResponse = (appPolicy: Policy): Policy => {
   return {
+    ...(appPolicy?.revision ? { revision: appPolicy.revision } : {}),
     rules: appPolicy?.rules ?? [],
     requiredAuthenticationLevelEndUser:
       appPolicy?.requiredAuthenticationLevelEndUser ?? DEFAULT_AUTH_LEVEL,

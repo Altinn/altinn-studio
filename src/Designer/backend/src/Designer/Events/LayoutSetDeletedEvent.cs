@@ -8,4 +8,7 @@ public class LayoutSetDeletedEvent : INotification
 {
     public AltinnRepoEditingContext EditingContext { get; set; }
     public string LayoutSetName { get; set; }
+
+    /// <inheritdoc cref="ProcessTaskIdChangedEvent.PublisherNotifies"/>
+    public bool PublisherNotifies { get; set; }
 }

@@ -48,7 +48,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 }
 
                 return hasChanges;
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 

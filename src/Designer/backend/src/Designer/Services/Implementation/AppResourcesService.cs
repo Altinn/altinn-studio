@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -19,15 +20,6 @@ class AppResourcesService : IAppResourcesService
     private readonly HttpClient _httpClient;
     private readonly IEnvironmentsService _environmentsService;
     private readonly XmlNamespaceManager _xmlNs;
-
-    private readonly List<string> _dataTypeProcessTags = new()
-    {
-        "signatureDataType",
-        "signeeStatesDataTypeId",
-        "signingPdfDataType",
-        "paymentDataType",
-        "paymentReceiptPdfDataType",
-    };
 
     public AppResourcesService(HttpClient httpClient, IEnvironmentsService environmentsService)
     {
@@ -81,7 +73,7 @@ class AppResourcesService : IAppResourcesService
             };
             processMetadata.Add(processTaskMetadata);
 
-            foreach (var tag in _dataTypeProcessTags)
+            foreach (var tag in GeneratedProcessDataTypes.Tags)
             {
                 foreach (var element in taskElement.XPathSelectElements($".//altinn:{tag}", _xmlNs))
                 {

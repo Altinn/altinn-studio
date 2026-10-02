@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 import axios from 'axios';
-import { del, get, patch, post, put } from './networking';
+import { del, get, getWithRevision, patch, post, put, putWithRevision } from './networking';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -253,5 +253,72 @@ describe('patch', () => {
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });
+  });
+});
+
+type Document = { title: string; revision?: string };
+
+describe('getWithRevision', () => {
+  it('returns the document with the ETag response header as its revision', async () => {
+    const data = { title: 'Document' };
+    mockedAxios.get.mockResolvedValueOnce({ data, headers: { etag: '"abc123"' } });
+
+    const result = await getWithRevision(testUrl);
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, undefined);
+    expect(result).toEqual({ title: 'Document', revision: '"abc123"' });
+  });
+
+  it('returns the document as it is when the response has no ETag header', async () => {
+    const data = { title: 'Document' };
+    mockedAxios.get.mockResolvedValueOnce({ data, headers: {} });
+
+    const result = await getWithRevision(testUrl);
+
+    expect(result).toEqual(data);
+    expect(result).not.toHaveProperty('revision');
+  });
+});
+
+describe('putWithRevision', () => {
+  it('sends the revision in an If-Match header instead of in the body', async () => {
+    const config = { headers: { 'Content-Type': 'application/json' } };
+    mockedAxios.put.mockResolvedValueOnce({ data: { title: 'Saved' }, headers: {} });
+
+    await putWithRevision(testUrl, { title: 'Draft', revision: '"abc123"' }, config);
+
+    expect(mockedAxios.put).toHaveBeenCalledWith(
+      testUrl,
+      { title: 'Draft' },
+      { headers: { 'Content-Type': 'application/json', 'If-Match': '"abc123"' } },
+    );
+  });
+
+  it('returns the saved document with the ETag response header as its revision', async () => {
+    mockedAxios.put.mockResolvedValueOnce({
+      data: { title: 'Saved' },
+      headers: { etag: '"def456"' },
+    });
+
+    const result = await putWithRevision(testUrl, { title: 'Draft', revision: '"abc123"' });
+
+    expect(result).toEqual({ title: 'Saved', revision: '"def456"' });
+  });
+
+  it('sends a document without a revision as put does', async () => {
+    const data: Document = { title: 'Draft' };
+    mockedAxios.put.mockResolvedValueOnce({ data, headers: {} });
+
+    const result = await putWithRevision(testUrl, data);
+
+    expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, data, undefined);
+    expect(result).toEqual(data);
+  });
+
+  it('rejects with the error of a failed request', async () => {
+    const error = { response: { status: 412 } };
+    mockedAxios.put.mockRejectedValueOnce(error);
+
+    await expect(putWithRevision(testUrl, { revision: '"abc123"' })).rejects.toBe(error);
   });
 });

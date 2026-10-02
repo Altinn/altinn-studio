@@ -165,9 +165,8 @@ public class ProcessModelingService : IProcessModelingService
             }
 
             applicationMetadata.DataTypes.Add(dataTypeToAdd);
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
-
-        await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
     }
 
     public async Task DeleteDataTypeFromApplicationMetadataAsync(
@@ -187,6 +186,41 @@ public class ProcessModelingService : IProcessModelingService
         );
         applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
         await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+    }
+
+    /// <inheritdoc/>
+    public async Task ReconcileRemovedTaskDataTypes(
+        AltinnRepoEditingContext editingContext,
+        IReadOnlyCollection<string> removedTaskIds,
+        IReadOnlyCollection<string> deletedDataTypeIds,
+        IReadOnlyDictionary<string, string> retainedDataTypeOwners,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer
+        );
+        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
+            cancellationToken
+        );
+        bool changed =
+            applicationMetadata.DataTypes.RemoveAll(dataType => deletedDataTypeIds.Contains(dataType.Id)) > 0;
+        foreach (
+            DataType dataType in applicationMetadata.DataTypes.Where(dataType =>
+                removedTaskIds.Contains(dataType.TaskId)
+            )
+        )
+        {
+            dataType.TaskId = retainedDataTypeOwners.GetValueOrDefault(dataType.Id);
+            changed = true;
+        }
+        if (changed)
+        {
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
     }
 
     public async Task<string> GetTaskTypeFromProcessDefinition(

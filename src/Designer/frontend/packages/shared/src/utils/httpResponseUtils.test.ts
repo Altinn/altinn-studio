@@ -105,4 +105,21 @@ describe('HttpResponseUtils', () => {
       expect(HttpResponseUtils.isConflict(error)).toBe(false);
     });
   });
+
+  describe('isPreconditionFailed', () => {
+    it('returns true for 412 Precondition Failed', () => {
+      const error = { response: { status: 412 } } as AxiosError;
+      expect(HttpResponseUtils.isPreconditionFailed(error)).toBe(true);
+    });
+
+    it.each([409, 428, 500])('returns false for status %s', (status) => {
+      const error = { response: { status } } as AxiosError;
+      expect(HttpResponseUtils.isPreconditionFailed(error)).toBe(false);
+    });
+
+    it('returns false when there is no response', () => {
+      expect(HttpResponseUtils.isPreconditionFailed({} as AxiosError)).toBe(false);
+      expect(HttpResponseUtils.isPreconditionFailed(undefined)).toBe(false);
+    });
+  });
 });

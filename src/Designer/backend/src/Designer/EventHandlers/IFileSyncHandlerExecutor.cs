@@ -14,6 +14,7 @@ public interface IFileSyncHandlerExecutor
     /// <param name="errorCode">The error code to use if an exception occurs.</param>
     /// <param name="sourcePath">The source path associated with any altered file.</param>
     /// <param name="handlerFunction">A function to be executed, which returns a bool that indicates whether any file changes was made.</param>
+    /// <param name="publisherNotifies">Skip notifications and propagate failures to the publisher.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <remarks>
     /// This method executes the provided handler function within the context of exception handling.
@@ -25,6 +26,7 @@ public interface IFileSyncHandlerExecutor
         AltinnRepoEditingContext editingContext,
         string errorCode,
         string sourcePath,
-        Func<Task<bool>> handlerFunction
+        Func<Task<bool>> handlerFunction,
+        bool publisherNotifies = false
     );
 }

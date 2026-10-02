@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.PolicyAdmin;
@@ -19,11 +20,13 @@ public class PolicyController : ControllerBase
 {
     private readonly IRepository _repository;
     private readonly IPolicyOptions _policyOptions;
+    private readonly IAppVersionService _appVersionService;
 
-    public PolicyController(IRepository repository, IPolicyOptions policyOptions)
+    public PolicyController(IRepository repository, IPolicyOptions policyOptions, IAppVersionService appVersionService)
     {
         _repository = repository;
         _policyOptions = policyOptions;
+        _appVersionService = appVersionService;
     }
 
     /// <summary>
@@ -32,18 +35,18 @@ public class PolicyController : ControllerBase
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <returns>The updated application metadata</returns>
+    /// <remarks>
+    /// For a v9 app, the response has an <c>ETag</c> header. Send it back in <c>If-Match</c> to save the policy.
+    /// </remarks>
     [HttpGet]
     [Route("")]
     public ActionResult GetAppPolicy(string org, string app)
     {
-        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
-
-        if (xacmlPolicy == null)
+        ResourcePolicy resourcePolicy = GetApplicationPolicy(org, app);
+        if (_appVersionService.IsV9App(HttpContext, org, app))
         {
-            return Ok(new ResourcePolicy());
+            Response.Headers.ETag = EntityTagHelper.ComputeEntityTag(resourcePolicy);
         }
-
-        ResourcePolicy resourcePolicy = PolicyConverter.ConvertPolicy(xacmlPolicy);
 
         return Ok(resourcePolicy);
     }
@@ -80,6 +83,10 @@ public class PolicyController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organization.</param>
     /// <param name="applicationPolicy">The application metadata</param>
     /// <returns>The updated application metadata</returns>
+    /// <remarks>
+    /// V9 saves require the loaded ETag in <c>If-Match</c>: 428 if missing, 412 if stale.
+    /// Returns the stored policy with its new <c>ETag</c>.
+    /// </remarks>
     [HttpPut]
     [HttpPost]
     [Route("")]
@@ -89,11 +96,30 @@ public class PolicyController : ControllerBase
         [FromBody] ResourcePolicy applicationPolicy
     )
     {
+        bool isV9App = _appVersionService.IsV9App(HttpContext, org, app);
+        if (isV9App)
+        {
+            // The v9 repository lock protects the version check and save.
+            string currentEntityTag = EntityTagHelper.ComputeEntityTag(GetApplicationPolicy(org, app));
+            ObjectResult? preconditionFailure = EntityTagHelper.CheckIfMatch(Request, currentEntityTag);
+            if (preconditionFailure is not null)
+            {
+                return preconditionFailure;
+            }
+        }
+
         XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(applicationPolicy);
 
         await _repository.SavePolicy(org, app, null, xacmlPolicy);
 
-        return Ok(applicationPolicy);
+        if (!isV9App)
+        {
+            return Ok(applicationPolicy);
+        }
+
+        ResourcePolicy savedPolicy = GetApplicationPolicy(org, app);
+        Response.Headers.ETag = EntityTagHelper.ComputeEntityTag(savedPolicy);
+        return Ok(savedPolicy);
     }
 
     /// <summary>
@@ -190,6 +216,12 @@ public class PolicyController : ControllerBase
             cancellationToken
         );
         return Ok(accessPackageOptions);
+    }
+
+    private ResourcePolicy GetApplicationPolicy(string org, string app)
+    {
+        XacmlPolicy xacmlPolicy = _repository.GetPolicy(org, app, null);
+        return xacmlPolicy == null ? new ResourcePolicy() : PolicyConverter.ConvertPolicy(xacmlPolicy);
     }
 
     private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)

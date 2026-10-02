@@ -2,8 +2,6 @@ import { renderHook } from '@testing-library/react';
 import { useUpdateLayoutSetId } from './useUpdateLayoutSetId';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 
-const reloadSavedProcess = jest.fn();
-jest.mock('./useReloadSavedProcess', () => ({ useReloadSavedProcess: () => reloadSavedProcess }));
 jest.mock('../contexts/BpmnApiContext', () => ({ useBpmnApiContext: jest.fn() }));
 
 const oldId = 'Activity_0abc123';
@@ -16,20 +14,30 @@ describe('useUpdateLayoutSetId', () => {
     (useBpmnApiContext as jest.Mock).mockReturnValue({ mutateLayoutSetId });
   });
 
-  it('renames the layout set and then reloads the process with the renamed task selected in a v9 app', () => {
-    renderUseUpdateLayoutSetId()(oldId, newId);
+  it('queues one layout set rename', () => {
+    setupUpdateLayoutSetId()(oldId, newId);
 
-    expect(mutateLayoutSetId).toHaveBeenCalledWith(
-      { layoutSetIdToUpdate: oldId, newLayoutSetId: newId },
-      { onSuccess: expect.any(Function) },
-    );
-    expect(reloadSavedProcess).not.toHaveBeenCalled();
-    const [, { onSuccess }] = mutateLayoutSetId.mock.lastCall;
-    onSuccess();
-    expect(reloadSavedProcess).toHaveBeenCalledWith(newId);
+    expect(mutateLayoutSetId).toHaveBeenCalledTimes(1);
+    expect(mutateLayoutSetId).toHaveBeenCalledWith({
+      layoutSetIdToUpdate: oldId,
+      newLayoutSetId: newId,
+    });
+  });
+
+  it('forwards successive renames in order', () => {
+    const updateLayoutSetId = setupUpdateLayoutSetId();
+    updateLayoutSetId(oldId, 'FirstName');
+    updateLayoutSetId('FirstName', newId);
+
+    expect(mutateLayoutSetId).toHaveBeenNthCalledWith(1, {
+      layoutSetIdToUpdate: oldId,
+      newLayoutSetId: 'FirstName',
+    });
+    expect(mutateLayoutSetId).toHaveBeenNthCalledWith(2, {
+      layoutSetIdToUpdate: 'FirstName',
+      newLayoutSetId: newId,
+    });
   });
 });
 
-const renderUseUpdateLayoutSetId = () => {
-  return renderHook(() => useUpdateLayoutSetId()).result.current;
-};
+const setupUpdateLayoutSetId = () => renderHook(() => useUpdateLayoutSetId()).result.current;

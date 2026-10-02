@@ -144,6 +144,12 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
+    public Task ValidateNewLayoutSetName(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    ) => ValidateNewLayoutSetName(GetRepository(editingContext, cancellationToken), layoutSetName, cancellationToken);
+
     public async Task ValidateTaskIdChange(
         AltinnRepoEditingContext editingContext,
         string oldTaskId,
@@ -169,7 +175,8 @@ public class UiFoldersService : IUiFoldersService
         AltinnRepoEditingContext editingContext,
         LayoutSetConfig newLayoutSet,
         TaskType? taskType,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        bool publisherNotifies = false
     )
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
@@ -188,7 +195,12 @@ public class UiFoldersService : IUiFoldersService
         }
 
         await _publisher.Publish(
-            new LayoutSetCreatedEvent { EditingContext = editingContext, LayoutSet = newLayoutSet },
+            new LayoutSetCreatedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSet = newLayoutSet,
+                PublisherNotifies = publisherNotifies,
+            },
             cancellationToken
         );
 
@@ -266,7 +278,8 @@ public class UiFoldersService : IUiFoldersService
     public async Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        bool publisherNotifies = false
     )
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
@@ -285,12 +298,23 @@ public class UiFoldersService : IUiFoldersService
 
         // Only publish once every repository mutation has succeeded.
         await _publisher.Publish(
-            new LayoutSetDeletedEvent { EditingContext = editingContext, LayoutSetName = layoutSetToDeleteId },
+            new LayoutSetDeletedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetName = layoutSetToDeleteId,
+                PublisherNotifies = publisherNotifies,
+            },
             cancellationToken
         );
 
         return await GetLayoutSets(editingContext, cancellationToken);
     }
+
+    public Task<LayoutSettings?> TryGetLayoutSettings(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetName,
+        CancellationToken cancellationToken
+    ) => TryGetLayoutSettings(GetRepository(editingContext, cancellationToken), layoutSetName, cancellationToken);
 
     private async Task<LayoutSettings?> TryGetLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,

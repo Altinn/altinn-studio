@@ -1,4 +1,4 @@
-import { del, get, patch, post, put } from 'app-shared/utils/networking';
+import { del, get, patch, post, put, putWithRevision } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
   branchesPath,
@@ -38,7 +38,6 @@ import {
   resourceAccessListPath,
   uiFoldersLayoutSetPath,
   uiFoldersLayoutSetsPath,
-  subformPdfComponentPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
@@ -49,6 +48,7 @@ import {
   optionListUpdatePath,
   optionListIdUpdatePath,
   processEditorPath,
+  processStatePath,
   selectedMaskinportenScopesPath,
   appSettingsPath,
   createInstancePath,
@@ -101,8 +101,6 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
-import type { SubformPdfComponentPayload } from 'app-shared/types/api/SubformPdfComponentPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
@@ -138,6 +136,7 @@ import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyRe
 import type { StudioctlAuthCallback } from 'app-shared/types/api/StudioctlAuth';
 import type { ContactPoint, ContactPointPayload } from 'app-shared/types/ContactPoint';
 import type { CreateBotAccountRequest, CreateBotAccountResponse, CreateBotAccountApiKeyRequest, CreateBotAccountApiKeyResponse } from 'app-shared/types/BotAccount';
+import type { ProcessChange, ProcessState } from 'app-shared/types/api/ProcessState';
 
 const headers = {
   Accept: 'application/json',
@@ -153,8 +152,6 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const saveSubformPdfComponent = (org: string, app: string, layoutSetId: string, payload: SubformPdfComponentPayload) =>
-  payload.componentId === null ? del<SubformComponent[]>(subformPdfComponentPath(org, app, layoutSetId), { params: { componentId: payload.previousComponentId } }) : post<SubformComponent[], SubformPdfComponentPayload>(subformPdfComponentPath(org, app, layoutSetId), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
@@ -188,8 +185,8 @@ export const updateAppAttachmentMetadata = (org: string, app: string, payload: A
 export const updateFormLayoutName = (org: string, app: string, oldName: string, newName: string, layoutSetName: string) => post<void, string>(formLayoutNamePath(org, app, oldName, layoutSetName), JSON.stringify(newName), { headers: { 'Content-Type': 'application/json' } });
 export const updateTextId = (org: string, app: string, payload: UpdateTextIdPayload) => put<void, UpdateTextIdPayload>(textResourceIdsPath(org, app), payload);
 export const updateTranslationByLangCode = (org: string, app: string, language, payload) => post(textResourcesPath(org, app, language), payload);
-export const updateAppPolicy = (org: string, app: string, payload: Policy) => put(appPolicyPath(org, app), payload);
-export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
+export const updateAppPolicy = (org: string, app: string, payload: Policy) => putWithRevision<Policy>(appPolicyPath(org, app), payload);
+export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => putWithRevision<ApplicationMetadata>(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const replaceDataModelXsd = (org: string, app: string, modelPath: string, form: FormData) => put<void, FormData>(replaceDataModelXsdPath(org, app, modelPath), form, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -246,6 +243,7 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
   });
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
+export const updateProcessState = (org: string, app: string, change: ProcessChange) => put<ProcessState, ProcessChange>(processStatePath(org, app), change);
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);

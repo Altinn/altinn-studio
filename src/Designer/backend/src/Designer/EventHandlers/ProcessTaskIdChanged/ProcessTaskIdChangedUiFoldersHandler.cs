@@ -52,9 +52,7 @@ public class ProcessTaskIdChangedUiFoldersHandler : INotificationHandler<Process
                     notification.EditingContext.Developer
                 );
 
-                // Only rename when a folder still carries the old task id and the new name is free. This keeps
-                // the handler idempotent: when the change originates from a layout set folder rename, the folder
-                // is already renamed before this event is published, so there is nothing left to do here.
+                // Layout-set renames and process-state saves move the folder before publishing this event.
                 string[] folderNames = repository.GetLayoutSetNames();
                 if (!folderNames.Contains(notification.OldId) || folderNames.Contains(notification.NewId))
                 {
@@ -63,7 +61,8 @@ public class ProcessTaskIdChangedUiFoldersHandler : INotificationHandler<Process
 
                 repository.ChangeLayoutSetFolderName(notification.OldId, notification.NewId, cancellationToken);
                 return Task.FromResult(true);
-            }
+            },
+            notification.PublisherNotifies
         );
     }
 }
