@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A custom task type on a bpmn:task element. Valid when the type is an IProcessTask, rejected when it is a service task. -->
-<bpmn:definitions id="Altinn_PlainTaskCustomType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="PlainTaskCustomTypeProcess" isExecutable="false">
+<!-- A custom task type on a bpmn:serviceTask element. Valid when the type is a service task, rejected when it is an IProcessTask. -->
+<bpmn:definitions id="Altinn_ServiceTaskCustomType_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="ServiceTaskCustomTypeProcess" isExecutable="false">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
     </bpmn:startEvent>
@@ -14,7 +14,7 @@
         </altinn:taskExtension>
       </bpmn:extensionElements>
     </bpmn:task>
-    <bpmn:task id="Task_Custom" name="Archive it">
+    <bpmn:serviceTask id="Task_Custom" name="Archive it">
       <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
       <bpmn:extensionElements>
@@ -22,7 +22,7 @@
           <altinn:taskType>archive</altinn:taskType>
         </altinn:taskExtension>
       </bpmn:extensionElements>
-    </bpmn:task>
+    </bpmn:serviceTask>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
     </bpmn:endEvent>
