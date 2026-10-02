@@ -66,6 +66,12 @@ export type WorkflowStepStatus = {
   /** The deferring command's own words for what it is waiting for. */
   lastDeferReason?: string;
   errorHistory?: WorkflowErrorEntry[];
+  /**
+   * The step's own labels. The app runtime names the BPMN element a step of a task's lifecycle runs
+   * for here (`processNextElement`): ending or starting a task, or ending the process. The steps
+   * after the commit, such as a service task's work, carry none.
+   */
+  labels?: Record<string, string>;
 };
 
 export type WorkflowStatus = {

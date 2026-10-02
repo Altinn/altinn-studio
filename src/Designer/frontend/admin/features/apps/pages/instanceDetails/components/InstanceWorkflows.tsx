@@ -53,11 +53,7 @@ import {
   orderedSteps,
   toTime,
 } from 'admin/features/apps/utils/workflowTriage';
-import {
-  groupStepsByPhase,
-  parseTransition,
-  phaseElementId,
-} from 'admin/features/apps/utils/workflowPhases';
+import { groupStepsByElement, parseTransition } from 'admin/features/apps/utils/workflowPhases';
 import { WorkflowActions } from './WorkflowActions';
 import { WorkflowStepStrip } from './WorkflowStepStrip';
 
@@ -479,11 +475,11 @@ const WorkflowSteps = ({
           </StudioTable.Row>
         </StudioTable.Head>
         <StudioTable.Body>
-          {groupStepsByPhase(steps).map((group) => {
-            // A phase of the transition — ending one task, starting the next — is headed by the
-            // task it concerns, with its steps set in under it. Steps of no phase, and a phase whose
-            // task the transition does not name, keep to the left edge.
-            const heading = group.phase && phaseElementId(group.phase, transition);
+          {groupStepsByElement(steps, transition).map((group) => {
+            // The steps of one task's lifecycle — ending one task, starting the next — are headed
+            // by that task, with the steps set in under it. Steps of no element, and a run whose
+            // element is not known, keep to the left edge.
+            const heading = group.elementId;
             const indent = heading ? classes.groupedCell : undefined;
             return (
               <Fragment key={group.steps[0].databaseId}>
@@ -557,8 +553,9 @@ const WorkflowSteps = ({
 const STEP_COLUMN_COUNT = 4;
 
 /**
- * A heading inside the steps table — the task a phase concerns, or the side chains — on a row of
- * its own with no rule under it: it names the rows set in under it rather than being one of them.
+ * A heading inside the steps table — the task or end event a run of steps belongs to, or the side
+ * chains — on a row of its own with no rule under it: it names the rows set in under it rather than
+ * being one of them.
  */
 const GroupHeading = ({ children }: { children: ReactNode }) => (
   <StudioTable.Row className={classes.groupHeadingRow}>

@@ -3,7 +3,13 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { groupStepsByPhase, parseTransition, phaseElementId, stepPhase } from './workflowPhases';
+import {
+  groupStepsByElement,
+  parseTransition,
+  PROCESS_ELEMENT_LABEL,
+  phaseElementId,
+  stepPhase,
+} from './workflowPhases';
 
 const step = (
   operationId: string,
@@ -16,6 +22,15 @@ const step = (
   command: { type: 'app' },
   retryCount: 0,
 });
+
+/** A step as the app runtime labels it: with the BPMN element it runs for. */
+const labeled = (operationId: string, element: string): WorkflowStepStatus => ({
+  ...step(operationId),
+  labels: { [PROCESS_ELEMENT_LABEL]: element },
+});
+
+const runsOf = (groups: ReturnType<typeof groupStepsByElement>) =>
+  groups.map((group) => [group.elementId, group.steps.map((member) => member.operationId)]);
 
 const named = (operationId: string): WorkflowStatus => ({
   databaseId: 'wf',
@@ -54,23 +69,83 @@ describe('parseTransition', () => {
   });
 });
 
-describe('groupStepsByPhase', () => {
-  it('cuts the steps into runs, with steps of no phase in runs of their own', () => {
-    const groups = groupStepsByPhase([
-      step('EndTask'),
-      step('LockTaskData'),
-      step('MutateProcessState'),
-      step('UnlockTaskData'),
-      step('StartTask'),
-      step('CommitProcessState'),
-      step('ExecuteServiceTask: 0'),
+describe('groupStepsByElement', () => {
+  const transition = { from: 'Form', to: 'Verify' };
+
+  it('runs the steps by the element their label names, and the steps of no element apart', () => {
+    const groups = groupStepsByElement(
+      [
+        step('AcquireProcessingStatus'),
+        labeled('EndTask', 'Form'),
+        labeled('LockTaskData', 'Form'),
+        step('MutateProcessState'),
+        labeled('UnlockTaskData', 'Verify'),
+        labeled('StartTask', 'Verify'),
+        step('CommitProcessState'),
+        step('ExecuteServiceTask: 0'),
+      ],
+      undefined,
+    );
+    expect(runsOf(groups)).toEqual([
+      [undefined, ['AcquireProcessingStatus']],
+      ['Form', ['EndTask', 'LockTaskData']],
+      [undefined, ['MutateProcessState']],
+      ['Verify', ['UnlockTaskData', 'StartTask']],
+      [undefined, ['CommitProcessState', 'ExecuteServiceTask: 0']],
     ]);
-    expect(groups.map((group) => [group.phase, group.steps.length])).toEqual([
-      ['end', 2],
-      [undefined, 1],
-      ['start', 2],
-      [undefined, 2],
+  });
+
+  it('takes the label over the command name, so a command it does not know is still placed', () => {
+    const groups = groupStepsByElement(
+      [labeled('EndTask', 'Form'), labeled('SomeNewTaskEndingCommand', 'Form')],
+      transition,
+    );
+    expect(runsOf(groups)).toEqual([['Form', ['EndTask', 'SomeNewTaskEndingCommand']]]);
+  });
+
+  it('trusts the label over the guess from the command name when the two disagree', () => {
+    const groups = groupStepsByElement([labeled('StartTask', 'Form')], transition);
+    expect(runsOf(groups)).toEqual([['Form', ['StartTask']]]);
+  });
+
+  it('names the end event the process ends at', () => {
+    const groups = groupStepsByElement([labeled('OnProcessEndingHook', 'EndEvent_1')], undefined);
+    expect(runsOf(groups)).toEqual([['EndEvent_1', ['OnProcessEndingHook']]]);
+  });
+
+  it('falls back to the command name and the transition for steps without a label', () => {
+    const groups = groupStepsByElement(
+      [
+        step('EndTask'),
+        step('LockTaskData'),
+        step('MutateProcessState'),
+        step('UnlockTaskData'),
+        step('StartTask'),
+        step('CommitProcessState'),
+        step('ExecuteServiceTask: 0'),
+      ],
+      transition,
+    );
+    expect(runsOf(groups)).toEqual([
+      ['Form', ['EndTask', 'LockTaskData']],
+      [undefined, ['MutateProcessState']],
+      ['Verify', ['UnlockTaskData', 'StartTask']],
+      [undefined, ['CommitProcessState', 'ExecuteServiceTask: 0']],
     ]);
+  });
+
+  it('never merges a labeled step with a guessed one, even for the same element', () => {
+    const groups = groupStepsByElement(
+      [step('EndTask'), labeled('LockTaskData', 'Form')],
+      transition,
+    );
+    expect(groups).toHaveLength(2);
+  });
+
+  it('knows the end of the transition but not its element when the transition is unknown', () => {
+    const [group] = groupStepsByElement([step('EndTask')], undefined);
+    expect(group.key).toBeDefined();
+    expect(group.elementId).toBeUndefined();
   });
 });
 
