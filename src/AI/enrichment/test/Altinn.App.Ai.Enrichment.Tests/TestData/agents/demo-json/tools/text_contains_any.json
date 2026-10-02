@@ -1,0 +1,12 @@
+{
+  "name": "text_contains_any",
+  "description": "Sjekk om en tekst inneholder (case-insensitivt) en av flere delstrenger. Bruk for fritekstfelt.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "haystack": { "type": "string", "description": "Teksten som skal sjekkes." },
+      "needles":  { "type": "array", "items": { "type": "string" }, "description": "Delstrenger å lete etter." }
+    },
+    "required": ["haystack", "needles"]
+  }
+}

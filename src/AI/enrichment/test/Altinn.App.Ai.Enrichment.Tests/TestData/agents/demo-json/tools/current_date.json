@@ -1,0 +1,5 @@
+{
+  "name": "current_date",
+  "description": "Dagens dato i norsk lokal tid (Europe/Oslo). Bruk denne i stedet for å anta hvilken dato det er.",
+  "parameters": { "type": "object", "properties": {}, "required": [] }
+}
