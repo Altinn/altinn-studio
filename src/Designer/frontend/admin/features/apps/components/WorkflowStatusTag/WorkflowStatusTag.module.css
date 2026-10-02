@@ -1,0 +1,21 @@
+/* Sized to the text around it, in the colour of the tag it stands in for. */
+.statusIcon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.statusIcon[data-tone='success'] {
+  color: var(--ds-color-success-base-default);
+}
+
+.statusIcon[data-tone='danger'] {
+  color: var(--ds-color-danger-base-default);
+}
+
+.statusIcon[data-tone='info'] {
+  color: var(--ds-color-info-base-default);
+}
+
+.statusIcon[data-tone='neutral'] {
+  color: var(--ds-color-neutral-base-default);
+}
