@@ -623,8 +623,8 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('748');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('748');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 748');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
@@ -656,8 +656,8 @@ describe('Validation', () => {
 
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatClear();
-    cy.get(appFrontend.group.hideRepeatingGroupRow).type('749');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).numberFormatReplace('749');
+    cy.get(appFrontend.group.hideRepeatingGroupRow).should('have.value', 'NOK 749');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
