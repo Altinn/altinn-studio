@@ -236,7 +236,7 @@ describe('TextEditor', () => {
       return textIdInput;
     };
     const setupError = () => {
-      const error = jest.spyOn(console, 'error').mockImplementation();
+      const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
       const onTextIdChange = jest.fn(() => {
         throw 'some error';
       });

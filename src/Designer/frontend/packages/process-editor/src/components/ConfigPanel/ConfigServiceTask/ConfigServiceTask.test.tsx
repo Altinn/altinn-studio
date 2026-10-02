@@ -31,7 +31,7 @@ const tasks = [
 
 jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: jest.fn().mockImplementation(function () {
       return {
         getElementsByType: jest.fn().mockReturnValue(tasks),
         getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
