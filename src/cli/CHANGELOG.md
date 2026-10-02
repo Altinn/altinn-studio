@@ -30,6 +30,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` and `studioctl app upgrade frontend-v4` now convert `saveWhileTyping` values set to `true` or `false`, which the frontend has ignored since v4. `true` is removed, and `false` becomes 4000 milliseconds, with a warning.
 - `studioctl app upgrade v9` keeps custom PDF layouts (`pdfLayoutName`) when it replaces `enablePdfCreation` with a PDF service task. The PDF service task gets its own layout set with the PDF layout, and legacy `Summary` components become `Summary2`. When this cannot be done automatically, the upgrade reports a TODO and keeps `enablePdfCreation` until it is run again.
 
+### Changed
+
+- The local monitoring stack (`studioctl env up --monitoring`) now stores metrics, traces and logs in VictoriaMetrics, VictoriaTraces and VictoriaLogs instead of Mimir, Tempo and Loki, and runs Grafana 13.2 (from 10.4) and OpenTelemetry Collector 0.161 (from 0.98). Metrics keep their OpenTelemetry names and attributes, so you query `{"http.server.request.duration_bucket", "service.name"="..."}` instead of `http_server_request_duration_seconds_bucket{job="..."}`, and the bundled Grafana dashboards use these names. The containers are now `localtest-victoria-metrics`, `localtest-victoria-traces`, `localtest-victoria-logs`, `localtest-otel-collector` and `localtest-grafana`, which are the names `studioctl env logs --component` accepts. `STUDIOCTL_IMAGE_TEMPO`, `STUDIOCTL_IMAGE_MIMIR` and `STUDIOCTL_IMAGE_LOKI` are replaced by `STUDIOCTL_IMAGE_VICTORIA_METRICS`, `STUDIOCTL_IMAGE_VICTORIA_TRACES` and `STUDIOCTL_IMAGE_VICTORIA_LOGS`. Telemetry collected by the previous stack is not carried over. Grafana downloads its VictoriaLogs datasource plugin each time the environment starts, so `studioctl env up --monitoring` needs network access.
+
 ## [0.1.0-preview.27] - 2026-09-23
 
 ### Added

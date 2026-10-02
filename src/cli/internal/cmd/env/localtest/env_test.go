@@ -148,7 +148,7 @@ func TestStatus_HidesAbsentOptionalContainers(t *testing.T) {
 		t.Fatalf("Status() error = %v", err)
 	}
 	assertContainerStatusAbsent(t, status, components.ContainerPgAdmin)
-	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
+	assertContainerStatusAbsent(t, status, components.ContainerGrafana)
 }
 
 func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
@@ -234,7 +234,7 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	if status.Running {
 		t.Fatal("StatusForUp().Running = true, want false when monitoring is requested but missing")
 	}
-	assertContainerStatus(t, status, components.ContainerMonitoringGrafana, "not found")
+	assertContainerStatus(t, status, components.ContainerGrafana, "not found")
 }
 
 func TestStatus_UsesDevWorkflowEngineFromEnvironmentTopology(t *testing.T) {
@@ -283,7 +283,7 @@ func TestStatus_UsesDevWorkflowEngineFromEnvironmentTopology(t *testing.T) {
 		t.Fatal("Status().Running = false, want true when workflow-engine is host-bound")
 	}
 	assertContainerStatusAbsent(t, status, components.ContainerWorkflowEngine)
-	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
+	assertContainerStatusAbsent(t, status, components.ContainerGrafana)
 }
 
 func TestStatus_IgnoresUnmanagedNameCollisions(t *testing.T) {
@@ -462,11 +462,11 @@ func testImages() config.ImagesConfig {
 			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
 		},
 		Monitoring: config.MonitoringImages{
-			Tempo:         config.ImageSpec{Image: "grafana/tempo", Tag: "latest"},
-			Mimir:         config.ImageSpec{Image: "grafana/mimir", Tag: "latest"},
-			Loki:          config.ImageSpec{Image: "grafana/loki", Tag: "latest"},
-			OtelCollector: config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
-			Grafana:       config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
+			VictoriaMetrics: config.ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "latest"},
+			VictoriaTraces:  config.ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "latest"},
+			VictoriaLogs:    config.ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "latest"},
+			OtelCollector:   config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
+			Grafana:         config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
 	}
 }

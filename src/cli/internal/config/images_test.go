@@ -41,9 +41,9 @@ func TestDefaultImages(t *testing.T) {
 		pinned := map[string]config.ImageSpec{
 			"workflow-engine-db": images.Core.WorkflowEngineDb,
 			"pgadmin":            images.Core.PgAdmin,
-			"tempo":              images.Monitoring.Tempo,
-			"mimir":              images.Monitoring.Mimir,
-			"loki":               images.Monitoring.Loki,
+			"victoria-metrics":   images.Monitoring.VictoriaMetrics,
+			"victoria-traces":    images.Monitoring.VictoriaTraces,
+			"victoria-logs":      images.Monitoring.VictoriaLogs,
 			"otel-collector":     images.Monitoring.OtelCollector,
 			"grafana":            images.Monitoring.Grafana,
 		}
@@ -61,7 +61,7 @@ func TestDefaultImages(t *testing.T) {
 func TestDefaultImagesEnvOverride(t *testing.T) {
 	t.Setenv("STUDIOCTL_IMAGE_WORKFLOW_ENGINE", "ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:a45a743b78")
 	t.Setenv("STUDIOCTL_IMAGE_PGADMIN", "localhost:5000/pgadmin4:testing")
-	t.Setenv("STUDIOCTL_IMAGE_LOKI", "  ")
+	t.Setenv("STUDIOCTL_IMAGE_VICTORIA_TRACES", "  ")
 
 	images := config.DefaultImages()
 
@@ -75,8 +75,8 @@ func TestDefaultImagesEnvOverride(t *testing.T) {
 	if got := images.Core.PgAdmin.Ref(); got != "localhost:5000/pgadmin4:testing" {
 		t.Errorf("pgadmin ref = %q, a registry port should not be read as a tag", got)
 	}
-	if got := images.Monitoring.Loki.Ref(); got != "grafana/loki:3.0.0" {
-		t.Errorf("loki ref = %q, a blank override should be ignored", got)
+	if got := images.Monitoring.VictoriaTraces.Ref(); got != "victoriametrics/victoria-traces:v0.11.1" {
+		t.Errorf("victoria-traces ref = %q, a blank override should be ignored", got)
 	}
 }
 
