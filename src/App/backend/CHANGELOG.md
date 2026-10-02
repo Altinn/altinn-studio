@@ -14,6 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The live `workflow` status on process reads now includes `failedAttempts` while a transition is processing: how many attempts of its current step in a row have failed and are being retried automatically. It also includes `resumedAt` when the transition has been resumed, because a resume reruns the transition and keeps its original `startedAt`. The app frontend uses it to tell the user when a transition is having trouble, rather than showing an unexplained long wait.
 - `StartupHelper.GetApplicationId(contentRootPath)` reads the app id from `config/applicationmetadata.json` in the given folder. `AddAltinnAppServices` uses it with the content root of the host, so an app that runs with a content root other than its working directory registers its Swagger endpoint and telemetry with the right id. The parameterless overload still reads the working directory.
 - Custom process tasks can validate their configuration at app startup by implementing `IProcessTask.ValidateConfiguration`. The hook receives the BPMN task id, hosting environment and application metadata.
+- The app logs a startup warning for each service task type it registers, such as your own `IServiceTask` or the one `AddFiksArkiv()` adds, that no `<altinn:taskType>` in `config/process/process.bpmn` uses. ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
 
 ### Changed
 

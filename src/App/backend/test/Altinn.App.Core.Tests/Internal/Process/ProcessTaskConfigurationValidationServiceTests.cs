@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
@@ -5,11 +6,14 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
@@ -404,6 +408,128 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.DoesNotContain("AddTransient", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task StartAsync_UnreferencedAppServiceTask_LogsWarning()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
+                s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
+                s.AddSingleton<IPipelineServiceTask>(new SimpleTask("notify"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        FakeLogRecord[] warnings = logger
+            .Collector.GetSnapshot()
+            .Where(record => record.Level == LogLevel.Warning)
+            .ToArray();
+        Assert.Collection(
+            warnings,
+            warning =>
+                Assert.Equal(
+                    $"Service task type 'archive' is registered ({typeof(SimpleTask).FullName}), "
+                        + "but no task in the process definition declares it.",
+                    warning.Message
+                ),
+            warning => Assert.StartsWith("Service task type 'notify' is registered", warning.Message)
+        );
+    }
+
+    [Fact]
+    public async Task StartAsync_ReferencedAppServiceTask_DoesNotWarn()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s => s.AddSingleton<IServiceTask>(new SimpleTask("archive")),
+            ProcessTestUtils.SetupProcessReader("service-task-custom-type.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        Assert.DoesNotContain(logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning);
+    }
+
+    [Fact]
+    public async Task StartAsync_UnreferencedLibraryServiceTasks_DoNotWarn()
+    {
+        // The library registers these for every app, so leaving them unused is normal.
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IServiceTask>(Uninitialized<PdfServiceTask>());
+                s.AddSingleton<IPipelineServiceTask>(Uninitialized<EFormidlingServiceTask>());
+                s.AddSingleton<IServiceTask>(Uninitialized<SubformPdfServiceTask>());
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        Assert.DoesNotContain(logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning);
+    }
+
+    [Fact]
+    public async Task StartAsync_UnreferencedAppReplacementOfLibraryServiceTask_LogsWarning()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s => s.AddSingleton<IServiceTask>(new SimpleTask(AltinnTaskTypes.Pdf)),
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        FakeLogRecord warning = Assert.Single(
+            logger.Collector.GetSnapshot(),
+            record => record.Level == LogLevel.Warning
+        );
+        Assert.StartsWith("Service task type 'pdf' is registered", warning.Message);
+    }
+
+    [Fact]
+    public async Task StartAsync_UnreferencedTypeRegisteredTwice_WarningNamesTheLastRegistration()
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+
+        var exception = await Validate(
+            s =>
+            {
+                s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
+                s.AddSingleton<IServiceTask>(new OtherSimpleTask("archive"));
+            },
+            ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
+            logger
+        );
+
+        Assert.Null(exception);
+        FakeLogRecord warning = Assert.Single(
+            logger.Collector.GetSnapshot(),
+            record => record.Level == LogLevel.Warning
+        );
+        Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
+    }
+
+    private sealed class OtherSimpleTask(string type) : IServiceTask
+    {
+        public string Type => type;
+
+        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+            throw new InvalidOperationException("Validation must not execute the task.");
+    }
+
+    private static T Uninitialized<T>()
+        where T : class => (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
+
     private sealed class SimpleTask(string type) : IServiceTask
     {
         public string Type => type;
@@ -414,7 +540,8 @@ public class ProcessTaskConfigurationValidationServiceTests
 
     private static async Task<ApplicationConfigException?> Validate(
         Action<IServiceCollection> register,
-        IProcessReader processReader
+        IProcessReader processReader,
+        ILogger<ProcessTaskConfigurationValidationService>? logger = null
     )
     {
         ServiceCollection services = CreateServices(processReader);
@@ -424,7 +551,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
         var service = new ProcessTaskConfigurationValidationService(
             provider.GetRequiredService<IServiceScopeFactory>(),
-            NullLogger<ProcessTaskConfigurationValidationService>.Instance
+            logger ?? NullLogger<ProcessTaskConfigurationValidationService>.Instance
         );
         return (ApplicationConfigException?)
             await Record.ExceptionAsync(() => service.StartAsync(CancellationToken.None));
