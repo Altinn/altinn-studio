@@ -1,6 +1,7 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -447,5 +448,219 @@ public class HomeControllerTestPartySelection : ApiTestBase, IClassFixture<WebAp
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Contains("party-selection/403", response.Headers.Location?.ToString() ?? "");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(null)]
+    public async Task Index_InstanceRoute_InvalidParty_RedirectsToPartySelection403(bool? canRepresent)
+    {
+        // Arrange: user 1337 opens an instance link with a selected party that validation rejects or cannot confirm
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/Task_1/form");
+
+        // Assert
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+        OutputHelper.WriteLine($"Location: {response.Headers.Location}");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("party-selection/403", response.Headers.Location?.ToString() ?? "");
+    }
+
+    [Fact]
+    public async Task Index_InstanceRouteEndingInPartySelection_InvalidParty_RedirectsToPartySelection403()
+    {
+        // Arrange: an instance link whose catch-all part looks like the party selection route
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync(
+            $"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/party-selection/403"
+        );
+
+        // Assert: the selected party is still validated, and the user is sent to the real party selection route
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+        OutputHelper.WriteLine($"Location: {response.Headers.Location}");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal($"/{Org}/{App}/party-selection/403", response.Headers.Location?.ToString());
+    }
+
+    [Fact]
+    public async Task Index_InstanceRoute_MultipleValidParties_NoRedirect()
+    {
+        // Arrange: a user with several parties opens an instance link while representing themselves
+        int userId = 1337;
+        int userPartyId = 501337;
+        StubOrgData();
+
+        _authorizationClientMock
+            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new List<Party>
+                {
+                    new()
+                    {
+                        PartyId = userPartyId,
+                        PartyTypeName = PartyType.Person,
+                        Name = "Sophie Salt",
+                    },
+                    new()
+                    {
+                        PartyId = 500600,
+                        PartyTypeName = PartyType.Organisation,
+                        Name = "Some Org",
+                    },
+                }
+            );
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/Task_1/form");
+
+        // Assert: an instance already belongs to a party, so the user is not asked to choose one
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(null)]
+    public async Task PartySelection403_InvalidParty_DoesNotExposeSelectedParty(bool? canRepresent)
+    {
+        // Arrange: the party selection page is shown while the cookie still holds a party the user cannot represent
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        StubOrgData();
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/party-selection/403");
+        var html = await response.Content.ReadAsStringAsync();
+
+        // Assert: the page renders, and carries no details of the party the user has no access to
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain($"{selectedPartyId}", html);
+    }
+
+    [Fact]
+    public async Task Index_StatelessAnonymousApp_InstanceRoute_InvalidParty_RedirectsToPartySelection403()
+    {
+        // Arrange: a stateless app that allows anonymous users, where a logged-in user opens an instance link
+        // with a selected party that validation rejects
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        OverrideServicesForThisTest = ConfigureStatelessAnonymousApp;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/instance/{userPartyId}/{Guid.NewGuid()}/Task_1/form");
+
+        // Assert
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+        OutputHelper.WriteLine($"Location: {response.Headers.Location}");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains("party-selection/403", response.Headers.Location?.ToString() ?? "");
+    }
+
+    [Fact]
+    public async Task Index_StatelessAnonymousApp_InvalidParty_NoRedirect()
+    {
+        // Arrange: the anonymous stateless form itself is shown without asking for a party
+        int userId = 1337;
+        int userPartyId = 501337;
+        int selectedPartyId = 500600;
+        StubOrgData();
+        OverrideServicesForThisTest = ConfigureStatelessAnonymousApp;
+        SetupInvalidSelectedParty(userId, userPartyId, selectedPartyId, canRepresent: false);
+
+        using var client = GetRootedUserClient(Org, App, userId, userPartyId);
+        client.DefaultRequestHeaders.Add("Cookie", $"AltinnPartyId={selectedPartyId}");
+
+        // Act
+        var response = await client.GetAsync($"{Org}/{App}/");
+        var html = await response.Content.ReadAsStringAsync();
+
+        // Assert: no redirect, and still no details of the party the user has no access to
+        OutputHelper.WriteLine($"Status: {response.StatusCode}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.DoesNotContain($"{selectedPartyId}", html);
+    }
+
+    private static void ConfigureStatelessAnonymousApp(IServiceCollection services)
+    {
+        services.AddSingleton(
+            AppFilesMutationHook.ApplicationMetadata(appMetadata =>
+            {
+                appMetadata.OnEntry = new OnEntry { Show = "Task_1" };
+                appMetadata.DataTypes.Find(d => d.Id == "default")!.AppLogic!.AllowAnonymousOnStateless = true;
+            })
+        );
+    }
+
+    private void StubOrgData()
+    {
+        SendAsync = _ =>
+            Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"orgs":{}}""", System.Text.Encoding.UTF8, "application/json"),
+                }
+            );
+    }
+
+    private void SetupInvalidSelectedParty(int userId, int userPartyId, int selectedPartyId, bool? canRepresent)
+    {
+        _authorizationClientMock
+            .Setup(a =>
+                a.ValidateSelectedParty(
+                    userId,
+                    selectedPartyId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(canRepresent);
+        _authorizationClientMock
+            .Setup(a => a.GetPartyList(userId, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new List<Party>
+                {
+                    new()
+                    {
+                        PartyId = userPartyId,
+                        PartyTypeName = PartyType.Person,
+                        Name = "Sophie Salt",
+                    },
+                }
+            );
     }
 }
