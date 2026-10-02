@@ -176,7 +176,8 @@ public static class Diagnostics
         );
     }
 
-    private const string DocsRoot = "https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/";
+    private const string DocsRoot =
+        "https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/";
     private const string RulesRoot = DocsRoot + "rules/";
 
     private static DiagnosticDescriptor Warning(string id, string category, string title, string messageFormat) =>
