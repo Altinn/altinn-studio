@@ -79,7 +79,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private const string InvalidLayoutSetNameMessage = "Invalid layout set name.";
     private const string InvalidLayoutNameMessage = "Invalid layout name.";
-    private const string LayoutSetNameExistsMessage = "A layout set with this name already exists.";
+    private const string UiFolderNameExistsMessage = "A UI folder with this name already exists.";
     private const string LayoutNameExistsMessage = "A layout with this name already exists.";
     private const string LayoutFileExtension = ".json";
 
@@ -1147,7 +1147,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     /// <summary>
     /// Applies the naming policy for new names to the layouts a request creates after deleting the given
-    /// layouts, and to the layout set they go in. A new name may not differ only in case from an existing
+    /// layouts, and to the UI folder they go in. A new name may not differ only in case from an existing
     /// name, because a case-insensitive file system would write it over that one. Writes nothing.
     /// </summary>
     public void EnsureLayoutWritesAreAllowed(
@@ -1161,7 +1161,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
             EnsureAllowedNewLayoutSetName(layoutSetName);
             if (GetLayoutSetFolderNames().Contains(layoutSetName, StringComparer.OrdinalIgnoreCase))
             {
-                throw new BadHttpRequestException(LayoutSetNameExistsMessage);
+                throw new BadHttpRequestException(UiFolderNameExistsMessage);
             }
         }
         List<string> layoutNames = GetLayoutFileNames(layoutSetName)

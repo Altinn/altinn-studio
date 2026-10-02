@@ -130,9 +130,9 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Validates a name for a layout set that is created, or that the layout set named
-    /// <paramref name="renamedLayoutSetName"/> is renamed to. The name may not be taken by another layout
-    /// set in any case, because a case-insensitive file system would treat the two folders as one.
+    /// Validates a name for a UI folder that is created, or that the UI folder named
+    /// <paramref name="renamedLayoutSetName"/> is renamed to. The name may not be taken by another UI
+    /// folder in any case, because a case-insensitive file system would treat the two folders as one.
     /// </summary>
     private static async Task ValidateNewLayoutSetName(
         AltinnAppGitRepository altinnAppGitRepository,

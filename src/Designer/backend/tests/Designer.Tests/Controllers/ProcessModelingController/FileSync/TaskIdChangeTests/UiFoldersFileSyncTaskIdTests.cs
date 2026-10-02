@@ -144,7 +144,7 @@ public class UiFoldersFileSyncTaskIdTests
             newTaskId,
             originalProcess.Replace(oldTaskId, newTaskId)
         );
-        // The task's own layout set folder does not count as taken. Whether the folder rename that follows
+        // The task's own UI folder does not count as taken. Whether the folder rename that follows
         // succeeds depends on the file system's case sensitivity, so only the validation is asserted here.
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }

@@ -123,7 +123,7 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
         using HttpResponseMessage response = await AddLayoutSet(targetRepository, ExistingLayoutSet.ToLowerInvariant());
 
         // Assert
-        // A taken layout set name is answered as it is for an exact duplicate: 200 with an info message.
+        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(layoutFolderBefore, LayoutFolderContents());
@@ -152,7 +152,7 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
         // Assert
-        // A taken layout set name is answered as it is for an exact duplicate: 200 with an info message.
+        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(layoutFolderBefore, LayoutFolderContents());
