@@ -11,9 +11,17 @@ mod execution;
 pub mod forward;
 pub mod microsandbox;
 pub mod platform;
+pub mod responsiveness;
 
 pub use execution::{ExecutionService, ExecutionTarget, start_execution};
 pub use microsandbox::{GuestConnection, GuestDialer};
+pub use responsiveness::UNRESPONSIVE_AFTER;
+
+/// What watching a guest's heartbeat found.
+enum Heartbeat {
+    Stalled,
+    Advanced,
+}
 
 /// Stable identity of one configured Sandbox Provider.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -130,8 +138,12 @@ pub trait Provider {
         &'a self,
         record: &'a AgentRecord,
         environment: std::collections::BTreeMap<String, String>,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> LocalFuture<'a, Result<ProviderEnsureOutcome, Error>>;
+
+    /// Idempotently stops the Sandbox and its Provider-specific host integration,
+    /// keeping both for a later [`Self::ensure`].
+    fn stop<'a>(&'a self, record: &'a AgentRecord) -> LocalFuture<'a, Result<(), Error>>;
 
     /// Opens the exact already-materialized Sandbox without lifecycle effects.
     fn open<'a>(&'a self, record: &'a AgentRecord, id: &'a SandboxId) -> LocalFuture<'a, Result<SandboxHandle, Error>>;
@@ -143,6 +155,7 @@ pub trait Provider {
 /// Provider result retaining lifecycle information needed by dependent Sessions.
 pub struct ProviderEnsureOutcome {
     pub sandbox: SandboxHandle,
+    /// The pass started the Sandbox's runtime, so harness processes from before are gone.
     pub runtime_restarted: bool,
     /// Harness installations this pass prepared.
     pub harnesses: Vec<crate::Harness>,
@@ -163,12 +176,14 @@ pub trait PlatformAdapter {
     /// Reports whether this adapter supports the resolved Sandbox platform.
     fn supports(&self, platform: &Platform) -> bool;
 
-    /// Idempotently applies Agent and harness setup inside the Sandbox.
+    /// Idempotently applies Agent and harness setup inside the Sandbox,
+    /// reporting its steps through `steps`.
     fn setup<'a>(
         &'a self,
         record: &'a AgentRecord,
         sandbox: &'a SandboxHandle,
         harnesses: &'a [crate::Harness],
+        steps: &'a ::sandbox::SandboxProgress,
     ) -> LocalFuture<'a, Result<(), Error>>;
 }
 
@@ -176,6 +191,7 @@ pub trait PlatformAdapter {
 pub struct Service {
     providers: Vec<Rc<dyn Provider>>,
     platforms: Vec<Rc<dyn PlatformAdapter>>,
+    responsiveness: responsiveness::Tracker,
 }
 
 impl Service {
@@ -208,6 +224,7 @@ impl Service {
         Ok(Self {
             providers: configured,
             platforms,
+            responsiveness: responsiveness::Tracker::default(),
         })
     }
 
@@ -236,11 +253,11 @@ impl Service {
     pub async fn ensure(
         &self,
         record: &AgentRecord,
-        progress: crate::progress::SandboxReporter,
+        progress: ::sandbox::ProgressReporter,
     ) -> Result<EnsureOutcome, Error> {
         let provider = self.assigned_provider(record)?;
         let environment = crate::environment::resolve(record).await?;
-        let outcome = provider.ensure(record, environment, progress).await?;
+        let outcome = provider.ensure(record, environment, progress.clone()).await?;
         let sandbox = outcome.sandbox;
         let resolved_platform = &sandbox.snapshot().image.platform;
         let adapter = self
@@ -252,13 +269,41 @@ impl Service {
                     "no Agent setup adapter supports resolved Sandbox platform {resolved_platform:?}"
                 ))
             })?;
-        adapter.setup(record, &sandbox, &outcome.harnesses).await?;
+        // The snapshot is fresh from this pass, which may have booted the
+        // guest again, so a heartbeat recorded before it no longer applies.
+        self.responsiveness
+            .observe(sandbox.snapshot(), tokio::time::Instant::now());
+        let phase = progress.start_phase(crate::progress::SETUP).await;
+        self.guard_guest(
+            record,
+            &sandbox.snapshot().id,
+            adapter.setup(record, &sandbox, &outcome.harnesses, &progress.steps()),
+        )
+        .await?;
+        phase.complete().await;
         Ok(EnsureOutcome {
             id: sandbox.snapshot().id.clone(),
             runtime_restarted: outcome.runtime_restarted,
             sandbox,
             harnesses: outcome.harnesses,
         })
+    }
+
+    /// Stops the Agent's Sandbox, keeping its identity and storage for a later
+    /// [`Self::ensure`]. An Agent without an assigned Provider has nothing to stop.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the selected Provider is unavailable or the stop fails.
+    pub async fn stop(&self, record: &AgentRecord) -> Result<(), Error> {
+        let Some(assignment) = &record.agent.status.sandbox else {
+            return Ok(());
+        };
+        self.provider(assignment.provider())?.stop(record).await?;
+        if let Some(id) = assignment.id() {
+            self.responsiveness.forget(id);
+        }
+        Ok(())
     }
 
     /// Opens the persisted materialized Sandbox without lifecycle or setup effects.
@@ -273,6 +318,78 @@ impl Service {
         self.provider(provider)?.open(record, id).await
     }
 
+    /// Whether the Sandbox's guest reported a heartbeat when last inspected.
+    #[must_use]
+    pub fn reports_heartbeat(&self, sandbox: &SandboxId) -> bool {
+        self.responsiveness.heartbeat(sandbox).is_some()
+    }
+
+    /// Runs work that reaches into a Sandbox's guest, inspecting the Sandbox
+    /// every [`responsiveness::OBSERVATION_INTERVAL`] without a round trip to
+    /// the guest, and ends the work once the guest has stalled.
+    ///
+    /// A guest already known to be stalled is not reached at all. When the work
+    /// fails, such as a command timing out inside a guest that just stalled,
+    /// the heartbeat decides whether the failure is the stall: an advancing
+    /// heartbeat keeps the failure. Dropping the work closes its guest
+    /// connections.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::SandboxUnresponsive`] when the guest stalls, and
+    /// otherwise the work's error.
+    pub async fn guard_guest<T>(
+        &self,
+        record: &AgentRecord,
+        sandbox: &SandboxId,
+        work: impl Future<Output = Result<T, Error>>,
+    ) -> Result<T, Error> {
+        if self.responsiveness.stalled(sandbox, tokio::time::Instant::now()) {
+            return Err(responsiveness::stalled());
+        }
+        let provider = self.assigned_provider(record)?;
+        let result = tokio::select! {
+            biased;
+            _stalled = self.watch_heartbeat(provider, record, sandbox, None) => return Err(responsiveness::stalled()),
+            result = work => result,
+        };
+        let current = self.responsiveness.heartbeat(sandbox);
+        match result {
+            Err(error) if current.is_some() => match self.watch_heartbeat(provider, record, sandbox, current).await {
+                Heartbeat::Stalled => Err(responsiveness::stalled()),
+                Heartbeat::Advanced => Err(error),
+            },
+            result => result,
+        }
+    }
+
+    /// Inspects the Sandbox until its guest has stalled, or, given `from`,
+    /// until its heartbeat moves past `from` or is no longer reported.
+    async fn watch_heartbeat(
+        &self,
+        provider: &dyn Provider,
+        record: &AgentRecord,
+        sandbox: &SandboxId,
+        from: Option<::sandbox::GuestHeartbeat>,
+    ) -> Heartbeat {
+        let interval = responsiveness::OBSERVATION_INTERVAL;
+        let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + interval, interval);
+        loop {
+            ticker.tick().await;
+            // A failed inspection is retried at the next tick.
+            if let Ok(inspected) = provider.open(record, sandbox).await {
+                self.responsiveness
+                    .observe(inspected.snapshot(), tokio::time::Instant::now());
+            }
+            if self.responsiveness.stalled(sandbox, tokio::time::Instant::now()) {
+                return Heartbeat::Stalled;
+            }
+            if from.is_some() && self.responsiveness.heartbeat(sandbox) != from {
+                return Heartbeat::Advanced;
+            }
+        }
+    }
+
     /// Releases the selected Provider idempotently. An unassigned Agent has no effect to release.
     ///
     /// # Errors
@@ -282,7 +399,11 @@ impl Service {
         let Some(assignment) = &record.agent.status.sandbox else {
             return Ok(());
         };
-        self.provider(assignment.provider())?.release(record).await
+        self.provider(assignment.provider())?.release(record).await?;
+        if let Some(id) = assignment.id() {
+            self.responsiveness.forget(id);
+        }
+        Ok(())
     }
 
     fn assigned_provider(&self, record: &AgentRecord) -> Result<&dyn Provider, Error> {

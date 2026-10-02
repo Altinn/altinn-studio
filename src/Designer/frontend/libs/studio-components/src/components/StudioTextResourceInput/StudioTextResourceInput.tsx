@@ -157,6 +157,7 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
         return (
           <StudioTextResourcePicker
             emptyText={texts.emptyTextResourceList ?? ''}
+            clearButtonLabel={texts.clearSelection}
             className={cn(className, classes.searchField)}
             label={texts.textResourcePickerLabel}
             noTextResourceOptionLabel={texts.noTextResourceOptionLabel}
@@ -304,7 +305,7 @@ function ModeToggle({
     <ToggleGroup
       className={className}
       data-size='sm'
-      data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+      aria-label={texts.modeToggle}
       onChange={onToggle}
       value={inputMode}
     >

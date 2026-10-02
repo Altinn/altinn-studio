@@ -67,7 +67,7 @@ public class ValidationServiceTests : IAsyncLifetime
         _services.AddSingleton(_dataElementAccessCheckerMock.Object);
         _services.AddAppImplementationFactory();
 
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(_appMetadata);
         _serviceProvider = new(() => _services.BuildStrictServiceProvider());
     }
 

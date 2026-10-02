@@ -1,8 +1,4 @@
 ﻿#nullable enable
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Signing;
 using Altinn.App.Models.Skjemadata;
 using Altinn.Platform.Storage.Interface.Models;

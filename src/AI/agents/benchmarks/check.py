@@ -6,14 +6,15 @@ import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from langfuse import get_client
 
 from benchmarks import manifest, provenance, registry, runstore
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models
-from benchmarks.experiment import SCORES_KEY, structural_evaluator
-from benchmarks.generation import ITEM_EVALUATORS, SCORE_NAMES as GENERATION_SCORE_NAMES
-from benchmarks.generation import GenerationTask
+from benchmarks.experiment import SCORES_KEY, ItemEvaluator, structural_evaluator
+from benchmarks.generation import ITEM_EVALUATORS, GenerationTask
+from benchmarks.generation import SCORE_NAMES as GENERATION_SCORE_NAMES
 from benchmarks.runstore import BehaviorResult, ItemResult, Run
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -69,7 +70,9 @@ def agent_models_for(planned) -> dict[str, str]:
     return _agent_models_or_die(_agent_base())
 
 
-def task_for(args, dataset, agent_models: dict[str, str] | None = None):
+def task_for(
+    args, dataset, agent_models: dict[str, str] | None = None
+) -> tuple[Any, list[ItemEvaluator], list[str], str]:
     """The task and scorers for a dataset, chosen by its kind."""
     if dataset.kind == E2E_KIND:
         agent_base = _agent_base()
@@ -92,15 +95,14 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         model = args.model or role_model("planner")
         entry = registry.by_name(dataset.name)
         task = PlannerTask(
-            prompt_name=entry.prompt,
+            prompt_name=entry.prompt_name,
             model=model,
             user_template=entry.user_template,
         )
         return (
             task,
             PLANNER_EVALUATORS,
-            ["spec_parses", "spec_label_coverage", "spec_field_count",
-             "query_terms", "query_is_a_query"],
+            ["spec_parses", "spec_label_coverage", "spec_field_count"],
             model,
         )
 
@@ -109,7 +111,7 @@ def task_for(args, dataset, agent_models: dict[str, str] | None = None):
         from .gates import GateTask
 
         model = args.model or role_model("default")
-        task = GateTask(prompt_name=dataset.prompt, model=model)
+        task = GateTask(prompt_name=dataset.prompt_name, model=model)
         return task, GATE_EVALUATORS, ["gate_verdict", "gate_decline_language"], model
 
     task = GenerationTask(role=args.role, max_tokens=args.max_tokens, model=args.model)
@@ -205,9 +207,7 @@ def _collect(result: object, eval_name: str, dataset_version: str | None) -> Eva
             outputs[item_id] = text
         metadata = getattr(getattr(item_result, "item", None), "metadata", None) or {}
         if isinstance(metadata, dict):
-            labels[item_id] = (
-                metadata.get("label") or metadata.get("note") or metadata.get("why")
-            )
+            labels[item_id] = metadata.get("label") or metadata.get("note") or metadata.get("why")
             meta[item_id] = _kept_metadata(metadata)
         trace = getattr(item_result, "trace_id", None)
         if trace:
@@ -237,9 +237,7 @@ KEPT_METADATA = ("language", "verification", "pairs_with", "source_trace", "regr
 
 def _kept_metadata(metadata: dict) -> dict[str, str]:
     kept = {k: str(v) for k, v in metadata.items() if k in KEPT_METADATA and v is not None}
-    kept.update(
-        {k: str(v) for k, v in metadata.items() if k.startswith("observed_") and v is not None}
-    )
+    kept.update({k: str(v) for k, v in metadata.items() if k.startswith("observed_") and v is not None})
     return kept
 
 
@@ -247,11 +245,7 @@ def _scored_set_digest(outcomes: dict[str, EvalOutcome]) -> str:
     """What was measured, as one value a comparison can refuse on."""
     import hashlib
 
-    pairs = sorted(
-        f"{name}:{item_id}"
-        for name, outcome in outcomes.items()
-        for item_id in outcome.per_item
-    )
+    pairs = sorted(f"{name}:{item_id}" for name, outcome in outcomes.items() for item_id in outcome.per_item)
     if not pairs:
         return "nothing scored"
     digest = hashlib.sha256("\n".join(pairs).encode()).hexdigest()[:12]
@@ -275,7 +269,8 @@ def _mean(values: list[float]) -> float | None:
 def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult, ...]:
     results = []
     for behavior in manifest.BEHAVIORS:
-        if not behavior.is_pinned:
+        pin = behavior.pin
+        if pin is None:
             results.append(
                 BehaviorResult(
                     behavior=behavior.id,
@@ -286,22 +281,23 @@ def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult,
                 )
             )
             continue
-        outcome = outcomes.get(behavior.eval)
+        eval_name, evaluator = pin
+        outcome = outcomes.get(eval_name)
         if outcome is None:
             results.append(
                 BehaviorResult(
                     behavior=behavior.id,
-                    evaluator=behavior.evaluator,
+                    evaluator=evaluator,
                     score=None,
                     items=(),
-                    skipped=f"{behavior.eval} was not run",
+                    skipped=f"{eval_name} was not run",
                 )
             )
             continue
         items = []
         values = []
         for item_id, scores in outcome.per_item.items():
-            value = scores.get(behavior.evaluator)
+            value = scores.get(evaluator)
             if value is not None:
                 values.append(value)
             items.append(
@@ -321,7 +317,7 @@ def _behavior_results(outcomes: dict[str, EvalOutcome]) -> tuple[BehaviorResult,
         results.append(
             BehaviorResult(
                 behavior=behavior.id,
-                evaluator=behavior.evaluator,
+                evaluator=evaluator,
                 score=_mean(values),
                 items=tuple(items),
             )
@@ -372,10 +368,8 @@ def run(
         prompt_versions.update(versions)
         dataset_version = dataset_version or version_stamp
 
-    judged = {b.evaluator: b.judge_version for b in manifest.judged()}
-    evaluator_versions = {
-        name: int(str(version).lstrip("v")) for name, version in judged.items() if version
-    }
+    judged = {b.evaluator: b.judge_version for b in manifest.judged() if b.evaluator}
+    evaluator_versions = {name: int(str(version).lstrip("v")) for name, version in judged.items() if version}
 
     state = provenance.collect(
         prompts=prompt_versions,
@@ -432,16 +426,12 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
     def go(entry: registry.Eval):
         dataset = client.get_dataset(entry.name)
         items = [i for i in dataset.items if getattr(i, "status", "ACTIVE") != "ARCHIVED"]
-        task, evaluators, score_names, model = task_for(args, entry, agent_models)
+        task, evaluators, _score_names, model = task_for(args, entry, agent_models)
         slow = " (builds apps, minutes)" if entry.kind in SLOW_KINDS else ""
         print(f"  {entry.name}: {len(items)} items on {model}{slow}", flush=True)
         _warn_if_stale(entry, len(items))
         started = time.monotonic()
-        concurrency = (
-            E2E_MAX_CONCURRENCY
-            if entry.kind in SLOW_KINDS
-            else getattr(args, "max_concurrency", 5)
-        )
+        concurrency = E2E_MAX_CONCURRENCY if entry.kind in SLOW_KINDS else getattr(args, "max_concurrency", 5)
         state = provenance.collect(agent_models=getattr(task, "role_models", None))
         result = client.run_experiment(
             name=entry.name,
@@ -449,7 +439,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
             description=f"{entry.name} at {state.code}",
             data=items,
             task=task,
-            evaluators=evaluators,
+            evaluators=list(evaluators),  # A new list lets pyright accept the langfuse evaluator type
             max_concurrency=concurrency,
             metadata={
                 **state.as_langfuse_metadata(),
@@ -459,11 +449,7 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
             },
         )
         client.flush()
-        scored = sum(
-            1
-            for item in getattr(result, "item_results", []) or []
-            if getattr(item, "evaluations", None)
-        )
+        scored = sum(1 for item in getattr(result, "item_results", []) or [] if getattr(item, "evaluations", None))
         print(
             f"    done in {time.monotonic() - started:.0f}s, {scored}/{len(items)} scored",
             flush=True,

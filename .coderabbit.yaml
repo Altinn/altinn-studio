@@ -1,5 +1,9 @@
 language: "en-GB"
 reviews:
+  auto_review:
+    enabled: true
+    base_branches:
+      - ".*"
   pre_merge_checks:
     docstrings:
       mode: off

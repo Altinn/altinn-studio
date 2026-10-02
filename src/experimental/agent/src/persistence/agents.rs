@@ -105,23 +105,26 @@ pub(super) fn update_status(
     connection: &mut Connection,
     id: AgentId,
     generation: u64,
-    status: &Status,
-) -> Result<(), Error> {
+    mut status: Status,
+) -> Result<Status, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let record = get(&transaction, id)?;
     if record.agent.metadata.generation != generation {
         return Err(Error::Conflict);
     }
+    scrub(&mut status);
+    status.stamp_transitions(&record.agent.status, time::OffsetDateTime::now_utc());
     let changed = transaction
         .execute(
             "UPDATE agents SET status_json = ?1 WHERE id = ?2 AND active_name IS NOT NULL",
-            params![encode_status(status)?, id.to_string()],
+            params![serde_json::to_string(&status)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed != 1 {
         return Err(Error::Conflict);
     }
-    transaction.commit().map_err(database_error)
+    transaction.commit().map_err(database_error)?;
+    Ok(status)
 }
 
 pub(super) fn mark_deleting(connection: &mut Connection, name: &str) -> Result<AgentRecord, Error> {
@@ -171,11 +174,17 @@ fn encode_desired(agent: &Agent) -> Result<String, Error> {
     serde_json::to_string(&desired).map_err(Error::from)
 }
 
-/// Serializes status for storage, scrubbing API-projected provenance.
+/// Serializes status for storage, scrubbing API-projected progress and provenance.
 fn encode_status(status: &Status) -> Result<String, Error> {
     let mut status = status.clone();
-    status.provenance = None;
+    scrub(&mut status);
     serde_json::to_string(&status).map_err(Error::from)
+}
+
+/// Removes what is projected onto responses and never stored.
+fn scrub(status: &mut Status) {
+    status.progress = None;
+    status.provenance = None;
 }
 
 /// Source-column payload: current writes store [`crate::Provenance`]; rows

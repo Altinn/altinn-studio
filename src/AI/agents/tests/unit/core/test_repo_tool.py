@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from pydantic import ValidationError
 
 from agents.core import LoopContext, ScanRepoTool
 
@@ -67,7 +68,7 @@ class TestScanRepoTool:
 
     def test_input_schema_forbids_extra_args(self):
         """The model gets no inputs — extras shouldn't sneak through."""
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             ScanRepoTool.input_schema.model_validate({"path": "/x"})
 
 

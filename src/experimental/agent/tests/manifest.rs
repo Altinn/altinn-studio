@@ -114,6 +114,23 @@ fn decodes_the_minimal_manifest() {
     );
 }
 
+#[test]
+fn a_manifest_may_set_the_run_state_and_omits_it_by_default() {
+    let minimal = include_str!("../examples/minimal/agent.yaml");
+    let agent = manifest::decode(minimal.as_bytes()).expect("minimal manifest should decode");
+    assert_eq!(agent.spec.run_state, None);
+    assert!(!agent.spec.is_stopped());
+
+    let stopped = minimal.replacen("spec:\n", "spec:\n  runState: Stopped\n", 1);
+    let agent = manifest::decode(stopped.as_bytes()).expect("a Stopped run state should decode");
+    assert_eq!(agent.spec.run_state, Some(agent::RunState::Stopped));
+    let encoded = serde_yaml_ng::to_string(&agent).expect("encode");
+    assert!(encoded.contains("runState: Stopped"), "{encoded}");
+
+    let paused = minimal.replacen("spec:\n", "spec:\n  runState: Paused\n", 1);
+    manifest::decode(paused.as_bytes()).expect_err("only Running and Stopped exist");
+}
+
 /// The image owns the harness version, so a manifest that repeats it only creates a second place
 /// to forget. The examples are what people copy, so none of them may pin one.
 #[test]
@@ -209,6 +226,10 @@ fn published_manifests_explicitly_select_git_identity() {
         manifests.join("full/agent.nested.yaml"),
         manifests.join("full/agent.nested-build.yaml"),
         manifests.join("full/agent.worktree.yaml"),
+        manifests.join("desktop/agent.yaml"),
+        manifests.join("desktop/agent.nested.yaml"),
+        manifests.join("desktop/agent.nested-build.yaml"),
+        manifests.join("desktop/agent.worktree.yaml"),
     ] {
         let agent = manifest::resolve(&path)
             .expect("published Agent manifest should resolve")
@@ -555,7 +576,7 @@ fn rejects_manifest_secrets_owned_by_a_declared_harness() {
 }
 
 #[test]
-fn status_tolerates_unknown_fields_inside_provenance() {
+fn status_tolerates_unknown_fields_inside_provenance_and_conditions() {
     let status: agent::Status = serde_json::from_value(serde_json::json!({
         "observedGeneration": 1,
         "futureField": true,
@@ -563,9 +584,11 @@ fn status_tolerates_unknown_fields_inside_provenance() {
             "sourceDirectory": "/source",
             "manifestPath": "/source/worker.yml",
             "futureField": "ignored"
-        }
+        },
+        "conditions": [{ "type": "Ready", "status": "True", "futureField": "ignored" }]
     }))
     .expect("newer status should decode");
+    assert!(status.is_ready());
     let provenance = status.provenance.expect("provenance");
     assert_eq!(provenance.source_directory, std::path::Path::new("/source"));
     assert_eq!(
@@ -759,15 +782,46 @@ fn decodes_ssh_access_as_a_tagged_agent_capability() {
 }
 
 #[test]
+fn decodes_vnc_access_beside_ssh_as_a_tagged_agent_capability() {
+    let agent = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: vnc\n"))
+        .expect("SSH and VNC access decode");
+    assert_eq!(
+        agent.spec.access,
+        vec![agent::AccessSpec::Ssh {}, agent::AccessSpec::Vnc {}]
+    );
+    assert!(agent.spec.ssh_access());
+    assert!(agent.spec.vnc_access());
+    let value = serde_json::to_value(&agent).expect("Agent JSON");
+    assert_eq!(
+        value["spec"]["access"],
+        serde_json::json!([{"type": "ssh"}, {"type": "vnc"}])
+    );
+
+    let ssh_only = manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n")).expect("SSH only");
+    assert!(!ssh_only.spec.vnc_access(), "one capability does not imply the other");
+}
+
+#[test]
 fn rejects_unknown_duplicate_and_configured_access_capabilities() {
     assert!(matches!(
         manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n    - type: ssh\n")),
         Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
     ));
     assert!(matches!(
-        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n")),
+        manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n    - type: vnc\n")),
+        Err(agent::Error::Invalid(message)) if message.contains("spec.access[1]")
+    ));
+    assert!(matches!(
+        manifest::decode(&manifest_with_access("  access:\n    - type: rdp\n")),
         Err(agent::Error::Yaml(_))
     ));
+    assert!(
+        matches!(
+            manifest::decode(&manifest_with_access("  access:\n    - type: vnc\n      port: 5901\n")),
+            Err(agent::Error::Yaml(_))
+        ),
+        "VNC access exposes no tunables"
+    );
     assert!(
         matches!(
             manifest::decode(&manifest_with_access("  access:\n    - type: ssh\n      port: 22\n")),

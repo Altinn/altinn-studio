@@ -1,0 +1,14 @@
+{
+  "name": "Gateway actions cannot be evaluated in the frontend",
+  "disabledBackend": true,
+  "testCases": [
+    {
+      "expression": ["gatewayAction"],
+      "expectsFailure": "gatewayAction can only be evaluated on the backend"
+    },
+    {
+      "expression": ["equals", ["gatewayAction"], "sign"],
+      "expectsFailure": "gatewayAction can only be evaluated on the backend"
+    }
+  ]
+}

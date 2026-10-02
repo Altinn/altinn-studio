@@ -24,14 +24,14 @@ mod service;
 pub mod terminal;
 pub mod volume;
 
-pub use backend::{LocalFuture, Sandbox, SandboxId, SandboxResources, SandboxState};
+pub use backend::{GuestHeartbeat, LocalFuture, Sandbox, SandboxId, SandboxResources, SandboxState};
 pub use feature::{SandboxCapabilities, SandboxFeature, SandboxFeatureSet};
 pub use name::{Hostname, InvalidHostname, InvalidSandboxName, MAX_SANDBOX_NAME_BYTES, SandboxName};
 pub use path::SandboxPath;
 pub use platform::Platform;
 pub use progress::{
-    OperationEvent, OutputStream, PendingOperation, PendingSandbox, PhaseOutcome, ProgressUnit, SandboxEvent,
-    SandboxPhase, StepId,
+    MeasuredStep, OperationEvent, Outcome, OutputStream, PendingOperation, PendingSandbox, Phase, PhaseSpan,
+    ProgressEvent, ProgressReporter, ProgressStep, ProgressUnit, SandboxPhase, SandboxProgress, StepId,
 };
 pub use resource::{ByteQuantity, CpuQuantity, ParseQuantityError};
 pub use root_filesystem::{RootFilesystem, RootFilesystemMode, RootFilesystemModeSet};

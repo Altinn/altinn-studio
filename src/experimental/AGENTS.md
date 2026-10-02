@@ -17,6 +17,10 @@ This area contains the experimental agent platform described in `README.md`.
   Agent Runtime; host-side management drives tmux and the harness through Sandbox executions.
 - The backend owns Sandbox lifecycle, execution, runtime file transfer, storage and mount behavior; do not split
   those into speculative replaceable component traits.
+- Sandbox progress is reported through phase spans and step tokens. A step belongs to the phase in progress and is
+  either unmeasured or measures one quantity in the unit it started with. Every phase and step ends exactly once.
+  Consumers read the folded `Progress` and a `ProgressCursor` instead of interpreting events, and the Agent layer
+  delivers progress to clients as state behind a revision, never as an event stream.
 - A Provider pairs a Sandbox Backend with an Image Backend over one image materialization domain. Both expose
   discovery-first, per-Platform capabilities; Backend trait operations are required and have no default behavior.
 - A Network Backend is independently selectable from a Sandbox Backend. They negotiate an owned Network Endpoint:
@@ -62,12 +66,6 @@ When adding or updating a harness installation or adapter, follow [HARNESSES.md]
 the Agent images under `agents/`. There is one changelog because there is one release unit, the `agentctl` and
 `agentd` binaries published by the `experimental-agent/v*` tag. The version in the changelog is that release
 version; the Rust workspace version is a build detail and is not tracked there.
-
-Every pull request that changes something a user of the Agent will notice, anywhere under `src/experimental` or
-`agents/`, adds an entry under `## [Unreleased]`. Describe the change from the user's side, including a change in
-`sandbox*` in terms of what an Agent user notices, and leave implementation detail out unless it changes how people
-use the platform. Apply the `skip-changelog` label instead when the change is a refactor, or is test-only or
-CI-only; `.github/workflows/experimental-changelog.yaml` enforces this on every pull request.
 
 Run `make changelog-validate` to check the file's structure, and `make changelog-test` for the tests covering
 [changelog.sh](changelog.sh) itself. `make check` runs the validation, and `make test` runs the tests.

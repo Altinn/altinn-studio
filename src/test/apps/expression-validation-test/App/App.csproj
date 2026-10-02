@@ -4,7 +4,11 @@
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+  <ItemGroup>
+    <Using Include="Altinn.App.Core.Features" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../App/codelists/src/Altinn.Codelists/Altinn.Codelists.csproj" />
   </ItemGroup>

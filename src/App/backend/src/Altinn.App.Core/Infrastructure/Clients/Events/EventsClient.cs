@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events;
 /// <summary>
 /// A client for handling actions on events in Altinn Platform.
 /// </summary>
-public class EventsClient : IEventsClient
+internal sealed class EventsClient : IEventsClient
 {
     private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
     private readonly GeneralSettings _generalSettings;
@@ -87,7 +87,7 @@ public class EventsClient : IEventsClient
             SpecVersion = "1.0",
             Source = new Uri($"{baseUrl}instances/{instance.Id}"),
         };
-        Application app = await _appMetadata.GetApplicationMetadata();
+        Application app = _appMetadata.ApplicationMetadata;
         string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(

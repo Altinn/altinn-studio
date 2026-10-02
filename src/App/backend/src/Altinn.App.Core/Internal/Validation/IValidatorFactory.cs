@@ -25,7 +25,7 @@ public interface IValidatorFactory
 /// <summary>
 /// Implementation of <see cref="IValidatorFactory"/> that takes IEnumerable of validators in constructor from the service provider.
 /// </summary>
-public class ValidatorFactory : IValidatorFactory
+internal sealed class ValidatorFactory : IValidatorFactory
 {
     private readonly IOptions<GeneralSettings> _generalSettings;
     private readonly IAppMetadata _appMetadata;
@@ -125,7 +125,7 @@ public class ValidatorFactory : IValidatorFactory
         validators.AddRange(GetIValidators(taskId));
         // add legacy task validators, data element validators and form data validators
         validators.AddRange(GetTaskValidators(taskId).Select(tv => new TaskValidatorWrapper(tv)));
-        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
+        var dataTypes = _appMetadata.ApplicationMetadata.DataTypes;
 
         validators.AddRange(
             GetDataElementValidators(taskId, dataTypes)

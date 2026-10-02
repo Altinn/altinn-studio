@@ -25,6 +25,8 @@ use crate::sessions::{Activity, AttachTarget, LaunchToken, LifecycleState, Phase
 /// harness TUI's input loop is up, and a paste that lands in that gap is lost;
 /// tmux has no readiness signal of its own, so recent hook activity stands in.
 const INPUT_READY_GRACE: std::time::Duration = std::time::Duration::from_secs(2);
+/// Bound on every Session runtime execution in the guest, so a stalled guest
+/// fails the operation instead of holding it.
 const LIFECYCLE_EXECUTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const LIFECYCLE_EXECUTION_KILL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2);
 const DETACH_KEYS: &str = "ctrl-b,d";
@@ -32,6 +34,10 @@ const DETACH_KEYS: &str = "ctrl-b,d";
 // Set history-limit before pane creation; reapply on attach for existing servers.
 // Mouse mode routes wheels to copy mode or the application: https://man.openbsd.org/tmux.1#mouse
 // Reserve index 99: appending would grow terminal-features on every attach.
+// Ctrl-Z would stop the harness with no shell to resume it, so swallow it in a Session's
+// own harness pane (a pane started with a command). It is bound on the shared tmux server,
+// so the guard is scoped to agent-session-* names; every other pane, including a shell
+// opened with Ctrl-b c, keeps normal job control and has Ctrl-Z forwarded.
 fn terminal_options() -> Vec<String> {
     [
         "set-option",
@@ -59,6 +65,15 @@ fn terminal_options() -> Vec<String> {
         "terminal-features[99]",
         "xterm*:extkeys",
         ";",
+        "bind-key",
+        "-n",
+        "C-z",
+        "if-shell",
+        "-F",
+        "#{&&:#{m:agent-session-*,#{session_name}},#{!=:#{pane_start_command},}}",
+        "",
+        "send-keys C-z",
+        ";",
     ]
     .into_iter()
     .map(str::to_owned)
@@ -82,6 +97,10 @@ fn pane_target(session: &Session) -> String {
 // Both timestamps come from the Sandbox. A missing transcript is normal before
 // the harness creates its conversation; its contents are not needed here.
 const OBSERVE_SCRIPT: &str = include_str!("observe.sh");
+
+// Stopping is repeated after an interrupted release, so a Session that is
+// already gone counts as stopped.
+const STOP_SCRIPT: &str = include_str!("stop.sh");
 
 /// Observes attachment and the freshest terminal or transcript activity.
 async fn observe(session: &Session, sandbox: &SandboxHandle) -> Result<Observation, Error> {
@@ -142,13 +161,18 @@ fn parse_observation(output: &str) -> Result<Observation, Error> {
     })
 }
 
-/// Stops a deliberately idle tmux Session.
+/// Stops a tmux Session, succeeding when it is already gone.
 async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
     let stopped = run_lifecycle_execution(
         sandbox,
         ExecutionSpec::command(
-            SandboxPath::new("/usr/bin/tmux"),
-            ["kill-session".into(), "-t".into(), exact_target(session)],
+            SandboxPath::new("/bin/sh"),
+            [
+                "-c".into(),
+                STOP_SCRIPT.into(),
+                "agent-session-stop".into(),
+                exact_target(session),
+            ],
         ),
         "tmux stop",
     )
@@ -157,7 +181,7 @@ async fn stop(session: &Session, sandbox: &SandboxHandle) -> Result<(), Error> {
         Ok(())
     } else {
         Err(Error::Session(format!(
-            "tmux failed to stop idle Session {} with exit code {}",
+            "tmux failed to stop Session {} with exit code {}",
             session.id, stopped.status.code
         )))
     }
@@ -237,16 +261,17 @@ async fn launch(
     initial_message: Option<&str>,
 ) -> Result<(), Error> {
     let arguments = launch_arguments(session, session_hook_url, token, resume, initial_message);
-    let created = sandbox
-        .run_execution(
-            ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), arguments)
-                .with_working_directory(SandboxPath::new(crate::sandbox::platform::WORKING_DIRECTORY))
-                .with_environment([
-                    ("HOME".into(), crate::sandbox::platform::HOME.into()),
-                    ("LANG".into(), UTF8_LOCALE.into()),
-                ]),
-        )
-        .await?;
+    let created = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(SandboxPath::new("/usr/bin/tmux"), arguments)
+            .with_working_directory(SandboxPath::new(crate::sandbox::platform::WORKING_DIRECTORY))
+            .with_environment([
+                ("HOME".into(), crate::sandbox::platform::HOME.into()),
+                ("LANG".into(), UTF8_LOCALE.into()),
+            ]),
+        "tmux Session launch",
+    )
+    .await?;
     if created.status.success() {
         return Ok(());
     }
@@ -374,12 +399,12 @@ impl super::SessionRuntime for Tmux {
                 }
                 Phase::Unknown => {}
             }
-            let output = sandbox.run_execution(ExecutionSpec::command(
+            let output = run_lifecycle_execution(sandbox, ExecutionSpec::command(
                 SandboxPath::new("/bin/sh"),
                 ["-c".into(),
                  "/usr/bin/tmux display-message -p -t \"$1\" '#{cursor_flag} #{cursor_y} #{pane_title}' && /usr/bin/tmux capture-pane -p -t \"$1\"".into(),
                  "agent-input-ready".into(), pane_target(session)],
-            )).await?;
+            ), "input readiness check").await?;
             // Provisioning publishes the launch before its pane necessarily exists.
             // tmux exits 1 while there is no server or target pane to inspect.
             if output.status.code == 1 {
@@ -459,14 +484,18 @@ async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Re
     if let Some(quiet) = input_ready_in(&session.status.reported.activity, time::OffsetDateTime::now_utc()) {
         tokio::time::sleep(quiet).await;
     }
-    sandbox
-        .write_file(
+    tokio::time::timeout(
+        LIFECYCLE_EXECUTION_TIMEOUT,
+        sandbox.write_file(
             &SandboxPath::new(file.clone()),
             Box::pin(Cursor::new(prompt.as_bytes().to_vec())),
-        )
-        .await?;
-    let delivered = sandbox
-        .run_execution(ExecutionSpec::command(
+        ),
+    )
+    .await
+    .map_err(|_| Error::Session("writing the prompt into the Sandbox timed out".into()))??;
+    let delivered = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
@@ -476,8 +505,16 @@ async fn deliver(session: &Session, sandbox: &SandboxHandle, prompt: &str) -> Re
                 buffer,
                 pane_target(session),
             ],
-        ))
-        .await?;
+        ),
+        "prompt delivery",
+    )
+    .await
+    .map_err(|error| match error {
+        Error::Session(message) if message == "prompt delivery timed out" => Error::Session(
+            "prompt delivery timed out; the prompt may have reached the harness, so check turns before retrying".into(),
+        ),
+        error => error,
+    })?;
     if delivered.status.success() {
         Ok(())
     } else {
@@ -520,8 +557,9 @@ async fn turns(session: &Session, sandbox: &SandboxHandle, last: Option<usize>) 
     if last == Some(0) {
         return Ok(Vec::new());
     }
-    let read = sandbox
-        .run_execution(ExecutionSpec::command(
+    let read = run_lifecycle_execution(
+        sandbox,
+        ExecutionSpec::command(
             SandboxPath::new("/bin/sh"),
             [
                 "-c".into(),
@@ -530,8 +568,10 @@ async fn turns(session: &Session, sandbox: &SandboxHandle, last: Option<usize>) 
                 path.into(),
                 (MAX_TRANSCRIPT_BYTES + 1).to_string(),
             ],
-        ))
-        .await?;
+        ),
+        "reading the Session conversation",
+    )
+    .await?;
     if !read.status.success() {
         return Err(Error::Session(format!(
             "reading the conversation of Session {} failed with exit code {}",
@@ -639,6 +679,7 @@ mod tests {
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_delivery.mjs"))
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/deliver.sh"))
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/observe.sh"))
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/src/sessions/runtime/stop.sh"))
             .output()
             .expect("Node.js");
         assert!(
@@ -727,6 +768,8 @@ mod tests {
             harness: crate::harness::test_harness(),
             model_selection,
             created_at: OffsetDateTime::UNIX_EPOCH,
+            deletion_timestamp: None,
+            archived_at: None,
             status: Status::new(Lifecycle::running(), Reported::default()),
             activation_generation: 0,
             observed_activation_generation: 0,
@@ -780,6 +823,26 @@ mod tests {
         let session = test_session(crate::ModelSelection::default());
         let output = std::process::Command::new("node")
             .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_scrollback.mjs"))
+            .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
+            .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
+            .arg(super::session_name(&session))
+            .output()
+            .expect("Node.js");
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    #[ignore = "requires Node.js, tmux and script; exercises Ctrl-Z in an isolated terminal server"]
+    fn suspend_is_refused_in_a_real_terminal() {
+        let session = test_session(crate::ModelSelection::default());
+        let output = std::process::Command::new("node")
+            .arg(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/tmux_suspend.mjs"))
             .arg(serde_json::to_string(&super::terminal_options()).expect("options"))
             .arg(serde_json::to_string(&super::attach_arguments(&session)).expect("attachment"))
             .arg(super::session_name(&session))

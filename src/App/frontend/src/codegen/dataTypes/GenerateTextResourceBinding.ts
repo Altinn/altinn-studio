@@ -23,4 +23,8 @@ export class GenerateTextResourceBinding extends GenerateProperty<GenerateExpres
       .setDescription(config.description.en, config.description.nb);
     super(config.name, actualProp);
   }
+  setDefault(value: string): this {
+    this.type.optional({ default: value });
+    return this;
+  }
 }

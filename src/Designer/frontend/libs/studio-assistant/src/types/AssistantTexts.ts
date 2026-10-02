@@ -2,6 +2,7 @@ export type AssistantTexts = {
   heading: string;
   preview: string;
   fileBrowser: string;
+  toolColumnMode: string;
   hideThreads: string;
   showThreads: string;
   newThread: string;
@@ -19,6 +20,7 @@ export type AssistantTexts = {
   securityNoticeAlert: SecurityNoticeAlertTexts;
   permissionPrompt: PermissionPromptTexts;
   sourcesLabel: string;
+  filesChangedLabel: string;
 };
 
 export type PermissionPromptTexts = {

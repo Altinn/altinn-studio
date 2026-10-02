@@ -109,7 +109,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "actionRequiredToRead": "signature-access",
@@ -123,7 +123,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "actionRequiredToRead": "signature-access",
@@ -137,7 +137,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "actionRequiredToRead": "signature-access",
@@ -151,7 +151,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "actionRequiredToRead": "signature-access",

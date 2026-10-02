@@ -31,7 +31,7 @@ export function validateRequiredImageUploadForNode(
       defaultValue: false,
     }),
     attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      makeAttachmentNode({ ...ctx.component, indexedId: ctx.indexedId }),
       ctx.formState,
       ctx.instanceData,
       getApplicationMetadata(),

@@ -17,8 +17,9 @@ use tokio_util::sync::PollSender;
 use zeroize::Zeroizing;
 
 use crate::{
-    Error, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode, RootFilesystemModeSet, Sandbox,
-    SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxPhase, SandboxResources, SandboxState,
+    Error, GuestHeartbeat, LocalFuture, PendingOperation, Platform, ResourceKind, RootFilesystemMode,
+    RootFilesystemModeSet, Sandbox, SandboxFeature, SandboxId, SandboxName, SandboxPath, SandboxResources,
+    SandboxState,
     backend::{CreateSandboxRequest, SandboxBackend, SandboxBackendCapabilities},
     execution, file_transfer, image,
     mount::{MountKind, MountKindSet},
@@ -130,6 +131,22 @@ impl Provider {
         self.state.borrow_mut().queued_terminal_events.push_back(events);
     }
 
+    /// Reports `heartbeat` as the guest's latest heartbeat until it is set
+    /// again or the Sandbox stops.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Sandbox does not exist.
+    pub fn set_guest_heartbeat(&self, id: &SandboxId, heartbeat: Option<GuestHeartbeat>) -> Result<(), Error> {
+        let mut storage = self.state.borrow_mut();
+        let sandbox = storage
+            .by_id
+            .get_mut(id)
+            .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
+        sandbox.guest_heartbeat = heartbeat;
+        Ok(())
+    }
+
     fn set_state(&self, id: &SandboxId, state: SandboxState) -> Result<(), Error> {
         let mut storage = self.state.borrow_mut();
         let sandbox = storage
@@ -137,6 +154,9 @@ impl Provider {
             .get_mut(id)
             .ok_or_else(|| Error::not_found(ResourceKind::Sandbox, id))?;
         sandbox.state = state;
+        if state == SandboxState::Stopped {
+            sandbox.guest_heartbeat = None;
+        }
         Ok(())
     }
 
@@ -308,7 +328,7 @@ impl SandboxBackend for Provider {
     }
 
     fn create(&self, request: CreateSandboxRequest) -> PendingOperation<'_, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxCreate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 if let Some(id) = storage.by_name.get(&request.name) {
@@ -336,6 +356,7 @@ impl SandboxBackend for Provider {
                     hostname: request.hostname,
                     resources: request.resources,
                     state: SandboxState::Stopped,
+                    guest_heartbeat: None,
                     mounts: request.mounts,
                     environment: request.environment,
                     network: request.network,
@@ -348,7 +369,7 @@ impl SandboxBackend for Provider {
     }
 
     fn update_resources<'a>(&'a self, id: &'a SandboxId, resources: SandboxResources) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -369,7 +390,7 @@ impl SandboxBackend for Provider {
         id: &'a SandboxId,
         environment: BTreeMap<String, String>,
     ) -> PendingOperation<'a, Sandbox> {
-        PendingOperation::run(SandboxPhase::SandboxUpdate, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 let mut storage = self.state.borrow_mut();
                 let sandbox = storage
@@ -412,9 +433,7 @@ impl SandboxBackend for Provider {
     }
 
     fn start<'a>(&'a self, id: &'a SandboxId) -> PendingOperation<'a, ()> {
-        PendingOperation::run(SandboxPhase::SandboxStart, move |_progress| {
-            Box::pin(async move { self.set_state(id, SandboxState::Running) })
-        })
+        PendingOperation::run(move |_progress| Box::pin(async move { self.set_state(id, SandboxState::Running) }))
     }
 
     fn stop<'a>(&'a self, id: &'a SandboxId) -> LocalFuture<'a, Result<(), Error>> {
@@ -961,7 +980,7 @@ impl image::ImageBackend for MemoryImageBackend {
     }
 
     fn resolve<'a>(&'a self, request: &'a image::ResolveRequest) -> PendingOperation<'a, image::ResolvedImage> {
-        PendingOperation::run(SandboxPhase::ImageResolve, move |_progress| {
+        PendingOperation::run(move |_progress| {
             Box::pin(async move {
                 Ok(image::ResolvedImage {
                     source: request.source.clone(),
@@ -1041,9 +1060,7 @@ fn update_digest_part(digest: &mut Sha256, value: &[u8]) {
 }
 
 fn unsupported_prepared_image<'a>(operation: image::ImageOperation) -> PendingOperation<'a, image::PreparedImage> {
-    PendingOperation::run(SandboxPhase::ImagePrepare, move |_progress| {
-        Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) })
-    })
+    PendingOperation::run(move |_progress| Box::pin(async move { Err(Error::UnsupportedImageOperation(operation)) }))
 }
 
 fn test_platform() -> Platform {

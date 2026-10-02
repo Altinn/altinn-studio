@@ -83,8 +83,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .clone()
         .map_or_else(|| worktree_sandbox_name(&repository), Ok)?;
     let state_home = resolve_state_home(&host_home)?;
-    let provider = Rc::new(MicrosandboxProvider::open(state_home.join("microsandbox")).await?);
-    let service = SandboxService::new(provider);
+    let service = SandboxService::new(Rc::new(
+        MicrosandboxProvider::open(state_home.join("microsandbox")).await?,
+    ));
     match arguments.command {
         Some(Command::Delete) => {
             progress::wait_for_operation("Delete Sandbox", service.delete(&sandbox_name)).await?;

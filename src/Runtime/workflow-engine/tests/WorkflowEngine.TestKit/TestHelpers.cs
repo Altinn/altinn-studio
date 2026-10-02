@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 // CA1822: Mark members as static
 #pragma warning disable CA1822

@@ -1,0 +1,13 @@
+[Unit]
+Description=VNC access listener for the Agent desktop on the guest loopback
+Documentation=https://github.com/Altinn/altinn-studio/tree/main/agents
+
+[Socket]
+# Socket activation is what keeps this independent of the desktop's own unit: the proxy is started
+# by the first connection, by which time the display is up, so nothing here has to be ordered
+# against a unit that belongs to the session rather than to access.
+ListenStream=127.0.0.1:5900
+Accept=no
+
+[Install]
+WantedBy=sockets.target

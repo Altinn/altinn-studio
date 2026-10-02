@@ -9,16 +9,11 @@
 }
 
 .giteaIcon {
-  font-size: var(--ds-size-8);
-  padding-top: var(--ds-size-1);
+  --ds-icon-size: var(--ds-size-8);
   color: var(--ds-color-success-text-default);
 }
 
-.editButton {
-  padding-top: var(--ds-size-2);
-}
-
 .akselIcon {
-  font-size: var(--ds-size-7);
+  --ds-icon-size: var(--ds-size-7);
   color: var(--ds-color-accent-base-default);
 }

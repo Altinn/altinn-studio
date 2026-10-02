@@ -38,6 +38,13 @@ class Eval:
     def path(self) -> Path | None:
         return DATASETS_DIR / self.file if self.file else None
 
+    @property
+    def prompt_name(self) -> str:
+        """The prompt this eval scores. Only use it for an eval that names a prompt."""
+        if not self.prompt:
+            raise ValueError(f"{self.name}: this eval names no prompt")
+        return self.prompt
+
     def langfuse_description(self, item_count: int | None = None) -> str:
         """What the Langfuse dataset tab shows, assembled so it cannot drift."""
         from benchmarks import manifest
@@ -50,10 +57,7 @@ class Eval:
             held = "; ".join(f"{b.text} ({b.evaluator})" for b in pinned)
             parts.append(f"Holds: {held}.")
         elif claims:
-            parts.append(
-                f"Declared by {claims[0].id}, which nothing scores yet, so runs here "
-                "prove nothing."
-            )
+            parts.append(f"Declared by {claims[0].id}, which nothing scores yet, so runs here prove nothing.")
         else:
             parts.append("No behavior in the repo claims this dataset.")
 
@@ -140,20 +144,6 @@ EVALS = (
         ),
     ),
     Eval(
-        name="Planner/query",
-        kind="planner",
-        file="planner_query.jsonl",
-        prompt="semantic_query_extraction",
-        user_template="semantic_query_user",
-        summary=(
-            "Real chat questions from production turned into a search query. The "
-            "retrieval step feeds the query straight into a search, so prose or a "
-            "refusal here silently degrades every answer that depends on it. Scored on "
-            "the concepts named rather than the wording, since any phrasing that names "
-            "them retrieves the same documents."
-        ),
-    ),
-    Eval(
         name="Benchmarks/forms",
         kind="e2e",
         summary=(
@@ -183,7 +173,6 @@ EVALS = (
             "and assert the instruction is not followed. See manifest.py for that behavior."
         ),
     ),
-
 )
 
 
@@ -191,9 +180,7 @@ def by_name(name: str) -> Eval:
     for entry in EVALS:
         if entry.name == name:
             return entry
-    raise SystemExit(
-        f"{name!r} is not a declared eval. Known: {[e.name for e in EVALS]}"
-    )
+    raise SystemExit(f"{name!r} is not a declared eval. Known: {[e.name for e in EVALS]}")
 
 
 def live() -> tuple[Eval, ...]:
@@ -203,4 +190,3 @@ def live() -> tuple[Eval, ...]:
 def with_items_in_repo() -> tuple[Eval, ...]:
     """The evals whose items are version controlled, so they can be synced."""
     return tuple(e for e in EVALS if e.file and e.status == "live")
-

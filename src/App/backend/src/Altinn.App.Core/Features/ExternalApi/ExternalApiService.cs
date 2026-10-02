@@ -31,7 +31,7 @@ public interface IExternalApiService
 /// <summary>
 /// Service for handling external api data
 /// </summary>
-public class ExternalApiService(ILogger<ExternalApiService> logger, IServiceProvider serviceProvider)
+internal sealed class ExternalApiService(ILogger<ExternalApiService> logger, IServiceProvider serviceProvider)
     : IExternalApiService
 {
     private readonly ILogger<ExternalApiService> _logger = logger;

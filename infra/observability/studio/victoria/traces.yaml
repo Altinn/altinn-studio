@@ -1,0 +1,159 @@
+# Trace storage, with the same retention as logs: one year, with a disk usage backstop.
+apiVersion: operator.victoriametrics.com/v1
+kind: VTSingle
+metadata:
+  name: traces-a
+  annotations:
+    # Never pruned by Flux; see the note on the VMSingle in metrics.yaml.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  # Same hardened pod and container security context as the rest of the stack;
+  # see the note in metrics.yaml.
+  useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-traces
+    tag: v0.12.0
+  retentionPeriod: 1y
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+    # Admin auth key; see logs.yaml.
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: "1"
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VTSingle
+metadata:
+  name: traces-b
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-traces
+    tag: v0.12.0
+  retentionPeriod: 1y
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 512Gi
+  resources:
+    requests:
+      cpu: "1"
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VTAgent
+metadata:
+  name: traces
+spec:
+  # One replica per node, so a voluntary disruption may only take one at a time.
+  podDisruptionBudget:
+    maxUnavailable: 1
+  useStrictSecurity: true
+  # vtagent only forwards to remoteWrite and never calls the Kubernetes API.
+  disableAutomountServiceAccountToken: true
+  replicaCount: 2
+  # vtagent-traces-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
+  serviceSpec:
+    spec:
+      type: ClusterIP
+  image:
+    repository: victoriametrics/vtagent
+    tag: v0.12.0
+  remoteWrite:
+    - url: http://vtsingle-traces-a.observability.svc.cluster.local:10428/insert/native
+    - url: http://vtsingle-traces-b.observability.svc.cluster.local:10428/insert/native
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 20GiB
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtagent
+          topologyKey: topology.kubernetes.io/zone

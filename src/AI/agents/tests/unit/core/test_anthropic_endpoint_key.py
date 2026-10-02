@@ -11,7 +11,6 @@ class _Config:
     AZURE_ANTHROPIC_ENDPOINT = "https://other-resource.services.ai.azure.com/anthropic/"
     AZURE_API_KEY = "openai-resource-key"
     AZURE_ANTHROPIC_API_KEY = "anthropic-resource-key"
-    ANTHROPIC_API_KEY = None
 
 
 @pytest.fixture
@@ -38,9 +37,8 @@ class TestTheConfigResolvesTheKey:
         """A private copy: reloading the shared module changes it for every later test."""
         import importlib.util
 
-        spec = importlib.util.spec_from_file_location(
-            "_base_config_probe", base_config.__file__
-        )
+        spec = importlib.util.spec_from_file_location("_base_config_probe", base_config.__file__)
+        assert spec is not None and spec.loader is not None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module.BaseConfig
@@ -73,7 +71,6 @@ class TestTheKeyMatchesTheEndpoint:
 
     def test_a_missing_key_says_which_variable_to_set(self, config):
         config.AZURE_ANTHROPIC_API_KEY = None
-        config.ANTHROPIC_API_KEY = None
 
         with pytest.raises(ValueError, match="AZURE_ANTHROPIC_API_KEY"):
             _client_for(config)
@@ -89,7 +86,7 @@ class TestBothAnthropicClientsUseTheSameKey:
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
         client._init_anthropic_client("planner", "claude-opus-4-8", None)
 
-        assert client.anthropic_client.api_key == "anthropic-resource-key"
+        assert client._require_anthropic_client().api_key == "anthropic-resource-key"
 
     def test_it_falls_back_to_the_azure_key(self, config, monkeypatch):
         from agents.services.llm import llm_client
@@ -99,13 +96,12 @@ class TestBothAnthropicClientsUseTheSameKey:
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
         client._init_anthropic_client("planner", "claude-opus-4-8", None)
 
-        assert client.anthropic_client.api_key == "openai-resource-key"
+        assert client._require_anthropic_client().api_key == "openai-resource-key"
 
     def test_a_missing_key_names_the_variable(self, config, monkeypatch):
         from agents.services.llm import llm_client
 
         config.AZURE_ANTHROPIC_API_KEY = None
-        config.ANTHROPIC_API_KEY = None
         monkeypatch.setattr(llm_client, "config", config)
         client = llm_client.LLMClient.__new__(llm_client.LLMClient)
 

@@ -7,7 +7,7 @@ namespace Altinn.App.Api.Infrastructure.Telemetry;
 /// <summary>
 /// Set up custom telemetry for Application Insights
 /// </summary>
-public class CustomTelemetryInitializer : ITelemetryInitializer
+internal sealed class CustomTelemetryInitializer : ITelemetryInitializer
 {
     /// <summary>
     /// Initializes properties of the specified <see cref="ITelemetry"/> object.

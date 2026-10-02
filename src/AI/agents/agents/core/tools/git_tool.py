@@ -1,4 +1,4 @@
-"""Git-state tools: `commit_session_branch` and `rollback`.
+"""Git-state tool: `commit_session_branch`.
 
 `commit_session_branch` derives a per-session branch name on first
 call (cached on `ctx.extras["session_branch"]`), commits via
@@ -6,10 +6,7 @@ call (cached on `ctx.extras["session_branch"]`), commits via
 session branch is visible in Designer.  Subsequent commits reuse the
 same branch.
 
-`rollback` discards all uncommitted changes via `git_ops.revert` and
-clears the tracked `changed_files`.
-
-Both tools require `ctx.allow_app_changes`.
+The tool requires `ctx.allow_app_changes`.
 """
 
 from __future__ import annotations
@@ -59,7 +56,7 @@ class CommitSessionBranchArgs(BaseModel):
     )
 
 
-class CommitSessionBranchTool(WriteToolMixin):
+class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
     name = "commit_session_branch"
     description = (
         "Commit all changes on disk to the session branch and push it to the "
@@ -120,18 +117,14 @@ class CommitSessionBranchTool(WriteToolMixin):
             pushed = repo_manager.push_branch(ctx.session_id, branch)
         except Exception as exc:
             return ToolResult(
-                content=(
-                    f"Committed {commit_hash} to {branch}, but push failed: {exc}"
-                ),
+                content=(f"Committed {commit_hash} to {branch}, but push failed: {exc}"),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )
 
         if not pushed:
             return ToolResult(
-                content=(
-                    f"Committed {commit_hash} to {branch}, but the push was rejected."
-                ),
+                content=(f"Committed {commit_hash} to {branch}, but the push was rejected."),
                 is_error=True,
                 metadata={"commit": commit_hash, "branch": branch, "pushed": False},
             )

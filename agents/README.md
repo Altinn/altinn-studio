@@ -12,6 +12,10 @@ Choose an Agent and, optionally, a variant:
 | `full` `nested`          | Full published image, reduced to fit inside another Agent            |
 | `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
 | `full` `worktree`        | Full published image with the current checkout mounted read-write    |
+| `desktop` default        | Full image plus a graphical desktop, and a fresh checkout            |
+| `desktop` `nested`       | Desktop published image, reduced to fit inside another Agent         |
+| `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
+| `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
 Install the released Agent CLI on Linux or macOS:
 
@@ -93,7 +97,8 @@ agentctl apply --wait
 `--wait` streams provisioning progress and returns once the Agent is Ready. Without it `apply`
 returns immediately and `agentctl wait agent/altinn-full` follows the same progress later.
 
-Use `agents/minimal` and `agent/altinn-minimal` instead for the minimal Agent. From either Agent directory, select a
+Use `agents/minimal` and `agent/altinn-minimal` for the minimal Agent, and `agents/desktop` and
+`agent/altinn-desktop` for the desktop one. From any Agent directory, select a
 repository-owned variant with `agentctl apply --variant nested`, `--variant nested-build`, or `--variant worktree`.
 
 To work directly on the current checkout without cloning it, create `~/.agent/altinn-worktree.env` outside the
@@ -117,7 +122,21 @@ Create or reattach to a Session:
 agentctl attach session/work
 ```
 
-Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`.
+Detach with `Ctrl-b d`. Sessions open in `/home/agent/code`. `Ctrl-Z` is ignored in the harness pane, because
+nothing there could resume a suspended harness; open a shell in a second window with `Ctrl-b c` when you need one.
+
+Delete a Session when its work is done; its name becomes free again:
+
+```sh
+agentctl delete session/work
+```
+
+Archive a Session to put it away; it keeps its name and conversation, and attaching after unarchiving resumes it:
+
+```sh
+agentctl archive session/work
+agentctl unarchive session/work
+```
 
 A new Session launches with the model and effort level declared by its harness installation's manifest `defaults`;
 the published manifests select Claude Code's `fable` alias. Choose differently for one Session, in the harness's own
@@ -148,12 +167,92 @@ ssh agentctl-altinn-full
 sftp agentctl-altinn-full
 ```
 
-`agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths and proxy command for tools that want
-them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a Session; the server's
-hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init is systemd, as the
-published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the loopback-only server
-policy and systemd unit. An Agent created from an image older than this feature reports that its image cannot provide
-SSH access; delete it and re-apply to pick up the current image.
+`agentctl ssh-info agent/altinn-full -o json` prints the alias, key paths, proxy command and the directory editors open,
+for tools that want them directly. The `agent` user has passwordless `sudo`, so an SSH login is as powerful as a
+Session; the server's hardening is hygiene, and the Sandbox remains the boundary. SSH access needs an image whose init
+is systemd, as the published images are, with OpenSSH installed and a usable `agent` account. `agentd` owns the
+loopback-only server policy and systemd unit. An Agent created from an image older than this feature reports that its
+image cannot provide SSH access; delete it and re-apply to pick up the current image.
+
+In `agentctl tui`, press `o` on an Agent to open it in a shell, VS Code, Zed or over SSH, or to copy its SSH alias.
+When OpenSSH does not reach the Agent through that configuration, the TUI offers to add the `Include` above before it
+opens an editor, and can open the editor without it. Editors open only where the TUI can show windows; set
+`AGENTCTL_OPEN=launch` or `AGENTCTL_OPEN=copy` when its guess is wrong.
+
+### Visual Studio Code
+
+To view the agent's workspace in Visual Studio Code, use the extension **Remote - SSH** from Microsoft. This extension reads the OpenSSH
+configuration that `agentctl ssh-config install` writes.
+
+1. Run `agentctl ssh-config install` one time.
+2. In Visual Studio Code, install the extension Remote - SSH.
+3. Push `F1` and select **Remote-SSH: Connect to Host...**.
+4. Select the alias of the Agent, for example `agentctl-altinn-full`. If Visual Studio Code asks for the platform,
+   select **Linux**.
+5. Select **File > Open Folder** and open `/home/agent/code`.
+
+## Desktop access
+
+The `desktop` Agent runs a graphical desktop on display `:1` at 1456x819: an X server that is also
+a VNC server, the openbox window manager, a panel, and the same Chromium the Agent's Playwright
+tooling uses. The Agent drives it with the `desktop` helper and its `computer-use` skill; a person
+watches or takes over over VNC.
+
+The desktop publishes itself on a Unix socket inside the Sandbox and opens no port of its own. The
+image also ships the units that bridge a port to it and serve it in a browser, disabled; the
+platform turns them on when the Agent declares the capability, and off when it stops:
+
+```yaml
+spec:
+  access:
+    - type: ssh
+    - type: vnc
+```
+
+The published `desktop` variants declare both. Remove the `vnc` entry and re-apply and the Agent
+keeps its screen with nothing listening: `agentd` disables the units and checks that they stopped,
+and the image's smoke test checks that the desktop itself opens no VNC port. The browser viewer
+accepts only its own pages, so another website open in the same browser cannot reach the desktop.
+
+In a browser, with nothing to install:
+
+```sh
+agentctl vnc --web --open agent/altinn-desktop
+```
+
+Or with a VNC client of your own:
+
+```sh
+agentctl vnc agent/altinn-desktop   # prints vnc://127.0.0.1:<port> for your viewer
+```
+
+Both hold the forward open until interrupted on a free local port they print. `--port` picks a
+fixed one, and
+`agentctl vnc-info agent/altinn-desktop -o json` prints the ports for tooling that wants them
+directly. Which viewer the browser gets, and at what URL, is the image's to decide: `--web`
+forwards the port and opens its root, and an image that carries no browser viewer is reported as
+such rather than forwarded to a port that serves nothing. The forward carries an unauthenticated RFB stream, which is safe for the same
+reason the Agent's other loopback ports are: it never leaves the Sandbox except through the
+forward you just opened. `access` decides what the platform offers rather than what the Agent may
+do in its own Sandbox: the Agent has `sudo` and could turn the same units on itself. You share the
+Agent's keyboard and pointer, so agree with it about who is driving before you start clicking.
+
+In `agentctl tui`, `o` then `w` opens the desktop in the browser and `o` then `v` in a VNC client. The forward
+closes when the TUI quits; `q` asks first.
+
+An Agent created from an image older than this feature reports that its image cannot provide VNC
+access; delete it and re-apply to pick up the current image.
+
+Stop the Agent's VM, for example to free its memory or recover a Sandbox that stopped responding, and start it again
+later. The disk is kept, so files and Session conversations survive. Its Sessions go Idle, and attaching to one after
+the start resumes it. Applying the manifest again keeps a stopped Agent stopped:
+
+```sh
+agentctl stop agent/altinn-full
+agentctl start agent/altinn-full
+```
+
+In `agentctl tui`, `x` stops the selected Agent after asking, and starts a stopped one.
 
 Delete the Agent and its Sandbox:
 

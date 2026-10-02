@@ -12,6 +12,7 @@ RUN apt-get update \
         fonts-jetbrains-mono \
         fonts-liberation \
         git \
+        hunspell \
         jq \
         libicu-dev \
         libkrb5-dev \
@@ -147,8 +148,29 @@ RUN case "${TARGETARCH}" in \
     && asciinema --version \
     && agg --version
 
-ARG CODEX_VERSION=0.156.0
-ARG CLAUDE_CODE_VERSION=2.1.280
+# The repository spell check (scripts/spellcheck, run by `yarn spell:*` and the pre-commit hook)
+# drives typos for code and English text and hunspell for Norwegian text. The version and x86_64
+# digest match .github/workflows/spellcheck.yaml and must move together with it.
+ARG TYPOS_VERSION=1.49.0
+
+RUN case "${TARGETARCH}" in \
+        amd64) RUST_ARCH=x86_64; \
+            TYPOS_SHA256=48bd2d58e02ce713b8c0f1aa239e68ee4f7d8c551013135806e6aed3938d9e10 ;; \
+        arm64) RUST_ARCH=aarch64; \
+            TYPOS_SHA256=85c8b87b22a0fb1da130cd4d495e0beba7f1225eb580933184509e146ec4c509 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL \
+        "https://github.com/crate-ci/typos/releases/download/v${TYPOS_VERSION}/typos-v${TYPOS_VERSION}-${RUST_ARCH}-unknown-linux-musl.tar.gz" \
+        -o /tmp/typos.tar.gz \
+    && echo "${TYPOS_SHA256}  /tmp/typos.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/typos.tar.gz -C /tmp ./typos \
+    && install -m 0755 /tmp/typos /usr/local/bin/typos \
+    && rm -f /tmp/typos.tar.gz /tmp/typos \
+    && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
+
+ARG CODEX_VERSION=0.159.3
+ARG CLAUDE_CODE_VERSION=2.1.286
 ARG STUDIOCTL_VERSION=v0.1.0-preview.26
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
 
@@ -259,6 +281,7 @@ RUN install -d /etc/systemd/system/init.scope.d \
     && claude --version \
     && codex --version \
     && test "$(id -u agent)" = 1000 \
+    && hunspell -v \
     && nvim --version \
     && nvim --headless \
         "+lua assert(vim.g.colors_name == 'habamax'); assert(vim.o.number); assert(vim.o.cursorline); assert(vim.o.termguicolors)" \
@@ -284,6 +307,9 @@ ENTRYPOINT ["/usr/lib/systemd/systemd"]
 FROM base AS full
 
 ARG PLAYWRIGHT_CLI_VERSION=0.1.20
+# The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
+# this ARG together with it. The agent user owns RUSTUP_HOME, so a checkout pinned ahead of this
+# image installs its toolchain on first use instead of failing.
 ARG RUST_VERSION=1.97.1
 
 # Cargo's home is the agent user's, as in the self-dev example: /usr/local/cargo is root-owned, and
@@ -320,7 +346,30 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
-    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt
+    && CARGO_HOME=/usr/local/cargo rustup component add clippy rustfmt \
+    && chown -R agent:agent /usr/local/rustup
+
+# The Rust workspaces' `make deps-check` (src/experimental, src/ci/github-runner/coordinator) runs
+# cargo-machete. The release binary is published per architecture, so the digests are pinned here;
+# the version matches the CI workflows that install it and must move together with them.
+ARG CARGO_MACHETE_VERSION=0.9.2
+
+RUN case "${TARGETARCH}" in \
+        amd64) CARGO_MACHETE_TARGET=x86_64-unknown-linux-musl; \
+            CARGO_MACHETE_SHA256=48200087f54c55aabcd4db4af1e25742b49846c02a1b1bfa134711945b35b2e9 ;; \
+        arm64) CARGO_MACHETE_TARGET=aarch64-unknown-linux-gnu; \
+            CARGO_MACHETE_SHA256=6f96c3e6026a5bdd241b6ae600c6fb86c9197c6e189a894f91371baa01fd10f5 ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && CARGO_MACHETE_NAME="cargo-machete-v${CARGO_MACHETE_VERSION}-${CARGO_MACHETE_TARGET}" \
+    && curl -fsSL \
+        "https://github.com/bnjbvr/cargo-machete/releases/download/v${CARGO_MACHETE_VERSION}/${CARGO_MACHETE_NAME}.tar.gz" \
+        -o /tmp/cargo-machete.tar.gz \
+    && echo "${CARGO_MACHETE_SHA256}  /tmp/cargo-machete.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/cargo-machete.tar.gz -C /tmp "${CARGO_MACHETE_NAME}/cargo-machete" \
+    && install -m 0755 "/tmp/${CARGO_MACHETE_NAME}/cargo-machete" /usr/local/bin/cargo-machete \
+    && rm -rf /tmp/cargo-machete.tar.gz "/tmp/${CARGO_MACHETE_NAME}" \
+    && test "$(cargo-machete --version)" = "${CARGO_MACHETE_VERSION}"
 
 # Playwright ties every package version to one Chromium build. The browser CLI owns the version:
 # the `playwright` package is installed at exactly the version the CLI depends on, so the CLI,
@@ -397,6 +446,7 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -rf /tmp/flux.tar.gz /tmp/helm.tar.gz /tmp/kind /tmp/kubectl /tmp/linux-* \
     && cargo --version \
+    && cargo machete --version \
     && podman --version \
     && podman-compose --version \
     && kind version \
@@ -404,8 +454,6 @@ RUN case "${TARGETARCH}" in \
     && helm version --short \
     && flux --version \
     && ffmpeg -version
-
-ENV RUSTUP_TOOLCHAIN=${RUST_VERSION}
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without
@@ -426,6 +474,138 @@ RUN { getent group kvm >/dev/null || groupadd --system kvm; } \
     && usermod --append --groups kvm agent \
     && systemctl enable agent-browser-ca-init.service \
     && systemctl enable agent-full-hosts-init.service
+
+USER agent
+WORKDIR /home/agent/code
+
+ENTRYPOINT ["/usr/lib/systemd/systemd"]
+
+FROM full AS desktop
+
+# The full stage ends as the unprivileged Agent user; installing packages needs root again.
+USER root
+
+# A minimal X11 desktop: one process that is both X and VNC server, a window manager, a panel, the
+# input and window tools the `desktop` helper uses, AT-SPI for `desktop tree`, and sakura as the
+# terminal, whose text AT-SPI exposes too. Capture reuses the full image's ffmpeg. wmctrl is left
+# out because its build here segfaults on an empty window list; the helper reads the same
+# properties with xprop and xdotool.
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        at-spi2-core \
+        dbus-x11 \
+        fonts-noto-color-emoji \
+        fonts-noto-core \
+        openbox \
+        python3-pyatspi \
+        sakura \
+        tigervnc-standalone-server \
+        tint2 \
+        x11-utils \
+        x11-xserver-utils \
+        xdotool \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG NOVNC_VERSION=1.7.0
+ARG NOVNC_SHA256=b1003a11b6e6e8d8f7f5e5586daae7f8ca651d8aee0aa155ff9ac841c48f52c6
+ARG WS_VERSION=8.21.3
+
+# The browser viewer: noVNC, pinned by digest and trimmed to the files it serves, and `ws` for its
+# WebSocket bridge. Neither is packaged for Ubuntu. Agent Sandboxes mount their CA bundle at the
+# path below, so this step's Node downloads trust it.
+RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
+      export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
+    fi; \
+    curl -fsSL "https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz" -o /tmp/novnc.tar.gz \
+    && echo "${NOVNC_SHA256}  /tmp/novnc.tar.gz" | sha256sum -c - \
+    && install -d -m 0755 /usr/local/share/novnc \
+    && tar -xzf /tmp/novnc.tar.gz -C /usr/local/share/novnc --strip-components=1 \
+        "noVNC-${NOVNC_VERSION}/vnc.html" \
+        "noVNC-${NOVNC_VERSION}/app" \
+        "noVNC-${NOVNC_VERSION}/core" \
+        "noVNC-${NOVNC_VERSION}/vendor" \
+        "noVNC-${NOVNC_VERSION}/po" \
+        "noVNC-${NOVNC_VERSION}/defaults.json" \
+        "noVNC-${NOVNC_VERSION}/mandatory.json" \
+        "noVNC-${NOVNC_VERSION}/package.json" \
+        "noVNC-${NOVNC_VERSION}/LICENSE.txt" \
+    && rm -f /tmp/novnc.tar.gz \
+    && npm install --global "ws@${WS_VERSION}" \
+    && node -e "require('ws')" \
+    && test -f /usr/local/share/novnc/vnc.html \
+    && rm -rf /home/agent/.npm /home/agent/.cache
+
+COPY --chmod=0755 common/novnc-service.js /usr/local/libexec/agent-novnc
+
+# What this image offers for `access: [{type: vnc}]`: units shipped disabled, which agentd enables
+# when an Agent declares the capability.
+COPY common/vnc.socket /etc/systemd/system/agent-vnc.socket
+COPY common/vnc.service /etc/systemd/system/agent-vnc.service
+COPY common/vnc-web.service /etc/systemd/system/agent-vnc-web.service
+COPY common/access-vnc.conf /etc/agent-access.d/vnc.conf
+
+COPY common/desktop.conf /etc/agent-desktop.conf
+COPY common/desktop-display.service /etc/systemd/system/agent-desktop-display.service
+COPY common/desktop-session.service /etc/systemd/system/agent-desktop-session.service
+COPY common/desktop-dbus.service /etc/systemd/system/agent-desktop-dbus.service
+COPY --chmod=0755 common/desktop-tree.py /usr/local/libexec/agent-desktop-tree
+COPY --chmod=0755 common/playwright-chromium.sh /usr/local/libexec/agent-playwright-chromium
+COPY common/desktop-openbox-rc.xml /etc/xdg/openbox/rc.xml
+COPY common/desktop-tint2rc /etc/xdg/tint2/tint2rc
+COPY --chmod=0755 common/desktop-session.sh /usr/local/libexec/agent-desktop-session
+COPY --chmod=0755 common/bin/chromium common/bin/desktop common/bin/desktop-terminal /usr/local/bin/
+COPY common/desktop-terminal.desktop /usr/local/share/applications/desktop-terminal.desktop
+
+# xdotool refuses multi-byte characters such as æ, ø and å under the POSIX locale.
+ENV LANG=C.UTF-8
+# Every Session uses the Agent's own display. The desktop units read the same value from
+# /etc/agent-desktop.conf, and the build below fails if the two disagree.
+ENV DISPLAY=:1
+# AT-SPI needs a session bus shared by Sessions and desktop programs. A Session is a tmux process
+# rather than a login, so agent-desktop-dbus.service provides one at this fixed address.
+ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+# Chromium joins the accessibility bus only with ACCESSIBILITY_ENABLED, and fills in its tree only
+# with --force-renderer-accessibility (about 20 MiB and 90 ms at startup). The `chromium` launcher
+# passes the switch; playwright-cli starts headed browsers through it and headless ones as before.
+ENV ACCESSIBILITY_ENABLED=1
+ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/usr/local/libexec/agent-playwright-chromium
+
+# These checks run as root with a scratch HOME: openbox writes under $HOME/.cache when invoked,
+# and a root-owned file there would lock the Agent out of its own cache. The home ownership check
+# below catches a future check that writes there anyway.
+RUN systemctl enable agent-desktop-display.service agent-desktop-session.service agent-desktop-dbus.service \
+    && HOME=/tmp/image-checks sh -c ' \
+        Xtigervnc -version 2>&1 | head -1 \
+        && openbox --version | head -1 \
+        && tint2 --version \
+        && xdotool --version \
+        && command -v sakura >/dev/null \
+        && AGENT_BROWSER_CA_READY_FILE=/dev/null chromium --version \
+        && /usr/local/libexec/agent-playwright-chromium --headless --version \
+        && desktop help >/dev/null' \
+    && rm -rf /tmp/image-checks \
+    && test -x /usr/local/bin/desktop \
+    && python3 -c 'import pyatspi' \
+    && test -f /usr/share/dbus-1/services/org.a11y.Bus.service \
+    && test "${DBUS_SESSION_BUS_ADDRESS}" = "unix:path=${XDG_RUNTIME_DIR}/bus" \
+    && . /etc/agent-desktop.conf \
+    && test "${DISPLAY}" = "${AGENT_DESKTOP_DISPLAY}" \
+    && vnc_port="$(sed -n 's/^port=//p' /etc/agent-access.d/vnc.conf)" \
+    && web_port="$(sed -n 's/^web-port=//p' /etc/agent-access.d/vnc.conf)" \
+    && { grep -qxF "ListenStream=127.0.0.1:${vnc_port}" /etc/systemd/system/agent-vnc.socket \
+        || { echo "agent-vnc.socket does not listen on the descriptor's port ${vnc_port}" >&2; exit 1; }; } \
+    && { grep -qxF "Environment=AGENT_NOVNC_PORT=${web_port}" /etc/systemd/system/agent-vnc-web.service \
+        || { echo "agent-vnc-web.service does not serve the descriptor's web-port ${web_port}" >&2; exit 1; }; } \
+    && for unit in agent-vnc.socket agent-vnc.service agent-vnc-web.service; do \
+        state="$(systemctl is-enabled "${unit}" 2>/dev/null || true)"; \
+        case "${state}" in disabled | static) ;; \
+            *) echo "${unit} is ${state}; it must ship disabled" >&2; exit 1 ;; \
+        esac; \
+    done \
+    && command -v ss >/dev/null \
+    && if find /home/agent ! -user agent -print -quit | grep -q .; then \
+        echo "build left files under /home/agent not owned by agent" >&2; exit 1; \
+    fi
 
 USER agent
 WORKDIR /home/agent/code

@@ -21,7 +21,8 @@
     <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Altinn.Common.AccessToken" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" ExcludeAssets="all" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
@@ -50,6 +51,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
     <PackageReference Include="HtmlAgilityPack" />
@@ -150,6 +152,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
+    <ProjectReference Include="../../../../cli/common/dotnet/Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
     <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>

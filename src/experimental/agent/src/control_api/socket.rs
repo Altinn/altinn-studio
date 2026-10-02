@@ -7,7 +7,7 @@ use crate::Error;
 
 use super::{Connector, Server, client::Connection};
 
-const MAX_CONCURRENT_CONNECTIONS: usize = 64;
+const MAX_CONCURRENT_CONNECTIONS: usize = 128;
 const CONNECTION_DRAIN_TIMEOUT: Duration = Duration::from_mins(1);
 type ConnectionFuture = futures_util::future::LocalBoxFuture<'static, ()>;
 

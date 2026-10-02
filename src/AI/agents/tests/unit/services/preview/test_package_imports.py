@@ -21,6 +21,5 @@ def test_package_re_exports_the_engine_symbols_themselves():
     import agents.services.preview as package
     import agents.services.preview.render_check as module
 
-    for name in ("PageRenderResult", "PreviewCheckUnavailable",
-                 "read_page_order", "swap_layout_in_preview_url"):
+    for name in ("PageRenderResult", "PreviewCheckUnavailable", "read_page_order", "swap_layout_in_preview_url"):
         assert getattr(package, name) is getattr(module, name), name

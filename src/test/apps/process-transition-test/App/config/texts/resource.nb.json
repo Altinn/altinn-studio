@@ -204,6 +204,38 @@
     {
       "id": "endState.waitExpired",
       "value": "Svaret kommer aldri (ventebudsjettet brukes opp)"
+    },
+    {
+      "id": "next.title",
+      "value": "Neste steg etter service tasken"
+    },
+    {
+      "id": "next.help",
+      "value": "«Task 2» er en vanlig datatask. «Signering» ruter til Task_Sign, en signeringstask med egen layout-mappe – en økt som fortsatt står på service taskens url når prosessen flytter seg, må da slå opp en annen task enn den gjeldende."
+    },
+    {
+      "id": "next.task2",
+      "value": "Task 2"
+    },
+    {
+      "id": "next.sign",
+      "value": "Signering"
+    },
+    {
+      "id": "sign.title",
+      "value": "Signering"
+    },
+    {
+      "id": "sign.body",
+      "value": "Signer for å fullføre, eller avslå for å gå tilbake til Task 1."
+    },
+    {
+      "id": "sign.reject",
+      "value": "Avslå"
+    },
+    {
+      "id": "sign.sign",
+      "value": "Signer"
     }
   ]
 }

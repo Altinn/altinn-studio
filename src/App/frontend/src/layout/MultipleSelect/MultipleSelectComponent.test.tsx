@@ -2,12 +2,18 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const dummyLabel = 'dummyLabel';
+
+function DisplayValue({ baseComponentId }: { baseComponentId: string }) {
+  return <output data-testid='display-value'>{useDisplayData(baseComponentId)}</output>;
+}
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'MultipleSelect'>> = {}) =>
   await renderGenericComponentTest({
@@ -36,6 +42,39 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
   });
 
 describe('MultipleSelect', () => {
+  it.each([
+    { initialData: {}, expected: '' },
+    { initialData: { choices: [] }, expected: '' },
+    {
+      initialData: {
+        choices: [
+          { value: 'first', checked: true },
+          { value: 'second', checked: false },
+        ],
+      },
+      expected: 'first',
+    },
+  ])('displays selected group values for $initialData', async ({ initialData, expected }) => {
+    await render({
+      renderer: ({ baseComponentId }) => <DisplayValue baseComponentId={baseComponentId} />,
+      component: {
+        dataModelBindings: {
+          group: { dataType: defaultDataTypeMock, field: 'choices' },
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'choices.value' },
+          checked: { dataType: defaultDataTypeMock, field: 'choices.checked' },
+        },
+      },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = initialData;
+          }),
+      },
+    });
+
+    expect(screen.getByTestId('display-value').textContent).toBe(expected);
+  });
+
   it('required validation should only show for simpleBinding', async () => {
     await render({
       component: {

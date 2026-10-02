@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+
+import pytest
 
 from benchmarks import impact
 
@@ -99,8 +102,7 @@ def test_both_kinds_are_reported_when_both_are_present():
 def test_the_gate_says_one_thing_about_the_baseline(capsys):
     """It asserted the baseline was stale and then that it travelled with the
     change, in the same output."""
-    impact.report(["src/AI/agents/benchmarks/gates.py",
-                   "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
+    impact.report(["src/AI/agents/benchmarks/gates.py", "src/AI/agents/benchmarks/BASELINE.json"], strict=True)
     said = capsys.readouterr().out
 
     assert "was measured with this instrument" in said
@@ -184,9 +186,7 @@ class TestTheFailureTellsYouWhatToDo:
         assert "did not mean to change the yardstick" in text
 
     def test_a_change_carrying_a_new_pointer_passes(self, tmp_path):
-        code, text = self._run_impact(
-            ["benchmarks/datasets/gates_scope.jsonl", "benchmarks/BASELINE.json"], tmp_path
-        )
+        code, text = self._run_impact(["benchmarks/datasets/gates_scope.jsonl", "benchmarks/BASELINE.json"], tmp_path)
         assert code == 0
         assert "measured with this instrument" in text
 
@@ -196,9 +196,7 @@ class TestTheFailureTellsYouWhatToDo:
 
     def test_without_strict_it_reports_and_does_not_fail(self, tmp_path):
         """So a developer can ask before pushing without the command exiting non-zero."""
-        code, text = self._run_impact(
-            ["benchmarks/datasets/gates_scope.jsonl"], tmp_path, strict=False
-        )
+        code, text = self._run_impact(["benchmarks/datasets/gates_scope.jsonl"], tmp_path, strict=False)
         assert code == 0
         assert "INVALIDATES THE BASELINE" in text
 
@@ -211,8 +209,14 @@ class TestTheGateRunsWithoutDependencies:
         import ast
 
         allowed = {
-            "fnmatch", "dataclasses", "json", "pathlib", "subprocess", "sys",
-            "benchmarks", "__future__",
+            "fnmatch",
+            "dataclasses",
+            "json",
+            "pathlib",
+            "subprocess",
+            "sys",
+            "benchmarks",
+            "__future__",
         }
         for name in ("impact", "baseline"):
             source = (AGENTS_ROOT / "benchmarks" / f"{name}.py").read_text()
@@ -255,10 +259,9 @@ class TestTheCommandCatalogue:
         from benchmarks import runner
 
         parser = runner._parser()
-        actions = [
-            a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"
-        ]
+        actions = [a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"]
         assert actions, "the parser has no subcommands"
+        assert actions[0].choices is not None
         assert set(actions[0].choices) == {e.name for e in runner.CATALOGUE}
 
     def test_help_text_comes_from_the_catalogue(self):
@@ -272,9 +275,7 @@ class TestTheCommandCatalogue:
         from benchmarks import runner
 
         monkeypatch.setattr("sys.stdin.isatty", lambda: False)
-        monkeypatch.setattr(
-            "builtins.input", lambda *_: pytest.fail("the menu prompted without a terminal")
-        )
+        monkeypatch.setattr("builtins.input", lambda *_: pytest.fail("the menu prompted without a terminal"))
         assert runner.menu() == 0
         printed = capsys.readouterr().out
         for entry in runner.CATALOGUE:
@@ -313,7 +314,9 @@ class TestComponentCoverage:
         universe = components.universe()
         assert len(universe) > 40, "the component schemas were not found"
         assert "Datepicker" in universe
-        assert "FileUploadWithTag" in universe
+        assert "FileUpload" in universe
+        assert "FileUploadWithTag" not in universe
+        assert "LikertItem" not in universe
         assert not any(name.startswith("common-defs") for name in universe)
 
     def test_it_reports_what_the_items_exercise(self):
@@ -360,10 +363,20 @@ class TestComponentCoverage:
     def test_no_schemas_degrades_rather_than_crashing(self, monkeypatch):
         from benchmarks import components
 
-        monkeypatch.setattr(components, "SCHEMA_DIR", pathlib_path_that_does_not_exist())
+        monkeypatch.setattr(components, "LAYOUT_SCHEMA_PATH", pathlib_path_that_does_not_exist())
         assert components.universe() == ()
         coverage = components.Coverage(universe=(), by_dataset={}, unavailable=())
         assert "cannot be computed" in components.render(coverage)[0]
+
+    def test_new_components_are_discovered_from_the_layout_contract(self, monkeypatch, tmp_path):
+        from benchmarks import components
+
+        schema_path = tmp_path / "layout.schema.v1.json"
+        schema_path.write_text(
+            json.dumps({"definitions": {"AnyComponent": {"properties": {"type": {"enum": ["Input", "NewComponent"]}}}}})
+        )
+        monkeypatch.setattr(components, "LAYOUT_SCHEMA_PATH", schema_path)
+        assert components.universe() == ("Input", "NewComponent")
 
 
 def pathlib_path_that_does_not_exist():
@@ -403,7 +416,7 @@ class TestTheOutputStaysReadable:
             ("langfuse", "Context error: No active span in current context."),
         ):
             record = self._record(name, message)
-            assert not all(f.filter(record) for f in logging.getLogger(name).filters), name
+            assert not logging.getLogger(name).filter(record), name
 
     def test_the_attribute_length_warning_is_dropped(self):
         import logging
@@ -416,7 +429,7 @@ class TestTheOutputStaysReadable:
             "Propagated attribute 'experiment_item_metadata.note' value is over 200 "
             "characters (207 chars). Dropping value.",
         )
-        assert not all(f.filter(dropped) for f in logging.getLogger("langfuse").filters)
+        assert not logging.getLogger("langfuse").filter(dropped)
 
     def test_a_real_error_from_those_loggers_still_prints(self):
         import logging
@@ -429,7 +442,7 @@ class TestTheOutputStaysReadable:
             ("langfuse", "authentication failed"),
         ):
             record = self._record(name, message)
-            assert all(f.filter(record) for f in logging.getLogger(name).filters), name
+            assert logging.getLogger(name).filter(record), name
 
     def test_applying_twice_does_not_stack_filters(self):
         import logging
@@ -445,8 +458,7 @@ class TestTheOutputStaysReadable:
 def test_documentation_beside_a_prompt_is_not_a_prompt():
     """`agents/prompts/*` matched the README and the loader, so a docs-only change
     was told to re-baseline."""
-    for path in ("src/AI/agents/agents/prompts/README.md",
-                 "src/AI/agents/agents/prompts/loader.py"):
+    for path in ("src/AI/agents/agents/prompts/README.md", "src/AI/agents/agents/prompts/loader.py"):
         assert impact.analyze([path]).hits == ()
 
 

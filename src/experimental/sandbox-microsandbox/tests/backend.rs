@@ -1,4 +1,5 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use microsandbox_network::control::NETWORK_CONTROL_PROTOCOL;
 use sandbox::{
@@ -155,6 +156,46 @@ async fn cache_directory_must_not_be_empty() {
             ..
         })
     ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn unused_images_are_never_removed_from_a_cache_other_providers_may_share() {
+    let temporary = tempfile::tempdir().expect("temporary home should be created");
+    let result = MicrosandboxProvider::builder(temporary.path().join("provider"))
+        .cache_directory(temporary.path().join("shared-cache"))
+        .remove_unused_images_after(std::time::Duration::from_mins(1))
+        .open()
+        .await;
+
+    assert!(matches!(
+        result,
+        Err(sandbox::Error::Invalid {
+            field: "provider.unusedImageRetention",
+            ..
+        })
+    ));
+}
+
+#[tokio::test(flavor = "local")]
+async fn unused_images_are_kept_for_at_least_an_hour() {
+    let temporary = tempfile::tempdir().expect("temporary home should be created");
+    let result = MicrosandboxProvider::builder(temporary.path().join("provider"))
+        .remove_unused_images_after(std::time::Duration::from_mins(59))
+        .open()
+        .await;
+
+    assert!(matches!(
+        result,
+        Err(sandbox::Error::Invalid {
+            field: "provider.unusedImageRetention",
+            ..
+        })
+    ));
+    MicrosandboxProvider::builder(temporary.path().join("provider"))
+        .remove_unused_images_after(std::time::Duration::from_hours(1))
+        .open()
+        .await
+        .expect("an hour should be accepted");
 }
 
 #[tokio::test(flavor = "local")]

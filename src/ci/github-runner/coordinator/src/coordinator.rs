@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashSet},
     env, io,
     num::NonZeroU64,
     process::ExitCode,
@@ -9,11 +9,12 @@ use std::{
 use clap::{Args, ValueEnum};
 use futures_util::StreamExt as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, RetentionPolicy, RootFilesystem, SandboxEvent,
-    SandboxFeature, SandboxHandle, SandboxName, SandboxPath, SandboxResources, SandboxService, SandboxSpec,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, ProgressEvent, RetentionPolicy, RootFilesystem,
+    SandboxFeature, SandboxHandle, SandboxName, SandboxPath, SandboxResources, SandboxService, SandboxSpec, StepId,
     execution::{ExecutionEvent, ExecutionId, ExecutionSpec, ExitStatus, StartExecutionRequest},
     image::ImageSource,
     init::InitSystem,
+    progress::{Progress, ProgressCursor, Update},
 };
 use tokio::signal::unix::{Signal, SignalKind, signal};
 
@@ -402,11 +403,16 @@ async fn wait_for_sandbox(
     mut pending: sandbox::PendingSandbox<'_>,
     shutdown: &mut ShutdownSignals,
 ) -> Result<EnsureOutcome, AnyError> {
+    let mut log = ProgressLog::default();
     loop {
         tokio::select! {
             event = pending.next() => {
                 match event {
-                    Some(Ok(OperationEvent::Progress(progress))) => log_sandbox_event(&progress),
+                    Some(Ok(OperationEvent::Progress(event))) => {
+                        for line in log.apply(&event) {
+                            println!("{line}");
+                        }
+                    }
                     Some(Ok(OperationEvent::Ready(sandbox))) => {
                         return Ok(EnsureOutcome::Ready(Box::new(sandbox)));
                     }
@@ -420,22 +426,49 @@ async fn wait_for_sandbox(
     }
 }
 
-fn log_sandbox_event(event: &SandboxEvent) {
-    match event {
-        SandboxEvent::PhaseStarted { phase } => println!("starting: {phase}"),
-        SandboxEvent::PhaseCompleted {
-            phase,
-            outcome,
-            elapsed,
-        } => println!(
-            "completed: {phase}; outcome={outcome:?}; elapsed_ms={}",
-            elapsed.as_millis()
-        ),
-        SandboxEvent::StepStarted { name, .. } => println!("  starting: {name}"),
-        SandboxEvent::StepCompleted { name, elapsed, .. } => {
-            println!("  completed: {name}; elapsed_ms={}", elapsed.as_millis());
+/// Logs an ensure's phases and steps as they start and finish, read from the
+/// folded progress rather than from individual events.
+#[derive(Default)]
+struct ProgressLog {
+    progress: Progress,
+    cursor: ProgressCursor,
+    /// The phase in progress and its steps, once logged as started.
+    phase: Option<String>,
+    steps: HashSet<StepId>,
+}
+
+impl ProgressLog {
+    /// Folds one event and returns the log lines for what started or finished.
+    fn apply(&mut self, event: &ProgressEvent) -> Vec<String> {
+        self.progress.apply(event);
+        let mut lines = Vec::new();
+        for update in self.cursor.updates(&self.progress) {
+            match update {
+                Update::PhaseFinished(phase) => lines.push(format!(
+                    "completed: {}; outcome={:?}; elapsed_ms={}",
+                    phase.phase.label, phase.outcome, phase.elapsed_ms
+                )),
+                Update::StepFinished(step) => lines.push(format!(
+                    "  completed: {}; outcome={:?}; elapsed_ms={}",
+                    step.name, step.outcome, step.elapsed_ms
+                )),
+                Update::Output(_) | Update::OutputSkipped(_) => {}
+            }
         }
-        _ => {}
+        let Some(current) = self.progress.current() else {
+            return lines;
+        };
+        if self.phase.as_deref() != Some(current.phase.id.as_ref()) {
+            lines.push(format!("starting: {}", current.phase.label));
+            self.phase = Some(current.phase.id.to_string());
+            self.steps.clear();
+        }
+        for step in &current.steps {
+            if self.steps.insert(step.id.clone()) {
+                lines.push(format!("  starting: {}", step.name));
+            }
+        }
+        lines
     }
 }
 
@@ -592,8 +625,47 @@ fn exit_code(code: i32) -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{RunnerTarget, exit_code, github_config, runner_url, validate_immutable_image_reference};
-    use std::{num::NonZeroU64, process::ExitCode};
+    use super::{ProgressLog, RunnerTarget, exit_code, github_config, runner_url, validate_immutable_image_reference};
+    use sandbox::{Outcome, ProgressEvent, SandboxPhase, StepId};
+    use std::{num::NonZeroU64, process::ExitCode, time::Duration};
+
+    #[test]
+    fn the_progress_log_reports_phases_and_steps_as_they_start_and_finish() {
+        let mut log = ProgressLog::default();
+        let phase = SandboxPhase::ImageResolve.phase();
+        let step = StepId::generate();
+        let lines = [
+            ProgressEvent::PhaseStarted { phase: phase.clone() },
+            ProgressEvent::StepStarted {
+                id: step.clone(),
+                name: "Pull image".into(),
+                unit: None,
+                total: None,
+            },
+            ProgressEvent::StepEnded {
+                id: step,
+                outcome: Outcome::Completed,
+                elapsed: Duration::from_millis(40),
+            },
+            ProgressEvent::PhaseEnded {
+                phase,
+                outcome: Outcome::Completed,
+                elapsed: Duration::from_millis(50),
+            },
+        ]
+        .iter()
+        .flat_map(|event| log.apply(event))
+        .collect::<Vec<_>>();
+        assert_eq!(
+            lines,
+            [
+                "starting: Resolve Sandbox Image",
+                "  starting: Pull image",
+                "  completed: Pull image; outcome=Completed; elapsed_ms=40",
+                "completed: Resolve Sandbox Image; outcome=Completed; elapsed_ms=50",
+            ]
+        );
+    }
 
     #[test]
     fn accepts_digest_pinned_image() {

@@ -50,7 +50,7 @@ public class DefaultTaskValidatorTests
 
     public DefaultTaskValidatorTests()
     {
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(_applicationMetadata);
         _sut = new DefaultTaskValidator(_appMetadataMock.Object);
     }
 

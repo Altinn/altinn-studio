@@ -35,6 +35,7 @@ export interface TestPdfOptions {
 }
 
 export type SnapshotViewport = 'desktop' | 'tablet' | 'mobile';
+export type ViewportName = SnapshotViewport | 'laptop';
 
 export interface SnapshotOptions {
   wcag: boolean;
@@ -189,6 +190,9 @@ declare global {
        */
       clickAndGone(): Chainable<null>;
 
+      /** Click a process action and wait for its successful process/next response. */
+      clickAndWaitForProcessNext(): Chainable<number>;
+
       /**
        * Replace all non-breaking spaces with normal spaces in the subject
        */
@@ -228,7 +232,7 @@ declare global {
       /**
        * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.
        */
-      clearSelectionAndWait(viewport?: SnapshotViewport): Chainable<null>;
+      clearSelectionAndWait(viewport?: ViewportName): Chainable<null>;
 
       getSummary(label: string): Chainable<Element>;
       directSnapshot(

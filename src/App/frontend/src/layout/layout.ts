@@ -3,6 +3,7 @@ import type { IDataModelReference, ILayoutFile } from '@app/layout-contract/gene
 import type { $Keys, PickByValue } from 'utility-types';
 
 import type { CompBehaviors } from 'src/codegen/Config';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type { ComponentTypeConfigs, getComponentConfigs } from 'src/layout/components.generated';
 import type { CompClassMapCategories } from 'src/layout/index';
 
@@ -30,7 +31,6 @@ type AllComponents = ComponentTypeConfigs[CompTypes]['layout'];
  *
  *  const myImageComponent:CompExternal<'Image'> = ...
  *
- * @see CompInternal
  */
 export type CompExternal<Type extends CompTypes = CompTypes> = Extract<AllComponents, { type: Type }>;
 
@@ -38,14 +38,6 @@ export type CompExternal<Type extends CompTypes = CompTypes> = Extract<AllCompon
  * Alternative version of the one above
  */
 export type CompExternalExact<Type extends CompTypes> = ComponentTypeConfigs[Type]['layout'];
-
-/**
- * When running hierarchy generation, an intermediate type is used. This will contain the same properties as
- * CompExternal. At this point the ID property will be set to `<baseId>-<rowIndex>` as expected for
- * repeating groups, etc.
- */
-export type CompIntermediate<Type extends CompTypes = CompTypes> = CompExternal<Type>;
-export type CompIntermediateExact<Type extends CompTypes> = CompExternalExact<Type>;
 
 /**
  * Gets the possible Summary2 overrides for a given component type
@@ -59,22 +51,18 @@ export type CompSummaryOverridesWithRef<Type extends CompTypes = CompTypes> =
  * you the correct data model bindings for that component.
  */
 export type IDataModelBindings<T extends CompTypes = CompTypes> = Exclude<
-  CompInternal<T>['dataModelBindings'],
+  CompExternal<T>['dataModelBindings'],
   undefined
 >;
 
 export type ITextResourceBindingsExternal<T extends CompTypes = CompTypes> =
   ComponentTypeConfigs[T]['layout']['textResourceBindings'];
 
-export type ITextResourceBindings<T extends CompTypes = CompTypes> = CompInternal<T>['textResourceBindings'];
+export type ITextResourceBindings<T extends CompTypes = CompTypes> = ExprResolved<
+  CompExternal<T>['textResourceBindings']
+>;
 
 export type ILayout = CompExternal[];
-
-/**
- * The result of evaluating expressions for a component. This 'internal' item is what the layout configuration will
- * look like once every expression within it has been evaluated.
- */
-export type CompInternal<T extends CompTypes = CompTypes> = ReturnType<ComponentConfigs[T]['def']['evalExpressions']>;
 
 export type TypesFromCategory<Cat extends CompCategory> = $Keys<PickByValue<CompClassMapCategories, Cat>>;
 

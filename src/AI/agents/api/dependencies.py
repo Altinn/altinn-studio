@@ -1,6 +1,7 @@
 """
 API dependencies for authentication and authorization
 """
+
 from fastapi import Depends
 from fastapi.security import APIKeyHeader
 

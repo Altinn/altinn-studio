@@ -1,5 +1,5 @@
 using System.Text;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -14,10 +14,19 @@ internal interface IWorkflowCallbackTokenValidator
 {
     /// <summary>
     /// Validates that <paramref name="token"/> is a JWT signed with a currently accepted
-    /// <c>WorkflowEngineCallback</c> code and that it was issued for <paramref name="instanceGuid"/>.
+    /// <c>WorkflowEngineCallback</c> code, issued for <paramref name="instanceGuid"/>, and authorizing
+    /// <paramref name="commandKey"/>. Returns <c>null</c> when it is not.
     /// </summary>
-    Task<bool> ValidateToken(string? token, Guid instanceGuid);
+    Task<ValidatedWorkflowCallbackToken?> ValidateToken(string? token, Guid instanceGuid, string commandKey);
 }
+
+/// <summary>
+/// A callback token that passed validation, carrying what the request itself must still be checked against.
+/// </summary>
+/// <param name="ActorHash">
+/// <see cref="WorkflowCallbackTokenGenerator.ActorHash"/> of the actor the token was minted for.
+/// </param>
+internal sealed record ValidatedWorkflowCallbackToken(string ActorHash);
 
 /// <inheritdoc />
 internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenValidator
@@ -39,12 +48,16 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
         _secretProvider = secretProvider;
     }
 
-    public async Task<bool> ValidateToken(string? token, Guid instanceGuid)
+    public async Task<ValidatedWorkflowCallbackToken?> ValidateToken(
+        string? token,
+        Guid instanceGuid,
+        string commandKey
+    )
     {
         if (string.IsNullOrWhiteSpace(token))
         {
             _logger.LogWarning("Workflow callback token validation failed: no token provided.");
-            return false;
+            return null;
         }
 
         IReadOnlyList<AppCode> secrets;
@@ -55,7 +68,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
         catch (WorkflowCallbackSecretNotFoundException ex)
         {
             _logger.LogWarning(ex, "Workflow callback token validation failed - secrets not found.");
-            return false;
+            return null;
         }
 
         JsonWebTokenHandler handler = new();
@@ -69,16 +82,16 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Workflow callback token validation failed: could not read token.");
-            return false;
+            return null;
         }
 
-        if (!jwt.TryGetClaim(JwtClaimTypes.SecretId, out var secretIdClaim))
+        if (!jwt.TryGetClaim(JwtClaimTypes.AppCode.SecretId, out var secretIdClaim))
         {
             _logger.LogWarning(
                 "Workflow callback token validation failed: token has no secret_id claim for instance {InstanceGuid}.",
                 instanceGuid
             );
-            return false;
+            return null;
         }
 
         string secretId = secretIdClaim.Value;
@@ -90,7 +103,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
                 secretId,
                 instanceGuid
             );
-            return false;
+            return null;
         }
 
         // Reject codes that are themselves expired (with the same clock skew applied to token lifetime).
@@ -104,7 +117,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
                 secretId,
                 instanceGuid
             );
-            return false;
+            return null;
         }
 
         SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(appCode.Code));
@@ -129,7 +142,7 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
                 instanceGuid,
                 result.Exception?.Message
             );
-            return false;
+            return null;
         }
 
         bool jtiMatches =
@@ -143,10 +156,36 @@ internal sealed class WorkflowCallbackTokenValidator : IWorkflowCallbackTokenVal
                 jti,
                 instanceGuid
             );
-            return false;
+            return null;
         }
 
-        return true;
+        var validatedJwt = (JsonWebToken)result.SecurityToken;
+        if (
+            !validatedJwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.Commands, out string[]? commandKeys)
+            || commandKeys?.Contains(commandKey, StringComparer.Ordinal) is not true
+        )
+        {
+            _logger.LogWarning(
+                "Workflow callback token validation failed: command {CommandKey} is not authorized by the token for instance {InstanceGuid}.",
+                commandKey,
+                instanceGuid
+            );
+            return null;
+        }
+
+        if (
+            !validatedJwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.ActorHash, out string? actorHash)
+            || string.IsNullOrEmpty(actorHash)
+        )
+        {
+            _logger.LogWarning(
+                "Workflow callback token validation failed: token has no actor binding for instance {InstanceGuid}.",
+                instanceGuid
+            );
+            return null;
+        }
+
+        return new ValidatedWorkflowCallbackToken(actorHash);
     }
 
     /// <summary>

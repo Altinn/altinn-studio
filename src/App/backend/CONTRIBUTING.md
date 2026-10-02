@@ -28,7 +28,7 @@ Feel free to query existing issues before creating a new one.
 - Test your changes, see the testing changes below
 - Create PR - fill in the required sections
     - Try to provide reasoning/rationale for the changes if it hasn't already been discussed
-    - Attach appropriate tags according to the change (`feature`, `kind/feature-request`, `bugfix`, `kind/bug`, `kind/chore`)
+    - Attach appropriate tags according to the change (`feature`, `kind/feature-request`, `bugfix`, `bug`, `kind/chore`)
     - If you work on team Apps, attach the `Team Apps` project, add it to a sprint and input an estimate (if an issue isn't already added)
 - Make sure coding style is consistent
     - Csharpier for formatting (`editor.formatOnSave` is on by default, there should be an extension for your editor/IDE)

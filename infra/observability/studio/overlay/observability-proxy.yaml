@@ -1,0 +1,281 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: observability-proxy-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: observability-proxy
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: observability-proxy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-proxy
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/observability-proxy:latest
+    altinn.studio/image-tag: latest
+  labels:
+    app: observability-proxy
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  replicas: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: observability-proxy
+  template:
+    metadata:
+      labels:
+        app: observability-proxy
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      serviceAccountName: observability-proxy
+      # The proxy never talks to the API server.
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      # One replica per node, and across zones where the pool has them, so a node or zone
+      # outage takes at most one replica. The hostname spread is a hard rule; tainted pools
+      # the proxy cannot run on are left out of the count, or their empty nodes would block
+      # scheduling. The zone spread is best effort: the general pool is not zonal, and there
+      # every node carries the same zone label or only a fault domain number.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: observability-proxy
+          matchLabelKeys:
+            - pod-template-hash
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: observability-proxy
+          matchLabelKeys:
+            - pod-template-hash
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: observability-proxy
+          image: ""
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          lifecycle:
+            # Keeps serving while the endpoint removal reaches kube-proxy and the load
+            # balancer, so a replica being stopped is not sent new requests it would refuse.
+            # The native sleep action, because the chiseled image has no shell; it is GA
+            # from Kubernetes 1.34, and the Studio clusters run 1.34.2.
+            preStop:
+              sleep:
+                seconds: 5
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            # Downstream addresses are the Victoria service names, which this repository
+            # also defines, so they live in appsettings.json rather than being restated here.
+            - name: ObservabilityProxy__Authentication__TokensFilePath
+              value: /etc/observability-proxy/auth-tokens.json
+            # Every rate limit below is per replica: each replica counts only the requests
+            # it serves, so the effective limit for an identity is replicas x limit, twice
+            # the configured number with the two replicas in prod.
+            #
+            # The default is sized for an identity that is one cluster: studio-dev,
+            # studio-staging, studio-prod and grafana.
+            - name: ObservabilityProxy__RateLimiting__PermitLimit
+              value: "10000"
+            # runtime-nonprod and runtime-prod are one token each, shared by every
+            # serviceowner runtime cluster in that environment - tens of clusters, not one.
+            # Each cluster's otel-gateway exports three signals on its own batch timer, and
+            # that timer is 5s (see infra/observability/base/gateway.yaml), so the floor is
+            # clusters x 3 signals x 12 exports/minute before any size-triggered flush. At
+            # tens of clusters the floor alone is a four-figure rate, a backlog drained
+            # after a Studio prod outage is a large multiple of it, and the default 10000
+            # would reject legitimate traffic. 120000/minute leaves room for the drain while
+            # still capping a runaway source. It is an estimate: revisit both numbers
+            # against the proxy's own rejection rate per source identity once F1 has landed
+            # and the real rate is measurable.
+            - name: ObservabilityProxy__RateLimiting__PermitLimits__runtime-nonprod
+              value: "120000"
+            - name: ObservabilityProxy__RateLimiting__PermitLimits__runtime-prod
+              value: "120000"
+            - name: ObservabilityProxy__RateLimiting__WindowSeconds
+              value: "60"
+            - name: ObservabilityProxy__RateLimiting__QueueLimit
+              value: "0"
+          volumeMounts:
+            - name: auth-tokens
+              mountPath: /etc/observability-proxy
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        # Created by Terraform from the Studio Key Vault. Rotating a token is a Secret
+        # change; the proxy re-reads the file and no Deployment change is needed.
+        - name: auth-tokens
+          secret:
+            secretName: observability-proxy-auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-proxy
+spec:
+  type: ClusterIP
+  selector:
+    app: observability-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: observability-proxy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              run: altinn-loadbalancer
+        - podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Egress only to what the proxy forwards to: the three agents on their OTLP ports and
+# the six storage instances on their HTTP ports, which is also where the read
+# clusters' health checks go, plus cluster DNS. The selectors are the labels the
+# VictoriaMetrics operator puts on its pods, and the ones the hand-written vtagent
+# StatefulSet copies. Kubelet probes need no rule: traffic from the pod's own node is
+# always allowed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-proxy-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: observability-proxy
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmagent
+      ports:
+        - protocol: TCP
+          port: 8429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtagent
+      ports:
+        - protocol: TCP
+          port: 10429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+      ports:
+        - protocol: TCP
+          port: 9429
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vmsingle
+      ports:
+        - protocol: TCP
+          port: 8428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vtsingle
+      ports:
+        - protocol: TCP
+          port: 10428
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+      ports:
+        - protocol: TCP
+          port: 9428
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

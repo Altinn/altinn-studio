@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type AwaitingOtherSignaturesPanelProps = {
   baseComponentId: string;
@@ -12,7 +14,20 @@ type AwaitingOtherSignaturesPanelProps = {
 };
 
 export function AwaitingOtherSignaturesPanel({ baseComponentId, hasSigned }: AwaitingOtherSignaturesPanelProps) {
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigningActions');
+  const config = useComponentConfig(baseComponentId, 'SigningActions');
+  const awaitingOtherSignaturesPanelTitle = useEvalOptionalText(
+    config.textResourceBindings?.awaitingOtherSignaturesPanelTitle,
+    Expressions.SigningActions.textResourceBindings.awaitingOtherSignaturesPanelTitle,
+  );
+  const awaitingOtherSignaturesPanelDescriptionNotSigning = useEvalOptionalText(
+    config.textResourceBindings?.awaitingOtherSignaturesPanelDescriptionNotSigning,
+    Expressions.SigningActions.textResourceBindings.awaitingOtherSignaturesPanelDescriptionNotSigning,
+  );
+  const awaitingOtherSignaturesPanelDescriptionSigned = useEvalOptionalText(
+    config.textResourceBindings?.awaitingOtherSignaturesPanelDescriptionSigned,
+    Expressions.SigningActions.textResourceBindings.awaitingOtherSignaturesPanelDescriptionSigned,
+  );
+
   const [userTriedToSubmit, setUserTriedToSubmit] = useState<boolean>(false);
 
   useEffect(() => {
@@ -26,14 +41,12 @@ export function AwaitingOtherSignaturesPanel({ baseComponentId, hasSigned }: Awa
     }
   }, [userTriedToSubmit]);
 
-  const heading =
-    textResourceBindings?.awaitingOtherSignaturesPanelTitle ?? 'signing.awaiting_other_signatures_panel_title';
+  const heading = awaitingOtherSignaturesPanelTitle ?? 'signing.awaiting_other_signatures_panel_title';
   const descriptionNotSigning =
-    textResourceBindings?.awaitingOtherSignaturesPanelDescriptionNotSigning ??
+    awaitingOtherSignaturesPanelDescriptionNotSigning ??
     'signing.awaiting_other_signatures_panel_description_not_signing';
   const descriptionSigned =
-    textResourceBindings?.awaitingOtherSignaturesPanelDescriptionSigned ??
-    'signing.awaiting_other_signatures_panel_description_signed';
+    awaitingOtherSignaturesPanelDescriptionSigned ?? 'signing.awaiting_other_signatures_panel_description_signed';
   const errorMessage = 'signing.awaiting_other_signatures_panel_error_message';
 
   return (

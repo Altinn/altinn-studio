@@ -73,6 +73,34 @@ scans ensure dropped notifications or daemon restarts do not lose work. Provider
 incarnation, and a reused Agent name never inherits resources from a deleted incarnation. The Sandbox is named after the
 incarnation, while its guest hostname is the Agent name so shell prompts and logs identify the Agent.
 
+A running Sandbox's guest can stall while its VM process keeps running. The Sandbox SDK reports the guest's heartbeat
+without a round trip to the guest. While reconciliation works inside the guest, `agentd` inspects the heartbeat every 2
+seconds and records when it last advanced on the host clock. After 15 seconds without progress the work ends, and the
+Agent reports `SandboxResponsive=False` and `Ready=False` with reason `SandboxUnresponsive`. A stalled guest therefore
+cannot hold its Agent's reconciliation, and a command waiting for the Agent to become Ready fails once the stall is
+recorded. The next pass after the heartbeat advances makes the Agent Ready again. A stalled guest is not restarted
+automatically; `agentctl stop` and then `agentctl start` restart it.
+
+An Agent's `spec.runState` is `Running`, the default, or `Stopped`. `agentctl stop` and `agentctl start` set it as a
+new generation; a manifest may set it, and `apply` of one that omits it keeps the current run state. For a stopped Agent
+the reconciler stops the Sandbox VM and its Network, killing a VM that does not stop gracefully, and keeps its root
+filesystem, Volumes, identity and Provider assignment. It reaches nothing in the guest and reports `Ready=False` and
+`SandboxReady=False` with reason `Stopped`. Commands that need the Sandbox fail at once, and its Sessions go Idle, as
+after inactivity. A start is an ordinary pass on the same root filesystem; it launches no harness, and the next attach
+to a Session resumes its conversation.
+
+Provisioning progress is observed as state, not as a stream. The Sandbox SDK folds progress events into a `Progress`
+value, so an observer that joins late or falls behind sees what one that saw every event would. `agentd` keeps each
+Agent's latest provisioning pass in memory, and records a routine resync of a Ready Agent only when it fails; the
+durable outcome is the Agent's conditions, with their transition times, and its failure class. Clients follow one Agent
+with `agents.v1.progress` and every Agent and Session with `resources.v1.watch`, long-polls that return when the daemon
+drains. Commands that wait for an Agent, such as `apply --wait`, `wait`, `start` and `stop`, call `agents.v1.converge`
+while they follow its progress. It wakes the Agent and returns once a pass for its generation recorded its desired run
+state, Ready or stopped, waiting through transient failures.
+
+`agentctl tui` builds on the same two calls: it follows `resources.v1.watch` for the fleet and `agents.v1.progress` for
+one Agent's provisioning, and derives each Agent's state from its conditions and failure class.
+
 Sessions have platform-assigned identities independent of tmux and harness-native conversation IDs. Each Session binds
 immutably to one of its Agent's declared harness installations and to a model selection (model and effort level)
 resolved at creation: the caller's explicit choice, else the installation's manifest `defaults`, else nothing, leaving
@@ -81,7 +109,11 @@ The selection is recorded with the Session, shown by `agentctl get sessions`, an
 resume, so a later manifest change affects only new Sessions and a model change made inside the harness lasts until
 the next relaunch. Detaching leaves a Session running. An inactive, unattached Session becomes Idle and is relaunched
 on the next ensure or attach, resuming the harness conversation when its native state still exists. Repeated
-unexpected harness exits use bounded backoff.
+unexpected harness exits use bounded backoff. Deleting a Session hides it at once; the Session controller stops its
+harness before removing it, so an unreachable Sandbox delays the deletion rather than leaving a harness untracked.
+Archiving a Session stops its harness once any turn in progress ends, but not for a turn waiting for approval or quiet
+for a minute, and keeps it stopped until the Session is unarchived; it keeps its name and conversation, and the next
+attach resumes it.
 
 Tmux is the current Session runtime, not a security boundary or a permanent generic driver abstraction. A second
 runtime must establish the common interface before one is introduced.
@@ -172,15 +204,14 @@ Important current limitations are:
 - Codex uses a separate ChatGPT subscription login owned and refreshed by `agentd`;
 - Sessions share one Sandbox user and tmux server and therefore one trust boundary;
 - attachment is still a client-side Provider operation rather than a daemon-owned terminal capability;
-- Session content, prompt steering, archive/delete and plugin APIs are not implemented; and
+- Session content, prompt steering and plugin APIs are not implemented; and
 - global scheduling and Kubernetes orchestration are future work.
 
 The next planned slices are:
 
 1. expose harness-native Session content and prompt/steer/interrupt operations;
-2. add Session lifecycle operations such as archive and soft deletion;
-3. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
-4. add global orchestration only after the local control-plane contracts are proven.
+2. add an authorized Sandbox-facing Platform API for delegation and isolated host plugins; and
+3. add global orchestration only after the local control-plane contracts are proven.
 
 ## References
 

@@ -12,6 +12,99 @@ Agent images they work with. The Rust workspace version is a build detail and is
 
 ## [Unreleased]
 
+### Added
+
+- `agentctl tui` opens an Agent with `o`:
+  - in a shell, VS Code, Zed or SSH, offering to add the `Include` to `~/.ssh/config` first ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+  - on its desktop, in the browser or a VNC client ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - through a forward, from the forwards view ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+- `agentctl ssh-info` reports the directory editors open, as `workingDirectory` in JSON. ([#20762](https://github.com/Altinn/altinn-studio/pull/20762))
+- `agentctl stop` and `agentctl start`, or `x` in `agentctl tui`, stop an Agent's VM and start it again on the same disk, also one that stopped responding. Its Sessions go Idle and resume when attached after the start, and re-applying keeps a stopped Agent stopped. ([#20807](https://github.com/Altinn/altinn-studio/issues/20807))
+
+### Changed
+
+- Altinn, self-development, minimal and worktree Agents install Claude Code 2.1.286. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
+- Altinn, self-development and worktree Agents install Codex CLI 0.159.3. ([#20886](https://github.com/Altinn/altinn-studio/pull/20886))
+- `agentctl tui` port forwards: ([#20763](https://github.com/Altinn/altinn-studio/pull/20763))
+  - `q` asks before quitting would close them
+  - they close when their Agent is deleted or re-created
+
+### Fixed
+
+- In Altinn, self-development and worktree Agents, Rust commands in an Altinn Studio checkout no longer fail with `Permission denied` or need a manual `rustup` update: they use the toolchain the checkout pins, installing it on first use when the image is older. ([#20909](https://github.com/Altinn/altinn-studio/pull/20909))
+- Old Agent images no longer fill the disk: `agentd` removes an image 3 days after its last Agent is deleted, so recreating an Agent does not download it again. Images from earlier releases are removed once every Agent has started. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- An Agent whose first start failed no longer fails with `image manifest digest … is not present in this Microsandbox cache` after its image tag, such as `:latest`, moves to a newer version. ([#20865](https://github.com/Altinn/altinn-studio/pull/20865))
+- Interrupted commands that wait for an Agent, such as an editor retrying its SSH connection to an Agent that cannot start, no longer make `agentd` stop answering every other command. ([#20884](https://github.com/Altinn/altinn-studio/pull/20884))
+- An Agent whose Sandbox stops responding, for example after the host wakes from sleep, shows `SandboxUnresponsive` in `agentctl get agents` and `Unresponsive` in `agentctl tui`. `agentctl exec`, `attach`, `ssh`, `prompt`, `turns` and Session creation then fail instead of hanging, and `agentctl delete` completes. ([#20868](https://github.com/Altinn/altinn-studio/pull/20868))
+
+## [0.1.0-preview.8] - 2026-09-30
+
+### Changed
+
+- Agents run on a newer sandbox runtime, which `agentd` installs by itself; running Agents move to it when they restart. Once the new `agentd` has started, earlier releases cannot read Agent state, so you cannot downgrade. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+- On macOS, Agents resolve names through the host's system resolver, so VPN split DNS and `/etc/resolver` domains work inside an Agent as they do on the host. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `.local` names, reverse lookups of private network addresses and names with non-ASCII characters are no longer resolved through the host, so an Agent cannot discover devices on the host's local network. Names in the Agent's own `/etc/hosts` still resolve. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+
+### Fixed
+
+- Agents resolve names again, without a restart, after the host changes networks or comes back online, for example when a laptop moves between Wi-Fi networks or an Agent was started while the host was offline. ([#20792](https://github.com/Altinn/altinn-studio/pull/20792))
+- `agentd` gives back the memory it used to prepare an Agent image once the image is ready. ([#20799](https://github.com/Altinn/altinn-studio/pull/20799))
+- Pressing Ctrl-Z in an attached Session no longer freezes it. ([#20830](https://github.com/Altinn/altinn-studio/pull/20830))
+- Agents with a direct root filesystem, such as the full Altinn Agent, start again after their VM stops, instead of failing with `VMDK missing` until the Agent is deleted. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+
+### Security
+
+- Changing a running Agent's resources after an `agentd` restart no longer gives the Agent network access that bypasses network authorization and secret mediation. ([#20826](https://github.com/Altinn/altinn-studio/pull/20826))
+- An Agent can no longer tunnel non-HTTP traffic through an HTTPS connection to an allowed host to bypass network authorization and secret mediation. WebSocket connections keep working. ([#20831](https://github.com/Altinn/altinn-studio/pull/20831))
+
+## [0.1.0-preview.7] - 2026-09-28
+
+### Added
+
+- `agentctl describe agent` shows the provisioning in progress, or the one that failed with its failing step's output,
+  whether a failure is being retried, and how long each condition has held its state.
+- Agent status in `agentctl get -o yaml` and `-o json` includes condition transition times, the failure class and
+  provisioning progress.
+- Provisioning shows Agent setup and SSH access as phases of their own.
+- The `agentctl` terminal UI is a live triage view: every Agent and Session with its state and how long it has been in
+  it. Sessions that need input are marked and counted, `tab` jumps to the next one, `/` filters, and `?` lists every
+  key.
+- In the terminal UI, a side panel shows the selected Session's recent turns or the selected Agent's status. `p` follows
+  an Agent's provisioning, which also opens for an Agent created with `c`, or prompts a Session without attaching.
+- Altinn Agents include `typos` and `hunspell`, so the repository spell check (`yarn spell:quick`, `yarn spell:check`
+  and the pre-commit hook) runs inside an Agent.
+- The full Altinn Agent includes `cargo-machete`, so `make deps-check` and `make check` in the Rust workspaces run
+  inside an Agent.
+- `agentctl delete session/<name>` and `d` in the terminal UI delete one Session: its harness is stopped and its name
+  becomes free. The harness's own conversation files stay in the Sandbox.
+- `agentctl archive session/<name>` and `a` in the terminal UI archive a Session: its harness stops once any turn in
+  progress ends, and it is hidden until `agentctl unarchive`. `get sessions --archived` and `A` show archived Sessions.
+- A new `desktop` Altinn Agent has a graphical screen it can see and use, driven by a `desktop` helper and a
+  `computer-use` skill: screenshot, zoom, point, scroll and type, including Norwegian text, and read what is showing
+  as an accessibility tree, including the browser's own controls and dialogs. A terminal opens with `Ctrl+Alt+T`
+  or the panel's launcher and has the Session's environment.
+- Agents can declare `access: [{type: vnc}]`. Watch or take over the desktop with `agentctl vnc --web`, in a browser
+  with nothing installed, or `agentctl vnc` for a VNC client of your own.
+
+### Changed
+
+- Commands that wait for an Agent, such as `apply --wait`, pick up provisioning already in progress and no longer drop
+  output when they fall behind.
+- Image pulls and imports show downloading, materializing and assembling as separate steps.
+- The terminal UI updates as Agents and Sessions change instead of every two seconds, and keeps the last state on screen
+  while `agentd` is unreachable.
+- Terminal UI forms share one layout with aligned fields, and `NO_COLOR` turns off color while every state keeps its
+  glyph.
+- New full Altinn Agents finish setup faster. Chromium's trust in the certificate bundle is imported faster and in the
+  background, so Sessions no longer wait for it.
+
+### Fixed
+
+- The terminal UI keeps the selection on the same Agent or Session when rows move or an Agent is folded.
+- A Claude Code Session left Idle for more than 30 days resumes its conversation instead of starting a new one. Claude
+  Code no longer deletes transcripts it considers old.
+- The terminal UI's new-Session form rejects a name the Agent already uses instead of attaching to that Session.
+
 ## [0.1.0-preview.6] - 2026-09-23
 
 ### Changed

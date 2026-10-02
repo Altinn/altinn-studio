@@ -7,7 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <inheritdoc/>
-public class ProcessTaskDataLocker : IProcessTaskDataLocker
+internal sealed class ProcessTaskDataLocker : IProcessTaskDataLocker
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
@@ -26,7 +26,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
     /// <inheritdoc/>
     public async Task Unlock(string taskId, Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)
@@ -47,7 +47,7 @@ public class ProcessTaskDataLocker : IProcessTaskDataLocker
     /// <inheritdoc/>
     public async Task Lock(string taskId, Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
         InstanceIdentifier instanceIdentifier = new(instance);
         foreach (DataType dataType in connectedDataTypes)

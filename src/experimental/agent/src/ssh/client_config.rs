@@ -127,7 +127,28 @@ pub fn render_proxy_command(agentctl: &Path, agent: &str, shell: CommandShell) -
         CommandShell::Posix => posix_quote(executable),
         CommandShell::Windows => windows_quote(executable),
     };
-    Ok(format!("{} ssh-proxy agent/{agent}", quoted.replace('%', "%%")))
+    Ok(format!("{} {}", quoted.replace('%', "%%"), proxy_arguments(agent)))
+}
+
+/// The arguments every Agent's `ProxyCommand` ends with, whatever the executable.
+fn proxy_arguments(agent: &str) -> String {
+    format!("ssh-proxy agent/{agent}")
+}
+
+/// Returns whether OpenSSH's resolved configuration for an Agent's alias, as
+/// `ssh -G` prints it, dials the Agent through `agentctl`.
+///
+/// This is how the user's own client configuration is known to reach the
+/// generated one: OpenSSH applies its own `Include`, `Host` and `Match`
+/// rules, so however the user included it, only the outcome is checked. The
+/// executable is not compared, since any `agentctl` reaches the same daemon.
+#[must_use]
+pub fn resolves_through_agentctl(resolved: &str, agent: &str) -> bool {
+    let arguments = format!(" {}", proxy_arguments(agent));
+    resolved.lines().any(|line| {
+        line.split_once(' ')
+            .is_some_and(|(keyword, value)| keyword == "proxycommand" && value.trim_end().ends_with(&arguments))
+    })
 }
 
 /// Quotes one word for `/bin/sh`: single quotes, with an embedded `'` written as `'\''`.
@@ -343,7 +364,7 @@ mod tests {
 
     use super::{
         CommandShell, HostEntry, IncludeOutcome, install_include, remove_known_host, render_config, render_include,
-        render_path, render_proxy_command, upsert_known_host,
+        render_path, render_proxy_command, resolves_through_agentctl, upsert_known_host,
     };
 
     fn entry(name: &str, id: &str, root: &Path) -> HostEntry {
@@ -587,6 +608,28 @@ Host agentctl-worker
         assert_eq!(
             std::fs::read_to_string(&dangling_target).expect("created target"),
             "Include ~/.agent/ssh/config\n"
+        );
+    }
+
+    #[test]
+    fn a_resolved_alias_reaches_the_agent_only_through_its_own_proxy_command() {
+        let proxy = render_proxy_command(Path::new("/opt/my tools/100%/agentctl"), "worker", CommandShell::Posix)
+            .expect("proxy command");
+        let resolved = format!("user agent\nproxycommand {proxy}\nhostkeyalias agent-1\n");
+
+        assert!(resolves_through_agentctl(&resolved, "worker"));
+        assert!(!resolves_through_agentctl(&resolved, "coworker"));
+        assert!(!resolves_through_agentctl(
+            &resolved.replace("/worker", "/coworker"),
+            "worker"
+        ));
+        assert!(
+            !resolves_through_agentctl("user me\nhostname agentctl-worker\n", "worker"),
+            "an alias OpenSSH does not know resolves to no proxy command"
+        );
+        assert!(
+            !resolves_through_agentctl("proxycommand ssh -W %h:%p jump\n", "worker"),
+            "an earlier match of the user's own wins over the generated one"
         );
     }
 }
