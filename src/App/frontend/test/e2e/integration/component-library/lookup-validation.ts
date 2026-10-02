@@ -14,6 +14,7 @@ const scenarios = [
     numberLabel: /Fødselsnummer/i,
     number: '08829698278',
     required: 'Du må fylle ut fødselsnummer',
+    invalid: /fødselsnummeret\/d-nummeret er ugyldig/i,
     method: 'POST',
     url: '**/api/v1/lookup/person',
     success: {
@@ -38,6 +39,7 @@ const scenarios = [
     numberLabel: /Organisasjonsnummer/i,
     number: '043871668',
     required: 'Du må fylle ut organisasjonsnummer og hente opplysninger',
+    invalid: /Organisasjonsnummeret er ugyldig/i,
     method: 'GET',
     url: '**/api/v1/lookup/organisation/*',
     success: { success: true, organisationDetails: { orgNr: '043871668', name: 'Skog og Fjell Consulting' } },
@@ -148,6 +150,40 @@ for (const scenario of scenarios) {
         }
       });
     }
+
+    it('validates optional search inputs at row save and before requesting a lookup', () => {
+      cy.intercept(scenario.method, scenario.url, scenario.success).as('lookup');
+      cy.interceptLayout('Task_1', (component) => {
+        if (component.type === scenario.type) {
+          component.showValidations = [];
+        }
+      });
+      start();
+      cy.findByRole('radio', { name: 'Nei' }).check();
+      cy.findByRole('button', { name: /Legg til ny/ }).click();
+      cy.get('[data-testid="group-edit-container"]').within(() => {
+        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+        cy.get('@lookup.all').should('have.length', 0);
+
+        cy.findByRole('textbox', { name: scenario.numberLabel }).type('123');
+        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('be.visible');
+        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.attr', 'aria-invalid', 'true');
+        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+        cy.get('@lookup.all').should('have.length', 0);
+
+        cy.findByRole('textbox', { name: scenario.numberLabel }).numberFormatClear();
+        fill();
+        cy.findByText(scenario.invalid, { selector: '[data-validation] span' }).should('not.exist');
+        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+        cy.wait('@lookup');
+        cy.findByRole('button', { name: /Fjern/i }).should('be.visible');
+        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+      });
+      cy.get('[data-testid="group-edit-container"]').should('not.exist');
+      cy.get('@lookup.all').should('have.length', 1);
+    });
 
     it('prevents saving a failed optional lookup', () => {
       cy.intercept(scenario.method, scenario.url, scenario.failure).as('lookup');
