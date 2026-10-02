@@ -16,6 +16,9 @@ export type ExpressionSubscriptionOwner = 'runtime' | 'storeSelector';
 
 type Subscribe = (onStoreChange: () => void) => () => void;
 type ReadDependencyValue = (dependency: ExpressionDependency) => unknown;
+export type ExpressionDependencySource = { owner: unknown; snapshot: unknown };
+type ReadDependencySource = (dependency: ExpressionDependency) => ExpressionDependencySource | undefined;
+type CachedDependencyValue = { source: ExpressionDependencySource; value: unknown };
 
 /**
  * Tracks which dependencies were touched during expression evaluation and schedules rerenders
@@ -26,6 +29,7 @@ export class ExpressionObserver {
   private active = new Map<string, ExpressionDependency>();
   private dependencyCollectors = new Set<Map<string, ExpressionDependency>>();
   private lastValues = new Map<string, unknown>();
+  private storeValues = new Map<string, CachedDependencyValue>();
   private evaluatedDuringCollect = false;
   private unsubscribeStore?: (() => void) | null;
   private unsubscribeQuery?: (() => void) | null;
@@ -36,6 +40,7 @@ export class ExpressionObserver {
   constructor(
     private readonly onChange: () => void,
     private readonly readDependencyValue: ReadDependencyValue,
+    private readonly readDependencySource?: ReadDependencySource,
   ) {}
 
   beginCollect() {
@@ -65,6 +70,11 @@ export class ExpressionObserver {
 
     this.active = new Map(this.collected);
     this.lastValues = this.readValues(this.active);
+    for (const key of this.storeValues.keys()) {
+      if (!this.active.has(key)) {
+        this.storeValues.delete(key);
+      }
+    }
     this.syncQuerySubscription();
   }
 
@@ -180,8 +190,33 @@ export class ExpressionObserver {
 
   private readValues(dependencies: Map<string, ExpressionDependency>) {
     const values = new Map<string, unknown>();
+    let pendingStoreValues: Map<string, CachedDependencyValue> | undefined;
     for (const [key, dependency] of dependencies) {
-      values.set(key, this.readDependencyValue(dependency));
+      const source = isStoreBackedDependency(dependency) ? this.readDependencySource?.(dependency) : undefined;
+      const cached = source ? this.storeValues.get(key) : undefined;
+      if (
+        source &&
+        cached &&
+        Object.is(source.owner, cached.source.owner) &&
+        Object.is(source.snapshot, cached.source.snapshot)
+      ) {
+        values.set(key, cached.value);
+        continue;
+      }
+
+      const value = this.readDependencyValue(dependency);
+      values.set(key, value);
+      if (source) {
+        pendingStoreValues ??= new Map();
+        pendingStoreValues.set(key, { source, value });
+      }
+    }
+    // Publish cache entries only after every read succeeds. A throwing reader
+    // must not leave a partially updated snapshot behind.
+    if (pendingStoreValues) {
+      for (const [key, value] of pendingStoreValues) {
+        this.storeValues.set(key, value);
+      }
     }
     return values;
   }

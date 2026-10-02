@@ -12,6 +12,7 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExpressionObserver } from 'src/features/expressions/runtime/expressionObserver';
+import { readExpressionDependencySource } from 'src/features/expressions/runtime/readExpressionDependencySource';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useDataModelReaders } from 'src/features/formData/FormDataReaders';
@@ -263,6 +264,7 @@ function useExpressionDataSourcesRuntime(
     const observer = new ExpressionObserver(
       () => forceRender(),
       (dependency) => readDependencyValue(stateRef.current!.inputs, dependency),
+      (dependency) => readExpressionDependencySource(stateRef.current!.inputs.store, dependency),
     );
     state = { hookInputsChanged: true, inputsRevision: 0, inputs, observer, runtimeOverrides: nextRuntimeOverrides };
     stateRef.current = state;
