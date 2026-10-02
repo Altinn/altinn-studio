@@ -15,6 +15,7 @@ import { useOnGroupCloseValidation } from 'src/features/validation/callbacks/onG
 import { useAsRef } from 'src/hooks/useAsRef';
 import { OpenByDefaultProvider } from 'src/layout/RepeatingGroup/Providers/OpenByDefaultProvider';
 import { getRepeatingRowReference, RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpressionCallback } from 'src/utils/layout/useEvalExpression';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -553,6 +554,11 @@ export const RepGroupContext = {
   },
   useDeleteRow() {
     const baseComponentId = useRepeatingGroupComponentId();
+    // Delete buttons are inside the row's data location; the group uses only its ancestor row indexes.
+    const indexedId = useIndexedId(baseComponentId, true);
+    const reindexLookupInputs = FormStore.raw.useStaticSelector(
+      (state) => state.lookup.reindexLookupInputsForRowDeletion,
+    );
     const rawStartDeletingRow = ZStore.useStaticSelector((state) => state.startDeletingRow);
     const rawEndDeletingRow = ZStore.useStaticSelector((state) => state.endDeletingRow);
 
@@ -580,6 +586,7 @@ export const RepGroupContext = {
       rawStartDeletingRow(row);
       const attachmentDeletionSuccessful = await onBeforeRowDeletion(row.index);
       if (attachmentDeletionSuccessful && groupBinding) {
+        reindexLookupInputs(indexedId, row.index);
         removeFromList({
           reference: groupBinding,
           startAtIndex: row.index,
