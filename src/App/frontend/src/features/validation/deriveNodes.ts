@@ -78,24 +78,40 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
   }
 
   const pageOrderSet = new Set(inputs.pageOrder);
+  const hiddenResults = new Map<string, boolean>();
 
   function evaluateHidden(node: RuntimeNodeRef) {
-    const hiddenRuntime = withCurrentDataModelPath(inputs.hiddenDataSources, getCurrentDataModelPath(node.rowContexts));
+    const currentDataModelPath = getCurrentDataModelPath(node.rowContexts);
+    const hiddenRuntime = withCurrentDataModelPath(inputs.hiddenDataSources, currentDataModelPath);
     return evaluateHiddenSources({
       hiddenSources: getHiddenSources(node.baseId),
       pageOrder: inputs.pageOrder,
       pageOrderSet,
       pageKey: node.pageKey,
       respectPageOrder: true,
-      evalHiddenExpression: (expr, source) =>
-        evalExpr(expr, hiddenRuntime, {
+      evalHiddenExpression: (expr, source) => {
+        const cacheKey = JSON.stringify([
+          source.type,
+          source.id,
+          currentDataModelPath?.dataType,
+          currentDataModelPath?.field,
+        ]);
+        const cached = hiddenResults.get(cacheKey);
+        if (cached !== undefined) {
+          return cached;
+        }
+
+        const hidden = evalExpr(expr, hiddenRuntime, {
           returnType: ExprVal.Boolean,
           defaultValue: false,
           errorIntroText:
             source.type === 'hiddenPage'
               ? `Hidden expression for page ${source.id} failed`
               : `Expression in property ${source.type} for component ${source.id} failed`,
-        }),
+        });
+        hiddenResults.set(cacheKey, hidden);
+        return hidden;
+      },
     }).hidden;
   }
 
