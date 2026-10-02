@@ -278,8 +278,8 @@ const ILabelSettings = {
       type: 'boolean',
       title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
       description: {
-        en: 'Show the optional indicator on the label of non-required fields. Enabled by default, as recommended by Designsystemet.',
-        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, i tråd med anbefalingene fra Designsystemet.',
+        en: 'Show the optional indicator on the label of non-required fields. Enabled by default.',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
       },
       default: true,
       required: false,

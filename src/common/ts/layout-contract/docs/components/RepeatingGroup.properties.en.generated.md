@@ -2064,7 +2064,7 @@ The component also supports the [common component properties](../common-properti
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the optional indicator on the label of non-required fields. Enabled by default, as recommended by Designsystemet.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the optional indicator on the label of non-required fields. Enabled by default.</div></div>
 </details>
 
 <details class="component-property-group" id="addbutton">

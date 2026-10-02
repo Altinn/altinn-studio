@@ -324,7 +324,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, i tråd med anbefalingene fra Designsystemet.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
