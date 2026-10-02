@@ -11,19 +11,22 @@ import {
   RequiredIndicator,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Field, ValidationMessage } from '@digdir/designsystemet-react';
+import { Field } from '@digdir/designsystemet-react';
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { ValidationMask } from 'src/features/validation';
+import { useOnComponentValidation } from 'src/features/validation/callbacks/onComponentValidation';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { lookupValidation } from 'src/layout/lookupValidation';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
-import { validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
+import { validatePersonLookupInput, validatePersonLookupResponse } from 'src/layout/PersonLookup/validation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
@@ -74,10 +77,10 @@ async function fetchPerson(
 
     return { person: data.personDetails, error: null };
   } catch (error) {
-    if (error.response.status === 403) {
+    if (error.response?.status === 403) {
       return { person: null, error: 'person_lookup.validation_error_forbidden' };
     }
-    if (error.response.status === 429) {
+    if (error.response?.status === 429) {
       return { person: null, error: 'person_lookup.validation_error_too_many_requests' };
     }
 
@@ -98,10 +101,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   });
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
-  const [ssnErrors, setSsnErrors] = useState<string[]>();
-  const [nameError, setNameError] = useState<string>();
-
-  const bindingValidations = useBindingValidationsFor<'PersonLookup'>(baseComponentId);
+  const { updateValidations, validate } = useOnComponentValidation(baseComponentId);
+  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const ssnValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey === 'ssn');
+  const nameValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey !== 'ssn');
+  const lookupErrors = validations.filter((v) => !('bindingKey' in v));
 
   const { langAsString } = useLanguage();
   const {
@@ -109,36 +113,15 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
-  const { data, refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
-
-  function handleValidateName(name: string) {
-    if (name.length < 1) {
-      setNameError('person_lookup.validation_error_name_too_short');
-      return false;
-    }
-    setNameError(undefined);
-    return true;
-  }
-
-  function handleValidateSsn(ssn: string) {
-    if (!validateSsn({ ssn })) {
-      const ssnErrors = validateSsn.errors
-        ?.filter((error) => error.instancePath === '/ssn')
-        .map((error) => error.message)
-        .filter((it) => it != null);
-
-      setSsnErrors(ssnErrors);
-      return false;
-    }
-
-    setSsnErrors(undefined);
-    return true;
-  }
+  const { refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
 
   async function handleSubmit() {
-    const isNameValid = handleValidateName(tempName);
-    const isSsnValid = handleValidateSsn(tempSsn);
-    if (!isNameValid || !isSsnValid) {
+    if (readOnly || isFetching || ssn) {
+      return;
+    }
+    updateValidations(() => validatePersonLookupInput(tempSsn, tempName));
+    // Result bindings are still empty. Only validate the search inputs before the request.
+    if ((await validate(ValidationMask.Component)).length) {
       return;
     }
 
@@ -159,6 +142,10 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
       if (dataModelBindings.fullName) {
         setValue('fullName', composeFullName(data.person));
       }
+      await validate();
+    } else if (data?.error) {
+      updateValidations(() => [lookupValidation(data.error)]);
+      await validate(ValidationMask.Component);
     }
   }
 
@@ -185,8 +172,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
     setTempName('');
     setTempSsn('');
-    setSsnErrors(undefined);
-    setNameError(undefined);
+    updateValidations(() => []);
   }
 
   const displayName = useMemo(() => {
@@ -200,8 +186,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const hasSuccessfullyFetched = !!ssn;
 
-  const invalidSsn = (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(bindingValidations?.ssn);
-  const invalidName = !!nameError || hasValidationErrors(bindingValidations?.fullName);
+  const invalidSsn = hasValidationErrors(ssnValidations);
+  const invalidName = hasValidationErrors(nameValidations);
 
   return (
     <Fieldset
@@ -240,7 +226,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidSsn}
               onValueChange={(e) => {
                 setTempSsn(e.value);
-                setSsnErrors(undefined);
+                updateValidations((errors) => errors.filter((error) => error.bindingKey && error.bindingKey !== 'ssn'));
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -252,17 +238,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               pattern='[0-9]{11}'
               autoComplete='off'
             />
-            {(ssnErrors?.length && (
-              <ValidationMessage>
-                <Lang id={ssnErrors.join(' ')} />
-              </ValidationMessage>
-            )) ||
-              (hasValidationErrors(bindingValidations?.ssn) && (
-                <ComponentValidations
-                  validations={bindingValidations?.ssn}
-                  baseComponentId={baseComponentId}
-                />
-              ))}
+            <ComponentValidations
+              id={`${componentId}-ssn-validations`}
+              validations={ssnValidations}
+              baseComponentId={baseComponentId}
+            />
           </Field>
           <div className={classes.nameLabel}>
             <Label
@@ -294,7 +274,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               error={invalidName}
               onChange={(e) => {
                 setTempName(e.target.value);
-                setNameError(undefined);
+                updateValidations((errors) => errors.filter((error) => error.bindingKey === 'ssn'));
               }}
               onKeyDown={async (ev) => {
                 if (ev.key === 'Enter' && !readOnly) {
@@ -303,17 +283,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               }}
               autoComplete='family-name'
             />
-            {(nameError && (
-              <ValidationMessage>
-                <Lang id={nameError} />
-              </ValidationMessage>
-            )) ||
-              (hasValidationErrors(bindingValidations?.fullName) && (
-                <ComponentValidations
-                  validations={bindingValidations?.fullName}
-                  baseComponentId={baseComponentId}
-                />
-              ))}
+            <ComponentValidations
+              id={`${componentId}-name-validations`}
+              validations={nameValidations}
+              baseComponentId={baseComponentId}
+            />
           </Field>
           {!readOnly && (
             <div className={classes.submit}>
@@ -337,14 +311,12 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               )}
             </div>
           )}
-          {data?.error && (
-            <ValidationMessage
-              data-size='sm'
-              className={classes.apiError}
-            >
-              <Lang id={data.error} />
-            </ValidationMessage>
-          )}
+          <div className={classes.apiError}>
+            <ComponentValidations
+              validations={lookupErrors}
+              baseComponentId={baseComponentId}
+            />
+          </div>
         </div>
       </ComponentStructureWrapper>
     </Fieldset>

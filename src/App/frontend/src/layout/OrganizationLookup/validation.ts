@@ -1,6 +1,8 @@
 import { Ajv, type JSONSchemaType } from 'ajv';
 import adderrors from 'ajv-errors';
 
+import { lookupValidation } from 'src/layout/lookupValidation';
+import type { ComponentValidation } from 'src/features/validation';
 import type {
   Organization,
   OrganizationLookupResponse,
@@ -86,3 +88,7 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
 };
 
 export const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);
+
+export function validateOrganizationLookupInput(orgNr: string): ComponentValidation[] {
+  return checkValidOrgnNr(orgNr) ? [] : [lookupValidation('organization_lookup.validation_error_orgnr', 'orgnr')];
+}

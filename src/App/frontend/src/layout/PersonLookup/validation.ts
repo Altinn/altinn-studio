@@ -1,6 +1,8 @@
 import { Ajv, type JSONSchemaType } from 'ajv';
 import addErrors from 'ajv-errors';
 
+import { lookupValidation } from 'src/layout/lookupValidation';
+import type { ComponentValidation } from 'src/features/validation';
 import type { Person, PersonLookupResponse } from 'src/layout/PersonLookup/PersonLookupComponent';
 
 const ajv = new Ajv({ allErrors: true });
@@ -102,3 +104,15 @@ const personLookupResponseSchema: JSONSchemaType<PersonLookupResponse> = {
 };
 
 export const validatePersonLookupResponse = ajv.compile(personLookupResponseSchema);
+
+/** Search inputs must be valid even when the lookup result is optional. */
+export function validatePersonLookupInput(ssn: string, name: string): ComponentValidation[] {
+  const errors: ComponentValidation[] = [];
+  if (!checkValidSsn(ssn)) {
+    errors.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));
+  }
+  if (!name.trim()) {
+    errors.push(lookupValidation('person_lookup.validation_error_name_too_short', 'fullName'));
+  }
+  return errors;
+}
