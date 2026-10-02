@@ -29,6 +29,23 @@
         "preselectedOptionIndex": 1
       },
       {
+        "id": "organisationLookup-backend-validation",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "LookupBackendValidation"
+        },
+        "textResourceBindings": {
+          "title": "lookup.validation.title",
+          "description": "lookup.validation.description"
+        },
+        "options": [
+          {
+            "label": "lookup.validation.enable",
+            "value": "yes"
+          }
+        ]
+      },
+      {
         "id": "organisationLookup",
         "type": "OrganizationLookup",
         "dataModelBindings": {
@@ -40,14 +57,7 @@
           "description": "lookup.organization.description",
           "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
-        "required": [
-          "equals",
-          [
-            "dataModel",
-            "LookupRequired"
-          ],
-          "yes"
-        ]
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
       },
       {
         "id": "OrganisationLookup-Header-Summary2",
@@ -68,18 +78,14 @@
       {
         "id": "organisationLookup-group",
         "type": "RepeatingGroup",
-        "children": [
-          "organisationLookup-repeated"
-        ],
+        "children": ["organisationLookup-repeated"],
         "dataModelBindings": {
           "group": "OrganizationLookups"
         },
         "textResourceBindings": {
           "title": "lookup.organization.group"
         },
-        "validateOnSaveRow": [
-          "All"
-        ]
+        "validateOnSaveRow": ["All"]
       },
       {
         "id": "organisationLookup-repeated",
@@ -93,14 +99,7 @@
           "description": "lookup.organization.description",
           "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
-        "required": [
-          "equals",
-          [
-            "dataModel",
-            "LookupRequired"
-          ],
-          "yes"
-        ]
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
       },
       {
         "id": "OrganisationLookupPage-NavigationButtons",
@@ -111,9 +110,7 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": [
-            "All"
-          ]
+          "show": ["All"]
         }
       }
     ]

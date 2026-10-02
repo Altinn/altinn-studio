@@ -394,6 +394,46 @@
     {
       "id": "lookup.organization.description",
       "value": "Her legger du inn organisasjonsnummer. I localtest kan du bruke 043871668 for Skog og Fjell Consulting."
+    },
+    {
+      "id": "lookup.validation.title",
+      "value": "Validering fra serveren"
+    },
+    {
+      "id": "lookup.validation.enable",
+      "value": "Vis feil fra serveren"
+    },
+    {
+      "id": "lookup.validation.description",
+      "value": "Slå på før du henter opplysninger for å vise valideringsfeil fra serveren på alle utfylte oppslag."
+    },
+    {
+      "id": "lookup.validation.Ssn",
+      "value": "Feil fra serveren for fødselsnummer."
+    },
+    {
+      "id": "lookup.validation.FullName",
+      "value": "Feil fra serveren for navn."
+    },
+    {
+      "id": "lookup.validation.FirstName",
+      "value": "Feil fra serveren for fornavn."
+    },
+    {
+      "id": "lookup.validation.MiddleName",
+      "value": "Feil fra serveren for mellomnavn."
+    },
+    {
+      "id": "lookup.validation.LastName",
+      "value": "Feil fra serveren for etternavn."
+    },
+    {
+      "id": "lookup.validation.OrgNr",
+      "value": "Feil fra serveren for organisasjonsnummer."
+    },
+    {
+      "id": "lookup.validation.Name",
+      "value": "Feil fra serveren for organisasjonsnavn."
     }
   ]
 }

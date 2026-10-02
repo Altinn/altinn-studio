@@ -213,6 +213,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("OrganizationLookups")]
     public List<OrganizationLookupData>? OrganizationLookups { get; set; }
 
+    [XmlElement("LookupBackendValidation", Order = 40)]
+    [JsonProperty("LookupBackendValidation")]
+    [JsonPropertyName("LookupBackendValidation")]
+    public string? LookupBackendValidation { get; set; }
+
   }
 
   public class PersonLookupData

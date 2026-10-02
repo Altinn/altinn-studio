@@ -388,6 +388,46 @@
     {
       "id": "lookup.organization.description",
       "value": "Enter an organisation number. In localtest, use 043871668 for Skog og Fjell Consulting."
+    },
+    {
+      "id": "lookup.validation.title",
+      "value": "Backend validation"
+    },
+    {
+      "id": "lookup.validation.enable",
+      "value": "Show backend errors"
+    },
+    {
+      "id": "lookup.validation.description",
+      "value": "Enable before fetching details to show backend validation errors on all populated lookups."
+    },
+    {
+      "id": "lookup.validation.Ssn",
+      "value": "Backend error for national identity number."
+    },
+    {
+      "id": "lookup.validation.FullName",
+      "value": "Backend error for full name."
+    },
+    {
+      "id": "lookup.validation.FirstName",
+      "value": "Backend error for first name."
+    },
+    {
+      "id": "lookup.validation.MiddleName",
+      "value": "Backend error for middle name."
+    },
+    {
+      "id": "lookup.validation.LastName",
+      "value": "Backend error for surname."
+    },
+    {
+      "id": "lookup.validation.OrgNr",
+      "value": "Backend error for organisation number."
+    },
+    {
+      "id": "lookup.validation.Name",
+      "value": "Backend error for organisation name."
     }
   ]
 }

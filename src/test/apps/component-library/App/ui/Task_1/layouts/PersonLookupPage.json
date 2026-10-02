@@ -29,6 +29,23 @@
         "preselectedOptionIndex": 1
       },
       {
+        "id": "personLookup-backend-validation",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "LookupBackendValidation"
+        },
+        "textResourceBindings": {
+          "title": "lookup.validation.title",
+          "description": "lookup.validation.description"
+        },
+        "options": [
+          {
+            "label": "lookup.validation.enable",
+            "value": "yes"
+          }
+        ]
+      },
+      {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
@@ -43,14 +60,7 @@
           "description": "lookup.person.description",
           "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "required": [
-          "equals",
-          [
-            "dataModel",
-            "LookupRequired"
-          ],
-          "yes"
-        ]
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
       },
       {
         "id": "PersonLookup-Header-Summary2",
@@ -71,18 +81,14 @@
       {
         "id": "personLookup-group",
         "type": "RepeatingGroup",
-        "children": [
-          "personLookup-repeated"
-        ],
+        "children": ["personLookup-repeated"],
         "dataModelBindings": {
           "group": "PersonLookups"
         },
         "textResourceBindings": {
           "title": "lookup.person.group"
         },
-        "validateOnSaveRow": [
-          "All"
-        ]
+        "validateOnSaveRow": ["All"]
       },
       {
         "id": "personLookup-repeated",
@@ -99,14 +105,7 @@
           "description": "lookup.person.description",
           "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "required": [
-          "equals",
-          [
-            "dataModel",
-            "LookupRequired"
-          ],
-          "yes"
-        ]
+        "required": ["equals", ["dataModel", "LookupRequired"], "yes"]
       },
       {
         "id": "PersonLookupPage-NavigationButtons",
@@ -117,9 +116,7 @@
         },
         "validateOnNext": {
           "page": "current",
-          "show": [
-            "All"
-          ]
+          "show": ["All"]
         }
       }
     ]

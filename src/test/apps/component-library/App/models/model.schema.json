@@ -17,10 +17,7 @@
   },
   "@xsdRootElement": "Model",
   "type": "object",
-  "required": [
-    "streetnr",
-    "postnr"
-  ],
+  "required": ["streetnr", "postnr"],
   "$defs": {
     "GridExample": {
       "type": "object",
@@ -461,6 +458,9 @@
       "items": {
         "$ref": "#/$defs/OrganizationLookupData"
       }
+    },
+    "LookupBackendValidation": {
+      "type": "string"
     }
   }
 }

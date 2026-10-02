@@ -208,6 +208,7 @@
         <xs:element minOccurs="0" name="OrganizationLookup" type="OrganizationLookupData" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="PersonLookups" type="PersonLookupData" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="OrganizationLookups" type="OrganizationLookupData" />
+        <xs:element minOccurs="0" name="LookupBackendValidation" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
