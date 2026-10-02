@@ -278,6 +278,31 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveLayout_NewPageDifferingOnlyInCaseFromAPageWithUpperCaseExtension_ThrowsAndWritesNothing()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        string layoutsPath = Path.Combine(
+            _testRepositoryDirectory,
+            "App",
+            "ui",
+            LayoutSetWithLegacyPageNames,
+            "layouts"
+        );
+        string upperCaseExtensionPath = Path.Combine(layoutsPath, $"{ExistingPage}.JSON");
+        File.Move(Path.Combine(layoutsPath, $"{ExistingPage}.json"), upperCaseExtensionPath);
+        string layoutBefore = File.ReadAllText(upperCaseExtensionPath);
+        string[] layoutFilesBefore = LayoutFileNames(LayoutSetWithLegacyPageNames);
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.SaveLayout(LayoutSetWithLegacyPageNames, ExistingPageInOtherCase, EmptyLayout())
+        );
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(LayoutSetWithLegacyPageNames));
+        Assert.Equal(layoutBefore, File.ReadAllText(upperCaseExtensionPath));
+    }
+
+    [Fact]
     public async Task CreatePageLayoutFile_NewPageDifferingOnlyInCaseFromAnExistingPage_ThrowsAndWritesNothing()
     {
         // Arrange

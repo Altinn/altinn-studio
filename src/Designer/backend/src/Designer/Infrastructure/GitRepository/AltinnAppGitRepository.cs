@@ -1204,7 +1204,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
         }
         return GetFilesByRelativeDirectory(layoutsFolderPath)
             .Select(Path.GetFileName)
-            .Where(fileName => fileName.EndsWith(LayoutFileExtension, StringComparison.Ordinal))
+            .Where(fileName => fileName.EndsWith(LayoutFileExtension, StringComparison.OrdinalIgnoreCase))
             .Select(fileName => fileName[..^LayoutFileExtension.Length]);
     }
 
