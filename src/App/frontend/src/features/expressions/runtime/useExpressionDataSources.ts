@@ -57,6 +57,8 @@ export interface ExpressionDataSources {
   markExpressionEvaluated: () => void;
   track: (dependency: ExpressionDependency) => void;
   getDependencies: () => readonly ExpressionDependency[];
+  collectDependencies?: <T>(evaluate: () => T) => { value: T; dependencies: readonly ExpressionDependency[] };
+  getSnapshotRevision?: () => number;
   context: {
     currentLanguage: () => string;
     currentPage: () => string | undefined;
@@ -123,6 +125,7 @@ type SnapshotInputs = {
 
 type ExpressionRuntimeState = {
   hookInputsChanged: boolean;
+  inputsRevision: number;
   inputs: SnapshotInputs;
   observer: ExpressionObserver;
   runtimeOverrides: Partial<ExpressionDataSources>;
@@ -261,13 +264,16 @@ function useExpressionDataSourcesRuntime(
       () => forceRender(),
       (dependency) => readDependencyValue(stateRef.current!.inputs, dependency),
     );
-    state = { hookInputsChanged: true, inputs, observer, runtimeOverrides: nextRuntimeOverrides };
+    state = { hookInputsChanged: true, inputsRevision: 0, inputs, observer, runtimeOverrides: nextRuntimeOverrides };
     stateRef.current = state;
   } else {
     state.hookInputsChanged ||=
       state.inputs.applicationSettings !== inputs.applicationSettings ||
       state.inputs.currentLanguage !== inputs.currentLanguage ||
       state.inputs.currentPage !== inputs.currentPage;
+    if (!objectOrArrayShallowEqual(state.inputs, inputs)) {
+      state.inputsRevision++;
+    }
     state.inputs = inputs;
     if (!objectOrArrayShallowEqual(nextRuntimeOverrides, state.runtimeOverrides)) {
       state.runtimeOverrides = nextRuntimeOverrides;
@@ -315,6 +321,7 @@ function useExpressionDataSourcesRuntime(
     return makeExpressionDataSourcesRuntime({
       currentDataModelPath,
       getInputs: () => stateRef.current!.inputs,
+      getSnapshotRevision: () => stateRef.current!.inputsRevision,
       observer: stateRef.current!.observer,
       assertDataSourceSupported,
       runtimeOverrides,
@@ -325,12 +332,14 @@ function useExpressionDataSourcesRuntime(
 function makeExpressionDataSourcesRuntime({
   currentDataModelPath,
   getInputs,
+  getSnapshotRevision,
   observer,
   assertDataSourceSupported,
   runtimeOverrides,
 }: {
   currentDataModelPath: IDataModelReference | undefined;
   getInputs: () => SnapshotInputs;
+  getSnapshotRevision: () => number;
   observer: ExpressionObserver;
   assertDataSourceSupported: (dataSource: ExpressionDataSource) => void;
   runtimeOverrides: Partial<ExpressionDataSources>;
@@ -347,6 +356,8 @@ function makeExpressionDataSourcesRuntime({
     markExpressionEvaluated: () => observer.markEvaluated(),
     track: (dependency) => observer.track(dependency),
     getDependencies: () => observer.getDependencies(),
+    collectDependencies: (evaluate) => observer.collectDependencies(evaluate),
+    getSnapshotRevision,
     context: {
       currentLanguage: () => {
         observer.track({ type: 'currentLanguage' });

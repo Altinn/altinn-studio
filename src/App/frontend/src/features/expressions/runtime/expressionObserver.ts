@@ -24,6 +24,7 @@ type ReadDependencyValue = (dependency: ExpressionDependency) => unknown;
 export class ExpressionObserver {
   private collected = new Map<string, ExpressionDependency>();
   private active = new Map<string, ExpressionDependency>();
+  private dependencyCollectors = new Set<Map<string, ExpressionDependency>>();
   private lastValues = new Map<string, unknown>();
   private evaluatedDuringCollect = false;
   private unsubscribeStore?: (() => void) | null;
@@ -47,7 +48,11 @@ export class ExpressionObserver {
   }
 
   track(dependency: ExpressionDependency) {
-    this.collected.set(makeDependencyKey(dependency), dependency);
+    const key = makeDependencyKey(dependency);
+    this.collected.set(key, dependency);
+    for (const collector of this.dependencyCollectors) {
+      collector.set(key, dependency);
+    }
   }
 
   commitCollect() {
@@ -65,6 +70,16 @@ export class ExpressionObserver {
 
   getDependencies() {
     return [...this.active.values()];
+  }
+
+  collectDependencies<T>(evaluate: () => T): { value: T; dependencies: readonly ExpressionDependency[] } {
+    const dependencies = new Map<string, ExpressionDependency>();
+    this.dependencyCollectors.add(dependencies);
+    try {
+      return { value: evaluate(), dependencies: [...dependencies.values()] };
+    } finally {
+      this.dependencyCollectors.delete(dependencies);
+    }
   }
 
   checkHookInputs() {
