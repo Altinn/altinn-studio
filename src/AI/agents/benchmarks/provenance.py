@@ -8,7 +8,7 @@ import os
 import subprocess
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +25,9 @@ BLOCKING_AXES = (
 )
 
 ENVIRONMENTS = ("local", "dev", "prod", "ci")
+
+# The session date in the actor_prompt digest. A real date would change the digest every day.
+DIGEST_SESSION_DATE = date(2000, 1, 1)
 
 LIVE_ROLES = ("actor", "planner", "default")
 
@@ -160,14 +163,33 @@ def _sampling_value(value: object) -> str:
 
 
 def _hash_actor_prompt() -> str:
-    """A hash of the actor's static system prompt, for every app version, and the skill listing."""
+    """A hash of the actor's system prompt, for every app version and both session modes.
+
+    It hashes what `build_system_prompt` returns, so every section and template counts. The
+    session values are fixed placeholders, because they change in every session.
+    """
     from agents.altinn.app_version import APP_VERSION_PROFILES
-    from agents.core.context import stable_prefix_sections
+    from agents.core.context import SessionContext, build_system_prompt
     from agents.core.skills import discover_skills, format_skill_listing
 
-    sections = [section for profile in APP_VERSION_PROFILES for section in stable_prefix_sections(profile)]
-    sections.append(format_skill_listing(discover_skills()))
-    payload = "\n\n".join(sections).encode()
+    skill_listing = format_skill_listing(discover_skills())
+    prompts = [
+        build_system_prompt(
+            SessionContext(
+                session_id="digest-session",
+                repo_path="digest-repo",
+                user_goal="digest-goal",
+                allow_app_changes=allow_app_changes,
+                form_spec_summary="digest-form-spec",
+                today=DIGEST_SESSION_DATE,
+                app_version_profile=profile,
+            ),
+            skill_listing=skill_listing,
+        )
+        for profile in APP_VERSION_PROFILES
+        for allow_app_changes in (True, False)
+    ]
+    payload = "\n\n".join(prompts).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 

@@ -297,7 +297,7 @@ python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline 
 | `benchmarks/datasets/*` | dataset | **re-baseline**, the items every score is computed over |
 | `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators | **re-baseline**, how something is scored |
 | `agents/prompts/*` | prompts | **re-baseline**, a published prompt |
-| any file that changes the `actor_prompt` digest | actor_prompt | **re-baseline**, the actor's system prompt for every app version, and the skill listing |
+| any file that changes the `actor_prompt` digest | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
 | any file that changes the `tools` digest | tools | **re-baseline**, the tool schemas the actor is shown, and the skill text |
 | `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*` | code | check, the baseline stays valid |
 | `shared/config/base_config.py` | models | check, the baseline stays valid |
@@ -307,8 +307,10 @@ python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline 
 No path rule is necessary for `actor_prompt` and `tools`. The gate calls
 `provenance.digests()`, which `runner check` also records. Then it compares the result with
 the digests in `BASELINE.json`. Thus the gate and `runner check` cannot disagree, whichever
-file moves a digest. The `actor_prompt` digest hashes the stable part of the system prompt
-for each app version profile, and the skill listing. The `tools` digest hashes the tool
+file moves a digest. The `actor_prompt` digest hashes what `build_system_prompt` returns for
+each app version profile, in write mode and in read-only mode, with the skill listing. The
+session values, such as the goal and the date, are fixed placeholders. Thus each section and
+template of the system prompt counts. The `tools` digest hashes the tool
 schemas, and the skill text for each app version. A digest that fails, or that the baseline
 did not record, is not equal. The difference can come from this change, or from an earlier
 change on main. In both cases `runner check` refuses the comparison, so the gate fails.

@@ -48,6 +48,39 @@ class TestDigestsCoverEveryAppVersion:
 
         assert provenance._hash_actor_prompt() != before
 
+    def test_the_final_answer_text_moves_the_actor_prompt_digest(self, monkeypatch):
+        """`build_system_prompt` adds this section after the stable prefix."""
+        from agents.core import context
+
+        before = provenance._hash_actor_prompt()
+        monkeypatch.setattr(context, "_FINAL_ANSWER", "changed")
+
+        assert provenance._hash_actor_prompt() != before
+
+    def test_the_read_only_final_answer_text_moves_the_actor_prompt_digest(self, monkeypatch):
+        from agents.core import context
+
+        before = provenance._hash_actor_prompt()
+        monkeypatch.setattr(context, "_FINAL_ANSWER_READ_ONLY", "changed")
+
+        assert provenance._hash_actor_prompt() != before
+
+    def test_the_date_of_today_does_not_move_the_actor_prompt_digest(self, monkeypatch):
+        """A digest that changes every day compares nothing."""
+        from datetime import date
+
+        from agents.core import context
+
+        class LaterDate(date):
+            @classmethod
+            def today(cls):
+                return cls(2099, 12, 31)
+
+        before = provenance._hash_actor_prompt()
+        monkeypatch.setattr(context, "date", LaterDate)
+
+        assert provenance._hash_actor_prompt() == before
+
     def test_the_skill_text_for_one_app_version_moves_the_tools_digest(self, tmp_path, monkeypatch):
         skill_dir = tmp_path / "altinn-example"
         skill_dir.mkdir()

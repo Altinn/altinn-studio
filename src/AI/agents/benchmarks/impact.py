@@ -24,7 +24,7 @@ Measure = Callable[[], dict[str, str | None]]
 
 # The axes that the gate measures directly. `runner check` compares the same digests.
 DIGESTS: tuple[tuple[str, str], ...] = (
-    ("actor_prompt", "the actor's system prompt for every app version, and the skill listing"),
+    ("actor_prompt", "the actor's system prompt for every app version and session mode, with the skill listing"),
     ("tools", "the tool schemas the actor is shown, and the skill text for every app version"),
 )
 
