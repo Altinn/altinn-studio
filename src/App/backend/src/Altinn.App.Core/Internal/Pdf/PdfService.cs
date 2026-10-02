@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
@@ -170,15 +169,7 @@ internal sealed class PdfService : IPdfService
             autoPdfTaskIdsQueryParams
         );
 
-        await using Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(
-            uri,
-            footerContent,
-            authenticationMethod,
-            cancellationToken
-        );
-
-        // The client has read the whole response, so this is the only copy we make of it
-        return await pdfContent.ReadAllBytes(cancellationToken);
+        return await _pdfGeneratorClient.GeneratePdf(uri, footerContent, authenticationMethod, cancellationToken);
     }
 
     private static Uri BuildUri(

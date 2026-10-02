@@ -1820,7 +1820,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         return pdfMock;
     }
 

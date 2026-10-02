@@ -3262,9 +3262,9 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public interface IPdfGeneratorClient
     {
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
     }
     public interface IPdfService
     {

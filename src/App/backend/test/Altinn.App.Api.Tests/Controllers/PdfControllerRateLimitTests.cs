@@ -119,7 +119,7 @@ public class PdfControllerRateLimitTests : ApiTestBase, IClassFixture<WebApplica
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(() => new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         OverrideServicesForThisTest = services =>
         {
             services.AddSingleton(pdfGeneratorClient.Object);

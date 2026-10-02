@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -87,12 +88,12 @@ public class PdfServiceTests
             authenticationTokenResolver.Object
         );
 
-        Stream pdf = await pdfGeneratorClient.GeneratePdf(
+        byte[] pdf = await pdfGeneratorClient.GeneratePdf(
             new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             CancellationToken.None
         );
 
-        pdf.Length.Should().Be(17814L);
+        pdf.Length.Should().Be(17814);
     }
 
     [Fact]
@@ -126,12 +127,12 @@ public class PdfServiceTests
         await func.Should().ThrowAsync<PdfGenerationException>();
     }
 
-    // The stream GeneratePdf returns owns the HTTP response behind it. These two tests pin both halves of
-    // that contract: the response survives until the caller disposes the stream, and it is not leaked when
-    // generation fails and no stream is returned at all.
+    // GeneratePdf owns the HTTP response and reads the PDF out of it before returning, so the caller gets
+    // bytes and has nothing to dispose. These two tests pin that the response is released on both paths:
+    // once the PDF has been read, and when generation fails.
 
     [Fact]
-    public async Task GeneratePdf_stream_is_readable_after_the_call_returned_and_owns_the_response()
+    public async Task GeneratePdf_returns_the_response_content_and_disposes_the_response()
     {
         DisposeTrackingContent? content = null;
         DelegatingHandlerStub delegatingHandler = new(
@@ -155,24 +156,14 @@ public class PdfServiceTests
             authenticationTokenResolver.Object
         );
 
-        // Deliberately read after GeneratePdf has returned: this is the case a `using` on the response
-        // inside GeneratePdf would break, and it would break here rather than there.
-        Stream pdf = await pdfGeneratorClient.GeneratePdf(
+        byte[] pdf = await pdfGeneratorClient.GeneratePdf(
             new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             CancellationToken.None
         );
 
+        Assert.Equal("a pdf, honest", Encoding.UTF8.GetString(pdf));
         Assert.NotNull(content);
-        Assert.False(content.IsDisposed, "the caller has not disposed the stream yet");
-
-        using (StreamReader reader = new(pdf, leaveOpen: true))
-        {
-            var read = await reader.ReadToEndAsync();
-            Assert.Equal("a pdf, honest", read);
-        }
-
-        await pdf.DisposeAsync();
-        Assert.True(content.IsDisposed, "the returned stream owns the response");
+        Assert.True(content.IsDisposed, "GeneratePdf has read the PDF out of the response, so it releases it");
     }
 
     [Fact]
@@ -211,7 +202,7 @@ public class PdfServiceTests
         );
 
         Assert.NotNull(content);
-        Assert.True(content.IsDisposed, "no stream is returned, so nothing else can release the response");
+        Assert.True(content.IsDisposed, "GeneratePdf owns the response, so it releases it when it throws");
 
         // The diagnostic content is copied onto the exception, so disposing the response does not empty it.
         Assert.Equal("pdf generator exploded", thrown.Data["responseContent"]);
@@ -251,7 +242,7 @@ public class PdfServiceTests
             authTokenResolver.Object
         );
 
-        using Stream pdf = await pdfGeneratorClient.GeneratePdf(
+        await pdfGeneratorClient.GeneratePdf(
             new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             null,
             StorageAuthenticationMethod.ServiceOwner(),
@@ -283,7 +274,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -338,7 +329,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -395,7 +386,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
         var target = SetupPdfService(
             pdfGeneratorClient: _pdfGeneratorClient,
@@ -441,7 +432,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
         var target = SetupPdfService(
             pdfGeneratorClient: _pdfGeneratorClient,
@@ -495,7 +486,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -544,7 +535,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -593,7 +584,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -639,7 +630,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -686,7 +677,7 @@ public class PdfServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
