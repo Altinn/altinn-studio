@@ -43,10 +43,10 @@ function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
 }
 
-function useCompleteValidationSnapshot() {
-  const state = FormStore.raw.useSelector((state) => state);
+function useCompleteValidationSnapshot(enabled: boolean) {
+  const state = FormStore.raw.useSelector((state) => (enabled ? state : undefined));
   const inputs = useDerivedValidationStateInputs();
-  return buildDerivedValidationState(state, inputs);
+  return state ? buildDerivedValidationState(state, inputs) : undefined;
 }
 
 function usePageScopedValidationSnapshot(pageKeys: string[]) {
@@ -267,37 +267,44 @@ export function usePageHasVisibleRequiredValidations(pageKey: string | undefined
  * the validations they revealed have been resolved.
  */
 export function usePruneValidationMasks() {
-  const derived = useCompleteValidationSnapshot();
   const [formMask, pageMasks, rowMasks] = FormStore.raw.useShallowSelector((state) => [
     state.validation.formMask,
     state.validation.pageMasks,
     state.validation.rowMasks,
   ]);
+  const hasMasks = Boolean(formMask || Object.keys(pageMasks).length || Object.keys(rowMasks).length);
+  const derived = useCompleteValidationSnapshot(hasMasks);
   const setFormMask = FormStore.validation.useSetFormValidationMask();
   const setPageMask = FormStore.validation.useSetPageValidationMask();
   const setRowMask = FormStore.validation.useSetRowValidationMask();
 
   const hasFormErrors =
-    !formMask || derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
+    !formMask ||
+    !derived ||
+    derived.nodes.some((node) => getValidationsForNode(derived, node.id, formMask, 'error').length > 0);
   const stalePages = useShallowMemo(
-    Object.entries(pageMasks)
-      .filter(
-        ([pageKey, mask]) =>
-          !(derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some(
-            (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
-          ),
-      )
-      .map(([pageKey]) => pageKey),
+    derived
+      ? Object.entries(pageMasks)
+          .filter(
+            ([pageKey, mask]) =>
+              !(derived.nodeIdsByPage.get(pageKey) ?? emptyArray).some(
+                (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
+              ),
+          )
+          .map(([pageKey]) => pageKey)
+      : emptyArray,
   );
   const staleRows = useShallowMemo(
-    Object.entries(rowMasks)
-      .filter(
-        ([rowId, mask]) =>
-          !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
-            (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
-          ),
-      )
-      .map(([rowId]) => rowId),
+    derived
+      ? Object.entries(rowMasks)
+          .filter(
+            ([rowId, mask]) =>
+              !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
+                (nodeId) => getValidationsForNode(derived, nodeId, mask, 'error').length > 0,
+              ),
+          )
+          .map(([rowId]) => rowId)
+      : emptyArray,
   );
 
   return useCallback(() => {
