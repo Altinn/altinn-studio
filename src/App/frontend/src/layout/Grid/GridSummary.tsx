@@ -276,7 +276,7 @@ function SummaryCell(props: CellProps) {
 
 function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   const { langAsString, langAsNonProcessedString } = useLanguage();
-    const config = useComponentConfig(props.labelFrom);
+  const config = useComponentConfig(props.labelFrom);
   const evaluatedRequired = useEvalExpression(
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
@@ -288,12 +288,9 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
     CommonExpressions.TRBLabel.title,
   );
 
-  const required = 'required' in config ? evaluatedRequired : false;
-
+  const required = getRequired(config.type, evaluatedRequired);
   const readOnly = 'readOnly' in config ? config.readOnly : undefined;
   const showOptionalMarking = !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
-  const requiredIndicator = required ? ` ${langAsNonProcessedString('form_filler.required_label')}` : '';
-  const headerTitle = `${langAsString(title || '')}${requiredIndicator}`;
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
@@ -303,6 +300,7 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   } else if (required === false && showOptionalMarking && !readOnly) {
     indicator = ` ${langAsString('general.optional')}`;
   }
+  const headerTitle = `${langAsString(title || '')}${indicator}`;
 
   return (
     <SummaryCellInner
@@ -526,10 +524,11 @@ function SummaryCellWithLabel({
       : undefined,
     CommonExpressions.TRBLabel.title,
   );
-  const required3 = useEvalExpression(
+  const evaluatedRequired = useEvalExpression(
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const required = getRequired(config.type, evaluatedRequired);
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
@@ -544,7 +543,7 @@ function SummaryCellWithLabel({
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
         label={title2}
-        required={required3}
+        required={required}
       />
     </CellComponent>
   );

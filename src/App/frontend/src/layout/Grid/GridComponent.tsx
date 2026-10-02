@@ -34,6 +34,7 @@ import {
 } from 'src/layout/Grid/tools';
 import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { getRequired } from 'src/utils/layout/getRequired';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
@@ -458,13 +459,16 @@ function CellWithLabel({
     'required' in config ? config.required : undefined,
     CommonExpressions.FormComponentProps.required,
   );
+  const readOnly = useEvalExpression(
+    'readOnly' in config ? config.readOnly : undefined,
+    CommonExpressions.FormComponentProps.readOnly,
+  );
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const readOnly = 'readOnly' in config && evaluatedRequired;
   const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
-  const required = 'required' in config && evaluatedRequired;
+  const required = getRequired(config.type, evaluatedRequired);
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,

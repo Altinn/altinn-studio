@@ -4,12 +4,14 @@ import { getComponentDef } from 'src/layout';
 import type { CompTypes } from 'src/layout/layout';
 
 /**
- * Reads the resolved `required` flag from a component. Defaults to false for form components, and undefined for non-form components.
+ * Narrows an evaluated `required` value by component category. Form components always resolve to a boolean
+ * (defaulting to false when unset, so the optional indicator can render), while non-form components resolve to
+ * undefined so neither indicator renders for them.
  */
-export function getRequired(item: { type: CompTypes; required?: boolean }): boolean | undefined {
-  if ('required' in item && typeof item.required === 'boolean') {
-    return item.required;
+export function getRequired(type: CompTypes, required: boolean | undefined): boolean | undefined {
+  if (getComponentDef(type)?.category !== CompCategory.Form) {
+    return undefined;
   }
 
-  return getComponentDef(item.type)?.category === CompCategory.Form ? false : undefined;
+  return required ?? false;
 }
