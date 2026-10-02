@@ -22,7 +22,7 @@ public interface IEnvironmentsService
 
     Task<Uri> CreatePlatformUri(string envName);
 
-    Task<Uri> GetAppClusterUri(string org, string envName);
+    Task<Uri> GetAppClusterUri(string org, string envName, CancellationToken cancellationToken = default);
 
     Task<string> GetHostNameByEnvName(string envName);
 
