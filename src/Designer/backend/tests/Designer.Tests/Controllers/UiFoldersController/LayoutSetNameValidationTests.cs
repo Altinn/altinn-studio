@@ -31,6 +31,8 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
     private const string AppV9WithSeveralLayoutSets = "app-with-groups-and-task-navigation";
     private const string Developer = "testUser";
     private const string LayoutSetWithLongFolderName = "legacy-subform-name-longer-than-28-chars";
+    private const string ExistingLayoutSet = "Task_1";
+    private const string OtherExistingLayoutSet = "moreInfoSubform";
 
     private static string LayoutSetsUrl(string repository) =>
         $"/designer/api/{Org}/{repository}/ui-folders/layout-sets";
@@ -107,6 +109,53 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AddLayoutSet_NameDifferingOnlyInCaseFromAnExistingLayoutSet_WritesNothing()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
+        string[] layoutFolderBefore = LayoutFolderContents();
+
+        // Act
+        using HttpResponseMessage response = await AddLayoutSet(targetRepository, ExistingLayoutSet.ToLowerInvariant());
+
+        // Assert
+        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(layoutFolderBefore, LayoutFolderContents());
+    }
+
+    [Fact]
+    public async Task UpdateLayoutSetName_ToAnotherLayoutSetNameInOtherCase_RenamesNothing()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
+        string[] layoutFolderBefore = LayoutFolderContents();
+        using HttpRequestMessage httpRequestMessage = new(
+            HttpMethod.Put,
+            $"{LayoutSetsUrl(targetRepository)}/{OtherExistingLayoutSet}"
+        )
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(ExistingLayoutSet.ToUpperInvariant()),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(layoutFolderBefore, LayoutFolderContents());
     }
 
     [Theory]
