@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -327,9 +328,9 @@ public class WorkflowsController : ControllerBase
             _logger.LogWarning(
                 exception,
                 "Environments registry unavailable for workflow request in {Org}/{App} ({Environment})",
-                org,
-                app,
-                environment.Name
+                org.WithoutLineBreaks(),
+                app.WithoutLineBreaks(),
+                environment.Name.WithoutLineBreaks()
             );
 
             return Outcome(
@@ -362,9 +363,9 @@ public class WorkflowsController : ControllerBase
             _logger.LogWarning(
                 exception,
                 "Runtime gateway unreachable for workflow request in {Org}/{App} ({Environment})",
-                org,
-                app,
-                environment.Name
+                org.WithoutLineBreaks(),
+                app.WithoutLineBreaks(),
+                environment.Name.WithoutLineBreaks()
             );
 
             return Outcome(
@@ -405,10 +406,10 @@ public class WorkflowsController : ControllerBase
             "Workflow mutation attempted: {Verb} on workflow {WorkflowId} in {Org}/{App} ({Environment}) by Studio user {User}",
             audit.Verb,
             audit.WorkflowId,
-            org,
-            app,
-            environment.Name,
-            AuditedUser()
+            org.WithoutLineBreaks(),
+            app.WithoutLineBreaks(),
+            environment.Name.WithoutLineBreaks(),
+            AuditedUser().WithoutLineBreaks()
         );
     }
 
@@ -424,10 +425,10 @@ public class WorkflowsController : ControllerBase
             "Workflow mutation: {Verb} on workflow {WorkflowId} in {Org}/{App} ({Environment}) by Studio user {User}, outcome: {Outcome}",
             audit.Verb,
             audit.WorkflowId,
-            org,
-            app,
-            environment.Name,
-            AuditedUser(),
+            org.WithoutLineBreaks(),
+            app.WithoutLineBreaks(),
+            environment.Name.WithoutLineBreaks(),
+            AuditedUser().WithoutLineBreaks(),
             outcome
         );
     }
