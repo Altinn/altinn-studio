@@ -27,4 +27,11 @@ public record GatewayProblem(string Type, string Title, int Status, string Detai
     /// returning unfiltered data.
     /// </summary>
     public const string UnknownQueryParameterType = "urn:altinn:studio:gateway:unknown-query-parameter";
+
+    /// <summary>
+    /// Problem type reported when a fail request carries a reason that is blank or longer than
+    /// <see cref="FailWorkflowRequest.MaxReasonLength"/>. Rejected here rather than by the engine,
+    /// so the engine's own validation problem never has to be told apart from a gateway one.
+    /// </summary>
+    public const string InvalidFailReasonType = "urn:altinn:studio:gateway:invalid-fail-reason";
 }

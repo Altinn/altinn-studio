@@ -135,7 +135,7 @@ public sealed class WorkflowPassthroughTests
 
         var response = await client.GetAsync(
             new Uri(
-                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&isHead=false&cursor={cursor}&pageSize=5",
+                $"{GatewayPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step:pdf&isHead=false&cursor={cursor}&pageSize=5&includeState=false",
                 UriKind.Relative
             ),
             ct
@@ -144,7 +144,7 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal(
-            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&isHead=false&cursor={cursor}&pageSize=5",
+            $"{UpstreamPrefix}/workflows?collectionKey=col-1&status=Failed&status=Canceled&label=step%3Apdf&isHead=false&cursor={cursor}&pageSize=5&includeState=false",
             upstream.Uri.AbsoluteUri
         );
     }
@@ -161,6 +161,22 @@ public sealed class WorkflowPassthroughTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
         Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}", upstream.Uri.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ForwardsIncludeState()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+        var workflowId = Guid.NewGuid();
+
+        await client.GetAsync(
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}?includeState=false", UriKind.Relative),
+            ct
+        );
+
+        var upstream = Assert.Single(_factory.EngineHandler.Requests);
+        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}?includeState=false", upstream.Uri.AbsoluteUri);
     }
 
     [Fact]
@@ -212,7 +228,38 @@ public sealed class WorkflowPassthroughTests
     }
 
     [Fact]
-    public async Task AbandonWorkflow_ForwardsAndEmitsAuditLine()
+    public async Task NudgeWorkflow_ForwardsWithoutBody_AndEmitsAuditLine()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient(GenerateAuditableToken());
+        var workflowId = Guid.NewGuid();
+        _factory.EngineHandler.ResponseFactory = _ =>
+            FakeWorkflowEngineHandler.JsonResponse(
+                $$"""{"workflowId":"{{workflowId}}","nudgedAt":"2026-08-02T10:00:00Z"}""",
+                HttpStatusCode.Accepted
+            );
+
+        var response = await client.PostAsync(
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}/nudge", UriKind.Relative),
+            content: null,
+            ct
+        );
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var upstream = Assert.Single(_factory.EngineHandler.Requests);
+        Assert.Equal(HttpMethod.Post, upstream.Method);
+        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}/nudge", upstream.Uri.AbsoluteUri);
+        Assert.Null(upstream.Body);
+
+        var audit = Assert.Single(AuditEntries());
+        Assert.Contains("nudge", audit.Message, StringComparison.Ordinal);
+        Assert.Contains(workflowId.ToString(), audit.Message, StringComparison.Ordinal);
+        Assert.Contains("studio-designer-client", audit.Message, StringComparison.Ordinal);
+        Assert.Contains("202", audit.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_ForwardsOnlyTheReason_AndEmitsAuditLine()
     {
         var ct = TestContext.Current.CancellationToken;
         using var client = CreateAuthorizedClient(GenerateAuditableToken());
@@ -220,19 +267,75 @@ public sealed class WorkflowPassthroughTests
         _factory.EngineHandler.ResponseFactory = _ =>
             FakeWorkflowEngineHandler.JsonResponse($$"""{"workflowId":"{{workflowId}}"}""", HttpStatusCode.Accepted);
 
+        // Anything beside the reason is dropped on the way: the engine sees the one field the route accepts.
+        using var content = new StringContent(
+            """{"reason":"Failed by Studio user ola from Altinn Studio","extra":"dropped"}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
         var response = await client.PostAsync(
-            new Uri($"{GatewayPrefix}/workflows/{workflowId}/abandon", UriKind.Relative),
-            content: null,
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}/fail", UriKind.Relative),
+            content,
             ct
         );
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         var upstream = Assert.Single(_factory.EngineHandler.Requests);
-        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}/abandon", upstream.Uri.AbsoluteUri);
+        Assert.Equal(HttpMethod.Post, upstream.Method);
+        Assert.Equal($"{UpstreamPrefix}/workflows/{workflowId}/fail", upstream.Uri.AbsoluteUri);
+        Assert.Equal("application/json", upstream.ContentType);
+        Assert.Equal("""{"reason":"Failed by Studio user ola from Altinn Studio"}""", upstream.Body);
 
         var audit = Assert.Single(AuditEntries());
-        Assert.Contains("abandon", audit.Message, StringComparison.Ordinal);
-        Assert.Contains("studio-designer-client", audit.Message, StringComparison.Ordinal);
+        Assert.Contains("fail", audit.Message, StringComparison.Ordinal);
+        Assert.Contains(workflowId.ToString(), audit.Message, StringComparison.Ordinal);
+        Assert.Contains("202", audit.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_WithoutBody_ForwardsNoBody()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+        var workflowId = Guid.NewGuid();
+
+        var response = await client.PostAsync(
+            new Uri($"{GatewayPrefix}/workflows/{workflowId}/fail", UriKind.Relative),
+            content: null,
+            ct
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var upstream = Assert.Single(_factory.EngineHandler.Requests);
+        Assert.Null(upstream.Body);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("x", 501)]
+    public async Task FailWorkflow_RejectsBlankOrOverlongReason_WithoutContactingEngine(string reason, int repeat = 1)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var client = CreateAuthorizedClient();
+        var body = System.Text.Json.JsonSerializer.Serialize(
+            new Dictionary<string, string> { ["reason"] = string.Concat(Enumerable.Repeat(reason, repeat)) }
+        );
+
+        using var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(
+            new Uri($"{GatewayPrefix}/workflows/{Guid.NewGuid()}/fail", UriKind.Relative),
+            content,
+            ct
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains(
+            $"\"type\":\"{GatewayProblem.InvalidFailReasonType}\"",
+            await response.Content.ReadAsStringAsync(ct),
+            StringComparison.Ordinal
+        );
+        Assert.Empty(_factory.EngineHandler.Requests);
     }
 
     [Fact]
@@ -310,7 +413,7 @@ public sealed class WorkflowPassthroughTests
         _factory.EngineHandler.ExceptionToThrow = new TaskCanceledException("request timed out");
 
         var response = await client.PostAsync(
-            new Uri($"{GatewayPrefix}/workflows/{Guid.NewGuid()}/abandon", UriKind.Relative),
+            new Uri($"{GatewayPrefix}/workflows/{Guid.NewGuid()}/nudge", UriKind.Relative),
             content: null,
             ct
         );
@@ -320,7 +423,7 @@ public sealed class WorkflowPassthroughTests
         Assert.Contains(GatewayProblem.WorkflowEngineUnavailableType, body, StringComparison.Ordinal);
 
         var audit = Assert.Single(AuditEntries());
-        Assert.Contains("abandon", audit.Message, StringComparison.Ordinal);
+        Assert.Contains("nudge", audit.Message, StringComparison.Ordinal);
         Assert.Contains("engine unavailable", audit.Message, StringComparison.Ordinal);
     }
 
@@ -403,13 +506,12 @@ public sealed class WorkflowPassthroughTests
     [Theory]
     // Engine routes deliberately NOT whitelisted must not be reachable through the gateway.
     [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/cancel", HttpStatusCode.NotFound)]
-    [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/nudge", HttpStatusCode.NotFound)]
+    [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/abandon", HttpStatusCode.NotFound)]
     [InlineData("GET", "/workflows/00000000-0000-0000-0000-000000000001/dependency-graph", HttpStatusCode.NotFound)]
     [InlineData("GET", "/namespaces", HttpStatusCode.NotFound)]
     [InlineData("POST", "/workflows", HttpStatusCode.MethodNotAllowed)] // enqueue
     [InlineData("POST", "/collections", HttpStatusCode.MethodNotAllowed)]
     [InlineData("DELETE", "/workflows/00000000-0000-0000-0000-000000000001", HttpStatusCode.MethodNotAllowed)]
-    [InlineData("POST", "/workflows/00000000-0000-0000-0000-000000000001/fail", HttpStatusCode.NotFound)]
     [InlineData("GET", "/throttle", HttpStatusCode.NotFound)]
     [InlineData("POST", "/throttle/trip", HttpStatusCode.NotFound)]
     [InlineData("POST", "/throttle/clear", HttpStatusCode.NotFound)]
