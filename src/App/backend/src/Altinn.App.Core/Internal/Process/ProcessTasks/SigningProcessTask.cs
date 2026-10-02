@@ -168,21 +168,19 @@ internal sealed class SigningProcessTask : IProcessTask
         if (signingPdfDataType is not null)
         {
             // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
-            await using Stream pdfStream = await _pdfService.GeneratePdf(
+            byte[] pdf = await _pdfService.GeneratePdf(
                 dataMutator.Instance,
                 taskId,
                 language: dataMutator.Language,
                 cancellationToken: cancellationToken
             );
-            using var memoryStream = new MemoryStream();
-            await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
             UpsertTaskGeneratedBinaryDataElement(
                 dataMutator,
                 signingPdfDataType,
                 PdfContentType,
                 signingPdfDataType + ".pdf",
-                memoryStream.ToArray(),
+                pdf,
                 taskId
             );
         }

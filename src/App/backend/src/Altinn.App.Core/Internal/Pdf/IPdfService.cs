@@ -21,7 +21,7 @@ public interface IPdfService
     /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GeneratePdf(
+    Task<byte[]> GeneratePdf(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds = null,
@@ -42,7 +42,7 @@ public interface IPdfService
     /// <param name="isPreview">Whether to mark the PDF as a preview in its footer, instead of using the footer from the PDF generator settings.</param>
     /// <param name="authenticationMethod">The authentication method to use for requests, or null for the default.</param>
     /// <param name="cancellationToken">Cancellation token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GenerateSubformPdf(
+    Task<byte[]> GenerateSubformPdf(
         Instance instance,
         string taskId,
         SubformPdfContext subformPdfContext,

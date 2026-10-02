@@ -48,7 +48,7 @@ internal sealed class SubformPdfServiceTask(
 
             var subformPdfContext = new SubformPdfContext(subformComponentId, dataElement.Id);
             // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
-            await using Stream pdf = await pdfService.GenerateSubformPdf(
+            byte[] pdf = await pdfService.GenerateSubformPdf(
                 instance,
                 taskId,
                 subformPdfContext,
@@ -61,8 +61,6 @@ internal sealed class SubformPdfServiceTask(
                 filenameTextResourceKey,
                 subformPdfContext
             );
-            using var pdfBytes = new MemoryStream();
-            await pdf.CopyToAsync(pdfBytes, context.CancellationToken);
 
             // Generated from the task, so the PDF is removed if the task starts again, and says which subform it
             // was made from
@@ -70,7 +68,7 @@ internal sealed class SubformPdfServiceTask(
                 PdfService.PdfElementType,
                 PdfService.PdfContentType,
                 fileName,
-                pdfBytes.ToArray(),
+                pdf,
                 generatedFromTask: taskId,
                 metadata:
                 [

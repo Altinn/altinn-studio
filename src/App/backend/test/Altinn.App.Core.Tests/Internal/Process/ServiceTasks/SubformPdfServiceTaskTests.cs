@@ -28,7 +28,6 @@ public class SubformPdfServiceTaskTests
 
     public SubformPdfServiceTaskTests()
     {
-        // A new stream for each PDF, since the task disposes each one
         _pdfServiceMock
             .Setup(x =>
                 x.GenerateSubformPdf(
@@ -41,7 +40,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(() => new MemoryStream());
+            .ReturnsAsync(Array.Empty<byte>());
         _pdfFileNameResolverMock
             .Setup(x =>
                 x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())
@@ -402,7 +401,7 @@ public class SubformPdfServiceTaskTests
                     callCount++;
                     if (callCount == 2)
                         throw new Exception("Second PDF failed");
-                    return new MemoryStream();
+                    return Array.Empty<byte>();
                 }
             );
 

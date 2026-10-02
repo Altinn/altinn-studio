@@ -182,7 +182,7 @@ public class PdfControllerTests
                 );
 
             var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
-            result.Should().BeOfType(typeof(FileStreamResult));
+            result.Should().BeOfType(typeof(FileContentResult));
         }
 
         requestBody
@@ -240,7 +240,7 @@ public class PdfControllerTests
                 );
 
             var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
-            result.Should().BeOfType(typeof(FileStreamResult));
+            result.Should().BeOfType(typeof(FileContentResult));
         }
 
         requestBody
@@ -272,7 +272,7 @@ public class PdfControllerTests
 
         (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: "Task_Pdf");
 
-        result.Should().BeOfType<FileStreamResult>();
+        result.Should().BeOfType<FileContentResult>();
         requestBody
             .Should()
             .Contain(
@@ -292,7 +292,7 @@ public class PdfControllerTests
             dataElementId: new Guid(SubformDataElementId)
         );
 
-        result.Should().BeOfType<FileStreamResult>();
+        result.Should().BeOfType<FileContentResult>();
         requestBody
             .Should()
             .Contain(
@@ -311,7 +311,7 @@ public class PdfControllerTests
             dataElementId: new Guid(SubformDataElementId)
         );
 
-        result.Should().BeOfType<FileStreamResult>();
+        result.Should().BeOfType<FileContentResult>();
         requestBody
             .Should()
             .Contain($"/Task_SubformPdf/subform/subform-component/{SubformDataElementId}/?pdf=1")
@@ -353,7 +353,7 @@ public class PdfControllerTests
 
         (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: null, language: language);
 
-        result.Should().BeOfType<FileStreamResult>();
+        result.Should().BeOfType<FileContentResult>();
         requestBody.Should().Contain(expected);
     }
 

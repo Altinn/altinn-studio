@@ -62,7 +62,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         }
 
         // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
-        await using Stream pdf = await _pdfService.GeneratePdf(
+        byte[] pdf = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
             config.AutoPdfTaskIds,
@@ -71,15 +71,13 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             cancellationToken: context.CancellationToken
         );
         string fileName = await _pdfFileNameResolver.GetFileName(dataMutator, config.FilenameTextResourceKey);
-        using var pdfBytes = new MemoryStream();
-        await pdf.CopyToAsync(pdfBytes, context.CancellationToken);
 
         // Generated from the task, so the PDF is removed if the task starts again
         dataMutator.AddBinaryDataElement(
             PdfService.PdfElementType,
             PdfService.PdfContentType,
             fileName,
-            pdfBytes.ToArray(),
+            pdf,
             generatedFromTask: taskId
         );
 

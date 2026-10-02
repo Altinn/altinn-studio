@@ -73,7 +73,7 @@ public class PdfController : ControllerBase
     /// <param name="dataElementId">The subform data element to preview. Required when previewing a subform PDF service task.</param>
     /// <param name="language">The language of the preview, such as nb or en. Defaults to the user's language.</param>
     /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
-    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "application/pdf")]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest, "text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound, "text/plain")]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -107,14 +107,14 @@ public class PdfController : ControllerBase
 
         if (taskId is null)
         {
-            Stream pdfContent = await _pdfService.GeneratePdf(
+            byte[] pdfContent = await _pdfService.GeneratePdf(
                 instance,
                 currentTaskId,
                 language: language,
                 isPreview: true,
                 cancellationToken: cancellationToken
             );
-            return new FileStreamResult(pdfContent, "application/pdf");
+            return File(pdfContent, "application/pdf");
         }
 
         if (_processReader.GetFlowElement(taskId) is not ProcessTask task)
@@ -126,7 +126,7 @@ public class PdfController : ControllerBase
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
         if (taskExtension?.TaskType == "pdf")
         {
-            Stream pdfPreview = await _pdfService.GeneratePdf(
+            byte[] pdfPreview = await _pdfService.GeneratePdf(
                 instance,
                 taskId,
                 taskExtension.PdfConfiguration?.AutoPdfTaskIds,
@@ -134,7 +134,7 @@ public class PdfController : ControllerBase
                 isPreview: true,
                 cancellationToken: cancellationToken
             );
-            return new FileStreamResult(pdfPreview, "application/pdf");
+            return File(pdfPreview, "application/pdf");
         }
 
         if (taskExtension?.TaskType != "subformPdf")
@@ -158,7 +158,7 @@ public class PdfController : ControllerBase
             );
         }
 
-        Stream subformPreview = await _pdfService.GenerateSubformPdf(
+        byte[] subformPreview = await _pdfService.GenerateSubformPdf(
             instance,
             taskId,
             new SubformPdfContext(subformConfig.SubformComponentId, subform.Id),
@@ -166,7 +166,7 @@ public class PdfController : ControllerBase
             isPreview: true,
             cancellationToken: cancellationToken
         );
-        return new FileStreamResult(subformPreview, "application/pdf");
+        return File(subformPreview, "application/pdf");
     }
 
     /// <summary>

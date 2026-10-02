@@ -47,7 +47,7 @@ public class PdfServiceTaskTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(() => new MemoryStream(new byte[] { 1, 2, 3 }));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
         _pdfFileNameResolverMock
             .Setup(x =>
                 x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())

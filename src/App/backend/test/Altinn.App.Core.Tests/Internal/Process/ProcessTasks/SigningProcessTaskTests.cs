@@ -272,7 +272,7 @@ public sealed class SigningProcessTaskTests : IDisposable
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(instance, "Task_1", null, "en", false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
         dataMutator
             .Setup(x =>
                 x.AddBinaryDataElement(
@@ -331,7 +331,7 @@ public sealed class SigningProcessTaskTests : IDisposable
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(instance, "Task_1", null, "en", false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
         dataMutator
             .Setup(x =>
                 x.UpdateBinaryDataElement(existingSigningPdf, "application/pdf", It.IsAny<ReadOnlyMemory<byte>>())

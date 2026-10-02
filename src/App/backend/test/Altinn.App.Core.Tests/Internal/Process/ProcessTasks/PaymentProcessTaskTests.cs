@@ -210,7 +210,7 @@ public class PaymentProcessTaskTests
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Paid);
         _pdfServiceMock
             .Setup(x => x.GeneratePdf(instance, taskId, null, null, false, null, CancellationToken.None))
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 
@@ -392,7 +392,7 @@ public class PaymentProcessTaskTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new MemoryStream([1, 2, 3]));
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
 
         Func<Task> act = async () => await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
 

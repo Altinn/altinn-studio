@@ -3271,8 +3271,8 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public interface IPdfService
     {
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.IO.Stream> GenerateSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GenerateSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, string? language = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public class PdfGenerationException : Altinn.App.Core.Exceptions.AltinnException
     {

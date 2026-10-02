@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
@@ -60,7 +61,7 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(
+    public async Task<byte[]> GeneratePdf(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds = null,
@@ -83,7 +84,7 @@ internal sealed class PdfService : IPdfService
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GenerateSubformPdf(
+    public async Task<byte[]> GenerateSubformPdf(
         Instance instance,
         string taskId,
         SubformPdfContext subformPdfContext,
@@ -105,7 +106,7 @@ internal sealed class PdfService : IPdfService
         );
     }
 
-    private async Task<Stream> GeneratePdfInternal(
+    private async Task<byte[]> GeneratePdfInternal(
         Instance instance,
         string taskId,
         List<string>? autoGeneratePdfForTaskIds,
@@ -138,7 +139,7 @@ internal sealed class PdfService : IPdfService
         );
     }
 
-    private async Task<Stream> GeneratePdfContent(
+    private async Task<byte[]> GeneratePdfContent(
         Instance instance,
         string taskId,
         string language,
@@ -169,14 +170,15 @@ internal sealed class PdfService : IPdfService
             autoPdfTaskIdsQueryParams
         );
 
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(
+        await using Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(
             uri,
             footerContent,
             authenticationMethod,
             cancellationToken
         );
 
-        return pdfContent;
+        // The client has read the whole response, so this is the only copy we make of it
+        return await pdfContent.ReadAllBytes(cancellationToken);
     }
 
     private static Uri BuildUri(
