@@ -19,6 +19,7 @@ import { createAppQueryClient } from 'src/appQueryClient';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { backendValidationApi, instanceApi, partyApi, textResourcesApi } from 'src/core/api-client';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { installGlobalApi } from 'src/features/customReact/globalApi';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import * as queries from 'src/queries/queries';
 import { createRouter } from 'src/router';
@@ -29,6 +30,9 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 import 'src/styles/shared.css';
+
+// Must happen before the app's own scripts run, as they use it to register React components (CustomReact)
+installGlobalApi();
 
 const queryClient = createAppQueryClient();
 const apiClients: ApiClients = {
