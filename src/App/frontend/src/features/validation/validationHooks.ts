@@ -22,6 +22,7 @@ import {
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
+import { getComponentStateKey } from 'src/utils/layout/rowContext';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
   DerivedValidationStateInputs,
@@ -279,10 +280,16 @@ export function usePruneValidationMasks() {
   const setRowMask = FormStore.validation.useSetRowValidationMask();
 
   const setComponentMask = FormStore.validation.useSetComponentValidationMask();
+  const nodeIdsByComponentKey = new Map(
+    derived.nodes.map((node) => [getComponentStateKey(node.baseId, node.rowIds), node.id]),
+  );
   const staleComponents = useShallowMemo(
     Object.entries(componentMasks)
-      .filter(([indexedId, mask]) => !getValidationsForNode(derived, indexedId, mask, 'error').length)
-      .map(([indexedId]) => indexedId),
+      .filter(([componentKey, mask]) => {
+        const nodeId = nodeIdsByComponentKey.get(componentKey);
+        return !nodeId || !getValidationsForNode(derived, nodeId, mask, 'error').length;
+      })
+      .map(([componentKey]) => componentKey),
   );
 
   const hasFormErrors =

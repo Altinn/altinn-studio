@@ -22,7 +22,11 @@ import {
   type ValidationFilter,
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
-import { getCurrentDataModelPath, getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
+import {
+  getComponentStateKey,
+  getCurrentDataModelPath,
+  getIndexedDataModelBindings,
+} from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
@@ -251,7 +255,7 @@ function getVisibilityBreakdown(
     row |= state.validation.rowMasks[rowId] ?? 0;
   }
 
-  const component = state.validation.componentMasks[node.id] ?? 0;
+  const component = state.validation.componentMasks[getComponentStateKey(node.baseId, node.rowIds)] ?? 0;
   return {
     initial,
     form,

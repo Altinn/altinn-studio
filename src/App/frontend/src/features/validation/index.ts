@@ -74,7 +74,7 @@ export type ValidationSliceState = {
   pageMasks: Record<string, number>;
   rowMasks: Record<string, number>;
   componentMasks: Record<string, number>;
-  setComponentValidationMask: (indexedId: string, mask: number | undefined) => void;
+  setComponentValidationMask: (componentKey: string, mask: number | undefined) => void;
   setFormMask: (mask: number | undefined) => void;
   setPageMask: (pageKey: string, mask: number | undefined) => void;
   setRowMask: (rowId: string, mask: number | undefined) => void;

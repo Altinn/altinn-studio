@@ -1,5 +1,6 @@
 import { readDataFromState } from 'src/features/validation/nodeValidation/readDataFromState';
 import { lookupValidation } from 'src/layout/lookupValidation';
+import { getComponentStateKey } from 'src/utils/layout/rowContext';
 import type { LookupFailure } from 'src/core/queries/lookup';
 import type { ComponentValidation } from 'src/features/validation';
 import type { ComponentValidationContext } from 'src/layout';
@@ -60,7 +61,7 @@ export function validatePersonLookup(ctx: ComponentValidationContext<'PersonLook
     validations.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));
   }
 
-  const input = ctx.formState.lookup.inputs[ctx.indexedId];
+  const input = ctx.formState.lookup.inputs[getComponentStateKey(ctx.baseComponentId, ctx.rowIds)];
   if (input?.type === 'PersonLookup' && !savedSsn) {
     if (!checkValidSsn(input.ssn)) {
       validations.push(lookupValidation('person_lookup.validation_error_ssn', 'ssn'));

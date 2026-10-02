@@ -43,7 +43,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     baseComponentId,
     overrideDisplay,
   });
-  const { input, setInput, clearInput } = useLookupInput(componentId);
+  const { input, setInput, clearInput } = useLookupInput(baseComponentId);
   const tempSsn = input?.type === 'PersonLookup' ? input.ssn : '';
   const tempName = input?.type === 'PersonLookup' ? input.lastName : '';
   const validate = useOnComponentValidation(baseComponentId);

@@ -50,7 +50,7 @@ export function OrganizationLookupComponent({
     baseComponentId,
     overrideDisplay,
   });
-  const { input, setInput, clearInput } = useLookupInput(componentId);
+  const { input, setInput, clearInput } = useLookupInput(baseComponentId);
   const tempOrgNr = input?.type === 'OrganizationLookup' ? input.orgNr : '';
   const validate = useOnComponentValidation(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);

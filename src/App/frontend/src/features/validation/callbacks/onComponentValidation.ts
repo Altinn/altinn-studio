@@ -4,17 +4,18 @@ import { getNodeRefValidations } from 'src/features/validation/deriveValidationS
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentStateKey, useIndexedId } from 'src/utils/layout/DataModelLocation';
 
 /** Reveals errors for this component using the same derived validations as the other gates. */
 export function useOnComponentValidation(baseComponentId: string) {
   const indexedId = useIndexedId(baseComponentId);
+  const componentKey = useComponentStateKey(baseComponentId);
   const setMask = FormStore.validation.useSetComponentValidationMask();
   const getDerived = useGetDerivedValidationState();
   const waitForValidation = useWaitForValidation();
   const callback = useOurEffectEvent((mask: number) => {
     const errors = getNodeRefValidations(getDerived(), indexedId, mask, 'error');
-    setMask(indexedId, errors.length ? mask : undefined);
+    setMask(componentKey, errors.length ? mask : undefined);
     return errors;
   });
 

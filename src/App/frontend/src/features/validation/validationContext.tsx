@@ -62,12 +62,12 @@ export function createValidationSlice(
     pageMasks: {},
     rowMasks: {},
     componentMasks: {},
-    setComponentValidationMask: (indexedId, mask) =>
+    setComponentValidationMask: (componentKey, mask) =>
       set((state) => {
         if (mask === undefined) {
-          delete state.validation.componentMasks[indexedId];
+          delete state.validation.componentMasks[componentKey];
         } else {
-          state.validation.componentMasks[indexedId] = mask;
+          state.validation.componentMasks[componentKey] = mask;
         }
       }),
     setFormMask: (mask) =>
