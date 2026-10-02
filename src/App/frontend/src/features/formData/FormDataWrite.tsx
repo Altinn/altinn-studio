@@ -46,6 +46,8 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
+  // Rejects every write, as if all data elements were locked
+  locked: boolean;
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;

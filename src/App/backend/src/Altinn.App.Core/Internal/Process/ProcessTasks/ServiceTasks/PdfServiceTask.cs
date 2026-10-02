@@ -17,6 +17,7 @@ internal interface IPdfServiceTask : IServiceTask { }
 internal sealed class PdfServiceTask : IPdfServiceTask
 {
     private readonly IPdfService _pdfService;
+    private readonly IPdfFileNameResolver _pdfFileNameResolver;
     private readonly IProcessReader _processReader;
     private readonly IAppResources _appResources;
     private readonly ILogger<PdfServiceTask> _logger;
@@ -26,12 +27,14 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// </summary>
     public PdfServiceTask(
         IPdfService pdfService,
+        IPdfFileNameResolver pdfFileNameResolver,
         IProcessReader processReader,
         IAppResources appResources,
         ILogger<PdfServiceTask> logger
     )
     {
         _pdfService = pdfService;
+        _pdfFileNameResolver = pdfFileNameResolver;
         _processReader = processReader;
         _appResources = appResources;
         _logger = logger;
@@ -43,7 +46,8 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
 
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
@@ -57,12 +61,24 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             return ServiceTaskResult.FailedPermanent(reason);
         }
 
-        _ = await _pdfService.GenerateAndStorePdf(
-            context.InstanceDataMutator,
-            config.FilenameTextResourceKey,
+        // The actor's language, since a workflow callback is authenticated as the app, whose language is nb
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
+            taskId,
             config.AutoPdfTaskIds,
-            StorageAuthenticationMethod.ServiceOwner(),
+            dataMutator.Language,
+            authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken: context.CancellationToken
+        );
+        string fileName = await _pdfFileNameResolver.GetFileName(dataMutator, config.FilenameTextResourceKey);
+
+        // Generated from the task, so the PDF is removed if the task starts again
+        dataMutator.AddBinaryDataElement(
+            PdfService.PdfElementType,
+            PdfService.PdfContentType,
+            fileName,
+            pdf,
+            generatedFromTask: taskId
         );
 
         _logger.LogDebug(

@@ -314,6 +314,7 @@ function useIsWrongTask(taskId: string | undefined) {
   const { data: process } = useProcessQuery();
   const currentTaskId = process?.currentTask?.elementId;
   const waitForQueries = useWaitForQueries();
+  const isPdfMode = usePdfModeActive();
 
   const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
   const isCurrentTask =
@@ -323,7 +324,7 @@ function useIsWrongTask(taskId: string | undefined) {
   // does not show up while we're navigating. Without this, the message will flash over the screen shortly
   // in-between all the <Loader /> components.
   useEffect(() => {
-    if (isCurrentTask) {
+    if (isCurrentTask || isPdfMode) {
       setIsWrongTask(false);
     } else {
       let cancelled = false;
@@ -340,7 +341,7 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries]);
+  }, [isCurrentTask, isPdfMode, waitForQueries]);
 
-  return isWrongTask && !isCurrentTask && !isNavigating;
+  return isWrongTask && !isCurrentTask && !isPdfMode && !isNavigating;
 }

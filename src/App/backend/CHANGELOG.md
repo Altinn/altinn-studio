@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- The PDF preview in the app developer tools can now show what a PDF or subform PDF service task will produce before the instance reaches that task. For a subform PDF, choose which subform to preview. `GET .../pdf/preview` accepts an optional `taskId` and `language` and, for a subform PDF service task, a `dataElementId`.
+- `GET .../pdf/preview` is in the app's OpenAPI documentation, for integrations that don't use the app frontend. By default it allows 20 previews per minute across all instances and answers further requests with 429 and `Retry-After`. Configure the limit in `PdfGeneratorSettings:PreviewRateLimit` with `PermitLimit` (0 turns it off), `Window`, and `QueueLimit` for how many requests wait for the next window.
 - The live `workflow` status on process reads now includes `failedAttempts` while a transition is processing: how many attempts of its current step in a row have failed and are being retried automatically. It also includes `resumedAt` when the transition has been resumed, because a resume reruns the transition and keeps its original `startedAt`. The app frontend uses it to tell the user when a transition is having trouble, rather than showing an unexplained long wait.
 - `StartupHelper.GetApplicationId(contentRootPath)` reads the app id from `config/applicationmetadata.json` in the given folder. `AddAltinnAppServices` uses it with the content root of the host, so an app that runs with a content root other than its working directory registers its Swagger endpoint and telemetry with the right id. The parameterless overload still reads the working directory.
 
@@ -31,10 +33,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `AppSettings.RequiredValidation`, `ExpressionValidation` and `RemoveHiddenData` now default to `true`. Apps that are not ready can set each key to `false` under `AppSettings` in `appsettings.json`.
 - The Altinn events an app's process transitions raise are now sent with an idempotency key, so a transition the workflow engine retries registers its event once rather than once per attempt.
 - Breaking: `IEventsClient.AddEvent` takes an optional `idempotencyKey` ahead of its cancellation token. An app passing the cancellation token positionally must pass it by name (`cancellationToken:`).
+- Breaking: `IPdfService` only generates PDFs and returns their bytes, so the caller decides where a PDF goes. `GenerateAndStorePdf` is removed. To add a PDF as before, call `GeneratePdf`, name it with the new `IPdfFileNameResolver`, and add it with `IInstanceDataMutator.AddBinaryDataElement` as `ref-data-as-pdf` with `generatedFromTask`, so it is removed when the task starts again.
+- Breaking: `IPdfService.GeneratePdf` has one overload, with the optional parameters `autoGeneratePdfForTaskIds`, `language`, `isPreview` and `authenticationMethod`, so pass `isPreview` and the cancellation token by name. It takes the language from `language` instead of the request's `lang` query. It can render a task other than the current one. `GenerateSubformPdf` is new, and no method has a default implementation.
+- Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. PDF service tasks are traced by the `PdfService.GeneratePdf` span instead. Update queries, dashboards and alerts that use the old name.
 - The workflow that marks an instance as processing at the start of a process next is named `Process next: Mark instance as processing` instead of `Process next: acquire`.
 
 ### Fixed
 
+- PDFs made by PDF and subform PDF service tasks, signing tasks and payment tasks are in the profile language of the user who moved the process on, instead of always in Norwegian bokmål. So is the default file name of a PDF service task's PDF.
 - The application metadata schema no longer reports `allowedContributors` on a data type as an unknown property. It reports the misspelled `allowedContributers` instead, which the app still reads; `studioctl app upgrade v9` renames it. ([#20846](https://github.com/Altinn/altinn-studio/pull/20846))
 
 ### Removed

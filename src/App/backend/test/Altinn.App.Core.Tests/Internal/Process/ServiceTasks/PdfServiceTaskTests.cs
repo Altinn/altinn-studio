@@ -16,6 +16,7 @@ namespace Altinn.App.Core.Tests.Internal.Process.ServiceTasks;
 public class PdfServiceTaskTests
 {
     private readonly Mock<IPdfService> _pdfServiceMock = new();
+    private readonly Mock<IPdfFileNameResolver> _pdfFileNameResolverMock = new();
     private readonly Mock<ILogger<PdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
     private readonly Mock<IAppResources> _appResourcesMock = new();
@@ -34,9 +35,28 @@ public class PdfServiceTaskTests
                     PdfConfiguration = new AltinnPdfConfiguration { FilenameTextResourceKey = FileName },
                 }
             );
+        _pdfServiceMock
+            .Setup(x =>
+                x.GeneratePdf(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new byte[] { 1, 2, 3 });
+        _pdfFileNameResolverMock
+            .Setup(x =>
+                x.GetFileName(It.IsAny<IInstanceDataAccessor>(), It.IsAny<string?>(), It.IsAny<SubformPdfContext?>())
+            )
+            .ReturnsAsync("receipt.pdf");
 
         _serviceTask = new PdfServiceTask(
             _pdfServiceMock.Object,
+            _pdfFileNameResolverMock.Object,
             _processReaderMock.Object,
             _appResourcesMock.Object,
             _loggerMock.Object
@@ -44,31 +64,15 @@ public class PdfServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_Should_Call_GenerateAndStorePdf()
+    public async Task Execute_Should_Call_GeneratePdf()
     {
         // Arrange
         // No autoPdfTaskIds, so the PDF comes from the task's own UI folder.
         _appResourcesMock
             .Setup(x => x.GetLayoutSettingsForFolder("taskId"))
             .Returns(new LayoutSettings { Pages = new Pages { PdfLayoutName = "PdfLayout" } });
-
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "taskId" } },
-        };
-
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
-
-        var pdfDataType = new DataType { Id = "ref-data-as-pdf" };
-        instanceMutatorMock.Setup(x => x.DataTypes).Returns(new List<DataType> { pdfDataType });
-
-        var parameters = new ServiceTaskContext
-        {
-            InstanceDataMutator = instanceMutatorMock.Object,
-            WorkflowId = Guid.NewGuid(),
-            StepId = Guid.NewGuid(),
-        };
+        var instanceMutatorMock = CreateInstanceMutatorMock("taskId");
+        var parameters = CreateServiceTaskContext(instanceMutatorMock);
 
         // Act
         await _serviceTask.Execute(parameters);
@@ -76,12 +80,44 @@ public class PdfServiceTaskTests
         // Assert
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndStorePdf(
-                    instanceMutatorMock.Object,
-                    FileName,
+                x.GeneratePdf(
+                    instanceMutatorMock.Object.Instance,
+                    "taskId",
                     It.IsAny<List<string>?>(),
+                    "en",
+                    false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task Execute_Should_Add_The_Pdf_Generated_From_The_Task()
+    {
+        // Arrange
+        // No autoPdfTaskIds, so the PDF comes from the task's own UI folder.
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder("taskId"))
+            .Returns(new LayoutSettings { Pages = new Pages { PdfLayoutName = "PdfLayout" } });
+        var instanceMutatorMock = CreateInstanceMutatorMock("taskId");
+        var parameters = CreateServiceTaskContext(instanceMutatorMock);
+
+        // Act
+        await _serviceTask.Execute(parameters);
+
+        // Assert
+        _pdfFileNameResolverMock.Verify(x => x.GetFileName(instanceMutatorMock.Object, FileName, null), Times.Once);
+        instanceMutatorMock.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    "receipt.pdf",
+                    It.Is<ReadOnlyMemory<byte>>(bytes => bytes.ToArray().SequenceEqual(new byte[] { 1, 2, 3 })),
+                    "taskId",
+                    null
                 ),
             Times.Once
         );
@@ -107,41 +143,21 @@ public class PdfServiceTaskTests
                 }
             );
 
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "pdfTask" } },
-        };
-
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
-
-        var pdfDataType = new DataType { Id = "ref-data-as-pdf" };
-        instanceMutatorMock.Setup(x => x.DataTypes).Returns(new List<DataType> { pdfDataType });
-
-        var parameters = new ServiceTaskContext
-        {
-            InstanceDataMutator = instanceMutatorMock.Object,
-            WorkflowId = Guid.NewGuid(),
-            StepId = Guid.NewGuid(),
-        };
-
-        var serviceTask = new PdfServiceTask(
-            _pdfServiceMock.Object,
-            _processReaderMock.Object,
-            _appResourcesMock.Object,
-            _loggerMock.Object
-        );
+        var instanceMutatorMock = CreateInstanceMutatorMock("pdfTask");
+        var parameters = CreateServiceTaskContext(instanceMutatorMock);
 
         // Act
-        await serviceTask.Execute(parameters);
+        await _serviceTask.Execute(parameters);
 
         // Assert
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndStorePdf(
-                    instanceMutatorMock.Object,
-                    "customFilenameTextResourceKey",
+                x.GeneratePdf(
+                    instanceMutatorMock.Object.Instance,
+                    "pdfTask",
                     taskIds,
+                    "en",
+                    false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
                     It.IsAny<CancellationToken>()
                 ),
@@ -202,10 +218,12 @@ public class PdfServiceTaskTests
         Assert.IsType<ServiceTaskSuccessResult>(result);
         _pdfServiceMock.Verify(
             x =>
-                x.GenerateAndStorePdf(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<string?>(),
+                x.GeneratePdf(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
                     It.IsAny<List<string>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
                     It.IsAny<CancellationToken>()
                 ),
@@ -224,18 +242,24 @@ public class PdfServiceTaskTests
                 }
             );
 
-    private static ServiceTaskContext CreateContext(string currentTaskId)
-    {
-        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
-        instanceMutatorMock
-            .Setup(x => x.Instance)
-            .Returns(
-                new Instance
-                {
-                    Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = currentTaskId } },
-                }
-            );
+    private static ServiceTaskContext CreateContext(string currentTaskId) =>
+        CreateServiceTaskContext(CreateInstanceMutatorMock(currentTaskId));
 
+    private static Mock<IInstanceDataMutator> CreateInstanceMutatorMock(string currentTaskId)
+    {
+        var instance = new Instance
+        {
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = currentTaskId } },
+        };
+
+        var instanceMutatorMock = new Mock<IInstanceDataMutator>();
+        instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
+        instanceMutatorMock.Setup(x => x.Language).Returns("en");
+        return instanceMutatorMock;
+    }
+
+    private static ServiceTaskContext CreateServiceTaskContext(Mock<IInstanceDataMutator> instanceMutatorMock)
+    {
         return new ServiceTaskContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,

@@ -18,11 +18,17 @@ namespace Altinn.App.logic.Pdf
     public sealed class PdfIfRequestedServiceTask : IServiceTask
     {
         private readonly IPdfService _pdfService;
+        private readonly IPdfFileNameResolver _pdfFileNameResolver;
         private readonly IProcessReader _processReader;
 
-        public PdfIfRequestedServiceTask(IPdfService pdfService, IProcessReader processReader)
+        public PdfIfRequestedServiceTask(
+            IPdfService pdfService,
+            IPdfFileNameResolver pdfFileNameResolver,
+            IProcessReader processReader
+        )
         {
             _pdfService = pdfService;
+            _pdfFileNameResolver = pdfFileNameResolver;
             _processReader = processReader;
         }
 
@@ -44,12 +50,23 @@ namespace Altinn.App.logic.Pdf
                 var taskId = mutator.Instance.Process.CurrentTask.ElementId;
                 var pdfConfig = _processReader.GetAltinnTaskExtension(taskId)?.PdfConfiguration;
 
-                await _pdfService.GenerateAndStorePdf(
-                    mutator,
-                    pdfConfig?.FilenameTextResourceKey,
+                var pdf = await _pdfService.GeneratePdf(
+                    mutator.Instance,
+                    taskId,
                     pdfConfig?.AutoPdfTaskIds,
-                    StorageAuthenticationMethod.ServiceOwner(),
-                    context.CancellationToken
+                    mutator.Language,
+                    authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+                    cancellationToken: context.CancellationToken
+                );
+                var fileName = await _pdfFileNameResolver.GetFileName(mutator, pdfConfig?.FilenameTextResourceKey);
+
+                // Generated from the task, so the PDF is removed if the task starts again
+                mutator.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    fileName,
+                    pdf,
+                    generatedFromTask: taskId
                 );
             }
 
