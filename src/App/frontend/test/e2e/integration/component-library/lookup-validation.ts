@@ -185,6 +185,48 @@ for (const scenario of scenarios) {
       cy.get('@lookup.all').should('have.length', 1);
     });
 
+    it('keeps pending lookup errors with their row when an earlier row is deleted', () => {
+      cy.intercept(scenario.method, scenario.url, scenario.failure).as('lookup');
+      start();
+      cy.findByRole('radio', { name: 'Nei' }).check();
+      cy.findByRole('button', { name: /Legg til ny/ }).click();
+      cy.get('[data-testid="group-edit-container"]').within(() => {
+        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+      });
+      cy.findByRole('button', { name: /Legg til ny/ }).click();
+      cy.get('[data-testid="group-edit-container"]').within(() => {
+        fill();
+        cy.findByRole('button', { name: /Hent opplysninger/i }).click();
+        cy.wait('@lookup');
+        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+          'be.visible',
+        );
+      });
+
+      cy.get(`#group-${scenario.id}-group-table-body > tr[data-row-num="0"]`)
+        .findByRole('button', { name: /Slett/ })
+        .click();
+      cy.get(`[data-componentid="${scenario.id}-repeated-0"]`).within(() => {
+        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', scenario.number);
+        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+          'be.visible',
+        );
+      });
+
+      cy.get(`[data-componentid="${scenario.id}-group"]`).findByRole('button', { name: /Slett/ }).click();
+      cy.get('[data-testid="group-edit-container"]').should('not.exist');
+      cy.findByRole('button', { name: /Legg til ny/ }).click();
+      cy.get('[data-testid="group-edit-container"]').within(() => {
+        cy.findByRole('textbox', { name: scenario.numberLabel }).should('have.value', '');
+        cy.findByText(/ikke funnet|Ingen person er registrert/i, { selector: '[data-validation] span' }).should(
+          'not.exist',
+        );
+        cy.findByRole('button', { name: /Lagre og lukk/ }).click();
+      });
+      cy.get('[data-testid="group-edit-container"]').should('not.exist');
+      cy.get('@lookup.all').should('have.length', 1);
+    });
+
     it('prevents saving a failed optional lookup', () => {
       cy.intercept(scenario.method, scenario.url, scenario.failure).as('lookup');
       start();
