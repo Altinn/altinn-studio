@@ -98,7 +98,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
         using HttpClient client = CreateWorkflowsClient(handler);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            client.PostAsync("http://runtime-gateway.test/workflows/abandon", content: null)
+            client.PostAsync("http://runtime-gateway.test/workflows/nudge", content: null)
         );
 
         Assert.Equal(1, handler.Invocations);

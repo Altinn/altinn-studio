@@ -311,14 +311,14 @@ public class WorkflowsControllerTests
     }
 
     [Fact]
-    public async Task AbandonWorkflow_PassesResponseThrough_AndAudits()
+    public async Task NudgeWorkflow_PassesResponseThrough_AndAudits()
     {
         var workflowId = Guid.NewGuid();
         const string upstreamBody = /*lang=json,strict*/
-            """{"status":"Abandoned"}""";
+            """{"nudgedAt":"2026-08-02T10:00:00Z"}""";
         _runtimeGatewayClientMock
             .Setup(client =>
-                client.AbandonWorkflowAsync(
+                client.NudgeWorkflowAsync(
                     Org,
                     App,
                     It.Is<AltinnEnvironment>(environment => environment.Name == Env),
@@ -326,18 +326,54 @@ public class WorkflowsControllerTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(JsonResponse(HttpStatusCode.OK, upstreamBody));
+            .ReturnsAsync(JsonResponse(HttpStatusCode.Accepted, upstreamBody));
 
-        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/abandon", content: null);
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/nudge", content: null);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         Assert.Equal(upstreamBody, await response.Content.ReadAsStringAsync());
 
         (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
-        Assert.Contains("abandon", attempt);
+        Assert.Contains("nudge", attempt);
         Assert.Contains(workflowId.ToString(), attempt);
         Assert.Contains("testUser", attempt);
-        Assert.Contains("outcome: 200", outcome);
+        Assert.Contains("outcome: 202", outcome);
+    }
+
+    [Fact]
+    public async Task FailWorkflow_RecordsTheStudioUserAsTheReason_AndAudits()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.FailWorkflowAsync(
+                    Org,
+                    App,
+                    It.Is<AltinnEnvironment>(environment => environment.Name == Env),
+                    workflowId,
+                    It.Is<string>(reason => reason.Contains("testUser") && reason.Contains("Altinn Studio")),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Accepted));
+
+        // Whatever the client sends as a body is ignored: the reason is Designer's to compose.
+        using var response = await HttpClient.PostAsync(
+            $"{BasePath()}/workflows/{workflowId}/fail",
+            new StringContent( /*lang=json,strict*/
+                """{"reason":"not mine to say"}""",
+                Encoding.UTF8,
+                "application/json"
+            )
+        );
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        _runtimeGatewayClientMock.VerifyAll();
+
+        (string attempt, string outcome) = AssertAttemptAndOutcomeAudited();
+        Assert.Contains("fail", attempt);
+        Assert.Contains(workflowId.ToString(), attempt);
+        Assert.Contains("outcome: 202", outcome);
     }
 
     [Fact]
@@ -487,7 +523,7 @@ public class WorkflowsControllerTests
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
-                client.AbandonWorkflowAsync(
+                client.NudgeWorkflowAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
@@ -502,7 +538,7 @@ public class WorkflowsControllerTests
                 )
             );
 
-        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/abandon", content: null);
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/nudge", content: null);
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         string body = await response.Content.ReadAsStringAsync();
@@ -560,7 +596,7 @@ public class WorkflowsControllerTests
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
-                client.AbandonWorkflowAsync(
+                client.NudgeWorkflowAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
@@ -571,7 +607,7 @@ public class WorkflowsControllerTests
             .ThrowsAsync(new KeyNotFoundException("Environment 'fake-env' not found."));
 
         using var response = await HttpClient.PostAsync(
-            $"{BasePath(env: "fake-env")}/workflows/{workflowId}/abandon",
+            $"{BasePath(env: "fake-env")}/workflows/{workflowId}/nudge",
             content: null
         );
 
@@ -587,7 +623,7 @@ public class WorkflowsControllerTests
     {
         var workflowId = Guid.NewGuid();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{BasePath()}/workflows/{workflowId}/abandon");
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{BasePath()}/workflows/{workflowId}/nudge");
         // A value in the header short-circuits the test handler's token fetch, so the request
         // arrives with a header that has no matching cookie token.
         request.Headers.Add("X-XSRF-TOKEN", "not-a-valid-request-token");
@@ -670,7 +706,7 @@ public class WorkflowsControllerTests
 
         using var readResponse = await HttpClient.GetAsync($"{BasePath(env: "tt02")}/collections");
         using var mutationResponse = await HttpClient.PostAsync(
-            $"{BasePath(env: "tt02")}/workflows/{workflowId}/abandon",
+            $"{BasePath(env: "tt02")}/workflows/{workflowId}/nudge",
             content: null
         );
 
