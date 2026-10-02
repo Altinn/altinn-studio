@@ -68,6 +68,36 @@
         "required": true
       },
       {
+        "id": "bok-page-count",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "PageCount"
+        },
+        "textResourceBindings": {
+          "title": "Antall sider"
+        }
+      },
+      {
+        "id": "bok-copy-count",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "CopyCount"
+        },
+        "textResourceBindings": {
+          "title": "Antall eksemplarer"
+        },
+        "formatting": {
+          "number": {
+            "decimalScale": 2,
+            "decimalSeparator": ",",
+            "fixedDecimalScale": true
+          }
+        },
+        "showValidations": [
+          "All"
+        ]
+      },
+      {
         "id": "button-group-bok1",
         "type": "ButtonGroup",
         "children": [

@@ -51,7 +51,8 @@ public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServic
 
         IProcessModelingService processModelingService = new ProcessModelingService(
             _altinnGitRepositoryFactory,
-            _appDevelopmentService
+            _appDevelopmentService,
+            _appVersionServiceMock.Object
         );
 
         // Act

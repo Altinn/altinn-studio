@@ -7,7 +7,8 @@ public class SignClientMock : ISignClient
 {
     public Task SignDataElements(
         SignatureContext signatureContext,
-        StorageAuthenticationMethod? authenticationMethod = null
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
     )
     {
         throw new NotImplementedException();

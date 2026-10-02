@@ -1,0 +1,16 @@
+[Unit]
+Description=Authenticate studioctl with host-mediated API keys
+Wants=network-online.target
+After=network-online.target
+Before=agent-workspace-init.service
+
+[Service]
+Type=oneshot
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+PassEnvironment=STUDIO_PROD_API_KEY STUDIO_STAGING_API_KEY STUDIO_DEV_API_KEY
+ExecStart=/usr/local/libexec/agent-studioctl-auth-init
+
+[Install]
+WantedBy=multi-user.target

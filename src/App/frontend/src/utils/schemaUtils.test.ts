@@ -1,3 +1,4 @@
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
 import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
@@ -6,7 +7,6 @@ import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { lookupPropertiesInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 describe('schemaUtils', () => {

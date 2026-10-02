@@ -1,14 +1,16 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Features.Signing;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -19,24 +21,25 @@ internal sealed class SigningProcessTask : IProcessTask
 {
     private readonly ISigningService _signingService;
     private readonly IProcessReader _processReader;
-    private readonly IAppMetadata _appMetadata;
-    private readonly IHostEnvironment _hostEnvironment;
+    private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly ILogger<SigningProcessTask> _logger;
     private readonly IPdfService _pdfService;
     private readonly ISigneeContextsManager _signeeContextsManager;
 
     public SigningProcessTask(
         ISigningService signingService,
         IProcessReader processReader,
-        IAppMetadata appMetadata,
-        IHostEnvironment hostEnvironment,
+        IServiceProvider services,
+        ILogger<SigningProcessTask> logger,
         IPdfService pdfService,
         ISigneeContextsManager signeeContextsManager
     )
     {
         _signingService = signingService;
         _processReader = processReader;
-        _appMetadata = appMetadata;
-        _hostEnvironment = hostEnvironment;
+        // Use this task's scope when no HTTP request scope is available during startup.
+        _appImplementationFactory = new AppImplementationFactory(services);
+        _logger = logger;
         _pdfService = pdfService;
         _signeeContextsManager = signeeContextsManager;
     }
@@ -46,15 +49,95 @@ internal sealed class SigningProcessTask : IProcessTask
     private const string PdfContentType = "application/pdf";
 
     /// <inheritdoc/>
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
+    {
+        string taskId = context.TaskId;
+        AltinnSignatureConfiguration? configuration = _processReader
+            .GetAltinnTaskExtension(taskId)
+            ?.SignatureConfiguration;
+
+        if (configuration is null)
+        {
+            yield return "SignatureConfig is missing in the signature process task configuration.";
+            yield break;
+        }
+
+        string? signaturesDataType = configuration.SignatureDataType;
+        string? signeeStatesDataTypeId = configuration.SigneeStatesDataTypeId;
+        string? signeeProviderId = configuration.SigneeProviderId;
+
+        if (signaturesDataType is null)
+        {
+            yield return $"The {nameof(configuration.SignatureDataType)} property must be set in the signature configuration.";
+        }
+
+        if (signeeProviderId is null != signeeStatesDataTypeId is null)
+        {
+            yield return $"Both {nameof(configuration.SigneeProviderId)} and {nameof(configuration.SigneeStatesDataTypeId)} must either be set together, or left unset. These properties are required to enable delegation based signing.";
+        }
+
+        if (signeeProviderId is not null)
+        {
+            int providerCount = _appImplementationFactory
+                .GetAll<ISigneeProvider>()
+                .Count(provider => provider.Id == signeeProviderId);
+            if (providerCount != 1)
+            {
+                yield return $"Expected exactly one {nameof(ISigneeProvider)} with id '{signeeProviderId}', found {providerCount}.";
+            }
+
+            string? correspondenceResource = AltinnTaskExtension
+                .GetConfigForEnvironment(context.Environment, configuration.CorrespondenceResources)
+                ?.Value;
+            if (string.IsNullOrEmpty(correspondenceResource))
+            {
+                string message =
+                    $"No correspondence resource is configured for the {context.Environment} environment. "
+                    + "Signees cannot be notified without one.";
+                if (context.Environment is HostingEnvironment.Staging or HostingEnvironment.Production)
+                {
+                    yield return message;
+                }
+                else
+                {
+                    // Local development has no Correspondence service. Require a resource only in staging
+                    // and production.
+                    _logger.LogWarning("Task {TaskId}: {Message}", taskId, message);
+                }
+            }
+        }
+
+        // Require app-owned signing data types during development to prevent users from changing signing
+        // data.
+        if (context.Environment == HostingEnvironment.Development)
+        {
+            foreach (string? dataType in new[] { signaturesDataType, signeeStatesDataTypeId })
+            {
+                string? finding = null;
+                try
+                {
+                    AllowedContributorsHelper.EnsureDataTypeIsAppOwned(context.ApplicationMetadata, dataType);
+                }
+                catch (ApplicationConfigException e)
+                {
+                    finding = e.Message;
+                }
+
+                if (finding is not null)
+                {
+                    yield return finding;
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task Start(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
-
-        ValidateSigningConfiguration(appMetadata, signingConfiguration);
 
         // Initialize delegated signing if configured
         if (
@@ -62,7 +145,7 @@ internal sealed class SigningProcessTask : IProcessTask
             && signingConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, ct);
+            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, cancellationToken);
         }
     }
 
@@ -74,7 +157,7 @@ internal sealed class SigningProcessTask : IProcessTask
     public async Task End(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration? signatureConfiguration = _processReader
             .GetAltinnTaskExtension(taskId)
@@ -84,9 +167,14 @@ internal sealed class SigningProcessTask : IProcessTask
 
         if (signingPdfDataType is not null)
         {
-            await using Stream pdfStream = await _pdfService.GeneratePdf(dataMutator, taskId, false, ct: ct);
+            await using Stream pdfStream = await _pdfService.GeneratePdf(
+                dataMutator,
+                taskId,
+                false,
+                cancellationToken: cancellationToken
+            );
             using var memoryStream = new MemoryStream();
-            await pdfStream.CopyToAsync(memoryStream, ct);
+            await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
             UpsertTaskGeneratedBinaryDataElement(
                 dataMutator,
@@ -104,7 +192,7 @@ internal sealed class SigningProcessTask : IProcessTask
             && signatureConfiguration.SigneeStatesDataTypeId is not null
         )
         {
-            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, ct);
+            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, cancellationToken);
         }
     }
 
@@ -112,25 +200,30 @@ internal sealed class SigningProcessTask : IProcessTask
     public async Task Abandon(ProcessTaskContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken ct = context.CancellationToken;
+        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
-        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, ct);
+        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, cancellationToken);
     }
 
     private async Task InitialiseRuntimeDelegatedSigning(
         IInstanceDataMutator cachedDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         List<SigneeContext> signeeContexts = await _signeeContextsManager.GenerateSigneeContexts(
             cachedDataMutator,
             signatureConfiguration,
-            ct
+            cancellationToken
         );
 
-        await _signingService.InitializeSignees(cachedDataMutator, signeeContexts, signatureConfiguration, ct);
+        await _signingService.InitializeSignees(
+            cachedDataMutator,
+            signeeContexts,
+            signatureConfiguration,
+            cancellationToken
+        );
     }
 
     private AltinnSignatureConfiguration GetAltinnSignatureConfiguration(string taskId)
@@ -147,42 +240,6 @@ internal sealed class SigningProcessTask : IProcessTask
         }
 
         return signatureConfiguration;
-    }
-
-    private void ValidateSigningConfiguration(
-        ApplicationMetadata appMetadata,
-        AltinnSignatureConfiguration signatureConfiguration
-    )
-    {
-        string? signaturesDataType = signatureConfiguration.SignatureDataType;
-        string? signeeStatesDataTypeId = signatureConfiguration.SigneeStatesDataTypeId;
-        string? signeeProviderId = signatureConfiguration.SigneeProviderId;
-
-        if (signaturesDataType is null)
-        {
-            throw new ApplicationConfigException(
-                $"The {nameof(signatureConfiguration.SignatureDataType)} property must be set in the signature configuration."
-            );
-        }
-
-        // The signatures data type should be app owned, so that the end user can't manipulate the data. Tell the developer during development if this is not the case.
-        if (_hostEnvironment.IsDevelopment())
-        {
-            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, signaturesDataType);
-        }
-
-        if (signeeProviderId is null != signeeStatesDataTypeId is null)
-        {
-            throw new ApplicationConfigException(
-                $"Both {nameof(signatureConfiguration.SigneeProviderId)} and {nameof(signatureConfiguration.SigneeStatesDataTypeId)} must either be set together, or left unset. These properties are required to enable delegation based signing."
-            );
-        }
-
-        // The signee state data type should be app owned, so that the end user can't manipulate the data. Tell the developer during development if this is not the case.
-        if (_hostEnvironment.IsDevelopment())
-        {
-            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, signeeStatesDataTypeId);
-        }
     }
 
     private static string GetTaskId(IInstanceDataAccessor dataAccessor) =>

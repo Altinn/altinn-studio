@@ -71,7 +71,7 @@ export const ListAdminPage = (): React.JSX.Element => {
           <StudioSpinner aria-label={t('resourceadm.loading_environments')} />
         ) : (
           <StudioToggleGroup
-            data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+            aria-label={t('resourceadm.listadmin_environment')}
             onChange={(value) => navigateToListEnv(value as EnvId)}
             value={selectedEnv}
           >

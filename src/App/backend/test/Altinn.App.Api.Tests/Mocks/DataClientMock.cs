@@ -261,7 +261,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         var instanceIdentifier = new InstanceIdentifier(instance);
         var (org, app) = TestData.GetInstanceOrgApp(instanceIdentifier);
 
-        var application = await _appMetadata.GetApplicationMetadata();
+        var application = _appMetadata.ApplicationMetadata;
         var dataType =
             application.DataTypes.Find(d => d.Id == dataElement?.DataType)
             ?? throw new InvalidOperationException(
@@ -307,7 +307,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         CancellationToken cancellationToken = default
     )
     {
-        var application = await _appMetadata.GetApplicationMetadata();
+        var application = _appMetadata.ApplicationMetadata;
         var dataType =
             application.DataTypes.Find(d => d.Id == dataTypeId)
             ?? throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata.json");
@@ -382,7 +382,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             instanceIdentifier.InstanceGuid
         );
 
-        var application = await _appMetadata.GetApplicationMetadata();
+        var application = _appMetadata.ApplicationMetadata;
         var dataType =
             application.DataTypes.Find(d => d.Id == dataElement.DataType)
             ?? throw new InvalidOperationException(
@@ -437,7 +437,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         CancellationToken cancellationToken = default
     )
     {
-        Application application = await _appMetadata.GetApplicationMetadata();
+        Application application = _appMetadata.ApplicationMetadata;
 
         string org = application.Org;
         string app = application.Id.Split("/")[1];
@@ -492,7 +492,7 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
         CancellationToken cancellationToken = default
     )
     {
-        Application application = await _appMetadata.GetApplicationMetadata();
+        Application application = _appMetadata.ApplicationMetadata;
         var instanceIdParts = instanceId.Split("/");
 
         Guid dataGuid = Guid.NewGuid();
@@ -564,20 +564,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             Guid.Parse(dataElement.Id)
         );
         return new DataElementWithStorageMetadata(dataElement, _storageMetadata.GetVersions(instanceIdentifier));
-    }
-
-    public Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        throw new NotImplementedException();
     }
 
     async Task<DataElementWithStorageMetadata> IDataClientWithStorageMetadata.UpdateBinaryDataWithStorageMetadata(

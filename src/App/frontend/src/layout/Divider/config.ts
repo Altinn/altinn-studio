@@ -1,8 +1,14 @@
+import { CompCategory } from '@app/layout-contract';
+
 import { CG } from 'src/codegen/CG';
-import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
   category: CompCategory.Presentation,
+  availability: 'configurable',
+  metadata: {
+    name: { nb: 'Delelinje', en: 'Divider' },
+    lifecycle: { status: 'stable' },
+  },
   capabilities: {
     renderInTable: false,
     renderInButtonGroup: false,
@@ -11,9 +17,6 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
     renderInTabs: true,
-  },
-  functionality: {
-    customExpressions: false,
   },
 })
   .makeSummarizable()

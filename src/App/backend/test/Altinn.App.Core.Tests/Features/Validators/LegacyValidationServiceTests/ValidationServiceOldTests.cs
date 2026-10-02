@@ -67,7 +67,7 @@ public class ValidationServiceOldTests
         _serviceCollection.AddSingleton(_hostEnvironmentMock.Object);
         _serviceCollection.AddSingleton(Microsoft.Extensions.Options.Options.Create(new GeneralSettings()));
         _serviceCollection.AddSingleton(Microsoft.Extensions.Options.Options.Create(new AppSettings()));
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(_applicationMetadata);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class ValidationServiceOldTests
             MaxCount = 0,
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(appMetadata);
 
         await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
         IValidationService validationService = serviceProvider.GetRequiredService<IValidationService>();
@@ -255,7 +255,7 @@ public class ValidationServiceOldTests
             MaxCount = 1,
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadataMock.Setup(a => a.ApplicationMetadata).Returns(appMetadata);
 
         await using var serviceProvider = _serviceCollection.BuildStrictServiceProvider();
         IValidationService validationService = serviceProvider.GetRequiredService<IValidationService>();

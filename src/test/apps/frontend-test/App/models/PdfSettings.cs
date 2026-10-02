@@ -1,3 +1,4 @@
+#nullable enable
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Newtonsoft.Json;

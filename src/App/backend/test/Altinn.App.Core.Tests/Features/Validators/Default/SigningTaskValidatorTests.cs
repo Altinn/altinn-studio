@@ -69,7 +69,7 @@ public class SigningTaskValidatorTest
         _processReaderMock
             .Setup(pr => pr.GetAltinnTaskExtension(taskId))
             .Returns(new AltinnTaskExtension { SignatureConfiguration = signingConfiguration });
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(appMetadata);
         _signingServiceMock
             .Setup(ss =>
                 ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)
@@ -123,7 +123,7 @@ public class SigningTaskValidatorTest
         _processReaderMock
             .Setup(pr => pr.GetAltinnTaskExtension(taskId))
             .Returns(new AltinnTaskExtension { SignatureConfiguration = signingConfiguration });
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(appMetadata);
         _signingServiceMock
             .Setup(ss =>
                 ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)
@@ -152,7 +152,7 @@ public class SigningTaskValidatorTest
         _processReaderMock
             .Setup(pr => pr.GetAltinnTaskExtension(taskId))
             .Returns(new AltinnTaskExtension { SignatureConfiguration = signingConfiguration });
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ThrowsAsync(exception);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Throws(exception);
 
         // Act
         await Assert.ThrowsAsync<Exception>(async () =>
@@ -174,7 +174,7 @@ public class SigningTaskValidatorTest
         _processReaderMock
             .Setup(pr => pr.GetAltinnTaskExtension(taskId))
             .Returns(new AltinnTaskExtension { SignatureConfiguration = signingConfiguration });
-        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appMetadataMock.Setup(am => am.ApplicationMetadata).Returns(appMetadata);
         _signingServiceMock
             .Setup(ss =>
                 ss.GetSigneeContexts(It.IsAny<IInstanceDataAccessor>(), signingConfiguration, CancellationToken.None)

@@ -1,9 +1,10 @@
+import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
+
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
 import { changeToLang } from 'test/e2e/support/lang';
 
 import { isNumberFormat } from 'src/layout/Input/number-format-helpers';
-import type { CompInputExternal } from 'src/layout/Input/config.generated';
 import type { CompExternal } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -485,21 +486,21 @@ describe('UI Components', () => {
     cy.get('u-option[label="Gul"][aria-selected="true"]').should('exist');
 
     cy.findByRole('option', {
-      name: /Grønn, Press to remove/i,
+      name: /Grønn,/i,
     }).click('right', { force: true });
     cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('option', {
-      name: /Grønn, Press to remove/i,
+      name: /Grønn,/i,
     }).should('exist');
 
     cy.findByRole('option', {
-      name: /Gul, Press to remove/i,
+      name: /Gul,/i,
     }).click('right', { force: true });
     cy.get(appFrontend.confirmPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
     cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('option', {
-      name: /Gul, Press to remove/i,
+      name: /Gul,/i,
     }).should('not.exist');
   });
 

@@ -48,7 +48,5 @@ public static class FiksArkivConstants
     {
         public static readonly string NationalIdentityNumber = KlassifikasjonstypeKoder.Foedselsnummer.Verdi;
         public const string OrganizationNumber = "ORGNR";
-        public const string AltinnUserId = "AltinnBrukerId";
-        public const string SystemUserId = "AltinnSystembrukerId";
     }
 }

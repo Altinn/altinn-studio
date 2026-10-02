@@ -81,21 +81,23 @@ public sealed record TelemetrySink : IDisposable
     private readonly Func<MetricMeasurement, bool>? _filterMetrics;
     private readonly TestId? _testId;
 
-    public async Task<IReadOnlyList<Activity>> WaitForServerActivity(int n = 1, CancellationToken ct = default) =>
-        await _serverActivities.Reader.ReadAllAsync(ct).Take(n).ToArrayAsync(ct);
+    public async Task<IReadOnlyList<Activity>> WaitForServerActivity(
+        int n = 1,
+        CancellationToken cancellationToken = default
+    ) => await _serverActivities.Reader.ReadAllAsync(cancellationToken).Take(n).ToArrayAsync(cancellationToken);
 
     public async Task<IReadOnlyList<MetricMeasurement>> WaitForServerMetric(
         int n = 1,
-        CancellationToken ct = default
-    ) => await _serverMetrics.Reader.ReadAllAsync(ct).Take(n).ToArrayAsync(ct);
+        CancellationToken cancellationToken = default
+    ) => await _serverMetrics.Reader.ReadAllAsync(cancellationToken).Take(n).ToArrayAsync(cancellationToken);
 
     public async Task<(
         IReadOnlyList<Activity> Activities,
         IReadOnlyList<MetricMeasurement> Metrics
-    )> WaitForServerTelemetry(int n = 1, CancellationToken ct = default)
+    )> WaitForServerTelemetry(int n = 1, CancellationToken cancellationToken = default)
     {
-        var activitiesTask = WaitForServerActivity(n, ct);
-        var metricsTask = WaitForServerMetric(n, ct);
+        var activitiesTask = WaitForServerActivity(n, cancellationToken);
+        var metricsTask = WaitForServerMetric(n, cancellationToken);
         await Task.WhenAll(activitiesTask, metricsTask);
         var activities = await activitiesTask;
         var metrics = await metricsTask;

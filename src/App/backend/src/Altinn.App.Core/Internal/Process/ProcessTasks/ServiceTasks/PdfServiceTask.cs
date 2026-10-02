@@ -1,8 +1,10 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
@@ -16,15 +18,22 @@ internal sealed class PdfServiceTask : IPdfServiceTask
 {
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
+    private readonly IAppResources _appResources;
     private readonly ILogger<PdfServiceTask> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfServiceTask"/> class.
     /// </summary>
-    public PdfServiceTask(IPdfService pdfService, IProcessReader processReader, ILogger<PdfServiceTask> logger)
+    public PdfServiceTask(
+        IPdfService pdfService,
+        IProcessReader processReader,
+        IAppResources appResources,
+        ILogger<PdfServiceTask> logger
+    )
     {
         _pdfService = pdfService;
         _processReader = processReader;
+        _appResources = appResources;
         _logger = logger;
     }
 
@@ -40,12 +49,20 @@ internal sealed class PdfServiceTask : IPdfServiceTask
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
 
+        // A render the frontend rejects surfaces only as a PDF generator timeout, which the engine retries
+        // until the workflow gives up. Fail at once with the actual reason instead. The analyzer reports the
+        // same at build time (ALTINNAPP1000 and ALTINNAPP1001).
+        if (GetUnrenderableConfigurationReason(taskId, config.AutoPdfTaskIds) is { } reason)
+        {
+            return ServiceTaskResult.FailedPermanent(reason);
+        }
+
         _ = await _pdfService.GenerateAndStorePdf(
             context.InstanceDataMutator,
             config.FilenameTextResourceKey,
             config.AutoPdfTaskIds,
             StorageAuthenticationMethod.ServiceOwner(),
-            ct: context.CancellationToken
+            cancellationToken: context.CancellationToken
         );
 
         _logger.LogDebug(
@@ -68,5 +85,36 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         }
 
         return pdfConfiguration.Validate();
+    }
+
+    /// <summary>
+    /// Why the frontend cannot render the PDF for this task, or null when it can. The frontend renders a PDF
+    /// service task from its own UI folder when it has one (using its <c>pdfLayoutName</c> when set), and
+    /// otherwise from the tasks passed as <c>task</c> query parameters, which come from
+    /// <c>autoPdfTaskIds</c>.
+    /// </summary>
+    private string? GetUnrenderableConfigurationReason(string taskId, List<string>? autoPdfTaskIds)
+    {
+        bool listsTasks = autoPdfTaskIds?.Exists(id => !string.IsNullOrWhiteSpace(id)) is true;
+        LayoutSettings? ownUiFolderSettings = _appResources.GetLayoutSettingsForFolder(taskId);
+
+        if (ownUiFolderSettings is null)
+        {
+            return listsTasks
+                ? null
+                : $"PDF service task '{taskId}' has nothing to render. List the tasks to include in "
+                    + $"<altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{taskId}' with a "
+                    + "Settings.json to design the PDF yourself.";
+        }
+
+        if (listsTasks && string.IsNullOrWhiteSpace(ownUiFolderSettings.Pages?.PdfLayoutName))
+        {
+            return $"PDF service task '{taskId}' lists tasks in <altinn:autoPdfTaskIds> and also has its own UI "
+                + $"folder 'ui/{taskId}' without a pdfLayoutName, which cannot be rendered. Remove "
+                + $"<altinn:autoPdfTaskIds> or the UI folder, or set pdfLayoutName in 'ui/{taskId}/Settings.json' "
+                + "to render a custom PDF layout.";
+        }
+
+        return null;
     }
 }

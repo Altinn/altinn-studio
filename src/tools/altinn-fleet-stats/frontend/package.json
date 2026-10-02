@@ -12,7 +12,6 @@
   "dependencies": {
     "@digdir/designsystemet-css": "^1.0.6",
     "@digdir/designsystemet-react": "^1.0.6",
-    "@digdir/designsystemet-theme": "^1.0.6",
     "@codemirror/autocomplete": "^6.18.0",
     "@codemirror/lang-sql": "^6.8.0",
     "@codemirror/state": "^6.4.1",

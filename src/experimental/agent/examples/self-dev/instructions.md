@@ -1,25 +1,41 @@
-# Self-development Agent
+# Agent platform self-development Agent
 
-Sessions start in `/home/agent/code`, and the image initializes the primary checkout beneath it at
-`/home/agent/code/altinn-studio`. The image tries that clone once during boot. If the path is absent afterward, clone
-it with `gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`. If a non-Git path already exists, inspect
-and preserve it rather than deleting it automatically. Follow the nearest repository `AGENTS.md`, make focused changes,
-and verify claims with code, tests, documentation, or observed behavior.
+You develop the experimental agent platform under `src/experimental` in the checkout at
+`/home/agent/code/altinn-studio`. Never delete, reset or reclone that directory. If the checkout is absent, run
+`gh repo clone Altinn/altinn-studio /home/agent/code/altinn-studio`.
 
-GitHub CLI is installed and already authenticated. Use `gh repo clone OWNER/REPOSITORY` for other relevant repositories. Preserve existing checkouts and never use a destructive reset
-or delete-and-reclone strategy to repair one.
+Unless the checkout is bind-mounted from the host, keep the primary checkout clean for synchronizing remotes and
+managing worktrees. Do each task in its own Git worktree under `/home/agent/code/.worktrees/`, starting new work from
+the current `origin/main`. Run the task's `make` commands and the `pr-evidence` workflow from that worktree;
+`make user-install` installs the build from the worktree where it runs.
 
-Real secrets are host-mediated. Never search for, print, copy, or persist their values.
+If `mount | grep altinn-studio` shows that the checkout is bind-mounted from the host, treat it as the task's existing
+worktree and work on its current branch. The host sees edits directly and shares the checkout's Git worktree list and
+stash. Do not create or remove worktrees from inside the Sandbox, and never run bare `git stash`.
 
-Container tooling uses Podman. The `docker` command and `/run/docker.sock` are Podman compatibility surfaces,
-ordinary Agent commands use the rootful system socket, `podman buildx build` provides the buildx alias, and
-`podman-compose` is available for Compose projects. Playwright and Chromium are preinstalled for browser work. Kind's
-`KIND_EXPERIMENTAL_PROVIDER=podman` mode is installed but unverified; do not assume nested kind containers inherit the
-Agent's mediated CA trust.
+Read `src/experimental/AGENTS.md` first. Pull requests that change `agentctl` output or the TUI include a terminal
+recording; the `pr-evidence` skill describes how to record and attach it. `make help` in the worktree's
+`src/experimental` lists the targets; run `make fmt lint build test` before reporting completion. `make test-e2e` and
+`make user-install` work here too: the Sandbox has `/dev/kvm` and Podman.
 
-Running containers receive the mediated CA environment automatically. Build steps receive the full CA bundle at
-`/run/agent/tls/ca-bundle.pem` and the common system trust paths, but a current Buildah bug drops default environment
-variables from build stages. For tools that ignore the system store, scope the required variable to the affected
-Dockerfile step, for example `RUN NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem npm ci` or
-`RUN REQUESTS_CA_BUNDLE=/run/agent/tls/ca-bundle.pem python ...`. Do not use Dockerfile `ENV` for this workaround;
-that persists Agent-specific configuration into the built image.
+Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
+
+To run a nested Agent, log the nested `agentd` in with the placeholders this Sandbox already holds, then apply the
+`nested` variant with its secret file outside any bind-mounted directory:
+
+```sh
+printf '%s\n' "$AGENT_CLAUDE_ACCESS_TOKEN" | agentctl claude login --from-stdin
+agentctl codex login --from-stdin < ~/.codex/auth.json
+printf 'GITHUB_TOKEN=%s\nGIT_USER_NAME=%s\nGIT_USER_EMAIL=%s\n' \
+  "$GITHUB_TOKEN" "$GIT_USER_NAME" "$GIT_USER_EMAIL" > ~/nested.env
+cd altinn-studio/src/experimental/agent/examples/self-dev
+agentctl apply --variant nested --env-file ~/nested.env
+```
+
+Real secrets are host-mediated: never search for, print, copy or persist their values. The credential placeholder
+above is inert. Git identity is explicitly selected non-secret data and enters both Sandboxes in plaintext.
+
+Build steps inside Podman trust the mediated CA through the system store and `/run/agent/tls/ca-bundle.pem`. Buildah
+drops default environment from build stages, so a `RUN` that downloads through Node exports
+`NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable. Do not persist that with Dockerfile
+`ENV`.

@@ -2,6 +2,7 @@ import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
 import { applyPatch } from 'fast-json-patch';
 import { v4 as uuidv4 } from 'uuid';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
@@ -18,7 +19,6 @@ import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
 import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups, FieldValidations } from 'src/features/validation';
-import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstance } from 'src/types/shared';
 
 export interface DataModelValidationState {
@@ -304,8 +304,8 @@ function makeActions(
         state.data.models[dataType].lastSavedData = next;
 
         // When we've copied over changes into the current model from the backend, we should also debounce this
-        // immediately. Some selectors run on the debounced model (such as 'mapping', which should never run on the
-        // current model as it will re-fetch on every keystroke), but will save effects to the current model (such
+        // immediately. Some selectors, such as expressions, run on the debounced model
+        // to avoid refetching on every keystroke, but will save effects to the current model (such
         // as which stale options to remove). So if the backend only saves this to the current model but not the
         // debounced model, we'd run into unwanted states.
         if (backendChangesPatch.length > 0) {

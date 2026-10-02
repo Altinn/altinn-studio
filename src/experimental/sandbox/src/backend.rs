@@ -11,7 +11,8 @@ use uuid::Uuid;
 pub use crate::feature::SandboxBackendCapabilities;
 
 use crate::{
-    Error, PendingOperation, Platform, RootFilesystem, SandboxName, SandboxPath, execution, file_transfer, image,
+    Error, Hostname, PendingOperation, Platform, RootFilesystem, SandboxName, SandboxPath, execution, file_transfer,
+    image,
     init::InitSystem,
     mount::Mount,
     network,
@@ -66,6 +67,28 @@ pub enum SandboxState {
     Running,
 }
 
+/// Host-observed evidence that a running guest is making progress.
+///
+/// A Backend reports it without a round trip to the guest, so a guest that no
+/// longer responds still reports its last heartbeat. Only a change of the
+/// sequence is meaningful: it restarts whenever the Sandbox starts.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct GuestHeartbeat(u64);
+
+impl GuestHeartbeat {
+    /// Wraps a heartbeat sequence observed by a Backend.
+    #[must_use]
+    pub const fn new(sequence: u64) -> Self {
+        Self(sequence)
+    }
+
+    /// Returns the observed sequence.
+    #[must_use]
+    pub const fn sequence(self) -> u64 {
+        self.0
+    }
+}
+
 /// Desired compute and writable root filesystem resources assigned to one Sandbox.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -114,6 +137,8 @@ pub struct CreateSandboxRequest {
     pub image: image::ResolvedImage,
     /// The stable caller-provided name.
     pub name: SandboxName,
+    /// Hostname reported inside the Sandbox, resolved by the lifecycle owner.
+    pub hostname: Hostname,
     /// Desired mutable compute and writable root filesystem resources.
     pub resources: SandboxResources,
     /// Process responsible for initializing the Sandbox after backend setup.
@@ -135,12 +160,17 @@ pub struct Sandbox {
     pub id: SandboxId,
     /// The caller-provided name.
     pub name: SandboxName,
+    /// Hostname the Sandbox reports to its guest.
+    pub hostname: Hostname,
     /// Current desired compute and writable root filesystem resources.
     pub resources: SandboxResources,
     /// Process responsible for initializing the Sandbox after backend setup.
     pub init_system: InitSystem,
     /// The current lifecycle state.
     pub state: SandboxState,
+    /// The latest guest heartbeat, when the Backend observes one for a running
+    /// Sandbox. Absent while the guest boots and when the Backend cannot tell.
+    pub guest_heartbeat: Option<GuestHeartbeat>,
     /// Filesystem attachments materialized in the Sandbox.
     pub mounts: Vec<Mount>,
     /// Non-secret environment inherited by image init and Sandbox Executions.
@@ -241,6 +271,10 @@ pub trait SandboxBackend {
     ) -> LocalFuture<'a, Result<file_transfer::ByteReader, Error>>;
 
     /// Creates or replaces one regular file in a running Sandbox from a byte stream.
+    ///
+    /// The replacement is atomic: a concurrent reader in the Sandbox observes either the previous
+    /// file or the complete new one, never a truncated or partially written file. A replaced
+    /// regular file keeps its mode and ownership.
     fn write_file<'a>(
         &'a self,
         sandbox_id: &'a SandboxId,

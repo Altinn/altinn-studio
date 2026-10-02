@@ -6,11 +6,13 @@ on:
     paths:
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'rust-toolchain.toml'
       - 'rustfmt.toml'
       - 'src/experimental/**'
+      - 'agents/**'
+      - '.claude/skills/**'
       - '.github/workflows/experimental-build.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -42,12 +44,12 @@ jobs:
             sudo apt-get install --yes --no-install-recommends libcap-ng-dev
           fi
 
-      # The runner image bakes the toolchain pinned by Cargo.toml; only
+      # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
       # install through rustup when the two have drifted (e.g. a PR bumping
-      # rust-version before the image has been rebuilt).
+      # the toolchain before the image has been rebuilt).
       - name: Verify Rust toolchain
         run: |
-          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
           test -n "${RUST_VERSION}"
           if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
             || ! rustfmt --version >/dev/null 2>&1 \
@@ -86,6 +88,9 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh
+
       - name: Check dependencies
         run: make deps-check
 
@@ -120,9 +125,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Every path the Agent manifests under agents/ resolve, because the manifest
+          # tests assert each declared input exists.
           sparse-checkout: |
             src/experimental
             src/ci/github-runner/coordinator
+            src/cli/resources/agent/skills
+            .claude/skills
+            agents
 
       - name: Install native build dependencies
         if: runner.os == 'Linux'
@@ -132,9 +142,9 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          RUST_VERSION="$(sed -n 's/^rust-version = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/Cargo.toml")"
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
           test -n "${RUST_VERSION}"
-          rustup toolchain install "${RUST_VERSION}" --profile minimal --component clippy
+          rustup toolchain install "${RUST_VERSION}" --profile minimal --component clippy,rustfmt
           rustup default "${RUST_VERSION}"
 
       - name: Check native host
@@ -154,3 +164,6 @@ jobs:
           -p agent
           -p sandbox-microsandbox
           --all-targets --all-features --locked
+
+      - name: Test installation and managed upgrade
+        run: ./agent/installation-test.sh

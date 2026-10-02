@@ -1,3 +1,4 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
@@ -19,5 +20,9 @@ export class GenerateBoolean extends DescribableCodeGenerator<boolean> {
       ...this.getInternalJsonSchema(),
       type: 'boolean',
     };
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return { type: 'boolean', ...this.componentCatalogMetadata() };
   }
 }

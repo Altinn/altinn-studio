@@ -4,8 +4,7 @@ import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } 
 
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useLabelData } from 'src/utils/layout/useLabelData';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export function useLabel({
@@ -15,21 +14,11 @@ export function useLabel({
   baseComponentId: string;
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }) {
-  const item = useItemFor(baseComponentId);
-  const { readOnly, required, showOptionalMarking, textResourceBindings } = {
-    readOnly: item['readOnly'],
-    required: item['required'],
-    showOptionalMarking: !!item['labelSettings']?.['optionalIndicator'],
-    textResourceBindings: {
-      title: item.textResourceBindings?.['title'],
-      help: item.textResourceBindings?.['help'],
-      description: item.textResourceBindings?.['description'],
-    },
-  };
-
-  const indexedId = useIndexedId(baseComponentId);
+  const { componentId, title, help, description, required, readOnly, showOptionalMarking } = useLabelData({
+    baseComponentId,
+    overrideDisplay,
+  });
   const { langAsString } = useLanguage();
-  const { title, help, description } = textResourceBindings ?? {};
 
   const shouldShowLabel = (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && title;
   const labelText = shouldShowLabel ? <Lang id={title} /> : undefined;
@@ -55,7 +44,7 @@ export function useLabel({
   const getDescriptionComponent = () =>
     description ? (
       <Description
-        componentId={indexedId}
+        componentId={componentId}
         description={<Lang id={description} />}
       />
     ) : undefined;

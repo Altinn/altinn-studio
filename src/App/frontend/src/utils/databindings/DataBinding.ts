@@ -1,4 +1,4 @@
-import type { IDataModelReference } from 'src/layout/common.generated';
+import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 interface TransposeDataBindingParams {
   subject: IDataModelReference;

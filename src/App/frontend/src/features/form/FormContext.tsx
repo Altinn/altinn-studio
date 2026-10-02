@@ -67,6 +67,8 @@ export const FormStore = {
 
 export interface FormStoreState {
   parent: FormStoreApi | undefined;
+  // Mounted descendants publish their save state to the root store for page-level unload handling.
+  nestedFormStatus: { unsaved: number; unloadWarnings: number };
 
   // Set this if this form context is provided somewhere it's not expected we should write data to the data model.
   // By setting this to true, no effects like 'preselectedOptionIndex' runs (which might try to change the data model).

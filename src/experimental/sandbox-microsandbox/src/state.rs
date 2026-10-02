@@ -1,8 +1,8 @@
 use std::{collections::BTreeMap, io::Write as _, path::PathBuf};
 
 use sandbox::{
-    SandboxId, SandboxName, SandboxResources, backend::CreateSandboxRequest, image::ResolvedImage, init::InitSystem,
-    mount::Mount, network::NetworkAttachment, volume::VolumeId,
+    Hostname, SandboxId, SandboxName, SandboxResources, backend::CreateSandboxRequest, image::ResolvedImage,
+    init::InitSystem, mount::Mount, network::NetworkAttachment, volume::VolumeId,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
@@ -19,6 +19,10 @@ pub(crate) struct SandboxRecord {
     pub(crate) id: SandboxId,
     pub(crate) runtime_name: String,
     pub(crate) name: SandboxName,
+    /// Absent in records written before hostnames were persisted; those
+    /// Sandboxes report their name once their runtime is recreated.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    hostname: Option<Hostname>,
     pub(crate) image: ResolvedImage,
     pub(crate) resources: SandboxResources,
     #[serde(default)]
@@ -36,6 +40,7 @@ impl SandboxRecord {
             runtime_name,
             id: request.id,
             name: request.name,
+            hostname: Some(request.hostname),
             image: request.image,
             resources: request.resources,
             init_system: request.init_system,
@@ -43,6 +48,11 @@ impl SandboxRecord {
             environment: request.environment,
             network: request.network,
         }
+    }
+
+    /// Returns the hostname the guest reports, defaulting to the Sandbox name.
+    pub(crate) fn hostname(&self) -> Hostname {
+        self.hostname.clone().unwrap_or_else(|| self.name.clone().into())
     }
 }
 
@@ -69,6 +79,7 @@ impl VolumeRecord {
 
 #[derive(Clone)]
 pub(crate) struct StateStore {
+    home: PathBuf,
     sandboxes: PathBuf,
     volumes: PathBuf,
 }
@@ -78,6 +89,7 @@ impl StateStore {
         let store = Self {
             sandboxes: home.join("sandboxes"),
             volumes: home.join("volumes"),
+            home,
         };
         for directory in [&store.sandboxes, &store.volumes] {
             tokio::fs::create_dir_all(directory)
@@ -119,6 +131,15 @@ impl StateStore {
         Ok(record)
     }
 
+    /// Returns every Sandbox record, whether or not its runtime exists.
+    pub(crate) async fn sandbox_records(&self) -> Result<Vec<SandboxRecord>, sandbox::Error> {
+        let records: Vec<SandboxRecord> = read_records(&self.sandboxes, sandbox::ResourceKind::Sandbox).await?;
+        for record in &records {
+            validate_schema(record.schema_version, SANDBOX_SCHEMA_VERSION)?;
+        }
+        Ok(records)
+    }
+
     pub(crate) async fn remove_sandbox(&self, record: &SandboxRecord) -> Result<(), sandbox::Error> {
         remove_file(self.sandbox_path(&record.name), "remove Microsandbox Sandbox state").await
     }
@@ -156,6 +177,11 @@ impl StateStore {
 
     pub(crate) async fn remove_volume(&self, record: &VolumeRecord) -> Result<(), sandbox::Error> {
         remove_file(self.volume_path(&record.name), "remove Microsandbox Volume state").await
+    }
+
+    /// Path of a Provider-wide marker file beside the records.
+    pub(crate) fn marker(&self, name: &str) -> PathBuf {
+        self.home.join(name)
     }
 
     fn sandbox_path(&self, name: &SandboxName) -> PathBuf {
@@ -269,15 +295,23 @@ where
         .map_err(|source| error::io("read Microsandbox state entry", source))?
     {
         let path = entry.path();
-        records.push(
-            read_record(
-                path.clone(),
-                "read Microsandbox state entry",
-                resource,
-                path.display().to_string(),
-            )
-            .await?,
-        );
+        // Writes stage records in temporary files beside the committed ones.
+        if path.extension().is_none_or(|extension| extension != "json") {
+            continue;
+        }
+        match read_record(
+            path.clone(),
+            "read Microsandbox state entry",
+            resource,
+            path.display().to_string(),
+        )
+        .await
+        {
+            Ok(record) => records.push(record),
+            // Removed since the directory was read.
+            Err(error) if error.is_not_found() => {}
+            Err(error) => return Err(error),
+        }
     }
     Ok(records)
 }
@@ -294,7 +328,7 @@ mod tests {
     use std::{collections::BTreeMap, path::PathBuf};
 
     use sandbox::{
-        ByteQuantity, CpuQuantity, Platform, RootFilesystem, SandboxName, SandboxResources,
+        ByteQuantity, CpuQuantity, Hostname, Platform, RootFilesystem, SandboxName, SandboxResources,
         backend::CreateSandboxRequest, image, init::InitSystem,
     };
 
@@ -309,6 +343,7 @@ mod tests {
             source: image::ImageSource::Build {
                 context: PathBuf::from("context"),
                 dockerfile: PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: Platform::new("linux", "amd64"),
             manifest_digest: "sha256:1234".to_string(),
@@ -335,6 +370,7 @@ mod tests {
         SandboxRecord::new(CreateSandboxRequest {
             id: sandbox_id(id),
             name: sandbox_name(),
+            hostname: Hostname::new("worker-host").expect("test hostname should be valid"),
             image: image(),
             resources: resources(),
             init_system: InitSystem::Backend,
@@ -370,6 +406,21 @@ mod tests {
                 .expect("record should be found by identifier"),
             record
         );
+    }
+
+    #[tokio::test(flavor = "local")]
+    async fn records_without_a_persisted_hostname_report_the_sandbox_name() {
+        let mut record = sandbox_record("00000000-0000-4000-8000-000000000005");
+        assert_eq!(record.hostname().as_str(), "worker-host");
+
+        let mut serialized = serde_json::to_value(&record).expect("record should serialize");
+        let fields = serialized.as_object_mut().expect("record should be an object");
+        assert!(fields.remove("hostname").is_some(), "hostname should be persisted");
+        let legacy: SandboxRecord = serde_json::from_value(serialized).expect("legacy record should deserialize");
+        assert_eq!(legacy.hostname().as_str(), "worker");
+
+        record.hostname = None;
+        assert_eq!(legacy, record);
     }
 
     #[tokio::test(flavor = "local")]

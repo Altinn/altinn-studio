@@ -5,14 +5,12 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/Designer/frontend/**'
-      - 'src/Designer/frontend/testing/cypress/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
       - 'yarn.lock'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

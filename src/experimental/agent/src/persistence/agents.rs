@@ -59,6 +59,7 @@ pub(super) fn put(connection: &mut Connection, record: &AgentRecord, expected_ge
     let source = serde_json::to_string(&crate::Provenance {
         source_directory: record.source_directory.clone(),
         manifest_path: record.manifest_path.clone(),
+        env_file: record.env_file.clone(),
     })?;
     let desired = encode_desired(&record.agent)?;
     let transaction = connection.transaction().map_err(database_error)?;
@@ -104,23 +105,26 @@ pub(super) fn update_status(
     connection: &mut Connection,
     id: AgentId,
     generation: u64,
-    status: &Status,
-) -> Result<(), Error> {
+    mut status: Status,
+) -> Result<Status, Error> {
     let transaction = connection.transaction().map_err(database_error)?;
     let record = get(&transaction, id)?;
     if record.agent.metadata.generation != generation {
         return Err(Error::Conflict);
     }
+    scrub(&mut status);
+    status.stamp_transitions(&record.agent.status, time::OffsetDateTime::now_utc());
     let changed = transaction
         .execute(
             "UPDATE agents SET status_json = ?1 WHERE id = ?2 AND active_name IS NOT NULL",
-            params![encode_status(status)?, id.to_string()],
+            params![serde_json::to_string(&status)?, id.to_string()],
         )
         .map_err(database_error)?;
     if changed != 1 {
         return Err(Error::Conflict);
     }
-    transaction.commit().map_err(database_error)
+    transaction.commit().map_err(database_error)?;
+    Ok(status)
 }
 
 pub(super) fn mark_deleting(connection: &mut Connection, name: &str) -> Result<AgentRecord, Error> {
@@ -159,6 +163,7 @@ pub(super) fn finalize_deletion(connection: &mut Connection, id: AgentId, genera
         return Err(Error::Conflict);
     }
     secrets::delete_agent_secrets(&transaction, id)?;
+    secrets::delete_secret(&transaction, &super::ssh_host_key_name(id))?;
     transaction.commit().map_err(database_error)
 }
 
@@ -169,11 +174,17 @@ fn encode_desired(agent: &Agent) -> Result<String, Error> {
     serde_json::to_string(&desired).map_err(Error::from)
 }
 
-/// Serializes status for storage, scrubbing API-projected provenance.
+/// Serializes status for storage, scrubbing API-projected progress and provenance.
 fn encode_status(status: &Status) -> Result<String, Error> {
     let mut status = status.clone();
-    status.provenance = None;
+    scrub(&mut status);
     serde_json::to_string(&status).map_err(Error::from)
+}
+
+/// Removes what is projected onto responses and never stored.
+fn scrub(status: &mut Status) {
+    status.progress = None;
+    status.provenance = None;
 }
 
 /// Source-column payload: current writes store [`crate::Provenance`]; rows
@@ -200,9 +211,13 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
     let deletion = row.get::<_, Option<i64>>(4)?;
     let status = row.get::<_, String>(5)?;
     let id = id.parse::<AgentId>().map_err(conversion_error)?;
-    let (source_directory, manifest_path) = match serde_json::from_str(&source).map_err(conversion_error)? {
-        StoredSource::Provenance(provenance) => (provenance.source_directory, provenance.manifest_path),
-        StoredSource::Directory(directory) => (directory, None),
+    let (source_directory, manifest_path, env_file) = match serde_json::from_str(&source).map_err(conversion_error)? {
+        StoredSource::Provenance(provenance) => (
+            provenance.source_directory,
+            provenance.manifest_path,
+            provenance.env_file,
+        ),
+        StoredSource::Directory(directory) => (directory, None, None),
     };
     let mut agent = serde_json::from_str::<Agent>(&desired).map_err(conversion_error)?;
     if agent.metadata.name != active_name {
@@ -217,6 +232,7 @@ fn decode_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<AgentRecord> {
         id,
         source_directory,
         manifest_path,
+        env_file,
         agent,
     })
 }

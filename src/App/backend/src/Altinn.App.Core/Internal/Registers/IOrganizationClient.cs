@@ -13,6 +13,11 @@ public interface IOrganizationClient
     /// </summary>
     /// <param name="OrgNr">the organization number</param>
     /// <param name="authenticationMethod">Optional authentication method override.</param>
+    /// <param name="cancellationToken">An optional cancellation token</param>
     /// <returns>The organization for the given organization number</returns>
-    Task<Organization?> GetOrganization(string OrgNr, StorageAuthenticationMethod? authenticationMethod = null);
+    Task<Organization?> GetOrganization(
+        string OrgNr,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    );
 }

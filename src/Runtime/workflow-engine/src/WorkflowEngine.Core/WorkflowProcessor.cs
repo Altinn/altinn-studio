@@ -6,7 +6,6 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -110,7 +109,7 @@ internal sealed class WorkflowProcessor(
                 var queueStart = Stopwatch.GetTimestamp();
 
                 await Task.WhenAny(
-                    Debounce(workflowSignal, TimeSpan.FromMilliseconds(10), stoppingToken),
+                    workflowSignal.Wait(stoppingToken),
                     Task.Delay(TimeSpan.FromMilliseconds(500), stoppingToken)
                 );
 
@@ -176,12 +175,6 @@ internal sealed class WorkflowProcessor(
         }
 
         workflowSignal.Signal();
-    }
-
-    private static async Task Debounce(AsyncSignal signal, TimeSpan delay, CancellationToken ct)
-    {
-        await signal.Wait(ct);
-        await Task.Delay(delay, ct);
     }
 }
 

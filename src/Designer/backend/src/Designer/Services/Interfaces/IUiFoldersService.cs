@@ -28,6 +28,17 @@ public interface IUiFoldersService
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Validates that a process task can be renamed. A task whose layout set folder carries its id can only
+    /// take a new id that the layout set could also be renamed to.
+    /// </summary>
+    public Task ValidateTaskIdChange(
+        AltinnRepoEditingContext editingContext,
+        string oldTaskId,
+        string newTaskId,
+        CancellationToken cancellationToken
+    );
+
     public Task<IEnumerable<UiFolderLayoutSetDto>> DeleteLayoutSet(
         AltinnRepoEditingContext editingContext,
         string layoutSetToDeleteId,
@@ -36,6 +47,36 @@ public interface IUiFoldersService
 
     public Task<IEnumerable<UiFolderLayoutSetDto>> GetLayoutSetsExtended(
         AltinnRepoEditingContext context,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lists Subform components outside subform layout sets.
+    /// Includes the layout set and default data type of each referenced subform.
+    /// </summary>
+    public Task<IEnumerable<SubformComponentDto>> GetSubformComponents(
+        AltinnRepoEditingContext editingContext,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Saves a hidden Subform component copy in the PDF task layout set. Creates the layout set if missing.
+    /// Removes the previous generated copy when the selection changes.
+    /// Preserves customized components and unrelated content.
+    /// </summary>
+    public Task<IEnumerable<SubformComponentDto>> SaveSubformPdfComponent(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string componentId,
+        string sourceLayoutSetId,
+        string? previousComponentId,
+        CancellationToken cancellationToken
+    );
+
+    public Task<IEnumerable<SubformComponentDto>> DeleteSubformPdfComponent(
+        AltinnRepoEditingContext editingContext,
+        string layoutSetId,
+        string componentId,
         CancellationToken cancellationToken
     );
 

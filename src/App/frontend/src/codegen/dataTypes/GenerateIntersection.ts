@@ -1,7 +1,9 @@
+import type { PropertyValueDefinition } from '@app/layout-contract';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DescribableCodeGenerator } from 'src/codegen/CodeGenerator';
 import type { CodeGenerator, Extract } from 'src/codegen/CodeGenerator';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class GenerateIntersection<U extends CodeGenerator<any>[]> extends DescribableCodeGenerator<Extract<U[number]>> {
@@ -10,6 +12,14 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
   constructor(...types: U) {
     super();
     this.types = types;
+  }
+
+  getTypes(): readonly CodeGenerator<unknown>[] {
+    return this.types;
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return this.types.flatMap((type) => type.expressionDescriptors());
   }
 
   toJsonSchemaDefinition(): JSONSchema7 {
@@ -23,5 +33,13 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
     const out = this.types.map((type) => type.toTypeScript()).join(' & ');
 
     return symbol ? `type ${symbol} = ${out};` : out;
+  }
+
+  toComponentCatalogDefinition(): PropertyValueDefinition {
+    return {
+      type: 'intersection',
+      parts: this.types.map((type) => type.toComponentCatalog()),
+      ...this.componentCatalogMetadata(),
+    };
   }
 }

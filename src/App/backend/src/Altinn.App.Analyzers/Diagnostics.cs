@@ -97,6 +97,68 @@ public static class Diagnostics
         );
     }
 
+    internal static class Metadata
+    {
+        // Close to the runtime backstop in DataHelper.GetDataFieldValues, so an author who meets one of
+        // them after the other reads one explanation rather than two. Deliberately scoped to entries
+        // sharing a data type - see MetadataFieldUtils for why the cross-data-type case is left alone.
+        public static readonly DiagnosticDescriptor DuplicateFieldId = Error(
+            "ALTINNAPP0900",
+            Category.Metadata,
+            "Duplicate field id in applicationmetadata.json",
+            "'{0}' declares the id '{1}' twice for dataTypeId '{2}', on '{3}' and on '{4}'. The id is the key "
+                + "the value is stored under on the instance, and the entries for one data type are computed "
+                + "together into a map that cannot hold the same key twice - so the app fails instead of "
+                + "computing either of them. Give each entry its own id."
+        );
+
+        public static readonly DiagnosticDescriptor UnknownFieldDataType = Error(
+            "ALTINNAPP0901",
+            Category.Metadata,
+            "Field references an unknown data type",
+            "'{0}' entry '{1}' names the dataTypeId '{2}', which no entry in 'dataTypes' declares. Nothing "
+                + "computes it, so its value never reaches the instance. Point it at one of the app's data types, "
+                + "or remove the entry."
+        );
+    }
+
+    internal static class Process
+    {
+        // Worded like the runtime backstop in PdfServiceTask, so an author who meets one of them after the
+        // other reads one explanation rather than two. Without these, a PDF service task that cannot be
+        // rendered fails only when an instance reaches it, and the cause shows up only in the PDF generator's
+        // browser log.
+        public static readonly DiagnosticDescriptor PdfServiceTaskHasNothingToRender = Error(
+            "ALTINNAPP1000",
+            Category.Process,
+            "PDF service task has nothing to render",
+            "PDF service task '{0}' has nothing to render, so generating its PDF will fail. List the tasks to "
+                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{0}' with a "
+                + "Settings.json to design the PDF yourself."
+        );
+
+        // Stricter than the runtime backstop, which fails only when autoPdfTaskIds lists tasks too. Without
+        // them the frontend renders the folder's pages, which in the folder Altinn Studio creates is the
+        // waiting page, so the PDF is never what the author designed.
+        public static readonly DiagnosticDescriptor PdfServiceTaskMissingPdfLayoutName = Error(
+            "ALTINNAPP1001",
+            Category.Process,
+            "PDF service task has a UI folder without pdfLayoutName",
+            "PDF service task '{0}' has its own UI folder 'ui/{0}' without a pdfLayoutName. The folder's pages are "
+                + "what people see while the process is at the task, and pdfLayoutName names the layout to render "
+                + "as the PDF. Set pdfLayoutName in 'ui/{0}/Settings.json', or remove the UI folder and list the "
+                + "tasks to include in <altinn:pdfConfig><altinn:autoPdfTaskIds>."
+        );
+
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
+            "ALTINNAPP1002",
+            Category.Process,
+            "PDF service task includes a task without a UI folder",
+            "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
+                + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
+        );
+    }
+
     internal static class Deprecations
     {
         public static readonly DiagnosticDescriptor EnablePdfCreation = Error(
@@ -139,5 +201,6 @@ public static class Diagnostics
         public const string Deprecation = nameof(Deprecation);
         public const string Contracts = nameof(Contracts);
         public const string Authorization = nameof(Authorization);
+        public const string Process = nameof(Process);
     }
 }

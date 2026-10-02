@@ -35,8 +35,12 @@ const (
 
 // ObservedResource describes actual runtime state for a desired or discovered resource.
 type ObservedResource struct {
-	Resource     resource.Resource
-	RuntimeID    string
+	Resource  resource.Resource
+	RuntimeID string
+	// ImageID is the image a container resource is running. It answers what a reference
+	// cannot once its tag moves, and is read while observing, so callers do not inspect the
+	// container a second time for it.
+	ImageID      string
 	Dependencies []resource.ResourceRef
 	Status       Status
 	Type         ResourceType

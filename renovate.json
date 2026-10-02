@@ -44,6 +44,30 @@
       "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
+      "managerFilePatterns": ["/^agents/Dockerfile$/"],
+      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@playwright/cli"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Rust toolchain copies that cannot read rust-toolchain.toml: image build ARGs, the workspace rust-version and the cargo-deny container",
+      "managerFilePatterns": [
+        "/^Cargo\\.toml$/",
+        "/(^|/)Dockerfile$/",
+        "/^\\.github/workflows/rust-dependency-checks\\.yaml$/"
+      ],
+      "matchStrings": [
+        "ARG RUST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)",
+        "rust-version = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "rust-version: '(?<currentValue>\\d+\\.\\d+\\.\\d+)'"
+      ],
+      "datasourceTemplate": "rust-version",
+      "depNameTemplate": "rust"
     }
   ],
   "separateMultipleMajor": true,
@@ -52,6 +76,11 @@
     "enabled": false
   },
   "packageRules": [
+    {
+      "description": "Work around renovatebot/renovate#45236: digest updates carry no branch-stage release timestamp, so the stability check would stay pending forever. The lookup-stage minimumReleaseAge check still holds too-new digests back.",
+      "matchUpdateTypes": ["digest", "pinDigest", "lockFileMaintenance"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
     {
       "matchManagers": ["gomod", "pep621"],
       "groupName": "{{manager}} non-major dependencies",
@@ -124,10 +153,6 @@
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["nginx"],
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
-    },
-    {
-      "matchFileNames": ["frontend/testing/cypress/**"],
-      "ignoreDeps": ["yarn"]
     },
     {
       "matchFileNames": ["src/Designer/**"],
@@ -214,21 +239,33 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Quartz upgrades need a hand-written QuartzTables migration and a tables-file update in designer-backend-check-quartz-update.yml, so keep them out of the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/Designer/backend/**"],
+      "matchPackageNames": ["/^Quartz/"],
+      "groupName": "Quartz packages in Designer",
+      "groupSlug": "designer-quartz",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "MSBuild packages must ship assets for studioctl-server's target framework; a separate PR keeps a mismatch from blocking the shared nuget group",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/cli/**"],
+      "matchPackageNames": ["/^Microsoft\\.Build/", "Microsoft.NET.StringTools"],
+      "groupName": "MSBuild packages in studioctl",
+      "groupSlug": "studioctl-msbuild"
+    },
+    {
       "matchFileNames": [
         "src/App/codelists/**",
         "src/App/fileanalyzers/**",
-        "src/App/Designer/**"
+        "src/Designer/backend/**"
       ],
       "ignoreDeps": ["Altinn.App.Core"]
     },
     {
-      "matchFileNames": ["src/App/Designer/**"],
-      "ignoreDeps": [
-        "Moq",
-        "Basic.Reference.Assemblies",
-        "Microsoft.CodeAnalysis.CSharp",
-        "Microsoft.CodeAnalysis.Common"
-      ]
+      "matchFileNames": ["src/Designer/backend/**"],
+      "ignoreDeps": ["Moq"]
     },
     {
       "matchFileNames": [
@@ -264,6 +301,14 @@
       "description": "Manage all Rust dependencies manually",
       "matchManagers": ["cargo"],
       "enabled": false
+    },
+    {
+      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects. Comes after the manual-management rules so it also covers the experimental example images.",
+      "matchDatasources": ["rust-version"],
+      "matchPackageNames": ["rust"],
+      "groupName": "Rust toolchain",
+      "groupSlug": "rust-toolchain",
+      "enabled": true
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],

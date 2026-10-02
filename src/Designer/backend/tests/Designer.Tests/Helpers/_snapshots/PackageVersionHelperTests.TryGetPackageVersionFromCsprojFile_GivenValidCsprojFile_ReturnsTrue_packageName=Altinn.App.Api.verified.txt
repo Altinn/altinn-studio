@@ -12,11 +12,11 @@
   Outputs: [
     {
       Item1: true,
-      Item2: 9.0.0-preview.4
+      Item2: 9.0.0-preview.6
     },
     {
       Item1: true,
-      Item2: 9.0.0-preview.4
+      Item2: 9.0.0-preview.6
     }
   ]
 }

@@ -90,7 +90,10 @@ public class GitRepository
 
         string searchPatternMatch = patternMatch ?? "*.*";
 
-        return Directory.GetFiles(absoluteDirectory, searchPatternMatch, searchOption);
+        return Directory
+            .GetFiles(absoluteDirectory, searchPatternMatch, searchOption)
+            .Where(filePath => !IsReplacementFile(filePath))
+            .ToArray();
     }
 
     /// <summary>
@@ -520,15 +523,10 @@ public class GitRepository
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] encodedText = Encoding.UTF8.GetBytes(text);
-        await using FileStream sourceStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => targetStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken)
         );
-        await sourceStream.WriteAsync(encodedText.AsMemory(0, encodedText.Length), cancellationToken);
     }
 
     private static async Task WriteAsync(
@@ -537,14 +535,66 @@ public class GitRepository
         CancellationToken cancellationToken = default
     )
     {
-        await using FileStream targetStream = new(
+        await ReplaceFileAsync(
             absoluteFilePath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true
+            targetStream => new ValueTask(
+                stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken)
+            )
         );
-        await stream.CopyToAsync(targetStream, bufferSize: 4096, cancellationToken: cancellationToken);
+    }
+
+    private const string ReplacementFilePrefix = ".";
+
+    // The app template ignores *.tmp, so git does not stage a replacement file in an app repository.
+    private const string ReplacementFileExtension = ".tmp";
+
+    private static bool IsReplacementFile(string filePath)
+    {
+        string fileName = Path.GetFileName(filePath);
+        return fileName.StartsWith(ReplacementFilePrefix, StringComparison.Ordinal)
+            && fileName.EndsWith(ReplacementFileExtension, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Writes the content to a temporary file next to the target and then moves it over the target, so a concurrent
+    /// reader gets either the previous or the new content, and a failed write leaves the previous content.
+    /// </summary>
+    private static async Task ReplaceFileAsync(string absoluteFilePath, Func<FileStream, ValueTask> writeContent)
+    {
+        string temporaryFilePath = Path.Combine(
+            Path.GetDirectoryName(absoluteFilePath),
+            $"{ReplacementFilePrefix}{Path.GetFileName(absoluteFilePath)}.{Guid.NewGuid():N}{ReplacementFileExtension}"
+        );
+        try
+        {
+            await using (
+                FileStream temporaryStream = new(
+                    temporaryFilePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true
+                )
+            )
+            {
+                await writeContent(temporaryStream);
+            }
+
+            if (!OperatingSystem.IsWindows() && File.Exists(absoluteFilePath))
+            {
+                File.SetUnixFileMode(temporaryFilePath, File.GetUnixFileMode(absoluteFilePath));
+            }
+
+            File.Move(temporaryFilePath, absoluteFilePath, overwrite: true);
+        }
+        catch
+        {
+            if (File.Exists(temporaryFilePath))
+            {
+                File.Delete(temporaryFilePath);
+            }
+            throw;
+        }
     }
 }

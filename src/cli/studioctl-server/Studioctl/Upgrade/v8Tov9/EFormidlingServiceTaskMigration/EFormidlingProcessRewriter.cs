@@ -150,7 +150,7 @@ internal sealed class EFormidlingProcessRewriter
         var eFormidlingTask = new XElement(
             _bpmnNs + "serviceTask",
             new XAttribute("id", eFormidlingTaskId),
-            new XAttribute("name", "Send eFormidling"),
+            new XAttribute("name", "Send med eFormidling"),
             new XElement(
                 _bpmnNs + "extensionElements",
                 new XElement(

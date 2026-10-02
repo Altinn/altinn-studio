@@ -9,7 +9,6 @@ on:
       - 'yarn.lock'
       - '.github/workflows/common-typescript-unit-test.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:
@@ -46,6 +45,9 @@ jobs:
 
       - name: run eslint
         run: yarn lint
+
+      - name: check formatting
+        run: yarn format:check
 
       - name: run tests
         run: yarn test:ci

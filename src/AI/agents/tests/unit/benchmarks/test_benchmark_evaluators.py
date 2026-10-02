@@ -28,9 +28,7 @@ def _write_app(
     settings = {"pages": {"order": order if order is not None else list(pages.keys())}}
     (layouts_dir.parent / "Settings.json").write_text(json.dumps(settings), encoding="utf-8")
     for page, components in pages.items():
-        (layouts_dir / f"{page}.json").write_text(
-            json.dumps({"data": {"layout": components}}), encoding="utf-8"
-        )
+        (layouts_dir / f"{page}.json").write_text(json.dumps({"data": {"layout": components}}), encoding="utf-8")
     texts_dir = root / "App" / "config" / "texts"
     texts_dir.mkdir(parents=True)
     resource_entries = [{"id": k, "value": v} for k, v in (resources or {}).items()]
@@ -62,9 +60,7 @@ def _golden(root: Path) -> Path:
 
 class TestTitleMatching:
     def test_normalization_strips_enumeration_case_and_punctuation(self):
-        assert normalize_title("A.1 Leverandørvirksomhetens navn:") == (
-            "leverandørvirksomhetens navn"
-        )
+        assert normalize_title("A.1 Leverandørvirksomhetens navn:") == ("leverandørvirksomhetens navn")
 
     def test_titles_match_across_naming_styles(self):
         assert titles_match("A.1 Leverandørvirksomhetens navn", "leverandørvirksomhetens navn")

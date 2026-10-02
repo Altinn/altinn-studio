@@ -1,5 +1,4 @@
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
@@ -56,13 +55,13 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine.DependencyInjection;
-using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Implementation;
@@ -74,7 +73,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 using IProcessReader = Altinn.App.Core.Internal.Process.IProcessReader;
 using ProcessReader = Altinn.App.Core.Internal.Process.ProcessReader;
@@ -102,7 +100,9 @@ public static class ServiceCollectionExtensions
         services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
         services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
         services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
-        services.Configure<AppCodesSettings>(configuration.GetSection("AppCodes"));
+        // The app's callback verification codes are provisioned by the platform, so they are read through the
+        // private channel and never from the app's own configuration. See ProvisionedSecrets.
+        services.BindProvisionedSecret<AppCodesSettings>(ProvisionedSecretFiles.AppCodes);
 
         AddApplicationIdentifier(services);
 
@@ -127,9 +127,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAltinnPartyClient, AltinnPartyClient>();
         services.AddAltinnCdnClient();
         services.AddRegisterClient();
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.AddHttpClient<IText, TextClient>();
-#pragma warning restore CS0618 // Type or member is obsolete
         services.AddHttpClient<IProcessClient, ProcessClient>();
         services.AddHttpClient<IPersonClient, PersonClient>();
         services.AddHttpClient<IAccessManagementClient, AccessManagementClient>();
@@ -146,26 +143,17 @@ public static class ServiceCollectionExtensions
         services.AddAuthenticationContext();
     }
 
-    private static void AddApplicationIdentifier(IServiceCollection services)
+    /// <summary>
+    /// Registers the app's <see cref="Models.AppIdentifier"/> from the loaded <c>config/applicationmetadata.json</c>. It is
+    /// read from the file rather than through <see cref="IAppMetadata"/>, whose application metadata is enriched with
+    /// the ids of the app's <c>IExternalApiClient</c> implementations: constructing those to ask for their ids would
+    /// resolve the <see cref="Models.AppIdentifier"/> they may inject, which is this registration, without end.
+    /// </summary>
+    internal static void AddApplicationIdentifier(IServiceCollection services)
     {
         services.AddSingleton(sp =>
-        {
-            string appIdentifier = GetApplicationId();
-            return new AppIdentifier(appIdentifier);
-        });
-    }
-
-    private static string GetApplicationId()
-    {
-        string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
-        JObject appMetadataJObject = JObject.Parse(appMetaDataString);
-
-        var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
-
-        return id
-            ?? throw new KeyNotFoundException(
-                "Could not find id in applicationmetadata.json. Please ensure the file is well formed and contains a key for `id`"
-            );
+            ApplicationMetadataParser.Parse(sp.GetRequiredService<AppFilesAccessor>().Current).AppIdentifier
+        );
     }
 
     /// <summary>
@@ -186,8 +174,9 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IPDP, PDPAppSI>();
         services.TryAddTransient<IPrefill, PrefillSI>();
         services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
-        services.TryAddSingleton<IAppResources, AppResourcesSI>();
+        // AppFilesAccessor itself is loaded and registered by AddAltinnAppServices through AppFilesDI.AddAppFiles
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
+        services.TryAddSingleton<IAppResources, AppResourcesSI>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
         services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
@@ -388,9 +377,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
-        // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
-        // eFormidling task but never called it is told at startup instead of mid-process.
-        services.AddHostedService<EFormidlingConfigValidationService>();
+        services.AddHostedService<Internal.Process.ProcessTaskConfigurationValidationService>();
     }
 
     private static void AddActionServices(IServiceCollection services)

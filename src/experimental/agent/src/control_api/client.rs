@@ -4,13 +4,17 @@ use sandbox::LocalFuture;
 use serde::{Serialize, de::DeserializeOwned};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
 
-use crate::{Agent, Error, control_plane, harness, sessions};
+use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, sessions};
 
 use super::protocol::{
-    DirectoryParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN, METHOD_DELETE,
-    METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_RESOLVE_DIRECTORY, METHOD_SESSION_ENSURE,
-    METHOD_SESSION_GET, METHOD_SESSION_LIST, NameParams, ReadMessage, Request, Response, SessionListParams,
-    SessionParams, read_message,
+    DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
+    METHOD_CONVERGE, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
+    METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
+    METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
+    NameParams, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult,
+    read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -51,9 +55,37 @@ impl Client {
     /// # Errors
     ///
     /// Returns an error when the daemon is unavailable or protocol-incompatible.
-    pub async fn health(&self) -> Result<(), Error> {
-        let _result: serde_json::Value = self.call(METHOD_HEALTH, serde_json::json!({})).await?;
-        Ok(())
+    pub async fn health(&self) -> Result<DaemonInfo, Error> {
+        self.call(METHOD_HEALTH, serde_json::json!({})).await
+    }
+
+    /// Requires a daemon built with this client's application protocol and version.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error with both identities when a daemon is reachable but incompatible.
+    pub async fn require_compatible_daemon(&self) -> Result<DaemonInfo, Error> {
+        let daemon = self.health().await?;
+        daemon.require_compatible()?;
+        Ok(daemon)
+    }
+
+    /// Requests a graceful daemon shutdown for an upgrade.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when active Sessions block the transition or the daemon
+    /// cannot drain its listeners and in-flight calls.
+    pub async fn shutdown_for_upgrade(&self) -> Result<Vec<String>, Error> {
+        let result: ShutdownResult = self
+            .call(
+                METHOD_SHUTDOWN,
+                ShutdownParams {
+                    reason: "upgrade".into(),
+                },
+            )
+            .await?;
+        Ok(result.warnings)
     }
 
     /// Creates or updates an Agent resource.
@@ -89,18 +121,105 @@ impl Client {
     ///
     /// Returns an error when no unique Agent matches or the API call fails.
     pub async fn resolve_agent(&self, directory: std::path::PathBuf) -> Result<Agent, Error> {
-        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory }).await
+        self.resolve_agent_variant(directory, None).await
+    }
+
+    /// Resolves the closest persisted Agent by directory and optional leaf variant.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when no unique Agent matches or the API call fails.
+    pub async fn resolve_agent_variant(
+        &self,
+        directory: std::path::PathBuf,
+        variant: Option<crate::AgentVariantName>,
+    ) -> Result<Agent, Error> {
+        self.call(METHOD_RESOLVE_DIRECTORY, DirectoryParams { directory, variant })
+            .await
     }
 
     /// Converges an Agent and resolves its exact transient Execution target.
     ///
+    /// `wait` decides whether the call returns after one reconciliation pass or
+    /// waits through background retries until Ready. Follow progress alongside
+    /// with [`Self::agent_progress`].
+    ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, or fails to reach
-    /// a ready materialized Sandbox.
-    pub async fn ensure_execution(&self, name: &str) -> Result<crate::sandbox::ExecutionTarget, Error> {
-        self.call(METHOD_EXECUTION_ENSURE, NameParams { name: name.into() })
-            .await
+    /// Returns an error when the Agent is missing, deleting, invalid, or fails to
+    /// reach a ready materialized Sandbox.
+    pub async fn ensure_execution(
+        &self,
+        name: &str,
+        wait: WaitPolicy,
+    ) -> Result<crate::sandbox::ExecutionTarget, Error> {
+        self.call(
+            METHOD_EXECUTION_ENSURE,
+            ExecutionEnsureParams {
+                name: name.into(),
+                follow: wait == WaitPolicy::UntilConverged,
+            },
+        )
+        .await
+    }
+
+    /// Waits for a change after `after`, then returns the Agent's stored status
+    /// and the progress of its latest pass. Without a revision, or with one
+    /// from an earlier daemon process, it returns at once; with a current one
+    /// it may return the unchanged state after a keepalive interval. When
+    /// `output` names the latest pass, only output after it is included.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing or the call fails.
+    pub async fn agent_progress(
+        &self,
+        name: &str,
+        after: Option<crate::resources::Revision>,
+        output: Option<crate::progress::OutputPosition>,
+    ) -> Result<crate::progress::AgentProgress, Error> {
+        self.call(
+            METHOD_PROGRESS,
+            ProgressParams {
+                name: name.into(),
+                after,
+                output,
+            },
+        )
+        .await
+    }
+
+    /// Waits for an Agent or Session to change after `after`, then returns
+    /// every Agent and Session. Without a revision, or with one from an earlier
+    /// daemon process, it returns the current state at once; with a current
+    /// revision it may return the unchanged state after a keepalive interval.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or daemon reads fail.
+    pub async fn watch_resources(
+        &self,
+        after: Option<crate::resources::Revision>,
+    ) -> Result<crate::resources::Resources, Error> {
+        self.call(METHOD_RESOURCES_WATCH, ResourcesWatchParams { after }).await
+    }
+
+    /// Describes how to reach an Agent over SSH.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no SSH access.
+    pub async fn ssh_access(&self, name: &str) -> Result<crate::ssh::AccessInfo, Error> {
+        self.call(METHOD_SSH_ACCESS, NameParams { name: name.into() }).await
+    }
+
+    /// Describes how to reach an Agent's desktop over VNC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is unknown, deleting, or declares no VNC access.
+    pub async fn vnc_access(&self, name: &str) -> Result<crate::vnc::AccessInfo, Error> {
+        self.call(METHOD_VNC_ACCESS, NameParams { name: name.into() }).await
     }
 
     /// Requests deletion of an Agent and its owned sandbox.
@@ -113,6 +232,31 @@ impl Client {
         Ok(())
     }
 
+    /// Waits until an Agent has its desired run state, Ready or stopped, and
+    /// returns it as stored then; transient failures are waited through.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing, deleted, invalid or
+    /// unresponsive, or the call fails.
+    pub async fn converge(&self, name: &str) -> Result<Agent, Error> {
+        self.call(METHOD_CONVERGE, NameParams { name: name.into() }).await
+    }
+
+    /// Records whether an Agent's Sandbox runs and returns the Agent as stored;
+    /// the reconciler stops or starts it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn set_run_state(&self, name: &str, state: crate::RunState) -> Result<Agent, Error> {
+        let method = match state {
+            crate::RunState::Running => METHOD_START,
+            crate::RunState::Stopped => METHOD_STOP,
+        };
+        self.call(method, NameParams { name: name.into() }).await
+    }
+
     /// Stores a host-acquired harness credential in the daemon.
     ///
     /// # Errors
@@ -122,27 +266,102 @@ impl Client {
         &self,
         harness: harness::Harness,
         credential: String,
+        imported: bool,
     ) -> Result<harness::ImportedAuthentication, Error> {
-        self.call(METHOD_AUTH_LOGIN, LoginParams { harness, credential }).await
+        self.call(
+            METHOD_AUTH_LOGIN,
+            LoginParams {
+                harness,
+                credential,
+                imported,
+            },
+        )
+        .await
     }
 
     /// Creates or resolves one named session attach target.
     ///
+    /// `request` selects the harness, model, effort and first prompt of a
+    /// Session this call creates; see [`sessions::Service::ensure`] for the
+    /// precedence against manifest defaults. `wait` decides whether the call
+    /// returns after one Agent reconciliation pass or waits through background
+    /// retries until Ready. Follow progress alongside with [`Self::agent_progress`].
+    ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is not ready or the registry cannot persist the session.
+    /// Returns an error when the Agent is not ready, a selection conflicts with
+    /// an existing Session, or the registry cannot persist the session.
     pub async fn ensure_session(
         &self,
         agent: &str,
         name: sessions::SessionName,
-        harness: Option<harness::Harness>,
+        request: sessions::SessionRequest,
+        wait: WaitPolicy,
     ) -> Result<sessions::AttachTarget, Error> {
         self.call(
             METHOD_SESSION_ENSURE,
-            SessionParams {
+            SessionEnsureParams {
                 agent: agent.into(),
                 name,
-                harness,
+                harness: request.harness,
+                model_selection: request.model_selection,
+                initial_prompt: request.initial_prompt,
+                follow: wait == WaitPolicy::UntilConverged,
+            },
+        )
+        .await
+    }
+
+    /// Delivers a prompt to a running Session's harness. With `wait`, waits for
+    /// its completed-turn counter to advance with identical waiting activity in
+    /// two consecutive polls, 250 ms apart.
+    /// Work observed during settling requires another completion.
+    /// The timeout bounds completion waiting after submission, excluding setup and delivery.
+    /// Conversation output is read separately with [`Self::session_turns`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session is not running or the input cannot be delivered.
+    pub async fn prompt_session(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        prompt: String,
+        wait: bool,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_PROMPT,
+                SessionPromptParams {
+                    agent: agent.into(),
+                    name,
+                    prompt,
+                    wait,
+                    timeout,
+                },
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Reads the harness transcript of a Session as ordered turns.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Session or its transcript cannot be read.
+    pub async fn session_turns(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        last: Option<usize>,
+    ) -> Result<Vec<sessions::Turn>, Error> {
+        self.call(
+            METHOD_SESSION_TURNS,
+            SessionTurnsParams {
+                agent: agent.into(),
+                name,
+                last,
             },
         )
         .await
@@ -156,6 +375,54 @@ impl Client {
     pub async fn get_session(&self, agent: &str, name: sessions::SessionName) -> Result<sessions::Session, Error> {
         self.call(
             METHOD_SESSION_GET,
+            SessionParams {
+                agent: agent.into(),
+                name,
+                harness: None,
+            },
+        )
+        .await
+    }
+
+    /// Requests release of one Session: its harness is stopped and the Session
+    /// is removed, freeing its name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing, or the release pass fails.
+    pub async fn delete_session(&self, agent: &str, name: sessions::SessionName) -> Result<(), Error> {
+        let _result: serde_json::Value = self
+            .call(
+                METHOD_SESSION_DELETE,
+                SessionParams {
+                    agent: agent.into(),
+                    name,
+                    harness: None,
+                },
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Archives or unarchives one Session and returns it as recorded. Archiving
+    /// stops its harness until it is unarchived; the Session keeps its name and
+    /// conversation.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when either resource is missing or the pass fails.
+    pub async fn set_session_archived(
+        &self,
+        agent: &str,
+        name: sessions::SessionName,
+        archived: bool,
+    ) -> Result<sessions::Session, Error> {
+        self.call(
+            if archived {
+                METHOD_SESSION_ARCHIVE
+            } else {
+                METHOD_SESSION_UNARCHIVE
+            },
             SessionParams {
                 agent: agent.into(),
                 name,

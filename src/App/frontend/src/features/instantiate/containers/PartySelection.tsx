@@ -71,13 +71,20 @@ export const PartySelection = () => {
 
   const numberFilterString = filterString.replace(/\s+/g, '');
   const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
-  const filteredParties = partiesAllowedToInstantiate.filter(
-    (party) =>
-      (party.name.toUpperCase().includes(filterString.toUpperCase()) ||
-        (hasNumberFilter &&
-          (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)))) &&
-      !(party.isDeleted && !showDeleted),
-  );
+  const matchesSearch = (party: IParty) =>
+    party.name.toUpperCase().includes(filterString.toUpperCase()) ||
+    (hasNumberFilter && (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)));
+
+  const filteredParties = partiesAllowedToInstantiate.flatMap((party) => {
+    if (party.isDeleted && !showDeleted) {
+      return [];
+    }
+    const matchingSubUnits = filterString && showSubUnits ? party.childParties?.filter(matchesSearch) : undefined;
+    if (matchingSubUnits?.length) {
+      return [{ party: { ...party, childParties: matchingSubUnits }, expandSubUnits: true }];
+    }
+    return matchesSearch(party) ? [{ party, expandSubUnits: false }] : [];
+  });
 
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;
   const partiesSubset = filteredParties.slice(0, numberOfPartiesShown);
@@ -85,13 +92,14 @@ export const PartySelection = () => {
   function renderParties() {
     return (
       <>
-        {partiesSubset.map((party, index) => (
+        {partiesSubset.map(({ party, expandSubUnits }) => (
           <AltinnParty
-            key={index}
+            key={`${party.partyId}-${expandSubUnits}`}
             party={party}
             onSelectParty={onSelectParty}
             showSubUnits={showSubUnits}
             pendingPartyId={pendingPartyId}
+            initiallyExpanded={expandSubUnits}
           />
         ))}
         {hasMoreParties ? (

@@ -118,7 +118,13 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
-        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(request.Instance);
+        InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
+            request.Instance,
+            StorageVersionMetadata.Empty,
+            taskId: null,
+            language: null
+        );
+        ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
         List<InstanceEvent> events = [];
         if (startEvent is not null)
@@ -153,7 +159,7 @@ internal class ProcessEngine : IProcessEngine
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         // Capture instance + form data state for transport to the workflow engine
@@ -182,7 +188,7 @@ internal class ProcessEngine : IProcessEngine
             );
         }
 
-        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
+        ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForInitialProcessState(
             instance,
             versions,
             processStateChange,
@@ -190,7 +196,7 @@ internal class ProcessEngine : IProcessEngine
             isInstantiation,
             prefill: prefill,
             notification: notification,
-            ct: ct
+            cancellationToken: cancellationToken
         );
         if (result.WorkflowFailure is null)
         {
@@ -206,13 +212,16 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken ct = default)
+    public async Task<ProcessChangeResult> Next(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         Instance instance = request.Instance;
 
         using Activity? activity = _telemetry?.StartProcessNextActivity(instance, request.Action);
 
-        ProcessChangeResult result = await ProcessNext(request, ct);
+        ProcessChangeResult result = await ProcessNext(request, cancellationToken);
         if (result.Success && result.MutatedInstance is null)
         {
             throw new ProcessException(
@@ -225,7 +234,10 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
-    public async Task<ProcessChangeResult> ResumeCurrentTask(ProcessNextRequest request, CancellationToken ct = default)
+    public async Task<ProcessChangeResult> ResumeCurrentTask(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         Instance instance = request.Instance;
 
@@ -245,7 +257,11 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+            instance,
+            request.Action,
+            cancellationToken
+        );
 
         if (!authorized)
         {
@@ -262,7 +278,7 @@ internal class ProcessEngine : IProcessEngine
 
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
-            ct
+            cancellationToken
         );
 
         if (currentTaskWorkflowState is CurrentTaskWorkflowState.Retrying)
@@ -289,7 +305,7 @@ internal class ProcessEngine : IProcessEngine
             instance,
             failedWorkflow.WorkflowId,
             failedWorkflow.CollectionKey,
-            ct
+            cancellationToken
         );
 
         if (workflowResult.WorkflowFailure is not null)
@@ -325,7 +341,10 @@ internal class ProcessEngine : IProcessEngine
     /// <summary>
     /// Internal method that performs a single process next operation without automatic service task handling.
     /// </summary>
-    private async Task<ProcessChangeResult> ProcessNext(ProcessNextRequest request, CancellationToken ct = default)
+    private async Task<ProcessChangeResult> ProcessNext(
+        ProcessNextRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         using Activity? activity = _telemetry?.StartProcessNextActivity(request.Instance, request.Action);
 
@@ -346,13 +365,17 @@ internal class ProcessEngine : IProcessEngine
 
         (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
 
-        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, request.Action);
+        bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+            instance,
+            request.Action,
+            cancellationToken
+        );
 
         if (!authorized)
         {
             if (
                 request.Mode is ProcessNextMode.CompleteProcess
-                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance)
+                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: cancellationToken)
             )
             {
                 ProcessChangeResult completeProcessAuthorizationFailedResult =
@@ -387,14 +410,10 @@ internal class ProcessEngine : IProcessEngine
         bool rejectAllowedForTask =
             checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
 
-        Guid? abandonedWorkflowId = null;
-        Guid? pendingCompleteProcessAbandonWorkflowId = null;
-        bool takeOverProcessingStatus = false;
         CurrentTaskWorkflowState currentTaskWorkflowState = await _workflowEngineService.GetCurrentTaskWorkflowState(
             instance,
-            ct
+            cancellationToken
         );
-        ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         switch (currentTaskWorkflowState)
         {
             case CurrentTaskWorkflowState.Unblocked:
@@ -407,97 +426,9 @@ internal class ProcessEngine : IProcessEngine
                 return blockedResult;
             }
 
-            // A terminally failed workflow normally requires an explicit resume before the process
-            // can continue. The one exception is a bpmn-allowed 'reject': the user is abandoning
-            // the task (e.g. backing out of a failed service task from its failure screen, which
-            // offers both retry and go-back). A failed service task leaves the instance processing,
-            // so the reject is evaluated before the status guard and takes that status over.
-            case CurrentTaskWorkflowState.ResumeRequired failedWorkflow
-                when request.Action is "reject" && rejectAllowedForTask:
-            {
-                // The request instance predates the workflow-state lookup. Refresh the complete
-                // Storage snapshot before abandoning the only resumable workflow: another request
-                // may have acquired the instance and failed after this request read an idle status.
-                InstanceWithStorageMetadata refreshed = await _instanceClient.GetInstanceWithStorageMetadata(
-                    instance,
-                    ct: ct
-                );
-                blockingProcessStatus = null;
-                if (ProcessStatusHelper.GetBlockingStatus(refreshed.Instance) is not null)
-                {
-                    // TODO: If the enqueue fails after the abandon below, the instance stays processing with no running
-                    // or failed workflow, and the plain process-status guard blocks every later request, including a
-                    // retried reject. A repair path for "processing with no owner" is still needed.
-                    // The takeover itself is a temporary workaround: Storage's status carries no owner identity, so
-                    // the holder cannot be verified. Rethink it together with the processing-status ownership model.
-                    takeOverProcessingStatus = true;
-                }
-
-                bool hasSameCurrentTask = HasSameCurrentTask(instance, refreshed.Instance);
-                if (
-                    !TryGetCurrentTaskIdAndAltinnTaskType(
-                        refreshed.Instance,
-                        out CurrentTaskIdAndAltinnTaskType? refreshedTask,
-                        out ProcessChangeResult? refreshedProcessStateError
-                    )
-                )
-                {
-                    activity?.SetProcessChangeResult(refreshedProcessStateError);
-                    return refreshedProcessStateError;
-                }
-
-                if (!hasSameCurrentTask)
-                {
-                    var processStateChangedResult = new ProcessChangeResult
-                    {
-                        Success = false,
-                        ErrorType = ProcessErrorType.Conflict,
-                        ErrorTitle = "The process state changed.",
-                        ErrorMessage = "Refresh the instance before trying the action again.",
-                    };
-                    activity?.SetProcessChangeResult(processStateChangedResult);
-                    return processStateChangedResult;
-                }
-
-                (currentTaskId, altinnTaskType) = refreshedTask;
-                rejectAllowedForTask = _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
-                if (!rejectAllowedForTask)
-                {
-                    ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
-                        ProcessNextState.ResumeRequired
-                    );
-                    activity?.SetProcessChangeResult(blockedResult);
-                    return blockedResult;
-                }
-
-                instance = refreshed.Instance;
-                versions = refreshed.Metadata;
-                isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
-
-                if (request.Mode is ProcessNextMode.CompleteProcess)
-                {
-                    // Complete preserves its legacy authorization/validation-before-effects contract.
-                    // Carry the refreshed instance and versions in the locals above, but defer the
-                    // workflow CAS until that preflight succeeds.
-                    pendingCompleteProcessAbandonWorkflowId = failedWorkflow.WorkflowId;
-                    break;
-                }
-
-                // Write the failed workflow off in the engine (-> Abandoned) before enqueueing the
-                // reject: Abandoned is terminal but no longer condemns dependents, so the reject's
-                // ordinary dependency on it lets the reject run.
-                if (await TryAbandonFailedWorkflow(instance, failedWorkflow.WorkflowId, ct) is { } raceLostResult)
-                {
-                    activity?.SetProcessChangeResult(raceLostResult);
-                    return raceLostResult;
-                }
-
-                abandonedWorkflowId = failedWorkflow.WorkflowId;
-                break;
-            }
-
-            // Every other request keeps the explicit resume recovery path, whether or not the failed
-            // workflow still holds a non-idle status.
+            // A terminally failed workflow owns the task until it is explicitly resumed through
+            // process/resume. No process/next action can supersede it, reject included: the failed
+            // task may already have performed work that a reject cannot undo.
             case CurrentTaskWorkflowState.ResumeRequired:
             {
                 ProcessChangeResult blockedResult = CreateCurrentTaskWorkflowBlockedResult(
@@ -513,6 +444,7 @@ internal class ProcessEngine : IProcessEngine
                 );
         }
 
+        ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
         if (blockingProcessStatus is not null)
         {
             ProcessChangeResult blockedResult = CreateProcessStatusBlockedResult(blockingProcessStatus.Value);
@@ -522,7 +454,10 @@ internal class ProcessEngine : IProcessEngine
 
         if (request.Mode is ProcessNextMode.CompleteProcess)
         {
-            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance);
+            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(
+                instance,
+                cancellationToken: cancellationToken
+            );
             if (!completeProcessAuthorized)
             {
                 ProcessChangeResult unauthorizedResult = CreateCompleteProcessAuthorizationFailedResult(
@@ -543,24 +478,13 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        if (pendingCompleteProcessAbandonWorkflowId is Guid pendingAbandonWorkflowId)
-        {
-            if (await TryAbandonFailedWorkflow(instance, pendingAbandonWorkflowId, ct) is { } raceLostResult)
-            {
-                activity?.SetProcessChangeResult(raceLostResult);
-                return raceLostResult;
-            }
-
-            abandonedWorkflowId = pendingAbandonWorkflowId;
-        }
-
         // If the action is 'reject', we should not run any service task and there is no need to check for a user action handler, since 'reject' doesn't have one.
         if (request.Action is not "reject")
         {
             if (request.Action is not null)
             {
                 (UserActionResult userActionResult, InstanceWithStorageMetadata? refreshedInstance) =
-                    await HandleUserAction(instance, request, versions, ct);
+                    await HandleUserAction(instance, request, versions, cancellationToken);
 
                 if (userActionResult.ResultType is ResultType.Failure)
                 {
@@ -616,45 +540,12 @@ internal class ProcessEngine : IProcessEngine
             }
         }
 
-        MoveToNextResult moveToNextResult;
-        try
-        {
-            moveToNextResult = await HandleMoveToNext(
-                instance,
-                versions,
-                processNextAction,
-                takeOverProcessingStatus,
-                ct
-            );
-        }
-        catch (WorkflowSubmissionFailedException exception) when (abandonedWorkflowId is Guid writtenOffWorkflowId)
-        {
-            // The failed workflow was written off, but the superseding reject never made it into
-            // the engine. The write-off is not undone: the abandoned workflow no longer blocks the
-            // task, and the engine released its idempotency key on abandon, so retrying the reject
-            // submits a fresh workflow while the instance is idle. A written-off workflow that still
-            // held the processing status leaves the instance blocked instead.
-            _logger.LogWarning(
-                exception,
-                "The reject was not enqueued after workflow {AbandonedWorkflowId} was abandoned. Instance: {InstanceId}. Task: {TaskId}. Action: {ProcessNextAction}. TakeOverProcessingStatus: {TakeOverProcessingStatus}. The reject can be retried while the instance is idle.",
-                writtenOffWorkflowId,
-                instance.Id,
-                LogSanitizer.Sanitize(currentTaskId),
-                LogSanitizer.Sanitize(request.Action ?? "none"),
-                takeOverProcessingStatus
-            );
-
-            var submissionFailureResult = new ProcessChangeResult
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Internal,
-                ErrorTitle = "The reject was not submitted.",
-                ErrorMessage =
-                    "The failed workflow was written off, but the reject was not submitted to the workflow engine. Try the reject again while the instance is idle.",
-            };
-            activity?.SetProcessChangeResult(submissionFailureResult);
-            return submissionFailureResult;
-        }
+        MoveToNextResult moveToNextResult = await HandleMoveToNext(
+            instance,
+            versions,
+            processNextAction,
+            cancellationToken
+        );
 
         if (moveToNextResult.WorkflowFailure is not null)
         {
@@ -685,32 +576,6 @@ internal class ProcessEngine : IProcessEngine
 
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
-    }
-
-    private async Task<ProcessChangeResult?> TryAbandonFailedWorkflow(
-        Instance instance,
-        Guid failedWorkflowId,
-        CancellationToken ct
-    )
-    {
-        bool abandoned = await _workflowEngineService.AbandonWorkflow(failedWorkflowId, ct);
-        if (abandoned)
-        {
-            return null;
-        }
-
-        // Re-query after the compare-and-set failure instead of assuming which concurrent
-        // recovery won. A still-failed workflow remains resumable; every other state is safe
-        // to expose as a retrying transition.
-        CurrentTaskWorkflowState stateAfterRace = await _workflowEngineService.GetCurrentTaskWorkflowState(
-            instance,
-            ct
-        );
-        return CreateCurrentTaskWorkflowBlockedResult(
-            stateAfterRace is CurrentTaskWorkflowState.ResumeRequired
-                ? ProcessNextState.ResumeRequired
-                : ProcessNextState.Retrying
-        );
     }
 
     private async Task<ProcessChangeResult?> GetValidationError(
@@ -754,7 +619,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         ProcessNextRequest request,
         StorageVersionMetadata versions,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, request.Action);
@@ -785,7 +650,7 @@ internal class ProcessEngine : IProcessEngine
                 language: request.Language,
                 authentication: currentAuth,
                 onBehalfOf: request.ActionOnBehalfOf,
-                cancellationToken: ct
+                cancellationToken: cancellationToken
             )
         );
 
@@ -806,7 +671,7 @@ internal class ProcessEngine : IProcessEngine
         InstanceWithStorageMetadata refreshedInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             cachedDataMutator.Instance,
             authenticationMethod: null,
-            ct
+            cancellationToken
         );
 
         return (actionResult, refreshedInstance);
@@ -851,10 +716,11 @@ internal class ProcessEngine : IProcessEngine
     /// Computes the next transition and updates instance.Process to reflect the new state.
     /// </summary>
     private async Task<ProcessStateChange?> MoveProcessStateToNextAndGenerateEvents(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string? action = null
     )
     {
+        Instance instance = dataAccessor.Instance;
         if (instance.Process == null)
         {
             return null;
@@ -866,7 +732,7 @@ internal class ProcessEngine : IProcessEngine
         using var activity = _telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType);
 
         PlatformUser user = await ExtractPlatformUser();
-        ProcessStateChange result = await ComputeNextTransition(instance, action, user);
+        ProcessStateChange result = await ComputeNextTransition(dataAccessor, action, user, DateTime.UtcNow);
 
         // Apply the mutation so callers see the updated process state on the instance
         instance.Process = result.NewProcessState;
@@ -877,19 +743,24 @@ internal class ProcessEngine : IProcessEngine
     /// <summary>
     /// Core BPMN transition logic. Computes the ProcessStateChange for moving from the current task
     /// to the next element. Does NOT mutate instance.Process.
-    /// Used by both the normal process-next flow and auto-advance.
+    /// Used for transitions requested by a user and transitions following a successful service task.
     /// </summary>
-    private async Task<ProcessStateChange> ComputeNextTransition(Instance instance, string? action, PlatformUser user)
+    private async Task<ProcessStateChange> ComputeNextTransition(
+        IInstanceDataAccessor dataAccessor,
+        string? action,
+        PlatformUser user,
+        DateTime now
+    )
     {
+        Instance instance = dataAccessor.Instance;
         ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
         string currentTaskId =
             process.CurrentTask?.ElementId ?? throw new ProcessException("Current task element ID is null");
 
-        ProcessElement? nextElement = await _processNavigator.GetNextTask(instance, currentTaskId, action);
+        ProcessElement? nextElement = await _processNavigator.GetNextTask(dataAccessor, currentTaskId, action);
         if (nextElement is null)
             throw new ProcessException("Next process element was unexpectedly null");
 
-        DateTime now = DateTime.UtcNow;
         var events = new List<InstanceEvent>();
 
         ProcessState oldProcessState = new()
@@ -1002,14 +873,13 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         string? action,
-        bool takeOverProcessingStatus,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
         using var activity = _telemetry?.StartProcessMoveToNextActivity(instance, action);
 
-        // Compute the transition without mutating instance.Process, then capture the old instance/form-data
-        // snapshot before mutating instance.Process so the callback starts from the task being left.
+        // The acquire callback computes the transition after claiming this authoritative snapshot.
+        ProcessState? oldProcessState = instance.Process?.Copy();
         string state;
         string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
         {
@@ -1023,26 +893,18 @@ internal class ProcessEngine : IProcessEngine
             state = await _workflowCallbackStateService.CaptureState(unitOfWork);
         }
 
-        ProcessStateChange? processStateChange = await MoveProcessStateToNextAndGenerateEvents(instance, action);
-        if (processStateChange is null)
-        {
-            throw new InvalidOperationException("Process state was unexpectedly null when moving to the next task.");
-        }
-
         ProcessNextWorkflowResult result = await _workflowEngineService.EnqueueAndWaitForProcessNext(
             instance,
             versions,
-            processStateChange,
             state,
-            takeOverProcessingStatus: takeOverProcessingStatus,
-            ct: ct
+            action,
+            cancellationToken: cancellationToken
         );
 
         ProcessStateChange finalProcessStateChange = new()
         {
-            OldProcessState = processStateChange.OldProcessState,
-            NewProcessState = result.Instance.Process ?? processStateChange.NewProcessState,
-            Events = processStateChange.Events,
+            OldProcessState = oldProcessState,
+            NewProcessState = result.Instance.Process,
         };
 
         return new MoveToNextResult(
@@ -1056,18 +918,32 @@ internal class ProcessEngine : IProcessEngine
 
     /// <inheritdoc/>
     public async Task EnqueueProcessNext(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         Actor actor,
         Guid dependsOnWorkflowId,
         string collectionKey,
         string state,
+        DateTimeOffset executionReferenceTime,
         string? action = null,
         string? idempotencyKey = null,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
     )
     {
+        Instance instance = dataAccessor.Instance;
         PlatformUser user = CreatePlatformUser(actor);
-        ProcessStateChange processStateChange = await ComputeNextTransition(instance, action, user);
+        string changeEventType = action is "reject"
+            ? InstanceEventType.process_AbandonTask.ToString()
+            : InstanceEventType.process_EndTask.ToString();
+        ProcessStateChange processStateChange;
+        using (_telemetry?.StartProcessGenerateChangeEventActivity(instance, changeEventType))
+        {
+            processStateChange = await ComputeNextTransition(
+                dataAccessor,
+                action,
+                user,
+                executionReferenceTime.UtcDateTime
+            );
+        }
 
         await _workflowEngineService.EnqueueDependentProcessNext(
             instance,
@@ -1077,7 +953,7 @@ internal class ProcessEngine : IProcessEngine
             state,
             actor,
             idempotencyKey,
-            ct: ct
+            cancellationToken: cancellationToken
         );
     }
 
@@ -1228,17 +1104,6 @@ internal class ProcessEngine : IProcessEngine
 
         state = new CurrentTaskIdAndAltinnTaskType(taskId, taskType);
         return true;
-    }
-
-    private static bool HasSameCurrentTask(Instance expected, Instance actual)
-    {
-        ProcessElementInfo? expectedTask = expected.Process?.CurrentTask;
-        ProcessElementInfo? actualTask = actual.Process?.CurrentTask;
-        return expectedTask is not null
-            && actualTask is not null
-            && string.Equals(expectedTask.ElementId, actualTask.ElementId, StringComparison.Ordinal)
-            && expectedTask.Flow == actualTask.Flow
-            && string.Equals(expectedTask.AltinnTaskType, actualTask.AltinnTaskType, StringComparison.Ordinal);
     }
 
     private static ProcessChangeResult CreateCompleteProcessAuthorizationFailedResult(

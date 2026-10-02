@@ -7,7 +7,6 @@ using Altinn.App.Api.Tests.Mocks.Authentication;
 using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Cache;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -18,6 +17,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Sign;
+using Altinn.App.Tests.Common;
 using Altinn.App.Tests.Common.Mocks;
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
@@ -36,14 +36,22 @@ using Microsoft.OpenApi;
 // External interfaces like Platform related services, Authentication, Authorization
 // external api's etc. should be mocked.
 
+// Use the test app as the default content root. Startup validation needs its process and application
+// metadata; the build output contains only stub metadata.
+string? contentRootFromArgs = new ConfigurationBuilder().AddCommandLine(args).Build()[WebHostDefaults.ContentRootKey];
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(
     new WebApplicationOptions()
     {
+        ContentRootPath = Directory.Exists(contentRootFromArgs)
+            ? contentRootFromArgs
+            : TestData.GetApplicationDirectory("tdd", "contributer-restriction"),
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
         EnvironmentName = "Production",
     }
 );
+
 builder.WebHost.UseDefaultServiceProvider(
     (context, options) =>
     {
@@ -66,18 +74,17 @@ builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
     options.RequestCollectionOptions.InjectResponseHeaders = false
 );
 builder.Services.Configure<GeneralSettings>(settings => settings.DisableLocaltestValidation = true);
-builder.Services.Configure<GeneralSettings>(settings => settings.DisableAppConfigurationCache = true);
 builder.Services.Configure<GeneralSettings>(settings => settings.IsTest = true);
 builder.Configuration.GetSection("GeneralSettings:IsTest").Value = "true";
 
-// Provide a WorkflowEngineCallback app-code so the enqueue path can mint callback tokens and the
-// always-on WorkflowEngineCallback startup validation passes for every test host.
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Id"] = "test";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:Code"] = "test-workflow-engine-callback-secret-long-enough";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:IssuedAt"] = "2020-01-01T00:00:00Z";
-builder.Configuration["AppCodes:WorkflowEngineCallback:0:ExpiresAt"] = "2999-01-01T00:00:00Z";
-
-// AppConfigurationCache.Disable = true;
+// The platform tells an app where it provisioned its secrets and what it called each file, and it provisions
+// both files the libraries host: the app's one Maskinporten client, and the callback verification codes whose
+// WorkflowEngineCallback entry every test host needs to pass the always-on startup validation. The libraries
+// require all of it and refuse to start without it, so stand in for the platform with a throwaway directory.
+foreach ((string key, string? value) in ProvisionedSecretsTestEnvironment.Variables)
+{
+    builder.Configuration[key] = value;
+}
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
@@ -114,8 +121,6 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IInstanceClient>(sp => sp.GetRequiredService<InstanceClientMockSi>());
     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-    services.AddTransient<IAppMetadata, AppMetadataMock>();
-    services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<DataClientMock>();
     services.AddTransient<IDataClientWithStorageMetadata>(sp =>
         (IDataClientWithStorageMetadata)sp.GetRequiredService<IDataClient>()

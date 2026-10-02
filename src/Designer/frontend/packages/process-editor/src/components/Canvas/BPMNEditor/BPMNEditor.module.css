@@ -1,10 +1,11 @@
 .editorContainer {
   border: 1px solid var(--ds-color-neutral-border-default);
   border-radius: var(--ds-border-radius-md);
-  background-image: var(--canvas-background-image);
-  background-size: var(--canvas-background-size);
-  background-position: var(--canvas-background-position);
+  background-color: var(--ds-color-neutral-background-default);
+  background-image: radial-gradient(var(--ds-color-neutral-border-subtle) 1px, transparent 1px);
+  background-size: 1rem 1rem;
   display: flex;
   flex: 1;
-  margin: 18px;
+  min-width: 0;
+  margin: var(--ds-size-4);
 }

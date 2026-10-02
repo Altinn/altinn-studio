@@ -176,6 +176,7 @@ Content-Type: application/json; charset=utf-8
   "namespace": "chatter-app-test",
   "createdAt": "{Scrubbed}",
   "updatedAt": "{Scrubbed}",
+  "executionStartedAt": "{Scrubbed}",
   "labels": {
     "app": "e2e-tests",
     "org": "ttd"
@@ -191,6 +192,7 @@ Content-Type: application/json; charset=utf-8
       "operationId": "chatter-step-1",
       "processingOrder": 0,
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "command": {
         "type": "app"
       },
@@ -204,6 +206,7 @@ Content-Type: application/json; charset=utf-8
       "operationId": "chatter-step-2",
       "processingOrder": 1,
       "updatedAt": "{Scrubbed}",
+      "executionStartedAt": "{Scrubbed}",
       "command": {
         "type": "app"
       },

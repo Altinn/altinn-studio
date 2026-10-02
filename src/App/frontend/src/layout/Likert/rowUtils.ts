@@ -1,7 +1,8 @@
+import type { ILikertFilter } from '@app/layout-contract/generated/components/Likert/config.generated';
+
 import { FormStore } from 'src/features/form/FormContext';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { typedBoolean } from 'src/utils/typing';
-import type { ILikertFilter } from 'src/layout/Likert/config.generated';
 
 export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilter = []) => {
   const start = filters.find(({ key }) => key === 'start')?.value;
@@ -20,7 +21,7 @@ export const getLikertStartStopIndex = (lastIndex: number, filters: ILikertFilte
 
 export function useLikertRows(baseComponentId: string) {
   const groupBinding = useDataModelBindingsFor(baseComponentId, 'Likert')?.questions;
-  const filter = useExternalItem(baseComponentId, 'Likert').filter;
+  const filter = useComponentConfig(baseComponentId, 'Likert').filter;
   const rows = FormStore.data.useFreshRows(groupBinding);
   const lastIndex = rows.length - 1;
   const { startIndex, stopIndex } = getLikertStartStopIndex(lastIndex, filter);

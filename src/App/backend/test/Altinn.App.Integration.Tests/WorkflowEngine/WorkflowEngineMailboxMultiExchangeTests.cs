@@ -38,7 +38,7 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome) →
 /// Finally</c>. Three things only this shape can show: a conclusion choosing one of <em>two</em> carried
 /// mailboxes to close, a continuation whose segment is empty, and a continuation that concludes the task
-/// itself and auto-advances the process from there.
+/// itself and advances the process from there.
 /// </description>
 /// </item>
 /// </list>
@@ -252,7 +252,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // exists because the continuation's last step's callback *returned* - the engine's write of the step
         // and workflow completion lands milliseconds later, so reading the status straight off the sighting
         // sees Processing on a contended runner. (The up-front task's second continuation needs no poll: the
-        // process-next it auto-advances into is dependency-gated behind it, so EndEvent_1 is unreachable
+        // process continuation depends on that workflow, so EndEvent_1 is unreachable
         // until it has settled.)
         EngineWorkflow continuation = await WaitForCompletedWorkflow(
             engineClient,
@@ -601,11 +601,11 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         string collectionKey,
         Guid mailboxId,
         string nextReceiverOperationId,
-        CancellationToken ct
+        CancellationToken cancellationToken
     )
     {
         var samples = new List<HandoverSample>();
-        while (!ct.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
@@ -630,7 +630,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
                     return samples;
                 }
             }
-            catch (Exception ex) when (!ct.IsCancellationRequested)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 samples.Add(
                     new HandoverSample(

@@ -32,13 +32,19 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <param name="cloudEvent">The event to store.</param>
+        /// <param name="idempotencyKey">
+        /// Optional client-supplied idempotency key. A key is globally unique and registers exactly one
+        /// event.
+        /// </param>
         /// <returns>The application metadata object.</returns>
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/cloudevents+json")]
-        public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+        public async Task<ActionResult<string>> Post(
+            [FromBody] CloudEvent cloudEvent,
+            [FromHeader(Name = "Idempotency-Key")] Guid? idempotencyKey)
         {
             var (isValid, errorMessages) = ValidateCloudEvent(cloudEvent);
             if (!isValid)
@@ -48,8 +54,20 @@ namespace Altinn.Platform.Events.Controllers
             
             try
             {
-                var cloudEventId = await _repository.Create(cloudEvent);
-                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
+                CloudEventCreateResult result = await _repository.Create(cloudEvent, idempotencyKey);
+
+                if (result.IsDuplicate)
+                {
+                    _logger.LogInformation(
+                        "Duplicate idempotency key {IdempotencyKey} skipped. Already registered as event {CloudEventId}",
+                        idempotencyKey,
+                        result.Id);
+                }
+                else
+                {
+                    _logger.LogInformation("Cloud Event successfully stored with id: {0}", result.Id);
+                }
+
                 return Ok();
             }
             catch (Exception exception)

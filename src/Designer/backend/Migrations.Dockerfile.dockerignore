@@ -1,6 +1,12 @@
-# Keep the src/ build context limited to the Designer backend and its shared dependency.
+# Keep the src/ build context limited to the Designer backend and its shared dependencies.
 **
 !common/dotnet/Altinn.Studio.Common/**
+!cli/.editorconfig
+!cli/Directory.Build.props
+!cli/Directory.Packages.props
+!cli/common/dotnet/.editorconfig
+!cli/common/dotnet/Directory.Build.props
+!cli/common/dotnet/Altinn.Studio.AppDist/**
 !Designer/backend/**
 **/bin
 **/obj

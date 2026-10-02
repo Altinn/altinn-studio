@@ -1,12 +1,13 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use std::{io::Cursor, path::PathBuf, rc::Rc};
 
 use bytes::Bytes;
 use futures_util::StreamExt as _;
 use sandbox::{
-    ByteQuantity, CpuQuantity, EnsureSandboxRequest, OperationEvent, Platform, RetentionPolicy, RootFilesystem,
-    Sandbox, SandboxEvent, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
+    ByteQuantity, CpuQuantity, EnsureSandboxRequest, Hostname, OperationEvent, Platform, ProgressEvent,
+    RetentionPolicy, RootFilesystem, Sandbox, SandboxName, SandboxResources, SandboxService, SandboxSpec, SandboxState,
     backend::SandboxBackend as _,
     execution::{self, ExecutionSpec, StartExecutionRequest},
     image::ImageSource,
@@ -15,6 +16,7 @@ use sandbox::{
     volume::{EnsureVolumeRequest, VolumeName},
 };
 use sandbox_microsandbox::MicrosandboxProvider;
+use sha2::{Digest as _, Sha256};
 use tokio::io::AsyncReadExt as _;
 
 #[tokio::test(flavor = "local")]
@@ -41,6 +43,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
             image: ImageSource::Build {
                 context: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/runtime-image"),
                 dockerfile: PathBuf::from("Dockerfile"),
+                target: None,
             },
             platform: native_linux_platform(),
             resources: direct_resources("1", "512Mi", "4Gi"),
@@ -48,6 +51,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
             retention_policy: RetentionPolicy::Retain,
         },
     )
+    .with_hostname(Hostname::new("integration-host").expect("test hostname should be valid"))
     .with_mounts([Mount::Volume {
         id: home.id.clone(),
         target: sandbox::SandboxPath::new("/workspace"),
@@ -58,6 +62,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
         .expect("Sandbox should be built and started");
     assert_provisioning_progress(&events);
     assert_eq!(sandbox.state, SandboxState::Running);
+    assert_hostname(backend.as_ref(), &sandbox, "integration-host").await;
     assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
     assert_nested_container_networking(backend.as_ref(), &sandbox).await;
 
@@ -76,6 +81,7 @@ async fn retained_lifecycle_execution_files_and_volumes() {
         )
         .await
         .expect("file should stream into the Sandbox");
+    assert_atomic_replacement(backend.as_ref(), &sandbox).await;
     backend.stop(&sandbox.id).await.expect("Sandbox should stop");
 
     drop(service);
@@ -100,6 +106,265 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_immediate_restart_and_delete(&backend, &request, &sandbox).await;
     assert_build_cache_reused(backend, &request, &home.id).await;
     assert_reference_image_resolves(reference_backend_home).await;
+}
+
+/// A direct root filesystem pulled from a registry is prepared without Microsandbox's layered
+/// image artifacts, so a restart must boot from the Sandbox's own root disk without them.
+#[tokio::test(flavor = "local")]
+#[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
+    let temporary = RetainedOnFailureTempDir::new();
+    let home = temporary.path().join("control-plane");
+    let backend = Rc::new(MicrosandboxProvider::open(&home).await.expect("Backend should open"));
+    let service = SandboxService::new(backend.clone());
+    let request = EnsureSandboxRequest::new(
+        SandboxName::new("direct-reference-worker").expect("test Sandbox name should be valid"),
+        SandboxSpec {
+            image: ImageSource::Reference {
+                reference: "docker.io/library/alpine:3.22".to_string(),
+            },
+            platform: native_linux_platform(),
+            resources: direct_resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            retention_policy: RetentionPolicy::Retain,
+        },
+    );
+    let (sandbox, _) = collect_progress(service.ensure(&request))
+        .await
+        .expect("OCI reference should resolve and start");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new("/root/retained.txt"),
+            Box::pin(Cursor::new(b"retained".to_vec())),
+        )
+        .await
+        .expect("file should stream into the Sandbox");
+
+    backend.stop(&sandbox.id).await.expect("Sandbox should stop");
+    let stopped = backend
+        .inspect(&sandbox.id)
+        .await
+        .expect("stopped Sandbox should be inspected");
+    assert_eq!(stopped.guest_heartbeat, None, "a stopped guest reports no heartbeat");
+    backend
+        .start(&sandbox.id)
+        .await
+        .expect("stopped direct Sandbox should restart");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
+    assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+
+    // A paused VM refuses a graceful stop and a frozen one never answers it;
+    // stopping either must still end it, and it starts again on its own disk.
+    // Finding and signalling the VM process reads the host's `/proc`.
+    if cfg!(target_os = "linux") {
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            msb(&home, &["pause", runtime]);
+        })
+        .await;
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            signal(&runtime_processes(runtime), "STOP");
+        })
+        .await;
+    }
+
+    backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
+/// Disrupts the running Sandbox's runtime with `disrupt`, then checks that a
+/// stop ends its VM process within a bound and that it starts again on its root disk.
+async fn assert_stop_ends_the_vm(
+    backend: &MicrosandboxProvider,
+    service: &SandboxService,
+    request: &EnsureSandboxRequest,
+    sandbox: &Sandbox,
+    disrupt: impl FnOnce(&str),
+) {
+    let runtime = format!("sandbox-{}", sandbox.id.as_uuid().simple());
+    assert!(
+        !runtime_processes(&runtime).is_empty(),
+        "the running Sandbox should have a runtime process"
+    );
+    disrupt(&runtime);
+    let started = tokio::time::Instant::now();
+    let stopped = service.stop(request.name()).await;
+    let elapsed = started.elapsed();
+    // An exited process has an empty command line, so only a live runtime is left here.
+    let survivors = runtime_processes(&runtime);
+    signal(&survivors, "KILL");
+    stopped.expect("a disrupted Sandbox should stop");
+    assert!(
+        survivors.is_empty(),
+        "runtime processes {survivors:?} outlived the stop"
+    );
+    assert!(
+        elapsed < std::time::Duration::from_secs(30),
+        "stopping a disrupted Sandbox should be bounded, took {elapsed:?}"
+    );
+    let (restarted, _) = collect_progress(service.ensure(request))
+        .await
+        .expect("a stopped direct Sandbox should start again");
+    assert_eq!(restarted.id, sandbox.id);
+    assert_eq!(restarted.state, SandboxState::Running);
+    assert_eq!(read(backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+}
+
+/// Host processes whose command line names the Sandbox's runtime.
+fn runtime_processes(runtime: &str) -> Vec<u32> {
+    std::fs::read_dir("/proc")
+        .expect("/proc should be readable")
+        .filter_map(|entry| entry.ok()?.file_name().to_str()?.parse::<u32>().ok())
+        .filter(|pid| *pid != std::process::id())
+        .filter(|pid| {
+            std::fs::read(format!("/proc/{pid}/cmdline")).is_ok_and(|cmdline| {
+                cmdline
+                    .split(|byte| *byte == 0)
+                    .any(|argument| argument == runtime.as_bytes())
+            })
+        })
+        .collect()
+}
+
+/// Runs the Provider's own `msb` against its runtime home.
+fn msb(home: &std::path::Path, arguments: &[&str]) {
+    let runtime = home.join("runtime");
+    let status = std::process::Command::new(runtime.join("bin").join("msb"))
+        .args(arguments)
+        .env("MSB_HOME", &runtime)
+        .status()
+        .expect("msb should run");
+    assert!(status.success(), "msb {arguments:?} should succeed");
+}
+
+fn signal(pids: &[u32], signal: &str) {
+    for pid in pids {
+        let status = std::process::Command::new("kill")
+            .arg(format!("-{signal}"))
+            .arg(pid.to_string())
+            .status()
+            .expect("kill should run");
+        assert!(status.success(), "kill -{signal} {pid} should succeed");
+    }
+}
+
+/// A running guest's heartbeat advances on its own, without traffic to the guest.
+async fn assert_guest_heartbeat_advances(backend: &MicrosandboxProvider, id: &sandbox::SandboxId) {
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
+    let mut first = None;
+    loop {
+        let heartbeat = backend
+            .inspect(id)
+            .await
+            .expect("running Sandbox should be inspected")
+            .guest_heartbeat;
+        match (first, heartbeat) {
+            (None, Some(heartbeat)) => first = Some(heartbeat),
+            (Some(first), Some(heartbeat)) if heartbeat != first => return,
+            _ => {}
+        }
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "guest heartbeat should advance within 10s, first observed {first:?}"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+    }
+}
+
+/// A replacement must never expose a partial file: a reader polling the path throughout the
+/// write sees the old or the new contents only, the replaced file keeps its mode, and no
+/// staging file is left behind.
+async fn assert_atomic_replacement(backend: &MicrosandboxProvider, sandbox: &Sandbox) {
+    let path = "/workspace/replaced.txt";
+    let old = vec![b'a'; 4 * 1024 * 1024];
+    let new = vec![b'b'; 4 * 1024 * 1024];
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new(path),
+            Box::pin(Cursor::new(old.clone())),
+        )
+        .await
+        .expect("initial file should stream into the Sandbox");
+    let mode = run(
+        backend,
+        &sandbox.id,
+        shell(&format!("stat -c %a {path} && chmod 4750 {path} && stat -c %a {path}")),
+    )
+    .await;
+    assert_eq!(mode.stdout.as_ref(), b"644\n4750\n", "a new file gets the default mode");
+    // One digest per observation, each from a single open of the path, so an observation can
+    // only be the complete old file, the complete new file, or a torn one. The reader marks
+    // its first observation so the replacement provably overlaps with it.
+    let old_digest = hex(&Sha256::digest(&old));
+    let new_digest = hex(&Sha256::digest(&new));
+    let ready = "/workspace/.reader-ready";
+    let reader = backend
+        .start_execution(
+            &sandbox.id,
+            StartExecutionRequest::new(shell(&format!(
+                "end=$(($(date +%s) + 20)); while [ $(date +%s) -lt $end ]; do \
+                 digest=$(sha256sum < {path} | cut -d ' ' -f 1); echo \"$digest\"; touch {ready}; \
+                 [ \"$digest\" = {new_digest} ] && break; done"
+            ))),
+        )
+        .await
+        .expect("reader should start");
+    for attempt in 0.. {
+        let probe = run(backend, &sandbox.id, shell(&format!("test -f {ready}"))).await;
+        if probe.status.success() {
+            break;
+        }
+        assert!(attempt < 100, "reader never started observing the file");
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new(path),
+            Box::pin(Cursor::new(new.clone())),
+        )
+        .await
+        .expect("replacement should stream into the Sandbox");
+    let observed = reader.collect().await.expect("reader should exit");
+    let lines = String::from_utf8(observed.stdout.to_vec()).expect("reader output should be UTF-8");
+    assert!(!lines.is_empty(), "reader observed nothing");
+    for line in lines.lines() {
+        assert!(
+            line == old_digest || line == new_digest,
+            "reader observed a partial or mixed file: {line:?}"
+        );
+    }
+    assert!(lines.contains(&old_digest), "reader never observed the original");
+    assert!(lines.contains(&new_digest), "reader never observed the replacement");
+    assert_eq!(read(backend, &sandbox.id, path).await, new);
+    let after = run(
+        backend,
+        &sandbox.id,
+        shell(&format!(
+            "rm {ready}; stat -c %a {path}; ls -A /workspace | grep -c agent- || true"
+        )),
+    )
+    .await;
+    assert_eq!(after.stdout.as_ref(), b"4750\n0\n");
+}
+
+fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+
+    bytes.iter().fold(String::new(), |mut hex, byte| {
+        let _ = write!(hex, "{byte:02x}");
+        hex
+    })
+}
+
+async fn assert_hostname(backend: &MicrosandboxProvider, sandbox: &Sandbox, expected: &str) {
+    assert_eq!(sandbox.hostname.as_str(), expected);
+    let output = run(backend, &sandbox.id, shell("hostname")).await;
+    assert!(output.status.success());
+    assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), expected);
 }
 
 async fn assert_direct_root_filesystem(backend: &MicrosandboxProvider, sandbox: &Sandbox) {
@@ -153,7 +418,7 @@ async fn assert_resource_update_and_root_growth(
     assert_eq!(resized.id, sandbox.id);
     assert_eq!(resized.resources, request.spec().resources);
     assert!(events.iter().any(
-        |event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == "Update Microsandbox VM resources")
+        |event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == "Update Microsandbox VM resources")
     ));
 
     let root_size = run(backend, &resized.id, shell("df -kP / | awk 'END { print $2 }'")).await;
@@ -166,6 +431,8 @@ async fn assert_resource_update_and_root_growth(
         root_kib > 4 * 1024 * 1024,
         "root filesystem should have grown past 4 GiB"
     );
+    let cpus = run(backend, &resized.id, shell("nproc")).await;
+    assert_eq!(cpus.stdout.as_ref(), b"2\n", "the restarted VM should have 2 CPUs");
 
     request.spec_mut().resources = direct_resources("2", "768Mi", "4Gi");
     let error = service
@@ -207,11 +474,12 @@ async fn assert_reference_image_resolves(backend_home: PathBuf) {
     assert!(
         events
             .iter()
-            .any(|event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == "Pull OCI image"))
+            .any(|event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == "Pull OCI image"))
     );
     let output = run(backend.as_ref(), &sandbox.id, shell("cat /etc/alpine-release")).await;
     assert!(output.status.success());
     assert!(String::from_utf8_lossy(&output.stdout).starts_with("3.22."));
+    assert_hostname(backend.as_ref(), &sandbox, "reference-worker").await;
 
     service
         .release(request.name(), request.spec().retention_policy)
@@ -252,21 +520,18 @@ async fn assert_build_cache_reused(
         .await
         .expect("Sandbox should rebuild from the retained Docker cache");
     assert!(
-        events.iter().any(|event| {
-            matches!(
-                event,
-                SandboxEvent::StepOutput { name, bytes, .. }
-                    if name == "Build Docker image"
-                        && bytes.windows(b"CACHED".len()).any(|window| window == b"CACHED")
-            )
+        step_output(&events, "Build Docker image").iter().any(|bytes| {
+            [b"CACHED".as_slice(), b"Using cache".as_slice()]
+                .iter()
+                .any(|marker| bytes.windows(marker.len()).any(|window| window == *marker))
         }),
-        "second Docker build should report a reused BuildKit layer"
+        "second Docker build should report a reused layer; events: {events:#?}"
     );
     for skipped in ["Export Docker image", "Import Microsandbox image"] {
         assert!(
             !events
                 .iter()
-                .any(|event| matches!(event, SandboxEvent::StepStarted { name, .. } if name == skipped)),
+                .any(|event| matches!(event, ProgressEvent::StepStarted { name, .. } if name == skipped)),
             "reused Microsandbox image should skip {skipped}"
         );
     }
@@ -329,7 +594,7 @@ async fn assert_terminal_execution(backend: &dyn sandbox::backend::SandboxBacken
 
 async fn collect_progress(
     mut pending: sandbox::PendingSandbox<'_>,
-) -> Result<(Sandbox, Vec<SandboxEvent>), sandbox::Error> {
+) -> Result<(Sandbox, Vec<ProgressEvent>), sandbox::Error> {
     let mut events = Vec::new();
     while let Some(event) = pending.next().await {
         match event? {
@@ -341,7 +606,25 @@ async fn collect_progress(
     Err(sandbox::Error::OperationStreamEnded)
 }
 
-fn assert_provisioning_progress(events: &[SandboxEvent]) {
+/// Output of every occurrence of the named step.
+fn step_output<'a>(events: &'a [ProgressEvent], step: &str) -> Vec<&'a [u8]> {
+    let ids = events
+        .iter()
+        .filter_map(|event| match event {
+            ProgressEvent::StepStarted { id, name, .. } if name == step => Some(id),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    events
+        .iter()
+        .filter_map(|event| match event {
+            ProgressEvent::StepOutput { id, bytes, .. } if ids.contains(&id) => Some(bytes.as_ref()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn assert_provisioning_progress(events: &[ProgressEvent]) {
     for expected in [
         "Check Docker Engine",
         "Build Docker image",
@@ -352,7 +635,7 @@ fn assert_provisioning_progress(events: &[SandboxEvent]) {
         assert!(
             events
                 .iter()
-                .any(|event| { matches!(event, SandboxEvent::StepStarted { name, .. } if name == expected) })
+                .any(|event| { matches!(event, ProgressEvent::StepStarted { name, .. } if name == expected) })
         );
     }
 }

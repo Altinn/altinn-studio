@@ -129,12 +129,31 @@
         "textResourceBindings": {
           "title": "Start instans"
         },
-        "mapping": {
-          "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value": "name",
-          "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value": "num",
-          "JobTitle": "JobTitle"
-        },
-        "hidden":  ["lessThan",  ["stringLength", ["dataModel", "JobTitle"]], 1]
+        "hidden": [
+          "lessThan",
+          [
+            "stringLength",
+            [
+              "dataModel",
+              "JobTitle"
+            ]
+          ],
+          1
+        ],
+        "queryParameters": {
+          "name": [
+            "dataModel",
+            "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+          ],
+          "num": [
+            "dataModel",
+            "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+          ],
+          "JobTitle": [
+            "dataModel",
+            "JobTitle"
+          ]
+        }
       },
       {
         "id": "instantiation-button",
@@ -142,12 +161,29 @@
         "textResourceBindings": {
           "title": "Start instans"
         },
-        "mapping": {
-          "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value": "name",
-          "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value": "num"
-        },
-        "hidden":  ["greaterThan",  ["stringLength", ["dataModel", "JobTitle"]], 0]
+        "hidden": [
+          "greaterThan",
+          [
+            "stringLength",
+            [
+              "dataModel",
+              "JobTitle"
+            ]
+          ],
+          0
+        ],
+        "queryParameters": {
+          "name": [
+            "dataModel",
+            "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+          ],
+          "num": [
+            "dataModel",
+            "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+          ]
+        }
       }
     ]
   }
+
 }

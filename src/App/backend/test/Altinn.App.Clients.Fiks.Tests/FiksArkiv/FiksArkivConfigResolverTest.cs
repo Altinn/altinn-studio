@@ -5,12 +5,10 @@ using Altinn.App.Clients.Fiks.FiksArkiv;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
-using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -112,8 +110,8 @@ public class FiksArkivConfigResolverTest
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
 
         fixture
-            .AppMetadataMock.Setup(x => x.GetApplicationMetadata())
-            .ReturnsAsync(
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(
                 new ApplicationMetadata(appId)
                 {
                     Title = new Dictionary<string, string?> { [LanguageConst.Nb] = appTitle },
@@ -415,7 +413,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetInstanceReference(instance);
@@ -451,7 +449,7 @@ public class FiksArkivConfigResolverTest
                 options.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}/";
             });
         });
-        fixture.AppMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
         var result = fixture.FiksArkivConfigResolver.GetRecipientParty(instance, recipient);
@@ -463,25 +461,37 @@ public class FiksArkivConfigResolverTest
         await Verify(xml).UseDefaultSettings(testCaseNumber);
     }
 
-    [Theory]
-    [InlineData(typeof(Authenticated.User))]
-    [InlineData(typeof(Authenticated.SystemUser))]
-    [InlineData(typeof(Authenticated.ServiceOwner))]
-    [InlineData(typeof(Authenticated.Org))]
-    public async Task GetCaseFileClassifications_ResolvesInstanceOwnerSource_ForKnownAuthenticationTypes(Type authType)
-    {
-        // Arrange
-        Authenticated auth = authType switch
+    private static Instance OrganizationOwnedInstance() =>
+        new()
         {
-            not null when authType == typeof(Authenticated.User) => TestAuthentication.GetUserAuthentication(),
-            not null when authType == typeof(Authenticated.SystemUser) =>
-                TestAuthentication.GetSystemUserAuthentication(),
-            not null when authType == typeof(Authenticated.ServiceOwner) =>
-                TestAuthentication.GetServiceOwnerAuthentication(),
-            not null when authType == typeof(Authenticated.Org) => TestAuthentication.GetOrgAuthentication(),
-            _ => throw new NotSupportedException(),
+            Id = "123/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
+            InstanceOwner = new InstanceOwner { PartyId = "123", OrganisationNumber = "405003309" },
         };
 
+    [Theory]
+    [InlineData("Person", "12345678901", null, "Test Testesen")]
+    [InlineData("Organization", null, "405003309", "Test AS")]
+    // The register lookup is best effort: an owner the register does not know is classified by the identifier on
+    // the instance alone, without a title.
+    [InlineData("OrganizationUnknownToRegister", null, "405003309", null)]
+    public async Task GetCaseFileClassifications_ResolvesInstanceOwnerSource_FromTheInstanceOwner(
+        string testIdentifier,
+        string? personNumber,
+        string? organisationNumber,
+        string? registeredName
+    )
+    {
+        // Arrange
+        var instance = new Instance
+        {
+            Id = "123/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
+            InstanceOwner = new InstanceOwner
+            {
+                PartyId = "123",
+                PersonNumber = personNumber,
+                OrganisationNumber = organisationNumber,
+            },
+        };
         var fiksArkivSettingsOverride = new FiksArkivSettings
         {
             Metadata = new FiksArkivMetadataSettings
@@ -497,23 +507,67 @@ public class FiksArkivConfigResolverTest
             [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
             useDefaultFiksArkivSettings: false
         );
+        fixture
+            .PartyClientMock.Setup(x =>
+                x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(registeredName is null ? null : new Party { PartyId = 123, Name = registeredName });
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(auth);
+        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(instance);
 
         // Assert
         Assert.NotNull(result);
         Assert.Single(result);
         var serialized = result[0].SerializeXml(indent: true);
         var xml = Encoding.UTF8.GetString(serialized.Span);
-        await Verify(xml).UseDefaultSettings(authType.Name.Split("+").Last());
+        await Verify(xml).UseDefaultSettings(testIdentifier);
     }
 
     [Fact]
-    public async Task GetCaseFileClassifications_ThrowsException_ForUnknownAuthenticationTypes()
+    public async Task GetCaseFileClassifications_PropagatesCancellation_FromTheRegisterLookup()
     {
-        // Arrange
-        var auth = TestAuthentication.GetNoneAuthentication();
+        // Arrange: a cancelled shipment must stop rather than resolve a nameless owner and carry on.
+        var fiksArkivSettingsOverride = new FiksArkivSettings
+        {
+            Metadata = new FiksArkivMetadataSettings
+            {
+                CaseFileClassifications =
+                [
+                    new FiksArkivClassification { Source = FiksArkivClassificationSource.InstanceOwner },
+                ],
+            },
+        };
+        await using var fixture = TestFixture.Create(
+            services => services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings"),
+            [("CustomFiksArkivSettings", fiksArkivSettingsOverride)],
+            useDefaultFiksArkivSettings: false
+        );
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance(), cancellation.Token)
+        );
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(OrganizationOwnedInstance(), cancellation.Token)
+        );
+        fixture.PartyClientMock.Verify(
+            x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task GetCaseFileClassifications_ThrowsException_WhenInstanceOwnerHasNoIdentifier()
+    {
+        // Arrange: a self-identified user owns the instance, so neither identifier is recorded on it.
+        var instance = new Instance
+        {
+            Id = "123/88d9baf8-2f9f-4e66-9a2f-7d345e60ed90",
+            InstanceOwner = new InstanceOwner { PartyId = "123", Username = "self-identified" },
+        };
         var fiksArkivSettingsOverride = new FiksArkivSettings
         {
             Metadata = new FiksArkivMetadataSettings
@@ -531,9 +585,12 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        await Assert.ThrowsAsync<FiksArkivException>(() =>
-            fixture.FiksArkivConfigResolver.GetCaseFileClassifications(auth)
+        var ex = await Assert.ThrowsAsync<FiksArkivException>(() =>
+            fixture.FiksArkivConfigResolver.GetCaseFileClassifications(instance)
         );
+
+        // Assert
+        Assert.Contains("neither an organization number nor a national identity number", ex.Message);
     }
 
     [Fact]
@@ -570,13 +627,11 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(
-            TestAuthentication.GetServiceOwnerAuthentication()
-        );
+        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance());
 
         // Assert
         Assert.Equal(3, result.Count);
-        // [0] is the resolved instance owner (service owner => organization number).
+        // [0] is the resolved instance owner (an organization => organization number).
         Assert.Equal("ORGNR", result[0].KlassifikasjonssystemID);
         Assert.Equal("configured-system-1", result[1].KlassifikasjonssystemID);
         Assert.Equal("configured-class-1", result[1].KlasseID);
@@ -614,9 +669,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(
-            TestAuthentication.GetServiceOwnerAuthentication()
-        );
+        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance());
 
         // Assert
         Assert.Single(result);
@@ -632,8 +685,8 @@ public class FiksArkivConfigResolverTest
         bool? expectedErSkjermet
     )
     {
-        // Arrange: a source-resolved classification (resolves to an organization number for a service owner)
-        // should still honor the configured restriction flag, regardless of the resolved party type.
+        // Arrange: a source-resolved classification (resolves to an organization number for an organization-owned
+        // instance) should still honor the configured restriction flag, regardless of the resolved party type.
         var fiksArkivSettingsOverride = new FiksArkivSettings
         {
             Metadata = new FiksArkivMetadataSettings
@@ -655,9 +708,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(
-            TestAuthentication.GetServiceOwnerAuthentication()
-        );
+        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance());
 
         // Assert
         Assert.Single(result);
@@ -675,9 +726,7 @@ public class FiksArkivConfigResolverTest
         );
 
         // Act
-        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(
-            TestAuthentication.GetServiceOwnerAuthentication()
-        );
+        var result = await fixture.FiksArkivConfigResolver.GetCaseFileClassifications(OrganizationOwnedInstance());
 
         // Assert
         Assert.Empty(result);
@@ -743,7 +792,11 @@ public class FiksArkivConfigResolverTest
                     : null,
         };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync(party);
+        fixture
+            .PartyClientMock.Setup(x =>
+                x.GetParty(123, It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(party);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);
@@ -761,7 +814,11 @@ public class FiksArkivConfigResolverTest
         // Arrange
         var instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "123" } };
         await using var fixture = TestFixture.Create(services => services.AddFiksArkiv());
-        fixture.PartyClientMock.Setup(x => x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>())).ReturnsAsync((Party?)null);
+        fixture
+            .PartyClientMock.Setup(x =>
+                x.GetParty(It.IsAny<int>(), It.IsAny<StorageAuthenticationMethod?>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((Party?)null);
 
         // Act
         var result = await fixture.FiksArkivConfigResolver.GetInstanceOwnerParty(instance);

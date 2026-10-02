@@ -25,6 +25,7 @@ func (b Backend) discoverContainerGraphResources(ctx context.Context, snapshot *
 		id := resource.ContainerID(info.Name)
 		if observed, ok := snapshot.Resources[id]; ok && observed.Resource != nil {
 			observed.RuntimeID = firstNonEmptyString(info.ID, info.Name)
+			observed.ImageID = info.ImageID
 			observed.Managed = true
 			snapshot.Resources[id] = observed
 			continue
@@ -35,6 +36,7 @@ func (b Backend) discoverContainerGraphResources(ctx context.Context, snapshot *
 		}
 		snapshot.Resources[id] = executor.ObservedResource{
 			RuntimeID:    firstNonEmptyString(info.ID, info.Name),
+			ImageID:      info.ImageID,
 			Type:         executor.ResourceTypeContainer,
 			Status:       containerInfoStatus(info),
 			Managed:      true,

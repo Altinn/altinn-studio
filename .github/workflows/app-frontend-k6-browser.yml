@@ -7,6 +7,8 @@ on:
       - 'src/App/backend/**'
       - 'src/App/codelists/**'
       - 'src/App/fileanalyzers/**'
+      - 'src/App/AppCoreDependency.props'
+      - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
@@ -14,6 +16,7 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'
@@ -23,7 +26,6 @@ on:
       - '.github/actions/**'
       - '.github/workflows/app-frontend-k6-browser.yml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

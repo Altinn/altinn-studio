@@ -5,7 +5,7 @@ use std::{path::Path, rc::Rc};
 use ::sandbox::execution;
 use serde::{Deserialize, Serialize};
 
-use crate::{ConditionStatus, Error, control_plane};
+use crate::{Error, control_plane, control_plane::WaitPolicy};
 
 use super::Assignment;
 
@@ -22,63 +22,55 @@ pub struct ExecutionTarget {
 /// Resolves transient executions without taking ownership of Sandbox lifecycle effects.
 pub struct ExecutionService {
     agents: Rc<dyn control_plane::AgentStore>,
-    wakeup: control_plane::Wakeup,
+    convergence: control_plane::Convergence,
 }
 
 impl ExecutionService {
     /// Creates an execution-target resolver over the Agent controller.
     #[must_use]
-    pub fn new(agents: Rc<dyn control_plane::AgentStore>, wakeup: control_plane::Wakeup) -> Self {
-        Self { agents, wakeup }
+    pub const fn new(agents: Rc<dyn control_plane::AgentStore>, convergence: control_plane::Convergence) -> Self {
+        Self { agents, convergence }
     }
 
     /// Wakes Agent convergence and returns its exact ready Sandbox assignment.
     ///
     /// # Errors
     ///
-    /// Returns an error when the Agent is missing, deleting, fails convergence,
-    /// or does not have a ready materialized Sandbox after the pass.
-    pub async fn ensure(&self, name: &str) -> Result<ExecutionTarget, Error> {
+    /// Returns an error when the Agent is missing, deleting, or invalid; with
+    /// [`WaitPolicy::FirstPass`] also when the single pass fails or leaves the
+    /// Agent without a ready materialized Sandbox.
+    pub async fn ensure(&self, name: &str, wait: WaitPolicy) -> Result<ExecutionTarget, Error> {
+        // A stopped Agent runs nothing, so it is refused before anything is woken.
         let record = self.agents.get_by_name(name).await?;
         if record.agent.metadata.deletion_timestamp.is_some() {
             return Err(Error::Conflict);
         }
-        self.wakeup.reconcile(record.id).await?;
-        let record = self.agents.get(record.id).await?;
-        if record.agent.metadata.deletion_timestamp.is_some() {
-            return Err(Error::Conflict);
-        }
-        let ready = record
-            .agent
-            .status
-            .conditions
-            .iter()
-            .find(|condition| condition.kind == "Ready");
-        if !ready.is_some_and(|condition| condition.status == ConditionStatus::True) {
-            let detail = ready.map_or_else(
-                || "no Ready condition was reported".to_owned(),
-                |condition| {
-                    if condition.message.is_empty() {
-                        condition.reason.clone()
-                    } else {
-                        format!("{}: {}", condition.reason, condition.message)
-                    }
-                },
-            );
-            return Err(Error::Invalid(format!("Agent {name:?} is not Ready: {detail}")));
-        }
-        let sandbox = record
-            .agent
-            .status
-            .sandbox
-            .clone()
-            .filter(|assignment| assignment.id().is_some())
-            .ok_or_else(|| Error::Invalid(format!("Agent {name:?} has no materialized Sandbox")))?;
-        Ok(ExecutionTarget {
-            sandbox,
-            operating_system: record.agent.spec.sandbox.platform.os,
-        })
+        record.reject_stopped()?;
+        let record = self.convergence.converge(name, wait).await?;
+        record.reject_stopped()?;
+        target(record, name)
     }
+}
+
+fn target(record: control_plane::AgentRecord, name: &str) -> Result<ExecutionTarget, Error> {
+    let ready = record.agent.status.ready_condition();
+    if !record.agent.status.is_ready() {
+        let detail = ready.map_or_else(
+            || "no Ready condition was reported".to_owned(),
+            crate::Condition::summary,
+        );
+        return Err(Error::Invalid(format!("Agent {name:?} is not Ready: {detail}")));
+    }
+    let sandbox = record
+        .agent
+        .status
+        .sandbox
+        .filter(|assignment| assignment.id().is_some())
+        .ok_or_else(|| Error::Invalid(format!("Agent {name:?} has no materialized Sandbox")))?;
+    Ok(ExecutionTarget {
+        sandbox,
+        operating_system: record.agent.spec.sandbox.platform.os,
+    })
 }
 
 /// Starts a non-interactive Execution through the recorded Sandbox Provider.

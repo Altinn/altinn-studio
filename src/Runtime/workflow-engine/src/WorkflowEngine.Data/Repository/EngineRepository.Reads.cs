@@ -90,6 +90,7 @@ internal sealed partial class EngineRepository
                             StepsCompleted = w.Steps.Count(s => s.Status == PersistentItemStatus.Completed),
                             StepsTotal = w.Steps.Count,
                             CreatedAt = w.CreatedAt,
+                            ResumedAt = w.ResumedAt,
                             WaitingReason =
                                 w.Status == PersistentItemStatus.Waiting
                                     ? w
@@ -98,6 +99,12 @@ internal sealed partial class EngineRepository
                                         .Select(s => s.LastDeferReason)
                                         .FirstOrDefault()
                                     : null,
+                            FailedAttempts =
+                                w.Steps.Where(s => s.Status != PersistentItemStatus.Completed)
+                                    .OrderBy(s => s.ProcessingOrder)
+                                    .Select(s => (int?)s.RequeueCount)
+                                    .FirstOrDefault()
+                                ?? 0,
                         })
                         .ToListAsync(cancellationToken)
                     : [];
@@ -107,6 +114,7 @@ internal sealed partial class EngineRepository
                 Key = entity.Key,
                 Namespace = entity.Namespace,
                 Heads = headStatuses,
+                CurrentTime = timeProvider.GetUtcNow(),
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
             };
@@ -442,7 +450,9 @@ internal sealed partial class EngineRepository
             logger.CountingWorkflows("runnable");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetRunnableWorkflows().CountAsync(cancellationToken);
+            var result = await context
+                .GetRunnableWorkflows(applyThrottleGate: settings.Value.Throttling.Enabled)
+                .CountAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result);
 

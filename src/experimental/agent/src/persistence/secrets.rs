@@ -69,6 +69,13 @@ pub(super) fn replace_agent_secrets(
     transaction.commit().map_err(database_error)
 }
 
+pub(super) fn delete_secret(connection: &Connection, name: &str) -> Result<(), Error> {
+    connection
+        .execute("DELETE FROM secrets WHERE name = ?1", [name])
+        .map(|_| ())
+        .map_err(database_error)
+}
+
 pub(super) fn delete_agent_secrets(connection: &Connection, id: AgentId) -> Result<(), Error> {
     let prefix = agent_secret_prefix(id);
     connection

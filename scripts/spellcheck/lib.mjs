@@ -287,16 +287,37 @@ export function classifyFindings(findings, readLine) {
   const kept = [];
   const usedSignals = new Set();
   let norwegian = 0;
+  let explicitNorwegian = 0;
   let data = 0;
   let pattern = 0;
   for (const f of findings) {
     const cls = classify(f, readLine, usedSignals);
-    if (cls === 'norwegian') norwegian += 1;
+    if (cls === 'norwegian-context') {
+      norwegian += 1;
+      explicitNorwegian += 1;
+    } else if (cls === 'norwegian') norwegian += 1;
     else if (cls === 'data') data += 1;
     else if (cls === 'pattern') pattern += 1;
     else kept.push(f);
   }
-  return { kept, norwegian, data, pattern, usedSignals };
+  return { kept, norwegian, explicitNorwegian, data, pattern, usedSignals };
+}
+
+// These generator APIs take English first and Norwegian second. Restrict
+// recognition to generator inputs and complete same-line literals so an
+// adjacent English string or an identifier remains checked.
+function isNorwegianGeneratorLiteral(path, buf, spans, span) {
+  if (!/^src\/App\/frontend\/src\/(?:codegen\/.*\.ts|layout\/[^/]+\/config\.ts)$/.test(path)) {
+    return false;
+  }
+  const before = buf.subarray(0, span.start - 1).toString('utf8');
+  if (/\bnb:\s*$/.test(before)) return true;
+  const previous = spans[spans.indexOf(span) - 1];
+  if (!previous) return false;
+  return (
+    /^\s*,\s*$/.test(buf.subarray(previous.end + 1, span.start - 1).toString('utf8')) &&
+    /\.(?:setTitle|setDescription)\(\s*$/.test(buf.subarray(0, previous.start - 1).toString('utf8'))
+  );
 }
 
 // A bracket expression directly before the token: `[Pp]` in `*.[Pp]ublish.xml`.
@@ -334,9 +355,13 @@ function classify(f, readLine, usedSignals) {
   while (e < buf.length && isData(buf[e])) e += 1;
   if (e - s >= 30) return 'data';
 
-  const span = stringSpans(buf).find(
+  const spans = stringSpans(buf);
+  const span = spans.find(
     (sp) => f.byte_offset >= sp.start && f.byte_offset + tok.length <= sp.end,
   );
+  if (span && isNorwegianGeneratorLiteral(f.path.replace(/^\.\//, ''), buf, spans, span)) {
+    return 'norwegian-context';
+  }
   if (span && isNorwegianText(buf.subarray(span.start, span.end).toString('utf8'), usedSignals)) {
     return 'norwegian';
   }

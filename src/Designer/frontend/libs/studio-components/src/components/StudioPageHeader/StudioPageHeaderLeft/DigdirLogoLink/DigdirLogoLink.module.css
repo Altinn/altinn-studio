@@ -7,6 +7,10 @@
   flex: 1;
 }
 
+.logoLink {
+  --ds-icon-size: var(--ds-size-8);
+}
+
 .titleText {
   overflow: hidden;
   text-overflow: ellipsis;

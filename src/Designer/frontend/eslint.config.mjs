@@ -23,8 +23,6 @@ const designsystemetRestriction = {
     '@digdir/designsystemet-react/*',
     '@digdir/designsystemet-css',
     '@digdir/designsystemet-css/**',
-    '@digdir/designsystemet-theme',
-    '@digdir/designsystemet-theme/**',
   ],
   message:
     'Do not import from Designsystemet directly. Import components from @studio/components instead, and add a wrapper there if the component is missing. The Designsystemet stylesheets are loaded by @studio/components.',
@@ -156,19 +154,6 @@ export default [
         project: './scripts/tsconfig.json',
         tsconfigRootDir: __dirname,
       },
-    },
-  },
-  {
-    files: ['testing/cypress/src/**/*.js', 'testing/cypress/src/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: false,
-        tsconfigRootDir: __dirname,
-      },
-    },
-    rules: {
-      '@typescript-eslint/consistent-type-exports': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
     },
   },
   {
@@ -385,7 +370,33 @@ export default [
     },
   },
   {
-    files: ['packages/policy-editor/**/*.{ts,tsx}', 'packages/process-editor/**/*.{ts,tsx}'],
+    files: ['packages/process-editor/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor-v8'],
+          message: 'Do not import from @altinn/process-editor-v8 in process-editor.',
+        },
+      ]),
+    },
+  },
+  {
+    files: ['packages/process-editor-v8/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor'],
+          message: 'Do not import from @altinn/process-editor in process-editor-v8.',
+        },
+      ]),
+    },
+  },
+  {
+    files: [
+      'packages/policy-editor/**/*.{ts,tsx}',
+      'packages/process-editor/**/*.{ts,tsx}',
+      'packages/process-editor-v8/**/*.{ts,tsx}',
+    ],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     },

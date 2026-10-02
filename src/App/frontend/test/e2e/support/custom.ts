@@ -3,16 +3,16 @@ import 'cypress-wait-until';
 import { breakpoints } from '@app/form-component';
 import escapeRegex from 'escape-string-regexp';
 import deepEqual from 'fast-deep-equal';
+import type { ILayoutFile } from '@app/layout-contract/generated/common.generated';
 import type axe from 'axe-core';
 import type { Options as AxeOptions } from 'cypress-axe';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { getTargetUrl } from 'test/e2e/support/start-app-instance';
-import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 'test/e2e/support/global';
+import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport, ViewportName } from 'test/e2e/support/global';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { IFeatureToggles } from 'src/features/toggles';
-import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
@@ -103,6 +103,14 @@ Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
 Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {
   // eslint-disable-next-line cypress/unsafe-to-chain-command
   cy.wrap(subject).click().should('not.exist');
+});
+
+Cypress.Commands.add('clickAndWaitForProcessNext', { prevSubject: 'element' }, (subject) => {
+  // PDF generation and other service tasks can outlast the default DOM query timeout.
+  // Wait for the successful transition before asserting on the next task's UI.
+  cy.intercept({ method: 'PUT', url: '**/instances/*/*/process/next*', times: 1 }).as('clickedProcessNext');
+  cy.wrap(subject).click();
+  return cy.wait('@clickedProcessNext', { responseTimeout: 60_000 }).its('response.statusCode').should('eq', 200);
 });
 
 Cypress.Commands.add('navPage', (page: string) => {
@@ -341,7 +349,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
       // We need to manually resize the viewport to ensure that the snapshot is taken with the correct DOM. We sometimes
       // change the DOM based on the viewport size, and Percy only understands CSS media queries (not our React logic).
       const viewportSizes: Record<SnapshotViewport, { width: number; height: number }> = {
-        desktop: { width: 1280, height: 768 },
+        desktop: { width: 1536, height: 768 },
         tablet: { width: breakpoints.md - 5, height: 1024 },
         mobile: { width: 360, height: 768 },
       };
@@ -359,8 +367,14 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
 
       // Reset to original viewport
       cy.viewport(innerWidth, innerHeight);
-      const targetViewport =
-        innerWidth < breakpoints.sm ? 'mobile' : innerWidth < breakpoints.md ? 'tablet' : 'desktop';
+      const targetViewport: ViewportName =
+        innerWidth < breakpoints.sm
+          ? 'mobile'
+          : innerWidth < breakpoints.md
+            ? 'tablet'
+            : innerWidth < breakpoints.lg
+              ? 'laptop'
+              : 'desktop';
       cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
     });
   });

@@ -3,6 +3,11 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
+import type {
+  IQueryParameters,
+  IRawOption,
+  ISelectionComponentFull,
+} from '@app/layout-contract/generated/common.generated';
 import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -11,10 +16,9 @@ import { StaticOptionSet } from 'src/features/formBootstrap/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IQueryParameters, IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
 
@@ -32,7 +36,7 @@ interface RenderProps {
 }
 
 function TestOptions({ baseComponentId }: { baseComponentId: string }) {
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
   const { options, setData, selectedValues } = useGetOptions(
     baseComponentId,
     component.type === 'Dropdown' ? 'single' : 'multi',

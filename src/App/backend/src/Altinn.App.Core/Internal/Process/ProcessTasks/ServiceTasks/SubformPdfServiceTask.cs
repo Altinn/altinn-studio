@@ -62,7 +62,7 @@ internal sealed class SubformPdfServiceTask(
                 new SubformPdfContext(subformComponentId, dataElement.Id),
                 metadata: metadata,
                 authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
-                ct: context.CancellationToken
+                cancellationToken: context.CancellationToken
             );
 
             logger.LogDebug(

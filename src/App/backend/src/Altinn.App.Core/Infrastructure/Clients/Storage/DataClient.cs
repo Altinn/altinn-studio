@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on data in Altinn Platform.
 /// </summary>
-public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
+internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, IInstanceMutationClient
 {
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger _logger;
@@ -95,7 +95,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     )
     {
         using var activity = _telemetry?.StartInsertFormDataActivity(instance);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataTypeId)
             ?? throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata.json");
@@ -139,7 +139,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
             );
         }
         var classRef = type.FullName;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         if (TypeAllowsJson(classRef, appMetadata))
         {
             throw new InvalidOperationException(
@@ -190,7 +190,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     {
         using var activity = _telemetry?.StartUpdateDataActivity(instance, dataElement);
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
 
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
@@ -306,7 +306,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         );
 
         var classRef = type.FullName;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         if (TypeAllowsJson(classRef, appMetadata))
         {
             throw new InvalidOperationException(
@@ -345,7 +345,7 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
         ArgumentNullException.ThrowIfNull(dataElement);
         using var activity = _telemetry?.StartGetFormDataActivity(instance);
 
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.ApplicationMetadata;
         var dataType =
             appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
             ?? throw new InvalidOperationException(
@@ -787,56 +787,6 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     }
 
     /// <inheritdoc />
-    [Obsolete(
-        message: "Deprecated please use UpdateBinaryData(InstanceIdentifier, string, string, Guid, Stream) instead",
-        error: false
-    )]
-    public async Task<DataElement> UpdateBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid,
-        HttpRequest request,
-        StorageAuthenticationMethod? authenticationMethod = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
-        using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
-        string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
-        string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
-
-        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cts.Token
-        );
-
-        StreamContent content = request.CreateContentStream();
-
-        using HttpResponseMessage response = await _client.PutAsync(
-            token,
-            apiUrl,
-            content,
-            cancellationToken: cts.Token
-        );
-
-        if (response.IsSuccessStatusCode)
-        {
-            string instancedata = await response.Content.ReadAsStringAsync(cts.Token);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
-
-            return dataElement;
-        }
-
-        _logger.LogError(
-            $"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}"
-        );
-        throw await PlatformHttpException.Create(response, cts.Token);
-    }
-
-    /// <inheritdoc />
     public async Task<DataElement> UpdateBinaryData(
         InstanceIdentifier instanceIdentifier,
         string? contentType,
@@ -1086,8 +1036,8 @@ public sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, II
     {
         if (dataType?.AllowedContentTypes is null)
             return false;
-        return !dataType.AllowedContentTypes.TrueForAll(ct =>
-            !ct.Equals("application/json", StringComparison.OrdinalIgnoreCase)
+        return !dataType.AllowedContentTypes.TrueForAll(cancellationToken =>
+            !cancellationToken.Equals("application/json", StringComparison.OrdinalIgnoreCase)
         );
     }
 }

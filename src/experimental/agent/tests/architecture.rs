@@ -102,7 +102,7 @@ fn sandbox_operating_system_details_are_contained_by_platform_and_harness_adapte
         if path.starts_with(source.join("sandbox").join("platform"))
             || path.starts_with(source.join("harness"))
             || path.starts_with(source.join("sandbox").join("microsandbox"))
-            || path == source.join("sessions").join("tmux.rs")
+            || path == source.join("sessions").join("runtime").join("tmux.rs")
         {
             continue;
         }
@@ -120,7 +120,7 @@ fn sandbox_operating_system_details_are_contained_by_platform_and_harness_adapte
 #[test]
 fn tmux_implementation_details_are_contained_by_its_session_runtime() {
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-    let runtime = source.join("sessions").join("tmux.rs");
+    let runtime = source.join("sessions").join("runtime").join("tmux.rs");
     let mut files = Vec::new();
     rust_files(&source, &mut files);
 

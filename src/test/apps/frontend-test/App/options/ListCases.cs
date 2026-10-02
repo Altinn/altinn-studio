@@ -1,13 +1,7 @@
-﻿using Altinn.App.Core.Features;
-using Altinn.App.Core.Models;
+﻿using Altinn.App.Core.Models;
 using Altinn.App.Models;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.App.Options
 {
@@ -15,7 +9,7 @@ namespace Altinn.App.Options
     {
         public string Id { get; set; } = "people";
 
-        public Task<DataList> GetDataListAsync(string language, Dictionary<string, string> keyValuePairs)
+        public Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs)
         {
             int start = 0;
             int count = 10;

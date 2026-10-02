@@ -59,7 +59,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
         {
             UseHttpDataClient(services);
             services.AddSingleton(
-                new AppMetadataMutationHook(appMetadata =>
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
                 {
                     var dataType = appMetadata.DataTypes.Should().ContainSingle(d => d.Id == dataTypeString).Which;
                     dataType.MaxCount = 2;

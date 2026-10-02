@@ -25,9 +25,7 @@ import {
   SEVERITY_TEXT_KEYS,
 } from 'app-shared/utils/appValidationUtils';
 
-type ErrorLinkClickHandler = (
-  search: string,
-) => (event: React.MouseEvent<HTMLAnchorElement>) => void;
+type ErrorLinkClickHandler = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => void;
 
 export const AppValidationDialog = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -41,9 +39,9 @@ export const AppValidationDialog = () => {
   const errorKeys = Object.keys(validationResult?.errors ?? {});
   const { errorItems, warningItems, areaGroups } = getAppValidationSummary(errorKeys, org, app, t);
 
-  const handleErrorLinkClick: ErrorLinkClickHandler = (search) => (event) => {
+  const handleErrorLinkClick: ErrorLinkClickHandler = (path) => (event) => {
     event.preventDefault();
-    navigate({ pathname: `/${org}/${app}/app-settings`, search: `?${search}` });
+    navigate(`/${org}/${app}/${path}`);
   };
 
   return (
@@ -170,12 +168,12 @@ const AppValidationAlert = ({
         {t(SEVERITY_TEXT_KEYS[severity].alertTitle)}
       </StudioHeading>
       <StudioErrorSummary.List>
-        {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
+        {errorItems.map(({ errorKey, path, fullHref, errorMessage }) => (
           <StudioErrorSummary.Item key={errorKey}>
             <StudioLink
               className={classes.validationLink}
               href={fullHref}
-              onClick={handleErrorLinkClick(search)}
+              onClick={handleErrorLinkClick(path)}
             >
               {errorMessage}
             </StudioLink>

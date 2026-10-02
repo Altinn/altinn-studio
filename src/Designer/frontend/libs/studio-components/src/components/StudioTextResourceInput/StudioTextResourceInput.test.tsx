@@ -19,7 +19,9 @@ const texts: TextResourceInputTexts = {
   emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
+  modeToggle: 'Modus',
   search: 'Søk',
+  clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',
   noTextResourceOptionLabel: 'Ikke oppgitt',
   valueLabel: 'Tekstverdi',
@@ -129,11 +131,12 @@ describe('StudioTextResourceInput', () => {
     renderTextResourceInput();
 
     await switchToSearchMode(user);
-    const chipButton = screen.getByRole('option', { name: /Press to remove/i });
-    await user.click(chipButton);
+    const clearButton = screen.getByRole('button', { name: texts.clearSelection });
+    await user.click(clearButton);
+    await user.tab();
     await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
-    expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
+    expect(onChangeCurrentId).toHaveBeenCalledTimes(2); // u-combobox 2.1.4 → 2.1.5 in DS v1.23, makes it call twice, one at clear and one at blur
     expect(onChangeCurrentId).toHaveBeenCalledWith(null);
   });
 

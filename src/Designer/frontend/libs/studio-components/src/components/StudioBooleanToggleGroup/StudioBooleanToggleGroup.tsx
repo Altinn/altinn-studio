@@ -11,7 +11,7 @@ export type StudioBooleanToggleGroupProps = Override<
     trueLabel: string;
     falseLabel: string;
   },
-  WithoutAsChild<ToggleGroupProps>
+  WithoutAsChild<Extract<ToggleGroupProps, { 'aria-label': string }>>
 >;
 
 const StudioBooleanToggleGroup = forwardRef<HTMLFieldSetElement, StudioBooleanToggleGroupProps>(

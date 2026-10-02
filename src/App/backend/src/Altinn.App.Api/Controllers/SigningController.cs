@@ -62,7 +62,7 @@ public class SigningController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="taskId">If data should be loaded from a different task than the current one.</param>
     /// <returns>An object containing updated signee state</returns>
@@ -75,7 +75,7 @@ public class SigningController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null,
         [FromQuery] string? taskId = null
     )
@@ -118,7 +118,7 @@ public class SigningController : ControllerBase
         List<SigneeContext> signeeContexts = await _signingService.GetSigneeContexts(
             instanceDataAccessor,
             signingConfiguration,
-            ct
+            cancellationToken
         );
 
         var response = new SigningStateResponse
@@ -178,7 +178,7 @@ public class SigningController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
-    /// <param name="ct">Cancellation token, populated by the framework</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     /// <param name="taskId">If data should be loaded from a different task than the current one.</param>
     /// <returns>An object containing a list of organizations that the user can sign on behalf of</returns>
@@ -192,7 +192,7 @@ public class SigningController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        CancellationToken ct,
+        CancellationToken cancellationToken,
         [FromQuery] string? language = null,
         [FromQuery] string? taskId = null
     )
@@ -241,7 +241,7 @@ public class SigningController : ControllerBase
             instanceDataAccessor,
             signingConfiguration,
             userId.Value,
-            ct
+            cancellationToken
         );
 
         SigningAuthorizedOrganizationsResponse response = new()

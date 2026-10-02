@@ -7,7 +7,6 @@ on:
       - 'src/Designer/backend/**'
       - '.github/workflows/designer-backend-dotnet-migrations-ensure-compatibility.yaml'
       - '!**/AGENTS.md'
-      - '!**/CLAUDE.md'
   workflow_dispatch:
 
 concurrency:

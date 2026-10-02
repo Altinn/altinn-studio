@@ -1,4 +1,6 @@
 #nullable disable
+using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
@@ -12,6 +14,9 @@ namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
 public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
+    // PaymentPolicyBuilder uses the suffix ":ruleid:{taskId}" to identify task rules.
+    private const string RuleIdTaskSegmentPrefix = ":ruleid:";
+
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
     private readonly IRepository _repository;
 
@@ -67,11 +72,24 @@ public class ProcessTaskIdChangedPolicyFileHandler : INotificationHandler<Proces
 
         foreach (var rule in resourcePolicy.Rules)
         {
-            // Replace the oldId with the newId in the description if it exists
-            if (rule.Description is not null && rule.Description.Contains(oldId))
+            if (
+                rule.RuleId is not null
+                && rule.RuleId.EndsWith($"{RuleIdTaskSegmentPrefix}{oldId}", StringComparison.Ordinal)
+            )
             {
-                rule.Description = rule.Description.Replace(oldId, newId);
+                rule.RuleId = rule.RuleId[..^oldId.Length] + newId;
                 hasChanges = true;
+            }
+
+            // Match whole task IDs so renaming Task_1 does not change Task_10.
+            if (rule.Description is not null)
+            {
+                string updatedDescription = Regex.Replace(rule.Description, $@"\b{Regex.Escape(oldId)}\b", _ => newId);
+                if (!string.Equals(updatedDescription, rule.Description, StringComparison.Ordinal))
+                {
+                    rule.Description = updatedDescription;
+                    hasChanges = true;
+                }
             }
 
             // Skip the rest of the loop if there are no resources

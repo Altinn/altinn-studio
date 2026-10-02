@@ -29,7 +29,10 @@ internal class HttpApiResult<T>
     public HttpStatusCode Status { get; set; }
     public string? RawError { get; init; }
 
-    public static async Task<HttpApiResult<T>> FromHttpResponse(HttpResponseMessage response)
+    public static async Task<HttpApiResult<T>> FromHttpResponse(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken = default
+    )
     {
         if (response.IsSuccessStatusCode)
         {
@@ -44,7 +47,7 @@ internal class HttpApiResult<T>
                 {
                     Status = response.StatusCode,
                     Result =
-                        await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions)
+                        await response.Content.ReadFromJsonAsync<T>(_jsonSerializerOptions, cancellationToken)
                         ?? throw new JsonException("Could not deserialize response"),
                 };
             }
@@ -57,7 +60,7 @@ internal class HttpApiResult<T>
         return new HttpApiResult<T>
         {
             Status = response.StatusCode,
-            RawError = await response.Content.ReadAsStringAsync(),
+            RawError = await response.Content.ReadAsStringAsync(cancellationToken),
         };
     }
 }

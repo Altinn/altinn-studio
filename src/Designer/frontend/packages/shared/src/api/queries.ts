@@ -9,6 +9,7 @@ import {
   branchStatusPath,
   branchesPath,
   currentBranchPath,
+  dataModelGenerationStatusPath,
   dataModelMetadataPath,
   dataModelPath,
   dataModelPrefillPath,
@@ -90,6 +91,7 @@ import {
   botAccountsPath,
   botAccountApiKeysPath,
   layoutSetsExtendedPath,
+  subformComponentsPath,
   validationOnNavigationLayoutSetsPath,
   taskNavigationGroupPath,
 } from './paths';
@@ -130,6 +132,7 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -165,6 +168,7 @@ export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplat
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelPrefill = (owner: string, app: string, modelPath: string) => get<PrefillConfig>(dataModelPrefillPath(owner, app, modelPath));
+export const getDataModelGenerationStatus = (owner: string, app: string, modelPath: string) => get<boolean>(dataModelGenerationStatusPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
 export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsJsonPath(owner, app));
 export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));
@@ -183,6 +187,7 @@ export const getLayoutNames = (owner: string, app: string) => get<string[]>(layo
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getSubformComponents = (org: string, app: string) => get<SubformComponent[]>(subformComponentsPath(org, app));
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
@@ -208,7 +213,7 @@ export const getWidgetSettings = (owner: string, app: string) => get<WidgetSetti
 export const getUserOrgPermissions = (org: string) => get(userOrgPermissionsPath(org));
 export const searchRepos = (filter: SearchRepoFilterParams) => get<SearchRepositoryResponse>(`${repoSearchPath()}${buildQueryParams(filter)}`);
 export const validateImageFromExternalUrl = (owner: string, app: string, url: string) => get<ExternalImageUrlValidationResponse>(validateImageFromExternalUrlPath(owner, app, url));
-export const canUseFeature = (featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(featureName));
+export const canUseFeature = (org: string, app: string, featureName: FeatureName) => get<CanUseFeature>(canUseFeaturePath(org, app, featureName));
 export const getValidationOnNavigation = <T extends ValidationOnNavigationLevel = ValidationOnNavigationLevel.Global>(org: string, app: string, level?: T) =>
   get<ValidationOnNavigationByLevel[T]>(`${validationOnNavigationPath(org, app)}${buildQueryParams({ level: level ?? ValidationOnNavigationLevel.Global })}`);
 

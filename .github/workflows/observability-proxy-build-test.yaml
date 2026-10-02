@@ -1,0 +1,82 @@
+name: Observability proxy - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'src/observability-proxy/**'
+      - '.github/workflows/observability-proxy-build-test.yaml'
+      - '!**/AGENTS.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: src/observability-proxy
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: src/observability-proxy/global.json
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Formatting
+        run: dotnet csharpier check .
+
+      - name: Build
+        run: dotnet build
+
+      - name: Test
+        run: dotnet test --no-build
+
+      # The image is compiled ahead of time, and the tests run just-in-time compiled, so they cannot
+      # reach a failure that only the published image has. Start it, and check that it rejects a
+      # request without a token and forwards one with a token.
+      - name: Build the image
+        run: docker build -t observability-proxy:ci -f Dockerfile .
+
+      - name: Smoke test the image
+        run: |
+          docker run -d --name observability-proxy -p 8080:8080 \
+            -e ObservabilityProxy__Authentication__Tokens__0__Token=ci-smoke-test-token-0123456789 \
+            -e ObservabilityProxy__Authentication__Tokens__0__SourceIdentity=ci \
+            -e ObservabilityProxy__Authentication__Tokens__0__AllowedRouteGroups__0=metrics \
+            -e ObservabilityProxy__Downstreams__Agents__Traces=http://127.0.0.1:1 \
+            -e ObservabilityProxy__Downstreams__Agents__Metrics=http://127.0.0.1:1 \
+            -e ObservabilityProxy__Downstreams__Agents__Logs=http://127.0.0.1:1 \
+            -e ObservabilityProxy__Downstreams__Storage__Traces__0=http://127.0.0.1:1 \
+            -e ObservabilityProxy__Downstreams__Storage__Metrics__0=http://127.0.0.1:1 \
+            -e ObservabilityProxy__Downstreams__Storage__Logs__0=http://127.0.0.1:1 \
+            observability-proxy:ci
+          for _ in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8080/health/live >/dev/null 2>&1 && break
+            sleep 1
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/health/live)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/internal/observability/metrics/api/v1/query)" = 401
+          # Authenticated and forwarded; the backend address is unreachable, so the proxy answers 502.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer ci-smoke-test-token-0123456789' http://127.0.0.1:8080/internal/observability/metrics/api/v1/query)" = 502
+
+      - name: Image logs
+        if: ${{ always() }}
+        run: docker logs observability-proxy || true

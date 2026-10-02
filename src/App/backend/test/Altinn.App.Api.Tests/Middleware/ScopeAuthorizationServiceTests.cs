@@ -1,7 +1,7 @@
 using System.Reflection;
 using Altinn.App.Api.Infrastructure.Middleware;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Cache;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -79,7 +79,7 @@ public class ScopeAuthorizationServiceTests
     private static ScopeAuthorizationService CreateService(ApplicationMetadata appMetadata, params Endpoint[] endpoints)
     {
         return new ScopeAuthorizationService(
-            new TestAppConfigurationCache(appMetadata),
+            Mock.Of<IAppMetadata>(m => m.ApplicationMetadata == appMetadata),
             [new TestEndpointDataSource(endpoints)],
             Mock.Of<IHostApplicationLifetime>(),
             Options.Create(new GeneralSettings()),
@@ -130,11 +130,6 @@ public class ScopeAuthorizationServiceTests
     }
 
     private static void TestControllerAction() { }
-
-    private sealed class TestAppConfigurationCache(ApplicationMetadata appMetadata) : IAppConfigurationCache
-    {
-        public ApplicationMetadata ApplicationMetadata { get; } = appMetadata;
-    }
 
     private sealed class TestEndpointDataSource(IReadOnlyList<Endpoint> endpoints) : EndpointDataSource
     {

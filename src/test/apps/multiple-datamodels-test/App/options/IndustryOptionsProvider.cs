@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Models;
 
 namespace Altinn.App.Options
@@ -10,7 +7,7 @@ namespace Altinn.App.Options
         public string Id { get; set; } = "industry";
 
         public Task<AppOptions> GetAppOptionsAsync(
-            string language,
+            string? language,
             Dictionary<string, string> keyValuePairs
         )
         {

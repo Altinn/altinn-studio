@@ -1,0 +1,44 @@
+# Overrides for the observability playground — the stack `perpetual-mix.js` is meant to drive.
+#
+# Everything here exists so a human can watch the Grafana dashboard move within a couple of minutes
+# instead of an hour. None of it belongs in a shared default:
+#
+#   * Namespace throttling ships dark (`ThrottlingSettings.Enabled` has no initialiser), so the
+#     throttle panels have nothing to draw until it is switched on. It is switched on here, and here
+#     only — never in `appsettings.json`, `Defaults.cs` or the shared `docker-compose.yaml`.
+#   * The trip thresholds and the recovery window are shrunk hard. Production defaults are
+#     50 requeued workflows, a 30 s sweep and a 10 min first window, which means the first
+#     `engine.throttle.cleared` on a healthy recovery is ten minutes after the trip. At the values
+#     below a namespace trips within ~30 s of the storm starting and clears within ~2 min of it
+#     stopping, so trip → extend → release → clear all fit inside one sitting.
+#
+# Usage (from `src/Runtime/workflow-engine`):
+#
+#   make playground        # up, with these overrides
+#   make playground-stop   # down
+#
+# or, spelled out:
+#
+#   docker compose -f docker-compose.yaml -f .k6/docker-compose.playground.yaml \
+#       --profile core up -d --build
+services:
+  workflow-engine-testapp:
+    environment:
+      # Namespace circuit breaker. OFF by default in every other configuration.
+      EngineSettings__Throttling__Enabled: "true"
+      # The two trip thresholds are deliberately left at their shipped defaults (50 requeued
+      # workflows, half the namespace's active population). `perpetual-mix.js` sizes its storm burst
+      # to clear them within a sweep or two, and sizes its ordinary failure arms to stay well under
+      # them, so the playground needs no help here — only the cadence and windows below.
+      # 10s rather than 30s: the sweep is what emits every throttle metric, so its cadence is the
+      # dashboard's sample rate for this family.
+      EngineSettings__Throttling__SweepInterval: "00:00:10"
+      EngineSettings__Throttling__CanaryCount: "3"
+      # 1 min rather than 10: the window is the floor on how long a tripped breaker stays tripped,
+      # so it is also the floor on how long the human waits to see a release cohort and a clear.
+      EngineSettings__Throttling__InitialWindow: "00:01:00"
+      EngineSettings__Throttling__MaxWindow: "00:05:00"
+      # The mailbox deadline sweep drives `engine.mailboxes.closed{reason="deadline"}` and
+      # `engine.mailboxes.deliveries.unpaired`. At the 5 min default a deliberately-abandoned
+      # mailbox takes 5 min to show up; at 20 s it takes 20.
+      EngineSettings__MailboxSweepInterval: "00:00:20"
