@@ -512,6 +512,43 @@ public class ResourceRegistryService : IResourceRegistry
         return responseContent.Data;
     }
 
+    public async Task<ActionResult> PublishResourcePolicy(string identifier, string env, byte[] policyContent)
+    {
+        if (policyContent != null)
+        {
+            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten(GetMaskinportenIntegrationSettings(env));
+            _httpClientFactory.CreateClient("myHttpClient");
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
+
+            string fullWritePolicyToResourceRegistryUrl =
+                $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{identifier}/policy";
+            using MultipartFormDataContent content = new();
+            ByteArrayContent fileContent = new(policyContent);
+            content.Add(fileContent, "policyFile", "policy.xml");
+            HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(
+                fullWritePolicyToResourceRegistryUrl,
+                content
+            );
+
+            if (writePolicyResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Policy written successfully!");
+                return new StatusCodeResult(201);
+            }
+            else
+            {
+                Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
+                string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"Response content: {responseContent}");
+                return new StatusCodeResult(400);
+            }
+        }
+        return new StatusCodeResult(400);
+    }
+
     public async Task<List<ConsentTemplate>> GetConsentTemplates(string org)
     {
         // Temp location. Will be moved to CDN
