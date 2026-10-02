@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -28,6 +28,7 @@ const channel1: ContactPoint = {
   name: '#general',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
 };
 
@@ -36,6 +37,7 @@ const channel2: ContactPoint = {
   name: '#dev',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
 };
 
@@ -81,6 +83,17 @@ describe('SlackChannelsList', () => {
   it('renders webhook URL values for channels', () => {
     renderSlackChannelsList({ channels: [channel1] });
     expect(screen.getByText('https://hooks.slack.com/general')).toBeInTheDocument();
+  });
+
+  it('renders the report frequency, or a placeholder when the channel gets no reports', () => {
+    renderSlackChannelsList({ channels: [{ ...channel1, reportFrequency: 'monthly' }, channel2] });
+    const getRow = (name: string) => screen.getByRole('row', { name: new RegExp(name) });
+    expect(
+      within(getRow('#general')).getByText(
+        textMock('settings.orgs.contact_points.report_frequency_monthly'),
+      ),
+    ).toBeInTheDocument();
+    expect(within(getRow('#dev')).getByText('–')).toBeInTheDocument();
   });
 
   it('renders a switch for each channel with the channel name as aria-label', () => {
