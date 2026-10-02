@@ -114,6 +114,48 @@ public partial class EngineTests
     }
 
     [Fact]
+    public async Task StatusReads_WithIncludeStateFalse_LeaveTheStatePayloadOff()
+    {
+        // Arrange — a workflow enqueued with a state payload: the app's own data, which a status
+        // reader such as Studio's admin panel must be able to leave off.
+        const string statePayload = "{\"personNumber\":\"01017512345\"}";
+        var template = _testHelpers.CreateWorkflow("wf-state", [_testHelpers.CreateWebhookStep("/hook")]);
+        var request = _testHelpers.CreateEnqueueRequest(
+            new WorkflowRequest
+            {
+                Ref = template.Ref,
+                OperationId = template.OperationId,
+                Steps = template.Steps,
+                State = statePayload,
+            }
+        );
+        var enqueued = await _client.Enqueue(request);
+        var workflowId = enqueued.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        using var client = fixture.CreateEngineClient();
+        var ns = EngineApiClient.DefaultNamespace;
+        var ct = TestContext.Current.CancellationToken;
+
+        // Act
+        var withState = await client.GetStringAsync($"/api/v1/{ns}/workflows/{workflowId}", ct);
+        var withoutState = await client.GetStringAsync($"/api/v1/{ns}/workflows/{workflowId}?includeState=false", ct);
+        var listWithoutState = await client.GetStringAsync(
+            $"/api/v1/{ns}/workflows?status=Completed&includeState=false",
+            ct
+        );
+
+        // Assert — the default keeps the payload; leaving it off drops the field itself, on both reads.
+        Assert.Contains("01017512345", withState, StringComparison.Ordinal);
+        Assert.DoesNotContain("01017512345", withoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"initialState\"", withoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"stateOut\"", withoutState, StringComparison.Ordinal);
+        Assert.Contains(workflowId.ToString(), listWithoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("01017512345", listWithoutState, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"initialState\"", listWithoutState, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task ListActiveWorkflows_ReturnsWorkflowWhileStillProcessing()
     {
         // Arrange

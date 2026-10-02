@@ -1310,6 +1310,9 @@ Same shape. The original workflow is returned, no new workflow is created. This 
 GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
+Pass `includeState=false` to leave the app's state payloads (`initialState` and every step's `stateOut`) out of the
+response. The default is `true`.
+
 **Response (200 OK):**
 
 ```json
@@ -1400,6 +1403,7 @@ Supports the following optional query parameters (all repeatable params can be s
 | `isHead`        | No         | Filter by head **visibility** — deliberately asymmetric with the response field of the same name (field = raw enqueue directive, param = effective visibility): `isHead=true` matches directive `true` **or** unset (so it returns rows whose `isHead` field reads `null`), `isHead=false` matches exactly directive `false`. Omit to return both. See [workflow-collections.md](workflow-collections.md#one-concept-three-vocabularies). |
 | `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
 | `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
+| `includeState`  | No         | Include the app's own state payloads (`initialState` and every step's `stateOut`). Defaults to `true`; a status reader with no use for them, such as Studio's admin panel, passes `false`.                                     |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 

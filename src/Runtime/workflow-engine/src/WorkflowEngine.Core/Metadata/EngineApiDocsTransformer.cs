@@ -67,6 +67,9 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             + "ones (directive false). Omit to return both.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
         ["pageSize"] = "Items per page (default 25, clamped to 1–100).",
+        ["includeState"] =
+            "Include the app's own state payloads — initialState and every step's stateOut — in the response "
+            + "(default true). A status reader that has no use for them, such as Studio's admin panel, passes false.",
     };
 
     private static readonly Dictionary<string, string> _listCollectionParamDescriptions = new()
