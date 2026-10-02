@@ -19,6 +19,8 @@ export function createLayoutValidator(layoutSchema: JSONSchema7) {
     strictTypes: false,
     strictTuples: false,
     verbose: true,
+    // Skip the expensive code optimization pass for developer layout diagnostics.
+    code: { optimize: false },
   });
   ajv.addSchema(removeExpressionRefs(layoutSchema), LAYOUT_SCHEMA_NAME);
   ajv.addSchema({ additionalProperties: false }, EMPTY_SCHEMA_NAME);
