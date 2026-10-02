@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
     private const string PageNameWithDots = "1.Intro";
     private const string PageNameOutsideNamingPolicy = "New page";
     private const string PageNameFollowingNamingPolicy = "NewPage";
+    private const string ExistingPage = "Side1";
+    private const string ExistingPageInOtherCase = "SIDE1";
 
     private string _testRepositoryDirectory;
 
@@ -256,6 +259,129 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
             repository.EnsureLayoutWriteIsAllowed(string.Empty, PageNameOutsideNamingPolicy)
         );
     }
+
+    [Fact]
+    public async Task SaveLayout_NewPageDifferingOnlyInCaseFromAnExistingPage_ThrowsAndWritesNothing()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        string[] layoutFilesBefore = LayoutFileNames(LayoutSetWithLegacyPageNames);
+        JsonNode layoutBefore = await repository.GetLayout(LayoutSetWithLegacyPageNames, ExistingPage);
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.SaveLayout(LayoutSetWithLegacyPageNames, ExistingPageInOtherCase, EmptyLayout())
+        );
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(LayoutSetWithLegacyPageNames));
+        JsonNode layoutAfter = await repository.GetLayout(LayoutSetWithLegacyPageNames, ExistingPage);
+        Assert.Equal(layoutBefore.ToJsonString(), layoutAfter.ToJsonString());
+    }
+
+    [Fact]
+    public async Task CreatePageLayoutFile_NewPageDifferingOnlyInCaseFromAnExistingPage_ThrowsAndWritesNothing()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        string[] layoutFilesBefore = LayoutFileNames(LayoutSetWithLegacyPageNames);
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.CreatePageLayoutFile(
+                LayoutSetWithLegacyPageNames,
+                ExistingPageInOtherCase,
+                new AltinnPageLayout()
+            )
+        );
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(LayoutSetWithLegacyPageNames));
+    }
+
+    [Fact]
+    public async Task SaveLayout_NewLayoutSetDifferingOnlyInCaseFromAnExistingOne_ThrowsAndWritesNothing()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        string[] layoutFilesBefore = LayoutFileNames(LayoutSetWithLegacyPageNames);
+        IEnumerable<string> layoutSetsBefore = await repository.GetUiFolders();
+
+        // Act and assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() =>
+            repository.SaveLayout(LayoutSetWithLegacyPageNames.ToUpperInvariant(), "NewPage", EmptyLayout())
+        );
+        Assert.Equal(layoutSetsBefore, await repository.GetUiFolders());
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(LayoutSetWithLegacyPageNames));
+    }
+
+    [Fact]
+    public async Task EnsureLayoutWritesAreAllowed_TwoNewPagesDifferingOnlyInCase_Throws()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act and assert
+        Assert.Throws<BadHttpRequestException>(() =>
+            repository.EnsureLayoutWritesAreAllowed(LayoutSetWithLegacyPageNames, ["NewPage", "NEWPAGE"], [])
+        );
+    }
+
+    [Fact]
+    public async Task EnsureLayoutWritesAreAllowed_NewPageDifferingOnlyInCaseFromADeletedPage_DoesNotThrow()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act
+        repository.EnsureLayoutWritesAreAllowed(
+            LayoutSetWithLegacyPageNames,
+            [ExistingPageInOtherCase],
+            [ExistingPage]
+        );
+
+        // Assert
+        Assert.Contains($"{ExistingPage}.json", LayoutFileNames(LayoutSetWithLegacyPageNames));
+    }
+
+    [Fact]
+    public async Task UpdateFormLayoutName_ToAnotherPageNameInOtherCase_ThrowsAndRenamesNothing()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+        string[] layoutFilesBefore = LayoutFileNames(LayoutSetWithLegacyPageNames);
+
+        // Act and assert
+        Assert.Throws<BadHttpRequestException>(() =>
+            repository.UpdateFormLayoutName(LayoutSetWithLegacyPageNames, PageNameWithDots, ExistingPageInOtherCase)
+        );
+        Assert.Equal(layoutFilesBefore, LayoutFileNames(LayoutSetWithLegacyPageNames));
+    }
+
+    [Fact]
+    public async Task UpdateFormLayoutName_ToItsOwnNameInOtherCase_RenamesTheFile()
+    {
+        // Arrange
+        AltinnAppGitRepository repository = await PrepareRepository();
+
+        // Act
+        repository.UpdateFormLayoutName(LayoutSetWithLegacyPageNames, ExistingPage, ExistingPageInOtherCase);
+
+        // Assert
+        string[] layoutFilesAfter = LayoutFileNames(LayoutSetWithLegacyPageNames);
+        Assert.Contains($"{ExistingPageInOtherCase}.json", layoutFilesAfter);
+        Assert.DoesNotContain($"{ExistingPage}.json", layoutFilesAfter);
+    }
+
+    /// <summary>
+    /// Lists the exact file names in a layout set's layouts folder, in a stable order. Asking the file
+    /// system whether a path exists would answer without regard to case on macOS and Windows.
+    /// </summary>
+    /// <param name="layoutSetName">The name of the layout set to list.</param>
+    /// <returns>The file names, with extension.</returns>
+    private string[] LayoutFileNames(string layoutSetName) =>
+        [
+            .. Directory
+                .EnumerateFiles(Path.Combine(_testRepositoryDirectory, "App", "ui", layoutSetName, "layouts"))
+                .Select(Path.GetFileName)
+                .Order(StringComparer.Ordinal),
+        ];
 
     private static JsonNode EmptyLayout() =>
         new JsonObject

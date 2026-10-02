@@ -232,10 +232,7 @@ public class LayoutService(
         var deletedPages = originalOrder.Except(order).ToList();
         var createdPages = order.Except(originalOrder).ToList();
         // Validated before the first delete, so a refused name leaves the set untouched.
-        foreach (string pageId in createdPages)
-        {
-            appRepository.EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
-        }
+        appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
             appRepository.DeleteLayout(layoutSetId, pageId);
