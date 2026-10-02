@@ -101,6 +101,55 @@ public class UiFoldersFileSyncTaskIdTests
     }
 
     [Fact]
+    public async Task UpsertProcessDefinition_WhenV9AppAndNewTaskIdIsAnExistingLayoutSetNameInOtherCase_ReturnsBadRequestAndLeavesRepositoryUnchanged()
+    {
+        const string oldTaskId = "Task_1";
+        const string subformFolderInOtherCase = "MOREINFOSUBFORM";
+
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, "app-with-layoutsets-v9", Developer, targetRepository);
+        string originalProcess = await File.ReadAllTextAsync(ProcessPath);
+
+        using var response = await PutProcessDefinition(
+            targetRepository,
+            oldTaskId,
+            subformFolderInOtherCase,
+            originalProcess.Replace(oldTaskId, subformFolderInOtherCase)
+        );
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        Assert.Equal(originalProcess, await File.ReadAllTextAsync(ProcessPath));
+        Assert.Equal(
+            ["Task_1", "moreInfoSubform"],
+            Directory
+                .GetDirectories(Path.Combine(TestRepoPath, "App", "ui"))
+                .Select(Path.GetFileName)
+                .Order(System.StringComparer.Ordinal)
+        );
+    }
+
+    [Fact]
+    public async Task UpsertProcessDefinition_WhenV9AppAndTaskIdChangesOnlyInCase_IsAccepted()
+    {
+        const string oldTaskId = "Task_1";
+        const string newTaskId = "TASK_1";
+
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, "app-with-layoutsets-v9", Developer, targetRepository);
+        string originalProcess = await File.ReadAllTextAsync(ProcessPath);
+
+        using var response = await PutProcessDefinition(
+            targetRepository,
+            oldTaskId,
+            newTaskId,
+            originalProcess.Replace(oldTaskId, newTaskId)
+        );
+        // The task's own layout set folder does not count as taken. Whether the folder rename that follows
+        // succeeds depends on the file system's case sensitivity, so only the validation is asserted here.
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+    }
+
+    [Fact]
     public async Task UpsertProcessDefinition_WhenV9AppAndTaskHasNoLayoutSet_AcceptsTaskIdOutsideLayoutSetNamingPolicy()
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
