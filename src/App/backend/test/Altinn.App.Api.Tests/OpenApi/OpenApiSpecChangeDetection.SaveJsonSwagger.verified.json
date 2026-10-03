@@ -1258,15 +1258,6 @@
             }
           },
           {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "includeRowId",
             "in": "query",
             "description": "Whether to initialize or remove AltinnRowId fields in the model",
@@ -1342,15 +1333,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -1624,15 +1606,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "dataType",
-            "in": "path",
-            "description": "Optional parameter, verified if present. Used to have different schemas for different data types in openApi spec,",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
