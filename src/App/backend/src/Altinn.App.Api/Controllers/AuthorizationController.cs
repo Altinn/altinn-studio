@@ -36,9 +36,13 @@ public class AuthorizationController : Controller
     /// <summary>
     /// Gets current party by reading cookie value and validating.
     /// </summary>
-    /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
+    /// <returns>
+    /// Party id (or the party) for the selected party, or 204 No Content if the selection can't be used
+    /// and the user should select a party again.
+    /// </returns>
     [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Party), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
@@ -55,14 +59,15 @@ public class AuthorizationController : Controller
                 if (details.CanRepresent is not bool canRepresent)
                     throw new Exception("Couldn't validate selected party");
 
-                if (canRepresent)
+                if (!canRepresent)
                 {
-                    if (returnPartyObject)
-                    {
-                        return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
-                    }
+                    PartySelectionCookie.Clear(Response, _settings);
+                    return NoContent();
+                }
 
-                    return Ok(details.SelectedParty.PartyId);
+                if (returnPartyObject)
+                {
+                    return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
                 }
 
                 // Now we know the user can't represent the selected party (reportee)
