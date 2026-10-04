@@ -276,7 +276,7 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
 
         await using var stream = await response.Content.ReadAsStreamAsync();
         var result = await OpenApiDocument.LoadAsync(stream, format: OpenApiConstants.Json);
-        // Assert.Empty(result.Diagnostic?.Errors ?? []);
+        Assert.Empty(result.Diagnostic?.Errors ?? []);
         var document = result.Document ?? throw new InvalidOperationException("Failed to read OpenAPI document");
         document.Info.Version = "";
         await VerifyJson(await document.SerializeAsJsonAsync(OpenApiSpecVersion.OpenApi3_0), _verifySettings);
@@ -290,7 +290,9 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             settings.UseStrictJson();
             settings.DontScrubGuids();
             settings.DontIgnoreEmptyCollections();
-            settings.AddExtraSettings(settings => settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore);
+            settings.AddExtraSettings(extraSettings =>
+                extraSettings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore
+            );
             return settings;
         }
     }
