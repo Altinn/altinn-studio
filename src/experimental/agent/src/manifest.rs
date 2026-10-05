@@ -192,6 +192,12 @@ pub struct Metadata {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct Spec {
+    /// Whether the Agent's Sandbox runs. `agentctl stop` and `agentctl start`
+    /// change it. A manifest may set it; when it is omitted, `apply` keeps the
+    /// Agent's current run state, and a new Agent runs. Stored only when not
+    /// Running.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run_state: Option<RunState>,
     /// Generic sandbox configuration mapped to the lower-layer SDK.
     pub sandbox: SandboxManifestSpec,
     /// Host directory synchronized into the sandbox user's home at bootstrap.
@@ -215,6 +221,17 @@ pub struct Spec {
     pub access: Vec<AccessSpec>,
     /// Sandbox egress mediation policy.
     pub network: NetworkSpec,
+}
+
+/// Whether an Agent's Sandbox runs.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+pub enum RunState {
+    /// The Sandbox runs and serves Sessions and Executions.
+    #[default]
+    Running,
+    /// The Sandbox's VM is stopped. Its root filesystem, Volumes and identity
+    /// are kept, so a start boots the same disk and Sessions resume.
+    Stopped,
 }
 
 /// One access capability the platform provides to the Agent's user.
@@ -406,6 +423,24 @@ impl PlatformManifestSpec {
 }
 
 impl Spec {
+    /// Returns the desired run state; an omitted one is Running.
+    #[must_use]
+    pub fn run_state(&self) -> RunState {
+        self.run_state.unwrap_or_default()
+    }
+
+    /// Returns whether the Agent's Sandbox is meant to be stopped.
+    #[must_use]
+    pub fn is_stopped(&self) -> bool {
+        self.run_state() == RunState::Stopped
+    }
+
+    /// Sets the desired run state in its stored form, which omits Running, so
+    /// specs that differ only in how they say Running compare equal.
+    pub(crate) fn set_run_state(&mut self, state: RunState) {
+        self.run_state = (state != RunState::Running).then_some(state);
+    }
+
     /// Returns the declared installation for `kind`.
     #[must_use]
     pub fn harness(&self, kind: crate::Harness) -> Option<&HarnessSpec> {
@@ -852,6 +887,22 @@ impl Status {
         Condition::any_ready(&self.conditions)
     }
 
+    /// Returns whether a pass recorded the Agent's Sandbox as stopped.
+    #[must_use]
+    pub fn is_stopped(&self) -> bool {
+        self.ready_condition()
+            .is_some_and(|ready| ready.reason == Condition::REASON_STOPPED)
+    }
+
+    /// Returns the `SandboxResponsive=False` condition when the Agent's guest
+    /// is recorded as unresponsive.
+    #[must_use]
+    pub fn unresponsive(&self) -> Option<&Condition> {
+        self.conditions.iter().find(|condition| {
+            condition.kind == Condition::SANDBOX_RESPONSIVE && condition.status == ConditionStatus::False
+        })
+    }
+
     /// Returns the failure detail when desired state must change before
     /// another pass can succeed.
     #[must_use]
@@ -870,10 +921,20 @@ impl Condition {
     pub const READY: &'static str = "Ready";
     /// Condition type for the Sandbox lifecycle underneath `Ready`.
     pub const SANDBOX_READY: &'static str = "SandboxReady";
+    /// Condition type for whether the running Sandbox's guest still makes
+    /// progress, observed by the host without a round trip to the guest.
+    pub const SANDBOX_RESPONSIVE: &'static str = "SandboxResponsive";
     /// Condition type for declared SSH access underneath `Ready`.
     pub const SSH_READY: &'static str = "SshReady";
     /// VNC access is reconciled and the bridge to the desktop is listening.
     pub const VNC_READY: &'static str = "VncReady";
+
+    /// `Ready` reason while a pass stops the Agent's Sandbox, and after a stop failed.
+    pub const REASON_STOPPING: &'static str = "Stopping";
+    /// `Ready` and `SandboxReady` reason once the Agent's Sandbox is stopped.
+    pub const REASON_STOPPED: &'static str = "Stopped";
+    /// `Ready` reason while a pass starts a stopped Sandbox.
+    pub const REASON_STARTING: &'static str = "Starting";
 
     /// Finds the `Ready` condition in a condition list.
     #[must_use]

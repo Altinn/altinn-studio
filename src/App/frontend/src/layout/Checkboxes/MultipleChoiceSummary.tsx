@@ -9,7 +9,7 @@ import { getCommaSeparatedOptionsToText } from 'src/features/options/getCommaSep
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import classes from 'src/layout/Checkboxes/MultipleChoiceSummary.module.css';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import { useFormDataFor } from 'src/utils/layout/useNodeItem';
+import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 type Row = Record<string, string | number | boolean>;

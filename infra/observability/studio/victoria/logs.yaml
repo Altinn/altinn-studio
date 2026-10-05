@@ -1,0 +1,166 @@
+# Log storage, kept for one year. The disk usage threshold is the backstop: it
+# drops the oldest per-day partitions once the filesystem passes it, so a full
+# disk shortens the window rather than stopping ingestion.
+apiVersion: operator.victoriametrics.com/v1
+kind: VLSingle
+metadata:
+  name: logs-a
+  annotations:
+    # Never pruned by Flux; see the note on the VMSingle in metrics.yaml.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  # Same hardened pod and container security context as the rest of the stack;
+  # see the note in metrics.yaml.
+  useStrictSecurity: true
+  # Storage never calls the Kubernetes API, so the pod gets no token.
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-logs
+    tag: v1.52.0
+  retentionPeriod: 1y
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+    # The same auth key on every admin endpoint, read from the mounted Secret
+    # for the reasons given on the VMSingle in metrics.yaml. -partitionManageAuthKey
+    # also covers the partition snapshot endpoints. -metricsAuthKey and
+    # -flagsAuthKey stay unset, as there. The /delete/* API needs no key: it is
+    # off unless -delete.enable is set.
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 256Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 4Gi
+    limits:
+      memory: 8Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VLSingle
+metadata:
+  name: logs-b
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  useStrictSecurity: true
+  disableAutomountServiceAccountToken: true
+  image:
+    repository: victoriametrics/victoria-logs
+    tag: v1.52.0
+  retentionPeriod: 1y
+  secrets:
+    - observability-backend-auth-key
+  extraArgs:
+    retention.maxDiskUsagePercent: "80"
+    forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    forceFlushAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    partitionManageAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    logNewStreamsAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+    pprofAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: studio-observability-premium-v2
+    resources:
+      requests:
+        storage: 256Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 4Gi
+    limits:
+      memory: 8Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlsingle
+          topologyKey: topology.kubernetes.io/zone
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VLAgent
+metadata:
+  name: logs
+spec:
+  # One replica per node, so a voluntary disruption may only take one at a time.
+  podDisruptionBudget:
+    maxUnavailable: 1
+  useStrictSecurity: true
+  # vlagent only forwards to remoteWrite; the Kubernetes API is used only by its
+  # log collector mode, which is off. The operator mounts no token for it.
+  disableAutomountServiceAccountToken: true
+  replicaCount: 2
+  # vlagent-logs-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
+  serviceSpec:
+    spec:
+      type: ClusterIP
+  image:
+    repository: victoriametrics/vlagent
+    tag: v1.52.0
+  remoteWrite:
+    - url: http://vlsingle-logs-a.observability.svc.cluster.local:9428/insert/native
+    - url: http://vlsingle-logs-b.observability.svc.cluster.local:9428/insert/native
+  remoteWriteSettings:
+    maxDiskUsagePerURL: 20GiB
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: studio-observability-premium-v2
+        resources:
+          requests:
+            storage: 50Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  nodeSelector:
+    purpose: observability
+  tolerations:
+    - key: purpose
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: vlagent
+          topologyKey: topology.kubernetes.io/zone

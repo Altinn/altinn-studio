@@ -236,16 +236,18 @@ const setupBpmnActionModelerMock = ({
   getExtensionElementsMock,
   actionElementMock,
 }: Partial<BpmnActionModelerMock & { actionElementMock: Action }>) =>
-  (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-    addNewActionToTask: addNewActionToTaskMock,
-    updateTypeForAction: updateTypeForActionMock,
-    updateActionNameOnActionElement: updateActionNameOnActionElementMock,
-    deleteActionFromTask: jest.fn(),
-    createActionElement: createActionElementMock,
-    getExtensionElements: getExtensionElementsMock,
-    hasActionsAlready,
-    getTypeForAction: jest.fn().mockReturnValue('Process'),
-    actionElements: {
-      action: [actionElementMock || actionElementDefaultMock],
-    },
-  }));
+  (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    return {
+      addNewActionToTask: addNewActionToTaskMock,
+      updateTypeForAction: updateTypeForActionMock,
+      updateActionNameOnActionElement: updateActionNameOnActionElementMock,
+      deleteActionFromTask: jest.fn(),
+      createActionElement: createActionElementMock,
+      getExtensionElements: getExtensionElementsMock,
+      hasActionsAlready,
+      getTypeForAction: jest.fn().mockReturnValue('Process'),
+      actionElements: {
+        action: [actionElementMock || actionElementDefaultMock],
+      },
+    };
+  });

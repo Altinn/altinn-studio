@@ -10,7 +10,7 @@ run on the same session (``mark_session_started``) lifts the suppression.
 
 import threading
 
-from agents.services.events.events import AgentEvent
+from agents.services.events.events import AgentEvent, EventType
 from agents.services.events.jobs import EventSink
 
 SESSION_ID = "session-1"
@@ -19,7 +19,7 @@ CANCEL_COMPLETION_TIMEOUT_SECONDS = 5
 DEVELOPER = "testUser"
 
 
-def _event(event_type: str, **data) -> AgentEvent:
+def _event(event_type: EventType, **data) -> AgentEvent:
     return AgentEvent(type=event_type, session_id=SESSION_ID, data=data)
 
 

@@ -65,7 +65,9 @@ async def test_rejection_includes_a_retry_after_header(clock):
     with pytest.raises(HTTPException) as exc_info:
         await limiter(request_from("kari"))
 
-    assert int(exc_info.value.headers["Retry-After"]) == WINDOW_SECONDS
+    headers = exc_info.value.headers
+    assert headers is not None
+    assert int(headers["Retry-After"]) == WINDOW_SECONDS
 
 
 async def test_keys_are_limited_independently(clock):

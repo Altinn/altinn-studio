@@ -108,6 +108,171 @@ async fn retained_lifecycle_execution_files_and_volumes() {
     assert_reference_image_resolves(reference_backend_home).await;
 }
 
+/// A direct root filesystem pulled from a registry is prepared without Microsandbox's layered
+/// image artifacts, so a restart must boot from the Sandbox's own root disk without them.
+#[tokio::test(flavor = "local")]
+#[ignore = "requires a Microsandbox host runtime, hardware virtualization and registry access"]
+async fn direct_reference_sandbox_restarts_on_its_root_filesystem() {
+    let temporary = RetainedOnFailureTempDir::new();
+    let home = temporary.path().join("control-plane");
+    let backend = Rc::new(MicrosandboxProvider::open(&home).await.expect("Backend should open"));
+    let service = SandboxService::new(backend.clone());
+    let request = EnsureSandboxRequest::new(
+        SandboxName::new("direct-reference-worker").expect("test Sandbox name should be valid"),
+        SandboxSpec {
+            image: ImageSource::Reference {
+                reference: "docker.io/library/alpine:3.22".to_string(),
+            },
+            platform: native_linux_platform(),
+            resources: direct_resources("1", "512Mi", "1Gi"),
+            init_system: sandbox::init::InitSystem::Backend,
+            retention_policy: RetentionPolicy::Retain,
+        },
+    );
+    let (sandbox, _) = collect_progress(service.ensure(&request))
+        .await
+        .expect("OCI reference should resolve and start");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
+    backend
+        .write_file(
+            &sandbox.id,
+            &sandbox::SandboxPath::new("/root/retained.txt"),
+            Box::pin(Cursor::new(b"retained".to_vec())),
+        )
+        .await
+        .expect("file should stream into the Sandbox");
+
+    backend.stop(&sandbox.id).await.expect("Sandbox should stop");
+    let stopped = backend
+        .inspect(&sandbox.id)
+        .await
+        .expect("stopped Sandbox should be inspected");
+    assert_eq!(stopped.guest_heartbeat, None, "a stopped guest reports no heartbeat");
+    backend
+        .start(&sandbox.id)
+        .await
+        .expect("stopped direct Sandbox should restart");
+    assert_direct_root_filesystem(backend.as_ref(), &sandbox).await;
+    assert_guest_heartbeat_advances(backend.as_ref(), &sandbox.id).await;
+    assert_eq!(read(&backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+
+    // A paused VM refuses a graceful stop and a frozen one never answers it;
+    // stopping either must still end it, and it starts again on its own disk.
+    // Finding and signalling the VM process reads the host's `/proc`.
+    if cfg!(target_os = "linux") {
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            msb(&home, &["pause", runtime]);
+        })
+        .await;
+        assert_stop_ends_the_vm(&backend, &service, &request, &sandbox, |runtime| {
+            signal(&runtime_processes(runtime), "STOP");
+        })
+        .await;
+    }
+
+    backend.delete(&sandbox.id).await.expect("Sandbox should be deleted");
+}
+
+/// Disrupts the running Sandbox's runtime with `disrupt`, then checks that a
+/// stop ends its VM process within a bound and that it starts again on its root disk.
+async fn assert_stop_ends_the_vm(
+    backend: &MicrosandboxProvider,
+    service: &SandboxService,
+    request: &EnsureSandboxRequest,
+    sandbox: &Sandbox,
+    disrupt: impl FnOnce(&str),
+) {
+    let runtime = format!("sandbox-{}", sandbox.id.as_uuid().simple());
+    assert!(
+        !runtime_processes(&runtime).is_empty(),
+        "the running Sandbox should have a runtime process"
+    );
+    disrupt(&runtime);
+    let started = tokio::time::Instant::now();
+    let stopped = service.stop(request.name()).await;
+    let elapsed = started.elapsed();
+    // An exited process has an empty command line, so only a live runtime is left here.
+    let survivors = runtime_processes(&runtime);
+    signal(&survivors, "KILL");
+    stopped.expect("a disrupted Sandbox should stop");
+    assert!(
+        survivors.is_empty(),
+        "runtime processes {survivors:?} outlived the stop"
+    );
+    assert!(
+        elapsed < std::time::Duration::from_secs(30),
+        "stopping a disrupted Sandbox should be bounded, took {elapsed:?}"
+    );
+    let (restarted, _) = collect_progress(service.ensure(request))
+        .await
+        .expect("a stopped direct Sandbox should start again");
+    assert_eq!(restarted.id, sandbox.id);
+    assert_eq!(restarted.state, SandboxState::Running);
+    assert_eq!(read(backend, &sandbox.id, "/root/retained.txt").await, b"retained");
+}
+
+/// Host processes whose command line names the Sandbox's runtime.
+fn runtime_processes(runtime: &str) -> Vec<u32> {
+    std::fs::read_dir("/proc")
+        .expect("/proc should be readable")
+        .filter_map(|entry| entry.ok()?.file_name().to_str()?.parse::<u32>().ok())
+        .filter(|pid| *pid != std::process::id())
+        .filter(|pid| {
+            std::fs::read(format!("/proc/{pid}/cmdline")).is_ok_and(|cmdline| {
+                cmdline
+                    .split(|byte| *byte == 0)
+                    .any(|argument| argument == runtime.as_bytes())
+            })
+        })
+        .collect()
+}
+
+/// Runs the Provider's own `msb` against its runtime home.
+fn msb(home: &std::path::Path, arguments: &[&str]) {
+    let runtime = home.join("runtime");
+    let status = std::process::Command::new(runtime.join("bin").join("msb"))
+        .args(arguments)
+        .env("MSB_HOME", &runtime)
+        .status()
+        .expect("msb should run");
+    assert!(status.success(), "msb {arguments:?} should succeed");
+}
+
+fn signal(pids: &[u32], signal: &str) {
+    for pid in pids {
+        let status = std::process::Command::new("kill")
+            .arg(format!("-{signal}"))
+            .arg(pid.to_string())
+            .status()
+            .expect("kill should run");
+        assert!(status.success(), "kill -{signal} {pid} should succeed");
+    }
+}
+
+/// A running guest's heartbeat advances on its own, without traffic to the guest.
+async fn assert_guest_heartbeat_advances(backend: &MicrosandboxProvider, id: &sandbox::SandboxId) {
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(10);
+    let mut first = None;
+    loop {
+        let heartbeat = backend
+            .inspect(id)
+            .await
+            .expect("running Sandbox should be inspected")
+            .guest_heartbeat;
+        match (first, heartbeat) {
+            (None, Some(heartbeat)) => first = Some(heartbeat),
+            (Some(first), Some(heartbeat)) if heartbeat != first => return,
+            _ => {}
+        }
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "guest heartbeat should advance within 10s, first observed {first:?}"
+        );
+        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+    }
+}
+
 /// A replacement must never expose a partial file: a reader polling the path throughout the
 /// write sees the old or the new contents only, the replaced file keeps its mode, and no
 /// staging file is left behind.

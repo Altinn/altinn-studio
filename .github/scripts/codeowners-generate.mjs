@@ -117,6 +117,7 @@ const GROUPS = [
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
+      '.github/workflows/observability-proxy-build-test.yaml',
       '.github/workflows/release-studioctl.yaml',
       '.github/workflows/releaser-build-test.yml',
       '.github/workflows/repositories-scan.yml',

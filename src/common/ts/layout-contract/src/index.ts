@@ -22,3 +22,4 @@ export type {
 } from './expression-types';
 export { CompCategory } from './types';
 export type { ComponentAvailability, ComponentBehaviors, ComponentCapabilities } from './types';
+export type { ExpressionDescriptor } from './expression-descriptor';

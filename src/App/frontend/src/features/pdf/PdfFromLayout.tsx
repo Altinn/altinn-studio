@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
@@ -11,7 +12,6 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import {
   usePageSettings,
@@ -32,9 +32,8 @@ import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/Componen
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import { useItemIfType } from 'src/utils/layout/useNodeItem';
 import type { PdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 
 export function PdfFromLayout() {
@@ -132,11 +131,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
   const { langAsString } = useLanguage();
   const isPayment = useIsPayment();
   const { hideAppNameInPdf: hideAppNameInPdfExpr } = usePageSettings();
-  const hideAppNameInPdf = useEvalExpression(hideAppNameInPdfExpr, {
-    returnType: ExprVal.Boolean,
-    defaultValue: false,
-    errorIntroText: 'Invalid expression for hideAppNameInPdf in Settings.json',
-  });
+  const hideAppNameInPdf = useEvalExpression(hideAppNameInPdfExpr, CommonExpressions.IPagesSettings.hideAppNameInPdf);
 
   return (
     <div
@@ -259,8 +254,8 @@ function useTopLevelComponentsToAutoRender(pageKey: string, pdfExclusions: PdfEx
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
-  const component = useExternalItem(baseComponentId);
-  const item = useItemIfType(baseComponentId, 'Summary2');
+  const component = useComponentConfig(baseComponentId);
+  const item = component.type === 'Summary2' ? component : undefined;
 
   if (item?.target?.taskId) {
     return <SummaryComponent2 baseComponentId={baseComponentId} />;

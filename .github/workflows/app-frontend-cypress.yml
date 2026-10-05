@@ -18,6 +18,7 @@ on:
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
       - 'src/test/apps/**'
+      - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
       - 'src/common/ts/form-component/package.json'
       - 'src/common/ts/form-engine/src/**'

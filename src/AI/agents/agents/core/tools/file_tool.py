@@ -96,7 +96,7 @@ class ReadFileArgs(BaseModel):
     path: str = Field(min_length=1, description="Repo-relative path.")
 
 
-class ReadFileTool(Tool):
+class ReadFileTool(Tool[ReadFileArgs]):
     name = "read_file"
     description = (
         "Read a file from the session repository and return its contents.\n\n"
@@ -177,7 +177,7 @@ class EditFileArgs(BaseModel):
     )
 
 
-class EditFileTool(WriteToolMixin):
+class EditFileTool(WriteToolMixin[EditFileArgs]):
     name = "edit_file"
     description = (
         "Find a literal string in a file and replace it.  Surgical: one "
@@ -377,7 +377,7 @@ class WriteFileArgs(BaseModel):
     content: str = Field(description="Full new contents of the file.")
 
 
-class WriteFileTool(WriteToolMixin):
+class WriteFileTool(WriteToolMixin[WriteFileArgs]):
     name = "write_file"
     description = (
         "Create a new file, or completely overwrite an existing one.\n\n"
@@ -435,7 +435,7 @@ class DiscardFileChangesArgs(BaseModel):
     path: str = Field(min_length=1, description="Repo-relative path to reset to HEAD.")
 
 
-class DiscardFileChangesTool(WriteToolMixin):
+class DiscardFileChangesTool(WriteToolMixin[DiscardFileChangesArgs]):
     name = "discard_file_changes"
     description = (
         "Reset ONE file in the working tree back to its last committed state "

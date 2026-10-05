@@ -27,6 +27,7 @@ pub(crate) fn ssh_access_lines(access: &agent::ssh::AccessInfo) -> Vec<String> {
         format!("Known hosts: {}", access.known_hosts_file.display()),
         format!("Config:      {}", access.config_file.display()),
         format!("Proxy:       {}", access.proxy_command),
+        format!("Directory:   {}", access.working_directory),
         format!("Connect:     ssh -F {} {}", access.config_file.display(), access.alias),
     ]
 }
@@ -91,6 +92,7 @@ pub(crate) fn describe_agent_lines(agent: &Agent) -> Vec<String> {
     let mut lines = vec![
         format!("Name:       {}", agent.metadata.name),
         format!("Generation: {}", agent.metadata.generation),
+        format!("Run state:  {:?}", agent.spec.run_state()),
         format!("Source:     {source}"),
         format!("Secrets:    {secrets}"),
         format!("Harnesses:  {}", format_harnesses(&agent.spec)),

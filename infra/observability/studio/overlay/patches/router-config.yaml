@@ -33,10 +33,36 @@ spec:
           dns:
             hostname: otel-gateway-collector-headless.observability.svc.cluster.local
             port: '4317'
-      # Sink app metrics at router: Azure Monitor OTel metrics are currently high-cost, low-value.
-      nop: {}
       load_balancing/logs:
         routing_key: traceID
+        # Same settings as load_balancing/traces.
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.observability.svc.cluster.local
+            port: '4317'
+      load_balancing/metrics:
+        # Metrics carry no trace ID; each resource's series stay on one gateway.
+        routing_key: resource
         # Same settings as load_balancing/traces.
         timeout: 10s
         retry_on_failure:
@@ -71,7 +97,8 @@ spec:
           exporters: [load_balancing/traces]
         metrics:
           receivers: [otlp]
-          exporters: [nop]
+          processors: [resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          exporters: [load_balancing/metrics]
         logs:
           receivers: [otlp]
           processors: [filter/logs, resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]

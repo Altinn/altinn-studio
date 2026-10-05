@@ -3,7 +3,10 @@ from .profile import AppVersionProfile
 from .v8 import V8_PROFILE
 from .v9 import V9_PROFILE
 
+APP_VERSION_PROFILES: tuple[AppVersionProfile, ...] = (V8_PROFILE, V9_PROFILE)
+
 __all__ = [
+    "APP_VERSION_PROFILES",
     "V8_PROFILE",
     "V9_PROFILE",
     "AppVersionProfile",

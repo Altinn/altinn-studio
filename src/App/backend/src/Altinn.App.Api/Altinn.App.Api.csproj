@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP"/>
-    <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental"/>
+    <PackageReference Include="Altinn.Platform.Storage.Interface"/>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore"/>

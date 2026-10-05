@@ -104,7 +104,9 @@ describe('OrgContentLibraryPage', () => {
   it('Renders an error message when the code lists query fails', async () => {
     const getOrgCodeLists = () => Promise.reject(new Error('Test error'));
     renderOrgContentLibrary({ queries: { getOrgCodeLists } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const errorMessage = await screen.findByText(textMock('dashboard.org_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
@@ -151,7 +153,7 @@ describe('OrgContentLibraryPage', () => {
       title,
       codeList: data,
     });
-    await waitFor(expect(updateOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgCodeList).toHaveBeenCalled());
 
     expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
@@ -164,7 +166,7 @@ describe('OrgContentLibraryPage', () => {
     const newCodeListId: string = 'new-id';
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateCodeListId(codeListId, newCodeListId);
-    await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgCodeListId).toHaveBeenCalled());
 
     expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeListId).toHaveBeenCalledWith(orgName, codeListId, newCodeListId);
@@ -179,7 +181,7 @@ describe('OrgContentLibraryPage', () => {
       title,
       codeList: data,
     });
-    await waitFor(expect(createOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(createOrgCodeList).toHaveBeenCalled());
 
     expect(createOrgCodeList).toHaveBeenCalledTimes(1);
     expect(createOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
@@ -191,7 +193,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     expect(uploadOrgCodeList).toHaveBeenCalledTimes(1);
     expect(uploadOrgCodeList).toHaveBeenCalledWith(orgName, expect.any(FormData));
@@ -205,7 +207,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     const successMessage = textMock('dashboard.org_library.code_list_upload_success');
     expect(screen.getByText(successMessage)).toBeInTheDocument();
@@ -217,7 +219,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     const errorMessage = textMock('dashboard.org_library.code_list_upload_generic_error');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
@@ -228,7 +230,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(codeList1Data.title);
-    await waitFor(expect(deleteOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(deleteOrgCodeList).toHaveBeenCalled());
 
     expect(deleteOrgCodeList).toHaveBeenCalledTimes(1);
     expect(deleteOrgCodeList).toHaveBeenCalledWith(orgName, codeList1Data.title);
@@ -241,7 +243,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateTextResource(textResourceWithLanguage);
-    await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.updateOrgTextResources).toHaveBeenCalled());
 
     expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
     const expectedPayload: KeyValuePairs<string> = { [textResource.id]: textResource.value };
@@ -258,7 +260,9 @@ describe('OrgContentLibraryPage', () => {
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const mergeConflictWarning = screen.getByRole('heading', {
       name: textMock('merge_conflict.headline'),
@@ -273,7 +277,9 @@ describe('OrgContentLibraryPage', () => {
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const mergeConflictWarning = screen.queryByRole('heading', {
       name: textMock('merge_conflict.headline'),
@@ -334,7 +340,7 @@ describe('OrgContentLibraryPage', () => {
       { name: 'list-2.json', content: `[{ "value": "9", "label": { "en": "Nine" } }]` },
     ];
     retrievePagesConfig().codeLists.onSave(newCodeLists);
-    await waitFor(expect(updateSharedResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateSharedResources).toHaveBeenCalled());
 
     expect(updateSharedResources).toHaveBeenCalledTimes(1);
     expect(updateSharedResources).toHaveBeenCalledWith(orgName, {
@@ -379,7 +385,7 @@ describe('OrgContentLibraryPage', () => {
 
     act(() => retrievePagesConfig().codeLists.onPublish(libraryCodeListData));
 
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
     expect(publishCodeList).toHaveBeenCalledTimes(1);
     expect(publishCodeList).toHaveBeenCalledWith(
       orgName,

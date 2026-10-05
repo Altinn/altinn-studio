@@ -47,7 +47,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "taskId": "Task_2",
@@ -64,7 +64,7 @@
       "allowedContentTypes": [
         "application/json"
       ],
-      "allowedContributers": [
+      "allowedContributors": [
         "app:owned"
       ],
       "taskId": "Task_3",

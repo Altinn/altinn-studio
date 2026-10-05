@@ -59,6 +59,25 @@ impl Command for ResetPointerShape {
     }
 }
 
+/// Asks the terminal to put text on the system clipboard (OSC 52).
+///
+/// Terminals may ignore it, and nothing reports whether one did, so callers
+/// also show the text.
+struct CopyToClipboard<'a>(&'a str);
+
+impl Command for CopyToClipboard<'_> {
+    fn write_ansi(&self, output: &mut impl fmt::Write) -> fmt::Result {
+        use base64::Engine as _;
+        let encoded = base64::engine::general_purpose::STANDARD.encode(self.0);
+        write!(output, "\x1b]52;c;{encoded}\x1b\\")
+    }
+
+    #[cfg(windows)]
+    fn execute_winapi(&self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
 impl Tui {
     pub(crate) fn enter() -> Result<Self, Error> {
         install_panic_hook();
@@ -136,6 +155,12 @@ impl Drop for Tui {
             let _ = deactivate();
         }
     }
+}
+
+/// Offers `text` to the system clipboard through the terminal.
+pub(crate) fn copy_to_clipboard(text: &str) -> Result<(), Error> {
+    crossterm::execute!(std::io::stdout(), CopyToClipboard(text))?;
+    Ok(())
 }
 
 fn activate() -> Result<(), Error> {
@@ -227,5 +252,14 @@ mod tests {
             .expect("pointer commands");
 
         assert_eq!(output, b"\x1b]22;pointer\x1b\\\x1b]22;\x1b\\");
+    }
+
+    #[test]
+    fn clipboard_copies_use_osc_52_with_base64_text() {
+        let mut output = Vec::new();
+
+        crossterm::execute!(output, CopyToClipboard("agentctl-worker")).expect("clipboard command");
+
+        assert_eq!(output, b"\x1b]52;c;YWdlbnRjdGwtd29ya2Vy\x1b\\");
     }
 }

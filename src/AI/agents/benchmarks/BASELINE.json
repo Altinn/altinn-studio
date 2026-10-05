@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "9766b2fc3ce5",
-    "code": "c2579bd clean",
+    "actor_prompt": "333710f2f15b",
+    "code": "bc8ad7e clean",
     "dataset": "112 items ef83ff6b580d",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "c8bbdb44ee0f"
+    "tools": "36867ddc0e3f"
   },
-  "check_id": "20260928T124324Z-fast-verify-changes-892a",
-  "label": "fast verify_changes",
-  "recorded_at": "2026-09-28T12:48:27+00:00",
-  "why": "Fast verify_changes for nested v9 expressions and JSON files with a UTF-8 BOM, #20776"
+  "check_id": "20261002T120735Z-impact-gate-ast-skills-rerun-3-5012",
+  "label": "impact gate ast skills rerun 3",
+  "recorded_at": "2026-10-02T12:12:00+00:00",
+  "why": "The new digest method moves actor_prompt and tools, with no change to the prompt or the tools. No regressions with e2e."
 }

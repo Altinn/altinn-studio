@@ -19,6 +19,7 @@ const texts: TextResourceInputTexts = {
   emptyTextResourceList: 'Ingen tekstressurser er tilgjengelige',
   editValue: 'Rediger verdi',
   idLabel: 'ID:',
+  modeToggle: 'Modus',
   search: 'Søk',
   clearSelection: 'Fjern valg',
   textResourcePickerLabel: 'Velg tekstressurs',
@@ -119,7 +120,7 @@ describe('StudioTextResourceInput', () => {
     await user.type(picker, newResource.value);
     const option = await screen.findByText(newResource.value);
     await user.click(option);
-    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+    await waitFor(() => expect(onChangeCurrentId).toHaveBeenCalled());
 
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);

@@ -653,7 +653,14 @@ public class SchemaModelService : ISchemaModelService
         ApplicationMetadata application = await altinnAppGitRepository.GetApplicationMetadata();
 
         string fullTypeName = GetFullTypeName(application, csharpModelName);
-        UpdateApplicationWithAppLogicModel(application, schemaFileName, fullTypeName);
+        bool isV9OrNewer = _appVersionService.IsV9App(
+            AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                altinnAppGitRepository.Org,
+                altinnAppGitRepository.Repository,
+                altinnAppGitRepository.Developer
+            )
+        );
+        UpdateApplicationWithAppLogicModel(application, schemaFileName, fullTypeName, isV9OrNewer);
 
         await altinnAppGitRepository.SaveApplicationMetadata(application);
     }
@@ -665,10 +672,12 @@ public class SchemaModelService : ISchemaModelService
     /// <param name="application">The <see cref="Application"/> object to be updated.</param>
     /// <param name="dataTypeId">The id of the datatype to bed added.</param>
     /// <param name="classRef">The C# class reference of the data type.</param>
+    /// <param name="isV9OrNewer">Whether the app uses the v9 app backend or newer.</param>
     private static void UpdateApplicationWithAppLogicModel(
         ApplicationMetadata application,
         string dataTypeId,
-        string classRef
+        string classRef,
+        bool isV9OrNewer
     )
     {
         if (application.DataTypes == null)
@@ -689,6 +698,14 @@ public class SchemaModelService : ISchemaModelService
                 MinCount = 1,
                 AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef },
             };
+            if (!isV9OrNewer)
+            {
+                // V8 enables legacy PDF generation when this property is omitted. New apps generate PDFs
+                // with a PDF service task instead.
+#pragma warning disable CS0618 // Required by apps using the v8 runtime
+                logicElement.EnablePdfCreation = false;
+#pragma warning restore CS0618
+            }
             application.DataTypes.Add(logicElement);
         }
 

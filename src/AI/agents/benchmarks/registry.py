@@ -38,6 +38,13 @@ class Eval:
     def path(self) -> Path | None:
         return DATASETS_DIR / self.file if self.file else None
 
+    @property
+    def prompt_name(self) -> str:
+        """The prompt this eval scores. Only use it for an eval that names a prompt."""
+        if not self.prompt:
+            raise ValueError(f"{self.name}: this eval names no prompt")
+        return self.prompt
+
     def langfuse_description(self, item_count: int | None = None) -> str:
         """What the Langfuse dataset tab shows, assembled so it cannot drift."""
         from benchmarks import manifest

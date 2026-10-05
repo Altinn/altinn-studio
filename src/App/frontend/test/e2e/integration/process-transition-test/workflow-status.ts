@@ -580,18 +580,25 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then((root) =>
-      cy.visit(`${root}/Task_Service`),
+      cy.visit(`${root}/Task_Service`, {
+        onLoad: (win) => {
+          cy.spy(win, 'logErrorOnce').as('logErrorOnce');
+        },
+      }),
     );
     workflowLoader().should('be.visible');
 
     // Same shape as the Task_2 case above, but the committed task is a signing task. A signing task
     // renders through its ui folder, so a url still naming Task_Service must resolve Task_Service's
-    // own type while the navigation lands - resolving the current task's raw type instead threw
-    // "Unknown task type: signing" and replaced the whole app with the error page.
+    // own type while the navigation lands. Resolving the current task's raw type instead classifies
+    // the url as a signing task without a layout and shows the unsupported-task error until the
+    // navigation converges. That view is transient, so the logged error is what proves it never
+    // rendered.
     cy.findByRole('heading', { name: 'Signering', timeout: 45000 }).should('be.visible');
     cy.findByRole('button', { name: 'Signer' }).should('be.visible');
     cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
     cy.contains('Denne delen av skjemaet er ikke tilgjengelig').should('not.exist');
+    cy.get('@logErrorOnce').should('not.have.been.calledWithMatch', /which the app frontend cannot display/);
   });
 
   it('backwards: Task_2 rejects back to Task_1, keeping the levers, and the scenario replays', () => {

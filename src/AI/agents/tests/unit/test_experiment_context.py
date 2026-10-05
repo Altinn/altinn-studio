@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 from pydantic import ValidationError
 
+from agents.graph.state import AgentState
 from shared.models.experiment import (
     EXPERIMENT_DATASET_ID,
     EXPERIMENT_DESCRIPTION,
@@ -59,7 +62,7 @@ class TestSpanAttributes:
 
     def test_the_identifying_fields_are_required(self):
         with pytest.raises(ValidationError):
-            ExperimentContext(experimentName="n", datasetId="d", itemId="i")
+            ExperimentContext.model_validate({"experimentName": "n", "datasetId": "d", "itemId": "i"})
 
 
 class TestRunnerWiring:
@@ -77,7 +80,7 @@ class TestRunnerWiring:
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
         state = SimpleNamespace(experiment=_context())
-        runner._mark_as_experiment_item(state, SimpleNamespace(id="root-1"))
+        runner._mark_as_experiment_item(cast(AgentState, state), SimpleNamespace(id="root-1"))
 
         assert recorded[EXPERIMENT_NAME] == "nightly-2026-08-21"
         assert recorded[EXPERIMENT_ITEM_ROOT_OBSERVATION_ID] == "root-1"
@@ -94,7 +97,7 @@ class TestRunnerWiring:
         )
         monkeypatch.setattr(runner.otel_trace, "get_current_span", lambda: span)
 
-        runner._mark_as_experiment_item(SimpleNamespace(experiment=None), SimpleNamespace(id="r"))
+        runner._mark_as_experiment_item(cast(AgentState, SimpleNamespace(experiment=None)), SimpleNamespace(id="r"))
 
         assert recorded == {}
 

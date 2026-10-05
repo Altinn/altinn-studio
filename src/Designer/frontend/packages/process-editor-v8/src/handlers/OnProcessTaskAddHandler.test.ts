@@ -11,7 +11,7 @@ jest.mock('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler', () => {
   const actual = jest.requireActual('@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler');
   return {
     ...actual,
-    StudioModeler: jest.fn().mockImplementation((args) => {
+    StudioModeler: jest.fn().mockImplementation(function (args) {
       const instance = new actual.StudioModeler(args);
       instance.getElement = jest.fn().mockReturnValue(instance.element);
       return instance;
