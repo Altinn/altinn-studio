@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { Flex, LoadingEmpty } from '@app/form-component';
+import { Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
@@ -13,11 +13,14 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePageSettings, usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
+import {
+  usePageSettings,
+  usePdfExclusions,
+  usePdfLayoutName,
+} from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
-import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
 import { getFeature } from 'src/features/toggles';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
@@ -32,7 +35,7 @@ import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useItemIfType } from 'src/utils/layout/useNodeItem';
-import type { IPdfFormat } from 'src/features/pdf/types';
+import type { PdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 
 export function PdfFromLayout() {
   const pdfLayoutName = usePdfLayoutName();
@@ -59,11 +62,7 @@ function AutoGeneratePdfFromLayout() {
     );
   }
 
-  const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
-
-  if (pdfFormatIsLoading) {
-    return <LoadingEmpty />;
-  }
+  const pdfSettings = usePdfExclusions();
 
   return (
     <DummyPresentation>
@@ -198,7 +197,7 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
+function AllPages({ pdfSettings }: { pdfSettings: PdfExclusions | undefined }) {
   const order = usePageOrder();
   const visiblePages = getPdfVisiblePages(order, pdfSettings);
 
@@ -215,14 +214,14 @@ function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
   );
 }
 
-function getPdfVisiblePages(pages: string[], pdfSettings: IPdfFormat | undefined): string[] {
-  if (!pdfSettings?.excludedPages) {
+function getPdfVisiblePages(pages: string[], pdfSettings: PdfExclusions | undefined): string[] {
+  if (!pdfSettings?.pages) {
     return pages;
   }
-  return pages.filter((pageKey) => !pdfSettings.excludedPages.includes(pageKey));
+  return pages.filter((pageKey) => !pdfSettings.pages.includes(pageKey));
 }
 
-function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IPdfFormat | undefined }) {
+function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: PdfExclusions | undefined }) {
   const children = useTopLevelComponentsToAutoRender(pageKey, pdfSettings);
   const hidden = useIsHiddenMulti(children);
 
@@ -250,7 +249,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
   );
 }
 
-function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
+function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: PdfExclusions | undefined): string[] {
   const lookups = FormStore.bootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
@@ -259,11 +258,11 @@ function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFor
       const def = getComponentDef(component.type);
       return (
         component.type !== 'Subform' &&
-        !pdfSettings?.excludedComponents.includes(baseId) &&
+        !pdfSettings?.components.includes(baseId) &&
         def.shouldRenderInAutomaticPDF(component as never)
       );
     });
-  }, [lookups, pageKey, pdfSettings?.excludedComponents]);
+  }, [lookups, pageKey, pdfSettings?.components]);
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {

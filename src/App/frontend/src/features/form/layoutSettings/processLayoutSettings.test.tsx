@@ -110,4 +110,19 @@ describe('processLayoutSettings', () => {
       expect(result.pageSettings.taskNavigation[0].name).toBe('personopplysninger');
     });
   });
+
+  describe('pdfExclusions', () => {
+    it('returns empty lists when not specified', () => {
+      const result = process({ order: ['first'] });
+      expect(result.pdfExclusions).toEqual({ pages: [], components: [] });
+    });
+
+    it('returns excluded pages and components from settings', () => {
+      const result = processLayoutSettings({
+        pages: { order: ['first', 'second'], excludeFromPdf: ['second'] },
+        components: { excludeFromPdf: ['comp1'] },
+      } as ILayoutSettings);
+      expect(result.pdfExclusions).toEqual({ pages: ['second'], components: ['comp1'] });
+    });
+  });
 });
