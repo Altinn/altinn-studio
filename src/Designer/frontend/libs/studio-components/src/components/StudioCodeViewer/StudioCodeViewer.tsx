@@ -1,10 +1,10 @@
-import { forwardRef, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } from 'react';
 import cn from 'classnames';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
-import { highlightCode, MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
-import type { StudioCodeViewerLanguage } from './codeLanguage';
+import { MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
+import type { highlightCode, StudioCodeViewerLanguage } from './highlightCode';
 import { findJsonFoldRegions, formatJson, splitHighlightedCodeIntoLines } from './codeLines';
 
 export type StudioCodeViewerTexts = {
@@ -26,6 +26,7 @@ function StudioCodeViewer(
   ref: Ref<HTMLDivElement>,
 ): ReactElement {
   const codeLines = useMemo(() => createCodeLines(code, language), [code, language]);
+  const highlightedLines = useHighlightedLines(codeLines.code, language);
   const [collapsed, setCollapsed] = useState<CollapsedLines>({ codeLines, indexes: new Set() });
   const collapsedIndexes = collapsed.codeLines === codeLines ? collapsed.indexes : noIndexes;
   const [focusedFoldIndex, setFocusedFoldIndex] = useState<number>();
@@ -66,6 +67,7 @@ function StudioCodeViewer(
               key={index}
               index={index}
               codeLines={codeLines}
+              highlightedLine={highlightedLines?.[index]}
               isCollapsed={collapsedIndexes.has(index)}
               isTabbable={index === tabbableFoldIndex}
               onToggle={() => toggleLine(index)}
@@ -81,9 +83,8 @@ function StudioCodeViewer(
 }
 
 type CodeLines = {
+  code: string;
   lines: string[];
-  /** The lines as HTML from the highlighter, or null when the code is not highlighted. */
-  highlightedLines: string[] | null;
   foldRegions: Map<number, number>;
 };
 
@@ -99,14 +100,40 @@ function createCodeLines(code: string, language?: StudioCodeViewerLanguage): Cod
   const formattedJson = language === 'json' ? formatJson(normalizedCode) : null;
   const displayedCode = formattedJson ?? normalizedCode;
   const lines = displayedCode.split('\n');
-  const canHighlight = language && displayedCode.length <= MAX_HIGHLIGHT_LENGTH;
   return {
+    code: displayedCode,
     lines,
-    highlightedLines: canHighlight
-      ? splitHighlightedCodeIntoLines(highlightCode(displayedCode, language))
-      : null,
     foldRegions: formattedJson === null ? new Map() : findJsonFoldRegions(lines),
   };
+}
+
+let loadedHighlightCode: typeof highlightCode | undefined;
+
+/** The highlighter makes the bundle larger, so the component loads it only when it needs it. */
+export async function loadHighlightCode(): Promise<typeof highlightCode> {
+  loadedHighlightCode ??= (await import('./highlightCode')).highlightCode;
+  return loadedHighlightCode;
+}
+
+function useHighlightedLines(
+  code: string,
+  language?: StudioCodeViewerLanguage,
+): string[] | undefined {
+  const [highlight, setHighlight] = useState(() => loadedHighlightCode);
+  const canHighlight = Boolean(language) && code.length <= MAX_HIGHLIGHT_LENGTH;
+
+  useEffect(() => {
+    if (!canHighlight || highlight) return;
+    loadHighlightCode().then((loaded) => setHighlight(() => loaded));
+  }, [canHighlight, highlight]);
+
+  return useMemo(
+    () =>
+      canHighlight && highlight
+        ? splitHighlightedCodeIntoLines(highlight(code, language))
+        : undefined,
+    [canHighlight, highlight, code, language],
+  );
 }
 
 function findVisibleLineIndexes(
@@ -145,6 +172,8 @@ function findFoldButtonForKey(
 type CodeLineProps = {
   index: number;
   codeLines: CodeLines;
+  /** The line as HTML from the highlighter, or undefined when the code is not highlighted. */
+  highlightedLine?: string;
   isCollapsed: boolean;
   isTabbable: boolean;
   onToggle: () => void;
@@ -156,6 +185,7 @@ type CodeLineProps = {
 function CodeLine({
   index,
   codeLines,
+  highlightedLine,
   isCollapsed,
   isTabbable,
   onToggle,
@@ -164,7 +194,6 @@ function CodeLine({
   texts,
 }: CodeLineProps): ReactElement {
   const line = codeLines.lines[index];
-  const highlightedLine = codeLines.highlightedLines?.[index];
   const endIndex = codeLines.foldRegions.get(index);
   const FoldIcon = isCollapsed ? ChevronRightIcon : ChevronDownIcon;
 

@@ -2,7 +2,7 @@ import type { Ref } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { StudioCodeViewer } from './StudioCodeViewer';
+import { loadHighlightCode, StudioCodeViewer } from './StudioCodeViewer';
 import type { StudioCodeViewerProps } from './StudioCodeViewer';
 import { MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
@@ -18,7 +18,17 @@ const defaultProps: StudioCodeViewerProps = {
   texts: { collapse: 'Collapse', expand: 'Expand' },
 };
 
+describe('StudioCodeViewer before the highlighter is loaded', () => {
+  it('shows the code without colors, and then loads the colors', async () => {
+    renderStudioCodeViewer({ code: 'const a = 1;', language: 'javascript' });
+    expect(screen.getByText('const a = 1;').tagName).toBe('CODE');
+    expect(await screen.findByText('const')).toHaveClass('hljs-keyword');
+  });
+});
+
 describe('StudioCodeViewer', () => {
+  beforeAll(loadHighlightCode);
+
   it('appends custom attributes to the root element', () => {
     testCustomAttributes(renderStudioCodeViewer);
   });
