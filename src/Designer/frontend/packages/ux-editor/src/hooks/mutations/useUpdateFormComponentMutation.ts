@@ -103,12 +103,10 @@ type UseHandleFileUploadComponentUpdateParams = {
 };
 
 const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetName: string) => {
-  const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
-  const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
+  const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
-  const updateBpmn = useUpdateBpmn(org, app);
 
   return async ({
     updatedComponent,
@@ -126,13 +124,11 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
     );
 
     if (oldId !== updatedComponent.id) {
-      await addAppAttachmentMetadataMutation.mutateAsync({
+      await moveAttachmentDataType(oldId, {
         ...metadataParams,
         id: updatedComponent.id,
         enableFileScan: oldDataType?.enableFileScan,
       });
-      await deleteAppAttachmentMetadataMutation.mutateAsync(oldId);
-      await updateBpmn(updateDataTypeIdsToSign([{ oldId, newId: updatedComponent.id }]));
     } else {
       await updateAppAttachmentMetadata.mutateAsync({
         ...metadataParams,
@@ -148,25 +144,33 @@ type UseHandleImageUploadComponentIdChangeParams = {
 };
 
 const useHandleImageUploadComponentIdChange = (org: string, app: string, layoutSetName: string) => {
-  const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
-  const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
+  const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
-  const updateBpmn = useUpdateBpmn(org, app);
 
   return async ({ oldId, newId }: UseHandleImageUploadComponentIdChangeParams): Promise<void> => {
     const oldDataType = appMetadata?.dataTypes?.find(
       (dataType) => dataType.id === oldId,
     ) as ApplicationAttachmentMetadata;
 
-    await addAppAttachmentMetadataMutation.mutateAsync({
+    await moveAttachmentDataType(oldId, {
       ...imageUploadDefaultDataType,
       taskId,
       ...oldDataType,
       id: newId,
     });
+  };
+};
+
+const useMoveAttachmentDataType = (org: string, app: string) => {
+  const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
+  const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
+  const updateBpmn = useUpdateBpmn(org, app);
+
+  return async (oldId: string, newDataType: ApplicationAttachmentMetadata): Promise<void> => {
+    await addAppAttachmentMetadataMutation.mutateAsync(newDataType);
     await deleteAppAttachmentMetadataMutation.mutateAsync(oldId);
-    await updateBpmn(updateDataTypeIdsToSign([{ oldId, newId }]));
+    await updateBpmn(updateDataTypeIdsToSign([{ oldId, newId: newDataType.id }]));
   };
 };
 
