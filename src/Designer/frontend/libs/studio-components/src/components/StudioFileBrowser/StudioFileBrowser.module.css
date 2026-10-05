@@ -1,0 +1,148 @@
+.fileBrowser {
+  display: flex;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--ds-color-neutral-background-default);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--ds-size-12);
+  padding: var(--ds-size-2) var(--ds-size-4);
+  font-size: var(--ds-body-sm-font-size);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.breadcrumbs > :global(.ds-breadcrumbs) {
+  min-width: 0;
+}
+
+.breadcrumbs :global(ol) {
+  flex-wrap: nowrap;
+}
+
+.breadcrumbs :global(li) {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  min-width: 0;
+}
+
+.breadcrumbLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.currentBreadcrumb {
+  color: var(--ds-color-neutral-text-default);
+  font-weight: var(--ds-font-weight-medium);
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.currentBreadcrumb:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+}
+
+.entryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-border-width-default);
+  margin: 0;
+  padding: var(--ds-border-width-default) 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ds-size-2);
+  width: 100%;
+  padding: var(--ds-size-2) var(--ds-size-3);
+  color: var(--ds-color-neutral-text-default);
+  font-size: var(--ds-body-sm-font-size);
+  font-weight: var(--ds-font-weight-regular);
+  text-align: left;
+  border-left: var(--ds-size-1) solid transparent;
+  border-radius: 0;
+}
+
+.entry:hover {
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+/* The entries fill the scrolled list, so a focus outline outside an entry is hidden. */
+.entry:focus-visible {
+  box-shadow: inset 0 0 0 calc(2 * var(--ds-border-width-focus)) var(--ds-color-focus-inner);
+  outline-offset: calc(-1 * var(--ds-border-width-focus));
+}
+
+.selectedEntry {
+  font-weight: var(--ds-font-weight-medium);
+  background-color: var(--ds-color-neutral-background-default);
+  border-left-color: var(--ds-color-accent-border-strong);
+}
+
+.entryIcon {
+  flex-shrink: 0;
+  font-size: var(--ds-size-6);
+}
+
+.entryName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.directoryChevron {
+  flex-shrink: 0;
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.fileContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.fileStatus:not(:empty) {
+  display: flex;
+  flex: 1;
+}
+
+.codeViewer {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+}
+
+.message {
+  margin: var(--ds-size-4);
+}
