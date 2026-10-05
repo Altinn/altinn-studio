@@ -208,7 +208,6 @@ public class ApplicationMetadataService : IApplicationMetadataService
     {
         JObject attachmentMetadata = JObject.Parse(attachmentMetadataJson);
 
-        // Checked by key rather than value so an explicit false is preserved.
         if (attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase) == null)
         {
             attachmentMetadata[EnableFileScanPropertyName] = DefaultEnableFileScan;
