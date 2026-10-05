@@ -251,6 +251,7 @@ def collect(
     agent_roles = tuple(sorted(r for r in agent_models if r in LIVE_ROLES))
     if agent_roles:
         models = {**models, **{r: agent_models[r] for r in agent_roles}}
+    measured = digests()
     provenance = Provenance(
         recorded_at=datetime.now(UTC).isoformat(timespec="seconds"),
         environment=_environment(),
@@ -258,7 +259,8 @@ def collect(
         models=models,
         sampling=sampling,
         prompts=prompts or {},
-        **digests(),
+        actor_prompt=measured["actor_prompt"],
+        tools=measured["tools"],
         dataset=dataset,
         evaluators=evaluators or {},
         judge=judge,

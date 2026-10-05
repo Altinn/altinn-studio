@@ -599,7 +599,7 @@ def run(args):
     return args.path  # a comment
 '''
 
-    def _analyze(self, new_source, old_source=SOURCE):
+    def _analyze(self, new_source: str | None, old_source: str | None = SOURCE):
         return impact.analyze(
             [self.PATH],
             before=lambda _path: old_source,
