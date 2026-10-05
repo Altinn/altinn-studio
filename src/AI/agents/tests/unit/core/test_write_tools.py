@@ -10,7 +10,10 @@ v9 tests read the in-repo v9 schema and use real git repos in tmp_path.
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
+import subprocess
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -24,6 +27,7 @@ from agents.core import (
     LoopContext,
     VerifyChangesTool,
 )
+from agents.core.tools import _dotnet_queue, verify_tool
 
 from .git_repo import create_committed_repo, write_files
 
@@ -166,13 +170,13 @@ class TestVerifyChanges:
         assert any("JSON parses" in note for note in body["notes"])
 
     async def test_non_json_file_is_noted_but_passes(self, tmp_path: Path):
-        cs_path = tmp_path / "App" / "logic" / "InstantiationHandler.cs"
-        cs_path.parent.mkdir(parents=True)
-        cs_path.write_text("public class Foo {}", encoding="utf-8")
+        view_path = tmp_path / "App" / "views" / "Home" / "Index.cshtml"
+        view_path.parent.mkdir(parents=True)
+        view_path.write_text("<html></html>", encoding="utf-8")
 
         ctx = _write_ctx(
             repo_path=str(tmp_path),
-            changed={"App/logic/InstantiationHandler.cs"},
+            changed={"App/views/Home/Index.cshtml"},
         )
         result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
         assert not result.is_error
@@ -359,6 +363,195 @@ class TestVerifyChanges:
 # ---------------------------------------------------------------------------
 
 V9_LAYOUT_PATH = "App/ui/Task_1/layouts/Side1.json"
+
+
+_PROGRAM_FILE = "App/Program.cs"
+_COMPILER_ERROR = "App/Program.cs(3,5): error CS0246: The type or namespace name 'IText' could not be found"
+
+
+def _app_with_program(repo: Path) -> None:
+    (repo / "App").mkdir(parents=True)
+    (repo / "App" / "App.csproj").write_text("<Project />", encoding="utf-8")
+    (repo / _PROGRAM_FILE).write_text("var app = 1;", encoding="utf-8")
+
+
+def _build_output(repo: Path, *lines: str) -> str:
+    """dotnet prints absolute paths and the project, and it prints each error twice."""
+    project = f" [{repo}/App/App.csproj]"
+    return "\n".join(f"{repo}/{line}{project}" for line in (*lines, *lines))
+
+
+def _stub_build(monkeypatch, *, returncode: int = 0, output: str = "", error: Exception | None = None) -> list[str]:
+    built: list[str] = []
+
+    async def fake_build(repo_path: str) -> subprocess.CompletedProcess[str]:
+        built.append(repo_path)
+        if error is not None:
+            raise error
+        return subprocess.CompletedProcess([], returncode, output, "")
+
+    monkeypatch.setattr("agents.core.tools.verify_tool._run_dotnet_build", fake_build)
+    return built
+
+
+class TestVerifyChangesBuildsTheApp:
+    async def test_a_csharp_change_passes_when_the_build_passes(self, tmp_path: Path, monkeypatch):
+        _app_with_program(tmp_path)
+        built = _stub_build(monkeypatch)
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+        assert built == [str(tmp_path)]
+        assert ctx.extras["verified_files"] == {_PROGRAM_FILE}
+        assert "App/App.csproj: dotnet build passed" in json.loads(result.content)["notes"]
+
+    async def test_a_compiler_error_fails_with_each_error_once(self, tmp_path: Path, monkeypatch):
+        _app_with_program(tmp_path)
+        _stub_build(monkeypatch, returncode=1, output=_build_output(tmp_path, _COMPILER_ERROR))
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert result.is_error
+        notes = json.loads(result.content)["notes"]
+        assert "App/App.csproj: dotnet build failed (1 error(s))" in notes
+        assert f"  - {_COMPILER_ERROR}" in notes
+        assert "verified_files" not in ctx.extras
+
+    async def test_a_failure_with_no_error_lines_shows_the_end_of_the_output(self, tmp_path: Path, monkeypatch):
+        _app_with_program(tmp_path)
+        _stub_build(monkeypatch, returncode=137, output="Restoring packages\nKilled")
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert result.is_error
+        notes = json.loads(result.content)["notes"]
+        assert "App/App.csproj: dotnet build stopped with exit code 137" in notes
+        assert "Killed" in notes
+
+    async def test_a_project_file_change_runs_the_build(self, tmp_path: Path, monkeypatch):
+        _app_with_program(tmp_path)
+        built = _stub_build(monkeypatch)
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/App.csproj"})
+
+        await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert built == [str(tmp_path)]
+
+    async def test_a_json_change_does_not_run_the_build(self, tmp_path: Path, monkeypatch):
+        _app_with_program(tmp_path)
+        (tmp_path / "App" / "config").mkdir()
+        (tmp_path / "App" / "config" / "applicationmetadata.json").write_text("{}", encoding="utf-8")
+        built = _stub_build(monkeypatch)
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={"App/config/applicationmetadata.json"})
+
+        await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert built == []
+
+    @pytest.mark.parametrize(
+        ("error", "note"),
+        [
+            (FileNotFoundError("dotnet"), "dotnet is not installed, so the C# changes were not built"),
+            (TimeoutError(), "dotnet build did not finish in 300 seconds, so the C# changes were not built"),
+        ],
+        ids=["no-dotnet", "timeout"],
+    )
+    async def test_a_build_that_cannot_run_passes_with_a_note(self, tmp_path: Path, monkeypatch, error, note):
+        _app_with_program(tmp_path)
+        _stub_build(monkeypatch, error=error)
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+        assert note in json.loads(result.content)["notes"]
+
+    async def test_an_app_with_no_project_file_is_not_built(self, tmp_path: Path, monkeypatch):
+        (tmp_path / "App").mkdir()
+        (tmp_path / _PROGRAM_FILE).write_text("var app = 1;", encoding="utf-8")
+        built = _stub_build(monkeypatch)
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+
+        result = await VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx)
+
+        assert not result.is_error
+        assert built == []
+        assert "App/App.csproj not found, so the C# changes were not built" in json.loads(result.content)["notes"]
+
+    async def test_the_build_waits_for_a_running_dotnet_job(self, tmp_path: Path, monkeypatch):
+        """The v9 upgrade and the build share one queue, so the pod never runs two of them at the same time."""
+        _app_with_program(tmp_path)
+        built = _stub_build(monkeypatch)
+        statuses: list[str] = []
+        ctx = _write_ctx(repo_path=str(tmp_path), changed={_PROGRAM_FILE})
+        ctx.report_status = statuses.append
+        release = asyncio.Event()
+
+        async def run_other_job() -> None:
+            async with _dotnet_queue.dotnet_job_queue.turn(lambda _: None, waiting_status="", running_status=""):
+                await release.wait()
+
+        other_job = asyncio.create_task(run_other_job())
+        await asyncio.sleep(0)
+        verify = asyncio.create_task(VerifyChangesTool().run(VerifyChangesTool.input_schema(), ctx))
+        await asyncio.sleep(0)
+
+        assert built == []
+        assert statuses == ["Står i kø for bygging av appen (1 foran)"]
+
+        release.set()
+        await asyncio.gather(other_job, verify)
+
+        assert built == [str(tmp_path)]
+        assert statuses == ["Står i kø for bygging av appen (1 foran)", "Bygger appen"]
+
+
+_SHORT_BUILD_TIMEOUT_SECONDS = 0.5
+_MAX_STOP_SECONDS = 5.0
+_PROCESS_EXIT_WAIT_SECONDS = 2.0
+_PROCESS_EXIT_POLL_SECONDS = 0.05
+
+
+def _is_process_alive(pid: int) -> bool:
+    """A zombie has stopped, but it stays in /proc until its parent collects it."""
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except FileNotFoundError:
+        return False
+    return stat.rsplit(")", 1)[1].split()[0] != "Z"
+
+
+async def _wait_for_process_exit(pid: int) -> bool:
+    deadline = time.monotonic() + _PROCESS_EXIT_WAIT_SECONDS
+    while _is_process_alive(pid):
+        if time.monotonic() > deadline:
+            return False
+        await asyncio.sleep(_PROCESS_EXIT_POLL_SECONDS)
+    return True
+
+
+class TestTheBuildProcess:
+    async def test_a_build_that_times_out_stops_with_its_child_processes(self, tmp_path: Path, monkeypatch):
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        child_pid_file = tmp_path / "child.pid"
+        fake_dotnet = bin_dir / "dotnet"
+        fake_dotnet.write_text(f"#!/bin/sh\nsleep 30 &\necho $! > {child_pid_file}\nwait\n", encoding="utf-8")
+        fake_dotnet.chmod(0o755)
+        monkeypatch.setenv("PATH", f"{bin_dir}{os.pathsep}{os.environ['PATH']}")
+        monkeypatch.setattr(verify_tool, "_BUILD_TIMEOUT_SECONDS", _SHORT_BUILD_TIMEOUT_SECONDS)
+
+        started = time.monotonic()
+        with pytest.raises(TimeoutError):
+            await verify_tool._run_dotnet_build(str(tmp_path))
+
+        # A child that is still alive keeps the output pipe open, and the call then waits for it.
+        assert time.monotonic() - started < _MAX_STOP_SECONDS
+        assert await _wait_for_process_exit(int(child_pid_file.read_text()))
 
 
 def _v9_ctx(repo: Path, changed: set[str]) -> LoopContext:

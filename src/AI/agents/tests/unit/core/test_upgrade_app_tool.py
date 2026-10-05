@@ -18,7 +18,6 @@ import pytest
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import LoopContext, UpgradeAppToV9Tool, VerifyChangesTool
 from agents.core.tool import Tool
-from agents.core.tools import upgrade_app_tool
 
 from .git_repo import create_committed_repo, git, write_files
 
@@ -44,12 +43,6 @@ _UNCONVERTED_RULE_TODO = (
     "Layout set 'form', rule 'hideAddress', component 'address': the condition could not be converted."
 )
 _ROLLED_BACK_STEP = "Altinn.App packages set to 9.0.1"
-
-
-@pytest.fixture(autouse=True)
-def _fresh_upgrade_queue(monkeypatch):
-    # asyncio.Lock binds to the event loop it first waits in, and each test gets a new loop.
-    monkeypatch.setattr(upgrade_app_tool, "_upgrade_queue", upgrade_app_tool._UpgradeQueue())
 
 
 def _ctx(
@@ -330,6 +323,10 @@ class TestUpgradeAppToV9:
         ctx = _ctx(repo)
         await _run(UpgradeAppToV9Tool(), ctx)
 
+        async def passing_build(repo_path: str) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess([], 0, "", "")
+
+        monkeypatch.setattr("agents.core.tools.verify_tool._run_dotnet_build", passing_build)
         verify_result = await _run(VerifyChangesTool(), ctx)
 
         assert not verify_result.is_error

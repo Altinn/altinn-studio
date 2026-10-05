@@ -12,8 +12,6 @@ import json
 import logging
 import os
 import subprocess
-from collections.abc import AsyncIterator, Callable
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -21,6 +19,7 @@ from pydantic import BaseModel, ConfigDict
 from agents.altinn.app_version import V9_PROFILE, detect_app_version_profile
 from agents.core.tool import LoopContext, ToolResult
 
+from . import _dotnet_queue
 from ._write_base import WriteToolMixin
 
 log = logging.getLogger(__name__)
@@ -59,30 +58,8 @@ _GIT_STATUS_RENAMED = "R"
 _GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
 _GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
 
-
-class _UpgradeQueue:
-    """Runs one upgrade at a time and tells waiting users their place in the queue."""
-
-    def __init__(self) -> None:
-        self._lock = asyncio.Lock()
-        self._upgrades_in_progress = 0
-
-    @asynccontextmanager
-    async def turn(self, report_status: Callable[[str], None]) -> AsyncIterator[None]:
-        upgrades_ahead = self._upgrades_in_progress
-        self._upgrades_in_progress += 1
-        try:
-            if upgrades_ahead:
-                report_status(f"Står i kø for oppgradering ({upgrades_ahead} foran)")
-            async with self._lock:
-                if upgrades_ahead:
-                    report_status("Oppgraderer appen til v9")
-                yield
-        finally:
-            self._upgrades_in_progress -= 1
-
-
-_upgrade_queue = _UpgradeQueue()
+_WAITING_STATUS = "Står i kø for oppgradering"
+_RUNNING_STATUS = "Oppgraderer appen til v9"
 
 
 class UpgradeAppToV9Args(BaseModel):
@@ -133,7 +110,11 @@ class UpgradeAppToV9Tool(WriteToolMixin):
         if uncommitted_paths:
             return ToolResult(content="\n".join([_UNCOMMITTED_CHANGES_MESSAGE, *uncommitted_paths]), is_error=True)
 
-        async with _upgrade_queue.turn(ctx.report_status):
+        async with _dotnet_queue.dotnet_job_queue.turn(
+            ctx.report_status,
+            waiting_status=_WAITING_STATUS,
+            running_status=_RUNNING_STATUS,
+        ):
             completed = await _run_studioctl_upgrade(ctx.repo_path)
 
         result = _parse_upgrade_result(completed.stdout)

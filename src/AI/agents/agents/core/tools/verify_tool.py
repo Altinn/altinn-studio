@@ -6,7 +6,8 @@ Dispatches each changed file to the appropriate in-process validator
   * `App/ui/**/layouts/*.json` → layout schema validation
   * `App/config/texts/resource.*.json` → text-resource validation
   * any other `.json` → JSON parseability only
-  * anything else (`.cs`, `.xml`, …) → noted, no automated check
+  * `.cs`, `.csproj`, `.props`, `.targets` → one `dotnet build` of `App/App.csproj`
+  * anything else (`.xml`, …) → noted, no automated check
 
 Successful verification records the file in `ctx.extras["verified_files"]`
 so `commit_session_branch` can refuse to commit any changed file that
@@ -19,8 +20,13 @@ v8 schema fetch from altinncdn.no.  v9 schemas are read from disk.
 
 from __future__ import annotations
 
+import asyncio
 import json
+import os
+import re
+import signal
 import subprocess
+import tempfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -32,6 +38,7 @@ from agents.altinn.resources.validator import resource_validator_tool
 from agents.core.tool import LoopContext, ToolResult
 from shared.utils.langfuse_utils import trace_span
 
+from . import _dotnet_queue
 from ._write_base import WriteToolMixin
 
 # App files can start with a UTF-8 BOM.
@@ -50,7 +57,9 @@ class VerifyChangesTool(WriteToolMixin[VerifyChangesArgs]):
         "Validate the files you've modified this session against the "
         "official Altinn schemas.  Routes each file to the right "
         "validator based on its path: layout JSON, text resource JSON, "
-        "or basic JSON parse for everything else.  Returns "
+        "or basic JSON parse for everything else.  When C# or project files "
+        "changed, it also runs `dotnet build` on the app and reports the "
+        "compiler errors.  Returns "
         "`{passed, checked_files, notes}` where notes list per-file "
         "outcomes and any validation errors.\n\n"
         "WHEN to call: between your last edit and `commit_session_branch`.  "
@@ -98,6 +107,10 @@ class VerifyChangesTool(WriteToolMixin[VerifyChangesArgs]):
             notes.extend(check_notes)
             passed = passed and check_ok
 
+        build_ok, build_notes = await _check_app_builds(ctx, changed)
+        notes.extend(build_notes)
+        passed = passed and build_ok
+
         # Only mark files verified-passed on the assertion that *this whole
         # run* passed.  A partial-pass would let the model commit some
         # files while others still fail — refuse the easy short-circuit.
@@ -138,7 +151,9 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
         return _validate_layout_settings(file_path, full_path)
     if file_path.endswith(".json"):
         return _basic_json_check(file_path, full_path)
-    # Non-JSON file (.cs, .xml, .razor, …): no automated validator wired
+    if _is_build_input(file_path):
+        return True, [f"{file_path}: checked by the build of {_APP_PROJECT}"]
+    # Non-JSON file (.xml, .razor, …): no automated validator wired
     # in.  Don't fail commit on these — flag for the model's awareness.
     return True, [f"{file_path}: no automated validator for this file type"]
 
@@ -346,6 +361,113 @@ def _exists_in_head(repo_path: str, file_path: str) -> bool:
 
 
 _CROSS_FILE_CHECKS = (_check_page_navigation, _check_text_keys, _check_forbidden_new_files)
+
+
+# ---------------------------------------------------------------------------
+# Cross-file check: the app builds
+# ---------------------------------------------------------------------------
+
+
+_BUILD_INPUT_SUFFIXES = frozenset({".cs", ".csproj", ".props", ".targets"})
+_APP_PROJECT = "App/App.csproj"
+# A build with an empty NuGet cache takes about 35 seconds.
+_BUILD_TIMEOUT_SECONDS = 300
+_MAX_REPORTED_BUILD_ERRORS = 10
+_MAX_REPORTED_OUTPUT_LINES = 10
+_BUILD_ERROR_MARKER = ": error "
+_PROJECT_SUFFIX = re.compile(r"\s+\[[^\]]+\]$")
+_WAITING_STATUS = "Står i kø for bygging av appen"
+_RUNNING_STATUS = "Bygger appen"
+
+
+def _is_build_input(file_path: str) -> bool:
+    return PurePosixPath(file_path).suffix in _BUILD_INPUT_SUFFIXES
+
+
+async def _check_app_builds(ctx: LoopContext, changed: list[str]) -> tuple[bool, list[str]]:
+    """The validators cannot read C#, so the compiler checks it.
+
+    When the build cannot run, the check passes with a note, as it did before the build check existed.
+    """
+    if not any(_is_build_input(file_path) for file_path in changed):
+        return True, []
+    if not (Path(ctx.repo_path) / _APP_PROJECT).is_file():
+        return True, [f"{_APP_PROJECT} not found, so the C# changes were not built"]
+
+    async with _dotnet_queue.dotnet_job_queue.turn(
+        ctx.report_status,
+        waiting_status=_WAITING_STATUS,
+        running_status=_RUNNING_STATUS,
+    ):
+        try:
+            completed = await _run_dotnet_build(ctx.repo_path)
+        except FileNotFoundError:
+            return True, ["dotnet is not installed, so the C# changes were not built"]
+        except TimeoutError:
+            return True, [
+                f"dotnet build did not finish in {_BUILD_TIMEOUT_SECONDS} seconds, so the C# changes were not built"
+            ]
+
+    if completed.returncode == 0:
+        return True, [f"{_APP_PROJECT}: dotnet build passed"]
+    return False, _describe_build_failure(completed, ctx.repo_path)
+
+
+async def _run_dotnet_build(repo_path: str) -> subprocess.CompletedProcess[str]:
+    """Build servers stay alive after a build and keep their memory, so the build runs without them.
+
+    The output goes to a temporary folder, because the commit adds every file that `.gitignore` does not exclude.
+    """
+    with tempfile.TemporaryDirectory(prefix="app-build-") as artifacts_path:
+        command = [
+            "dotnet",
+            "build",
+            _APP_PROJECT,
+            "--artifacts-path",
+            artifacts_path,
+            "--disable-build-servers",
+            "-nologo",
+            "-v:q",
+        ]
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            cwd=repo_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            env={**os.environ, "DOTNET_CLI_TELEMETRY_OPTOUT": "1"},
+            start_new_session=True,
+        )
+        try:
+            stdout, _ = await asyncio.wait_for(process.communicate(), _BUILD_TIMEOUT_SECONDS)
+        except TimeoutError:
+            os.killpg(process.pid, signal.SIGKILL)
+            await process.wait()
+            raise
+        returncode = await process.wait()
+    return subprocess.CompletedProcess(command, returncode, stdout.decode(), "")
+
+
+def _describe_build_failure(completed: subprocess.CompletedProcess[str], repo_path: str) -> list[str]:
+    errors = _read_build_errors(completed.stdout, repo_path)
+    if not errors:
+        output = completed.stdout.strip().splitlines()[-_MAX_REPORTED_OUTPUT_LINES:]
+        return [f"{_APP_PROJECT}: dotnet build stopped with exit code {completed.returncode}", *output]
+    notes = [f"{_APP_PROJECT}: dotnet build failed ({len(errors)} error(s))"]
+    notes.extend(f"  - {error}" for error in errors[:_MAX_REPORTED_BUILD_ERRORS])
+    if len(errors) > _MAX_REPORTED_BUILD_ERRORS:
+        notes.append(f"  - …and {len(errors) - _MAX_REPORTED_BUILD_ERRORS} more")
+    return notes
+
+
+def _read_build_errors(output: str, repo_path: str) -> list[str]:
+    """Each compiler and restore error once, with a path relative to the repo."""
+    repo_prefix = f"{repo_path.rstrip('/')}/"
+    errors = (
+        _PROJECT_SUFFIX.sub("", line.strip()).replace(repo_prefix, "")
+        for line in output.splitlines()
+        if _BUILD_ERROR_MARKER in line
+    )
+    return list(dict.fromkeys(errors))
 
 
 # ---------------------------------------------------------------------------

@@ -13,9 +13,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl ca-certificates bash libicu72 libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
-# The v8->v9 upgrade shells out to `dotnet restore`, so the image needs the full
-# .NET SDK at runtime (not just the runtime). `dotnet --version` fails the build
-# early if the SDK can't run (e.g. a missing native dependency).
+# The v8->v9 upgrade shells out to `dotnet restore`, and `verify_changes` runs
+# `dotnet build` when C# changes, so the image needs the full .NET SDK at runtime
+# (not just the runtime). `dotnet --version` fails the build early if the SDK
+# can't run (e.g. a missing native dependency).
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && bash /tmp/dotnet-install.sh --channel 10.0 --install-dir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet \

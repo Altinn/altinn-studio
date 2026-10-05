@@ -4,6 +4,7 @@ Provides:
 - A `Tool` subclass family with synchronous in-memory behavior.
 - A FakeAdapter that returns a queued list of AssistantMessages.
 - A minimal LoopContext.
+- A fresh .NET job queue for each test.
 
 None of these touch the network, the file system, or the real config.
 """
@@ -28,6 +29,14 @@ from agents.core import (
     ToolResult,
     ToolUseBlock,
 )
+from agents.core.tools import _dotnet_queue
+
+
+@pytest.fixture(autouse=True)
+def _fresh_dotnet_job_queue(monkeypatch):
+    # asyncio.Lock binds to the event loop it first waits in, and each test gets a new loop.
+    monkeypatch.setattr(_dotnet_queue, "dotnet_job_queue", _dotnet_queue.DotnetJobQueue())
+
 
 # ---------------------------------------------------------------------------
 # Fake tools
