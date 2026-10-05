@@ -36,9 +36,7 @@ export type StudioFileBrowserTexts = {
   root: string;
   loadingDirectory: string;
   emptyDirectory: string;
-  /** Screen readers read this text after the name of a folder. */
   directoryEntryType: string;
-  /** Screen readers read this text after the name of a file. */
   fileEntryType: string;
   loadingFile: string;
   noFileSelected: string;
@@ -48,7 +46,6 @@ export type StudioFileBrowserTexts = {
 
 export type StudioFileBrowserProps = HTMLAttributes<HTMLDivElement> & {
   directory: StudioFileBrowserDirectory;
-  /** The file to show in the code viewer. Leave it out when no file is selected. */
   file?: StudioFileBrowserFile;
   onOpenDirectory: (path: string) => void;
   onOpenFile: (path: string) => void;
@@ -154,8 +151,7 @@ function DirectoryBreadcrumbs({
   const currentName = segments.at(-1) ?? texts.root;
 
   return (
-    // The breadcrumbs element sets its own navigation role only when the last item is a link.
-    // Here the items are buttons, so this element gives the navigation landmark.
+    // StudioBreadcrumbs sets the navigation role only when the last item is a link.
     <nav aria-label={texts.breadcrumbsLabel} className={classes.breadcrumbs}>
       <StudioBreadcrumbs>
         <StudioBreadcrumbs.List>
