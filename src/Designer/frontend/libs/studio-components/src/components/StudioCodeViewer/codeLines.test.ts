@@ -1,54 +1,38 @@
-import { findJsonFoldRegions, formatJson, splitHighlightedCodeIntoLines } from './codeLines';
-
-describe('formatJson', () => {
-  it('indents compact JSON with two spaces for each level', () => {
-    const code = '{"id":"app","dataTypes":[{"id":"model","maxCount":1}],"title":{"nb":"App"}}';
-    expect(formatJson(code)).toBe(
-      [
-        '{',
-        '  "id": "app",',
-        '  "dataTypes": [',
-        '    {',
-        '      "id": "model",',
-        '      "maxCount": 1',
-        '    }',
-        '  ],',
-        '  "title": {',
-        '    "nb": "App"',
-        '  }',
-        '}',
-      ].join('\n'),
-    );
-  });
-
-  it('keeps empty objects and arrays on one line', () => {
-    expect(formatJson('{ "a": {}, "b": [ ] }')).toBe('{\n  "a": {},\n  "b": []\n}');
-  });
-
-  it('keeps numbers, literals and escaped characters as they are in the source', () => {
-    expect(formatJson('[1.0,1e3,true,null,"a\\"{,}\\u00e6"]')).toBe(
-      '[\n  1.0,\n  1e3,\n  true,\n  null,\n  "a\\"{,}\\u00e6"\n]',
-    );
-  });
-
-  it('ignores a byte order mark', () => {
-    expect(formatJson('﻿{"a":1}')).toBe('{\n  "a": 1\n}');
-  });
-
-  it('returns null when the code is not valid JSON', () => {
-    expect(formatJson('{ "a": 1, }')).toBeNull();
-  });
-});
+import { findJsonFoldRegions, splitHighlightedCodeIntoLines } from './codeLines';
 
 describe('findJsonFoldRegions', () => {
-  it('maps the first line of each object and array to its last line', () => {
-    const lines = formatJson('{"a":[1,{"b":2}],"c":{}}').split('\n');
-    expect(findJsonFoldRegions(lines)).toEqual(
+  it('maps the first line of each object and array to its last line and closing bracket', () => {
+    const code = ['{', '  "a": [', '    1', '  ],', '  "b": {', '    "c": 2', '  }', '}'].join(
+      '\n',
+    );
+    expect(findJsonFoldRegions(code)).toEqual(
       new Map([
-        [0, 8],
-        [1, 6],
-        [3, 5],
+        [0, { endIndex: 7, closingColumn: 0 }],
+        [1, { endIndex: 3, closingColumn: 2 }],
+        [4, { endIndex: 6, closingColumn: 2 }],
       ]),
+    );
+  });
+
+  it('finds the closing bracket after other content on the last line', () => {
+    expect(findJsonFoldRegions('{\n  "a": 1,\n  "b": 2 },')).toEqual(
+      new Map([[0, { endIndex: 2, closingColumn: 9 }]]),
+    );
+  });
+
+  it('uses the innermost region when more regions start on the same line', () => {
+    expect(findJsonFoldRegions('[{\n  "a": 1\n}\n]')).toEqual(
+      new Map([[0, { endIndex: 2, closingColumn: 0 }]]),
+    );
+  });
+
+  it('ignores regions that hide no lines', () => {
+    expect(findJsonFoldRegions('{"a": [1], "b": {\n}}')).toEqual(new Map());
+  });
+
+  it('ignores brackets in strings', () => {
+    expect(findJsonFoldRegions('{\n  "a": "{[\\"",\n  "b": "]}"\n}')).toEqual(
+      new Map([[0, { endIndex: 3, closingColumn: 0 }]]),
     );
   });
 });

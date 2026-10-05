@@ -10,7 +10,7 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 const title = 'App/config/applicationmetadata.json';
-const jsonWithThreeFolds = '{"a":[1],"b":{"c":2},"d":{}}';
+const jsonWithThreeFolds = JSON.stringify({ a: [1], b: { c: 2 }, d: {} }, null, 2);
 
 const defaultProps: StudioCodeViewerProps = {
   code: 'first line\nsecond line',
@@ -47,9 +47,9 @@ describe('StudioCodeViewer', () => {
     expect(getCodeRegion()).toBeInTheDocument();
   });
 
-  it('renders each line of the code with its line number', () => {
-    renderStudioCodeViewer({ code: 'first\r\nsecond\nthird\n' });
-    expect(getCodeRegion()).toHaveTextContent(/^1first2second3third$/);
+  it('renders each line of the code with the same line number as in an editor', () => {
+    renderStudioCodeViewer({ code: 'first\r\nsecond\rthird\n' });
+    expect(getCodeRegion()).toHaveTextContent(/^1first2second3third4$/);
   });
 
   it('highlights the code when a language is given', () => {
@@ -75,14 +75,9 @@ describe('StudioCodeViewer', () => {
     expect(screen.getByText('const').tagName).toBe('CODE');
   });
 
-  it('indents valid JSON', () => {
+  it('shows JSON as it is in the file', () => {
     renderStudioCodeViewer({ code: '{"id":"app"}', language: 'json' });
-    expect(getCodeRegion()).toHaveTextContent('1{2  "id": "app"3}', { normalizeWhitespace: false });
-  });
-
-  it('shows invalid JSON as it is', () => {
-    renderStudioCodeViewer({ code: '{"id":"app",}', language: 'json' });
-    expect(getCodeRegion()).toHaveTextContent('1{"id":"app",}');
+    expect(getCodeRegion()).toHaveTextContent(/^1{"id":"app"}$/);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -161,7 +156,8 @@ describe('StudioCodeViewer', () => {
 
   it('hides the content of an object when the user collapses it, and shows it again when the user expands it', async () => {
     const user = userEvent.setup();
-    renderStudioCodeViewer({ code: '{"title":{"nb":"App"}}', language: 'json' });
+    const code = JSON.stringify({ title: { nb: 'App' } }, null, 2);
+    renderStudioCodeViewer({ code, language: 'json' });
     const titleButton = screen.getByRole('button', { name: /^Collapse "title"/ });
 
     await user.click(titleButton);
@@ -176,10 +172,11 @@ describe('StudioCodeViewer', () => {
 
   it('expands all objects when the code changes', async () => {
     const user = userEvent.setup();
-    const { rerender } = renderStudioCodeViewer({ code: '{"a":{"b":1}}', language: 'json' });
+    const code = JSON.stringify({ a: { b: 1 } }, null, 2);
+    const { rerender } = renderStudioCodeViewer({ code, language: 'json' });
     await user.click(screen.getByRole('button', { name: /^Collapse "a"/ }));
 
-    rerender(<StudioCodeViewer {...defaultProps} code='{"a":{"b":2}}' language='json' />);
+    rerender(<StudioCodeViewer {...defaultProps} code={code.replace('1', '2')} language='json' />);
     expect(screen.queryByRole('button', { name: /^Expand/ })).not.toBeInTheDocument();
   });
 });

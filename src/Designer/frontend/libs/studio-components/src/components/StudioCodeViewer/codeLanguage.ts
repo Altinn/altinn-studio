@@ -1,6 +1,5 @@
 import type { StudioCodeViewerLanguage } from './highlightCode';
 
-/** A file name without an extension, for example Dockerfile, is also its own extension here. */
 const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
   bpmn: 'xml',
   cjs: 'javascript',

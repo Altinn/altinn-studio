@@ -5,7 +5,8 @@ import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
 import { MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
 import type { highlightCode, StudioCodeViewerLanguage } from './highlightCode';
-import { findJsonFoldRegions, formatJson, splitHighlightedCodeIntoLines } from './codeLines';
+import { findJsonFoldRegions, splitHighlightedCodeIntoLines } from './codeLines';
+import type { FoldRegion } from './codeLines';
 
 export type StudioCodeViewerTexts = {
   collapse: string;
@@ -14,9 +15,7 @@ export type StudioCodeViewerTexts = {
 
 export type StudioCodeViewerProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
-  /** JSON is also indented, and its objects and arrays can collapse. */
   language?: StudioCodeViewerLanguage;
-  /** Screen readers also use the title as the name of the code. */
   title: string;
   texts: StudioCodeViewerTexts;
 };
@@ -85,7 +84,7 @@ function StudioCodeViewer(
 type CodeLines = {
   code: string;
   lines: string[];
-  foldRegions: Map<number, number>;
+  foldRegions: Map<number, FoldRegion>;
 };
 
 type CollapsedLines = {
@@ -96,20 +95,16 @@ type CollapsedLines = {
 const noIndexes: ReadonlySet<number> = new Set();
 
 function createCodeLines(code: string, language?: StudioCodeViewerLanguage): CodeLines {
-  const normalizedCode = code.replace(/\r\n?/g, '\n').replace(/\n$/, '');
-  const formattedJson = language === 'json' ? formatJson(normalizedCode) : null;
-  const displayedCode = formattedJson ?? normalizedCode;
-  const lines = displayedCode.split('\n');
+  const normalizedCode = code.replace(/\r\n?/g, '\n');
   return {
-    code: displayedCode,
-    lines,
-    foldRegions: formattedJson === null ? new Map() : findJsonFoldRegions(lines),
+    code: normalizedCode,
+    lines: normalizedCode.split('\n'),
+    foldRegions: language === 'json' ? findJsonFoldRegions(normalizedCode) : new Map(),
   };
 }
 
 let loadedHighlightCode: typeof highlightCode | undefined;
 
-/** The highlighter makes the bundle larger, so the component loads it only when it needs it. */
 export async function loadHighlightCode(): Promise<typeof highlightCode> {
   loadedHighlightCode ??= (await import('./highlightCode')).highlightCode;
   return loadedHighlightCode;
@@ -144,7 +139,7 @@ function findVisibleLineIndexes(
   let index = 0;
   while (index < lines.length) {
     visibleIndexes.push(index);
-    index = collapsedIndexes.has(index) ? foldRegions.get(index) + 1 : index + 1;
+    index = collapsedIndexes.has(index) ? foldRegions.get(index).endIndex + 1 : index + 1;
   }
   return visibleIndexes;
 }
@@ -172,7 +167,6 @@ function findFoldButtonForKey(
 type CodeLineProps = {
   index: number;
   codeLines: CodeLines;
-  /** The line as HTML from the highlighter, or undefined when the code is not highlighted. */
   highlightedLine?: string;
   isCollapsed: boolean;
   isTabbable: boolean;
@@ -194,7 +188,7 @@ function CodeLine({
   texts,
 }: CodeLineProps): ReactElement {
   const line = codeLines.lines[index];
-  const endIndex = codeLines.foldRegions.get(index);
+  const foldRegion = codeLines.foldRegions.get(index);
   const FoldIcon = isCollapsed ? ChevronRightIcon : ChevronDownIcon;
 
   return (
@@ -203,7 +197,7 @@ function CodeLine({
         <span className={classes.lineNumber} aria-hidden>
           {index + 1}
         </span>
-        {endIndex === undefined ? (
+        {foldRegion === undefined ? (
           <span className={classes.foldButtonSpace} />
         ) : (
           <button
@@ -211,7 +205,6 @@ function CodeLine({
             className={classes.foldButton}
             tabIndex={isTabbable ? 0 : -1}
             aria-expanded={!isCollapsed}
-            // The code of the line gives each fold button a unique name.
             aria-label={`${isCollapsed ? texts.expand : texts.collapse} ${line.trim()}`}
             onClick={onToggle}
             onFocus={onFoldFocus}
@@ -231,7 +224,7 @@ function CodeLine({
         {isCollapsed && (
           <>
             <span className={classes.collapsedContent}>…</span>
-            {codeLines.lines[endIndex].trim()}
+            {codeLines.lines[foldRegion.endIndex].slice(foldRegion.closingColumn)}
           </>
         )}
       </code>
