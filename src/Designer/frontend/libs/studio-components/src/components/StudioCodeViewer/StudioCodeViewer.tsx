@@ -3,7 +3,7 @@ import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactElement, Ref } 
 import cn from 'classnames';
 import { ChevronDownIcon, ChevronRightIcon } from '@studio/icons';
 import classes from './StudioCodeViewer.module.css';
-import { MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
+import { MAX_FORMATTED_CODE_LENGTH } from './codeLanguage';
 import type { highlightCode, StudioCodeViewerLanguage } from './highlightCode';
 import { findJsonFoldRegions, splitHighlightedCodeIntoLines } from './codeLines';
 import type { FoldRegion } from './codeLines';
@@ -24,8 +24,13 @@ function StudioCodeViewer(
   { code, language, title, texts, className: givenClass, ...rest }: StudioCodeViewerProps,
   ref: Ref<HTMLDivElement>,
 ): ReactElement {
-  const codeLines = useMemo(() => createCodeLines(code, language), [code, language]);
-  const highlightedLines = useHighlightedLines(codeLines.code, language);
+  const isPlainText = code.length > MAX_FORMATTED_CODE_LENGTH;
+  const formattedLanguage = isPlainText ? undefined : language;
+  const codeLines = useMemo(
+    () => createCodeLines(code, formattedLanguage),
+    [code, formattedLanguage],
+  );
+  const highlightedLines = useHighlightedLines(codeLines.code, formattedLanguage);
   const [collapsed, setCollapsed] = useState<CollapsedLines>({ codeLines, indexes: new Set() });
   const collapsedIndexes = collapsed.codeLines === codeLines ? collapsed.indexes : noIndexes;
   const [focusedFoldIndex, setFocusedFoldIndex] = useState<number>();
@@ -61,20 +66,24 @@ function StudioCodeViewer(
       </div>
       <div className={classes.scrollArea} tabIndex={0} role='region' aria-label={title}>
         <div ref={linesRef} className={classes.lines} style={lineNumberWidth as CSSProperties}>
-          {visibleLineIndexes.map((index) => (
-            <CodeLine
-              key={index}
-              index={index}
-              codeLines={codeLines}
-              highlightedLine={highlightedLines?.[index]}
-              isCollapsed={collapsedIndexes.has(index)}
-              isTabbable={index === tabbableFoldIndex}
-              onToggle={() => toggleLine(index)}
-              onFoldFocus={() => setFocusedFoldIndex(index)}
-              onFoldKeyDown={moveFoldFocus}
-              texts={texts}
-            />
-          ))}
+          {isPlainText ? (
+            <PlainCode codeLines={codeLines} />
+          ) : (
+            visibleLineIndexes.map((index) => (
+              <CodeLine
+                key={index}
+                index={index}
+                codeLines={codeLines}
+                highlightedLine={highlightedLines?.[index]}
+                isCollapsed={collapsedIndexes.has(index)}
+                isTabbable={index === tabbableFoldIndex}
+                onToggle={() => toggleLine(index)}
+                onFoldFocus={() => setFocusedFoldIndex(index)}
+                onFoldKeyDown={moveFoldFocus}
+                texts={texts}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -115,19 +124,16 @@ function useHighlightedLines(
   language?: StudioCodeViewerLanguage,
 ): string[] | undefined {
   const [highlight, setHighlight] = useState(() => loadedHighlightCode);
-  const canHighlight = Boolean(language) && code.length <= MAX_HIGHLIGHT_LENGTH;
 
   useEffect(() => {
-    if (!canHighlight || highlight) return;
+    if (!language || highlight) return;
     loadHighlightCode().then((loaded) => setHighlight(() => loaded));
-  }, [canHighlight, highlight]);
+  }, [language, highlight]);
 
   return useMemo(
     () =>
-      canHighlight && highlight
-        ? splitHighlightedCodeIntoLines(highlight(code, language))
-        : undefined,
-    [canHighlight, highlight, code, language],
+      language && highlight ? splitHighlightedCodeIntoLines(highlight(code, language)) : undefined,
+    [highlight, code, language],
   );
 }
 
@@ -228,6 +234,20 @@ function CodeLine({
           </>
         )}
       </code>
+    </div>
+  );
+}
+
+function PlainCode({ codeLines }: { codeLines: CodeLines }): ReactElement {
+  const lineNumbers = codeLines.lines.map((_, index) => index + 1).join('\n');
+  return (
+    <div className={classes.line}>
+      <span className={classes.gutter}>
+        <span className={classes.lineNumber} aria-hidden>
+          {lineNumbers}
+        </span>
+      </span>
+      <code className={classes.code}>{codeLines.code}</code>
     </div>
   );
 }

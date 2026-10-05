@@ -85,6 +85,7 @@
   flex: none;
   width: var(--line-number-width);
   text-align: right;
+  white-space: pre;
 }
 
 .foldButton,

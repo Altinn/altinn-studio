@@ -35,5 +35,8 @@ export function getCodeLanguageFromFileName(
   return languagesByFileExtension[extension];
 }
 
-/** Larger files are shown without highlighting, because highlighting blocks the page for too long. */
-export const MAX_HIGHLIGHT_LENGTH = 200_000;
+/**
+ * Larger code is shown as plain text in one element, without colors and folds,
+ * because one element for each line blocks the page for too long.
+ */
+export const MAX_FORMATTED_CODE_LENGTH = 100_000;

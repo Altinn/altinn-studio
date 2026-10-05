@@ -4,7 +4,7 @@ import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { loadHighlightCode, StudioCodeViewer } from './StudioCodeViewer';
 import type { StudioCodeViewerProps } from './StudioCodeViewer';
-import { MAX_HIGHLIGHT_LENGTH } from './codeLanguage';
+import { MAX_FORMATTED_CODE_LENGTH } from './codeLanguage';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
@@ -69,10 +69,12 @@ describe('StudioCodeViewer', () => {
     expect(getCodeRegion().innerHTML).not.toContain('<script>');
   });
 
-  it('does not highlight code that is longer than the limit', () => {
-    const code = 'const'.padEnd(MAX_HIGHLIGHT_LENGTH + 1, ' ');
-    renderStudioCodeViewer({ code, language: 'javascript' });
-    expect(screen.getByText('const').tagName).toBe('CODE');
+  it('shows code that is longer than the limit as plain text without colors and folds', () => {
+    const code = jsonWithThreeFolds.padEnd(MAX_FORMATTED_CODE_LENGTH + 1, ' ');
+    renderStudioCodeViewer({ code, language: 'json' });
+    expect(getCodeRegion()).toHaveTextContent(/^1 2 3 4 5 6 7 8 9\{ "a": \[/);
+    expect(screen.getByText(/"a": \[/).tagName).toBe('CODE');
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('shows JSON as it is in the file', () => {
