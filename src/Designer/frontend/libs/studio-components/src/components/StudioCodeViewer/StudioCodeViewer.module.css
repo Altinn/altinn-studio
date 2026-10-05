@@ -49,6 +49,7 @@
   flex-direction: column;
   width: max-content;
   min-width: 100%;
+  min-height: 100%;
   font-family: var(--code-viewer-font-family);
   font-size: var(--ds-body-xs-font-size);
   /* The fold buttons are as high as a line. WCAG 2.5.8 needs minimum 24 × 24 CSS pixels, and 1.6em prevents overlap of large text. */
@@ -57,6 +58,11 @@
 
 .line {
   display: flex;
+}
+
+/* The last line fills the free space, so the border of the gutter goes to the bottom of the code area. */
+.line:last-child {
+  flex-grow: 1;
 }
 
 .line:first-child > * {
