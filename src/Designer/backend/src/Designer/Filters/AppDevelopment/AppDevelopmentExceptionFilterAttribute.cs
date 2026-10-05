@@ -29,6 +29,19 @@ public class AppDevelopmentExceptionFilterAttribute : ExceptionFilterAttribute
                 StatusCode = (int)HttpStatusCode.OK,
             };
         }
+        if (context.Exception is UiFolderNameCaseConflictException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.UiFolderNameCaseConflict,
+                    HttpStatusCode.Conflict
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.Conflict,
+            };
+        }
         if (context.Exception is InvalidLayoutSetIdException)
         {
             context.Result = new ObjectResult(
