@@ -99,7 +99,8 @@ async def _run_studioctl_upgrade(project_folder: str) -> subprocess.CompletedPro
         env={**os.environ, "NO_COLOR": "1"},
     )
     stdout, stderr = await process.communicate()
-    return subprocess.CompletedProcess(command, process.returncode, stdout.decode(), stderr.decode())
+    returncode = await process.wait()
+    return subprocess.CompletedProcess(command, returncode, stdout.decode(), stderr.decode())
 
 
 class UpgradeAppToV9Tool(WriteToolMixin):
