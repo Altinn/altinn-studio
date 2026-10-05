@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
@@ -70,24 +69,7 @@ public class AuthorizationController : Controller
                     return Ok(PartySsnMasking.MaskParty(details.SelectedParty));
                 }
 
-                // Now we know the user can't represent the selected party (reportee)
-                // so we will automatically switch to the user's own party (from the profile)
-                var reportee = details.Profile.Party;
-                if (user.SelectedPartyId != reportee.PartyId)
-                {
-                    // Setting cookie to partyID of logged in user if it varies from previous value.
-                    Response.Cookies.Append(
-                        _settings.GetAltinnPartyCookieName,
-                        reportee.PartyId.ToString(CultureInfo.InvariantCulture),
-                        new CookieOptions { Domain = _settings.HostName }
-                    );
-                }
-
-                if (returnPartyObject)
-                {
-                    return Ok(PartySsnMasking.MaskParty(reportee));
-                }
-                return Ok(reportee.PartyId);
+                return Ok(details.SelectedParty.PartyId);
             }
             case Authenticated.Org org:
             {
