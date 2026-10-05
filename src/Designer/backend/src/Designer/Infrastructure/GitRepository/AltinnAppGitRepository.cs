@@ -527,11 +527,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private async Task CreateLayoutSettings(string layoutSetName)
     {
-        string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-        if (!DirectoryExistsByRelativePath(layoutSetPath))
-        {
-            Directory.CreateDirectory(layoutSetPath);
-        }
         string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
         JsonNode layoutSettings = InitialLayoutSettings;
         JsonArray layoutNamesArray = new JsonArray();
