@@ -19,9 +19,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PolicyMigration;
 /// whose policy lacks the equivalent grants and inserts a single rule with the missing actions,
 /// using a minimal textual diff.
 ///
-/// Task-specific actions (confirm, reject, custom service-task types) are intentionally not granted
-/// automatically - the migrator scans the process and warns about the ones the org likely also
-/// needs. Payment and signing tasks need nothing extra: Storage accepts <c>write</c> for both.
+/// Advancing a task needs nothing extra: Storage accepts <c>write</c> from the app owner for a
+/// transition out of any task type. The task-specific <c>reject</c> is intentionally not granted
+/// automatically - the migrator scans the process and warns when a task can be abandoned.
 ///
 /// The same requirements are checked at build time by the ALTINNAPP0800 analyzer in
 /// Altinn.App.Analyzers, which is where the authoritative reasoning lives.
@@ -44,23 +44,6 @@ internal sealed class ServiceOwnerPolicyMigrator
     /// v9 app has - and service owners generally want to confirm received instances anyway.
     /// </summary>
     private static readonly string[] _requiredActions = ["read", "write", "complete"];
-
-    /// <summary>
-    /// The actions that allow a process transition out of a task of the given type; Storage permits
-    /// the transition when the service owner holds <em>any</em> of them. Mirrors ProcessAuthorizer in
-    /// altinn-storage and ProcessEngineAuthorizer in app-lib-dotnet (and the equivalent table in the
-    /// ALTINNAPP0800 analyzer). Note that payment and signing accept <c>write</c>, so they need
-    /// nothing beyond the baseline.
-    /// </summary>
-    private static string[] ProcessNextActionsForTaskType(string taskType) =>
-        taskType switch
-        {
-            "data" or "feedback" or "pdf" or "eFormidling" or "fiksArkiv" or "subformPdf" => ["write"],
-            "payment" => ["pay", "write"],
-            "confirmation" => ["confirm"],
-            "signing" => ["sign", "write"],
-            _ => [taskType],
-        };
 
     private readonly string _projectFolder;
     private readonly List<UpgradeMessage> _messages = new();
@@ -577,8 +560,8 @@ internal sealed class ServiceOwnerPolicyMigrator
     }
 
     /// <summary>
-    /// Adds a to-do for task-specific actions (confirm, reject, or the custom task-type name) whose
-    /// transitions the engine replays with a dedicated action but the policy does not grant the org.
+    /// Adds a to-do for task-specific actions (reject) whose transitions the engine replays with a
+    /// dedicated action but the policy does not grant the org.
     /// Grants scoped to the task(s) of the relevant type count here, since these transitions happen
     /// inside those tasks.
     /// </summary>
@@ -608,7 +591,7 @@ internal sealed class ServiceOwnerPolicyMigrator
         if (missing.Count > 0)
         {
             _messages.Todo(
-                "The process contains task types whose transitions the v9 workflow engine replays with a "
+                "The process contains tasks whose transitions the v9 workflow engine replays with a "
                     + "dedicated action, and the policy does not grant the app owner these: "
                     + string.Join(
                         ", ",
@@ -680,13 +663,8 @@ internal sealed class ServiceOwnerPolicyMigrator
 
             var needed = new List<string>();
 
-            // A type whose transition accepts 'write' needs nothing beyond the required baseline.
-            // Every mapping that survives that filter names exactly one action today, so warning
-            // about each one separately below matches the any-of semantics; a future multi-action
-            // mapping would over-warn here (the build-time analyzer evaluates any-of properly).
-            var processNextActions = ProcessNextActionsForTaskType(type);
-            if (!processNextActions.Contains("write", StringComparer.OrdinalIgnoreCase))
-                needed.AddRange(processNextActions);
+            // Storage accepts 'write' from the app owner for a transition out of any task type, so
+            // advancing a task needs nothing beyond the required baseline.
 
             // A task that declares 'reject' can be abandoned, and Storage authorizes an abandoning
             // transition with 'reject' regardless of the task's type. A 'serverAction' of the same

@@ -315,11 +315,13 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     [Theory]
     [InlineData("signing")]
     [InlineData("payment")]
-    public async Task TaskTypesThatAcceptWrite_NeedNothingBeyondTheBaseline(string taskType)
+    [InlineData("confirmation")]
+    [InlineData("pdfIfRequested")]
+    public async Task AnyTaskType_NeedsNothingBeyondTheBaseline(string taskType)
     {
-        // Storage authorizes a signing transition with 'sign' OR 'write', and a payment transition
-        // with 'pay' OR 'write' (see ProcessAuthorizer). With the baseline in place, asking the app
-        // owner for 'sign' or 'pay' would be noise.
+        // Storage accepts 'write' from the app owner for a transition out of any task type (see
+        // ProcessAuthorizer). With the baseline in place, asking the app owner for 'sign', 'pay',
+        // 'confirm' or a custom task-type action would be noise.
         var policy = Policy(
             Rule(
                 "1",
@@ -553,7 +555,7 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task ConfirmGrantScopedToAnotherTask_DoesNotSatisfyTheConfirmationTask()
+    public async Task RejectGrantScopedToAnotherTask_DoesNotSatisfyTheRejectingTask()
     {
         var policy = Policy(
             Rule(
@@ -566,25 +568,25 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 "2",
                 AnyOf(AllOf(SubjectOrg("ttd"))),
                 AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_1"))),
-                AnyOf(AllOf(Action("confirm")))
+                AnyOf(AllOf(Action("reject")))
             )
         );
         _app.Write(
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "confirmation"),
+                BpmnBuilder.Task("Task_2", "data", actions: ["write", "reject"]),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
             )
         );
 
         var todos = await MigrateTodos(policy);
 
-        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
+        Assert.Contains(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task ConfirmGrantScopedToTheConfirmationTask_Satisfies()
+    public async Task RejectGrantScopedToTheRejectingTask_Satisfies()
     {
         var policy = Policy(
             Rule(
@@ -597,14 +599,14 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
                 "2",
                 AnyOf(AllOf(SubjectOrg("ttd"))),
                 AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"), ResourceTask("Task_2"))),
-                AnyOf(AllOf(Action("confirm")))
+                AnyOf(AllOf(Action("reject")))
             )
         );
         _app.Write(
             "config/process/process.bpmn",
             BpmnBuilder.Process(
                 BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "confirmation"),
+                BpmnBuilder.Task("Task_2", "data", actions: ["write", "reject"]),
                 BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
             )
         );
@@ -613,33 +615,5 @@ public sealed class ServiceOwnerPolicyMigratorTests : IDisposable
 
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
-    }
-
-    [Fact]
-    public async Task ConfirmationTask_WarnsOnlyAboutConfirm()
-    {
-        // Confirmation tasks advance with 'confirm' only (see ProcessEngineAuthorizer); warning
-        // about 'reject' for them would be noise.
-        var policy = Policy(
-            Rule(
-                "1",
-                AnyOf(AllOf(SubjectOrg("ttd"))),
-                AnyOf(AllOf(ResourceOrg("ttd"), ResourceApp("myapp"))),
-                AnyOf(AllOf(Action("read")), AllOf(Action("write")), AllOf(Action("complete")))
-            )
-        );
-        _app.Write(
-            "config/process/process.bpmn",
-            BpmnBuilder.Process(
-                BpmnBuilder.Task("Task_1", "data"),
-                BpmnBuilder.Task("Task_2", "confirmation"),
-                BpmnBuilder.Flow("Flow_1", "Task_1", "Task_2")
-            )
-        );
-
-        var todos = await MigrateTodos(policy);
-
-        Assert.Contains(todos, t => t.Contains("'confirm'", StringComparison.Ordinal));
-        Assert.DoesNotContain(todos, t => t.Contains("'reject'", StringComparison.Ordinal));
     }
 }
