@@ -31,6 +31,7 @@ Object.entries(languageDefinitions).forEach(([name, definition]) =>
   hljs.registerLanguage(name, definition),
 );
 
+/** A file name without an extension, for example Dockerfile, is also its own extension here. */
 const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
   bpmn: 'xml',
   cjs: 'javascript',
@@ -38,6 +39,7 @@ const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
   cs: 'csharp',
   csproj: 'xml',
   css: 'css',
+  dockerfile: 'dockerfile',
   editorconfig: 'ini',
   html: 'xml',
   js: 'javascript',
@@ -58,16 +60,11 @@ const languagesByFileExtension: Record<string, StudioCodeViewerLanguage> = {
   yml: 'yaml',
 };
 
-const languagesByFileName: Record<string, StudioCodeViewerLanguage> = {
-  dockerfile: 'dockerfile',
-};
-
 export function getCodeLanguageFromFileName(
   fileName: string,
 ): StudioCodeViewerLanguage | undefined {
-  const baseName = fileName.split('/').pop().toLowerCase();
-  const extension = baseName.split('.').pop();
-  return languagesByFileName[baseName] ?? languagesByFileExtension[extension];
+  const extension = fileName.split('/').pop().split('.').pop().toLowerCase();
+  return languagesByFileExtension[extension];
 }
 
 /** Larger files are shown without highlighting, because highlighting blocks the page for too long. */

@@ -1,7 +1,5 @@
 .codeViewer {
   --code-viewer-font-family: ui-monospace, 'Cascadia Code', Consolas, 'Liberation Mono', monospace;
-  /* WCAG 2.5.8 needs fold buttons of 24 × 24 CSS pixels, and the fold buttons are as high as a line. */
-  --code-viewer-line-height: max(24px, 1.6em);
 
   display: flex;
   flex-direction: column;
@@ -55,7 +53,8 @@
   min-width: 100%;
   font-family: var(--code-viewer-font-family);
   font-size: var(--ds-body-xs-font-size);
-  line-height: var(--code-viewer-line-height);
+  /* WCAG 2.5.8 needs fold buttons of 24 × 24 CSS pixels, and the fold buttons are as high as a line. */
+  line-height: 24px;
 }
 
 .line {

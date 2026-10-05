@@ -1,5 +1,6 @@
 const JSON_INDENT = '  ';
-const BYTE_ORDER_MARK = '﻿';
+/** Strings, punctuation, and the numbers and literals between them. */
+const JSON_TOKENS = /"[^"\\]*(?:\\.[^"\\]*)*"|[{}[\]:,]|[^\s{}[\]:,"]+/g;
 
 /**
  * Indents valid JSON with two spaces for each level.
@@ -7,50 +8,29 @@ const BYTE_ORDER_MARK = '﻿';
  * @returns The formatted JSON, or null if the code is not valid JSON.
  */
 export function formatJson(code: string): string | null {
-  const source = code.startsWith(BYTE_ORDER_MARK) ? code.slice(1) : code;
+  const source = code.replace(/^\uFEFF/, '');
   if (!isValidJson(source)) return null;
 
+  const tokens = source.match(JSON_TOKENS);
   let result = '';
   let depth = 0;
-  let index = 0;
-  const lineBreak = (): string => '\n' + JSON_INDENT.repeat(depth);
-
-  while (index < source.length) {
-    const character = source[index];
-    if (isWhitespace(character)) {
-      index++;
-    } else if (character === '"') {
-      const end = findStringEnd(source, index);
-      result += source.slice(index, end + 1);
-      index = end + 1;
-    } else if (character === '{' || character === '[') {
-      const closingIndex = findNextNonWhitespace(source, index + 1);
-      if (source[closingIndex] === closingBracketOf(character)) {
-        result += character + source[closingIndex];
-        index = closingIndex + 1;
-      } else {
-        depth++;
-        result += character + lineBreak();
-        index++;
-      }
-    } else if (character === '}' || character === ']') {
-      depth--;
-      result += lineBreak() + character;
-      index++;
-    } else if (character === ',') {
-      result += ',' + lineBreak();
-      index++;
-    } else if (character === ':') {
-      result += ': ';
-      index++;
-    } else {
-      const end = findLiteralEnd(source, index);
-      result += source.slice(index, end);
-      index = end;
+  tokens.forEach((token, index) => {
+    const previousToken = tokens[index - 1];
+    const isClosingBracket = token === '}' || token === ']';
+    if (isClosingBracket) depth--;
+    // A line break comes after an opening bracket, before a closing bracket and after a comma.
+    // An empty object or array stays on one line.
+    if (isOpeningBracket(previousToken) !== isClosingBracket || previousToken === ',') {
+      result += '\n' + JSON_INDENT.repeat(depth);
     }
-  }
-
+    result += token === ':' ? ': ' : token;
+    if (isOpeningBracket(token)) depth++;
+  });
   return result;
+}
+
+function isOpeningBracket(token: string): boolean {
+  return token === '{' || token === '[';
 }
 
 function isValidJson(code: string): boolean {
@@ -60,34 +40,6 @@ function isValidJson(code: string): boolean {
   } catch {
     return false;
   }
-}
-
-function isWhitespace(character: string): boolean {
-  return /\s/.test(character);
-}
-
-function findStringEnd(code: string, startIndex: number): number {
-  let index = startIndex + 1;
-  while (code[index] !== '"') {
-    index += code[index] === '\\' ? 2 : 1;
-  }
-  return index;
-}
-
-function findNextNonWhitespace(code: string, startIndex: number): number {
-  let index = startIndex;
-  while (isWhitespace(code[index])) index++;
-  return index;
-}
-
-function findLiteralEnd(code: string, startIndex: number): number {
-  let index = startIndex;
-  while (index < code.length && !/[\s,:[\]{}"]/.test(code[index])) index++;
-  return index;
-}
-
-function closingBracketOf(openingBracket: '{' | '['): '}' | ']' {
-  return openingBracket === '{' ? '}' : ']';
 }
 
 /**
