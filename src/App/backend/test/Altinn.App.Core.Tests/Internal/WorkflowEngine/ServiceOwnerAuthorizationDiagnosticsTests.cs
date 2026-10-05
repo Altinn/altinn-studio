@@ -61,35 +61,15 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     }
 
     [Fact]
-    public void Describes_The_App_Owner_The_Policy_File_And_The_Task_Actions()
+    public void Describes_The_App_Owner_The_Policy_File_And_The_Required_Actions()
     {
-        string description = ServiceOwnerAuthorizationDiagnostics.Describe(
-            new ApplicationMetadata("ttd/myapp"),
-            "Task_2",
-            "confirmation"
-        );
+        string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
 
         Assert.Contains("'ttd'", description, StringComparison.Ordinal);
         Assert.Contains("ttd/myapp", description, StringComparison.Ordinal);
         Assert.Contains("config/authorization/policy.xml", description, StringComparison.Ordinal);
         Assert.Contains("read, write", description, StringComparison.Ordinal);
-        // A confirmation task advances with 'confirm' only - naming it is the whole point.
-        Assert.Contains("Task_2", description, StringComparison.Ordinal);
-        Assert.Contains("[confirm]", description, StringComparison.Ordinal);
         Assert.Contains("v8 to v9 upgrade", description, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Describes_Without_A_Task_When_The_Process_Has_Ended()
-    {
-        string description = ServiceOwnerAuthorizationDiagnostics.Describe(
-            new ApplicationMetadata("ttd/myapp"),
-            currentTaskId: null,
-            altinnTaskType: null
-        );
-
-        Assert.Contains("config/authorization/policy.xml", description, StringComparison.Ordinal);
-        Assert.DoesNotContain("Advancing the current task", description, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -98,29 +78,10 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
         // Hook and service-task commands wrap exceptions from app-implemented handlers, so a 403 from
         // a platform call an app's own handler makes lands here too. The message may not assert that
         // the app's policy is at fault when it cannot know that.
-        string description = ServiceOwnerAuthorizationDiagnostics.Describe(
-            new ApplicationMetadata("ttd/myapp"),
-            "Task_1",
-            "data"
-        );
+        string description = ServiceOwnerAuthorizationDiagnostics.Describe(new ApplicationMetadata("ttd/myapp"));
 
         Assert.Contains("If it was one the app makes on its own behalf", description, StringComparison.Ordinal);
         Assert.Contains("your own handler makes is unrelated", description, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Sanitizes_The_Task_Values_It_Logs()
-    {
-        // The task id and type arrive with the callback payload.
-        string description = ServiceOwnerAuthorizationDiagnostics.Describe(
-            new ApplicationMetadata("ttd/myapp"),
-            "Task_1\r\nFATAL: forged log line",
-            "data"
-        );
-
-        Assert.DoesNotContain("\n", description, StringComparison.Ordinal);
-        Assert.DoesNotContain("\r", description, StringComparison.Ordinal);
-        Assert.Contains("Task_1FATAL: forged log line", description, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -36,62 +36,21 @@ public class ServiceOwnerPolicyUtilsTests
         await Verify(diagnostics);
     }
 
-    [Fact]
-    public void Payment_And_Signing_Tasks_Need_Nothing_Beyond_Write()
+    [Theory]
+    [InlineData("payment")]
+    [InlineData("signing")]
+    [InlineData("confirmation")]
+    [InlineData("pdfIfRequested")]
+    public void Any_Task_Type_Needs_Nothing_Beyond_Write_To_Advance(string taskType)
     {
-        // Storage authorizes both with 'pay'/'sign' OR 'write', so the baseline covers them. Demanding
-        // 'pay' or 'sign' from the app owner would be a false positive.
+        // Storage accepts 'write' from the app owner for a transition out of any task type.
+        // Demanding 'pay', 'sign', 'confirm' or a custom task-type action would be a false positive.
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_1", "payment"), new ProcessTask("Task_2", "signing"))
+            ProcessFixtures.Process(new ProcessTask("Task_1", taskType))
         );
 
         Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public async Task Confirmation_Task_Needs_Confirm_Which_Write_Does_Not_Cover()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "confirmation"))
-        );
-
-        Assert.Equal(["confirm"], Actions(diagnostics, MissingGrant));
-        await Verify(diagnostics);
-    }
-
-    [Fact]
-    public void A_Confirm_Grant_Scoped_To_The_Confirmation_Task_Is_Enough()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["confirm"], task: "Task_2")),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "confirmation"))
-        );
-
-        Assert.Empty(diagnostics);
-    }
-
-    [Fact]
-    public void A_Confirm_Grant_Scoped_To_Another_Task_Is_Not()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["confirm"], task: "Task_9")),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "confirmation"))
-        );
-
-        Assert.Equal(["confirm"], Actions(diagnostics, MissingGrant));
-    }
-
-    [Fact]
-    public void Custom_Task_Type_Needs_An_Action_Named_After_It()
-    {
-        var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
-            ProcessFixtures.Process(new ProcessTask("Task_1", "pdfIfRequested"))
-        );
-
-        Assert.Equal(["pdfIfRequested"], Actions(diagnostics, MissingGrant));
     }
 
     [Fact]
@@ -104,6 +63,28 @@ public class ServiceOwnerPolicyUtilsTests
 
         Assert.Equal(["reject"], Actions(diagnostics, MissingGrant));
         await Verify(diagnostics);
+    }
+
+    [Fact]
+    public void A_Reject_Grant_Scoped_To_The_Rejecting_Task_Is_Enough()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["reject"], task: "Task_2")),
+            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void A_Reject_Grant_Scoped_To_Another_Task_Is_Not()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules, PolicyFixtures.OrgRule(["reject"], task: "Task_9")),
+            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
+        );
+
+        Assert.Equal(["reject"], Actions(diagnostics, MissingGrant));
     }
 
     [Fact]
@@ -333,16 +314,16 @@ public class ServiceOwnerPolicyUtilsTests
             PolicyFixtures.Policy(
                 PolicyFixtures.StandardOrgRules,
                 PolicyFixtures.OrgRule(
-                    ["confirm"],
+                    ["reject"],
                     task: "Task_.*",
                     taskMatchId: "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match"
                 )
             ),
-            ProcessFixtures.Process(new ProcessTask("Task_2", "confirmation"))
+            ProcessFixtures.Process(new ProcessTask("Task_2", "data", Actions: ["reject"]))
         );
 
         Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
-        Assert.Equal(["confirm"], Actions(diagnostics, NotVerifiable));
+        Assert.Equal(["reject"], Actions(diagnostics, NotVerifiable));
     }
 
     [Fact]
@@ -402,13 +383,13 @@ public class ServiceOwnerPolicyUtilsTests
     [Fact]
     public void A_Task_Without_An_Id_Does_Not_Borrow_The_Process_Id_As_Its_Scope()
     {
-        // The policy grants 'confirm' scoped to the enclosing process id. That must not satisfy a
-        // confirmation task's requirement - and equally must not be reported as definitely missing,
+        // The policy grants 'reject' scoped to the enclosing process id. That must not satisfy a
+        // rejecting task's requirement - and equally must not be reported as definitely missing,
         // since there is no task id to compare a scope against at all.
         var diagnostics = Collect(
             PolicyFixtures.Policy(
                 PolicyFixtures.StandardOrgRules,
-                PolicyFixtures.OrgRule(["confirm"], task: "Process_1")
+                PolicyFixtures.OrgRule(["reject"], task: "Process_1")
             ),
             """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -418,7 +399,8 @@ public class ServiceOwnerPolicyUtilsTests
                 <bpmn:task>
                   <bpmn:extensionElements>
                     <altinn:taskExtension>
-                      <altinn:taskType>confirmation</altinn:taskType>
+                      <altinn:taskType>data</altinn:taskType>
+                      <altinn:actions><altinn:action>reject</altinn:action></altinn:actions>
                     </altinn:taskExtension>
                   </bpmn:extensionElements>
                 </bpmn:task>
@@ -430,7 +412,7 @@ public class ServiceOwnerPolicyUtilsTests
 
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal(NotVerifiable, diagnostic.Id);
-        Assert.Equal(["confirm"], Actions(diagnostics, NotVerifiable));
+        Assert.Equal(["reject"], Actions(diagnostics, NotVerifiable));
     }
 
     [Fact]

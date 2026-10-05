@@ -163,17 +163,6 @@ internal static class ServiceOwnerPolicyUtils
             var scope = task.Id is null ? null : new HashSet<string>(StringComparer.Ordinal) { task.Id };
             var taskLabel = task.Id is null ? $"a '{task.TaskType}' task" : $"the '{task.TaskType}' task '{task.Id}'";
 
-            if (!ServiceOwnerActions.IsCoveredByWrite(task.TaskType))
-            {
-                requirements.Add(
-                    new Requirement(
-                        ServiceOwnerActions.ProcessNextActionsForTaskType(task.TaskType),
-                        scope,
-                        $"advances {taskLabel}"
-                    )
-                );
-            }
-
             if (task.AllowsReject)
             {
                 requirements.Add(new Requirement(ServiceOwnerActions.Reject, scope, $"abandons {taskLabel} on reject"));
@@ -208,8 +197,8 @@ internal static class ServiceOwnerPolicyUtils
     }
 
     /// <summary>
-    /// Collapses requirements that ask the same question - several tasks of the same type, or a
-    /// process with repeated confirmation tasks - keeping the first one's wording.
+    /// Collapses requirements that ask the same question - several tasks of the same type, for
+    /// example - keeping the first one's wording.
     /// </summary>
     private static List<Requirement> Deduplicate(List<Requirement> requirements)
     {

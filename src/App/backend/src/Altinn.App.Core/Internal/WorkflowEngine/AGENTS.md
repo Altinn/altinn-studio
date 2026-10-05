@@ -435,7 +435,7 @@ All data saves during callbacks use `StorageAuthenticationMethod.ServiceOwner()`
 
 **Design**: The app (ServiceOwner) performs all data writes during process transitions. The user authorized the action (e.g., "confirm", "reject") at the ProcessNext API entry point. After that, the app executes the transition as ServiceOwner. This means:
 
-- **policy.xml must grant ServiceOwner write rights on all tasks** — this is a prerequisite for the workflow engine
+- **policy.xml must grant ServiceOwner write rights on all tasks** — this is a prerequisite for the workflow engine. Storage accepts `write` from the app owner for a transition out of any task type, so no task-type action (`confirm`, a custom type's name) is needed; `reject` still is, on tasks that can be abandoned
 - Storage's authorization service checks the ServiceOwner identity (from the token), not the original user
 - The task in Storage's XACML resource comes from `instance.Process.CurrentTask` as persisted in Storage's DB
 
