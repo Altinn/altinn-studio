@@ -17,6 +17,7 @@ from agents.prompts import get_prompt_with_langfuse
 from shared.utils.logging_utils import get_logger
 
 from .llm_client import get_llm_client
+from .recent_turns import prepend_recent_turns
 
 log = get_logger(__name__)
 
@@ -27,32 +28,10 @@ class ScopeCheckResult(BaseModel):
     reason: str | None = None
 
 
-CONTEXT_TURNS = 4
-CONTEXT_CHARS_PER_TURN = 400
-
-
 def build_scope_check_message(query: str, conversation: Sequence[Any] | None = None) -> str:
     """The user message the scope classifier sees, as a value so a dataset can
     send exactly what production sends."""
-    recent = _recent_turns(conversation)
-    if not recent:
-        return f"Classify this question: {query}"
-    return f"Recent conversation, oldest first, for judging a follow-up:\n{recent}\n\nClassify this question: {query}"
-
-
-def _recent_turns(conversation: Sequence[Any] | None) -> str:
-    lines = []
-    for turn in list(conversation or [])[-CONTEXT_TURNS:]:
-        role = _field(turn, "role")
-        text = _field(turn, "content") or _field(turn, "text")
-        if role and text:
-            lines.append(f"{role}: {text[:CONTEXT_CHARS_PER_TURN]}")
-    return "\n".join(lines)
-
-
-def _field(turn: Any, name: str) -> str:
-    value = turn.get(name) if isinstance(turn, dict) else getattr(turn, name, None)
-    return value if isinstance(value, str) else ""
+    return prepend_recent_turns(f"Classify this question: {query}", conversation)
 
 
 async def check_scope_async(query: str, conversation_history: Sequence[Any] | None = None) -> ScopeCheckResult:

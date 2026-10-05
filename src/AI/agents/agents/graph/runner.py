@@ -233,7 +233,9 @@ async def _validate_intent(state: AgentState):
 
     Read-only runs are held back structurally rather than by this gate.
     """
-    parsed = await parse_intent_async(state.user_goal, attachments=state.attachments)
+    parsed = await parse_intent_async(
+        state.user_goal, attachments=state.attachments, conversation=state.conversation_history
+    )
 
     if parsed.action == GATE_FAILED_ACTION:
         _log.error("Intent gate could not run for session %s: %s", state.session_id, parsed.reason)

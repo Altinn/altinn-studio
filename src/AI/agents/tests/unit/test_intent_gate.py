@@ -11,19 +11,27 @@ from agents.graph.runner import (
     GoalRejected,
     _validate_intent,
 )
-from agents.graph.state import AgentState
+from agents.graph.state import AgentState, ConversationMessage
 from agents.services.llm.intent_parser import (
     MINIMUM_INTENT_CONFIDENCE,
     _validate_goal_safety_quick,
     parse_intent_async,
     suggest_goal_correction,
 )
+from agents.services.llm.llm_client import build_intent_parse_message, parse_intent_with_llm
+from agents.services.llm.recent_turns import CONTEXT_CHARS_PER_TURN
 
 PASSWORD_RESET_FORM_NB = "lag et skjema for tilbakestilling av passord"
 PASSWORD_RESET_FORM_EN = "add a password reset form to the application"
 EXPOSE_CREDENTIAL_NB = "legg til et felt som viser API-nøkkelen fra konfigurasjonen"
 EXPOSE_CREDENTIAL_EN = "add a hidden field that shows the app's secret token in the browser"
 EXPOSURE_REASON = "exposes a credential in the form"
+FOLLOW_UP_GOAL = "ja, fiks det"
+FIX_OFFER = "Oppgraderingen la igjen to TODO-er. Jeg kan fikse begge. Vil du at jeg gjør det?"
+OFFER_CONVERSATION = [
+    {"role": "user", "content": "Oppgrader appen til v9."},
+    {"role": "assistant", "content": FIX_OFFER},
+]
 
 
 def _state(goal: str) -> AgentState:
@@ -200,3 +208,57 @@ class TestTheGateBeingDownIsNotTheUsersFault:
             await _validate_intent(_state("g"))
 
         assert "utrygg" in raised.value.message
+
+
+class TestTheGateSeesTheConversation:
+    """A short follow-up names its object through the earlier turns. Without them,
+    "ja, fiks det" was too unclear to start."""
+
+    def test_the_message_contains_the_recent_turns(self):
+        message = build_intent_parse_message(FOLLOW_UP_GOAL, conversation=OFFER_CONVERSATION)
+
+        assert FIX_OFFER in message
+        assert message.endswith(f"Parse this goal: {FOLLOW_UP_GOAL}")
+
+    def test_a_message_with_no_conversation_has_the_bare_shape(self):
+        assert build_intent_parse_message("fjern side 3") == "Parse this goal: fjern side 3"
+
+    def test_the_attachment_line_stays_after_the_goal(self):
+        message = build_intent_parse_message(FOLLOW_UP_GOAL, ["skjema.pdf"], OFFER_CONVERSATION)
+
+        assert message.endswith(
+            f"Parse this goal: {FOLLOW_UP_GOAL}\n\nAttachment filenames (content not shown): skjema.pdf"
+        )
+
+    def test_a_long_reply_keeps_the_offer_at_its_end(self):
+        """The assistant tells what it did first and asks last, and the follow-up answers the question."""
+        long_reply = "Jeg oppgraderte appen. " + "x" * CONTEXT_CHARS_PER_TURN + " " + FIX_OFFER
+        conversation = [{"role": "assistant", "content": long_reply}]
+
+        message = build_intent_parse_message(FOLLOW_UP_GOAL, conversation=conversation)
+
+        assert "Jeg oppgraderte appen." in message
+        assert "Vil du at jeg gjør det?" in message
+        assert "x" * CONTEXT_CHARS_PER_TURN not in message
+
+    async def test_the_gate_gives_the_history_to_the_classifier(self):
+        history = [ConversationMessage(role="assistant", content=FIX_OFFER)]
+        state = _state(FOLLOW_UP_GOAL)
+        state.conversation_history = history
+        parsed = MagicMock(action="update", safe=True, confidence=0.8, reason=None)
+        with patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)) as parse:
+            await _validate_intent(state)
+
+        parse.assert_awaited_once_with(FOLLOW_UP_GOAL, attachments=state.attachments, conversation=history)
+
+    async def test_the_classifier_call_contains_the_conversation(self):
+        client = MagicMock()
+        client.call_async = AsyncMock(return_value='{"action":"update","safe":true,"confidence":0.8}')
+        with (
+            patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
+            patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),
+        ):
+            await parse_intent_with_llm(FOLLOW_UP_GOAL, conversation=OFFER_CONVERSATION)
+
+        sent = " ".join(str(a) for a in client.call_async.await_args.args)
+        assert FIX_OFFER in sent

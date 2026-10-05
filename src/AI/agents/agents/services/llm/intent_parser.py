@@ -2,6 +2,8 @@
 
 # TODO: Not sure if this is necessary at all
 import asyncio
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -34,7 +36,11 @@ class IntentParsingError(Exception):
     pass
 
 
-async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | None = None) -> ParsedIntent:
+async def parse_intent_async(
+    goal: str,
+    attachments: list[AgentAttachment] | None = None,
+    conversation: Sequence[Any] | None = None,
+) -> ParsedIntent:
     """Parse user goal into structured intent using LLM with safety checks"""
 
     # Quick safety check before LLM processing
@@ -50,7 +56,7 @@ async def parse_intent_async(goal: str, attachments: list[AgentAttachment] | Non
         )
 
     try:
-        result = await parse_intent_with_llm(goal, attachments=attachments)
+        result = await parse_intent_with_llm(goal, attachments=attachments, conversation=conversation)
 
         # Validate LLM response structure
         parsed = ParsedIntent(
