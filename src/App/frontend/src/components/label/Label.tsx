@@ -27,6 +27,8 @@ export type LabelProps = PropsWithChildren<{
   className?: string;
   overrideId?: string;
   textResourceBindings?: ExprResolved<TRBLabel>;
+  /** Leaves out the required/optional tags, for headings that only name the field, such as in a summary. */
+  hideIndicators?: boolean;
 }> &
   DesignsystemetLabelProps;
 
@@ -50,6 +52,7 @@ export function LabelInner(props: LabelInnerProps) {
     renderLabelAs,
     className,
     textResourceBindings: overriddenTrb,
+    hideIndicators,
     ...designsystemetLabelProps
   } = props;
 
@@ -96,7 +99,7 @@ export function LabelInner(props: LabelInnerProps) {
     label: title,
     description,
     help,
-    required,
+    required: hideIndicators ? undefined : required,
     readOnly,
     labelSettings,
   };

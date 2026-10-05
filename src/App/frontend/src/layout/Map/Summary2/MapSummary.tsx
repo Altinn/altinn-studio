@@ -78,6 +78,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
           <Label
             baseComponentId={targetBaseComponentId}
             renderLabelAs='span'
+            hideIndicators
             textResourceBindings={{ title }}
           />
           {!readOnly && (
