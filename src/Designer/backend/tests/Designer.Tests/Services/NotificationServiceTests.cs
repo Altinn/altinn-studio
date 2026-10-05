@@ -421,12 +421,165 @@ public class NotificationServiceTests
         );
     }
 
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_ShouldOnlyNotifyContactPointsWithTheReportFrequency()
+    {
+        SetupReportContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "weekly@example.com" }],
+                    ReportFrequency.Weekly
+                ),
+                BuildContactPoint(
+                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "daily@example.com" }],
+                    ReportFrequency.Daily
+                ),
+            ]
+        );
+        var service = CreateService();
+
+        await service.NotifyReportContactPointsAsync(
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            ReportFrequency.Weekly,
+            BuildReportPayload(),
+            CancellationToken.None
+        );
+
+        _notificationClient.Verify(
+            c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    "weekly@example.com",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _notificationClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_ShouldRenderTheTableForEveryContactMethod()
+    {
+        string emailBody = null;
+        string smsBody = null;
+        SlackMessage slackMessage = null;
+        _notificationClient
+            .Setup(c =>
+                c.SendEmailNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<EmailContentType>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string, string, EmailContentType, SendingTime, CancellationToken>(
+                (_, _, _, body, _, _, _) => emailBody = body
+            );
+        _notificationClient
+            .Setup(c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string, SendingTime, CancellationToken>((_, _, body, _, _) => smsBody = body);
+        _slackClient
+            .Setup(c => c.SendMessageAsync(It.IsAny<Uri>(), It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .Callback<Uri, SlackMessage, CancellationToken>((_, message, _) => slackMessage = message);
+        SetupReportContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    [
+                        new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" },
+                        new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000001" },
+                        new ContactMethodEntity
+                        {
+                            MethodType = ContactMethodType.Slack,
+                            Value = s_contactSlackWebhook.ToString(),
+                        },
+                    ],
+                    ReportFrequency.Daily
+                ),
+            ]
+        );
+        var service = CreateService();
+
+        await service.NotifyReportContactPointsAsync(
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            ReportFrequency.Daily,
+            BuildReportPayload(),
+            CancellationToken.None
+        );
+
+        Assert.Contains(">App</th>", emailBody);
+        Assert.Contains(">Versjon</th>", emailBody);
+        Assert.Contains(">app-&lt;one&gt;</td>", emailBody);
+        Assert.Contains(">–</td>", emailBody);
+        Assert.Contains(">3</td>", emailBody);
+        Assert.DoesNotContain("❌", emailBody);
+
+        Assert.EndsWith(
+            "app-<one>\nFeilende process/next: 3\n\napp-two\nVersjon: 1.2.0\nFeilende process/next: 0",
+            smsBody
+        );
+
+        Assert.Contains(
+            slackMessage.Blocks,
+            block =>
+                block.Text?.Text
+                == "*app-<one>*\n• Feilende process/next: `3`\n\n*app-two*\n• Versjon: `1.2.0`\n• Feilende process/next: `0`"
+        );
+    }
+
+    private void SetupReportContactPoints(
+        string org,
+        string environment,
+        IReadOnlyList<ContactPointEntity> contactPoints
+    ) =>
+        _contactPointsRepository
+            .Setup(r => r.GetActiveReportContactPointsAsync(org, environment, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(contactPoints);
+
+    private static NotificationPayload BuildReportPayload() =>
+        new(
+            "report-id",
+            "Altinn Studio - daglig rapport",
+            [("Organisasjon", "ttd")],
+            [],
+            Table: new NotificationTable(
+                ["App", "Versjon", "Feilende process/next"],
+                [
+                    ["app-<one>", null, "3"],
+                    ["app-two", "1.2.0", "0"],
+                ]
+            )
+        );
+
     private void SetupContactPoints(string org, string environment, IReadOnlyList<ContactPointEntity> contactPoints) =>
         _contactPointsRepository
             .Setup(r => r.GetActiveByOrgAndEnvironmentAsync(org, environment, It.IsAny<CancellationToken>()))
             .ReturnsAsync(contactPoints);
 
-    private static ContactPointEntity BuildContactPoint(List<ContactMethodEntity> methods) =>
+    private static ContactPointEntity BuildContactPoint(
+        List<ContactMethodEntity> methods,
+        ReportFrequency reportFrequency = ReportFrequency.None
+    ) =>
         new()
         {
             Id = Guid.NewGuid(),
@@ -435,6 +588,7 @@ public class NotificationServiceTests
             IsActive = true,
             Environments = ["tt02"],
             Methods = methods,
+            ReportFrequency = reportFrequency,
         };
 
     private static NotificationPayload BuildPayload(string uniqueId = "payload-id-1") =>

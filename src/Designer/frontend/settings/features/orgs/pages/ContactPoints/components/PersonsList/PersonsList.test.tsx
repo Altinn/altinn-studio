@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -22,6 +22,7 @@ const person1: ContactPoint = {
   name: 'Test 1',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [
     { id: 'm1', methodType: 'email', value: 'test@example.com' },
     { id: 'm2', methodType: 'sms', value: '12345678' },
@@ -33,6 +34,7 @@ const person2: ContactPoint = {
   name: 'Test 2',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm3', methodType: 'email', value: 'bob@example.com' }],
 };
 
@@ -79,6 +81,17 @@ describe('PersonsList', () => {
     renderPersonsList({ persons: [person1] });
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
     expect(screen.getByText('12345678')).toBeInTheDocument();
+  });
+
+  it('renders the report frequency, or a placeholder when the person gets no reports', () => {
+    renderPersonsList({ persons: [{ ...person1, reportFrequency: 'weekly' }, person2] });
+    const getRow = (name: string) => screen.getByRole('row', { name: new RegExp(name) });
+    expect(
+      within(getRow('Test 1')).getByText(
+        textMock('settings.orgs.contact_points.report_frequency_weekly'),
+      ),
+    ).toBeInTheDocument();
+    expect(within(getRow('Test 2')).getByText('–')).toBeInTheDocument();
   });
 
   it('renders a switch for each person with their name as aria-label', () => {

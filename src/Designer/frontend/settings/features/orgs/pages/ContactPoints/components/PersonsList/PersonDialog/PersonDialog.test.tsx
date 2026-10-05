@@ -14,6 +14,7 @@ const defaultPerson: Person = {
   phone: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {
@@ -54,6 +55,10 @@ const getEmailInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_email') });
 const getPhoneInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
+  });
 
 describe('PersonDialog', () => {
   afterEach(() => jest.clearAllMocks());
@@ -103,6 +108,19 @@ describe('PersonDialog', () => {
     );
   });
 
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+    });
+    await user.selectOptions(getReportFrequencySelect(), 'weekly');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'weekly' }),
+    );
+  });
+
   it('calls updateContactPoint when saving an edited person', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
@@ -112,6 +130,7 @@ describe('PersonDialog', () => {
         phone: '',
         isActive: true,
         environments: [],
+        reportFrequency: 'none',
       },
       editingId: 'person-1',
     });

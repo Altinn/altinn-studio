@@ -9,7 +9,10 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
+  StudioSelect,
 } from '@studio/components';
+import type { ReportFrequency } from 'app-shared/types/ContactPoint';
+import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './SlackChannelDialog.module.css';
 import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
@@ -25,6 +28,7 @@ export type SlackChannel = {
   webhookUrl: string;
   isActive: boolean;
   environments: string[];
+  reportFrequency: ReportFrequency;
 };
 
 type SlackChannelDialogProps = {
@@ -128,6 +132,22 @@ export const SlackChannelDialog = ({
             error={webhookUrlError}
             tagText={t('general.required')}
           />
+          <StudioSelect
+            label={t('settings.orgs.contact_points.field_report_frequency')}
+            value={channel.reportFrequency}
+            onChange={(e) =>
+              setChannel((prev) => ({
+                ...prev,
+                reportFrequency: e.target.value as ReportFrequency,
+              }))
+            }
+          >
+            {reportFrequencies.map((frequency) => (
+              <StudioSelect.Option key={frequency} value={frequency}>
+                {t(`settings.orgs.contact_points.report_frequency_${frequency}`)}
+              </StudioSelect.Option>
+            ))}
+          </StudioSelect>
           <StudioCheckboxGroup
             legend={t('settings.orgs.contact_points.field_environments')}
             className={classes.environments}
