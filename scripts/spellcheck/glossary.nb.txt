@@ -78,6 +78,7 @@ filbane
 filbanen
 filendelse
 filendringene
+filinnhold
 filopplastingskomponent
 filopplastingskomponenter
 filskanning
@@ -117,6 +118,7 @@ kontogjenoppretting
 kvitteringsside
 lagringsnavn
 låsstatus
+mappesti
 medieposisjon
 medlemsprofil
 metadataene
