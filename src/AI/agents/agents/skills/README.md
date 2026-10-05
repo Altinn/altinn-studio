@@ -25,6 +25,7 @@ directly.
 | altinn-expressions | Dynamic expressions: array expressions for hidden, required, readOnly |
 | altinn-planning    | Plan an app change: files for each task type, sequence, validation    |
 | altinn-docs        | Find pages on docs.altinn.studio with the curated llms.txt index      |
+| altinn-upgrade     | Fix the TODOs and blockers that the v9 upgrade leaves                 |
 
 ## Add a skill
 

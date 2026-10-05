@@ -18,6 +18,16 @@ from agents.services.git import git_ops
 
 from ._write_base import WriteToolMixin
 
+# `upgrade_app_to_v9` sets this while the changes of the turn are fixes for an upgrade that did not complete.
+# The fixes have no use without the upgrade, so they are not committed alone.
+UNFINISHED_UPGRADE_FIXES = "unfinished_upgrade_fixes"
+
+_UNFINISHED_UPGRADE_FIXES_MESSAGE = (
+    "Refusing to commit: these changes are fixes for a v9 upgrade that did not complete.  "
+    "Fix the remaining blockers and run `upgrade_app_to_v9` again, or stop and tell the user "
+    "what blocks the upgrade.  The end of the turn discards the fixes."
+)
+
 
 def unverified_changed_files(ctx: LoopContext) -> set[str]:
     """Return changed files that haven't been verified since their last edit.
@@ -79,6 +89,9 @@ class CommitSessionBranchTool(WriteToolMixin[CommitSessionBranchArgs]):
     is_concurrency_safe = False
 
     async def run(self, args: CommitSessionBranchArgs, ctx: LoopContext) -> ToolResult:
+        if ctx.extras.get(UNFINISHED_UPGRADE_FIXES):
+            return ToolResult(content=_UNFINISHED_UPGRADE_FIXES_MESSAGE, is_error=True)
+
         unverified = unverified_changed_files(ctx)
         if unverified:
             return ToolResult(

@@ -28,6 +28,7 @@ from agents.core import (
     VerifyChangesTool,
 )
 from agents.core.tools import _dotnet_queue, verify_tool
+from agents.core.tools.git_tool import UNFINISHED_UPGRADE_FIXES
 
 from .git_repo import create_committed_repo, write_files
 
@@ -735,6 +736,28 @@ class TestCommitSessionBranch:
         assert result.is_error
         assert "deadbeef" in result.content
         assert "rejected" in result.content.lower()
+
+    async def test_refuses_fixes_for_an_upgrade_that_did_not_complete(self, monkeypatch):
+        called: dict[str, Any] = {}
+
+        def fake_commit(*args, **kwargs):
+            called["commit"] = True
+            return "abc12345"
+
+        monkeypatch.setattr("agents.core.tools.git_tool.git_ops.commit", fake_commit)
+        ctx = _write_ctx(
+            changed={"App/ui/form/RuleConfiguration.json"}, verified={"App/ui/form/RuleConfiguration.json"}
+        )
+        ctx.extras[UNFINISHED_UPGRADE_FIXES] = True
+
+        result = await CommitSessionBranchTool().run(
+            CommitSessionBranchTool.input_schema.model_validate({"message": "fix: unblock the upgrade"}),
+            ctx,
+        )
+
+        assert result.is_error
+        assert "did not complete" in result.content
+        assert "commit" not in called
 
     async def test_refuses_when_changed_files_have_not_been_verified(self, monkeypatch):
         # git_ops.commit must NOT be called when the gate fires.

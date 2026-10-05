@@ -2,7 +2,8 @@
 
 The tool runs `studioctl app upgrade`; the `_run_studioctl_upgrade` seam is
 monkeypatched so these run without studioctl.  The fakes change a real git repo
-the way studioctl does.
+the way studioctl does.  With `--allow-dirty`, studioctl does not stage its
+changes, so the fakes do not stage them either.
 """
 
 from __future__ import annotations
@@ -18,6 +19,9 @@ import pytest
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE, AppVersionProfile
 from agents.core import LoopContext, UpgradeAppToV9Tool, VerifyChangesTool
 from agents.core.tool import Tool
+from agents.core.tools import upgrade_app_tool
+from agents.core.tools.git_tool import UNFINISHED_UPGRADE_FIXES
+from agents.core.tools.upgrade_app_tool import discard_unfinished_upgrade_fixes
 
 from .git_repo import create_committed_repo, git, write_files
 
@@ -106,12 +110,9 @@ def _stub_upgrade_that_edits_repo(monkeypatch, edit_repo: Callable[[], None], ex
 
 
 def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> Callable[[], None]:
-    """Mimics studioctl: change the app, then stage every change."""
-
     def upgrade() -> None:
         write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE})
         (repo / "App/ui/layout-sets.json").unlink()
-        git(repo, "add", "-A")
 
     return upgrade
 
@@ -135,7 +136,7 @@ def _upgrade_that_fails_halfway_and_leaves_the_index_locked(repo: Path) -> Calla
 
 def _upgrade_that_renames_the_layout_sets_file(repo: Path) -> Callable[[], None]:
     def upgrade() -> None:
-        git(repo, "mv", "App/ui/layout-sets.json", "App/ui/layout-sets.old.json")
+        (repo / "App/ui/layout-sets.json").rename(repo / "App/ui/layout-sets.old.json")
 
     return upgrade
 
@@ -146,7 +147,6 @@ _CREATED_FILE_WITH_SPACE_AND_NORWEGIAN_LETTER = "App/ui/søknad/layouts/Side 1.j
 def _upgrade_that_creates_a_file_with_a_space_and_a_norwegian_letter(repo: Path) -> Callable[[], None]:
     def upgrade() -> None:
         write_files(repo, {_CREATED_FILE_WITH_SPACE_AND_NORWEGIAN_LETTER: "{}"})
-        git(repo, "add", "-A")
 
     return upgrade
 
@@ -156,7 +156,6 @@ def _upgrade_that_fixes_a_v9_app(repo: Path) -> Callable[[], None]:
 
     def upgrade() -> None:
         write_files(repo, {"App/ui/Settings.json": '{"hideCloseButton": true}'})
-        git(repo, "add", "-A")
 
     return upgrade
 
@@ -181,18 +180,18 @@ def _upgrade_that_generates_a_data_processor(repo: Path) -> Callable[[], None]:
             },
         )
         (repo / "App/ui/layout-sets.json").unlink()
-        git(repo, "add", "-A")
 
     return upgrade
 
 
-def _stub_held_back_upgrade(monkeypatch, repo: Path) -> None:
+def _stub_held_back_upgrade(monkeypatch, repo: Path, *, stages_its_changes: bool = False) -> None:
     """Mimics studioctl holding back a layout set: the project file is on v9,
     but layout-sets.json stays, and a rule is reported as a TODO."""
 
     async def fake_run(project_folder: str) -> subprocess.CompletedProcess[str]:
         write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
-        git(repo, "add", "-A")
+        if stages_its_changes:
+            git(repo, "add", "-A")
         return _studioctl_result(
             {
                 **_SUCCESS_PAYLOAD,
@@ -517,7 +516,7 @@ class TestUpgradeAppToV9:
 
         result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
 
-        assert "nothing was changed" in result.content
+        assert "the upgrade changed nothing" in result.content
         assert _UNCONVERTED_RULE_TODO in result.content
 
     async def test_held_back_upgrade_leaves_out_the_steps_it_rolled_back(self, monkeypatch, tmp_path: Path):
@@ -637,3 +636,207 @@ class TestUpgradeAppToV9:
         )
         assert result.allowed is False
         assert result.escalatable is True
+
+
+_RULE_CONFIGURATION = "App/ui/form/RuleConfiguration.json"
+_FIXED_RULE_CONFIGURATION = '{"data": {"conditionalRendering": {}}}'
+_NEW_DATA_PROCESSOR = "App/logic/Rules/SumProcessor.cs"
+_HELD_BACK_V8_APP_FILES = {
+    **_V8_APP_FILES,
+    _RULE_CONFIGURATION: '{"data": {"conditionalRendering": {"hideAddress": {}}}}',
+}
+
+
+def _make_fix(repo: Path, ctx: LoopContext, files: dict[str, str], *, verified: bool = True) -> None:
+    """The model changes files to unblock the upgrade, as `edit_file` and `verify_changes` record them."""
+    write_files(repo, files)
+    ctx.extras.setdefault("changed_files", set()).update(files)
+    if verified:
+        ctx.extras.setdefault("verified_files", set()).update(files)
+
+
+def _staged_paths(repo: Path) -> set[str]:
+    completed = subprocess.run(
+        ["git", "diff", "--cached", "--name-only"], cwd=repo, check=True, capture_output=True, text=True
+    )
+    return set(completed.stdout.split())
+
+
+class TestFixesForAHeldBackUpgrade:
+    async def test_the_upgrade_runs_on_top_of_verified_fixes_from_this_turn(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION, _NEW_DATA_PROCESSOR: "class Sum {}"})
+        recorder: list[str] = []
+        _stub_studioctl(
+            monkeypatch,
+            _studioctl_result(_SUCCESS_PAYLOAD),
+            recorder=recorder,
+            edit_repo=_upgrade_that_bumps_csproj_and_deletes_layout_sets(repo),
+        )
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert not result.is_error
+        assert recorder == [str(repo)]
+        assert _staged_paths(repo) == {
+            "App/App.csproj",
+            "App/ui/layout-sets.json",
+            _RULE_CONFIGURATION,
+            _NEW_DATA_PROCESSOR,
+        }
+
+    async def test_a_fix_that_is_not_verified_stops_the_upgrade(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION}, verified=False)
+        recorder: list[str] = []
+        _stub_studioctl(monkeypatch, _studioctl_result(_SUCCESS_PAYLOAD), recorder=recorder)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert result.is_error
+        assert "verify_changes" in result.content
+        assert _RULE_CONFIGURATION in result.content
+        assert recorder == []
+
+    async def test_a_held_back_upgrade_keeps_the_fixes_and_discards_its_own_changes(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION, _NEW_DATA_PROCESSOR: "class Sum {}"})
+        _stub_held_back_upgrade(monkeypatch, repo)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert result.is_error
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
+        assert not (repo / "App/ui/Task_1").exists()
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _FIXED_RULE_CONFIGURATION
+        assert (repo / _NEW_DATA_PROCESSOR).exists()
+        assert ctx.extras[UNFINISHED_UPGRADE_FIXES] is True
+        assert "Your changes from this turn are kept" in result.content
+
+    async def test_a_held_back_upgrade_that_staged_its_changes_is_discarded_too(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION})
+        _stub_held_back_upgrade(monkeypatch, repo, stages_its_changes=True)
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
+        assert not (repo / "App/ui/Task_1").exists()
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _FIXED_RULE_CONFIGURATION
+
+    async def test_a_failed_upgrade_keeps_the_fixes(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION})
+        _stub_upgrade_that_edits_repo(monkeypatch, _upgrade_that_fails_halfway(repo), exit_code=_EXIT_ERROR)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert result.is_error
+        assert (repo / "App/App.csproj").read_text(encoding="utf-8") == _V8_PROJECT_FILE
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _FIXED_RULE_CONFIGURATION
+        assert ctx.extras[UNFINISHED_UPGRADE_FIXES] is True
+
+    async def test_a_held_back_upgrade_with_no_fixes_asks_for_an_offer(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _stub_held_back_upgrade(monkeypatch, repo)
+
+        result = await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert "skill(altinn-upgrade)" in result.content
+        assert UNFINISHED_UPGRADE_FIXES not in ctx.extras
+
+    async def test_a_completed_upgrade_clears_the_unfinished_fixes(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION})
+        ctx.extras[UNFINISHED_UPGRADE_FIXES] = True
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
+        )
+
+        await _run(UpgradeAppToV9Tool(), ctx)
+
+        assert UNFINISHED_UPGRADE_FIXES not in ctx.extras
+
+    async def test_a_completed_upgrade_with_todos_asks_for_an_offer(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch,
+            _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo),
+            exit_code=_EXIT_MANUAL_ACTION_REQUIRED,
+        )
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "skill(altinn-upgrade)" in result.content
+
+    async def test_a_rerun_that_changes_nothing_but_has_todos_asks_for_an_offer(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V9_APP_FILES)
+        _stub_studioctl(monkeypatch, _studioctl_result({**_SUCCESS_PAYLOAD, "exitCode": _EXIT_MANUAL_ACTION_REQUIRED}))
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo, app_version_profile=V9_PROFILE))
+
+        assert "up to date" in result.content
+        assert "skill(altinn-upgrade)" in result.content
+
+    async def test_a_completed_upgrade_without_todos_makes_no_offer(self, monkeypatch, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _V8_APP_FILES)
+        _stub_upgrade_that_edits_repo(
+            monkeypatch, _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo), exit_code=0
+        )
+
+        result = await _run(UpgradeAppToV9Tool(), _ctx(repo))
+
+        assert "skill(altinn-upgrade)" not in result.content
+
+
+class TestTheStudioctlCommand:
+    async def test_studioctl_runs_on_a_working_tree_with_changes(self, monkeypatch):
+        commands: list[tuple[str, ...]] = []
+
+        class _FinishedProcess:
+            async def communicate(self):
+                return b"{}", b""
+
+            async def wait(self):
+                return 0
+
+        async def fake_exec(*command, **kwargs):
+            commands.append(command)
+            return _FinishedProcess()
+
+        monkeypatch.setattr(upgrade_app_tool.asyncio, "create_subprocess_exec", fake_exec)
+
+        await upgrade_app_tool._run_studioctl_upgrade("/repo")
+
+        assert "--allow-dirty" in commands[0]
+
+
+class TestDiscardUnfinishedUpgradeFixes:
+    def test_puts_back_the_tree_of_head(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION, _NEW_DATA_PROCESSOR: "class Sum {}"})
+        ctx.extras[UNFINISHED_UPGRADE_FIXES] = True
+
+        assert discard_unfinished_upgrade_fixes(ctx) is True
+
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _HELD_BACK_V8_APP_FILES[_RULE_CONFIGURATION]
+        assert not (repo / _NEW_DATA_PROCESSOR).exists()
+        assert ctx.extras["changed_files"] == set()
+        assert UNFINISHED_UPGRADE_FIXES not in ctx.extras
+
+    def test_keeps_changes_that_are_not_unfinished_fixes(self, tmp_path: Path):
+        repo = create_committed_repo(tmp_path, _HELD_BACK_V8_APP_FILES)
+        ctx = _ctx(repo)
+        _make_fix(repo, ctx, {_RULE_CONFIGURATION: _FIXED_RULE_CONFIGURATION})
+
+        assert discard_unfinished_upgrade_fixes(ctx) is False
+
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _FIXED_RULE_CONFIGURATION

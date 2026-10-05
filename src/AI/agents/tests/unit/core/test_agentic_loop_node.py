@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
 from agents.altinn.app_version import V9_PROFILE
 from agents.core import (
     LoopContext,
@@ -16,6 +18,7 @@ from agents.core import (
     TerminationReason,
     ToolResult,
 )
+from agents.core.tools.git_tool import UNFINISHED_UPGRADE_FIXES
 from agents.graph.nodes import agentic_loop_node as node
 from agents.graph.nodes.agentic_loop_node import (
     _apply_result_to_state,
@@ -26,6 +29,8 @@ from agents.graph.nodes.agentic_loop_node import (
     handle,
 )
 from agents.graph.state import AgentState
+
+from .git_repo import create_committed_repo, write_files
 
 
 def _state(**overrides: Any) -> AgentState:
@@ -710,6 +715,51 @@ class TestAutoCommitSafetyNet:
 
         await handle(_state())
         assert called["n"] == 0
+
+
+_RULE_CONFIGURATION = "App/ui/form/RuleConfiguration.json"
+_COMMITTED_RULES = '{"data": {"conditionalRendering": {"hideAddress": {}}}}'
+
+
+def _loop_that_leaves_unfinished_upgrade_fixes(repo, reason: TerminationReason):
+    """The model fixed a rule and added a data processor, and then the upgrade was still held back."""
+
+    async def fake_run_loop(**kwargs):
+        ctx = kwargs["ctx"]
+        fixes = {_RULE_CONFIGURATION: "{}", "App/logic/SumProcessor.cs": "class Sum {}"}
+        write_files(repo, fixes)
+        ctx.extras["changed_files"] = set(fixes)
+        ctx.extras["verified_files"] = set(fixes)
+        ctx.extras[UNFINISHED_UPGRADE_FIXES] = True
+        return LoopResult(reason=reason, messages=[], final_text="Oppgraderingen er fortsatt holdt tilbake.", turns=5)
+
+    return fake_run_loop
+
+
+class TestUnfinishedUpgradeFixes:
+    @pytest.mark.parametrize("reason", [TerminationReason.COMPLETED, TerminationReason.CANCELLED])
+    async def test_the_end_of_the_turn_discards_the_fixes_and_commits_nothing(self, tmp_path, monkeypatch, reason):
+        repo = create_committed_repo(tmp_path, {_RULE_CONFIGURATION: _COMMITTED_RULES})
+        _patch_loop(monkeypatch, _loop_that_leaves_unfinished_upgrade_fixes(repo, reason))
+        committed: list[str] = []
+
+        def fake_commit_run(*args, **kwargs):
+            from agents.core import ToolResult
+
+            async def _coro():
+                committed.append("commit")
+                return ToolResult(content="should not be called")
+
+            return _coro()
+
+        monkeypatch.setattr("agents.graph.nodes.agentic_loop_node.CommitSessionBranchTool.run", fake_commit_run)
+
+        state = await handle(_state(repo_path=str(repo)))
+
+        assert committed == []
+        assert state.changed_files == []
+        assert (repo / _RULE_CONFIGURATION).read_text(encoding="utf-8") == _COMMITTED_RULES
+        assert not (repo / "App/logic/SumProcessor.cs").exists()
 
 
 class TestGraphBuilder:

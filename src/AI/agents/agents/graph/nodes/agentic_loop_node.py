@@ -45,6 +45,7 @@ from agents.core import (
     run_loop,
 )
 from agents.core.tools.git_tool import unverified_changed_files
+from agents.core.tools.upgrade_app_tool import discard_unfinished_upgrade_fixes
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from shared.utils.langfuse_utils import get_current_trace_id
@@ -260,6 +261,9 @@ async def handle(state: AgentState) -> AgentState:
     )
 
     _apply_result_to_state(state, result, ctx)
+    if discard_unfinished_upgrade_fixes(ctx):
+        log.info("Discarded the fixes for an unfinished v9 upgrade in session %s", state.session_id)
+        state.changed_files = []
     if state.allow_app_changes:
         await _maybe_auto_commit(state, result, ctx)
         result = await _repair_render_failures(
