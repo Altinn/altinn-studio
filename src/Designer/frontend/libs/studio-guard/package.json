@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
-    "test": "yarn --cwd ../.. vitest run libs/studio-guard/",
+    "test": "yarn workspace studio-designer-frontend vitest run libs/studio-guard/",
     "lint": "eslint \"src/**/*.ts?(x)\"",
     "lint:fix": "yarn run lint --fix",
     "typecheck": "tsc --noEmit"
