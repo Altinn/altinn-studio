@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class ApplicationMetadataService : IApplicationMetadataService
 {
     private const string EnableFileScanPropertyName = "enableFileScan";
+    private const bool DefaultEnableFileScan = true;
 
     private readonly ILogger<ApplicationMetadataService> _logger;
     private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
@@ -210,7 +211,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         // Checked by key rather than value so an explicit false is preserved.
         if (attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase) == null)
         {
-            attachmentMetadata[EnableFileScanPropertyName] = true;
+            attachmentMetadata[EnableFileScanPropertyName] = DefaultEnableFileScan;
         }
 
         return attachmentMetadata.ToObject<DataType>();
@@ -226,7 +227,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
         DataType applicationForm =
             existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId)
-            ?? new DataType { EnableFileScan = true };
+            ?? new DataType { EnableFileScan = GetEnableFileScanOrDefault(attachmentMetadata) };
         applicationForm.AllowedContentTypes = new List<string>();
 
         if (attachmentMetadata.GetValue("fileType") != null)
@@ -249,6 +250,10 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
         await AddMetadataForAttachment(org, app, metadataAsJson);
     }
+
+    private static bool GetEnableFileScanOrDefault(JObject attachmentMetadata) =>
+        attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase)?.Value<bool?>()
+        ?? DefaultEnableFileScan;
 
     /// <inheritdoc/>
     public async Task<bool> DeleteMetadataForAttachment(string org, string app, string id)

@@ -119,6 +119,41 @@ public class UpdateMetadataForAttachmentTests
         Assert.Equal(2, attachmentDataType.MaxCount);
     }
 
+    [Theory]
+    [InlineData(
+        @"{ ""id"": ""testId"", ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10, ""enableFileScan"": false }",
+        false
+    )]
+    [InlineData(@"{ ""id"": ""testId"", ""maxCount"": 1, ""minCount"": 0, ""maxSize"": 10 }", true)]
+    public async Task UpdateMetadataForAttachment_WhenDataTypeIsMissing_ShouldUsePayloadEnableFileScanOrDefault(
+        string updatePayload,
+        bool expectedEnableFileScan
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+
+        using var updatePayloadContent = new StringContent(
+            updatePayload,
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using var updateResponse = await HttpClient.PutAsync(url, updatePayloadContent);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        string applicationMetadataFile = await File.ReadAllTextAsync(
+            Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json")
+        );
+        var applicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(
+            applicationMetadataFile,
+            _jsonSerializerOptions
+        );
+
+        var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
+        Assert.Equal(expectedEnableFileScan, attachmentDataType.EnableFileScan);
+    }
+
     // Payload should have strong type instead in controller.
     public static IEnumerable<object[]> TestData =>
         new List<object[]>
