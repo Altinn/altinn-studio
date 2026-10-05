@@ -49,36 +49,36 @@ cites.
 
 ## The pieces
 
-|                                                            |                                                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `manifest.py`                                              | the agent: components, behaviors, what pins them, what nothing pins |
-| `registry.py`                                              | the evals: datasets, kinds, what is live                            |
-| `provenance.py`                                            | the ten axes a run records, and which of them block a comparison    |
-| `runstore.py`                                              | runs as files, the baseline marker, the three-run series            |
-| `diff.py`                                                  | what moved, in scores and in outputs                                |
-| `check.py`                                                 | the orchestration: run the evals, map scores onto behaviors         |
-| `report.py`, `report_html.py`                              | the page                                                            |
-| `datasets/*.jsonl`                                         | the items, version controlled                                       |
-| `harvest.py`                                               | rebuilds items from production traces                               |
-| `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs                                          |
+| | |
+| --- | --- |
+| `manifest.py` | the agent: components, behaviors, what pins them, what nothing pins |
+| `registry.py` | the evals: datasets, kinds, what is live |
+| `provenance.py` | the ten axes a run records, and which of them block a comparison |
+| `runstore.py` | runs as files, the baseline marker, the three-run series |
+| `diff.py` | what moved, in scores and in outputs |
+| `check.py` | the orchestration: run the evals, map scores onto behaviors |
+| `report.py`, `report_html.py` | the page |
+| `datasets/*.jsonl` | the items, version controlled |
+| `harvest.py` | rebuilds items from production traces |
+| `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs |
 
 ## A run records what it ran against
 
 Ten axes, because a run that records only its model is an anecdote: when a number moves
 there is no way to say which change moved it.
 
-| Axis                              | Blocks a comparison                        |
-| --------------------------------- | ------------------------------------------ |
+| Axis | Blocks a comparison |
+| --- | --- |
 | Agent code, commit and dirty flag | no, changing it is the usual reason to run |
-| Models by role                    | no, same reason                            |
-| Sampling parameters               | no                                         |
-| Environment, local or dev or ci   | **yes**                                    |
-| Prompt versions                   | **yes**                                    |
-| Actor system prompt digest        | **yes**                                    |
-| Tool schema digest                | **yes**                                    |
-| Dataset version                   | **yes**                                    |
-| Evaluator versions                | **yes**                                    |
-| Judge model                       | **yes**                                    |
+| Models by role | no, same reason |
+| Sampling parameters | no |
+| Environment, local or dev or ci | **yes** |
+| Prompt versions | **yes** |
+| Actor system prompt digest | **yes** |
+| Tool schema digest | **yes** |
+| Dataset version | **yes** |
+| Evaluator versions | **yes** |
+| Judge model | **yes** |
 
 If a blocking axis differs and you did not declare it, `check` **refuses the comparison**
 and prints no deltas, because none of them could be attributed. Declare an intended change
@@ -191,13 +191,13 @@ python -m benchmarks.runner check --label "<what changed>"
 It compares against the committed baseline, fetching it from Langfuse if this machine has
 never run it, and ends with one of five verdicts:
 
-|                        | What it means                                                                   | What to do                                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| | What it means | What to do |
+| --- | --- | --- |
 | **COMPARISON REFUSED** | An axis moved that was not the change under test, so no delta can be attributed | Read the remedy it prints. Usually the baseline predates somebody's dataset or prompt edit, and the fix is a fresh baseline on main |
-| **NOT ADOPTABLE**      | Pinned behaviors were not scored, so this run cannot be a reference             | Run a full check rather than `--only`                                                                                               |
-| **NOT READY**          | Something regressed, is failing, or scored nothing                              | Copy the prompt from each in the report, fix, run again                                                                             |
-| **NO REGRESSIONS**     | The scores support the change                                                   | Read the blind spots, then adopt if you are shipping it                                                                             |
-| **No baseline**        | Nothing to compare against                                                      | Adopt this run if it is what main does                                                                                              |
+| **NOT ADOPTABLE** | Pinned behaviors were not scored, so this run cannot be a reference | Run a full check rather than `--only` |
+| **NOT READY** | Something regressed, is failing, or scored nothing | Copy the prompt from each in the report, fix, run again |
+| **NO REGRESSIONS** | The scores support the change | Read the blind spots, then adopt if you are shipping it |
+| **No baseline** | Nothing to compare against | Adopt this run if it is what main does |
 
 ### When the candidate comes back green
 
@@ -292,17 +292,17 @@ python -m benchmarks.runner impact                    # against origin/main
 python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline is missing
 ```
 
-| Change                                                                                                  | Axis         | Consequence                                                                                               |
-| ------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
-| `benchmarks/datasets/*`                                                                                 | dataset      | **re-baseline**, the items every score is computed over                                                   |
-| `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
-| `agents/prompts/*`                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
-| any file that changes the `actor_prompt` digest                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
-| any file that changes the `tools` digest                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill text                                  |
-| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                           | code         | check, the baseline stays valid                                                                           |
-| `shared/config/base_config.py`                                                                          | models       | check, the baseline stays valid                                                                           |
-| `benchmarks/manifest.py`                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
-| anything else, and all tests                                                                            |              | nothing                                                                                                   |
+| Change | Axis | Consequence |
+| --- | --- | --- |
+| `benchmarks/datasets/*` | dataset | **re-baseline**, the items every score is computed over |
+| `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators | **re-baseline**, how something is scored |
+| `agents/prompts/*` | prompts | **re-baseline**, a published prompt |
+| any file that changes the `actor_prompt` digest | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
+| any file that changes the `tools` digest | tools | **re-baseline**, the tool schemas the actor is shown, and the skill text |
+| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*` | code | check, the baseline stays valid |
+| `shared/config/base_config.py` | models | check, the baseline stays valid |
+| `benchmarks/manifest.py` | manifest | check, declaring a behavior changes no score |
+| anything else, and all tests | | nothing |
 
 No path rule is necessary for `actor_prompt` and `tools`. The gate calls
 `provenance.digests()`, which `runner check` also records. Then it compares the result with
