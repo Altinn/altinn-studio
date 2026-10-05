@@ -8,10 +8,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -112,7 +115,7 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
     }
 
     [Fact]
-    public async Task AddLayoutSet_NameDifferingOnlyInCaseFromAnExistingLayoutSet_WritesNothing()
+    public async Task AddLayoutSet_NameDifferingOnlyInCaseFromAnExistingUiFolder_ReturnsConflictAndWritesNothing()
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -123,36 +126,66 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
         using HttpResponseMessage response = await AddLayoutSet(targetRepository, ExistingLayoutSet.ToLowerInvariant());
 
         // Assert
-        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(AppDevelopmentErrorCodes.UiFolderNameCaseConflict, await ReadErrorCode(response));
+        Assert.Equal(layoutFolderBefore, LayoutFolderContents());
+    }
+
+    [Fact]
+    public async Task AddLayoutSet_NameOfAnExistingUiFolder_ReturnsOkWithInfoMessageAndWritesNothing()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
+        string[] layoutFolderBefore = LayoutFolderContents();
+
+        // Act
+        using HttpResponseMessage response = await AddLayoutSet(targetRepository, ExistingLayoutSet);
+
+        // Assert
+        // An exact duplicate is a no-op, so the process editor can repeat an add without an error.
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(layoutFolderBefore, LayoutFolderContents());
     }
 
     [Fact]
-    public async Task UpdateLayoutSetName_ToAnotherLayoutSetNameInOtherCase_RenamesNothing()
+    public async Task UpdateLayoutSetName_ToAnotherUiFolderNameInOtherCase_ReturnsConflictAndRenamesNothing()
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
         string[] layoutFolderBefore = LayoutFolderContents();
-        using HttpRequestMessage httpRequestMessage = new(
-            HttpMethod.Put,
-            $"{LayoutSetsUrl(targetRepository)}/{OtherExistingLayoutSet}"
-        )
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(ExistingLayoutSet.ToUpperInvariant()),
-                Encoding.UTF8,
-                MediaTypeNames.Application.Json
-            ),
-        };
 
         // Act
-        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        using HttpResponseMessage response = await RenameLayoutSet(
+            targetRepository,
+            OtherExistingLayoutSet,
+            ExistingLayoutSet.ToUpperInvariant()
+        );
 
         // Assert
-        // A taken UI folder name is answered as it is for an exact duplicate: 200 with an info message.
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal(AppDevelopmentErrorCodes.UiFolderNameCaseConflict, await ReadErrorCode(response));
+        Assert.Equal(layoutFolderBefore, LayoutFolderContents());
+    }
+
+    [Fact]
+    public async Task UpdateLayoutSetName_ToAnotherUiFolderName_ReturnsOkWithInfoMessageAndRenamesNothing()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppV9, Developer, targetRepository);
+        string[] layoutFolderBefore = LayoutFolderContents();
+
+        // Act
+        using HttpResponseMessage response = await RenameLayoutSet(
+            targetRepository,
+            OtherExistingLayoutSet,
+            ExistingLayoutSet
+        );
+
+        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("infoMessage", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(layoutFolderBefore, LayoutFolderContents());
@@ -199,6 +232,31 @@ public class LayoutSetNameValidationTests(WebApplicationFactory<Program> factory
                 .Select(file => Path.GetRelativePath(layoutFolder, file))
                 .Order(StringComparer.Ordinal),
         ];
+    }
+
+    private async Task<HttpResponseMessage> RenameLayoutSet(
+        string repository,
+        string layoutSetId,
+        string newLayoutSetName
+    )
+    {
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, $"{LayoutSetsUrl(repository)}/{layoutSetId}")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(newLayoutSetName),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        return await HttpClient.SendAsync(httpRequestMessage);
+    }
+
+    private static async Task<string> ReadErrorCode(HttpResponseMessage response)
+    {
+        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
+        return ((JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode]).ToString();
     }
 
     private async Task<HttpResponseMessage> AddLayoutSet(string repository, string layoutSetId)

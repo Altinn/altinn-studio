@@ -144,16 +144,20 @@ public class UiFoldersService : IUiFoldersService
         ValidateLayoutSetNameIsAllowedForNewLayoutSet(layoutSetName);
 
         IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
-        bool nameIsTaken = existingLayoutSets.Any(existing =>
-            string.Equals(existing, layoutSetName, StringComparison.Ordinal)
-            || (
-                !string.Equals(existing, renamedLayoutSetName, StringComparison.Ordinal)
-                && string.Equals(existing, layoutSetName, StringComparison.OrdinalIgnoreCase)
-            )
-        );
-        if (nameIsTaken)
+        if (existingLayoutSets.Contains(layoutSetName, StringComparer.Ordinal))
         {
             throw new NonUniqueLayoutSetIdException($"Layout set name, {layoutSetName}, already exists.");
+        }
+        // Unlike an exact duplicate, this is not a no-op: the requested folder would never exist.
+        string? existingInOtherCase = existingLayoutSets.FirstOrDefault(existing =>
+            !string.Equals(existing, renamedLayoutSetName, StringComparison.Ordinal)
+            && string.Equals(existing, layoutSetName, StringComparison.OrdinalIgnoreCase)
+        );
+        if (existingInOtherCase is not null)
+        {
+            throw new UiFolderNameCaseConflictException(
+                $"UI folder name, {layoutSetName}, differs only in case from the existing UI folder {existingInOtherCase}."
+            );
         }
     }
 
