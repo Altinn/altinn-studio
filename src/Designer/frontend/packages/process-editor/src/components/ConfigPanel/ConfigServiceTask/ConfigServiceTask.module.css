@@ -4,10 +4,6 @@
   gap: var(--ds-size-2);
 }
 
-.displayTile {
-  padding-inline: var(--ds-size-5);
-}
-
 .detailsContent {
   margin: 0;
   padding: var(--ds-size-5);
@@ -15,4 +11,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
+}
+
+.taskConfigList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding-inline: var(--ds-size-5);
+  margin-top: var(--ds-size-3);
+  margin-bottom: var(--ds-size-3);
+  list-style-type: none;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
 }

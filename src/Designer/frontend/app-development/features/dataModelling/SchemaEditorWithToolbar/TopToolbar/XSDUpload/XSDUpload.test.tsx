@@ -10,6 +10,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import * as useUploadDataModelMutationModule from '../../../../../hooks/mutations/useUploadDataModelMutation';
 
 const user = userEvent.setup();
 
@@ -19,7 +20,7 @@ jest.mock('../../../../../hooks/mutations/useUploadDataModelMutation', () => ({
 }));
 
 const useUploadDataModelMutationSpy = jest.spyOn(
-  require('../../../../../hooks/mutations/useUploadDataModelMutation'),
+  useUploadDataModelMutationModule,
   'useUploadDataModelMutation',
 );
 
@@ -42,7 +43,9 @@ describe('XSDUpload', () => {
   afterEach(jest.restoreAllMocks);
 
   it('shows a spinner when uploading', async () => {
-    useUploadDataModelMutationSpy.mockReturnValue({ isPending: true });
+    useUploadDataModelMutationSpy.mockReturnValue({ isPending: true } as unknown as ReturnType<
+      typeof useUploadDataModelMutationModule.useUploadDataModelMutation
+    >);
 
     renderXsdUpload();
 

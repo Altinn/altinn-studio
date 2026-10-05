@@ -6,6 +6,8 @@ namespace Altinn.App.Core.Constants;
 
 internal static class AltinnEnvironments
 {
+    // Mirrored in the process editor, keep the two in sync:
+    // src/Designer/frontend/packages/process-editor/src/components/ConfigPanel/EnvironmentConfig/altinnEnvironments.ts
     public static IReadOnlyDictionary<HostingEnvironment, IEnumerable<string>> Map { get; } =
         new Dictionary<HostingEnvironment, IEnumerable<string>>
         {
@@ -46,10 +48,18 @@ internal static class AltinnEnvironments
     }
 }
 
-internal enum HostingEnvironment
+/// <summary>The hosting environment used to resolve environment-specific process configuration.</summary>
+public enum HostingEnvironment
 {
+    /// <summary>An environment name that is not recognized.</summary>
     Unknown,
+
+    /// <summary>Local development.</summary>
     Development,
+
+    /// <summary>Production.</summary>
     Production,
+
+    /// <summary>Staging and test environments.</summary>
     Staging,
 }

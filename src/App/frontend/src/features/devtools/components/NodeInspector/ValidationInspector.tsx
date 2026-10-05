@@ -11,7 +11,7 @@ import { isValidationVisible } from 'src/features/validation/utils';
 import { useRawValidations, useValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 import { getComponentDef, implementsAnyValidation } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { AttachmentValidation, NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 import type { ValidationVisibilityBreakdown } from 'src/features/validation/validationHooks';
 
@@ -34,7 +34,7 @@ export const ValidationInspector = ({ baseComponentId }: ValidationInspectorProp
   const rawVisibility = useValidationVisibilityBreakdown(baseComponentId, indexedId);
   const nodeVisibility = rawVisibility.effective;
   const dataModelBindings = useDataModelBindingsFor(baseComponentId);
-  const type = useExternalItem(baseComponentId).type;
+  const type = useComponentConfig(baseComponentId).type;
   const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
 
   const def = getComponentDef(type);

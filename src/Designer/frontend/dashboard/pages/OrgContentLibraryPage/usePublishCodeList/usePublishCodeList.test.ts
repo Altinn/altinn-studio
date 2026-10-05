@@ -24,7 +24,7 @@ describe('usePublishCodeList', () => {
     });
 
     act(() => result.current.publish(payload));
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
 
     expect(publishCodeList).toHaveBeenCalledTimes(1);
     expect(publishCodeList).toHaveBeenCalledWith(orgName, payload);
@@ -43,8 +43,8 @@ describe('usePublishCodeList', () => {
     });
     expect(result.current.isPublishing(title)).toBe(false);
     act(() => result.current.publish(payload));
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
-    await waitFor(expect(resolvePublish).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
+    await waitFor(() => expect(resolvePublish).toHaveBeenCalled());
     expect(result.current.isPublishing(title)).toBe(false);
   });
 
@@ -61,7 +61,7 @@ describe('usePublishCodeList', () => {
       resolvePublish();
     });
     act(() => result.current.publish(payload));
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
-    await waitFor(expect(resolvePublish).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
+    await waitFor(() => expect(resolvePublish).toHaveBeenCalled());
   });
 });

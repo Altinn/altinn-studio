@@ -1,4 +1,5 @@
-#![allow(clippy::expect_used)]
+// A Provider handle lives for the whole test; tightening its drop adds nothing.
+#![allow(clippy::expect_used, clippy::significant_drop_tightening)]
 
 use std::{cell::RefCell, panic::AssertUnwindSafe, rc::Rc};
 
@@ -144,6 +145,68 @@ async fn controlled_network_authorizes_dns_tcp_and_http_and_fails_closed() {
     }
 }
 
+#[tokio::test(flavor = "local")]
+#[ignore = "requires Internet access, a Docker Engine API, Microsandbox host runtime and hardware virtualization"]
+async fn resource_restart_after_reopening_the_provider_keeps_network_control() {
+    let temporary = tempfile::tempdir().expect("temporary integration home should be created");
+    let home = temporary.path().join("control-plane");
+    let spec = |cpu: &str| SandboxSpec {
+        image: ImageSource::Reference {
+            reference: "docker.io/library/alpine:3.22".to_string(),
+        },
+        platform: native_linux_platform(),
+        resources: resources_with_cpu(cpu),
+        init_system: sandbox::init::InitSystem::Backend,
+        retention_policy: RetentionPolicy::Delete,
+    };
+    let sandbox_name = SandboxName::new("controlled-restart").expect("test Sandbox name should be valid");
+    {
+        let backend = Rc::new(MicrosandboxProvider::open(&home).await.expect("Backend should open"));
+        let network = Rc::new(MicrosandboxNetworkBackend::new(Rc::new(RecordingPolicy::allow_all())));
+        // Dropped without release: the runtime keeps running, as when agentd exits.
+        let _abandoned = SandboxService::new(backend)
+            .with_network_backend(network)
+            .ensure(&EnsureSandboxRequest::new(sandbox_name.clone(), spec("1")))
+            .await
+            .expect("controlled Sandbox should start");
+    }
+
+    // A reopened Provider holds no process-local Network control state, as
+    // after an agentd restart while the Sandbox kept running. Growing the CPU
+    // count restarts the runtime before its Network endpoint is reopened.
+    let policy = Rc::new(RecordingPolicy::allow_all());
+    policy.deny("network.connect");
+    let backend = Rc::new(MicrosandboxProvider::open(&home).await.expect("Backend should reopen"));
+    let network = Rc::new(MicrosandboxNetworkBackend::new(policy.clone()));
+    let service = SandboxService::new(backend).with_network_backend(network);
+    let request = EnsureSandboxRequest::new(sandbox_name, spec("2"));
+    let sandbox = service
+        .ensure(&request)
+        .await
+        .expect("resource change should restart the Sandbox");
+
+    let test_result = AssertUnwindSafe(async {
+        let denied = sandbox
+            .run_execution(shell("wget -T 5 -qO- http://example.com"))
+            .await
+            .expect("denied request should still produce an exit status");
+        assert!(
+            !denied.status.success(),
+            "restarted Sandbox reached the network without host control"
+        );
+        assert_action(&policy.requests.borrow(), "network.connect");
+    })
+    .catch_unwind()
+    .await;
+    service
+        .delete(request.name())
+        .await
+        .expect("controlled Sandbox should delete");
+    if let Err(payload) = test_result {
+        std::panic::resume_unwind(payload);
+    }
+}
+
 async fn assert_mediated_secret_enforcement(sandbox: &SandboxHandle, policy: &RecordingPolicy) {
     let requests_before_secret = policy.requests.borrow().len();
     let mediated = sandbox
@@ -174,6 +237,21 @@ async fn assert_mediated_secret_enforcement(sandbox: &SandboxHandle, policy: &Re
             ["header"]
         );
     }
+
+    // A placeholder the secret is not substituted into, such as conversation history in a model
+    // request body, does not block the request.
+    let history = sandbox
+        .run_execution(shell(
+            "wget -T 10 -S -O /dev/null --header='Authorization: Bearer $MEDIATED_TOKEN' \
+             --post-data='history: $MEDIATED_TOKEN' https://example.net 2>&1; true",
+        ))
+        .await
+        .expect("request with a body placeholder should execute");
+    let history = String::from_utf8_lossy(&history.stdout);
+    assert!(
+        history.contains("HTTP/1.1 "),
+        "a placeholder in the request body blocked the request: {history}"
+    );
 
     policy.deny("secret.use");
     let denied = sandbox
@@ -213,8 +291,12 @@ fn shell(script: &str) -> ExecutionSpec {
 }
 
 fn resources() -> SandboxResources {
+    resources_with_cpu("1")
+}
+
+fn resources_with_cpu(cpu: &str) -> SandboxResources {
     SandboxResources::new(
-        "1".parse::<CpuQuantity>().expect("test CPU should be valid"),
+        cpu.parse::<CpuQuantity>().expect("test CPU should be valid"),
         "512Mi".parse::<ByteQuantity>().expect("test memory should be valid"),
         RootFilesystem::layered("2Gi".parse::<ByteQuantity>().expect("root filesystem should be valid")),
     )

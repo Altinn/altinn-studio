@@ -118,11 +118,12 @@ internal class ProcessEngine : IProcessEngine
         // start process
         ProcessStateChange? startChange = await ProcessStart(request.Instance, validStartElement);
         InstanceEvent? startEvent = startChange?.Events?[0].CopyValues();
+        // A gateway after the start event sees the language the first task's workflow callbacks get.
         InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             request.Instance,
             StorageVersionMetadata.Empty,
             taskId: null,
-            language: null
+            language: await _authenticationContext.Current.GetLanguage(request.Language)
         );
         ProcessStateChange? nextChange = await MoveProcessStateToNextAndGenerateEvents(dataAccessor);
         InstanceEvent? goToNextEvent = nextChange?.Events?[0].CopyValues();
@@ -159,6 +160,7 @@ internal class ProcessEngine : IProcessEngine
         bool isInstantiation = false,
         Dictionary<string, string>? prefill = null,
         InstantiationNotification? notification = null,
+        string? language = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -196,6 +198,7 @@ internal class ProcessEngine : IProcessEngine
             isInstantiation,
             prefill: prefill,
             notification: notification,
+            language: language,
             cancellationToken: cancellationToken
         );
         if (result.WorkflowFailure is null)
@@ -544,6 +547,7 @@ internal class ProcessEngine : IProcessEngine
             instance,
             versions,
             processNextAction,
+            request.Language,
             cancellationToken
         );
 
@@ -873,6 +877,7 @@ internal class ProcessEngine : IProcessEngine
         Instance instance,
         StorageVersionMetadata versions,
         string? action,
+        string? language,
         CancellationToken cancellationToken = default
     )
     {
@@ -898,6 +903,7 @@ internal class ProcessEngine : IProcessEngine
             versions,
             state,
             action,
+            language,
             cancellationToken: cancellationToken
         );
 
@@ -1027,6 +1033,17 @@ internal class ProcessEngine : IProcessEngine
         public bool IsEndEvent => ProcessStateChange?.NewProcessState?.Ended is not null;
     };
 
+    /// <summary>
+    /// Returns the action that process/completeProcess performs on a task of the given type. A process next without
+    /// an action also uses it, but only to check whether the result is <c>reject</c>.
+    /// </summary>
+    /// <remarks>
+    /// This is deliberately not the table in <see cref="ProcessEngineAuthorizer.GetActionsThatAllowProcessNextForTaskType"/>.
+    /// That table lists the actions that authorize a transition; this one picks the action that is performed, which
+    /// reaches user action handlers, gateway filters, the workflow engine and telemetry. A type without an entry,
+    /// including <c>payment</c> and <c>subformPdf</c>, is performed as its own name: mapping <c>payment</c> to
+    /// <c>pay</c> would run the payment action handler.
+    /// </remarks>
     internal static string ConvertTaskTypeToAction(string actionOrTaskType)
     {
         switch (actionOrTaskType)

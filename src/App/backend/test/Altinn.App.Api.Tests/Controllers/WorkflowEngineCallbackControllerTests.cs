@@ -1,7 +1,10 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
@@ -11,9 +14,12 @@ using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -25,6 +31,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Tests.Common.Auth;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.App.Tests.Common.Mocks;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -33,6 +40,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NewtonsoftJson = Newtonsoft.Json.JsonConvert;
 
@@ -377,6 +385,121 @@ public class WorkflowEngineCallbackControllerTests
         Assert.NotNull(response.State);
         Assert.True(command.Executed);
         Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_RestoresTheDataMutatorInTheActorsLanguage()
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            actor: new Actor { UserId = 42, Language = "en" }
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.Equal("en", command.Language);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_PdfServiceTask_RendersThePdfInTheActorsLanguage()
+    {
+        // A callback is a request of its own: no language query, and the caller is not the user (here a service owner,
+        // whose language is nb). The PDF can only get the language the user chose from the actor.
+        Uri? pdfUri = null;
+        var pdfGenerator = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        pdfGenerator
+            .Setup(g =>
+                g.GeneratePdf(
+                    It.IsAny<Uri>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
+            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+        var processReader = new Mock<IProcessReader>();
+        processReader
+            .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
+            .Returns(
+                new AltinnTaskExtension
+                {
+                    PdfConfiguration = new AltinnPdfConfiguration { AutoPdfTaskIds = ["Task_1"] },
+                }
+            );
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(engine =>
+                engine.EnqueueProcessNext(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<Guid>(),
+                    "pdf-chain",
+                    It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>(),
+                    null,
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AddDataType(
+                    new DataType
+                    {
+                        Id = PdfService.PdfElementType,
+                        AllowedContentTypes = ["application/pdf"],
+                        MaxCount = 0,
+                    }
+                );
+                services
+                    .Mock<IAppResources>()
+                    .Setup(r => r.GetLayoutSettingsForFolder("PdfTask_1"))
+                    .Returns(null as LayoutSettings);
+                services.Services.AddSingleton(pdfGenerator.Object);
+                services.Services.AddSingleton(processReader.Object);
+                services.Services.AddSingleton(Options.Create(new PdfGeneratorSettings()));
+                services.Services.AddSingleton<IHttpContextAccessor>(
+                    new HttpContextAccessor { HttpContext = new DefaultHttpContext() }
+                );
+                Authenticated serviceOwner = TestAuthentication.GetServiceOwnerAuthentication();
+                services.Services.AddSingleton(Mock.Of<IAuthenticationContext>(a => a.Current == serviceOwner));
+                services.Services.AddSingleton<IPdfService, PdfService>();
+                services.Services.AddSingleton<IServiceTask, PdfServiceTask>();
+                services.Services.AddSingleton(processEngine.Object);
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "PdfTask_1",
+                    AltinnTaskType = "pdf",
+                };
+            }
+        );
+
+        IActionResult result = await setup.Execute(
+            ExecuteServiceTask.Key,
+            Guid.NewGuid(),
+            CommandPayloadSerializer.Serialize(new ExecuteServiceTaskPayload("pdf", ItemIndex: 0)),
+            collectionKey: "pdf-chain",
+            actor: new Actor { UserId = 42, Language = "en" }
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(pdfUri);
+        Assert.Matches("[?&]lang=en(&|$)", pdfUri.AbsoluteUri);
+        processEngine.VerifyAll();
     }
 
     [Fact]
@@ -1144,11 +1267,14 @@ public class WorkflowEngineCallbackControllerTests
     {
         public bool Executed { get; private set; }
 
+        public string? Language { get; private set; }
+
         public string GetKey() => "NoOpForCallbackTest";
 
         public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
         {
             Executed = true;
+            Language = context.InstanceDataMutator.Language;
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
         }
     }
@@ -1290,15 +1416,17 @@ public class WorkflowEngineCallbackControllerTests
             string commandKey,
             Guid stepId,
             string? commandPayload = null,
-            string? collectionKey = null
-        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey);
+            string? collectionKey = null,
+            Actor? actor = null
+        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
 
         public async Task<IActionResult> Execute(
             string commandKey,
             Guid stepId,
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
-            string? collectionKey = null
+            string? collectionKey = null,
+            Actor? actor = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1311,12 +1439,24 @@ public class WorkflowEngineCallbackControllerTests
             {
                 CommandKey = commandKey,
                 Payload = commandPayload,
-                Actor = new Actor { UserId = 42, Language = "nb" },
+                Actor = actor ?? new Actor { UserId = 42, Language = "nb" },
                 WorkflowId = WorkflowId,
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
             };
+            // What the callback scheme would authenticate for a token minted for this actor.
+            Controller.HttpContext.User = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                    [
+                        new Claim(
+                            JwtClaimTypes.WorkflowCallback.ActorHash,
+                            WorkflowCallbackTokenGenerator.ActorHash(payload.Actor)
+                        ),
+                    ],
+                    WorkflowEngineCallbackDefaults.AuthenticationScheme
+                )
+            );
 
             return await Controller.ExecuteCommand(
                 MockedServiceCollection.Org,

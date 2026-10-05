@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
@@ -119,7 +120,7 @@ public class WorkflowEngineServiceTests
         service.WorkflowPollingTimeoutMs = 500;
         // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
         var result = await service
-            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null)
+            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null, language: null)
             .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateChanged);
         Assert.True(polls >= 2);
@@ -2320,7 +2321,11 @@ public class WorkflowEngineServiceTests
             .SetupGet(context => context.Current)
             .Returns(currentAuthentication ?? TestAuthentication.GetUserAuthentication());
         var callbackTokenGenerator = new Mock<IWorkflowCallbackTokenGenerator>(MockBehavior.Strict);
-        callbackTokenGenerator.Setup(generator => generator.GenerateToken(It.IsAny<Guid>())).Returns("callback-token");
+        callbackTokenGenerator
+            .Setup(generator =>
+                generator.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+            )
+            .Returns("callback-token");
         AppImplementationFactory appImplementationFactory =
             serviceProvider.GetRequiredService<AppImplementationFactory>();
         return new ProcessNextRequestFactory(

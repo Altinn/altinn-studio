@@ -561,6 +561,7 @@ public class InstancesController_CopyInstanceTests
                     true,
                     null,
                     null,
+                    null,
                     CancellationToken.None
                 )
             )
@@ -610,6 +611,7 @@ public class InstancesController_CopyInstanceTests
                         TargetVersions,
                         It.Is<ProcessStateChange>(change => ReferenceEquals(change, processStateChange)),
                         true,
+                        null,
                         null,
                         null,
                         CancellationToken.None

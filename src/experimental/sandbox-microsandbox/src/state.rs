@@ -79,6 +79,7 @@ impl VolumeRecord {
 
 #[derive(Clone)]
 pub(crate) struct StateStore {
+    home: PathBuf,
     sandboxes: PathBuf,
     volumes: PathBuf,
 }
@@ -88,6 +89,7 @@ impl StateStore {
         let store = Self {
             sandboxes: home.join("sandboxes"),
             volumes: home.join("volumes"),
+            home,
         };
         for directory in [&store.sandboxes, &store.volumes] {
             tokio::fs::create_dir_all(directory)
@@ -129,6 +131,15 @@ impl StateStore {
         Ok(record)
     }
 
+    /// Returns every Sandbox record, whether or not its runtime exists.
+    pub(crate) async fn sandbox_records(&self) -> Result<Vec<SandboxRecord>, sandbox::Error> {
+        let records: Vec<SandboxRecord> = read_records(&self.sandboxes, sandbox::ResourceKind::Sandbox).await?;
+        for record in &records {
+            validate_schema(record.schema_version, SANDBOX_SCHEMA_VERSION)?;
+        }
+        Ok(records)
+    }
+
     pub(crate) async fn remove_sandbox(&self, record: &SandboxRecord) -> Result<(), sandbox::Error> {
         remove_file(self.sandbox_path(&record.name), "remove Microsandbox Sandbox state").await
     }
@@ -166,6 +177,11 @@ impl StateStore {
 
     pub(crate) async fn remove_volume(&self, record: &VolumeRecord) -> Result<(), sandbox::Error> {
         remove_file(self.volume_path(&record.name), "remove Microsandbox Volume state").await
+    }
+
+    /// Path of a Provider-wide marker file beside the records.
+    pub(crate) fn marker(&self, name: &str) -> PathBuf {
+        self.home.join(name)
     }
 
     fn sandbox_path(&self, name: &SandboxName) -> PathBuf {
@@ -279,15 +295,23 @@ where
         .map_err(|source| error::io("read Microsandbox state entry", source))?
     {
         let path = entry.path();
-        records.push(
-            read_record(
-                path.clone(),
-                "read Microsandbox state entry",
-                resource,
-                path.display().to_string(),
-            )
-            .await?,
-        );
+        // Writes stage records in temporary files beside the committed ones.
+        if path.extension().is_none_or(|extension| extension != "json") {
+            continue;
+        }
+        match read_record(
+            path.clone(),
+            "read Microsandbox state entry",
+            resource,
+            path.display().to_string(),
+        )
+        .await
+        {
+            Ok(record) => records.push(record),
+            // Removed since the directory was read.
+            Err(error) if error.is_not_found() => {}
+            Err(error) => return Err(error),
+        }
     }
     Ok(records)
 }

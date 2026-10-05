@@ -68,11 +68,11 @@ describe('ExpressionContent', () => {
     screen.getByRole('button', { name: textMock('right_menu.expression_delete') });
   });
 
-  it('Do not show delete button if there is no expression', async () => {
+  it('Disables the delete button if there is no expression', async () => {
     renderExpressionContent();
     expect(
-      screen.queryByRole('button', { name: textMock('right_menu.expression_delete') }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: textMock('right_menu.expression_delete') }),
+    ).toBeDisabled();
   });
 });
 

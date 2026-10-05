@@ -86,17 +86,16 @@ internal sealed class AltinnPartyClient : IAltinnPartyClient
                 response.Content,
                 cancellationToken
             ),
-            HttpStatusCode.Unauthorized => throw new ServiceException(
-                HttpStatusCode.Unauthorized,
-                "Unauthorized for party"
-            ),
-            _ => null,
+            // Register's "no such party" answers: 401 for user tokens (which deliberately also
+            // covers "not yours"), 404 for service owner tokens, 400 for an id that can't be a party.
+            HttpStatusCode.Unauthorized or HttpStatusCode.NotFound or HttpStatusCode.BadRequest => null,
+            _ => throw await PlatformHttpException.Create(response, cancellationToken),
         };
 
         if (party is null)
         {
-            _logger.LogError(
-                "// Getting party with partyID {PartyId} failed with statuscode {StatusCode}",
+            _logger.LogWarning(
+                "Register has no party {PartyId} for this caller, answered {StatusCode}",
                 partyId,
                 response.StatusCode
             );

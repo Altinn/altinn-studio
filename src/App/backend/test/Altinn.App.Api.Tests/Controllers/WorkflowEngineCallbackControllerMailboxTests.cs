@@ -326,7 +326,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [ExecuteServiceTask.Key])
         );
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 

@@ -19,9 +19,6 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .makeSummarizable()
   .addSummaryOverrides()
@@ -40,6 +37,7 @@ export const Config = new CG.component({
     new CG.prop(
       'value',
       new CG.expr(ExprVal.String)
+        .setFallback('')
         .setTitle('Date value', 'Datoverdi')
         .setDescription('The date value to display.', 'Datoverdien som skal vises.'),
     ),

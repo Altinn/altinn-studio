@@ -31,6 +31,36 @@ The builder validates eagerly: a null delegate, invalid options, a mailbox handl
 handle answered twice, or a mailbox left unanswered at the terminal all throw from the composing call and
 fail **app startup**, not a callback days later.
 
+App startup also checks the other side of the same invariant, in `process.bpmn`. Every task there must
+carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
+built-in types (`data`, `confirmation`, `feedback`, `signing`, `payment`, `pdf`, `subformPdf`,
+`eFormidling`), a built-in you enabled with its own call (`fiksArkiv`, from `services.AddFiksArkiv()`), or
+an `IServiceTask` / `IPipelineServiceTask` / `IProcessTask` your app registered. A type that resolves to
+nothing would otherwise deploy quietly and strand the first instance to reach it — no work is scheduled,
+the process comes to rest on the task, and the advance that follows fails with an unexplained internal
+error — so the app refuses to start instead, naming every offending task, the type it declares, and the
+types that are registered.
+
+Two things about that check are worth knowing:
+
+- **The element must match the type.** A task whose type resolves to a service task must be a
+  `<bpmn:serviceTask>` element, and every other task a `<bpmn:task>`; the app refuses to start on a mismatch.
+  The build reports the same mismatch as `ALTINNAPP1003` for the built-in types and for task classes in the
+  app whose `Type` returns a constant, assuming each is registered under the interface it implements.
+- **The type is matched exactly, including case.** `<altinn:taskType>PDF</altinn:taskType>` does not reach
+  a task whose `Type` is `pdf`.
+
+In v9, `IProcessTask.ValidateConfiguration(ProcessTaskValidationContext)` is an optional app-facing
+hook, inherited by both service-task interfaces. The default returns no findings; existing tasks do
+not need an override. It runs once per BPMN task using the selected implementation and receives the
+task id, hosting environment, and application metadata. Return each configuration problem as a
+string; the startup validator prefixes it with the task id and reports all findings together.
+Validation is synchronous and must be side-effect free: do not execute task work or contact external
+services. Validation has its own dependency-injection scope; its scoped services are disposed after
+all tasks have been validated.
+The built-in eFormidling task uses this hook for its environment-specific BPMN configuration, data
+types, and required service registrations.
+
 ## Stages: durability and idempotency
 
 Each stage runs as its own workflow-engine step, with its own retry budget, timeout, wait budget and

@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { FatalError, Label, LoadingWrapper } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Divider, Paragraph } from '@digdir/designsystemet-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
@@ -13,7 +14,8 @@ import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 interface SigneeListSummaryProps extends Summary2Props {
@@ -30,7 +32,11 @@ export function SigneeListSummary({ targetBaseComponentId, titleOverride }: Sign
     taskIdFromTaskOverrides ?? taskIdFromQuery,
   );
 
-  const originalTitle = useItemWhenType(targetBaseComponentId, 'SigneeList').textResourceBindings?.title;
+  const config = useComponentConfig(targetBaseComponentId, 'SigneeList');
+  const originalTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.SigneeList.textResourceBindings.title,
+  );
   const title = titleOverride === undefined ? originalTitle : titleOverride;
   const heading = title ? <Lang id={title} /> : undefined;
 

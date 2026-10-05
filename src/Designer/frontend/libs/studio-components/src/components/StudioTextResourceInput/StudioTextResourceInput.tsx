@@ -305,7 +305,7 @@ function ModeToggle({
     <ToggleGroup
       className={className}
       data-size='sm'
-      data-toggle-group=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+      aria-label={texts.modeToggle}
       onChange={onToggle}
       value={inputMode}
     >

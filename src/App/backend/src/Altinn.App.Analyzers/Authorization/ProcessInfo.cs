@@ -1,5 +1,6 @@
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.App.Analyzers.Process;
 
 namespace Altinn.App.Analyzers.Authorization;
 
@@ -106,8 +107,7 @@ internal sealed class ProcessInfo
     /// <c>bpmn:process</c> when a task is missing its own id - and then evaluate task-scoped grants
     /// against the process id.
     /// </summary>
-    private static XElement? FindHostingFlowNode(XElement taskType) =>
-        taskType.Ancestors().FirstOrDefault(a => a.Name == _bpmn + "task" || a.Name == _bpmn + "serviceTask");
+    private static XElement? FindHostingFlowNode(XElement taskType) => ProcessFile.FindHostingTask(taskType);
 
     /// <summary>
     /// Whether the task declares <c>reject</c> in its <c>altinn:actions</c> list as a process

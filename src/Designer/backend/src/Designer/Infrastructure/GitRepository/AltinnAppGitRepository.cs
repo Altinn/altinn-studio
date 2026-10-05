@@ -79,6 +79,9 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private const string InvalidLayoutSetNameMessage = "Invalid layout set name.";
     private const string InvalidLayoutNameMessage = "Invalid layout name.";
+    private const string UiFolderNameExistsMessage = "A UI folder with this name already exists.";
+    private const string LayoutNameExistsMessage = "A layout with this name already exists.";
+    private const string LayoutFileExtension = ".json";
 
     // Naming policy for new names only, so a repository authored outside Designer stays editable.
     private static readonly Regex s_allowedNewLayoutSetNameRegex = new(
@@ -339,7 +342,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         string layoutFilePath = GetPathToLayoutFile(layoutSetId, pageId);
         EnsureLayoutWriteIsAllowed(layoutSetId, pageId);
-        await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure);
+        await WriteObjectByRelativePathAsync(layoutFilePath, altinnPageLayout.Structure, createDirectory: true);
     }
 
     /// <summary>
@@ -462,23 +465,22 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// </summary>
     /// <param name="layoutSetName">The name of the layout set where the layout belong</param>
     /// <returns>An array with the name of all layout files under the specific layout set</returns>
+    /// <exception cref="FileNotFoundException">
+    /// Thrown if a layout set is named and no layout set folder of exactly that name exists
+    /// </exception>
     public string[] GetLayoutNames(string layoutSetName)
     {
-        string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-        if (!DirectoryExistsByRelativePath(layoutSetPath) && AppUsesLayoutSets())
+        EnsureSafeLayoutSetName(layoutSetName);
+        if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
         {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException("The layout set does not exist.");
         }
-        List<string> layoutNames = new();
-        if (DirectoryExistsByRelativePath(layoutSetPath))
+        string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
+        if (!DirectoryExistsByRelativePath(layoutsFolderPath))
         {
-            foreach (string layoutPath in GetFilesByRelativeDirectory(layoutSetPath))
-            {
-                layoutNames.Add(Path.GetFileNameWithoutExtension(layoutPath));
-            }
+            return [];
         }
-
-        return layoutNames.ToArray();
+        return [.. GetFilesByRelativeDirectory(layoutsFolderPath).Select(Path.GetFileNameWithoutExtension)];
     }
 
     /// <exception cref="FileNotFoundException">
@@ -525,11 +527,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
     private async Task CreateLayoutSettings(string layoutSetName)
     {
-        string layoutSetPath = GetPathToLayoutSet(layoutSetName);
-        if (!DirectoryExistsByRelativePath(layoutSetPath))
-        {
-            Directory.CreateDirectory(layoutSetPath);
-        }
         string[] layoutNames = MakePageOrder(GetLayoutNames(layoutSetName));
         JsonNode layoutSettings = InitialLayoutSettings;
         JsonArray layoutNamesArray = new JsonArray();
@@ -598,6 +595,17 @@ public class AltinnAppGitRepository : AltinnGitRepository
     {
         string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutName);
         EnsureAllowedNewLayoutName(newLayoutName);
+        // Renaming a layout to itself in another case is allowed; taking another layout's name in any case is not.
+        if (
+            GetLayoutFileNames(layoutSetName)
+                .Any(existing =>
+                    !string.Equals(existing, layoutName, StringComparison.Ordinal)
+                    && string.Equals(existing, newLayoutName, StringComparison.OrdinalIgnoreCase)
+                )
+        )
+        {
+            throw new BadHttpRequestException(LayoutNameExistsMessage);
+        }
         string newFilePath = GetPathToLayoutFile(layoutSetName, newLayoutName);
         MoveFileByRelativePath(currentFilePath, newFilePath, newLayoutName);
     }
@@ -1128,15 +1136,43 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// Applies the naming policy for new names to the layout set and layout a write would create, and
     /// allows writes to ones that already exist whatever they are called. Writes nothing.
     /// </summary>
-    public void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName)
+    public void EnsureLayoutWriteIsAllowed(string layoutSetName, string layoutName) =>
+        EnsureLayoutWritesAreAllowed(layoutSetName, [layoutName], []);
+
+    /// <summary>
+    /// Applies the naming policy for new names to the layouts a request creates after deleting the given
+    /// layouts, and to the UI folder they go in. A new name may not differ only in case from an existing
+    /// name, because a case-insensitive file system would write it over that one. Writes nothing.
+    /// </summary>
+    public void EnsureLayoutWritesAreAllowed(
+        string layoutSetName,
+        IEnumerable<string> createdLayoutNames,
+        IEnumerable<string> deletedLayoutNames
+    )
     {
         if (!string.IsNullOrEmpty(layoutSetName) && !LayoutSetFolderExistsByExactName(layoutSetName))
         {
             EnsureAllowedNewLayoutSetName(layoutSetName);
+            if (GetLayoutSetFolderNames().Contains(layoutSetName, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new BadHttpRequestException(UiFolderNameExistsMessage);
+            }
         }
-        if (!LayoutFileExistsByExactName(layoutSetName, layoutName))
+        List<string> layoutNames = GetLayoutFileNames(layoutSetName)
+            .Except(deletedLayoutNames, StringComparer.Ordinal)
+            .ToList();
+        foreach (string layoutName in createdLayoutNames)
         {
+            if (layoutNames.Contains(layoutName, StringComparer.Ordinal))
+            {
+                continue;
+            }
             EnsureAllowedNewLayoutName(layoutName);
+            if (layoutNames.Contains(layoutName, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new BadHttpRequestException(LayoutNameExistsMessage);
+            }
+            layoutNames.Add(layoutName);
         }
     }
 
@@ -1144,29 +1180,26 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// Determines whether a layout set folder of exactly this name exists. Matching by exact name makes a
     /// case-insensitive file system behave like Linux.
     /// </summary>
-    public bool LayoutSetFolderExistsByExactName(string layoutSetName)
-    {
-        if (!DirectoryExistsByRelativePath(LayoutsFolderName))
-        {
-            return false;
-        }
-        return GetDirectoriesByRelativeDirectory(LayoutsFolderName).Contains(layoutSetName, StringComparer.Ordinal);
-    }
+    public bool LayoutSetFolderExistsByExactName(string layoutSetName) =>
+        GetLayoutSetFolderNames().Contains(layoutSetName, StringComparer.Ordinal);
+
+    private string[] GetLayoutSetFolderNames() =>
+        DirectoryExistsByRelativePath(LayoutsFolderName) ? GetDirectoriesByRelativeDirectory(LayoutsFolderName) : [];
 
     /// <summary>
-    /// Determines whether a layout file of exactly this name exists in the layout set. Matching by exact
-    /// name makes a case-insensitive file system behave like Linux.
+    /// Lists the layouts in the layout set by the exact names of their files, without the extension.
     /// </summary>
-    private bool LayoutFileExistsByExactName(string layoutSetName, string layoutName)
+    private IEnumerable<string> GetLayoutFileNames(string layoutSetName)
     {
         string layoutsFolderPath = GetPathToLayoutSet(layoutSetName);
         if (!DirectoryExistsByRelativePath(layoutsFolderPath))
         {
-            return false;
+            return [];
         }
         return GetFilesByRelativeDirectory(layoutsFolderPath)
             .Select(Path.GetFileName)
-            .Contains($"{layoutName}.json", StringComparer.Ordinal);
+            .Where(fileName => fileName.EndsWith(LayoutFileExtension, StringComparison.OrdinalIgnoreCase))
+            .Select(fileName => fileName[..^LayoutFileExtension.Length]);
     }
 
     // can be null if app does not use layout set

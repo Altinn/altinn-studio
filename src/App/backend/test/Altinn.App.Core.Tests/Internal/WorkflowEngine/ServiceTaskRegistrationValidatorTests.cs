@@ -11,22 +11,13 @@ public class ServiceTaskRegistrationValidatorTests
     {
         var services = new ServiceCollection();
         register(services);
-        await using var sp = services.BuildServiceProvider();
-
+        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         var validator = new ServiceTaskRegistrationValidator(
-            sp.GetRequiredService<IServiceScopeFactory>(),
+            provider.GetRequiredService<IServiceScopeFactory>(),
             NullLogger<ServiceTaskRegistrationValidator>.Instance
         );
-
-        try
-        {
-            await validator.StartAsync(CancellationToken.None);
-            return null;
-        }
-        catch (InvalidOperationException ex)
-        {
-            return ex;
-        }
+        return (InvalidOperationException?)
+            await Record.ExceptionAsync(() => validator.StartAsync(CancellationToken.None));
     }
 
     private static Task<ServiceTaskStageResult> NoopStage(ServiceTaskContext context) =>

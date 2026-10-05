@@ -46,7 +46,7 @@ export function validateMissingTagsForNode(ctx: ComponentValidationContext<'File
 
   return validateMissingTags(
     attachmentSelector(
-      makeAttachmentNode(ctx.baseComponentId, ctx.component),
+      makeAttachmentNode({ ...ctx.component, indexedId: ctx.indexedId }),
       ctx.formState,
       ctx.instanceData,
       getApplicationMetadata(),

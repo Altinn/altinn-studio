@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/AI/agents/**'
-      - 'src/common/ts/layout-contract/schemas/json/layout/**'
+      - 'src/common/ts/layout-contract/schemas/**'
       - '.github/workflows/altinity-build-test.yaml'
       - '!**/AGENTS.md'
 
@@ -44,6 +44,10 @@ jobs:
     - name: Check formatting
       working-directory: src/AI/agents
       run: ruff format --check .
+
+    - name: Type check
+      working-directory: src/AI/agents
+      run: pyright
 
     - name: Run Altinity unit tests
       working-directory: src/AI/agents

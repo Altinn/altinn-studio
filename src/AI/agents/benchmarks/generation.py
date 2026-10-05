@@ -19,6 +19,8 @@ from agents.core.messages import (
     UserMessage,
 )
 
+from .experiment import ItemEvaluator
+
 TOOL_CALLS_KEY = "tool_calls"
 TEXT_KEY = "text"
 
@@ -235,7 +237,7 @@ def json_arguments_parse(*, output: Any = None, **_: Any) -> list[Evaluation]:
     ]
 
 
-ITEM_EVALUATORS = [
+ITEM_EVALUATORS: list[ItemEvaluator] = [
     tool_choice,
     allowed_tools,
     tool_arguments,

@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles/breakpoints.module.css": "./src/app-components/Flex/breakpoints.module.css",
+    "./styles/breakpoints.module.css": "./src/app-components/breakpoints/breakpoints.module.css",
     "./styles/combobox.module.css": "./src/styles/combobox.module.css",
     "./styles/global.css": "./src/styles/global.css",
     "./test/popoverPolyfill": "./src/test/popoverPolyfill.ts"
@@ -34,7 +34,7 @@
     "react-number-format": "5.4.5"
   },
   "peerDependencies": {
-    "@digdir/designsystemet-react": "1.21.0",
+    "@digdir/designsystemet-react": "1.23.0",
     "@navikt/aksel-icons": "8.16.2",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -42,8 +42,8 @@
   "devDependencies": {
     "@app/language": "workspace:0.1.0",
     "@chromatic-com/storybook": "5.3.1",
-    "@digdir/designsystemet-css": "1.21.0",
-    "@digdir/designsystemet-react": "1.21.0",
+    "@digdir/designsystemet-css": "1.23.0",
+    "@digdir/designsystemet-react": "1.23.0",
     "@eslint/compat": "2.1.1",
     "@eslint/js": "10.0.1",
     "@navikt/aksel-icons": "8.16.2",
