@@ -68,15 +68,13 @@ describe('StudioFileBrowser', () => {
     renderStudioFileBrowser();
     expect(screen.getByRole('navigation', { name: texts.breadcrumbsLabel })).toBeInTheDocument();
     expect(getButton('App')).toBeInTheDocument();
-    expect(getCurrentBreadcrumb('config')).toBeInTheDocument();
+    expect(getCurrentFolder('config')).toBeInTheDocument();
   });
 
   it('does not render breadcrumbs for folders above the parent folder', () => {
-    renderStudioFileBrowser({
-      directory: { path: 'App/config/texts', status: 'loaded', entries: [] },
-    });
+    renderStudioFileBrowser({ directory: textsDirectory });
     expect(getButton('config')).toBeInTheDocument();
-    expect(getCurrentBreadcrumb('texts')).toBeInTheDocument();
+    expect(getCurrentFolder('texts')).toBeInTheDocument();
     expect(screen.queryByText('App')).not.toBeInTheDocument();
     expect(screen.queryByText(texts.root)).not.toBeInTheDocument();
   });
@@ -91,7 +89,7 @@ describe('StudioFileBrowser', () => {
   it('renders the root as the parent folder of a folder in the root', async () => {
     const user = userEvent.setup();
     renderStudioFileBrowser({ directory: { path: 'App', status: 'loaded', entries: [] } });
-    expect(getCurrentBreadcrumb('App')).toBeInTheDocument();
+    expect(getCurrentFolder('App')).toBeInTheDocument();
     await user.click(getButton(texts.root));
     expect(defaultProps.onOpenDirectory).toHaveBeenCalledWith('');
   });
@@ -99,7 +97,7 @@ describe('StudioFileBrowser', () => {
   it('shows the root as the current folder when the path is empty', () => {
     renderStudioFileBrowser({ directory: { path: '', status: 'loaded', entries: [] } });
     expect(screen.queryByRole('button', { name: texts.root })).not.toBeInTheDocument();
-    expect(getCurrentBreadcrumb(texts.root)).toBeInTheDocument();
+    expect(getCurrentFolder(texts.root)).toBeInTheDocument();
   });
 
   it('calls onOpenDirectory when the user clicks a folder', async () => {
@@ -134,7 +132,7 @@ describe('StudioFileBrowser', () => {
     const { rerender } = renderStudioFileBrowser();
     await user.click(getButton('texts'));
     rerender(<StudioFileBrowser {...defaultProps} directory={textsDirectory} />);
-    expect(getCurrentLocation('texts')).toHaveFocus();
+    expect(getCurrentFolder('texts')).toHaveFocus();
   });
 
   it('moves the focus to the current folder when the user opens the parent folder in the breadcrumbs', async () => {
@@ -142,13 +140,13 @@ describe('StudioFileBrowser', () => {
     const { rerender } = renderStudioFileBrowser({ directory: textsDirectory });
     await user.click(getButton('config'));
     rerender(<StudioFileBrowser {...defaultProps} />);
-    expect(getCurrentLocation('config')).toHaveFocus();
+    expect(getCurrentFolder('config')).toHaveFocus();
   });
 
   it('does not move the focus when the folder changes without an action from the user', () => {
     const { rerender } = renderStudioFileBrowser();
     rerender(<StudioFileBrowser {...defaultProps} directory={textsDirectory} />);
-    expect(getCurrentLocation('texts')).not.toHaveFocus();
+    expect(getCurrentFolder('texts')).not.toHaveFocus();
   });
 
   it('does not move the focus when the user has moved the focus out of the file browser', async () => {
@@ -207,16 +205,12 @@ describe('StudioFileBrowser', () => {
   });
 });
 
-function getCurrentLocation(name: string): HTMLElement {
-  return getCurrentBreadcrumb(name).closest('[aria-current="location"]');
+function getCurrentFolder(name: string): HTMLElement {
+  return screen.getByText(name, { selector: '[aria-current="location"]' });
 }
 
 function getStatusMessages(): string[] {
   return screen.getAllByRole('status').map((status) => status.textContent);
-}
-
-function getCurrentBreadcrumb(name: string): HTMLElement {
-  return screen.getByText(name, { selector: '[aria-current="location"] > span' });
 }
 
 function getButton(name: string): HTMLElement {

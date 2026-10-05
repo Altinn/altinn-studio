@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useId, useRef } from 'react';
-import type { HTMLAttributes, ReactElement, Ref, RefObject } from 'react';
+import type { HTMLAttributes, ReactElement, Ref } from 'react';
 import cn from 'classnames';
 import { useForwardedRef } from '@studio/hooks';
 import { ChevronRightIcon, FileTextIcon, FolderIcon } from '@studio/icons';
@@ -69,10 +69,17 @@ function StudioFileBrowser(
   const rootRef = useForwardedRef<HTMLDivElement>(ref);
   const currentLocationRef = useRef<HTMLSpanElement>(null);
   const currentLocationId = useId();
-  const requestLocationFocus = useLocationFocus(directory.path, rootRef, currentLocationRef);
+  const isFocusRequested = useRef(false);
+
+  // Opening a folder removes the focused button, so the focus moves to the new current folder.
+  useEffect(() => {
+    if (!isFocusRequested.current) return;
+    isFocusRequested.current = false;
+    if (isFocusInsideOrLost(rootRef.current)) currentLocationRef.current?.focus();
+  }, [directory.path, rootRef]);
 
   const openDirectory = (path: string): void => {
-    requestLocationFocus();
+    isFocusRequested.current = true;
     onOpenDirectory(path);
   };
 
@@ -121,30 +128,9 @@ function StudioFileBrowser(
   );
 }
 
-/** Opening a folder removes the focused button, so the focus moves to the new current folder. */
-function useLocationFocus(
-  directoryPath: string,
-  rootRef: RefObject<HTMLElement | null>,
-  currentLocationRef: RefObject<HTMLElement | null>,
-): () => void {
-  const isFocusRequested = useRef(false);
-
-  useEffect(() => {
-    if (!isFocusRequested.current) return;
-    isFocusRequested.current = false;
-    if (isFocusInsideOrLost(rootRef.current)) currentLocationRef.current?.focus();
-  }, [directoryPath, rootRef, currentLocationRef]);
-
-  return () => {
-    isFocusRequested.current = true;
-  };
-}
-
 function isFocusInsideOrLost(root: HTMLElement | null): boolean {
   const { activeElement } = document;
-  return (
-    !activeElement || activeElement === document.body || Boolean(root?.contains(activeElement))
-  );
+  return activeElement === document.body || Boolean(root?.contains(activeElement));
 }
 
 type DirectoryBreadcrumbsProps = {
@@ -162,11 +148,9 @@ function DirectoryBreadcrumbs({
   onOpenDirectory,
   texts,
 }: DirectoryBreadcrumbsProps): ReactElement {
-  const segments = splitPath(path);
-  const currentName = segments.at(-1);
-  const parentPath = joinPath(segments.slice(0, -1));
-  const parentName = segments.at(-2);
-  const rootLabel = <span className={classes.breadcrumbLabel}>{texts.root}</span>;
+  const segments = path.split('/').filter(Boolean);
+  const parentName = segments.at(-2) ?? texts.root;
+  const currentName = segments.at(-1) ?? texts.root;
 
   return (
     // The breadcrumbs element sets its own navigation role only when the last item is a link.
@@ -174,68 +158,34 @@ function DirectoryBreadcrumbs({
     <nav aria-label={texts.breadcrumbsLabel} className={classes.breadcrumbs}>
       <StudioBreadcrumbs>
         <StudioBreadcrumbs.List>
-          {currentName !== undefined && (
+          {segments.length > 0 && (
             <StudioBreadcrumbs.Item>
-              <BreadcrumbButton
-                onClick={() => onOpenDirectory(parentPath)}
-                title={parentName ?? texts.root}
-              >
-                {parentName === undefined ? (
-                  rootLabel
-                ) : (
-                  <span className={classes.breadcrumbLabel}>{parentName}</span>
-                )}
-              </BreadcrumbButton>
+              <StudioBreadcrumbs.Link asChild>
+                <button
+                  type='button'
+                  className={classes.breadcrumb}
+                  onClick={() => onOpenDirectory(segments.slice(0, -1).join('/'))}
+                  title={parentName}
+                >
+                  {parentName}
+                </button>
+              </StudioBreadcrumbs.Link>
             </StudioBreadcrumbs.Item>
           )}
           <StudioBreadcrumbs.Item>
-            <CurrentBreadcrumb id={currentLocationId} spanRef={currentLocationRef}>
-              {currentName === undefined ? (
-                rootLabel
-              ) : (
-                <span className={classes.breadcrumbLabel}>{currentName}</span>
-              )}
-            </CurrentBreadcrumb>
+            <span
+              ref={currentLocationRef}
+              id={currentLocationId}
+              tabIndex={-1}
+              className={cn(classes.breadcrumb, classes.currentBreadcrumb)}
+              aria-current='location'
+            >
+              {currentName}
+            </span>
           </StudioBreadcrumbs.Item>
         </StudioBreadcrumbs.List>
       </StudioBreadcrumbs>
     </nav>
-  );
-}
-
-type BreadcrumbProps = {
-  children: ReactElement | string;
-};
-
-function BreadcrumbButton({
-  children,
-  onClick,
-  title,
-}: BreadcrumbProps & { onClick: () => void; title?: string }): ReactElement {
-  return (
-    <StudioBreadcrumbs.Link asChild>
-      <button type='button' className={classes.breadcrumb} onClick={onClick} title={title}>
-        {children}
-      </button>
-    </StudioBreadcrumbs.Link>
-  );
-}
-
-function CurrentBreadcrumb({
-  children,
-  id,
-  spanRef,
-}: BreadcrumbProps & { id: string; spanRef: Ref<HTMLSpanElement> }): ReactElement {
-  return (
-    <span
-      ref={spanRef}
-      id={id}
-      tabIndex={-1}
-      className={cn(classes.breadcrumb, classes.currentBreadcrumb)}
-      aria-current='location'
-    >
-      {children}
-    </span>
   );
 }
 
@@ -369,14 +319,6 @@ const RESIZABLE_LAYOUT_STORAGE_KEY = 'studio-file-browser';
 const SIDEBAR_MINIMUM_WIDTH = 200;
 const SIDEBAR_MAXIMUM_WIDTH = 480;
 const FILE_CONTENT_MINIMUM_WIDTH = 300;
-
-function splitPath(path: string): string[] {
-  return path.split('/').filter(Boolean);
-}
-
-function joinPath(segments: string[]): string {
-  return segments.join('/');
-}
 
 const ForwardedStudioFileBrowser = forwardRef(StudioFileBrowser);
 
