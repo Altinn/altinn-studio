@@ -1,6 +1,6 @@
 import { userEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { CustomActions, type CustomActionsProps } from './CustomActions';
 import { useActionHandler } from '../hooks/useOnActionChange';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
@@ -23,24 +23,26 @@ describe('CustomActions', () => {
     jest.clearAllMocks();
   });
 
-  it('should be possible to add new custom action', async () => {
+  it('preserves the full custom action while typing and saves it when leaving the field', async () => {
     const user = userEvent.setup();
 
-    const handeOnActionChangeMock = jest.fn();
+    const handleOnActionChangeMock = jest.fn();
     (useActionHandler as jest.Mock).mockImplementation(() => ({
-      handleOnActionChange: handeOnActionChangeMock,
+      handleOnActionChange: handleOnActionChangeMock,
     }));
 
     renderCustomAction();
 
-    const inputField = screen.getByLabelText(
-      textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
-    );
+    const inputField = screen.getByRole('textbox', {
+      name: textMock('process_editor.configuration_panel_actions_action_card_custom_label'),
+    });
 
     const myCustomActionName = 'My custom action';
     await user.type(inputField, myCustomActionName);
-    await waitFor(() => expect(handeOnActionChangeMock).toHaveBeenCalledTimes(1));
-    expect(handeOnActionChangeMock).toHaveBeenCalledWith(
+    expect(inputField).toHaveValue(myCustomActionName);
+    expect(handleOnActionChangeMock).not.toHaveBeenCalled();
+    await user.tab();
+    expect(handleOnActionChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         target: expect.objectContaining({
           value: myCustomActionName,
@@ -57,10 +59,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('processAction'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('processAction'),
+      };
+    });
 
     renderCustomAction();
 
@@ -85,10 +89,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('serverAction'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('serverAction'),
+      };
+    });
 
     renderCustomAction();
 
@@ -109,10 +115,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('Process'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('Process'),
+      };
+    });
 
     renderCustomAction({ actionElement: { ...actionElementMock, action: 'write' } });
 

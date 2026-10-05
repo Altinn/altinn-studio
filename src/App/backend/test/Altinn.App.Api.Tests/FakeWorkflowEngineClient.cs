@@ -3,19 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -27,6 +32,8 @@ namespace Altinn.App.Api.Tests;
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
 /// <remarks>
+/// Each callback runs as a request of its own, as the engine sends it (see <see cref="WorkflowCallbackHttpContextAccessor"/>):
+/// it sees neither the query string nor the user of the request that enqueued its workflow.
 /// Time is compressed rather than simulated: a deferring step re-executes immediately with the
 /// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
 /// The consequence worth knowing is that a workflow never actually rests in
@@ -580,11 +587,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
             _serviceProvider.GetService<Telemetry>()
         );
-        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
-        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
-        {
-            controller.HttpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
-        }
 
         foreach (StoredStep step in workflow.Steps)
         {
@@ -640,14 +642,39 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
                 };
 
-                IActionResult result = await controller.ExecuteCommand(
-                    workflow.Context.Org,
-                    workflow.Context.App,
-                    workflow.Context.InstanceOwnerPartyId,
-                    workflow.Context.InstanceGuid,
-                    appCommandData.CommandKey,
-                    payload,
-                    cancellationToken
+                if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
+                {
+                    // What the engine does with a 401: a client error, so the step fails without retrying.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            $"The app rejected the callback token for command '{appCommandData.CommandKey}'.",
+                            (int)HttpStatusCode.Unauthorized,
+                            WasRetryable: false
+                        )
+                    );
+                    step.Status = PersistentItemStatus.Failed;
+                    step.UpdatedAt = DateTimeOffset.UtcNow;
+                    workflow.Status = PersistentItemStatus.Failed;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                    return;
+                }
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = CreateCallbackRequest(workflow, appCommandData.CommandKey, principal),
+                };
+                IActionResult result = await WorkflowCallbackHttpContextAccessor.RunCallback(
+                    controller.HttpContext,
+                    () =>
+                        controller.ExecuteCommand(
+                            workflow.Context.Org,
+                            workflow.Context.App,
+                            workflow.Context.InstanceOwnerPartyId,
+                            workflow.Context.InstanceGuid,
+                            appCommandData.CommandKey,
+                            payload,
+                            cancellationToken
+                        )
                 );
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
@@ -901,6 +928,60 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             step.Status = PersistentItemStatus.Enqueued;
             step.UpdatedAt = DateTimeOffset.UtcNow;
         }
+    }
+
+    /// <summary>
+    /// Authenticates a callback with the app's own validator, as the callback scheme does for a real request,
+    /// so the controller sees the principal the engine's replayed token would give it. <c>null</c> when the app
+    /// would answer 401.
+    /// </summary>
+    private async Task<ClaimsPrincipal?> AuthenticateCallback(AppWorkflowContext context, string commandKey)
+    {
+        ValidatedWorkflowCallbackToken? validated = await _serviceProvider
+            .GetRequiredService<IWorkflowCallbackTokenValidator>()
+            .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey);
+        if (validated is null)
+            return null;
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [
+                    new Claim(JwtClaimTypes.JwtId, context.InstanceGuid.ToString()),
+                    new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
+                ],
+                WorkflowEngineCallbackDefaults.AuthenticationScheme
+            )
+        );
+    }
+
+    /// <summary>
+    /// The request a callback is: one of its own, as the engine sends it. It has no query string, is routed to the
+    /// callback endpoint and carries the callback token, so the app authenticates it as itself.
+    /// </summary>
+    private static DefaultHttpContext CreateCallbackRequest(
+        StoredWorkflow workflow,
+        string commandKey,
+        ClaimsPrincipal principal
+    )
+    {
+        AppWorkflowContext context = workflow.Context;
+        var httpContext = new DefaultHttpContext { User = principal };
+        httpContext.Request.Method = HttpMethods.Post;
+        httpContext.Request.Path =
+            $"/{context.Org}/{context.App}/instances/{context.InstanceOwnerPartyId}/{context.InstanceGuid}/workflow-engine-callbacks/{commandKey}";
+        httpContext.Request.RouteValues = new RouteValueDictionary
+        {
+            ["org"] = context.Org,
+            ["app"] = context.App,
+            ["instanceOwnerPartyId"] = context.InstanceOwnerPartyId,
+            ["instanceGuid"] = context.InstanceGuid,
+            ["commandKey"] = commandKey,
+        };
+        httpContext.Request.Headers.Authorization = $"Bearer {context.CallbackToken}";
+        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
+        {
+            httpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
+        }
+        return httpContext;
     }
 
     private static bool IsAltinnEventCommand(string commandKey) =>

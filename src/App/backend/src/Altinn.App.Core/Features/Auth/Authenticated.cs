@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Features.Maskinporten.Constants;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Models;
@@ -78,6 +78,13 @@ public abstract class Authenticated
 
         return language;
     }
+
+    /// <summary>
+    /// The language a request runs in: <paramref name="requestedLanguage"/>, the one the client chose in the app, or
+    /// <see cref="GetLanguage()"/> when it chose none. A blank value counts as none.
+    /// </summary>
+    internal async Task<string> GetLanguage(string? requestedLanguage) =>
+        string.IsNullOrWhiteSpace(requestedLanguage) ? await GetLanguage() : requestedLanguage;
 
     /// <summary>
     /// Type to indicate that the current request is not authenticated.

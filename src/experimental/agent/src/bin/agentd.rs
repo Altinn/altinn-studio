@@ -12,6 +12,12 @@ use agent::{
 use clap::Parser;
 use tokio::runtime::LocalRuntime;
 
+/// Image materialization runs in this process and allocates heavily for a
+/// short time. mimalloc returns unused pages to the operating system after a
+/// short delay, so agentd's memory use falls again once an image is ready.
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 #[derive(Parser)]
 #[command(name = "agentd", about = "Run the per-user Agent control plane", version = agent::build_version())]
 struct Arguments {
@@ -118,6 +124,10 @@ async fn open_sandboxes(
     ))
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "wires every daemon subsystem explicitly, as the Control API server's dependencies are"
+)]
 async fn run_control_plane(home: ControlPlaneHome, database: persistence::Database) -> Result<(), Error> {
     let store = Rc::new(database.clone());
     let credentials = Rc::new(agent::harness::AuthenticationManager::new(database.clone()));
@@ -176,13 +186,14 @@ async fn run_control_plane(home: ControlPlaneHome, database: persistence::Databa
         session_store,
         agent_sandboxes,
         session_runtime,
-        convergence,
+        convergence.clone(),
         session_wakeup,
     ));
     agent::upgrade::consume_pending_session_relaunch(&home, &sessions).await?;
     let server = Rc::new(Server::new(
         control_plane,
         credentials.clone(),
+        Rc::new(convergence.clone()),
         executions,
         sessions,
         ssh,

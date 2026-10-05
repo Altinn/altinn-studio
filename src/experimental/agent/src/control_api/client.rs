@@ -8,12 +8,13 @@ use crate::{Agent, Error, control_plane, control_plane::WaitPolicy, harness, ses
 
 use super::protocol::{
     DaemonInfo, DirectoryParams, ExecutionEnsureParams, JSON_RPC_VERSION, LoginParams, METHOD_APPLY, METHOD_AUTH_LOGIN,
-    METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
+    METHOD_CONVERGE, METHOD_DELETE, METHOD_EXECUTION_ENSURE, METHOD_GET, METHOD_HEALTH, METHOD_LIST, METHOD_PROGRESS,
     METHOD_RESOLVE_DIRECTORY, METHOD_RESOURCES_WATCH, METHOD_SESSION_ARCHIVE, METHOD_SESSION_DELETE,
     METHOD_SESSION_ENSURE, METHOD_SESSION_GET, METHOD_SESSION_LIST, METHOD_SESSION_PROMPT, METHOD_SESSION_TURNS,
-    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_VNC_ACCESS, NameParams, ProgressParams,
-    ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams, SessionListParams, SessionParams,
-    SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult, read_message,
+    METHOD_SESSION_UNARCHIVE, METHOD_SHUTDOWN, METHOD_SSH_ACCESS, METHOD_START, METHOD_STOP, METHOD_VNC_ACCESS,
+    NameParams, ProgressParams, ReadMessage, Request, ResourcesWatchParams, Response, SessionEnsureParams,
+    SessionListParams, SessionParams, SessionPromptParams, SessionTurnsParams, ShutdownParams, ShutdownResult,
+    read_message,
 };
 
 /// A byte stream usable by the Agent Control API client.
@@ -156,7 +157,7 @@ impl Client {
             METHOD_EXECUTION_ENSURE,
             ExecutionEnsureParams {
                 name: name.into(),
-                follow: wait == WaitPolicy::UntilReady,
+                follow: wait == WaitPolicy::UntilConverged,
             },
         )
         .await
@@ -231,6 +232,31 @@ impl Client {
         Ok(())
     }
 
+    /// Waits until an Agent has its desired run state, Ready or stopped, and
+    /// returns it as stored then; transient failures are waited through.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the Agent is missing, deleted, invalid or
+    /// unresponsive, or the call fails.
+    pub async fn converge(&self, name: &str) -> Result<Agent, Error> {
+        self.call(METHOD_CONVERGE, NameParams { name: name.into() }).await
+    }
+
+    /// Records whether an Agent's Sandbox runs and returns the Agent as stored;
+    /// the reconciler stops or starts it.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when transport, protocol validation, or the control-plane operation fails.
+    pub async fn set_run_state(&self, name: &str, state: crate::RunState) -> Result<Agent, Error> {
+        let method = match state {
+            crate::RunState::Running => METHOD_START,
+            crate::RunState::Stopped => METHOD_STOP,
+        };
+        self.call(method, NameParams { name: name.into() }).await
+    }
+
     /// Stores a host-acquired harness credential in the daemon.
     ///
     /// # Errors
@@ -280,7 +306,7 @@ impl Client {
                 harness: request.harness,
                 model_selection: request.model_selection,
                 initial_prompt: request.initial_prompt,
-                follow: wait == WaitPolicy::UntilReady,
+                follow: wait == WaitPolicy::UntilConverged,
             },
         )
         .await

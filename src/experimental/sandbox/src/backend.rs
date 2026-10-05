@@ -67,6 +67,28 @@ pub enum SandboxState {
     Running,
 }
 
+/// Host-observed evidence that a running guest is making progress.
+///
+/// A Backend reports it without a round trip to the guest, so a guest that no
+/// longer responds still reports its last heartbeat. Only a change of the
+/// sequence is meaningful: it restarts whenever the Sandbox starts.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct GuestHeartbeat(u64);
+
+impl GuestHeartbeat {
+    /// Wraps a heartbeat sequence observed by a Backend.
+    #[must_use]
+    pub const fn new(sequence: u64) -> Self {
+        Self(sequence)
+    }
+
+    /// Returns the observed sequence.
+    #[must_use]
+    pub const fn sequence(self) -> u64 {
+        self.0
+    }
+}
+
 /// Desired compute and writable root filesystem resources assigned to one Sandbox.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -146,6 +168,9 @@ pub struct Sandbox {
     pub init_system: InitSystem,
     /// The current lifecycle state.
     pub state: SandboxState,
+    /// The latest guest heartbeat, when the Backend observes one for a running
+    /// Sandbox. Absent while the guest boots and when the Backend cannot tell.
+    pub guest_heartbeat: Option<GuestHeartbeat>,
     /// Filesystem attachments materialized in the Sandbox.
     pub mounts: Vec<Mount>,
     /// Non-secret environment inherited by image init and Sandbox Executions.

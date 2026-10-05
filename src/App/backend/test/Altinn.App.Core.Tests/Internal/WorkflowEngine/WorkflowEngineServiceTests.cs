@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
@@ -113,9 +114,14 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        var service = CreateService(client, instanceClient.Object);
+        // The skipping clock spends the budget only on the service's own poll delays, not on a busy runner's
+        // scheduling, so the wait always reaches its second poll before timing out.
+        var service = CreateService(client, instanceClient.Object, timeProvider: new TimeSkippingTimeProvider());
         service.WorkflowPollingTimeoutMs = 500;
-        var result = await service.EnqueueAndWaitForProcessNext(instance, versions, "state", action: null);
+        // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
+        var result = await service
+            .EnqueueAndWaitForProcessNext(instance, versions, "state", action: null, language: null)
+            .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateChanged);
         Assert.True(polls >= 2);
         switch (continuationStatus)
@@ -2286,6 +2292,25 @@ public class WorkflowEngineServiceTests
             timeProvider ?? TimeProvider.System
         );
 
+    /// <summary>
+    /// A fake clock that jumps to each timer's due time as the timer is created, so a delay has already
+    /// elapsed by the time it is awaited. A polling wait then runs its whole delay schedule synchronously, and
+    /// the polls that happen before its deadline follow from the schedule alone, not from how quickly a busy
+    /// test runner resumes after a real delay.
+    /// </summary>
+    private sealed class TimeSkippingTimeProvider : FakeTimeProvider
+    {
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            ITimer timer = base.CreateTimer(callback, state, dueTime, period);
+            if (dueTime != Timeout.InfiniteTimeSpan)
+            {
+                Advance(dueTime);
+            }
+            return timer;
+        }
+    }
+
     private static ProcessNextRequestFactory CreateRequestFactory(Authenticated? currentAuthentication = null)
     {
         var services = new ServiceCollection();
@@ -2296,7 +2321,11 @@ public class WorkflowEngineServiceTests
             .SetupGet(context => context.Current)
             .Returns(currentAuthentication ?? TestAuthentication.GetUserAuthentication());
         var callbackTokenGenerator = new Mock<IWorkflowCallbackTokenGenerator>(MockBehavior.Strict);
-        callbackTokenGenerator.Setup(generator => generator.GenerateToken(It.IsAny<Guid>())).Returns("callback-token");
+        callbackTokenGenerator
+            .Setup(generator =>
+                generator.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>())
+            )
+            .Returns("callback-token");
         AppImplementationFactory appImplementationFactory =
             serviceProvider.GetRequiredService<AppImplementationFactory>();
         return new ProcessNextRequestFactory(

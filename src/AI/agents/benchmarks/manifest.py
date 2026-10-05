@@ -92,7 +92,14 @@ class Behavior:
     @property
     def is_pinned(self) -> bool:
         """Pinned means something scores it, not merely that a dataset exists."""
-        return self.eval is not None and self.evaluator is not None
+        return self.pin is not None
+
+    @property
+    def pin(self) -> tuple[str, str] | None:
+        """The dataset and the evaluator that score this behavior, when both exist."""
+        if self.eval is None or self.evaluator is None:
+            return None
+        return self.eval, self.evaluator
 
     def agent_prompt(self, evidence: tuple[str, ...]) -> str:
         """The pasteable prompt: declared judgment, with evidence computed from the run."""

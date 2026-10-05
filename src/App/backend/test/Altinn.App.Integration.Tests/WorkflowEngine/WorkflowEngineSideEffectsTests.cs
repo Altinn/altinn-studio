@@ -95,7 +95,10 @@ public class WorkflowEngineSideEffectsTests(ITestOutputHelper output, AppFixture
                 w => !IsSideEffectsWorkflow(w) && w.OperationId.EndsWith("-> Task_Service", StringComparison.Ordinal)
             );
             Assert.Equal("Completed", serviceTaskMain.OverallStatus);
-            EngineWorkflow acquireWorkflow = Assert.Single(workflows, w => w.OperationId == "Process next: acquire");
+            EngineWorkflow acquireWorkflow = Assert.Single(
+                workflows,
+                w => w.OperationId == "Process next: Mark instance as processing"
+            );
             Assert.Equal("Completed", acquireWorkflow.OverallStatus);
             Assert.Equal("AcquireProcessingStatus", Assert.Single(acquireWorkflow.Steps).OperationId);
             Assert.DoesNotContain(serviceTaskMain.Steps, s => s.OperationId == "AcquireProcessingStatus");

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -150,8 +151,30 @@ public static class TestData
         return Path.Join(instancesDirectory, org, app, instanceOwnerId.ToString(), instanceGuid + @".json");
     }
 
-    public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
+    /// <summary>
+    /// Maps each on-disk instance to the test file that prepares it. Test classes run in parallel, and
+    /// preparing an instance deletes and recreates its files, so two classes must never share one.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Guid, string> _instanceOwners = new();
+
+    public static void PrepareInstance(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceGuid,
+        [CallerFilePath] string callerFilePath = ""
+    )
     {
+        string owner = _instanceOwners.GetOrAdd(instanceGuid, callerFilePath);
+        if (owner != callerFilePath)
+        {
+            throw new InvalidOperationException(
+                $"Instance {instanceGuid} is prepared by both {Path.GetFileName(owner)} and "
+                    + $"{Path.GetFileName(callerFilePath)}. Test classes run in parallel, so give each "
+                    + "class its own instance."
+            );
+        }
+
         DeleteInstanceAndData(org, app, instanceOwnerId, instanceGuid);
         string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
 

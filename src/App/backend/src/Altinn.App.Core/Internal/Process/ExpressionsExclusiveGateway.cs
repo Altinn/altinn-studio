@@ -92,7 +92,9 @@ internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 }
             }
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-            DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);
+            // While an instance is created, a gateway after the start event sees the instance template, which has no
+            // data list yet.
+            DataElementIdentifier? dataElement = instance.Data?.Find(d => d.DataType == dataTypeId);
 
             var componentContext = new ComponentContext(
                 state.DataAccessor,

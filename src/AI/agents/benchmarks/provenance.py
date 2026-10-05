@@ -6,8 +6,9 @@ import hashlib
 import json
 import os
 import subprocess
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 AGENTS_ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +25,9 @@ BLOCKING_AXES = (
 )
 
 ENVIRONMENTS = ("local", "dev", "prod", "ci")
+
+# The actor_prompt digest uses this session date. With the real date, the digest changes every day.
+DIGEST_SESSION_DATE = date(2000, 1, 1)
 
 LIVE_ROLES = ("actor", "planner", "default")
 
@@ -158,30 +162,70 @@ def _sampling_value(value: object) -> str:
     return "model default" if value is None else str(value)
 
 
-def _actor_prompt_digest() -> str | None:
-    """A hash of the actor's static system prompt."""
-    try:
-        from agents.altinn.app_version import V8_PROFILE
-        from agents.core.context import stable_prefix_sections
+def _hash_actor_prompt() -> str:
+    """Hash the system prompt of the actor, for each app version and each session mode.
 
-        # The benchmark items run against v8 apps.
-        sections = stable_prefix_sections(V8_PROFILE)
-    except Exception:
-        return None
-    payload = "\n\n".join(sections).encode()
+    The hash uses the output of `build_system_prompt`, so each section and template counts.
+    The session values are fixed placeholders, because the real values change in each session.
+    """
+    from agents.altinn.app_version import APP_VERSION_PROFILES
+    from agents.core.context import SessionContext, build_system_prompt
+    from agents.core.skills import discover_skills, format_skill_listing
+
+    skill_listing = format_skill_listing(discover_skills())
+    prompts = [
+        build_system_prompt(
+            SessionContext(
+                session_id="digest-session",
+                repo_path="digest-repo",
+                user_goal="digest-goal",
+                allow_app_changes=allow_app_changes,
+                form_spec_summary="digest-form-spec",
+                today=DIGEST_SESSION_DATE,
+                app_version_profile=profile,
+            ),
+            skill_listing=skill_listing,
+        )
+        for profile in APP_VERSION_PROFILES
+        for allow_app_changes in (True, False)
+    ]
+    payload = "\n\n".join(prompts).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
 
 
-def _tools_digest() -> str | None:
-    """A hash of every tool schema the actor is shown."""
-    try:
-        from agents.graph.nodes.agentic_loop_node import _build_registry
+def _hash_tools() -> str:
+    """Hash each tool schema that the actor gets, and the skill text for each app version."""
+    from agents.altinn.app_version import APP_VERSION_PROFILES
+    from agents.core.skills import discover_skills
+    from agents.graph.nodes.agentic_loop_node import _build_registry
 
-        schema = _build_registry().to_schema()
-    except Exception:
-        return None
-    payload = json.dumps(schema, sort_keys=True).encode()
+    skills = discover_skills()
+    schema = _build_registry(skills).to_schema()
+    skill_text = {
+        profile.version_label: {skill.name: skill.load_body(profile.version_label) for skill in skills}
+        for profile in APP_VERSION_PROFILES
+    }
+    payload = json.dumps({"schema": schema, "skills": skill_text}, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]
+
+
+DIGEST_HASHERS: dict[str, Callable[[], str]] = {
+    "actor_prompt": _hash_actor_prompt,
+    "tools": _hash_tools,
+}
+
+
+def digests(*, on_failure: Callable[[str, Exception], None] | None = None) -> dict[str, str | None]:
+    """Hash the axes that do not need a run. A None value means that the digest failed."""
+    measured: dict[str, str | None] = {}
+    for axis, hash_axis in DIGEST_HASHERS.items():
+        try:
+            measured[axis] = hash_axis()
+        except Exception as error:
+            measured[axis] = None
+            if on_failure:
+                on_failure(axis, error)
+    return measured
 
 
 def _environment() -> str:
@@ -203,9 +247,11 @@ def collect(
 ) -> Provenance:
     """Everything knowable without a network call, plus what the caller knows."""
     models, sampling = _models_and_sampling()
-    agent_roles = tuple(sorted(r for r in (agent_models or {}) if r in LIVE_ROLES))
+    agent_models = agent_models or {}
+    agent_roles = tuple(sorted(r for r in agent_models if r in LIVE_ROLES))
     if agent_roles:
         models = {**models, **{r: agent_models[r] for r in agent_roles}}
+    measured = digests()
     provenance = Provenance(
         recorded_at=datetime.now(UTC).isoformat(timespec="seconds"),
         environment=_environment(),
@@ -213,8 +259,8 @@ def collect(
         models=models,
         sampling=sampling,
         prompts=prompts or {},
-        actor_prompt=_actor_prompt_digest(),
-        tools=_tools_digest(),
+        actor_prompt=measured["actor_prompt"],
+        tools=measured["tools"],
         dataset=dataset,
         evaluators=evaluators or {},
         judge=judge,

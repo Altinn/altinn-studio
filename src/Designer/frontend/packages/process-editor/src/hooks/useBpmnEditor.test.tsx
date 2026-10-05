@@ -26,15 +26,8 @@ import type { BpmnTaskType } from '../types/BpmnTaskType';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import type BpmnModeler from 'bpmn-js/lib/Modeler';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
-// Test data:
-const appVersion: AppVersion = {
-  backendVersion: '8.0.0',
-  frontendVersion: '4.0.0',
-};
 const defaultBpmnContextProps: Omit<BpmnContextProviderProps, 'children'> = {
-  appVersion,
   bpmnXml: undefined,
 };
 const savedXml = '<savedxml></savedxml>';
@@ -83,7 +76,6 @@ const element: TaskEvent['element'] = {
 };
 const xml = '<testxml></testxml>';
 
-// Mocks:
 jest.mock('bpmn-js/lib/Modeler', () => jest.fn().mockImplementation(bpmnModelerImplementation));
 
 function bpmnModelerImplementation(): BpmnModeler {
@@ -130,6 +122,7 @@ type EventMap = {
   ['shape.added']: (taskEvent: TaskEvent) => void;
   ['shape.remove']: (taskEvent: TaskEvent) => void;
   ['selection.changed']: (selectionChangedEvent: SelectionChangedEvent) => void;
+  ['elements.changed']: (event: { elements: TaskEvent['element'][] }) => void;
 };
 
 const modelerEventNames: Array<keyof EventMap> = [
@@ -149,7 +142,7 @@ describe('useBpmnEditor', () => {
     const saveBpmn = jest.fn();
     await setup({ bpmnApiContextProps: { saveBpmn } });
     eventListeners.triggerEvent('commandStack.changed');
-    await waitFor(expect(saveBpmn).toHaveBeenCalled);
+    await waitFor(() => expect(saveBpmn).toHaveBeenCalled());
     expect(saveBpmn).toHaveBeenCalledTimes(1);
     expect(saveBpmn).toHaveBeenCalledWith(xml, null);
   });
@@ -160,7 +153,7 @@ describe('useBpmnEditor', () => {
     await setup({ bpmnApiContextProps: { onProcessTaskAdd } });
 
     act(() => eventListeners.triggerEvent('shape.added', taskEvent)); // Need to use act here because this event also triggers the addAction function from useStudioRecommendedNextActionContext, which in turn triggers another state update
-    await waitFor(expect(onProcessTaskAdd).toHaveBeenCalled);
+    await waitFor(() => expect(onProcessTaskAdd).toHaveBeenCalled());
 
     const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
     expect(onProcessTaskAdd).toHaveBeenCalledTimes(1);
@@ -173,7 +166,7 @@ describe('useBpmnEditor', () => {
     await setup({ bpmnApiContextProps: { onProcessTaskRemove } });
 
     eventListeners.triggerEvent('shape.remove', taskEvent);
-    await waitFor(expect(onProcessTaskRemove).toHaveBeenCalled);
+    await waitFor(() => expect(onProcessTaskRemove).toHaveBeenCalled());
 
     const expectedInput: OnProcessTaskEvent = { taskEvent, taskType };
     expect(onProcessTaskRemove).toHaveBeenCalledTimes(1);
@@ -200,6 +193,35 @@ describe('useBpmnEditor', () => {
     expect(result.current.bpmnContext.bpmnDetails).toBe(null);
   });
 
+  it('refreshes the selected task after an edit or undo without requiring another selection', async () => {
+    const selectedElement = {
+      ...element,
+      businessObject: {
+        ...businessObject,
+        extensionElements: { values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }] },
+      },
+    };
+    const { result } = await setupWithBpmnContext();
+    act(() =>
+      eventListeners.triggerEvent('selection.changed', {
+        oldSelection: [],
+        newSelection: [selectedElement],
+      }),
+    );
+
+    for (const updatedTaskType of ['pdf', 'data']) {
+      act(() => {
+        selectedElement.businessObject.extensionElements.values[0].taskType = updatedTaskType;
+        selectedElement.businessObject.name = `${updatedTaskType} task`;
+        eventListeners.triggerEvent('elements.changed', { elements: [selectedElement] });
+      });
+      expect(result.current.bpmnContext.bpmnDetails).toMatchObject({
+        taskType: updatedTaskType,
+        name: `${updatedTaskType} task`,
+      });
+    }
+  });
+
   it('Calls only the most recent saveBpmn function when the "commandStack.changed" event is triggered', async () => {
     const saveBpmn1 = jest.fn();
     const saveBpmn2 = jest.fn();
@@ -212,7 +234,7 @@ describe('useBpmnEditor', () => {
     rerender();
 
     eventListeners.triggerEvent('commandStack.changed');
-    await waitFor(expect(saveBpmn2).toHaveBeenCalled);
+    await waitFor(() => expect(saveBpmn2).toHaveBeenCalled());
     expect(saveBpmn1).not.toHaveBeenCalled();
     expect(saveBpmn2).toHaveBeenCalledTimes(1);
   });
@@ -301,15 +323,31 @@ describe('useBpmnEditor', () => {
     expect(onProcessTaskAdd).not.toHaveBeenCalled();
   });
 
-  it('Clears the metadata form before the save completes, so the next edit does not resend it', async () => {
-    const saveBpmn = jest.fn().mockRejectedValue(new Error('Bad request'));
+  it('captures save metadata before serialization and preserves metadata for the next edit', async () => {
+    const saveBpmn = jest.fn().mockResolvedValue(undefined);
     const { result } = await setupWithBpmnContext({ bpmnApiContextProps: { saveBpmn } });
     result.current.metadataFormRef.current = { taskIdChange };
+    let finishSerialization: (result: { xml: string }) => void;
+    saveXML.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishSerialization = resolve;
+      }),
+    );
 
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
+    act(() => eventListeners.triggerEvent('commandStack.changed'));
+    expect(result.current.metadataFormRef.current).toBeUndefined();
+    const nextMetadata: MetadataForm = {
+      subformPdfComponentChange: {
+        taskId: 'PdfTask',
+        componentId: 'vehicles',
+        sourceLayoutSetId: 'Task_1',
+      },
+    };
+    result.current.metadataFormRef.current = nextMetadata;
+    await act(async () => finishSerialization({ xml }));
 
     await waitFor(() => expect(saveBpmn).toHaveBeenCalledWith(xml, { taskIdChange }));
-    expect(result.current.metadataFormRef.current).toBeUndefined();
+    expect(result.current.metadataFormRef.current).toBe(nextMetadata);
   });
 
   it('Resets the modeler ref when the callback is called with null', async () => {

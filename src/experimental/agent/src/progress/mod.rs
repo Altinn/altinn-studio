@@ -17,6 +17,8 @@ pub use state::{Provisioning, ProvisioningState};
 pub const SETUP: ::sandbox::Phase = ::sandbox::Phase::new("agentSetup", "Set up Agent");
 /// Declared SSH access to the Sandbox.
 pub const SSH_ACCESS: ::sandbox::Phase = ::sandbox::Phase::new("sshAccess", "Configure SSH access");
+/// Stopping the Sandbox of an Agent whose run state is Stopped.
+pub const SANDBOX_STOP: ::sandbox::Phase = ::sandbox::Phase::new("sandboxStop", "Stop Sandbox");
 /// Declared VNC access to the Agent's desktop.
 pub const VNC_ACCESS: ::sandbox::Phase = ::sandbox::Phase::new("vncAccess", "Configure VNC access");
 

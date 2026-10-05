@@ -44,7 +44,7 @@ class VerifyChangesArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class VerifyChangesTool(WriteToolMixin):
+class VerifyChangesTool(WriteToolMixin[VerifyChangesArgs]):
     name = "verify_changes"
     description = (
         "Validate the files you've modified this session against the "

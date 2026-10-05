@@ -10,13 +10,13 @@ public class ResourceControllerTests : ApiTestBase, IClassFixture<WebApplication
 
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
-    private const string DefaultModelName = "Skjema";
+    private const string DefaultDataTypeId = "default";
 
     [Fact]
     public async Task GetModelJsonSchema_ReturnsOk()
     {
         var client = GetRootedClient(Org, App);
-        using var response = await client.GetAsync($"/{Org}/{App}/api/jsonschema/{DefaultModelName}");
+        using var response = await client.GetAsync($"/{Org}/{App}/api/jsonschema/{DefaultDataTypeId}");
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         Assert.NotNull(content);
@@ -40,7 +40,7 @@ public class ResourceControllerTests : ApiTestBase, IClassFixture<WebApplication
     public async Task GetXmlSchema_ReturnsOk()
     {
         var client = GetRootedClient(Org, App);
-        using var response = await client.GetAsync($"/{Org}/{App}/api/xsdschema/{DefaultModelName}");
+        using var response = await client.GetAsync($"/{Org}/{App}/api/xsdschema/{DefaultDataTypeId}");
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         Assert.NotNull(content);

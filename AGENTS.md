@@ -51,11 +51,11 @@ Each area below links to its own `AGENTS.md` where one exists.
 
 ### Developer tooling
 
-| Area                               | What it is                                                                                                                                                                                                        |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`agents`](agents)                 | Published Altinn development Agent images and manifests: minimal and full toolchains, and full with a desktop.                                                                                                    |
-| [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally.                                                                              |
-| [`src/tools`](src/tools/AGENTS.md) | Standalone tools: [`deployer`](src/tools/deployer/AGENTS.md), [`releaser`](src/tools/releaser/AGENTS.md), [`altinn-fleet-stats`](src/tools/altinn-fleet-stats/AGENTS.md), [`health`](src/tools/health/AGENTS.md). |
+| Area                               | What it is                                                                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| [`agents`](agents)                 | Published Altinn development Agent images and manifests: minimal and full toolchains, and full with a desktop.                       |
+| [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally. |
+| [`src/tools`](src/tools/AGENTS.md) | Standalone utilities used by the Studio team. See [`src/tools/AGENTS.md`](src/tools/AGENTS.md) for the list of tools.                |
 
 ### AI — [`src/AI`](src/AI/AGENTS.md)
 
@@ -89,6 +89,8 @@ Small build/ops images and configs, documented here rather than individually:
 - `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
 - `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
 - `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
+- `observability-proxy` — .NET/YARP edge proxy terminating auth and rate limiting for the Studio
+  observability backend, routing OTLP ingest and Grafana read traffic to the Victoria stack.
 
 Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
 `scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
@@ -97,9 +99,8 @@ stack (see `README.md`).
 
 ## Conventions across the repo
 
-- **Changelogs:** Changelog entries are release notes for product users. Describe only user-facing
-  functionality in clear language, and omit implementation details that do not affect product use.
-  Technical language is appropriate when it helps users understand or adopt the change.
+- **Changelogs:** Changelog entries are release notes for product users. Write and edit them with
+  the `changelog` skill.
 - **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
   exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
   the product is **British English** for the English values and checked **Norwegian** (bokmål and

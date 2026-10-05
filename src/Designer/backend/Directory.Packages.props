@@ -4,10 +4,10 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup Label="Altinn specific packages">
-    <PackageVersion Include="Altinn.App.Core" Version="8.0.0" />
+    <PackageVersion Include="Altinn.App.Core" Version="8.11.2" />
     <PackageVersion Include="Altinn.Common.AccessToken" Version="5.1.13" />
     <PackageVersion Include="Altinn.Common.AccessTokenClient" Version="3.2.12" />
-    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="4.7.1" />
+    <PackageVersion Include="Altinn.Platform.Storage.Interface" Version="5.0.0-rc.1" />
     <PackageVersion Include="Altinn.Authorization.ABAC" Version="0.1.1" />
     <PackageVersion Include="Altinn.ApiClients.Maskinporten" Version="10.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
