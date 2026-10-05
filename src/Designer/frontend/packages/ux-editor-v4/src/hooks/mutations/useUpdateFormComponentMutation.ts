@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../types/global';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
@@ -12,7 +12,8 @@ import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
-import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { useServicesContext } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { imageUploadDefaultDataType } from './useAddItemToLayoutMutation';
 
@@ -108,7 +109,7 @@ type UseHandleFileUploadComponentUpdateParams = {
 const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetName: string) => {
   const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const getAttachmentDataType = useGetAttachmentDataType(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
 
   return async ({
@@ -116,9 +117,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
     oldId,
     updatedLayout,
   }: UseHandleFileUploadComponentUpdateParams): Promise<void> => {
-    const oldDataType = appMetadata?.dataTypes?.find(
-      (dataType) => dataType.id === oldId,
-    ) as ApplicationAttachmentMetadata;
+    const oldDataType = await getAttachmentDataType(oldId);
     const metadataParams = buildDataTypeForFileUpload(
       updatedComponent,
       updatedLayout,
@@ -128,9 +127,9 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
 
     if (oldId !== updatedComponent.id) {
       await moveAttachmentDataType(oldId, {
+        ...oldDataType,
         ...metadataParams,
         id: updatedComponent.id,
-        enableFileScan: oldDataType?.enableFileScan,
       });
     } else {
       await updateAppAttachmentMetadata.mutateAsync({
@@ -148,13 +147,11 @@ type UseHandleImageUploadComponentIdChangeParams = {
 
 const useHandleImageUploadComponentIdChange = (org: string, app: string, layoutSetName: string) => {
   const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const getAttachmentDataType = useGetAttachmentDataType(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
 
   return async ({ oldId, newId }: UseHandleImageUploadComponentIdChangeParams): Promise<void> => {
-    const oldDataType = appMetadata?.dataTypes?.find(
-      (dataType) => dataType.id === oldId,
-    ) as ApplicationAttachmentMetadata;
+    const oldDataType = await getAttachmentDataType(oldId);
 
     await moveAttachmentDataType(oldId, {
       ...imageUploadDefaultDataType,
@@ -162,6 +159,21 @@ const useHandleImageUploadComponentIdChange = (org: string, app: string, layoutS
       ...oldDataType,
       id: newId,
     });
+  };
+};
+
+const useGetAttachmentDataType = (org: string, app: string) => {
+  const queryClient = useQueryClient();
+  const { getAppMetadata } = useServicesContext();
+
+  return async (dataTypeId: string): Promise<ApplicationAttachmentMetadata | undefined> => {
+    const appMetadata = await queryClient.ensureQueryData({
+      queryKey: [QueryKey.AppMetadata, org, app],
+      queryFn: () => getAppMetadata(org, app),
+    });
+    return appMetadata?.dataTypes?.find(
+      (dataType) => dataType.id === dataTypeId,
+    ) as ApplicationAttachmentMetadata;
   };
 };
 

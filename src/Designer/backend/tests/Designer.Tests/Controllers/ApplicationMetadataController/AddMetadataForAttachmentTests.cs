@@ -77,7 +77,11 @@ public class AddMetadataForAttachmentTests
         @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25, ""enableFileScan"": true }",
         true
     )]
-    public async Task AddMetadataForAttachment_ShouldEnableFileScanUnlessPayloadSetsIt(
+    [InlineData(
+        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""maxCount"": 1, ""minCount"": 1, ""maxSize"": 25, ""enableFileScan"": null }",
+        true
+    )]
+    public async Task AddMetadataForAttachment_ShouldEnableFileScanUnlessPayloadDisablesIt(
         string payload,
         bool expectedEnableFileScan
     )
