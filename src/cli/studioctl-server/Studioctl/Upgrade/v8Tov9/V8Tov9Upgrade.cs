@@ -128,8 +128,15 @@ internal static class V8Tov9Upgrade
                 }
             }
 
+            // Runs on resumed upgrades too, so an app already moved to v9 gets its test project fixed.
             if (returnCode == 0)
+            {
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
+                returnCode = CombineExitCodes(
+                    returnCode,
+                    await MigrateDependentProjects(projectFolder, projectFile, options.TargetFramework)
+                );
+            }
         }
 
         // Run every remaining migration and report the worst result. Their order is deliberate:
@@ -423,6 +430,19 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Dockerfile", ex);
+        }
+    }
+
+    static async Task<int> MigrateDependentProjects(string projectFolder, string projectFile, string targetFramework)
+    {
+        UpgradeConsole.BeginStep("Dependent projects");
+        try
+        {
+            return await DependentProjectsMigration.Migrate(projectFolder, projectFile, targetFramework);
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving dependent projects to the new target framework", ex);
         }
     }
 
