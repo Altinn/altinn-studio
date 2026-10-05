@@ -5,7 +5,7 @@
     Severity: Error,
     WarningLevel: 0,
     Location: /repo/App/config/applicationmetadata.json(5,43),
-    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0600,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0600,
     MessageFormat: 'enablePdfCreation' on dataType '{0}' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
     Message: 'enablePdfCreation' on dataType 'model' is no longer supported by this version of the app backend. Generate PDFs with a PDF service task instead.,
     Category: Deprecation
@@ -16,7 +16,7 @@
     Severity: Error,
     WarningLevel: 0,
     Location: /repo/App/config/applicationmetadata.json(3,18),
-    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0601,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0601,
     MessageFormat: The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead.,
     Message: The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead.,
     Category: Deprecation

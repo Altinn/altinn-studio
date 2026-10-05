@@ -25,7 +25,7 @@ describe('FeatureFlagMutationContext', () => {
   });
 
   test('Error is thrown when the hook is used outside of the provider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(() => renderHook(useFeatureFlagMutationContext)).toThrow();
     consoleErrorSpy.mockRestore();
   });

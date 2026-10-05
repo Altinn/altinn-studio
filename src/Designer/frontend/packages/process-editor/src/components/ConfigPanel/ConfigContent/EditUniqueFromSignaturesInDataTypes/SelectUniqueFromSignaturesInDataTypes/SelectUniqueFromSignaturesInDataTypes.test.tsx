@@ -76,7 +76,7 @@ const signingTasks = [
 
 jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: jest.fn().mockImplementation(function () {
       return {
         getElementsByType: jest.fn().mockReturnValue(signingTasks),
       };

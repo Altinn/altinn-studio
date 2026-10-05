@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditUserControlledImplementation } from './EditUserControlledImplementation';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { useGetDefaultUserControlledSigningInterfaceId } from './useGetDefaultUserControlledSigningInterfaceId';
+import { useUpdateUserControlledImplementation } from './useUpdateUserControlledImplementation';
 
 jest.mock('./useGetDefaultUserControlledSigningInterfaceId', () => ({
   useGetDefaultUserControlledSigningInterfaceId: jest.fn(),
@@ -11,10 +13,8 @@ jest.mock('./useUpdateUserControlledImplementation', () => ({
   useUpdateUserControlledImplementation: jest.fn(),
 }));
 
-const mockUseGetDefault = require('./useGetDefaultUserControlledSigningInterfaceId')
-  .useGetDefaultUserControlledSigningInterfaceId as jest.Mock;
-const mockUseUpdate = require('./useUpdateUserControlledImplementation')
-  .useUpdateUserControlledImplementation as jest.Mock;
+const mockUseGetDefault = useGetDefaultUserControlledSigningInterfaceId as jest.Mock;
+const mockUseUpdate = useUpdateUserControlledImplementation as jest.Mock;
 
 describe('EditUserControlledImplementation', (): void => {
   afterEach(() => jest.clearAllMocks());

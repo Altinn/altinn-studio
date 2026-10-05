@@ -50,7 +50,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
     const client = createQueryClientWithData();
     const { result } = render(client);
     result.current.mutate(args);
-    await waitFor(expect(updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgTextResources).toHaveBeenCalled());
     const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(updatedData);
   });
@@ -59,7 +59,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
     const client = createQueryClientMock();
     const { result } = render(client);
     result.current.mutate(args);
-    await waitFor(expect(updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgTextResources).toHaveBeenCalled());
     const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(updatedData);
   });

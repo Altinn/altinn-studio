@@ -19,10 +19,12 @@ const actionElementMock: Action = {
 describe('useOnActionChange', () => {
   it('should add action to task if no actions is already defined', async () => {
     const addNewActionToTaskMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      hasActionsAlready: false,
-      addNewActionToTask: addNewActionToTaskMock,
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        hasActionsAlready: false,
+        addNewActionToTask: addNewActionToTaskMock,
+      };
+    });
 
     const { result } = renderHook(() => useActionHandler(actionElementMock), {
       wrapper: ({ children }) => (
@@ -44,10 +46,12 @@ describe('useOnActionChange', () => {
 
   it('should update action name on action element if actions is already defined', async () => {
     const updateActionNameOnActionElementMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      hasActionsAlready: true,
-      updateActionNameOnActionElement: updateActionNameOnActionElementMock,
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        hasActionsAlready: true,
+        updateActionNameOnActionElement: updateActionNameOnActionElementMock,
+      };
+    });
 
     const { result } = renderHook(() => useActionHandler(actionElementMock), {
       wrapper: ({ children }) => (

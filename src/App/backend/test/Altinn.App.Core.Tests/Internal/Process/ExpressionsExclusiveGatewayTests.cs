@@ -137,6 +137,32 @@ public class ExpressionsExclusiveGatewayTests
     }
 
     [Fact]
+    public async Task FilterAsync_InstanceWithoutDataList_EvaluatesTheConditions()
+    {
+        // While an instance is created, the gateway after the start event is evaluated on the instance template.
+        var outgoingFlows = new List<SequenceFlow>
+        {
+            new SequenceFlow { Id = "1", ConditionExpression = """["equals", ["gatewayAction"], "confirm"]""" },
+            new SequenceFlow { Id = "2", ConditionExpression = """["equals", ["gatewayAction"], "reject"]""" },
+        };
+        var instance = new Instance()
+        {
+            Id = "500000/60226acd-b821-4aae-82cd-97a342071bd3",
+            InstanceOwner = new() { PartyId = "500000" },
+            AppId = AppId,
+            Process = new() { CurrentTask = new() { ElementId = "StartEvent_1" } },
+            Data = null!,
+        };
+        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm" };
+
+        var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes: []);
+
+        var result = await gateway.FilterAsync(outgoingFlows, instance, dataAccessor, processGatewayInformation);
+
+        Assert.Equal("1", Assert.Single(result).Id);
+    }
+
+    [Fact]
     public async Task FilterAsync_Expression_filters_based_on_datamodel_set_by_layoutset()
     {
         // Arrange

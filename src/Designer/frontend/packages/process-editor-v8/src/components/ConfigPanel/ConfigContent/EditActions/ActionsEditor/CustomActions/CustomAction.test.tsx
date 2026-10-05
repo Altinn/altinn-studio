@@ -57,10 +57,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('processAction'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('processAction'),
+      };
+    });
 
     renderCustomAction();
 
@@ -85,10 +87,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('serverAction'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('serverAction'),
+      };
+    });
 
     renderCustomAction();
 
@@ -109,10 +113,12 @@ describe('CustomActions', () => {
     }));
 
     const updateTypeForActionMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(() => ({
-      updateTypeForAction: updateTypeForActionMock,
-      getTypeForAction: jest.fn().mockReturnValue('Process'),
-    }));
+    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+      return {
+        updateTypeForAction: updateTypeForActionMock,
+        getTypeForAction: jest.fn().mockReturnValue('Process'),
+      };
+    });
 
     renderCustomAction({ actionElement: { ...actionElementMock, action: 'write' } });
 

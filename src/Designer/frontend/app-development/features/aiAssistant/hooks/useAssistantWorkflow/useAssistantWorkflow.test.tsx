@@ -1017,7 +1017,7 @@ describe('useAssistantWorkflow', () => {
       });
     });
 
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     await act(async () => {
       await result.current.respondToPermission('req-1', true);
     });
