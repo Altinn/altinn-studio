@@ -32,9 +32,7 @@
 }
 
 .scrollArea {
-  display: flex;
   flex: 1;
-  align-items: flex-start;
   min-height: 0;
   overflow: auto;
 }
@@ -53,8 +51,8 @@
   min-width: 100%;
   font-family: var(--code-viewer-font-family);
   font-size: var(--ds-body-xs-font-size);
-  /* WCAG 2.5.8 needs fold buttons of 24 × 24 CSS pixels, and the fold buttons are as high as a line. */
-  line-height: 24px;
+  /* The fold buttons are as high as a line. WCAG 2.5.8 needs minimum 24 × 24 CSS pixels, and 1.6em prevents overlap of large text. */
+  line-height: max(24px, 1.6em);
 }
 
 .line {
