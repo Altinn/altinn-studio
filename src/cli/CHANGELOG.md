@@ -31,7 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` prepares apps for the new "Må fylles ut" and "Valgfritt" field markers: it removes `form_filler.required_label` overrides that only repeated the old `*`, removes the retired `form_filler.required_description` text, and drops `labelSettings.optionalIndicator: true` from layouts, since it is now the default. A custom required label is kept and reported. ([#16612](https://github.com/Altinn/altinn-studio/issues/16612))
 - The PDF and eFormidling service tasks that `studioctl app upgrade v9` adds to the process are named "Lag PDF" and "Send med eFormidling", the names Studio gives new tasks of those types.
-- `studioctl app upgrade v9` no longer asks you to grant the app owner `confirm`, or an action named after a custom task type, in `policy.xml`: `write` is enough to advance any task. It still asks for `reject` on tasks that can be rejected. ([#20941](https://github.com/Altinn/altinn-studio/pull/20941))
+- `studioctl app upgrade v9` no longer asks you to grant the app owner `confirm`, or an action named after a custom task type, in `policy.xml`: `write` is enough to advance any task. It still asks for `reject` on tasks that can be rejected. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 
 ### Fixed
 
