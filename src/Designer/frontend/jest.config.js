@@ -117,6 +117,7 @@ if (process.env.CI) {
   config.collectCoverage = true;
   config.coverageReporters = ['lcov'];
   config.coveragePathIgnorePatterns = [
+    'frontend/testing/',
     'frontend/packages/ux-editor/src/testing/',
     'frontend/packages/ux-editor-v4/src/testing/',
     'frontend/packages/ux-editor-v3/src/testing/',

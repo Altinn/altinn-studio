@@ -70,14 +70,14 @@ jobs:
         uses: ./.github/actions/yarn-install
 
       - name: 'Running Unit Tests (Jest)'
-        run:  |
+        run: |
           cd src/Designer/frontend
           yarn test:ci:jest
 
-      # Runs the directories listed in src/Designer/frontend/vitest.migrated.js, also when Jest fails.
+      # Runs the directories listed in src/Designer/frontend/vitest.migrated.js.
       - name: 'Running Unit Tests (Vitest)'
         if: ${{ !cancelled() }}
-        run:  |
+        run: |
           cd src/Designer/frontend
           yarn test:ci:vitest
 
