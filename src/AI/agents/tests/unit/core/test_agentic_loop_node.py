@@ -8,9 +8,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from agents.altinn.app_version import V9_PROFILE
 from agents.core import (
     LoopContext,
     LoopResult,
+    SessionContext,
     TerminationReason,
     ToolResult,
 )
@@ -63,6 +65,10 @@ class TestBuildRegistry:
     def test_skill_tool_registered_with_discovered_skills(self):
         registry = _build_registry()
         assert "skill" in registry
+
+    def test_upgrade_app_tool_registered(self):
+        registry = _build_registry()
+        assert "upgrade_app_to_v9" in registry
 
 
 class TestEventBridge:
@@ -750,6 +756,12 @@ def _committed_ctx(tmp_path):
     return ctx
 
 
+def _session():
+    return SessionContext(
+        session_id="sess-1", repo_path="/tmp/repo", user_goal="add a date field", allow_app_changes=True
+    )
+
+
 def _loop_result():
     return LoopResult(reason=TerminationReason.COMPLETED, messages=[], final_text="Ferdig.", turns=1)
 
@@ -775,7 +787,8 @@ class TestEnforcedRenderCheck:
             _committed_ctx(tmp_path),
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -795,7 +808,8 @@ class TestEnforcedRenderCheck:
             _committed_ctx(tmp_path),
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -824,7 +838,8 @@ class TestEnforcedRenderCheck:
             ctx,
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -853,12 +868,40 @@ class TestEnforcedRenderCheck:
             ctx,
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
         assert len(reran) == 1
         assert check.calls == 2
+
+    async def test_a_repair_after_an_upgrade_uses_the_system_prompt_of_the_new_version(self, tmp_path, monkeypatch):
+        check = _CheckStub([_outcome(is_error=True), _outcome(is_error=False)])
+        monkeypatch.setattr(node, "PreviewRenderCheckTool", lambda: check)
+        reran = []
+
+        async def fake_run_loop(**kw):
+            reran.append(kw)
+            return _loop_result()
+
+        monkeypatch.setattr(node, "run_loop", fake_run_loop)
+        monkeypatch.setattr(node, "_maybe_auto_commit", _AsyncRecommit())
+        ctx = _committed_ctx(tmp_path)
+        ctx.app_version_profile = V9_PROFILE
+
+        await node._repair_render_failures(
+            _state(),
+            _loop_result(),
+            ctx,
+            registry=None,
+            adapter=None,
+            session=_session(),
+            skill_listing="",
+            on_event=None,
+        )
+
+        assert "- App version: v9" in reran[0]["system_prompt"]
 
     async def test_a_repair_that_never_commits_still_runs_the_bounded_check(self, tmp_path, monkeypatch):
         check = _CheckStub([_outcome(is_error=True), _outcome(is_error=True)])
@@ -881,7 +924,8 @@ class TestEnforcedRenderCheck:
             _committed_ctx(tmp_path),
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -906,7 +950,8 @@ class TestEnforcedRenderCheck:
             _committed_ctx(tmp_path),
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -923,7 +968,8 @@ class TestEnforcedRenderCheck:
             ctx,
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 
@@ -940,7 +986,8 @@ class TestEnforcedRenderCheck:
             _committed_ctx(tmp_path),
             registry=None,
             adapter=None,
-            system_prompt="",
+            session=_session(),
+            skill_listing="",
             on_event=None,
         )
 

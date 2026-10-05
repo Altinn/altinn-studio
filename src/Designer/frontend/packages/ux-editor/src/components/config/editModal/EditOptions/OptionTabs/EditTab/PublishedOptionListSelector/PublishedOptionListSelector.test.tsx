@@ -264,7 +264,7 @@ describe('PublishedOptionListSelector', () => {
     renderPublishedOptionListSelectorWithFeatureFlag({}, { queries: { getPublishedResources } });
 
     await user.openForm();
-    await waitFor(expect(getPublishedResources).toHaveBeenCalled);
+    await waitFor(() => expect(getPublishedResources).toHaveBeenCalled());
 
     const expectedMessage = textMock('ux_editor.options.published_code_list.loading_error');
     expect(screen.getByText(expectedMessage)).toBeInTheDocument();

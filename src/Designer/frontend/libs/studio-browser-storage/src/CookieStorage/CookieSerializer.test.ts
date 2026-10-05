@@ -69,7 +69,7 @@ describe('CookieSerializer', () => {
     });
 
     test('buildCookieString should automatically set secure flag and log warning when sameSite is None without secure', () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 
       const result = CookieSerializer.buildCookieString('key', 'value', { sameSite: 'None' });
 

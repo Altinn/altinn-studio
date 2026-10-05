@@ -60,7 +60,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle fetch errors gracefully', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     axiosMock.get.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithProvider();
@@ -78,7 +78,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle null response data', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     axiosMock.get.mockResolvedValueOnce({ data: null });
 
     renderWithProvider();
@@ -91,7 +91,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should throw error when useEnvironmentConfig is used outside provider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(() => {
       render(<TestComponent />);

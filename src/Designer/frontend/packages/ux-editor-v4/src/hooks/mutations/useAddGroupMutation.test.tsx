@@ -45,9 +45,7 @@ describe('useAddGroupMutation', () => {
       changePageGroups: jest.fn().mockResolvedValue(undefined),
     };
     const { result } = await renderHook({ queryClient, queries: services });
-    expect(async () => {
-      await result.current.mutateAsync();
-    }).rejects.toThrow();
+    await expect(result.current.mutateAsync()).rejects.toThrow();
   });
 
   it('successfully adds a new group and invalidates the cache', async () => {

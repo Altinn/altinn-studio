@@ -142,9 +142,11 @@ describe('MakeCopyModal', () => {
   it('navigates to the correct url when the app is copied', async () => {
     const user = userEvent.setup();
     const mockNavigateToPackage = jest.fn();
-    (PackagesRouter as jest.Mock).mockImplementation(() => ({
-      navigateToPackage: mockNavigateToPackage,
-    }));
+    (PackagesRouter as jest.Mock).mockImplementation(function () {
+      return {
+        navigateToPackage: mockNavigateToPackage,
+      };
+    });
     renderMakeCopyModal();
 
     const repoTextfield = screen.getByLabelText(textMock('general.service_name'));
@@ -172,7 +174,7 @@ describe('MakeCopyModal', () => {
     const copyButton = screen.getByRole('button', { name: textMock('dashboard.make_copy') });
     await user.click(copyButton);
 
-    expect(copyRepoMock).rejects.toEqual({ response: { status: 409 } });
+    await expect(copyRepoMock).rejects.toEqual({ response: { status: 409 } });
 
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });

@@ -76,7 +76,8 @@ internal sealed class WorkflowCallbackTokenGenerator : IWorkflowCallbackTokenGen
     /// <remarks>
     /// Covers a fixed field list rather than the whole record: the engine host keeps its own copy of
     /// <see cref="Actor"/> and echoes only the fields it knows, so a field added here alone must not change
-    /// the hash. <see cref="Actor.Language"/> is left out because it only selects a display language.
+    /// the hash. <see cref="Actor.Language"/> is left out: it is not identity but the language the caller chose,
+    /// a value any caller can send with process/next.
     /// The fields are hashed as a JSON array, so every value is escaped and a null stays distinct from an
     /// empty string: no two actors share an encoding.
     /// </remarks>

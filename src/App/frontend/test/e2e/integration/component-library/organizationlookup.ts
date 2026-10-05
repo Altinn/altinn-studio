@@ -67,8 +67,8 @@ describe('Organization lookup', () => {
     cy.findByText(/Ukjent feil. Vennligst prøv igjen senere/i).should('exist');
 
     // Type invalid orgNr
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatClear();
-    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).type('123456789');
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).numberFormatReplace('123456789');
+    cy.findByRole('textbox', { name: /Organisasjonsnummer/i }).should('have.value', '123456789');
     cy.findByRole('button', { name: /Hent opplysninger/i }).click();
     cy.findByText(/Organisasjonsnummeret er ugyldig/i).should('exist');
 

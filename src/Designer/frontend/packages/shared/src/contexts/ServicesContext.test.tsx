@@ -57,7 +57,7 @@ describe('ServicesContext', () => {
   });
 
   it('logs non-Axios errors to the console', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     renderHook(
       () =>
         useQuery({
@@ -235,7 +235,7 @@ describe('ServicesContext', () => {
 
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
-    jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(renderHookFn).toThrow(
       'useServicesContext must be used within a ServicesContextProvider.',
     );

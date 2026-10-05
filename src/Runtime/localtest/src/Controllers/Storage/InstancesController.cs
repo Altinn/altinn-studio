@@ -1187,6 +1187,11 @@ public class InstancesController : ControllerBase
             Data = new List<DataElement>(),
             Process = instanceTemplate.Process,
             DataValues = instanceTemplate.DataValues,
+
+            // An empty value removes the text in UpdatePresentationTexts, so it is not stored on creation either
+            PresentationTexts = instanceTemplate
+                .PresentationTexts?.Where(text => !string.IsNullOrEmpty(text.Value))
+                .ToDictionary(text => text.Key, text => text.Value),
         };
 
         return createdInstance;

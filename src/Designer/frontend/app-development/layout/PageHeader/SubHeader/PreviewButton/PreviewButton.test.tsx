@@ -30,9 +30,11 @@ jest.mock('react-router-dom', () => ({
 const urlMock: string = `/preview/${org}/${app}/`;
 const mockGetPackageNavigationUrl = jest.fn().mockImplementation(() => urlMock);
 
-(PackagesRouter as jest.Mock).mockImplementation(() => ({
-  getPackageNavigationUrl: mockGetPackageNavigationUrl,
-}));
+(PackagesRouter as jest.Mock).mockImplementation(function () {
+  return {
+    getPackageNavigationUrl: mockGetPackageNavigationUrl,
+  };
+});
 
 describe('PreviewButton', () => {
   afterEach(() => jest.clearAllMocks());

@@ -209,7 +209,7 @@ describe('useAssistantWebSocket', () => {
 
     it('rethrows when the hub invocation fails', async () => {
       mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
       const { result } = renderUseAssistantWebSocket();
 
       await expect(

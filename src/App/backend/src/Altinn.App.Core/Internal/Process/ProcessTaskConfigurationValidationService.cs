@@ -1,3 +1,4 @@
+using System.Reflection;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types and task configuration at startup.
+/// Validates BPMN task types, the BPMN element each task uses, and task configuration at startup.
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task implementations can use scoped services.
@@ -69,7 +70,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
             // Use the same lookup rules as task execution: prefer service tasks, then use the last exact
             // type match.
-            IProcessTask? task = serviceTasks.ResolveByTaskType(taskType) ?? processTasks.ResolveByTaskType(taskType);
+            IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
+            IProcessTask? task = serviceTask ?? processTasks.ResolveByTaskType(taskType);
             if (task is null)
             {
                 listRegisteredTypes = true;
@@ -84,6 +86,20 @@ internal sealed class ProcessTaskConfigurationValidationService(
                         )
                 );
                 continue;
+            }
+
+            // The frontend chooses how to show a task from its element, so the element must match the type.
+            // The task's own configuration is still validated, so one run reports every problem.
+            bool isServiceTaskElement = bpmnTask is ServiceTask;
+            if (serviceTask is not null && !isServiceTaskElement)
+            {
+                findings.Add(ElementMismatch(bpmnTask.Id, taskType, "a service task", "bpmn:task", "bpmn:serviceTask"));
+            }
+            else if (serviceTask is null && isServiceTaskElement)
+            {
+                findings.Add(
+                    ElementMismatch(bpmnTask.Id, taskType, "not a service task", "bpmn:serviceTask", "bpmn:task")
+                );
             }
 
             try
@@ -105,6 +121,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
                 findings.Add($"Task '{bpmnTask.Id}': validating its configuration failed: {e.Message}");
             }
         }
+
+        WarnAboutUnreferencedServiceTasks(bpmnTasks, serviceTasks);
 
         if (listRegisteredTypes)
         {
@@ -132,4 +150,45 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>
+    /// Warns once per service task type that is registered on purpose but that no BPMN task declares.
+    /// </summary>
+    /// <remarks>
+    /// Altinn.App.Core registers its own service tasks for every app, so an unused one says nothing about the app.
+    /// A service task declared in any other assembly was registered by the app or by an opt-in builder call such as
+    /// <c>AddFiksArkiv()</c>.
+    /// </remarks>
+    private void WarnAboutUnreferencedServiceTasks(List<ProcessTask> bpmnTasks, List<IPipelineServiceTask> serviceTasks)
+    {
+        HashSet<string> declaredTypes = bpmnTasks
+            .Select(task => task.ExtensionElements?.TaskExtension?.TaskType)
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
+        Assembly libraryAssembly = typeof(ProcessTaskConfigurationValidationService).Assembly;
+
+        IEnumerable<IPipelineServiceTask> unreferenced = serviceTasks
+            .Where(task => task.GetType().Assembly != libraryAssembly && !declaredTypes.Contains(task.Type))
+            .GroupBy(task => task.Type, StringComparer.Ordinal)
+            // Name the registration the lookup would use: the last one.
+            .Select(registrations => registrations.Last());
+        foreach (IPipelineServiceTask task in unreferenced)
+        {
+            logger.LogWarning(
+                "Service task type '{TaskType}' is registered ({ServiceTaskImplementation}), but no task in the process definition declares it.",
+                task.Type,
+                task.GetType().FullName
+            );
+        }
+    }
+
+    private static string ElementMismatch(
+        string taskId,
+        string taskType,
+        string typeKind,
+        string actualElement,
+        string requiredElement
+    ) =>
+        $"Task '{taskId}' declares <altinn:taskType>{taskType}</altinn:taskType>, which is {typeKind}, "
+        + $"but is a <{actualElement}> element. Change it to a <{requiredElement}> element.";
 }

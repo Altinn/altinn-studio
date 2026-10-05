@@ -28,9 +28,11 @@ const defaultMockTasks = [
 ];
 
 jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => ({
-  StudioModeler: jest.fn().mockImplementation(() => ({
-    getElementsByType: () => mockTasks,
-  })),
+  StudioModeler: jest.fn().mockImplementation(function () {
+    return {
+      getElementsByType: () => mockTasks,
+    };
+  }),
 }));
 
 describe('PdfAutomaticTaskSelection', () => {
