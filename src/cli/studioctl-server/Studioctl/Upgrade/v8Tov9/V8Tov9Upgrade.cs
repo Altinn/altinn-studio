@@ -132,10 +132,7 @@ internal static class V8Tov9Upgrade
             if (returnCode == 0)
             {
                 returnCode = await MigrateDockerfile(projectFolder, options.TargetFramework);
-                returnCode = CombineExitCodes(
-                    returnCode,
-                    await MigrateDependentProjects(projectFolder, projectFile, options.TargetFramework)
-                );
+                returnCode = CombineExitCodes(returnCode, await MigrateDependentProjects(projectFolder, projectFile));
             }
         }
 
@@ -433,12 +430,12 @@ internal static class V8Tov9Upgrade
         }
     }
 
-    static async Task<int> MigrateDependentProjects(string projectFolder, string projectFile, string targetFramework)
+    static async Task<int> MigrateDependentProjects(string projectFolder, string projectFile)
     {
         UpgradeConsole.BeginStep("Dependent projects");
         try
         {
-            return await DependentProjectsMigration.Migrate(projectFolder, projectFile, targetFramework);
+            return await DependentProjectsMigration.Migrate(projectFolder, projectFile);
         }
         catch (Exception ex)
         {
