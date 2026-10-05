@@ -152,12 +152,11 @@ describe('StudioFileBrowser', () => {
   it('does not move the focus when the user has moved the focus out of the file browser', async () => {
     const user = userEvent.setup();
     const { rerender } = renderStudioFileBrowser();
-    const elementOutside = document.body.appendChild(document.createElement('button'));
+    const buttonOutside = renderButtonOutside();
     await user.click(getButton('texts'));
-    elementOutside.focus();
+    buttonOutside.focus();
     rerender(<StudioFileBrowser {...defaultProps} directory={textsDirectory} />);
-    expect(elementOutside).toHaveFocus();
-    elementOutside.remove();
+    expect(buttonOutside).toHaveFocus();
   });
 
   it('shows the loading message in a status region while the folder loads', () => {
@@ -215,6 +214,11 @@ function getStatusMessages(): string[] {
 
 function getButton(name: string): HTMLElement {
   return screen.getByRole('button', { name });
+}
+
+function renderButtonOutside(): HTMLElement {
+  render(<button type='button'>Outside</button>);
+  return getButton('Outside');
 }
 
 const renderStudioFileBrowser = (

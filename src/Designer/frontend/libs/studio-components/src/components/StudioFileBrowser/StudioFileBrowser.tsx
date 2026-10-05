@@ -36,8 +36,9 @@ export type StudioFileBrowserTexts = {
   root: string;
   loadingDirectory: string;
   emptyDirectory: string;
-  /** Screen readers read the type of each entry after its name. */
+  /** Screen readers read this text after the name of a folder. */
   directoryEntryType: string;
+  /** Screen readers read this text after the name of a file. */
   fileEntryType: string;
   loadingFile: string;
   noFileSelected: string;
@@ -216,7 +217,7 @@ function DirectoryContent({
             spinnerTitle={texts.loadingDirectory}
           />
         )}
-        {directory.status === 'loaded' && !directory.entries.length && (
+        {directory.status === 'loaded' && directory.entries.length === 0 && (
           <StudioParagraph className={classes.message}>{texts.emptyDirectory}</StudioParagraph>
         )}
       </div>
