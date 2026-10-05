@@ -11,6 +11,7 @@ public interface IProcessAuthorizer
     /// <summary>
     /// Determines if the user is authorized to perform process next for the current task.
     /// Checks authorization against the set of actions that allow process next for the current task type.
+    /// When the caller is the org that owns the app, write also allows process next.
     /// </summary>
     /// <param name="instance">The instance to authorize against.</param>
     /// <param name="nextProcessState">The incoming process state, used to handle flow type overrides (e.g. AbandonCurrentMoveToNext).</param>
