@@ -62,7 +62,7 @@ function AutoGeneratePdfFromLayout() {
     );
   }
 
-  const pdfSettings = usePdfExclusions();
+  const pdfExclusions = usePdfExclusions();
 
   return (
     <DummyPresentation>
@@ -77,7 +77,7 @@ function AutoGeneratePdfFromLayout() {
             }}
           />
         </div>
-        <AllPages pdfSettings={pdfSettings} />
+        <AllPages pdfExclusions={pdfExclusions} />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
@@ -116,9 +116,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             taskId={taskId}
           >
             {idx > 0 && <div className={classes.pageBreak} />}
-            {/* Settings intentionally omitted, as this is new functionality
-            and PDF settings are deprecated at this point. */}
-            <AllPages pdfSettings={undefined} />
+            <AllPages pdfExclusions={noPdfExclusions} />
             <AllSubformSummaryComponent2 />
           </TaskSummaryWrapper>
         ))}
@@ -197,9 +195,11 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-function AllPages({ pdfSettings }: { pdfSettings: PdfExclusions | undefined }) {
+const noPdfExclusions: PdfExclusions = { pages: [], components: [] };
+
+function AllPages({ pdfExclusions }: { pdfExclusions: PdfExclusions }) {
   const order = usePageOrder();
-  const visiblePages = getPdfVisiblePages(order, pdfSettings);
+  const visiblePages = order.filter((pageKey) => !pdfExclusions.pages.includes(pageKey));
 
   return (
     <>
@@ -207,22 +207,15 @@ function AllPages({ pdfSettings }: { pdfSettings: PdfExclusions | undefined }) {
         <PdfForPage
           key={pageKey}
           pageKey={pageKey}
-          pdfSettings={pdfSettings}
+          pdfExclusions={pdfExclusions}
         />
       ))}
     </>
   );
 }
 
-function getPdfVisiblePages(pages: string[], pdfSettings: PdfExclusions | undefined): string[] {
-  if (!pdfSettings?.pages) {
-    return pages;
-  }
-  return pages.filter((pageKey) => !pdfSettings.pages.includes(pageKey));
-}
-
-function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: PdfExclusions | undefined }) {
-  const children = useTopLevelComponentsToAutoRender(pageKey, pdfSettings);
+function PdfForPage({ pageKey, pdfExclusions }: { pageKey: string; pdfExclusions: PdfExclusions }) {
+  const children = useTopLevelComponentsToAutoRender(pageKey, pdfExclusions);
   const hidden = useIsHiddenMulti(children);
 
   return (
@@ -249,7 +242,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: Pd
   );
 }
 
-function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: PdfExclusions | undefined): string[] {
+function useTopLevelComponentsToAutoRender(pageKey: string, pdfExclusions: PdfExclusions): string[] {
   const lookups = FormStore.bootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
@@ -258,11 +251,11 @@ function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: PdfExcl
       const def = getComponentDef(component.type);
       return (
         component.type !== 'Subform' &&
-        !pdfSettings?.components.includes(baseId) &&
+        !pdfExclusions.components.includes(baseId) &&
         def.shouldRenderInAutomaticPDF(component as never)
       );
     });
-  }, [lookups, pageKey, pdfSettings?.components]);
+  }, [lookups, pageKey, pdfExclusions.components]);
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
