@@ -1,0 +1,187 @@
+.codeViewer {
+  --code-viewer-font-family: ui-monospace, 'Cascadia Code', Consolas, 'Liberation Mono', monospace;
+  /* WCAG 2.5.8 needs fold buttons of 24 × 24 CSS pixels, and the fold buttons are as high as a line. */
+  --code-viewer-line-height: max(24px, 1.6em);
+
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--ds-color-neutral-background-default);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--ds-size-12);
+  padding: var(--ds-size-2) var(--ds-size-4);
+  font-family: var(--code-viewer-font-family);
+  font-size: var(--ds-body-sm-font-size);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-neutral-text-default);
+  background-color: var(--ds-color-neutral-background-tinted);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scrollArea {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  min-height: 0;
+  overflow: auto;
+}
+
+.scrollArea:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: calc(-1 * var(--ds-border-width-focus));
+}
+
+.lines {
+  --code-viewer-padding-block: var(--ds-size-3);
+
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  min-width: 100%;
+  font-family: var(--code-viewer-font-family);
+  font-size: var(--ds-body-xs-font-size);
+  line-height: var(--code-viewer-line-height);
+}
+
+.line {
+  display: flex;
+}
+
+.line:first-child > * {
+  padding-top: var(--code-viewer-padding-block);
+}
+
+.line:last-child > * {
+  padding-bottom: var(--code-viewer-padding-block);
+}
+
+.gutter {
+  position: sticky;
+  left: 0;
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--ds-size-1);
+  padding-inline: var(--ds-size-3) var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+  user-select: none;
+  background-color: var(--ds-color-neutral-background-default);
+  border-right: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+/* A fixed width keeps the gutter border straight, because the digits can be a little wider than 1ch. */
+.lineNumber {
+  flex: none;
+  width: var(--line-number-width);
+  text-align: right;
+}
+
+.foldButton,
+.foldButtonSpace {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1lh;
+  height: 1lh;
+}
+
+.foldButton {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.foldButton > svg {
+  font-size: 1.25em;
+}
+
+.foldButton:hover {
+  color: var(--ds-color-accent-text-default);
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+/* The next line covers a focus outline outside the button. */
+.foldButton:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: calc(-1 * var(--ds-border-width-focus));
+}
+
+.code {
+  flex: 1;
+  padding-inline: var(--ds-size-4);
+  font: inherit;
+  color: var(--ds-color-neutral-text-default);
+  white-space: pre;
+  tab-size: 4;
+}
+
+.collapsedContent {
+  margin-inline: var(--ds-size-1);
+  padding-inline: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+  background-color: var(--ds-color-neutral-surface-tinted);
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.code :global(.hljs-comment),
+.code :global(.hljs-quote) {
+  color: var(--ds-color-neutral-text-subtle);
+  font-style: italic;
+}
+
+.code :global(.hljs-meta) {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.code :global(.hljs-keyword),
+.code :global(.hljs-built_in),
+.code :global(.hljs-doctag),
+.code :global(.hljs-name),
+.code :global(.hljs-selector-tag) {
+  color: var(--ds-color-danger-text-subtle);
+}
+
+.code :global(.hljs-attr),
+.code :global(.hljs-attribute),
+.code :global(.hljs-property) {
+  color: var(--ds-color-warning-text-subtle);
+}
+
+.code :global(.hljs-string),
+.code :global(.hljs-regexp) {
+  color: var(--ds-color-success-text-subtle);
+}
+
+.code :global(.hljs-number),
+.code :global(.hljs-literal),
+.code :global(.hljs-symbol),
+.code :global(.hljs-variable),
+.code :global(.hljs-template-variable) {
+  color: var(--ds-color-accent-text-subtle);
+}
+
+.code :global(.hljs-title),
+.code :global(.hljs-type),
+.code :global(.hljs-section),
+.code :global(.hljs-selector-id),
+.code :global(.hljs-selector-class) {
+  color: var(--ds-color-info-text-subtle);
+}
