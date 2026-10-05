@@ -368,8 +368,8 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: () =>
-                            ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
+                        getSelectedPartyCookieValues: () =>
+                            [ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture)],
                         getUserProfile: userId =>
                         {
                             Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
@@ -420,8 +420,8 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: () =>
-                            ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture),
+                        getSelectedPartyCookieValues: () =>
+                            [ReadClaimInt(AltinnCoreClaimTypes.PartyID).ToString(CultureInfo.InvariantCulture)],
                         getUserProfile: userId =>
                         {
                             Assert.Equal(userId, ReadClaimInt(AltinnCoreClaimTypes.UserId));
@@ -461,7 +461,7 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: null!,
+                        getSelectedPartyCookieValues: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
                         lookupOrgParty: orgNo =>
@@ -493,7 +493,7 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: null!,
+                        getSelectedPartyCookieValues: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
                         lookupOrgParty: orgNo =>
@@ -525,7 +525,7 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: null!,
+                        getSelectedPartyCookieValues: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
                         lookupOrgParty: orgNo =>
@@ -559,7 +559,7 @@ public class AuthenticatedTests
                         parsedToken: null,
                         isAuthenticated: true,
                         appMetadata: TestAuthentication.NewApplicationMetadata(appMetadataOrg),
-                        getSelectedParty: null!,
+                        getSelectedPartyCookieValues: null!,
                         getUserProfile: null!,
                         lookupUserParty: null!,
                         lookupOrgParty: null!,
