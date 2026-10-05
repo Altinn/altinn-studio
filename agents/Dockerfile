@@ -324,25 +324,44 @@ ENV PATH=/home/agent/.cargo/bin:${PATH}
 
 # Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
 # container-name resolution between compose services. libcap-ng-dev links the Microsandbox runtime,
-# as in the self-dev example.
+# as in the self-dev example. python3-venv and pip let the Python projects under src/AI create their
+# own virtual environments; the system interpreter stays externally managed. postgresql-client
+# inspects the Postgres instances the compose stacks start, and the network tools debug LocalTest,
+# studioctl and container ports.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         aardvark-dns \
+        bind9-dnsutils \
+        btop \
         catatonit \
         clang \
         ffmpeg \
+        file \
+        hyperfine \
         iproute2 \
+        less \
         libcap-ng-dev \
         libnss3-tools \
         lldb \
         linux-perf \
+        lsof \
+        netcat-openbsd \
         nftables \
         podman \
         podman-compose \
         podman-docker \
+        postgresql-client \
+        python3-pip \
+        python3-venv \
         qemu-system \
+        rsync \
         rustup \
+        shellcheck \
+        socat \
         strace \
+        tcpdump \
+        unzip \
+        zip \
     && rm -rf /var/lib/apt/lists/* \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
@@ -453,31 +472,7 @@ RUN case "${TARGETARCH}" in \
     && kubectl version --client \
     && helm version --short \
     && flux --version \
-    && ffmpeg -version
-
-# Everyday development and debugging tools. python3-venv and pip let the Python projects under
-# src/AI create their own virtual environments; the system interpreter stays externally managed.
-# postgresql-client inspects the Postgres instances the compose stacks start, and the network tools
-# debug LocalTest, studioctl and container ports.
-RUN apt-get update \
-    && apt-get install --yes --no-install-recommends \
-        bind9-dnsutils \
-        btop \
-        file \
-        hyperfine \
-        less \
-        lsof \
-        netcat-openbsd \
-        postgresql-client \
-        python3-pip \
-        python3-venv \
-        rsync \
-        shellcheck \
-        socat \
-        tcpdump \
-        unzip \
-        zip \
-    && rm -rf /var/lib/apt/lists/* \
+    && ffmpeg -version \
     && python3 -m venv /tmp/venv-check \
     && /tmp/venv-check/bin/pip --version \
     && rm -rf /tmp/venv-check \
