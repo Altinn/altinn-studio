@@ -129,18 +129,35 @@ public class UiFoldersService : IUiFoldersService
         }
     }
 
+    /// <summary>
+    /// Validates a name for a UI folder that is created, or that the UI folder named
+    /// <paramref name="renamedLayoutSetName"/> is renamed to. The name may not be taken by another UI
+    /// folder in any case, because a case-insensitive file system would treat the two folders as one.
+    /// </summary>
     private static async Task ValidateNewLayoutSetName(
         AltinnAppGitRepository altinnAppGitRepository,
         string layoutSetName,
+        string? renamedLayoutSetName,
         CancellationToken cancellationToken
     )
     {
         ValidateLayoutSetNameIsAllowedForNewLayoutSet(layoutSetName);
 
         IEnumerable<string> existingLayoutSets = await altinnAppGitRepository.GetUiFolders(cancellationToken);
-        if (existingLayoutSets.Contains(layoutSetName))
+        if (existingLayoutSets.Contains(layoutSetName, StringComparer.Ordinal))
         {
             throw new NonUniqueLayoutSetIdException($"Layout set name, {layoutSetName}, already exists.");
+        }
+        // Unlike an exact duplicate, this is not a no-op: the requested folder would never exist.
+        string? existingInOtherCase = existingLayoutSets.FirstOrDefault(existing =>
+            !string.Equals(existing, renamedLayoutSetName, StringComparison.Ordinal)
+            && string.Equals(existing, layoutSetName, StringComparison.OrdinalIgnoreCase)
+        );
+        if (existingInOtherCase is not null)
+        {
+            throw new UiFolderNameCaseConflictException(
+                $"UI folder name, {layoutSetName}, differs only in case from the existing UI folder {existingInOtherCase}."
+            );
         }
     }
 
@@ -161,7 +178,7 @@ public class UiFoldersService : IUiFoldersService
         // Only a task whose layout set folder carries its id is renamed on disk, see ProcessTaskIdChangedUiFoldersHandler.
         if (altinnAppGitRepository.LayoutSetFolderExistsByExactName(oldTaskId))
         {
-            await ValidateNewLayoutSetName(altinnAppGitRepository, newTaskId, cancellationToken);
+            await ValidateNewLayoutSetName(altinnAppGitRepository, newTaskId, oldTaskId, cancellationToken);
         }
     }
 
@@ -174,7 +191,7 @@ public class UiFoldersService : IUiFoldersService
     {
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
-        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSet.Id, cancellationToken);
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSet.Id, null, cancellationToken);
 
         try
         {
@@ -205,7 +222,7 @@ public class UiFoldersService : IUiFoldersService
         AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
 
         ValidateLayoutSetNameIsSafe(oldLayoutSetName);
-        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSetName, cancellationToken);
+        await ValidateNewLayoutSetName(altinnAppGitRepository, newLayoutSetName, oldLayoutSetName, cancellationToken);
 
         // In v9 a non-subform layout set's folder name equals its process task id, so renaming such a
         // layout set must also rename the corresponding task in the process definition.
