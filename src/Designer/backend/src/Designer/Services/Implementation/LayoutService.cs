@@ -50,7 +50,7 @@ public class LayoutService(
             throw new InvalidOperationException("Cannot add order page to layout using groups.");
         }
 
-        AltinnPageLayout pageLayout = new();
+        AltinnPageLayout pageLayout = new(appRepository.LayoutSchemaUrl);
         if (pages.Order.Count > 0)
         {
             pageLayout = pageLayout.WithNavigationButtons(includeShowBackButton);
@@ -252,7 +252,7 @@ public class LayoutService(
         bool includeShowBackButton = !appVersionService.IsV9App(editingContext);
         foreach (string pageId in createdPages)
         {
-            AltinnPageLayout altinnPageLayout = new();
+            AltinnPageLayout altinnPageLayout = new(appRepository.LayoutSchemaUrl);
             if (originalOrder.Any())
             {
                 altinnPageLayout = altinnPageLayout.WithNavigationButtons(includeShowBackButton);

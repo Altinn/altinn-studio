@@ -20,6 +20,7 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
+using NuGet.Versioning;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
 
@@ -55,27 +56,39 @@ public class AltinnAppGitRepository : AltinnGitRepository
     private static string ProcessDefinitionFilePath =>
         Path.Combine(ProcessDefinitionFolderPath, ProcessDefinitionFilename);
 
-    private const string LayoutSettingsSchemaUrl =
-        "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
-    private const string LayoutSchemaUrl = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
-
     private const string TextResourceFileNamePattern = "resource.??.json";
     private const string SchemaFilePatternJson = "*.schema.json";
     private const string SchemaFilePatternXsd = "*.xsd";
 
     public static readonly string InitialLayoutFileName = "Side1";
 
-    public readonly JsonNode InitialLayout = new JsonObject
-    {
-        ["$schema"] = LayoutSchemaUrl,
-        ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
-    };
+    private static readonly string[] s_appLibPackageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
 
-    public readonly JsonNode InitialLayoutSettings = new JsonObject
-    {
-        ["$schema"] = LayoutSettingsSchemaUrl,
-        ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
-    };
+    private JsonNode _initialLayout;
+    private JsonNode _initialLayoutSettings;
+
+    public JsonNode InitialLayout =>
+        _initialLayout ??= new JsonObject
+        {
+            ["$schema"] = LayoutSchemaUrl,
+            ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+        };
+
+    public JsonNode InitialLayoutSettings =>
+        _initialLayoutSettings ??= new JsonObject
+        {
+            ["$schema"] = LayoutSettingsSchemaUrl,
+            ["pages"] = new JsonObject { ["order"] = new JsonArray([InitialLayoutFileName]) },
+        };
+
+    public string LayoutSchemaUrl => GetSchemaUrl("layout/layout.schema.v1.json");
+
+    private string LayoutSettingsSchemaUrl => GetSchemaUrl("layout/layoutSettings.schema.v1.json");
+
+    private string GetSchemaUrl(string schemaPath) =>
+        GetAppLibVersion() is { Major: >= 9 } version
+            ? $"https://altinn.studio/designer/app-dist/{version.ToNormalizedString()}/schemas/json/{schemaPath}"
+            : $"https://altinncdn.no/schemas/json/{schemaPath}";
 
     private const string InvalidLayoutSetNameMessage = "Invalid layout set name.";
     private const string InvalidLayoutNameMessage = "Invalid layout name.";
@@ -456,6 +469,20 @@ public class AltinnAppGitRepository : AltinnGitRepository
 
         return FileExistsByRelativePath(layoutSetJsonFilePath);
     }
+
+    /// <summary>Returns the app's Altinn.App package version, or <c>null</c> when it cannot be determined.</summary>
+    public SemanticVersion GetAppLibVersion() =>
+        FindFiles(["*.csproj"])
+            .Select(file =>
+                PackageVersionHelper.TryGetPackageVersionFromCsprojFile(
+                    file,
+                    s_appLibPackageNames,
+                    out SemanticVersion version
+                )
+                    ? version
+                    : null
+            )
+            .FirstOrDefault(v => v is not null);
 
     /// <summary>
     /// Gets all layout names for a specific layout set

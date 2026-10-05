@@ -186,7 +186,7 @@ public class AltinnAppGitRepositoryLayoutNameTests : IDisposable
             repository.CreatePageLayoutFile(
                 LayoutSetWithLegacyPageNames,
                 PageNameOutsideNamingPolicy,
-                new AltinnPageLayout()
+                new AltinnPageLayout("https://altinncdn.no/schemas/json/layout/layout.schema.v1.json")
             )
         );
     }

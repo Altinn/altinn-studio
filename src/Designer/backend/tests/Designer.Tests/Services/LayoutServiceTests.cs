@@ -267,6 +267,43 @@ public class LayoutServiceTests
         }
     }
 
+    [Theory]
+    [InlineData(
+        "app-with-layoutsets-v9",
+        "Task_1",
+        true,
+        "https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json"
+    )]
+    [InlineData(
+        "app-with-layoutsets",
+        "layoutSet1",
+        false,
+        "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json"
+    )]
+    public async Task CreatePage_ShouldReferenceLayoutSchemaMatchingAppVersion(
+        string repo,
+        string layoutSetId,
+        bool isV9App,
+        string expectedSchemaUrl
+    )
+    {
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, _) = await PrepareTestForRepo(
+            repo,
+            isV9App
+        );
+
+        await layoutService.CreatePage(editingContext, layoutSetId, "newPage");
+
+        string newPageContent = TestDataHelper.GetFileFromRepo(
+            editingContext.Org,
+            editingContext.Repo,
+            editingContext.Developer,
+            $"App/ui/{layoutSetId}/layouts/newPage.json"
+        );
+        using JsonDocument newPage = JsonDocument.Parse(newPageContent);
+        Assert.Equal(expectedSchemaUrl, newPage.RootElement.GetProperty("$schema").GetString());
+    }
+
     [Fact]
     public async Task PageGroupToOrderConversion_ShouldThrowException_IfInvalid()
     {
