@@ -1,4 +1,5 @@
 const path = require('path');
+const vitestMigratedDirectories = require('./vitest.migrated');
 
 const packagesToTransform = [
   '@bpmn-io',
@@ -102,6 +103,10 @@ const config = {
     '^@studio/ui-test/(.*)': path.join(__dirname, 'libs/studio-ui-test/$1'),
   },
   testRegex: '(\\.(test))\\.(ts|tsx)$',
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    ...vitestMigratedDirectories.map((directory) => `<rootDir>/${directory}/`),
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: [path.join(__dirname, 'testing/setupTests.ts')],
