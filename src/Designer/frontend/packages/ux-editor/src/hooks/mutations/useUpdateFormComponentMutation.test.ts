@@ -223,12 +223,18 @@ describe('useUpdateFormComponentMutation', () => {
     );
   });
 
-  it('Keeps enableFileScan from the old data type when updating the id of a FileUpload component', async () => {
+  it('Keeps the settings of the old data type when updating the id of a FileUpload component', async () => {
     const oldId = componentMocks[ComponentType.FileUpload].id;
     const newId = 'newId';
+    const oldDataType = {
+      id: oldId,
+      allowedContentTypes: ['application/pdf'],
+      validationErrorOnPendingFileScan: true,
+      enableFileScan: false,
+    };
     renderAndWaitForData();
     queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
-      dataTypes: [{ id: oldId, enableFileScan: false }],
+      dataTypes: [oldDataType],
     });
     const updateFormComponentResult = renderHookWithProviders(() =>
       useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
@@ -243,7 +249,7 @@ describe('useUpdateFormComponentMutation', () => {
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(
       org,
       app,
-      expect.objectContaining({ id: newId, enableFileScan: false }),
+      expect.objectContaining({ ...oldDataType, id: newId }),
     );
   });
 
@@ -286,6 +292,28 @@ describe('useUpdateFormComponentMutation', () => {
       });
       expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, oldId);
       expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+    });
+
+    it('Fetches the app metadata when it is not cached when updating the id of an ImageUpload component', async () => {
+      const newId = 'newId';
+      const getAppMetadata = jest.fn().mockResolvedValue({ dataTypes: [imageUploadDataType] });
+      renderAndWaitForData();
+      queryClientMock.removeQueries({ queryKey: [QueryKey.AppMetadata, org, app] });
+      const updateFormComponentResult = renderHookWithProviders(
+        () => useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+        { queries: { getAppMetadata } },
+      ).result;
+
+      await updateFormComponentResult.current.mutateAsync({
+        id: oldId,
+        updatedComponent: { ...imageUploadComponent, id: newId },
+      });
+
+      expect(getAppMetadata).toHaveBeenCalledTimes(1);
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+        ...imageUploadDataType,
+        id: newId,
+      });
     });
 
     it('Does not run attachment metadata queries when the id of an ImageUpload component is unchanged', async () => {

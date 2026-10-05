@@ -208,11 +208,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
     {
         JObject attachmentMetadata = JObject.Parse(attachmentMetadataJson);
 
-        if (attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase) == null)
-        {
-            attachmentMetadata[EnableFileScanPropertyName] = DefaultEnableFileScan;
-        }
-
+        attachmentMetadata[EnableFileScanPropertyName] = GetEnableFileScanOrDefault(attachmentMetadata);
         return attachmentMetadata.ToObject<DataType>();
     }
 
@@ -241,9 +237,9 @@ public class ApplicationMetadataService : IApplicationMetadataService
         }
 
         applicationForm.Id = attachmentMetadata.GetValue("id")!.Value<string>();
-        applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount")!.Value<string>());
-        applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount")!.Value<string>());
-        applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize")!.Value<string>());
+        applicationForm.MaxCount = attachmentMetadata.GetValue("maxCount")!.Value<int>();
+        applicationForm.MinCount = attachmentMetadata.GetValue("minCount")!.Value<int>();
+        applicationForm.MaxSize = attachmentMetadata.GetValue("maxSize")!.Value<int>();
 
         await DeleteMetadataForAttachment(org, app, attachmentId);
         string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
