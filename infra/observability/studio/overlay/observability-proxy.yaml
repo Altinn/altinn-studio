@@ -182,6 +182,7 @@ spec:
       port: 80
       targetPort: 8080
       protocol: TCP
+      appProtocol: http
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
