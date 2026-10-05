@@ -1,5 +1,5 @@
 import type { Ref } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioFileBrowser } from './StudioFileBrowser';
@@ -195,10 +195,11 @@ describe('StudioFileBrowser', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(errorMessage);
   });
 
-  it('shows the content of the file in the code viewer and marks the file as current', () => {
+  it('shows the content of the file in the code viewer and marks the file as current', async () => {
     const path = 'App/config/applicationmetadata.json';
     renderStudioFileBrowser({ file: { path, status: 'loaded', content: '{ "id": "ttd/app" }' } });
-    expect(screen.getByRole('region', { name: path })).toHaveTextContent('"ttd/app"');
+    const codeRegion = screen.getByRole('region', { name: path });
+    expect(await within(codeRegion).findByText('"ttd/app"')).toHaveClass('hljs-string');
     expect(getButton('applicationmetadata.json')).toHaveAttribute('aria-current', 'true');
     expect(getButton('texts')).not.toHaveAttribute('aria-current');
   });
