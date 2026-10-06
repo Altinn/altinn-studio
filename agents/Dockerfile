@@ -337,6 +337,7 @@ RUN apt-get update \
         clang \
         ffmpeg \
         file \
+        htop \
         hyperfine \
         iproute2 \
         less \

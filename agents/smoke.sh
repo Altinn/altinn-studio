@@ -183,6 +183,7 @@ shellcheck --version | sed -n 2p
 psql --version
 hyperfine --version
 btop --version | head -1
+htop --version | head -1
 socat -V | sed -n 2p
 tcpdump --version | head -1
 dig -v
