@@ -24,6 +24,7 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
 import { checkValidSsn } from 'src/layout/PersonLookup/validation';
+import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
@@ -60,7 +61,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const ssnValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey === 'ssn');
   const nameValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey !== 'ssn');
-  const lookupErrors = validations.filter((v) => !('bindingKey' in v));
 
   const { langAsString } = useLanguage();
   const {
@@ -178,7 +178,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           <Field className={classes.ssn}>
             <NumericInput
               id={`${componentId}_ssn`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_ssn`) : undefined}
+              aria-describedby={buildAriaDescribedBy({
+                hasTitle: true,
+                hasDescription: hasSuccessfullyFetched,
+                descriptionId: getDescriptionId(`${componentId}_ssn`),
+                hasValidations: validations.length > 0,
+                validationsId: `${componentId}-validations`,
+              })}
               aria-label={langAsString('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? ssn : tempSsn}
               required={required}
@@ -203,11 +209,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <Lang id='person_lookup.validation_error_ssn' />
               </ValidationMessage>
             )}
-            <ComponentValidations
-              id={`${componentId}-ssn-validations`}
-              validations={ssnValidations}
-              baseComponentId={baseComponentId}
-            />
           </Field>
           <div className={classes.nameLabel}>
             <Label
@@ -228,7 +229,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           <Field className={classes.name}>
             <Input
               id={`${componentId}_name`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_name`) : undefined}
+              aria-describedby={buildAriaDescribedBy({
+                hasTitle: true,
+                hasDescription: hasSuccessfullyFetched,
+                descriptionId: getDescriptionId(`${componentId}_name`),
+                hasValidations: validations.length > 0,
+                validationsId: `${componentId}-validations`,
+              })}
               aria-label={langAsString(
                 hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
               )}
@@ -253,11 +260,6 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
                 <Lang id='person_lookup.validation_error_name_too_short' />
               </ValidationMessage>
             )}
-            <ComponentValidations
-              id={`${componentId}-name-validations`}
-              validations={nameValidations}
-              baseComponentId={baseComponentId}
-            />
           </Field>
           {!readOnly && (
             <div className={classes.submit}>
@@ -288,7 +290,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               </ValidationMessage>
             )}
             <ComponentValidations
-              validations={lookupErrors}
+              validations={validations}
               baseComponentId={baseComponentId}
             />
           </div>

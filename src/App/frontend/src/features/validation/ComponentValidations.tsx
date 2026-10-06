@@ -13,7 +13,6 @@ import type { NodeRefValidation } from 'src/features/validation';
 interface Props {
   validations: NodeRefValidation[] | undefined;
   baseComponentId: string;
-  id?: string;
 }
 
 export function AllComponentValidations({ baseComponentId }: { baseComponentId?: string }) {
@@ -43,7 +42,7 @@ function AllComponentValidationsFor({ baseComponentId }: { baseComponentId: stri
   );
 }
 
-export function ComponentValidations({ validations, baseComponentId, id }: Props) {
+export function ComponentValidations({ validations, baseComponentId }: Props) {
   const indexedId = useIndexedId(baseComponentId);
   const config = useComponentConfig(baseComponentId);
   const inputMaxLength = config.type === 'Input' || config.type === 'TextArea' ? config.maxLength : undefined;
@@ -69,7 +68,7 @@ export function ComponentValidations({ validations, baseComponentId, id }: Props
 
   return (
     <ValidationMessages
-      id={id ?? `${baseComponentId}-validations`}
+      id={`${indexedId}-validations`}
       dataValidation={indexedId}
       validations={filteredValidations.map((validation) => ({
         id: String(getUniqueKeyFromObject(validation)),
