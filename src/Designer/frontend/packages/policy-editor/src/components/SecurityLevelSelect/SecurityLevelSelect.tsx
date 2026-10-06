@@ -49,11 +49,9 @@ export const SecurityLevelSelect = ({
   const isSystemUserAllowed: boolean = requiredAuthenticationLevelSystemUser === AUTH_LEVEL_3;
 
   const handleEndUserAuthLevelChange = (authLevel: RequiredAuthLevel): void => {
-    // The system user exception only has a meaning when end users are required to have level 4,
-    // so lowering the security level removes it again.
-    const systemUserAuthLevel =
-      authLevel === AUTH_LEVEL_4 ? requiredAuthenticationLevelSystemUser : undefined;
-    onSave(authLevel, systemUserAuthLevel);
+    // The system user exception lets more users in, so it is always removed when the security
+    // level changes. The user must then actively allow it again.
+    onSave(authLevel, undefined);
   };
 
   const handleSystemUserAllowedChange = (allowSystemUser: boolean): void => {

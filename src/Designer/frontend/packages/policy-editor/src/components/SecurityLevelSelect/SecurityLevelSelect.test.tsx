@@ -83,7 +83,7 @@ describe('SelectAuthLevel', () => {
     expect(mockOnSave).toHaveBeenCalledWith('4', undefined);
   });
 
-  it('keeps the system user level when the security level is raised to 4', async () => {
+  it('removes the system user level when the security level is raised to 4', async () => {
     render(
       <SecurityLevelSelect
         {...defaultProps}
@@ -98,7 +98,7 @@ describe('SelectAuthLevel', () => {
       screen.getByRole('option', { name: textMock('policy_editor.auth_level_option_4') }),
     );
 
-    expect(mockOnSave).toHaveBeenCalledWith('4', '3');
+    expect(mockOnSave).toHaveBeenCalledWith('4', undefined);
   });
 
   it('removes the system user level when the security level is lowered from 4', async () => {
