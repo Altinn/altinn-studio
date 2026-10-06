@@ -53,6 +53,7 @@ const SummarySubformWrapperInner = ({
             baseComponentId={targetBaseComponentId}
             id={`subform-summary2-${componentId}`}
             renderLabelAs='span'
+            hideIndicators
             weight='regular'
             textResourceBindings={{
               title,
@@ -140,6 +141,7 @@ const DoSummaryWrapper = ({
                   baseComponentId={baseComponentId}
                   id={`subform-summary2-${dataElement.id}`}
                   renderLabelAs='span'
+                  hideIndicators
                   weight='regular'
                   textResourceBindings={{ title }}
                 />

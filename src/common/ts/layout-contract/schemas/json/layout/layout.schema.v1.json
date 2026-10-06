@@ -4153,6 +4153,9 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "$ref": "#/definitions/ILikertColumnProperties"
         },
         {
@@ -4267,6 +4270,7 @@
             "readOnly": true,
             "required": true,
             "showValidations": true,
+            "labelSettings": true,
             "columns": true,
             "type": true,
             "textResourceBindings": true,
@@ -5110,6 +5114,9 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "title": "CompOrganizationLookupExternal",
           "type": "object",
           "properties": {
@@ -5205,6 +5212,7 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
+            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,
@@ -5576,6 +5584,9 @@
           "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
           "title": "CompPersonLookupExternal",
           "type": "object",
           "properties": {
@@ -5657,6 +5668,7 @@
             "showValidations": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
+            "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
             "removeWhenHidden": true,
@@ -9109,7 +9121,8 @@
       "properties": {
         "optionalIndicator": {
           "title": "Optional indicator",
-          "description": "Show optional indicator on label",
+          "description": "Show the optional indicator on the label of non-required fields. Enabled by default.",
+          "default": true,
           "type": "boolean"
         }
       },
